@@ -8,4 +8,20 @@ public class Phone {
 
 	public final StringColumn<Phone, PhoneQuery> phone = null;
 
+	public String getType() {
+		return this.type.get();
+	}
+
+	public void setType(String type) {
+		this.type.set(type);
+	}
+
+	public String getPhone() {
+		return this.phone.get();
+	}
+
+	public void setPhone(String phone) {
+		this.phone.set(phone);
+	}
+
 }

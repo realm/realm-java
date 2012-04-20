@@ -1,10 +1,10 @@
 package com.tigthdb.example;
 
 import java.util.List;
-import java.util.Map;
 
 import com.tigthdb.example.generated.Person;
 import com.tigthdb.example.generated.PersonTable;
+import com.tigthdb.example.generated.PersonView;
 import com.tigthdb.lib.Table;
 
 public class Example {
@@ -33,8 +33,13 @@ public class Example {
 
 		persons.insert(0, "Nikolche", "Mihajlovski", 28000);
 
-		String name = persons.at(0).firstName.get();
+		// 2 ways to get the value
+		String name1 = persons.at(0).firstName.get();
+		String name2 = persons.at(0).getFirstName();
+		
+		// 2 ways to set the value
 		persons.at(1).lastName.set("NewName");
+		persons.at(1).setLastName("NewName");
 
 		persons.remove(0);
 
@@ -61,24 +66,30 @@ public class Example {
 		}
 		
 		// using lazy list of results - as moving a cursor through a view
-		for (Person person : persons.salary.greaterThan(123).findAll()) {
-			
+		PersonView view = persons.salary.greaterThan(123).findAll();
+		for (Person person : view) {
 			System.out.println(person);
 		}
-		// TODO: view.salary.max();
+		int maxSalary = view.salary.max();
 
 		// Various combinations:
 		
-		int sum = persons.firstName.is("X").or().salary.is(5).salary.sum();
+		// option 1: direct query and data retrieval
+		int sum1 = persons.firstName.is("X").or().salary.is(5).salary.sum();
+		
+		// options 2: 
+		int sum2 = persons.firstName.is("X").or().salary.is(5).findAll().salary.sum();
+		
 		persons.firstName.is("Y").salary.is(6).lastName.set("Z");
 		persons.salary.greaterThan(1234).remove();
 
-		// TODO: 
-		/*
 		for (String phone : persons.phones.type.is("mobile").findAll().phone.all()) {
 			System.out.println(phone);
 		}
-		*/
+		
+		// FIXME: introduce new class for "or()" to disable such options:
+		persons.firstName.is("X").or().salary.all();
+		persons.firstName.is("X").or().salary.set(1234);
 	}
 
 }

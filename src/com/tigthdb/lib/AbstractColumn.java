@@ -4,16 +4,18 @@ import java.util.List;
 
 public class AbstractColumn<T, M> {
 
-	public T get() {
-		return null;
-	}
+	// TODO: please consider keeping get() and set() due to many cool advantages
 
-	public List<T> getAll() {
+	public T get() {
 		return null;
 	}
 
 	public void set(T value) {
 
+	}
+
+	public List<T> all() {
+		return null;
 	}
 
 	public M is(T value) {

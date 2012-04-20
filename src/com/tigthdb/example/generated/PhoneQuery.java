@@ -1,7 +1,5 @@
 package com.tigthdb.example.generated;
 
-import java.util.List;
-
 import com.tigthdb.lib.StringColumn;
 
 public class PhoneQuery {
@@ -10,7 +8,7 @@ public class PhoneQuery {
 
 	public final StringColumn<Phone, PhoneQuery> phone = null;
 
-	public List<Phone> findAll() {
+	public PhoneView findAll() {
 		return null;
 	}
 
@@ -22,11 +20,12 @@ public class PhoneQuery {
 		return null;
 	}
 
-	public Phone or() {
+	public Phone findUnique() {
 		return null;
 	}
 
-	public Phone findUnique() {
+	// FIXME: we need special class
+	public Phone or() {
 		return null;
 	}
 

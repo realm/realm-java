@@ -1,7 +1,5 @@
 package com.tigthdb.example.generated;
 
-import java.util.List;
-
 import com.tigthdb.lib.IntegerColumn;
 import com.tigthdb.lib.StringColumn;
 
@@ -13,7 +11,7 @@ public class PersonQuery {
 
 	public final IntegerColumn<Person, PersonQuery> salary = null;
 
-	public List<Person> findAll() {
+	public PersonView findAll() {
 		return null;
 	}
 
@@ -25,11 +23,12 @@ public class PersonQuery {
 		return null;
 	}
 
-	public Person or() {
+	public Person findUnique() {
 		return null;
 	}
 
-	public Person findUnique() {
+	// FIXME: we need other class
+	public Person or() {
 		return null;
 	}
 

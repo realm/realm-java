@@ -14,4 +14,8 @@ public class IntegerColumn<T, M> extends AbstractColumn<Integer, M> {
 		return 0;
 	}
 
+	public int max() {
+		return 0;
+	}
+
 }
