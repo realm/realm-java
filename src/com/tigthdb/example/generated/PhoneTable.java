@@ -3,7 +3,7 @@ package com.tigthdb.example.generated;
 import com.tigthdb.lib.AbstractTable;
 import com.tigthdb.lib.StringColumn;
 
-public class PhoneTable extends AbstractTable<Phone> {
+public class PhoneTable extends AbstractTable<Phone, PhoneView> {
 
 	public final StringColumn<Phone, PhoneQuery> type = new StringColumn<Phone, PhoneQuery>();
 

@@ -87,6 +87,9 @@ public class Example {
 			System.out.println(phone);
 		}
 
+		// from 2nd to 4th row
+		view = persons.range(2, 4);
+		
 		// FIXME: introduce new class for "or()" to disable such options:
 		persons.firstName.is("X").or().salary.all();
 		persons.firstName.is("X").or().salary.set(1234);
