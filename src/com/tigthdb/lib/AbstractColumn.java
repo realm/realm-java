@@ -2,27 +2,27 @@ package com.tigthdb.lib;
 
 import java.util.List;
 
-public abstract class AbstractColumn<T, M> {
+public abstract class AbstractColumn<Type, Query> {
 
 	// TODO: please consider keeping get() and set() due to many cool advantages
 
-	public T get() {
+	public Type get() {
 		return null;
 	}
 
-	public void set(T value) {
+	public void set(Type value) {
 
 	}
 
-	public List<T> all() {
+	public List<Type> all() {
 		return null;
 	}
 
-	public M is(T value) {
+	public Query is(Type value) {
 		return null;
 	}
-	
-	public M isnt(T value) {
+
+	public Query isnt(Type value) {
 		return null;
 	}
 

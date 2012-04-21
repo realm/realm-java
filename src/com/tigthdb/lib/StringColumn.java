@@ -1,20 +1,20 @@
 package com.tigthdb.lib;
 
-public class StringColumn<T, M> extends AbstractColumn<String, M> {
+public class StringColumn<Cursor, Query> extends AbstractColumn<String, Query> {
 
-	public M startsWith(String value) {
+	public Query startsWith(String value) {
 		return null;
 	}
 
-	public M endWith(String value) {
+	public Query endWith(String value) {
 		return null;
 	}
 
-	public M contains(String value) {
+	public Query contains(String value) {
 		return null;
 	}
 
-	public M matches(String regex) {
+	public Query matches(String regex) {
 		return null;
 	}
 

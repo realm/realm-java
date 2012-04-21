@@ -1,16 +1,16 @@
 package com.tigthdb.lib;
 
-public class IntColumn<T, M> extends AbstractColumn<Integer, M> {
+public class IntColumn<Cursor, Query> extends AbstractColumn<Integer, Query> {
 
-	public M greaterThan(int value) {
+	public Query greaterThan(int value) {
 		return null;
 	}
 
-	public M lessThan(int value) {
+	public Query lessThan(int value) {
 		return null;
 	}
 
-	public M between(int from, int to) {
+	public Query between(int from, int to) {
 		return null;
 	}
 
@@ -34,5 +34,4 @@ public class IntColumn<T, M> extends AbstractColumn<Integer, M> {
 		return 0;
 	}
 
-	
 }

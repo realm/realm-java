@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-public abstract class AbstractView<E> implements List<E> {
+public abstract class AbstractView<Cursor> implements List<Cursor> {
 
 	@Override
 	public int size() {
@@ -23,7 +23,7 @@ public abstract class AbstractView<E> implements List<E> {
 	}
 
 	@Override
-	public Iterator<E> iterator() {
+	public Iterator<Cursor> iterator() {
 		throw new UnsupportedOperationException();
 	}
 
@@ -38,7 +38,7 @@ public abstract class AbstractView<E> implements List<E> {
 	}
 
 	@Override
-	public boolean add(E e) {
+	public boolean add(Cursor e) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -53,12 +53,12 @@ public abstract class AbstractView<E> implements List<E> {
 	}
 
 	@Override
-	public boolean addAll(Collection<? extends E> c) {
+	public boolean addAll(Collection<? extends Cursor> c) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean addAll(int index, Collection<? extends E> c) {
+	public boolean addAll(int index, Collection<? extends Cursor> c) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -78,22 +78,22 @@ public abstract class AbstractView<E> implements List<E> {
 	}
 
 	@Override
-	public E get(int index) {
+	public Cursor get(int index) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public E set(int index, E element) {
+	public Cursor set(int index, Cursor element) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void add(int index, E element) {
+	public void add(int index, Cursor element) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public E remove(int index) {
+	public Cursor remove(int index) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -108,17 +108,17 @@ public abstract class AbstractView<E> implements List<E> {
 	}
 
 	@Override
-	public ListIterator<E> listIterator() {
+	public ListIterator<Cursor> listIterator() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public ListIterator<E> listIterator(int index) {
+	public ListIterator<Cursor> listIterator(int index) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public List<E> subList(int fromIndex, int toIndex) {
+	public List<Cursor> subList(int fromIndex, int toIndex) {
 		throw new UnsupportedOperationException();
 	}
 

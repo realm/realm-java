@@ -1,20 +1,20 @@
 package com.tigthdb.lib;
 
-public abstract class AbstractCursor<E> {
+public abstract class AbstractCursor<Cursor> {
 
-	public E next() {
+	public Cursor next() {
 		return null;
 	}
 
-	public E previous() {
+	public Cursor previous() {
 		return null;
 	}
 
-	public E before(long delta) {
+	public Cursor before(long delta) {
 		return null;
 	}
 
-	public E after(long delta) {
+	public Cursor after(long delta) {
 		return null;
 	}
 

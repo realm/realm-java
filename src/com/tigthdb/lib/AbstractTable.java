@@ -2,21 +2,21 @@ package com.tigthdb.lib;
 
 import java.util.Iterator;
 
-public abstract class AbstractTable<E, V> implements Iterable<E> {
+public abstract class AbstractTable<Cursor, View> implements Iterable<Cursor> {
 
-	public V range(long from, long to) {
+	public View range(long from, long to) {
 		return null;
 	}
 
-	public Iterator<E> iterator() {
+	public Iterator<Cursor> iterator() {
 		return null;
 	}
 
-	public E first() {
+	public Cursor first() {
 		return null;
 	}
 
-	public E last() {
+	public Cursor last() {
 		return null;
 	}
 
