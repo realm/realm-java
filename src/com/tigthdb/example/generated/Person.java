@@ -4,7 +4,7 @@ import com.tigthdb.lib.AbstractCursor;
 import com.tigthdb.lib.IntColumn;
 import com.tigthdb.lib.StringColumn;
 
-public class Person extends AbstractCursor {
+public class Person extends AbstractCursor<Person> {
 
 	public final StringColumn<Person, PersonQuery> firstName = null;
 

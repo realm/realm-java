@@ -36,7 +36,7 @@ public class Example {
 		// 2 ways to get the value
 		String name1 = persons.at(0).firstName.get();
 		String name2 = persons.at(0).getFirstName();
-		
+
 		// 2 ways to set the value
 		persons.at(1).lastName.set("NewName");
 		persons.at(1).setLastName("NewName");
@@ -64,7 +64,7 @@ public class Example {
 		for (Person person : persons) {
 			person.salary.set(50000);
 		}
-		
+
 		// using lazy list of results - as moving a cursor through a view
 		PersonView view = persons.salary.greaterThan(123).findAll();
 		for (Person person : view) {
@@ -73,23 +73,44 @@ public class Example {
 		int maxSalary = view.salary.max();
 
 		// Various combinations:
-		
+
 		// option 1: direct query and data retrieval
 		int sum1 = persons.firstName.is("X").or().salary.is(5).salary.sum();
-		
-		// options 2: 
+
+		// options 2:
 		int sum2 = persons.firstName.is("X").or().salary.is(5).findAll().salary.sum();
-		
+
 		persons.firstName.is("Y").salary.is(6).lastName.set("Z");
 		persons.salary.greaterThan(1234).remove();
 
 		for (String phone : persons.phones.type.is("mobile").findAll().phone.all()) {
 			System.out.println(phone);
 		}
-		
+
 		// FIXME: introduce new class for "or()" to disable such options:
 		persons.firstName.is("X").or().salary.all();
 		persons.firstName.is("X").or().salary.set(1234);
+		
+		Person p1 = persons.at(4).next(); // 5nd row
+		Person p2 = persons.last().previous(); // 2nd-last row
+		Person p3 = persons.first().after(3); // 4th row
+		Person p4 = persons.last().before(2); // 3rd-last row
+
+		// TODO: cursor navigation in views:
+		PersonView allJohns = persons.firstName.is("John").findAll();
+		// Person firstJohn = allJohns.first();
+		// Person thirdJohn = allJohns.at(2).next();
+
+		// TODO: discuss with Brian: row numbers after deletion and insertion (IDs vs. row numbers)
+		// maybe we will need (long ID or String ID) in the model 
+
+		// TODO: discuss with Brian: tables and view can be very similar and have common operations:
+		// - both can be lists
+		// both can allow cursor navigation: at(), first(), last()...
+		// both allow aggregation: x.salary.sum()
+
+		// TODO: add empty row?
+		// TODO: sort, range, limit
 	}
 
 }

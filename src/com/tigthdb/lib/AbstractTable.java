@@ -8,4 +8,12 @@ public abstract class AbstractTable<E> implements Iterable<E> {
 		return null;
 	}
 
+	public E first() {
+		return null;
+	}
+	
+	public E last() {
+		return null;
+	}
+	
 }
