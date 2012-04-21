@@ -2,7 +2,7 @@ package com.tigthdb.lib;
 
 import java.util.List;
 
-public class AbstractColumn<T, M> {
+public abstract class AbstractColumn<T, M> {
 
 	// TODO: please consider keeping get() and set() due to many cool advantages
 
@@ -19,6 +19,10 @@ public class AbstractColumn<T, M> {
 	}
 
 	public M is(T value) {
+		return null;
+	}
+	
+	public M isnt(T value) {
 		return null;
 	}
 

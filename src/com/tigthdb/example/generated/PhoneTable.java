@@ -1,10 +1,9 @@
 package com.tigthdb.example.generated;
 
-import java.util.Iterator;
-
+import com.tigthdb.lib.AbstractTable;
 import com.tigthdb.lib.StringColumn;
 
-public class PhoneTable implements Iterable<Phone> {
+public class PhoneTable extends AbstractTable<Phone> {
 
 	public final StringColumn<Phone, PhoneQuery> type = new StringColumn<Phone, PhoneQuery>();
 
@@ -24,10 +23,6 @@ public class PhoneTable implements Iterable<Phone> {
 
 	public void remove(long id) {
 
-	}
-
-	public Iterator<Phone> iterator() {
-		return null;
 	}
 
 }

@@ -1,8 +1,9 @@
 package com.tigthdb.example.generated;
 
+import com.tigthdb.lib.AbstractCursor;
 import com.tigthdb.lib.StringColumn;
 
-public class Phone {
+public class Phone extends AbstractCursor {
 
 	public final StringColumn<Phone, PhoneQuery> type = null;
 

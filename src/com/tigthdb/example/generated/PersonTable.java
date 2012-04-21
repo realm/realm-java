@@ -1,18 +1,17 @@
 package com.tigthdb.example.generated;
 
-import java.util.Iterator;
-
-import com.tigthdb.lib.IntegerColumn;
+import com.tigthdb.lib.AbstractTable;
+import com.tigthdb.lib.IntColumn;
 import com.tigthdb.lib.StringColumn;
 
-public class PersonTable implements Iterable<Person> {
+public class PersonTable extends AbstractTable<Person> {
 
 	public final StringColumn<Person, PersonQuery> firstName = new StringColumn<Person, PersonQuery>();
 
 	public final StringColumn<Person, PersonQuery> lastName = new StringColumn<Person, PersonQuery>();
 
-	public final IntegerColumn<Person, PersonQuery> salary = new IntegerColumn<Person, PersonQuery>();
-	
+	public final IntColumn<Person, PersonQuery> salary = new IntColumn<Person, PersonQuery>();
+
 	public final PhoneTable phones = new PhoneTable();
 
 	public Person add(String firstName, String lastName, int salary) {
@@ -29,10 +28,6 @@ public class PersonTable implements Iterable<Person> {
 
 	public void remove(long id) {
 
-	}
-
-	public Iterator<Person> iterator() {
-		return null;
 	}
 
 }

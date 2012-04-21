@@ -1,8 +1,9 @@
 package com.tigthdb.example.generated;
 
+import com.tigthdb.lib.AbstractQuery;
 import com.tigthdb.lib.StringColumn;
 
-public class PhoneQuery {
+public class PhoneQuery extends AbstractQuery {
 
 	public final StringColumn<Phone, PhoneQuery> type = null;
 

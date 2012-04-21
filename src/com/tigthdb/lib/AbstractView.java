@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-public class AbstractView<E> implements List<E> {
+public abstract class AbstractView<E> implements List<E> {
 
 	@Override
 	public int size() {
