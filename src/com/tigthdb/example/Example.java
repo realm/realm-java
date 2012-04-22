@@ -114,6 +114,8 @@ public class Example {
 
 		// TODO: add empty row?
 		// TODO: sort, range, limit
+		
+		// TODO: in future introduce and implement Entity and Column interfaces as public API 
 	}
 
 }

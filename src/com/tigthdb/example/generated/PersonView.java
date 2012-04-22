@@ -4,7 +4,7 @@ import com.tigthdb.lib.AbstractView;
 import com.tigthdb.lib.IntColumn;
 import com.tigthdb.lib.StringColumn;
 
-public class PersonView extends AbstractView<Person> {
+public class PersonView extends AbstractView<Person, PersonView> {
 
 	public final StringColumn<Person, PersonQuery> firstName = null;
 
