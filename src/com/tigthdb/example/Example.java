@@ -90,9 +90,12 @@ public class Example {
 		// from 2nd to 4th row
 		view = persons.range(2, 4);
 		
-		// FIXME: introduce new class for "or()" to disable such options:
-		persons.firstName.is("X").or().salary.all();
-		persons.firstName.is("X").or().salary.set(1234);
+		// TODO: discuss the trade-offs (new class, longer queries or incorrect options?) between such options:
+		persons.firstName.is("d").salary.sum(); // no problem without OR
+		persons.firstName.is("X").or().salary.set(1234); // problem - incorrect options
+		persons.firstName.is("X").or().salary.is(23).salary.sum(); // correct, shorter (query-based)
+		persons.firstName.is("X").or().salary.is(23).findAll().salary.sum(); // correct, longer (view-based)
+		
 		
 		Person p1 = persons.at(4).next(); // 5nd row
 		Person p2 = persons.last().previous(); // 2nd-last row
@@ -108,12 +111,12 @@ public class Example {
 		// maybe we will need (long ID or String ID) in the model 
 
 		// TODO: discuss with Brian: tables and view can be very similar and have common operations:
-		// - both can be lists
+		// - both can be lists (currently extend that behaviour from AbstractRowset)
 		// both can allow cursor navigation: at(), first(), last()...
 		// both allow aggregation: x.salary.sum()
 
 		// TODO: add empty row?
-		// TODO: sort, range, limit
+		// TODO: sort, limit
 		
 		// TODO: in future introduce and implement Entity and Column interfaces as public API 
 	}
