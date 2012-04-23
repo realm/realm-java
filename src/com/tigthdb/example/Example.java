@@ -90,9 +90,12 @@ public class Example {
 		// from 2nd to 4th row
 		view = persons.range(2, 4);
 		
-		// TODO: discuss the trade-offs (new class, longer queries or incorrect options?) between such options:
+		// TODO: discuss the trade-offs (new classes, longer queries or incorrect options?) between such options:
 		persons.firstName.is("d").salary.sum(); // no problem without OR
-		persons.firstName.is("X").or().salary.set(1234); // problem - incorrect options
+		
+		// this isn't possible anymore, due to special sub-query return type of "or()"
+		// persons.firstName.is("X").or().salary.set(1234);
+
 		persons.firstName.is("X").or().salary.is(23).salary.sum(); // correct, shorter (query-based)
 		persons.firstName.is("X").or().salary.is(23).findAll().salary.sum(); // correct, longer (view-based)
 		

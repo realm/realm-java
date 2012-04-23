@@ -29,7 +29,7 @@ public class PersonQuery extends AbstractQuery {
 	}
 
 	// FIXME: we need other class
-	public Person or() {
+	public PersonSubQuery or() {
 		return null;
 	}
 
