@@ -93,6 +93,8 @@ public class Example {
 		// TODO: discuss the trade-offs (new classes, longer queries or incorrect options?) between such options:
 		persons.firstName.is("d").salary.sum(); // no problem without OR
 		
+		// persons.firstName.is("X").or().salary.sum();
+		
 		// this isn't possible anymore, due to special sub-query return type of "or()"
 		// persons.firstName.is("X").or().salary.set(1234);
 
@@ -105,6 +107,13 @@ public class Example {
 		Person p3 = persons.first().after(3); // 4th row
 		Person p4 = persons.last().before(2); // 3rd-last row
 
+		
+//		get the post params from the request
+//		for each column in person:
+//			if the column name is in the params:
+//				set the column value form the param 
+			
+			
 		// TODO: cursor navigation in views:
 		PersonView allJohns = persons.firstName.is("John").findAll();
 		// Person firstJohn = allJohns.first();
@@ -113,13 +122,13 @@ public class Example {
 		// TODO: discuss with Brian: row numbers after deletion and insertion (IDs vs. row numbers)
 		// maybe we will need (long ID or String ID) in the model 
 
-		// TODO: discuss with Brian: tables and view can be very similar and have common operations:
+		// TODO: discuss with Brian: 
+		// tables and view can be very similar and have common operations:
 		// - both can be lists (currently extend that behaviour from AbstractRowset)
 		// both can allow cursor navigation: at(), first(), last()...
 		// both allow aggregation: x.salary.sum()
 
-		// TODO: add empty row?
-		// TODO: sort, limit
+		// TODO: sort, limit - future
 		
 		// TODO: in future introduce and implement Entity and Column interfaces as public API 
 	}
