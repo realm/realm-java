@@ -25,6 +25,7 @@ public class Example {
 			phoneTable phones;
 		}
 
+	
 		PersonTable persons = new PersonTable();
 
 		Person john = persons.add("John", "Doe", 23000);
