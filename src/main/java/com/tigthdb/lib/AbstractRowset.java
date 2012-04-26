@@ -14,7 +14,7 @@ public abstract class AbstractRowset<Cursor, View> implements List<Cursor> {
 
 	@Override
 	public boolean isEmpty() {
-		throw new UnsupportedOperationException();
+		return size() == 0;
 	}
 
 	@Override
@@ -121,5 +121,5 @@ public abstract class AbstractRowset<Cursor, View> implements List<Cursor> {
 	public List<Cursor> subList(int fromIndex, int toIndex) {
 		throw new UnsupportedOperationException();
 	}
-	
+
 }

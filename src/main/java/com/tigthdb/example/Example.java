@@ -9,6 +9,12 @@ import com.tigthdb.lib.Table;
 
 public class Example {
 
+	//@Table
+	class phoneTable {
+		String type;
+		String number;
+	}
+	
 	public static void main(String[] args) {
 
 		@Table
@@ -17,7 +23,7 @@ public class Example {
 			String number;
 		}
 
-		@Table
+		//@Table
 		class personTable {
 			String firstName;
 			String lastName;
@@ -25,7 +31,6 @@ public class Example {
 			phoneTable phones;
 		}
 
-	
 		PersonTable persons = new PersonTable();
 
 		Person john = persons.add("John", "Doe", 23000);
@@ -90,14 +95,19 @@ public class Example {
 
 		// from 2nd to 4th row
 		view = persons.range(2, 4);
-		
-		// TODO: discuss the trade-offs (new class, longer queries or incorrect options?) between such options:
+
+		// TODO: discuss the trade-offs (new class, longer queries or incorrect
+		// options?) between such options:
 		persons.firstName.is("d").salary.sum(); // no problem without OR
-		persons.firstName.is("X").or().salary.set(1234); // problem - incorrect options
-		persons.firstName.is("X").or().salary.is(23).salary.sum(); // correct, shorter (query-based)
-		persons.firstName.is("X").or().salary.is(23).findAll().salary.sum(); // correct, longer (view-based)
-		
-		
+		persons.firstName.is("X").or().salary.set(1234); // problem - incorrect
+															// options
+		persons.firstName.is("X").or().salary.is(23).salary.sum(); // correct,
+																	// shorter
+																	// (query-based)
+		persons.firstName.is("X").or().salary.is(23).findAll().salary.sum(); // correct,
+																				// longer
+																				// (view-based)
+
 		Person p1 = persons.at(4).next(); // 5nd row
 		Person p2 = persons.last().previous(); // 2nd-last row
 		Person p3 = persons.first().after(3); // 4th row
@@ -108,18 +118,22 @@ public class Example {
 		// Person firstJohn = allJohns.first();
 		// Person thirdJohn = allJohns.at(2).next();
 
-		// TODO: discuss with Brian: row numbers after deletion and insertion (IDs vs. row numbers)
-		// maybe we will need (long ID or String ID) in the model 
+		// TODO: discuss with Brian: row numbers after deletion and insertion
+		// (IDs vs. row numbers)
+		// maybe we will need (long ID or String ID) in the model
 
-		// TODO: discuss with Brian: tables and view can be very similar and have common operations:
-		// - both can be lists (currently extend that behaviour from AbstractRowset)
+		// TODO: discuss with Brian: tables and view can be very similar and
+		// have common operations:
+		// - both can be lists (currently extend that behaviour from
+		// AbstractRowset)
 		// both can allow cursor navigation: at(), first(), last()...
 		// both allow aggregation: x.salary.sum()
 
 		// TODO: add empty row?
 		// TODO: sort, limit
-		
-		// TODO: in future introduce and implement Entity and Column interfaces as public API 
+
+		// TODO: in future introduce and implement Entity and Column interfaces
+		// as public API
 	}
 
 }

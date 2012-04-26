@@ -1,9 +1,14 @@
 package com.tigthdb.example.generated;
 
+import com.tightdb.TableBase;
 import com.tigthdb.lib.AbstractCursor;
 import com.tigthdb.lib.StringColumn;
 
 public class Phone extends AbstractCursor<Phone> {
+
+	public Phone(TableBase table, long position) {
+		super(table, Phone.class, position);
+	}
 
 	public final StringColumn<Phone, PhoneQuery> type = null;
 

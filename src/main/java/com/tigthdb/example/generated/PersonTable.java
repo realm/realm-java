@@ -1,33 +1,54 @@
 package com.tigthdb.example.generated;
 
 import com.tigthdb.lib.AbstractTable;
-import com.tigthdb.lib.IntColumn;
+import com.tigthdb.lib.LongColumn;
 import com.tigthdb.lib.StringColumn;
 
 public class PersonTable extends AbstractTable<Person, PersonView> {
 
-	public final StringColumn<Person, PersonQuery> firstName = new StringColumn<Person, PersonQuery>();
+	public PersonTable() {
+		super(Person.class, PersonView.class);
+		registerStringColumn("firstName");
+		registerStringColumn("lastName");
+		registerIntColumn("salary");
+	}
 
-	public final StringColumn<Person, PersonQuery> lastName = new StringColumn<Person, PersonQuery>();
+	public final StringColumn<Person, PersonQuery> firstName = new StringColumn<Person, PersonQuery>(table, 0, "firstName");
 
-	public final IntColumn<Person, PersonQuery> salary = new IntColumn<Person, PersonQuery>();
+	public final StringColumn<Person, PersonQuery> lastName = new StringColumn<Person, PersonQuery>(table, 1, "lastName");
+
+	public final LongColumn<Person, PersonQuery> salary = new LongColumn<Person, PersonQuery>(table, 2, "salary");
 
 	public final PhoneTable phones = new PhoneTable();
 
 	public Person add(String firstName, String lastName, int salary) {
-		return null;
+		try {
+			int position = size();
+
+			table.insertString(0, position, firstName);
+			table.insertString(1, position, lastName);
+			table.insertLong(2, position, salary);
+			table.insertDone();
+
+			return cursor(position);
+		} catch (Exception e) {
+			throw addRowException(e);
+		}
 	}
 
 	public Person insert(long position, String firstName, String lastName, int salary) {
-		return null;
-	}
+		try {
+			int pos = (int) position; // FIXME: should be improved soon
 
-	public Person at(long position) {
-		return null;
-	}
+			table.insertString(0, pos, firstName);
+			table.insertString(1, pos, lastName);
+			table.insertLong(2, pos, salary);
+			table.insertDone();
 
-	public void remove(long id) {
-
+			return cursor(position);
+		} catch (Exception e) {
+			throw insertRowException(e);
+		}
 	}
 
 }

@@ -1,7 +1,7 @@
 package com.tigthdb.example.generated;
 
 import com.tigthdb.lib.AbstractQuery;
-import com.tigthdb.lib.IntColumn;
+import com.tigthdb.lib.LongColumn;
 import com.tigthdb.lib.StringColumn;
 
 public class PersonQuery extends AbstractQuery {
@@ -10,7 +10,7 @@ public class PersonQuery extends AbstractQuery {
 
 	public final StringColumn<Person, PersonQuery> lastName = null;
 
-	public final IntColumn<Person, PersonQuery> salary = null;
+	public final LongColumn<Person, PersonQuery> salary = null;
 
 	public PersonView findAll() {
 		return null;

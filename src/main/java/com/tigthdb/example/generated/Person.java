@@ -1,18 +1,23 @@
 package com.tigthdb.example.generated;
 
+import com.tightdb.TableBase;
 import com.tigthdb.lib.AbstractCursor;
-import com.tigthdb.lib.IntColumn;
+import com.tigthdb.lib.LongColumn;
 import com.tigthdb.lib.StringColumn;
 
 public class Person extends AbstractCursor<Person> {
 
-	public final StringColumn<Person, PersonQuery> firstName = null;
-
-	public final StringColumn<Person, PersonQuery> lastName = null;
-
-	public final IntColumn<Person, PersonQuery> salary = null;
-
+	public final StringColumn<Person, PersonQuery> firstName;
+	public final StringColumn<Person, PersonQuery> lastName;
+	public final LongColumn<Person, PersonQuery> salary;
 	public final PhoneTable phones = null;
+
+	public Person(TableBase table, long position) {
+		super(table, Person.class, position);
+		firstName = new StringColumn<Person, PersonQuery>(table, this, 0, "firstName");
+		lastName = new StringColumn<Person, PersonQuery>(table, this, 1, "lastName");
+		salary = new LongColumn<Person, PersonQuery>(table, this, 2, "salary");
+	}
 
 	public String getFirstName() {
 		return this.firstName.get();
@@ -30,11 +35,11 @@ public class Person extends AbstractCursor<Person> {
 		this.lastName.set(lastName);
 	}
 
-	public int getSalary() {
+	public long getSalary() {
 		return this.salary.get();
 	}
 
-	public void setSalary(int salary) {
+	public void setSalary(long salary) {
 		this.salary.set(salary);
 	}
 
