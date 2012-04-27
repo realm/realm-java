@@ -1,8 +1,8 @@
-package com.tigthdb.example.generated;
+package com.tightdb.example.generated;
 
 import com.tightdb.TableBase;
-import com.tigthdb.lib.AbstractCursor;
-import com.tigthdb.lib.StringColumn;
+import com.tightdb.lib.AbstractCursor;
+import com.tightdb.lib.StringColumn;
 
 public class Phone extends AbstractCursor<Phone> {
 

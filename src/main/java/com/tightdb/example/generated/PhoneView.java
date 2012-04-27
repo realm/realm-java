@@ -1,7 +1,7 @@
-package com.tigthdb.example.generated;
+package com.tightdb.example.generated;
 
-import com.tigthdb.lib.AbstractView;
-import com.tigthdb.lib.StringColumn;
+import com.tightdb.lib.AbstractView;
+import com.tightdb.lib.StringColumn;
 
 public class PhoneView extends AbstractView<Phone, PhoneView> {
 

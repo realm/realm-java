@@ -1,4 +1,4 @@
-package com.tigthdb.lib;
+package com.tightdb.lib;
 
 public abstract class AbstractQuery {
 

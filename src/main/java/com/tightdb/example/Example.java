@@ -1,11 +1,11 @@
-package com.tigthdb.example;
+package com.tightdb.example;
 
 import java.util.List;
 
-import com.tigthdb.example.generated.Person;
-import com.tigthdb.example.generated.PersonTable;
-import com.tigthdb.example.generated.PersonView;
-import com.tigthdb.lib.Table;
+import com.tightdb.example.generated.Person;
+import com.tightdb.example.generated.PersonTable;
+import com.tightdb.example.generated.PersonView;
+import com.tightdb.lib.Table;
 
 public class Example {
 

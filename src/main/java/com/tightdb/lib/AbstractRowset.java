@@ -1,4 +1,4 @@
-package com.tigthdb.lib;
+package com.tightdb.lib;
 
 import java.util.Collection;
 import java.util.Iterator;

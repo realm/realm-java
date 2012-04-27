@@ -1,8 +1,8 @@
-package com.tigthdb.example.generated;
+package com.tightdb.example.generated;
 
-import com.tigthdb.lib.AbstractTable;
-import com.tigthdb.lib.LongColumn;
-import com.tigthdb.lib.StringColumn;
+import com.tightdb.lib.AbstractTable;
+import com.tightdb.lib.LongColumn;
+import com.tightdb.lib.StringColumn;
 
 public class PersonTable extends AbstractTable<Person, PersonView> {
 

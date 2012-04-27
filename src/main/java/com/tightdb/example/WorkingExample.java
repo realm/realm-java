@@ -1,14 +1,16 @@
-package com.tigthdb.example;
+package com.tightdb.example;
 
-import com.tigthdb.example.generated.Person;
-import com.tigthdb.example.generated.PersonTable;
-import com.tigthdb.lib.Table;
+import java.text.NumberFormat;
+
+import com.tightdb.example.generated.Person;
+import com.tightdb.example.generated.PersonTable;
+import com.tightdb.lib.Table;
 
 public class WorkingExample {
 
 	// not finished
 	@Table
-	class personTable {
+	class person {
 		String firstName;
 		String lastName;
 		int salary;
@@ -16,7 +18,9 @@ public class WorkingExample {
 	
 	public static void main(String[] args) {
 		PersonTable persons = new PersonTable();
-
+		
+		System.out.println(NumberFormat.getInstance().getClass());
+		
 		Person john = persons.add("John", "Doe", 23000);
 		Person nikolche = persons.insert(1, "Nikolche", "Mihajlovski", 28000);
 

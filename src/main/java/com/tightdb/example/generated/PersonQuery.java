@@ -1,8 +1,8 @@
-package com.tigthdb.example.generated;
+package com.tightdb.example.generated;
 
-import com.tigthdb.lib.AbstractQuery;
-import com.tigthdb.lib.LongColumn;
-import com.tigthdb.lib.StringColumn;
+import com.tightdb.lib.AbstractQuery;
+import com.tightdb.lib.LongColumn;
+import com.tightdb.lib.StringColumn;
 
 public class PersonQuery extends AbstractQuery {
 
