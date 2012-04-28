@@ -3,6 +3,7 @@ package com.tightdb.lib;
 import com.tightdb.ColumnType;
 import com.tightdb.TableBase;
 
+
 public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor, View> implements Iterable<Cursor> {
 
 	protected final TableBase table = new TableBase();
@@ -28,7 +29,7 @@ public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor,
 		this.viewClass = viewClass;
 	}
 
-	protected void registerIntColumn(String name) {
+	protected void registerLongColumn(String name) {
 		table.registerColumn(ColumnType.ColumnTypeInt, name);
 	}
 

@@ -1,24 +1,19 @@
 package com.tightdb.example;
 
-import com.tightdb.generated.Employee;
-import com.tightdb.generated.EmployeeTable;
-import com.tightdb.lib.Table;
+import java.text.NumberFormat;
 
-public class WorkingExample {
+import com.tightdb.example.generated.Person;
+import com.tightdb.example.generated.PersonTable;
 
-	// not finished
-	@Table
-	class employee {
-		String firstName;
-		String lastName;
-		int salary;
-	}
-	
+public class ManualWorkingExample {
+
 	public static void main(String[] args) {
-		EmployeeTable persons = new EmployeeTable();
+		PersonTable persons = new PersonTable();
 		
-		Employee john = persons.add("John", "Doe", 23000);
-		Employee nikolche = persons.insert(1, "Nikolche", "Mihajlovski", 28000);
+		System.out.println(NumberFormat.getInstance().getClass());
+		
+		Person john = persons.add("John", "Doe", 23000);
+		Person nikolche = persons.insert(1, "Nikolche", "Mihajlovski", 28000);
 
 		System.out.println("first record: " + john);
 		System.out.println("second record: " + nikolche);
@@ -36,11 +31,11 @@ public class WorkingExample {
 		display(persons);
 	}
 
-	private static void display(EmployeeTable persons) {
+	private static void display(PersonTable persons) {
 		System.out.println(String.format("Displaying table %s:", persons.getName()));
 		if (!persons.isEmpty()) {
 			for (int i = 0; i < persons.size(); i++) {
-				Employee p = persons.at(i);
+				Person p = persons.at(i);
 				System.out.println(" - " + p.firstName.get() + " " + p.getLastName() + " " + p.getSalary());
 			}
 		} else {

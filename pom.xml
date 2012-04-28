@@ -9,9 +9,15 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.googlecode.jannocessor</groupId>
-			<artifactId>jannocessor</artifactId>
-			<version>0.7.0</version>
+			<groupId>
+				com.googlecode.jannocessor
+			</groupId>
+			<artifactId>
+				jannocessor
+			</artifactId>
+			<version>
+				0.7.0
+			</version>
 		</dependency>
 	</dependencies>
 
@@ -37,11 +43,20 @@
 			<build>
 				<plugins>
 
-					<!-- USE THIS CONFIGURATION TO DELETE THE OLD GENERATED CODE BEFORE 
-						EACH NEW GENERATION: <plugin> <artifactId>maven-clean-plugin</artifactId> 
-						<version>2.4.1</version> <configuration> <filesets> <fileset> <directory>${project.basedir}/src/main/java/com.tightdb.generated</directory> 
-						<includes> <include>**/*</include> </includes> </fileset> </filesets> </configuration> 
-						</plugin> -->
+					<plugin>
+						<artifactId>maven-clean-plugin</artifactId>
+						<version>2.4.1</version>
+						<configuration>
+							<filesets>
+								<fileset>
+									<directory>${project.basedir}/src/main/java/com/tightdb/generated</directory>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</fileset>
+							</filesets>
+						</configuration>
+					</plugin>
 
 					<plugin>
 						<groupId>com.googlecode.jannocessor</groupId>

@@ -2,6 +2,7 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 
+
 public abstract class AbstractCursor<Cursor> {
 
 	protected final TableBase table;

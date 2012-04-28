@@ -4,3 +4,126 @@
 #end
 
 #macro(indentation)    #end
+
+#macro(table)
+#java_header()
+import com.tightdb.*;
+import com.tightdb.lib.*;
+
+/**
+ * This class represents a TightDB table and was automatically generated.
+ */
+public class ${entity}Table extends AbstractTable<${entity}, ${entity}View> {
+
+#foreach($f in $columns)
+	public final ${f.type.simpleName}Column<${entity}, ${entity}Query> ${f.name} = new ${f.type.simpleName}Column<${entity}, ${entity}Query>(table, ${f.code.attributes.index}, "${f.name}");
+#end
+
+	public ${entity}Table() {
+		super(${entity}.class, ${entity}View.class);
+
+#foreach($f in $columns)
+        register${f.type.simpleName}Column("${f.name}");
+#end
+	}
+
+#class_members()
+
+}
+
+#end
+
+#macro(table_add)
+try {
+	int position = size();
+
+#foreach($f in $columns)
+	table.insert${f.type.simpleName}(${f.code.attributes.index}, position, ${f.name});
+#end
+	table.insertDone();
+
+	return cursor(position);
+} catch (Exception e) {
+	throw addRowException(e);
+}
+#end
+
+#macro(table_insert)
+try {
+	int pos = (int) position; // FIXME: should be improved soon
+
+#foreach($f in $columns)
+	table.insert${f.type.simpleName}(${f.code.attributes.index}, pos, ${f.name});
+#end
+	table.insertDone();
+
+	return cursor(position);
+} catch (Exception e) {
+	throw insertRowException(e);
+}
+
+#end
+
+
+#macro(view)
+#java_header()
+import com.tightdb.*;
+import com.tightdb.lib.*;
+
+/**
+ * This class represents a TightDB view and was automatically generated.
+ */
+public class ${entity}View extends AbstractView<${entity}, ${entity}View> {
+
+}
+#end
+
+
+#macro(query)
+#java_header()
+import com.tightdb.*;
+import com.tightdb.lib.*;
+
+/**
+ * This class represents a TightDB query and was automatically generated.
+ */
+public class ${entity}Query extends AbstractQuery {
+
+}
+#end
+
+
+#macro(cursor)
+#java_header()
+import com.tightdb.*;
+import com.tightdb.lib.*;
+
+/**
+ * This class represents a TightDB cursor and was automatically generated.
+ */
+public class ${entity} extends AbstractCursor<${entity}> {
+
+#foreach($f in $columns)
+    public final ${f.type.simpleName}Column<${entity}, ${entity}Query> ${f.name};
+#end
+
+	public ${entity}(TableBase table, long position) {
+		super(table, ${entity}.class, position);
+
+#foreach($f in $columns)
+        ${f.name} = new ${f.type.simpleName}Column<${entity}, ${entity}Query>(table, this, ${f.code.attributes.index}, "${f.name}");
+#end
+	}
+
+#foreach($f in $columns)
+	public ${f.type.simpleName} get${f.name.capitalized}() {
+		return this.${f.name}.get();
+	}
+
+	public void set${f.name.capitalized}(${f.type.simpleName} ${f.name}) {
+		this.${f.name}.set(${f.name});
+	}
+
+#end
+}
+#end

@@ -6,7 +6,7 @@ import org.jannocessor.processor.annotation.Annotated;
 import org.jannocessor.processor.annotation.Types;
 import org.jannocessor.processor.api.CodeProcessor;
 
-import com.tigthdb.lib.Table;
+import com.tightdb.lib.Table;
 
 import example.processor.TableGenerator;
 

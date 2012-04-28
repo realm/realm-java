@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.tightdb.TableBase;
 
+
 public abstract class AbstractColumn<Type, Cursor, Query> {
 
 	protected final TableBase table;

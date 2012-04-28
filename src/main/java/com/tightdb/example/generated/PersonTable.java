@@ -10,7 +10,7 @@ public class PersonTable extends AbstractTable<Person, PersonView> {
 		super(Person.class, PersonView.class);
 		registerStringColumn("firstName");
 		registerStringColumn("lastName");
-		registerIntColumn("salary");
+		registerLongColumn("salary");
 	}
 
 	public final StringColumn<Person, PersonQuery> firstName = new StringColumn<Person, PersonQuery>(table, 0, "firstName");
