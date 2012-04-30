@@ -46,4 +46,12 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		return cursor + "." + name;
 	}
 
+	public String getName() {
+		return name;
+	}
+	
+	public String getReadable() {
+		return String.valueOf(get());
+	}
+	
 }

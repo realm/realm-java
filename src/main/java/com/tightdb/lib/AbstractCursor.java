@@ -2,7 +2,6 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 
-
 public abstract class AbstractCursor<Cursor> {
 
 	protected final TableBase table;
@@ -38,6 +37,14 @@ public abstract class AbstractCursor<Cursor> {
 	@Override
 	public String toString() {
 		return cursorClass.getSimpleName() + "[" + position + "]";
+	}
+
+	public AbstractColumn<?, ?, ?>[] columns() {
+		return null;
+	}
+
+	protected AbstractColumn<?, ?, ?>[] getColumnsArray(AbstractColumn<?, ?, ?>... columns) {
+		return columns;
 	}
 
 }

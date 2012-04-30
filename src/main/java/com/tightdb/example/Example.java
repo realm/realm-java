@@ -1,43 +1,39 @@
 package com.tightdb.example;
 
+import java.util.Date;
 import java.util.List;
 
 import com.tightdb.example.generated.Person;
 import com.tightdb.example.generated.PersonTable;
 import com.tightdb.example.generated.PersonView;
+import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 
 public class Example {
 
 	//@Table
-	class phoneTable {
+	class phone {
 		String type;
 		String number;
 	}
+
+	//@Table
+	class person {
+		String firstName;
+		String lastName;
+		int salary;
+		@NestedTable
+		phone phones;
+	}
 	
 	public static void main(String[] args) {
-
-		@Table
-		class phoneTable {
-			String type;
-			String number;
-		}
-
-		//@Table
-		class personTable {
-			String firstName;
-			String lastName;
-			int salary;
-			phoneTable phones;
-		}
-
 		PersonTable persons = new PersonTable();
 
-		Person john = persons.add("John", "Doe", 23000);
+		Person john = persons.add("John", "Doe", 23000, true, new byte[] {1,2,3}, new Date(), "extra");
 		john.phones.add("home", "123456");
 		john.phones.add("mobile", "333444");
 
-		persons.insert(0, "Nikolche", "Mihajlovski", 28000);
+		persons.insert(0, "Nikolche", "Mihajlovski", 28000, false, new byte[] {4,5}, new Date(), 1234.56);
 
 		// 2 ways to get the value
 		String name1 = persons.at(0).firstName.get();
