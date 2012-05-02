@@ -22,6 +22,7 @@ public class PersonTable extends AbstractTable<Person, PersonView> {
 		registerBinaryColumn("photo");
 		registerDateColumn("birthdate");
 		registerMixedColumn("extra");
+		registrationDone();
 	}
 
 	public final StringColumn<Person, PersonQuery> firstName = new StringColumn<Person, PersonQuery>(table, 0, "firstName");

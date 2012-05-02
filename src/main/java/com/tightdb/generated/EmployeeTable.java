@@ -30,6 +30,7 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView> {
         registerBinaryColumn("photo");
         registerDateColumn("birthdate");
         registerMixedColumn("extra");
+        registrationDone();
 	}
 
     public Employee add(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra) {

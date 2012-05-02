@@ -1,14 +1,18 @@
 package com.tightdb;
 
-
 public class TableTest {
 
 	public static void main(String[] args) {
 		System.out.println("starting...");
-
+		
+		System.loadLibrary("tightdb");
+		
 		TableBase base = new TableBase();
-		base.registerColumn(ColumnType.ColumnTypeString, "name");
-		base.registerColumn(ColumnType.ColumnTypeInt, "salary");
+
+		TableSpec tableSpec = new TableSpec();
+		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+		tableSpec.addColumn(ColumnType.ColumnTypeInt, "salary");
+		base.updateFromSpec(tableSpec);
 
 		base.insertString(0, 0, "John");
 		base.insertLong(1, 0, 24000);

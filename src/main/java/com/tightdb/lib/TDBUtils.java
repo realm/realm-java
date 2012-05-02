@@ -8,6 +8,8 @@ import java.io.Serializable;
 
 public class TDBUtils {
 
+	private static boolean loadedLibrary;
+
 	public static byte[] serialize(Serializable value) {
 		try {
 			ByteArrayOutputStream mem = new ByteArrayOutputStream();
@@ -50,6 +52,13 @@ public class TDBUtils {
 			}
 		} else {
 			System.out.println(" - the table is empty");
+		}
+	}
+
+	public static void loadLibrary() {
+		if (!loadedLibrary) {
+			System.loadLibrary("tightdb");
+			loadedLibrary = true;
 		}
 	}
 

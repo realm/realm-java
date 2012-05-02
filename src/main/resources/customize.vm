@@ -25,6 +25,7 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View> {
 #foreach($f in $columns)
         register${f.code.attributes.columnType}Column("${f.name}");
 #end
+        registrationDone();
 	}
 
 #class_members()

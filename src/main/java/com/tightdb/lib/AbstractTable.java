@@ -5,10 +5,16 @@ import java.util.Date;
 
 import com.tightdb.ColumnType;
 import com.tightdb.TableBase;
+import com.tightdb.TableSpec;
 
 public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor, View> implements Iterable<Cursor> {
 
+	static {
+		TDBUtils.loadLibrary();
+	}
+	
 	protected final TableBase table = new TableBase();
+	private final TableSpec tableSpec = new TableSpec();
 	protected final Class<Cursor> cursorClass;
 	protected final Class<View> viewClass;
 
@@ -32,29 +38,33 @@ public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor,
 	}
 
 	protected void registerLongColumn(String name) {
-		table.registerColumn(ColumnType.ColumnTypeInt, name);
+		tableSpec.addColumn(ColumnType.ColumnTypeInt, name);
 	}
 
 	protected void registerStringColumn(String name) {
-		table.registerColumn(ColumnType.ColumnTypeString, name);
+		tableSpec.addColumn(ColumnType.ColumnTypeString, name);
 	}
 
 	protected void registerBooleanColumn(String name) {
-		table.registerColumn(ColumnType.ColumnTypeBool, name);
+		tableSpec.addColumn(ColumnType.ColumnTypeBool, name);
 	}
 
 	protected void registerBinaryColumn(String name) {
-		table.registerColumn(ColumnType.ColumnTypeBinary, name);
+		tableSpec.addColumn(ColumnType.ColumnTypeBinary, name);
 	}
 
 	protected void registerDateColumn(String name) {
-		table.registerColumn(ColumnType.ColumnTypeInt, name);  // FIXME: use real type when available
+		tableSpec.addColumn(ColumnType.ColumnTypeInt, name);  // FIXME: use real type when available
 	}
 
 	protected void registerMixedColumn(String name) {
-		table.registerColumn(ColumnType.ColumnTypeBinary, name); // FIXME: use real type when available
+		tableSpec.addColumn(ColumnType.ColumnTypeBinary, name); // FIXME: use real type when available
 	}
 
+	protected void registrationDone() {
+		table.updateFromSpec(tableSpec);
+	}
+	
 	protected void insertLong(long columnIndex, long rowIndex, long value) {
 		table.insertLong((int) columnIndex, (int) rowIndex, value);
 	}
