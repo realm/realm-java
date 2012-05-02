@@ -1,14 +1,17 @@
 package org.jannocessor.config;
 
+import org.jannocessor.collection.api.PowerList;
 import org.jannocessor.model.JavaElement;
 import org.jannocessor.model.structure.AbstractJavaClass;
 import org.jannocessor.processor.annotation.Annotated;
 import org.jannocessor.processor.annotation.Types;
 import org.jannocessor.processor.api.CodeProcessor;
+import org.jannocessor.processor.api.ProcessingContext;
 
+import com.tightdb.generator.CodeGenerator;
+import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 
-import example.processor.TableGenerator;
 
 /**
  * This is a configuration class and it must have the name
@@ -18,10 +21,28 @@ import example.processor.TableGenerator;
  */
 public class Processors {
 
+	private CodeGenerator generator = new CodeGenerator();
+
 	@Annotated(Table.class)
 	@Types(AbstractJavaClass.class)
-	public CodeProcessor<? extends JavaElement> generateBean() {
-		return new TableGenerator();
+	public CodeProcessor<? extends JavaElement> tables() {
+		return new CodeProcessor<JavaElement>() {
+			@Override
+			public void process(PowerList<JavaElement> tables, ProcessingContext context) {
+				generator.processTables(tables);
+			}
+		};
+	}
+
+	@Annotated(NestedTable.class)
+	@Types(AbstractJavaClass.class)
+	public CodeProcessor<? extends JavaElement> subtables() {
+		return new CodeProcessor<JavaElement>() {
+			@Override
+			public void process(PowerList<JavaElement> subtables, ProcessingContext context) {
+				generator.processSubtables(subtables);
+			}
+		};
 	}
 
 }

@@ -1,4 +1,4 @@
-package example.processor;
+package com.tightdb.generator;
 
 import java.util.List;
 import java.util.Map;
@@ -6,6 +6,7 @@ import java.util.Map;
 import org.jannocessor.collection.Power;
 import org.jannocessor.collection.api.PowerList;
 import org.jannocessor.collection.api.PowerSet;
+import org.jannocessor.model.JavaElement;
 import org.jannocessor.model.executable.JavaMethod;
 import org.jannocessor.model.structure.AbstractJavaClass;
 import org.jannocessor.model.structure.JavaClass;
@@ -17,9 +18,9 @@ import org.jannocessor.model.variable.JavaParameter;
 import org.jannocessor.processor.api.CodeProcessor;
 import org.jannocessor.processor.api.ProcessingContext;
 
-public class TableGenerator implements CodeProcessor<AbstractJavaClass> {
+public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 
-	private static final boolean DEBUG_MODE = false;
+	private static final boolean DEBUG_MODE = true;
 
 	private final static PowerSet<String> NUM_TYPES = Power.set("long", "int", "byte", "short", "Long", "Integer", "Byte", "Short");
 	private final static PowerSet<String> OTHER_TYPES = Power.set("String", "Date");
@@ -126,11 +127,17 @@ public class TableGenerator implements CodeProcessor<AbstractJavaClass> {
 			type = "Boolean";
 		} else if ("byte[]".equalsIgnoreCase(type)) {
 			type = "Binary";
+		} else if (isNestedTable(field.getType())) {
+			type = "Table";
 		} else if (!OTHER_TYPES.contains(type)) {
 			type = "Mixed";
 		}
 
 		return type;
+	}
+
+	private boolean isNestedTable(JavaType type) {
+		return false;
 	}
 
 	private JavaType getFieldType(JavaField field) {
@@ -144,6 +151,12 @@ public class TableGenerator implements CodeProcessor<AbstractJavaClass> {
 		}
 
 		return type;
+	}
+
+	public void processTables(PowerList<JavaElement> tables) {
+	}
+
+	public void processSubtables(PowerList<JavaElement> subtables) {
 	}
 
 }
