@@ -16,14 +16,14 @@ import com.tightdb.lib.*;
 public class ${entity}Table extends AbstractTable<${entity}, ${entity}View> {
 
 #foreach($f in $columns)
-	public final ${f.type.simpleName}Column<${entity}, ${entity}Query> ${f.name} = new ${f.type.simpleName}Column<${entity}, ${entity}Query>(table, ${f.code.attributes.index}, "${f.name}");
+	public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query>(table, ${f.code.attributes.index}, "${f.name}");
 #end
 
 	public ${entity}Table() {
 		super(${entity}.class, ${entity}View.class);
 
 #foreach($f in $columns)
-        register${f.type.simpleName}Column("${f.name}");
+        register${f.code.attributes.columnType}Column("${f.name}");
 #end
 	}
 
@@ -38,9 +38,9 @@ try {
 	int position = size();
 
 #foreach($f in $columns)
-	table.insert${f.type.simpleName}(${f.code.attributes.index}, position, ${f.name});
+	insert${f.code.attributes.columnType}(${f.code.attributes.index}, position, ${f.name});
 #end
-	table.insertDone();
+	insertDone();
 
 	return cursor(position);
 } catch (Exception e) {
@@ -50,12 +50,10 @@ try {
 
 #macro(table_insert)
 try {
-	int pos = (int) position; // FIXME: should be improved soon
-
 #foreach($f in $columns)
-	table.insert${f.type.simpleName}(${f.code.attributes.index}, pos, ${f.name});
+	insert${f.code.attributes.columnType}(${f.code.attributes.index}, position, ${f.name});
 #end
-	table.insertDone();
+	insertDone();
 
 	return cursor(position);
 } catch (Exception e) {
@@ -104,23 +102,23 @@ import com.tightdb.lib.*;
 public class ${entity} extends AbstractCursor<${entity}> {
 
 #foreach($f in $columns)
-    public final ${f.type.simpleName}Column<${entity}, ${entity}Query> ${f.name};
+    public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query> ${f.name};
 #end
 
 	public ${entity}(TableBase table, long position) {
 		super(table, ${entity}.class, position);
 
 #foreach($f in $columns)
-        ${f.name} = new ${f.type.simpleName}Column<${entity}, ${entity}Query>(table, this, ${f.code.attributes.index}, "${f.name}");
+        ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query>(table, this, ${f.code.attributes.index}, "${f.name}");
 #end
 	}
 
 #foreach($f in $columns)
-	public ${f.type.simpleName} get${f.name.capitalized}() {
+	public ${f.type.canonicalName} get${f.name.capitalized}() {
 		return this.${f.name}.get();
 	}
 
-	public void set${f.name.capitalized}(${f.type.simpleName} ${f.name}) {
+	public void set${f.name.capitalized}(${f.type.canonicalName} ${f.name}) {
 		this.${f.name}.set(${f.name});
 	}
 

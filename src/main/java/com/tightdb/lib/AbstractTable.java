@@ -79,6 +79,14 @@ public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor,
 		table.insertBinaryData((int) columnIndex, (int) rowIndex, TDBUtils.serialize(value));  // FIXME: use real type when available
 	}
 
+	protected void insertMixed(long columnIndex, long rowIndex, Object value) {
+		if (value instanceof Serializable) {
+			table.insertBinaryData((int) columnIndex, (int) rowIndex, TDBUtils.serialize((Serializable) value));  // FIXME: use real type when available
+		} else {
+			throw new RuntimeException("Cannot insert non-serializable value!");
+		}
+	}
+
 	protected void insertDone() {
 		table.insertDone();
 	}

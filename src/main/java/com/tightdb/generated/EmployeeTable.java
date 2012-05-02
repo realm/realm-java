@@ -2,6 +2,7 @@
 
 package com.tightdb.generated;
 
+import java.util.Date;
 
 import com.tightdb.*;
 import com.tightdb.lib.*;
@@ -14,6 +15,10 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView> {
 	public final StringColumn<Employee, EmployeeQuery> firstName = new StringColumn<Employee, EmployeeQuery>(table, 0, "firstName");
 	public final StringColumn<Employee, EmployeeQuery> lastName = new StringColumn<Employee, EmployeeQuery>(table, 1, "lastName");
 	public final LongColumn<Employee, EmployeeQuery> salary = new LongColumn<Employee, EmployeeQuery>(table, 2, "salary");
+	public final BooleanColumn<Employee, EmployeeQuery> driver = new BooleanColumn<Employee, EmployeeQuery>(table, 3, "driver");
+	public final BinaryColumn<Employee, EmployeeQuery> photo = new BinaryColumn<Employee, EmployeeQuery>(table, 4, "photo");
+	public final DateColumn<Employee, EmployeeQuery> birthdate = new DateColumn<Employee, EmployeeQuery>(table, 5, "birthdate");
+	public final MixedColumn<Employee, EmployeeQuery> extra = new MixedColumn<Employee, EmployeeQuery>(table, 6, "extra");
 
 	public EmployeeTable() {
 		super(Employee.class, EmployeeView.class);
@@ -21,16 +26,24 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView> {
         registerStringColumn("firstName");
         registerStringColumn("lastName");
         registerLongColumn("salary");
+        registerBooleanColumn("driver");
+        registerBinaryColumn("photo");
+        registerDateColumn("birthdate");
+        registerMixedColumn("extra");
 	}
 
-    public Employee add(String firstName, String lastName, int salary) {
+    public Employee add(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra) {
         try {
         	int position = size();
 
-        	table.insertString(0, position, firstName);
-        	table.insertString(1, position, lastName);
-        	table.insertLong(2, position, salary);
-        	table.insertDone();
+        	insertString(0, position, firstName);
+        	insertString(1, position, lastName);
+        	insertLong(2, position, salary);
+        	insertBoolean(3, position, driver);
+        	insertBinary(4, position, photo);
+        	insertDate(5, position, birthdate);
+        	insertMixed(6, position, extra);
+        	insertDone();
 
         	return cursor(position);
         } catch (Exception e) {
@@ -39,14 +52,16 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView> {
 
     }
 
-    public Employee insert(long position, String firstName, String lastName, int salary) {
+    public Employee insert(long position, String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra) {
         try {
-        	int pos = (int) position; // FIXME: should be improved soon
-
-        	table.insertString(0, pos, firstName);
-        	table.insertString(1, pos, lastName);
-        	table.insertLong(2, pos, salary);
-        	table.insertDone();
+        	insertString(0, position, firstName);
+        	insertString(1, position, lastName);
+        	insertLong(2, position, salary);
+        	insertBoolean(3, position, driver);
+        	insertBinary(4, position, photo);
+        	insertDate(5, position, birthdate);
+        	insertMixed(6, position, extra);
+        	insertDone();
 
         	return cursor(position);
         } catch (Exception e) {
