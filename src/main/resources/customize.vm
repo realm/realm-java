@@ -158,5 +158,16 @@ public class ${entity} extends AbstractCursor<${entity}> {
 	}
 
 #end
+	@Override
+	public AbstractColumn<?, ?, ?>[] columns() {
+		return getColumnsArray(#list($columns, '${it.name}', ', '));
+	}
+
 }
+#end
+
+#macro(list $items $template $separator)
+#foreach($it in $items)
+#evaluate($template)#if($foreach.hasNext)$separator#end
+#end
 #end

@@ -37,4 +37,9 @@ public class Phone extends AbstractCursor<Phone> {
 		this.number.set(number);
 	}
 
+	@Override
+	public AbstractColumn<?, ?, ?>[] columns() {
+		return getColumnsArray(type, number);
+	}
+
 }

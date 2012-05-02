@@ -5,6 +5,7 @@ import java.util.Date;
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeTable;
 import com.tightdb.lib.NestedTable;
+import com.tightdb.lib.TDBUtils;
 import com.tightdb.lib.Table;
 
 public class WorkingExample {
@@ -44,29 +45,16 @@ public class WorkingExample {
 
 		System.out.println(john.phones.get().size());
 
-		display(persons);
+		TDBUtils.printTable(persons);
 
 		nikolche.lastName.set("MIHAJLOVSKI");
 		persons.remove(0);
 
-		display(persons);
+		TDBUtils.printTable(persons);
 
 		persons.clear();
 
-		display(persons);
-	}
-
-	private static void display(EmployeeTable persons) {
-		System.out.println(String.format("Displaying table %s:", persons.getName()));
-		if (!persons.isEmpty()) {
-			for (int i = 0; i < persons.size(); i++) {
-				Employee p = persons.at(i);
-				System.out.println(" - " + p.firstName.get() + " " + p.getLastName() + " " + p.getSalary() + " " + p.getDriver() + " " + p.getPhoto()
-						+ " " + p.getBirthdate() + " " + p.getExtra() + " " + p.getPhones().size() + " records");
-			}
-		} else {
-			System.out.println(" - the table is empty");
-		}
+		TDBUtils.printTable(persons);
 	}
 
 }

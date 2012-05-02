@@ -97,4 +97,9 @@ public class Employee extends AbstractCursor<Employee> {
 		this.phones.set(phones);
 	}
 
+	@Override
+	public AbstractColumn<?, ?, ?>[] columns() {
+		return getColumnsArray(firstName, lastName, salary, driver, photo, birthdate, extra, phones);
+	}
+
 }
