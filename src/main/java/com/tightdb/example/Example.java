@@ -11,7 +11,7 @@ import com.tightdb.lib.Table;
 
 public class Example {
 
-	//@Table
+	//@NestedTable
 	class phone {
 		String type;
 		String number;
@@ -22,7 +22,6 @@ public class Example {
 		String firstName;
 		String lastName;
 		int salary;
-		@NestedTable
 		phone phones;
 	}
 	
@@ -30,8 +29,8 @@ public class Example {
 		PersonTable persons = new PersonTable();
 
 		Person john = persons.add("John", "Doe", 23000, true, new byte[] {1,2,3}, new Date(), "extra");
-		john.phones.add("home", "123456");
-		john.phones.add("mobile", "333444");
+		john.phones.get().add("home", "123456");
+		john.phones.get().add("mobile", "333444");
 
 		persons.insert(0, "Nikolche", "Mihajlovski", 28000, false, new byte[] {4,5}, new Date(), 1234.56);
 
@@ -85,7 +84,7 @@ public class Example {
 		persons.firstName.is("Y").salary.is(6).lastName.set("Z");
 		persons.salary.greaterThan(1234).remove();
 
-		for (String phone : persons.phones.type.is("mobile").findAll().phone.all()) {
+		for (String phone : persons.phones.get().type.is("mobile").findAll().phone.all()) {
 			System.out.println(phone);
 		}
 

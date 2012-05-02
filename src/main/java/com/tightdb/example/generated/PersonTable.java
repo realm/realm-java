@@ -3,6 +3,7 @@ package com.tightdb.example.generated;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.tightdb.TableSpec;
 import com.tightdb.lib.AbstractTable;
 import com.tightdb.lib.BinaryColumn;
 import com.tightdb.lib.BooleanColumn;
@@ -10,19 +11,24 @@ import com.tightdb.lib.DateColumn;
 import com.tightdb.lib.LongColumn;
 import com.tightdb.lib.MixedColumn;
 import com.tightdb.lib.StringColumn;
+import com.tightdb.lib.TableColumn;
 
 public class PersonTable extends AbstractTable<Person, PersonView> {
 
 	public PersonTable() {
 		super(Person.class, PersonView.class);
-		registerStringColumn("firstName");
-		registerStringColumn("lastName");
-		registerLongColumn("salary");
-		registerBooleanColumn("driver");
-		registerBinaryColumn("photo");
-		registerDateColumn("birthdate");
-		registerMixedColumn("extra");
-		registrationDone();
+	}
+
+	@Override
+	protected void specifyStructure(TableSpec spec) {
+		registerStringColumn(spec, "firstName");
+		registerStringColumn(spec, "lastName");
+		registerLongColumn(spec, "salary");
+		registerBooleanColumn(spec, "driver");
+		registerBinaryColumn(spec, "photo");
+		registerDateColumn(spec, "birthdate");
+		registerMixedColumn(spec, "extra");
+		registerTableColumn(spec, "attributes", new PhoneTable());
 	}
 
 	public final StringColumn<Person, PersonQuery> firstName = new StringColumn<Person, PersonQuery>(table, 0, "firstName");
@@ -39,7 +45,7 @@ public class PersonTable extends AbstractTable<Person, PersonView> {
 
 	public final MixedColumn<Person, PersonQuery> extra = new MixedColumn<Person, PersonQuery>(table, 6, "extra");
 
-	public final PhoneTable phones = new PhoneTable();
+	public final TableColumn<Person, PersonQuery, PhoneTable> phones = new TableColumn<Person, PersonQuery, PhoneTable>(table, 7, "phones", PhoneTable.class);
 
 	public Person add(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Serializable extra) {
 		try {
@@ -52,6 +58,8 @@ public class PersonTable extends AbstractTable<Person, PersonView> {
 			insertBinary(4, position, photo);
 			insertDate(5, position, birthdate);
 			insertMixed(6, position, extra);
+			insertTable(7, position);
+
 			insertDone();
 
 			return cursor(position);
@@ -70,6 +78,7 @@ public class PersonTable extends AbstractTable<Person, PersonView> {
 			insertBinary(4, position, photo);
 			insertDate(5, position, birthdate);
 			insertMixed(6, position, extra);
+			insertTable(7, position);
 			insertDone();
 
 			return cursor(position);

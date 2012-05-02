@@ -9,6 +9,7 @@ import com.tightdb.lib.DateColumn;
 import com.tightdb.lib.LongColumn;
 import com.tightdb.lib.MixedColumn;
 import com.tightdb.lib.StringColumn;
+import com.tightdb.lib.TableColumn;
 
 public class Person extends AbstractCursor<Person> {
 
@@ -19,7 +20,7 @@ public class Person extends AbstractCursor<Person> {
 	public final BinaryColumn<Person, PersonQuery> photo;
 	public final DateColumn<Person, PersonQuery> birthdate;
 	public final MixedColumn<Person, PersonQuery> extra;
-	public final PhoneTable phones = null;
+	public final TableColumn<Person, PersonQuery, PhoneTable> phones;
 
 	public Person(TableBase table, long position) {
 		super(table, Person.class, position);
@@ -30,6 +31,7 @@ public class Person extends AbstractCursor<Person> {
 		photo = new BinaryColumn<Person, PersonQuery>(table, this, 4, "photo");
 		birthdate = new DateColumn<Person, PersonQuery>(table, this, 5, "birthdate");
 		extra = new MixedColumn<Person, PersonQuery>(table, this, 6, "extra");
+		phones = new TableColumn<Person, PersonQuery, PhoneTable>(table, 7, "phones", PhoneTable.class);
 	}
 
 	public String getFirstName() {
@@ -58,7 +60,7 @@ public class Person extends AbstractCursor<Person> {
 
 	@Override
 	public AbstractColumn<?, ?, ?>[] columns() {
-		return getColumnsArray(firstName, lastName, salary, driver, photo, birthdate, extra);
+		return getColumnsArray(firstName, lastName, salary, driver, photo, birthdate, extra, phones);
 	}
 
 }

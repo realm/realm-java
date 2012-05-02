@@ -12,11 +12,16 @@ public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor,
 	static {
 		TDBUtils.loadLibrary();
 	}
-	
+
 	protected final TableBase table = new TableBase();
-	private final TableSpec tableSpec = new TableSpec();
 	protected final Class<Cursor> cursorClass;
 	protected final Class<View> viewClass;
+
+	public AbstractTable(Class<Cursor> cursorClass, Class<View> viewClass) {
+		this.cursorClass = cursorClass;
+		this.viewClass = viewClass;
+		defineTableStructure();
+	}
 
 	public String getName() {
 		return getClass().getSimpleName();
@@ -32,39 +37,48 @@ public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor,
 		return size() == 0;
 	}
 
-	public AbstractTable(Class<Cursor> cursorClass, Class<View> viewClass) {
-		this.cursorClass = cursorClass;
-		this.viewClass = viewClass;
+	private void defineTableStructure() {
+		final TableSpec spec = new TableSpec();
+		specifyStructure(spec);
+		table.updateFromSpec(spec);
 	}
 
-	protected void registerLongColumn(String name) {
-		tableSpec.addColumn(ColumnType.ColumnTypeInt, name);
+	protected void registerLongColumn(TableSpec spec, String name) {
+		spec.addColumn(ColumnType.ColumnTypeInt, name);
 	}
 
-	protected void registerStringColumn(String name) {
-		tableSpec.addColumn(ColumnType.ColumnTypeString, name);
+	protected void registerStringColumn(TableSpec spec, String name) {
+		spec.addColumn(ColumnType.ColumnTypeString, name);
 	}
 
-	protected void registerBooleanColumn(String name) {
-		tableSpec.addColumn(ColumnType.ColumnTypeBool, name);
+	protected void registerBooleanColumn(TableSpec spec, String name) {
+		spec.addColumn(ColumnType.ColumnTypeBool, name);
 	}
 
-	protected void registerBinaryColumn(String name) {
-		tableSpec.addColumn(ColumnType.ColumnTypeBinary, name);
+	protected void registerBinaryColumn(TableSpec spec, String name) {
+		spec.addColumn(ColumnType.ColumnTypeBinary, name);
 	}
 
-	protected void registerDateColumn(String name) {
-		tableSpec.addColumn(ColumnType.ColumnTypeInt, name);  // FIXME: use real type when available
+	protected void registerDateColumn(TableSpec spec, String name) {
+		spec.addColumn(ColumnType.ColumnTypeInt, name); // FIXME: use real
+														// type when
+														// available
 	}
 
-	protected void registerMixedColumn(String name) {
-		tableSpec.addColumn(ColumnType.ColumnTypeBinary, name); // FIXME: use real type when available
+	protected void registerMixedColumn(TableSpec spec, String name) {
+		spec.addColumn(ColumnType.ColumnTypeBinary, name); // FIXME: use
+															// real type
+															// when
+															// available
 	}
 
-	protected void registrationDone() {
-		table.updateFromSpec(tableSpec);
+	protected void registerTableColumn(TableSpec spec, String name, AbstractTable<?, ?> subtable) {
+		TableSpec subspec = spec.addColumnTable("phoneNumbers");
+		subtable.specifyStructure(subspec);
 	}
-	
+
+	protected abstract void specifyStructure(TableSpec spec);
+
 	protected void insertLong(long columnIndex, long rowIndex, long value) {
 		table.insertLong((int) columnIndex, (int) rowIndex, value);
 	}
@@ -82,19 +96,38 @@ public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor,
 	}
 
 	protected void insertDate(long columnIndex, long rowIndex, Date value) {
-		table.insertLong((int) columnIndex, (int) rowIndex, value.getTime());  // FIXME: use real type when available
+		table.insertLong((int) columnIndex, (int) rowIndex, value.getTime()); // FIXME:
+																				// use
+																				// real
+																				// type
+																				// when
+																				// available
 	}
 
 	protected void insertMixed(long columnIndex, long rowIndex, Serializable value) {
-		table.insertBinaryData((int) columnIndex, (int) rowIndex, TDBUtils.serialize(value));  // FIXME: use real type when available
+		table.insertBinaryData((int) columnIndex, (int) rowIndex, TDBUtils.serialize(value)); // FIXME:
+																								// use
+																								// real
+																								// type
+																								// when
+																								// available
 	}
 
 	protected void insertMixed(long columnIndex, long rowIndex, Object value) {
 		if (value instanceof Serializable) {
-			table.insertBinaryData((int) columnIndex, (int) rowIndex, TDBUtils.serialize((Serializable) value));  // FIXME: use real type when available
+			table.insertBinaryData((int) columnIndex, (int) rowIndex, TDBUtils.serialize((Serializable) value)); // FIXME:
+																													// use
+																													// real
+																													// type
+																													// when
+																													// available
 		} else {
 			throw new RuntimeException("Cannot insert non-serializable value!");
 		}
+	}
+
+	protected void insertTable(long columnIndex, long rowIndex) {
+		table.insertTable((int) columnIndex, (int) rowIndex);
 	}
 
 	protected void insertDone() {
