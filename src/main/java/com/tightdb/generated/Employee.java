@@ -18,6 +18,7 @@ public class Employee extends AbstractCursor<Employee> {
     public final BinaryColumn<Employee, EmployeeQuery> photo;
     public final DateColumn<Employee, EmployeeQuery> birthdate;
     public final MixedColumn<Employee, EmployeeQuery> extra;
+    public final TableColumn<Employee, EmployeeQuery, PhoneTable> phones;
 
 	public Employee(TableBase table, long position) {
 		super(table, Employee.class, position);
@@ -29,6 +30,7 @@ public class Employee extends AbstractCursor<Employee> {
         photo = new BinaryColumn<Employee, EmployeeQuery>(table, this, 4, "photo");
         birthdate = new DateColumn<Employee, EmployeeQuery>(table, this, 5, "birthdate");
         extra = new MixedColumn<Employee, EmployeeQuery>(table, this, 6, "extra");
+        phones = new TableColumn<Employee, EmployeeQuery, PhoneTable>(table, this, 7, "phones", PhoneTable.class);
 	}
 
 	public java.lang.String getFirstName() {
@@ -85,6 +87,14 @@ public class Employee extends AbstractCursor<Employee> {
 
 	public void setExtra(java.io.Serializable extra) {
 		this.extra.set(extra);
+	}
+
+	public PhoneTable getPhones() {
+		return this.phones.get();
+	}
+
+	public void setPhones(PhoneTable phones) {
+		this.phones.set(phones);
 	}
 
 }

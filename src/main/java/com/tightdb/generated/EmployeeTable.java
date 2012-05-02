@@ -19,19 +19,23 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView> {
 	public final BinaryColumn<Employee, EmployeeQuery> photo = new BinaryColumn<Employee, EmployeeQuery>(table, 4, "photo");
 	public final DateColumn<Employee, EmployeeQuery> birthdate = new DateColumn<Employee, EmployeeQuery>(table, 5, "birthdate");
 	public final MixedColumn<Employee, EmployeeQuery> extra = new MixedColumn<Employee, EmployeeQuery>(table, 6, "extra");
+	public final TableColumn<Employee, EmployeeQuery, PhoneTable> phones = new TableColumn<Employee, EmployeeQuery, PhoneTable>(table, 7, "phones", PhoneTable.class);
 
 	public EmployeeTable() {
 		super(Employee.class, EmployeeView.class);
-
-        registerStringColumn("firstName");
-        registerStringColumn("lastName");
-        registerLongColumn("salary");
-        registerBooleanColumn("driver");
-        registerBinaryColumn("photo");
-        registerDateColumn("birthdate");
-        registerMixedColumn("extra");
-        registrationDone();
 	}
+
+	@Override
+	protected void specifyStructure(TableSpec spec) {
+        registerStringColumn(spec, "firstName");
+        registerStringColumn(spec, "lastName");
+        registerLongColumn(spec, "salary");
+        registerBooleanColumn(spec, "driver");
+        registerBinaryColumn(spec, "photo");
+        registerDateColumn(spec, "birthdate");
+        registerMixedColumn(spec, "extra");
+        registerTableColumn(spec, "phones", new PhoneTable());
+    }
 
     public Employee add(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra) {
         try {
@@ -44,6 +48,7 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView> {
         	insertBinary(4, position, photo);
         	insertDate(5, position, birthdate);
         	insertMixed(6, position, extra);
+        	insertTable(7, position);
         	insertDone();
 
         	return cursor(position);
@@ -62,6 +67,7 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView> {
         	insertBinary(4, position, photo);
         	insertDate(5, position, birthdate);
         	insertMixed(6, position, extra);
+        	insertTable(7, position);
         	insertDone();
 
         	return cursor(position);

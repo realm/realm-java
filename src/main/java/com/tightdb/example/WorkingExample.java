@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeTable;
+import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 
 public class WorkingExample {
@@ -17,6 +18,13 @@ public class WorkingExample {
 		byte[] photo;
 		Date birthdate;
 		Object extra;
+		phone phones;
+	}
+
+	@NestedTable
+	class phone {
+		String type;
+		String number;
 	}
 
 	public static void main(String[] args) {
@@ -28,6 +36,13 @@ public class WorkingExample {
 		System.out.println("first record: " + john);
 		System.out.println("second record: " + nikolche);
 		System.out.println("some column: " + john.firstName);
+
+		john.phones.get().add("mobile", "123456");
+		john.phones.get().add("home", "567890");
+
+		nikolche.phones.get().add("home", "13579");
+
+		System.out.println(john.phones.get().size());
 
 		display(persons);
 
@@ -47,7 +62,7 @@ public class WorkingExample {
 			for (int i = 0; i < persons.size(); i++) {
 				Employee p = persons.at(i);
 				System.out.println(" - " + p.firstName.get() + " " + p.getLastName() + " " + p.getSalary() + " " + p.getDriver() + " " + p.getPhoto()
-						+ " " + p.getBirthdate() + " " + p.getExtra());
+						+ " " + p.getBirthdate() + " " + p.getExtra() + " " + p.getPhones().size() + " records");
 			}
 		} else {
 			System.out.println(" - the table is empty");

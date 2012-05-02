@@ -16,17 +16,27 @@ import com.tightdb.lib.*;
 public class ${entity}Table extends AbstractTable<${entity}, ${entity}View> {
 
 #foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+	public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+#else
 	public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query>(table, ${f.code.attributes.index}, "${f.name}");
+#end
 #end
 
 	public ${entity}Table() {
 		super(${entity}.class, ${entity}View.class);
-
-#foreach($f in $columns)
-        register${f.code.attributes.columnType}Column("${f.name}");
-#end
-        registrationDone();
 	}
+
+	@Override
+	protected void specifyStructure(TableSpec spec) {
+#foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+        register${f.code.attributes.columnType}Column(spec, "${f.name}", new ${f.code.attributes.subtable}());
+#else
+        register${f.code.attributes.columnType}Column(spec, "${f.name}");
+#end
+#end
+    }
 
 #class_members()
 
@@ -39,7 +49,11 @@ try {
 	int position = size();
 
 #foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+	insert${f.code.attributes.columnType}(${f.code.attributes.index}, position);
+#else
 	insert${f.code.attributes.columnType}(${f.code.attributes.index}, position, ${f.name});
+#end
 #end
 	insertDone();
 
@@ -52,7 +66,11 @@ try {
 #macro(table_insert)
 try {
 #foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+	insert${f.code.attributes.columnType}(${f.code.attributes.index}, position);
+#else
 	insert${f.code.attributes.columnType}(${f.code.attributes.index}, position, ${f.name});
+#end
 #end
 	insertDone();
 
@@ -103,23 +121,39 @@ import com.tightdb.lib.*;
 public class ${entity} extends AbstractCursor<${entity}> {
 
 #foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+    public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name};
+#else
     public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query> ${f.name};
+#end
 #end
 
 	public ${entity}(TableBase table, long position) {
 		super(table, ${entity}.class, position);
 
 #foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+        ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(table, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+#else
         ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query>(table, this, ${f.code.attributes.index}, "${f.name}");
+#end
 #end
 	}
 
 #foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+	public ${f.code.attributes.subtable} get${f.name.capitalized}() {
+#else
 	public ${f.type.canonicalName} get${f.name.capitalized}() {
+#end
 		return this.${f.name}.get();
 	}
 
+#if($f.code.attributes.isSubtable)
+	public void set${f.name.capitalized}(${f.code.attributes.subtable} ${f.name}) {
+#else
 	public void set${f.name.capitalized}(${f.type.canonicalName} ${f.name}) {
+#end
 		this.${f.name}.set(${f.name});
 	}
 
