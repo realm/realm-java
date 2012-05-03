@@ -5,8 +5,7 @@ import java.util.Date;
 
 import com.tightdb.TableBase;
 
-
-public class DateColumn<Cursor, Query> extends AbstractColumn<Date, Cursor, Query> {
+public class DateColumn<Cursor, Query> extends DateQueryColumn<Cursor, Query> {
 
 	private static final DateFormat FORMATTER = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 

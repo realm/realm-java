@@ -2,8 +2,7 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 
-
-public class StringColumn<Cursor, Query> extends AbstractColumn<String, Cursor, Query> {
+public class StringColumn<Cursor, Query> extends StringQueryColumn<Cursor, Query> {
 
 	public StringColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(table, cursor, index, name);

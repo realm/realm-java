@@ -2,7 +2,7 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 
-public class BinaryColumn<Cursor, Query> extends AbstractColumn<byte[], Cursor, Query> {
+public class BinaryColumn<Cursor, Query> extends BinaryQueryColumn<Cursor, Query> {
 
 	public BinaryColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(table, cursor, index, name);

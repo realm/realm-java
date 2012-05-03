@@ -11,28 +11,28 @@ import com.tightdb.lib.Table;
 
 public class Example {
 
-	//@NestedTable
+	// @NestedTable
 	class phone {
 		String type;
 		String number;
 	}
 
-	//@Table
+	// @Table
 	class person {
 		String firstName;
 		String lastName;
 		int salary;
 		phone phones;
 	}
-	
+
 	public static void main(String[] args) {
 		PersonTable persons = new PersonTable();
 
-		Person john = persons.add("John", "Doe", 23000, true, new byte[] {1,2,3}, new Date(), "extra");
+		Person john = persons.add("John", "Doe", 23000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
 		john.phones.get().add("home", "123456");
 		john.phones.get().add("mobile", "333444");
 
-		persons.insert(0, "Nikolche", "Mihajlovski", 28000, false, new byte[] {4,5}, new Date(), 1234.56);
+		persons.insert(0, "Nikolche", "Mihajlovski", 28000, false, new byte[] { 4, 5 }, new Date(), 1234.56);
 
 		// 2 ways to get the value
 		String name1 = persons.at(0).firstName.get();
@@ -96,6 +96,7 @@ public class Example {
 		persons.firstName.is("d").salary.sum(); // no problem without OR
 		persons.firstName.is("X").or().salary.set(1234); // problem - incorrect
 															// options
+
 		persons.firstName.is("X").or().salary.is(23).salary.sum(); // correct,
 																	// shorter
 																	// (query-based)

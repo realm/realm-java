@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import com.tightdb.TableBase;
 
-public class MixedColumn<Cursor, Query> extends AbstractColumn<Serializable, Cursor, Query> {
+public class MixedColumn<Cursor, Query> extends MixedQueryColumn<Cursor, Query> {
 
 	public MixedColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(table, cursor, index, name);

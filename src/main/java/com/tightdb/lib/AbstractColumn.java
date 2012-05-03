@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.tightdb.TableBase;
 
-
 public abstract class AbstractColumn<Type, Cursor, Query> {
 
 	protected final TableBase table;
@@ -26,8 +25,13 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		this.name = name;
 	}
 
-	public abstract Type get();
-	public abstract void set(Type value);
+	protected Type get() {
+		throw new UnsupportedOperationException("Cannot get the column's value!");
+	}
+
+	protected void set(Type value) {
+		throw new UnsupportedOperationException("Cannot set the column's value!");
+	}
 
 	public List<Type> all() {
 		return null;
@@ -49,9 +53,13 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 	public String getName() {
 		return name;
 	}
-	
+
 	public String getReadable() {
-		return String.valueOf(get());
+		try {
+			return String.valueOf(get());
+		} catch (Exception e) {
+			return "ERROR!";
+		}
 	}
-	
+
 }
