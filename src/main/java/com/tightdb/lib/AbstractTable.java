@@ -7,7 +7,7 @@ import com.tightdb.ColumnType;
 import com.tightdb.TableBase;
 import com.tightdb.TableSpec;
 
-public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor, View> implements Iterable<Cursor> {
+public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<Cursor, View> implements Iterable<Cursor> {
 
 	static {
 		TDBUtils.loadLibrary();
@@ -16,10 +16,12 @@ public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor,
 	protected final TableBase table = new TableBase();
 	protected final Class<Cursor> cursorClass;
 	protected final Class<View> viewClass;
+	protected final Class<Query> queryClass;
 
-	public AbstractTable(Class<Cursor> cursorClass, Class<View> viewClass) {
+	public AbstractTable(Class<Cursor> cursorClass, Class<View> viewClass, Class<Query> queryClass) {
 		this.cursorClass = cursorClass;
 		this.viewClass = viewClass;
+		this.queryClass = queryClass;
 		defineTableStructure();
 	}
 
@@ -72,7 +74,7 @@ public abstract class AbstractTable<Cursor, View> extends AbstractRowset<Cursor,
 															// available
 	}
 
-	protected void registerTableColumn(TableSpec spec, String name, AbstractTable<?, ?> subtable) {
+	protected void registerTableColumn(TableSpec spec, String name, AbstractTable<?, ?, ?> subtable) {
 		TableSpec subspec = spec.addColumnTable("phoneNumbers");
 		subtable.specifyStructure(subspec);
 	}

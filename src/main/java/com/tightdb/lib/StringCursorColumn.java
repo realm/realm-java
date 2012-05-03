@@ -4,12 +4,12 @@ import com.tightdb.TableBase;
 
 public class StringCursorColumn<Cursor, Query> extends AbstractColumn<String, Cursor, Query> {
 
-	public StringCursorColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
-		super(table, cursor, index, name);
+	public StringCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+		super(types, table, cursor, index, name);
 	}
 
-	public StringCursorColumn(TableBase table, int index, String name) {
-		super(table, index, name);
+	public StringCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
+		super(types, table, index, name);
 	}
 
 	@Override

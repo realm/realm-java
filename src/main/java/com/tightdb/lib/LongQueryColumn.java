@@ -4,12 +4,12 @@ import com.tightdb.TableBase;
 
 public class LongQueryColumn<Cursor, Query> extends AbstractColumn<Long, Cursor, Query> {
 
-	public LongQueryColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
-		super(table, cursor, index, name);
+	public LongQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+		super(types, table, cursor, index, name);
 	}
 
-	public LongQueryColumn(TableBase table, int index, String name) {
-		super(table, index, name);
+	public LongQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
+		super(types, table, index, name);
 	}
 
 	public Query greaterThan(int value) {

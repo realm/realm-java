@@ -2,12 +2,19 @@ package com.tightdb.example.generated;
 
 import com.tightdb.TableSpec;
 import com.tightdb.lib.AbstractSubtable;
+import com.tightdb.lib.EntityTypes;
 import com.tightdb.lib.StringRowsetColumn;
 
-public class PhoneTable extends AbstractSubtable<Phone, PhoneView> {
+public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
 
+	public static final EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery> TYPES = new EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery>(PhoneTable.class, PhoneView.class, Phone.class, PhoneQuery.class); 
+
+	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, 0, "type");
+
+	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, 1, "number");
+	
 	public PhoneTable() {
-		super(Phone.class, PhoneView.class);
+		super(Phone.class, PhoneView.class, PhoneQuery.class);
 	}
 
 	@Override
@@ -15,11 +22,7 @@ public class PhoneTable extends AbstractSubtable<Phone, PhoneView> {
 		registerStringColumn(spec, "type");
 		registerStringColumn(spec, "number");
 	}
-
-	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(table, 0, "type");
-
-	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(table, 1, "number");
-
+	
 	public Phone add(String type, String number) {
 		try {
 			int position = size();

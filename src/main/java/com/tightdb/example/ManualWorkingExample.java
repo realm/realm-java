@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import com.tightdb.example.generated.Person;
+import com.tightdb.example.generated.PersonQuery;
 import com.tightdb.example.generated.PersonTable;
 import com.tightdb.lib.TDBUtils;
 
@@ -36,6 +37,9 @@ public class ManualWorkingExample {
 		persons.clear();
 
 		TDBUtils.printTable(persons);
+		
+		PersonQuery q1 = persons.driver.is(true);
+		System.out.println(q1);
 	}
 
 }

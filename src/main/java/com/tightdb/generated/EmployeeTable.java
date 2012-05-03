@@ -10,19 +10,21 @@ import com.tightdb.lib.*;
 /**
  * This class represents a TightDB table and was automatically generated.
  */
-public class EmployeeTable extends AbstractTable<Employee, EmployeeView> {
+public class EmployeeTable extends AbstractTable<Employee, EmployeeView, EmployeeQuery> {
 
-	public final StringRowsetColumn<Employee, EmployeeQuery> firstName = new StringRowsetColumn<Employee, EmployeeQuery>(table, 0, "firstName");
-	public final StringRowsetColumn<Employee, EmployeeQuery> lastName = new StringRowsetColumn<Employee, EmployeeQuery>(table, 1, "lastName");
-	public final LongRowsetColumn<Employee, EmployeeQuery> salary = new LongRowsetColumn<Employee, EmployeeQuery>(table, 2, "salary");
-	public final BooleanRowsetColumn<Employee, EmployeeQuery> driver = new BooleanRowsetColumn<Employee, EmployeeQuery>(table, 3, "driver");
-	public final BinaryRowsetColumn<Employee, EmployeeQuery> photo = new BinaryRowsetColumn<Employee, EmployeeQuery>(table, 4, "photo");
-	public final DateRowsetColumn<Employee, EmployeeQuery> birthdate = new DateRowsetColumn<Employee, EmployeeQuery>(table, 5, "birthdate");
-	public final MixedRowsetColumn<Employee, EmployeeQuery> extra = new MixedRowsetColumn<Employee, EmployeeQuery>(table, 6, "extra");
-	public final TableRowsetColumn<Employee, EmployeeQuery, PhoneTable> phones = new TableRowsetColumn<Employee, EmployeeQuery, PhoneTable>(table, 7, "phones", PhoneTable.class);
+	public static final EntityTypes<EmployeeTable, EmployeeView, Employee, EmployeeQuery> TYPES = new EntityTypes<EmployeeTable, EmployeeView, Employee, EmployeeQuery>(EmployeeTable.class, EmployeeView.class, Employee.class, EmployeeQuery.class); 
+
+	public final StringRowsetColumn<Employee, EmployeeQuery> firstName = new StringRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 0, "firstName");
+	public final StringRowsetColumn<Employee, EmployeeQuery> lastName = new StringRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 1, "lastName");
+	public final LongRowsetColumn<Employee, EmployeeQuery> salary = new LongRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 2, "salary");
+	public final BooleanRowsetColumn<Employee, EmployeeQuery> driver = new BooleanRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 3, "driver");
+	public final BinaryRowsetColumn<Employee, EmployeeQuery> photo = new BinaryRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 4, "photo");
+	public final DateRowsetColumn<Employee, EmployeeQuery> birthdate = new DateRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 5, "birthdate");
+	public final MixedRowsetColumn<Employee, EmployeeQuery> extra = new MixedRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 6, "extra");
+	public final TableRowsetColumn<Employee, EmployeeQuery, PhoneTable> phones = new TableRowsetColumn<Employee, EmployeeQuery, PhoneTable>(TYPES, table, 7, "phones", PhoneTable.class);
 
 	public EmployeeTable() {
-		super(Employee.class, EmployeeView.class);
+		super(Employee.class, EmployeeView.class, EmployeeQuery.class);
 	}
 
 	@Override

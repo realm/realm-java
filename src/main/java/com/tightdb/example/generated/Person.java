@@ -24,14 +24,14 @@ public class Person extends AbstractCursor<Person> {
 
 	public Person(TableBase table, long position) {
 		super(table, Person.class, position);
-		firstName = new StringCursorColumn<Person, PersonQuery>(table, this, 0, "firstName");
-		lastName = new StringCursorColumn<Person, PersonQuery>(table, this, 1, "lastName");
-		salary = new LongCursorColumn<Person, PersonQuery>(table, this, 2, "salary");
-		driver = new BooleanCursorColumn<Person, PersonQuery>(table, this, 3, "driver");
-		photo = new BinaryCursorColumn<Person, PersonQuery>(table, this, 4, "photo");
-		birthdate = new DateCursorColumn<Person, PersonQuery>(table, this, 5, "birthdate");
-		extra = new MixedCursorColumn<Person, PersonQuery>(table, this, 6, "extra");
-		phones = new TableCursorColumn<Person, PersonQuery, PhoneTable>(table, 7, "phones", PhoneTable.class);
+		firstName = new StringCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 0, "firstName");
+		lastName = new StringCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 1, "lastName");
+		salary = new LongCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 2, "salary");
+		driver = new BooleanCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 3, "driver");
+		photo = new BinaryCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 4, "photo");
+		birthdate = new DateCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 5, "birthdate");
+		extra = new MixedCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 6, "extra");
+		phones = new TableCursorColumn<Person, PersonQuery, PhoneTable>(PersonTable.TYPES, table, 7, "phones", PhoneTable.class);
 	}
 
 	public String getFirstName() {

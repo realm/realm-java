@@ -12,4 +12,8 @@ public class PersonQuery extends AbstractQuery<Person, PersonView> {
 
 	public final LongRowsetColumn<Person, PersonQuery> salary = null;
 
+	public PersonQuery(String info) {
+		super(info);
+	}
+	
 }

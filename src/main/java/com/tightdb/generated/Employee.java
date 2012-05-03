@@ -23,14 +23,14 @@ public class Employee extends AbstractCursor<Employee> {
 	public Employee(TableBase table, long position) {
 		super(table, Employee.class, position);
 
-        firstName = new StringCursorColumn<Employee, EmployeeQuery>(table, this, 0, "firstName");
-        lastName = new StringCursorColumn<Employee, EmployeeQuery>(table, this, 1, "lastName");
-        salary = new LongCursorColumn<Employee, EmployeeQuery>(table, this, 2, "salary");
-        driver = new BooleanCursorColumn<Employee, EmployeeQuery>(table, this, 3, "driver");
-        photo = new BinaryCursorColumn<Employee, EmployeeQuery>(table, this, 4, "photo");
-        birthdate = new DateCursorColumn<Employee, EmployeeQuery>(table, this, 5, "birthdate");
-        extra = new MixedCursorColumn<Employee, EmployeeQuery>(table, this, 6, "extra");
-        phones = new TableCursorColumn<Employee, EmployeeQuery, PhoneTable>(table, this, 7, "phones", PhoneTable.class);
+        firstName = new StringCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 0, "firstName");
+        lastName = new StringCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 1, "lastName");
+        salary = new LongCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 2, "salary");
+        driver = new BooleanCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 3, "driver");
+        photo = new BinaryCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 4, "photo");
+        birthdate = new DateCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 5, "birthdate");
+        extra = new MixedCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 6, "extra");
+        phones = new TableCursorColumn<Employee, EmployeeQuery, PhoneTable>(EmployeeTable.TYPES, table, this, 7, "phones", PhoneTable.class);
 	}
 
 	public java.lang.String getFirstName() {

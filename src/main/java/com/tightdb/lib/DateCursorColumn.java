@@ -9,12 +9,12 @@ public class DateCursorColumn<Cursor, Query> extends AbstractColumn<Date, Cursor
 
 	private static final DateFormat FORMATTER = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 	
-	public DateCursorColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
-		super(table, cursor, index, name);
+	public DateCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+		super(types, table, cursor, index, name);
 	}
 
-	public DateCursorColumn(TableBase table, int index, String name) {
-		super(table, index, name);
+	public DateCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
+		super(types, table, index, name);
 	}
 
 	@Override

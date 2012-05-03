@@ -6,8 +6,8 @@ public class TableCursorColumn<Cursor, Query, Subtable> extends AbstractColumn<S
 
 	protected Subtable subtable;
 
-	public TableCursorColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name, Class<Subtable> subtableClass) {
-		super(table, cursor, index, name);
+	public TableCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, AbstractCursor<Cursor> cursor, int index, String name, Class<Subtable> subtableClass) {
+		super(types, table, cursor, index, name);
 		try {
 			subtable = subtableClass.newInstance();
 		} catch (Exception e) {
@@ -15,8 +15,8 @@ public class TableCursorColumn<Cursor, Query, Subtable> extends AbstractColumn<S
 		}
 	}
 
-	public TableCursorColumn(TableBase table, int index, String name, Class<Subtable> subtableClass) {
-		super(table, index, name);
+	public TableCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name, Class<Subtable> subtableClass) {
+		super(types, table, index, name);
 		try {
 			subtable = subtableClass.newInstance();
 		} catch (Exception e) {

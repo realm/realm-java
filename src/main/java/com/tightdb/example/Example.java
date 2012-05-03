@@ -84,7 +84,7 @@ public class Example {
 		persons.firstName.is("Y").salary.is(6).lastName.setAll("Z");
 		persons.salary.greaterThan(1234).remove();
 
-		for (String phone : persons.phones.get().type.is("mobile").findAll().phone.all()) {
+		for (String phone : persons.phones.get().type.is("mobile").findAll().phone.getAll()) {
 			System.out.println(phone);
 		}
 

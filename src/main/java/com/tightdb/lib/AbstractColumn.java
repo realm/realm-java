@@ -1,8 +1,7 @@
 package com.tightdb.lib;
 
-import java.util.List;
-
 import com.tightdb.TableBase;
+import com.tightdb.TableQuery;
 
 public abstract class AbstractColumn<Type, Cursor, Query> {
 
@@ -10,15 +9,18 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 	protected final AbstractCursor<Cursor> cursor;
 	protected final String name;
 	protected final int columnIndex;
+	private final EntityTypes<?, ?, Cursor, Query> types;
 
-	public AbstractColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+		this.types = types;
 		this.table = table;
 		this.cursor = cursor;
 		this.columnIndex = index;
 		this.name = name;
 	}
 
-	public AbstractColumn(TableBase table, int index, String name) {
+	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
+		this.types = types;
 		this.table = table;
 		this.cursor = null;
 		this.columnIndex = index;
@@ -33,16 +35,12 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		throw new UnsupportedOperationException("Cannot set the column's value!");
 	}
 
-	public List<Type> all() {
-		return null;
-	}
-
 	public Query is(Type value) {
-		return null;
+		return query("is:" + value); // FIXME: remove from here
 	}
 
 	public Query isnt(Type value) {
-		return null;
+		return query("isnt:" + value); // FIXME: remove from here
 	}
 
 	@Override
@@ -59,6 +57,15 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 			return String.valueOf(get());
 		} catch (Exception e) {
 			return "ERROR!";
+		}
+	}
+
+	private Query query(String info) { // String info is temporary PoC
+		try {
+			info = getName() + ":" + info;
+			return types.getQueryClass().getConstructor(String.class).newInstance(info);
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot create a query!", e);
 		}
 	}
 

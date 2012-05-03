@@ -6,8 +6,8 @@ import com.tightdb.TableBase;
 
 public class DateRowsetColumn<Cursor, Query> extends DateQueryColumn<Cursor, Query> implements RowsetColumn<Date> {
 
-	public DateRowsetColumn(TableBase table, int index, String name) {
-		super(table, index, name);
+	public DateRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
+		super(types, table, index, name);
 	}
 
 	@Override

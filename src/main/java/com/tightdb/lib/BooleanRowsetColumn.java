@@ -4,8 +4,8 @@ import com.tightdb.TableBase;
 
 public class BooleanRowsetColumn<Cursor, Query> extends BooleanQueryColumn<Cursor, Query> implements RowsetColumn<Boolean> {
 
-	public BooleanRowsetColumn(TableBase table, int index, String name) {
-		super(table, index, name);
+	public BooleanRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
+		super(types, table, index, name);
 	}
 
 	@Override

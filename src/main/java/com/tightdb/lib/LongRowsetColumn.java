@@ -4,8 +4,8 @@ import com.tightdb.TableBase;
 
 public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Query> implements RowsetColumn<Long> {
 
-	public LongRowsetColumn(TableBase table, int index, String name) {
-		super(table, index, name);
+	public LongRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
+		super(types, table, index, name);
 	}
 
 	public int sum() {

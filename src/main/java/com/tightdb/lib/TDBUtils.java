@@ -34,7 +34,7 @@ public class TDBUtils {
 		}
 	}
 
-	public static void printTable(AbstractTable<? extends AbstractCursor<?>, ? extends AbstractView<?, ?>> table) {
+	public static void printTable(AbstractTable<? extends AbstractCursor<?>, ? extends AbstractView<?, ?>, ?> table) {
 		String format = "%-15s| ";
 		System.out.println(String.format("================== Table %s ====================", table.getName()));
 		if (!table.isEmpty()) {

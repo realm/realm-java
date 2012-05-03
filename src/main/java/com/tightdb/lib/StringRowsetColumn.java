@@ -4,8 +4,8 @@ import com.tightdb.TableBase;
 
 public class StringRowsetColumn<Cursor, Query> extends StringQueryColumn<Cursor, Query> {
 
-	public StringRowsetColumn(TableBase table, int index, String name) {
-		super(table, index, name);
+	public StringRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
+		super(types, table, index, name);
 	}
 
 	public String[] getAll() {

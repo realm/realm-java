@@ -17,8 +17,8 @@ public class Phone extends AbstractCursor<Phone> {
 	public Phone(TableBase table, long position) {
 		super(table, Phone.class, position);
 
-        type = new StringCursorColumn<Phone, PhoneQuery>(table, this, 0, "type");
-        number = new StringCursorColumn<Phone, PhoneQuery>(table, this, 1, "number");
+        type = new StringCursorColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, this, 0, "type");
+        number = new StringCursorColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, this, 1, "number");
 	}
 
 	public java.lang.String getType() {

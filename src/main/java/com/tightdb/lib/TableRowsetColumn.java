@@ -4,12 +4,12 @@ import com.tightdb.TableBase;
 
 public class TableRowsetColumn<Cursor, Query, Subtable> extends TableQueryColumn<Cursor, Query, Subtable> {
 
-	public TableRowsetColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name, Class<Subtable> subtableClass) {
-		super(table, cursor, index, name, subtableClass);
+	public TableRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, AbstractCursor<Cursor> cursor, int index, String name, Class<Subtable> subtableClass) {
+		super(types, table, cursor, index, name, subtableClass);
 	}
 	
-	public TableRowsetColumn(TableBase table, int index, String name, Class<Subtable> subtableClass) {
-		super(table, index, name, subtableClass);
+	public TableRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name, Class<Subtable> subtableClass) {
+		super(types, table, index, name, subtableClass);
 	}
 
 	@Override

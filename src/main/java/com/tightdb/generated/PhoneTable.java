@@ -9,13 +9,15 @@ import com.tightdb.lib.*;
 /**
  * This class represents a TightDB table and was automatically generated.
  */
-public class PhoneTable extends AbstractTable<Phone, PhoneView> {
+public class PhoneTable extends AbstractTable<Phone, PhoneView, PhoneQuery> {
 
-	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(table, 0, "type");
-	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(table, 1, "number");
+	public static final EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery> TYPES = new EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery>(PhoneTable.class, PhoneView.class, Phone.class, PhoneQuery.class); 
+
+	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, 0, "type");
+	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, 1, "number");
 
 	public PhoneTable() {
-		super(Phone.class, PhoneView.class);
+		super(Phone.class, PhoneView.class, PhoneQuery.class);
 	}
 
 	@Override
