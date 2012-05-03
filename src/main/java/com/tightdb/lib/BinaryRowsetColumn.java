@@ -10,12 +10,20 @@ public class BinaryRowsetColumn<Cursor, Query> extends BinaryQueryColumn<Cursor,
 
 	@Override
 	public byte[][] getAll() {
-		return null; //table.getBinaryData(columnIndex, (int) cursor.getPosition());
+		int count = table.getCount();
+		byte[][] values = new byte[count][];
+		for (int i = 0; i < count; i++) {
+			values[i] = table.getBinaryData(columnIndex, i);
+		}
+		return values;
 	}
 
 	@Override
 	public void setAll(byte[] value) {
-		table.setBinaryData(columnIndex, (int) cursor.getPosition(), value);
+		int count = table.getCount();
+		for (int i = 0; i < count; i++) {
+			table.setBinaryData(columnIndex, i, value);
+		}
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.tightdb.example;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import com.tightdb.example.generated.Person;
@@ -19,10 +20,15 @@ public class ManualWorkingExample {
 		System.out.println("some column: " + john.driver);
 
 		TDBUtils.printTable(persons);
+		System.out.println("- First names: " + Arrays.toString(persons.firstName.getAll()));
+		
+		persons.salary.setAll(100000);
+		TDBUtils.printTable(persons);
 
-		nikolche.lastName.set("MIHAJLOVSKI");
+		// promote all! :P
 		
 		nikolche.lastName.set("MIHAJLOVSKI");
+		
 		persons.remove(0);
 
 		TDBUtils.printTable(persons);

@@ -12,12 +12,20 @@ public class DateRowsetColumn<Cursor, Query> extends DateQueryColumn<Cursor, Que
 
 	@Override
 	public Date[] getAll() {
-		return null; //new Date(table.getLong(columnIndex, (int) cursor.getPosition()));
+		int count = table.getCount();
+		Date[] values = new Date[count];
+		for (int i = 0; i < count; i++) {
+			values[i] = new Date(table.getLong(columnIndex, i));
+		}
+		return values;
 	}
 
 	@Override
 	public void setAll(Date value) {
-//		table.setLong(columnIndex, (int) cursor.getPosition(), value.getTime());
+		int count = table.getCount();
+		for (int i = 0; i < count; i++) {
+			table.setLong(columnIndex, i, value.getTime());
+		}
 	}
 
 }

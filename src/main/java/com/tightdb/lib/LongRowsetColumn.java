@@ -20,26 +20,30 @@ public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Que
 		return 0;
 	}
 
-	public int count() {
-		return 0;
-	}
-
 	public int average() {
 		return 0;
 	}
 
 	@Override
 	public Long[] getAll() {
-		return null; //table.getLong(columnIndex, (int) cursor.getPosition());
+		int count = table.getCount();
+		Long[] values = new Long[count];
+		for (int i = 0; i < count; i++) {
+			values[i] = table.getLong(columnIndex, i);
+		}
+		return values;
 	}
 
 	@Override
 	public void setAll(Long value) {
-		//table.setLong(columnIndex, (int) cursor.getPosition(), value);
+		int count = table.getCount();
+		for (int i = 0; i < count; i++) {
+			table.setLong(columnIndex, i, value);
+		}
 	}
 
 	public void setAll(long value) {
-		set(Long.valueOf(value));
+		setAll(new Long(value));
 	}
 
 }

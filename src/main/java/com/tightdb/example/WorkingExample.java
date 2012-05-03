@@ -1,5 +1,6 @@
 package com.tightdb.example;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import com.tightdb.generated.Employee;
@@ -46,7 +47,11 @@ public class WorkingExample {
 		System.out.println(john.phones.get().size());
 
 		TDBUtils.printTable(persons);
-
+		System.out.println("- First names: " + Arrays.toString(persons.firstName.getAll()));
+		
+		persons.salary.setAll(100000);
+		TDBUtils.printTable(persons);
+		
 		nikolche.lastName.set("MIHAJLOVSKI");
 		persons.remove(0);
 

@@ -10,12 +10,20 @@ public class BooleanRowsetColumn<Cursor, Query> extends BooleanQueryColumn<Curso
 
 	@Override
 	public Boolean[] getAll() {
-		return null; //table.getBoolean(columnIndex, (int) cursor.getPosition());
+		int count = table.getCount();
+		Boolean[] values = new Boolean[count];
+		for (int i = 0; i < count; i++) {
+			values[i] = table.getBoolean(columnIndex, i);
+		}
+		return values;
 	}
 
 	@Override
 	public void setAll(Boolean value) {
-//		table.setBoolean(columnIndex, (int) cursor.getPosition(), value);
+		int count = table.getCount();
+		for (int i = 0; i < count; i++) {
+			table.setBoolean(columnIndex, i, value);
+		}
 	}
 
 }
