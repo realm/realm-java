@@ -17,9 +17,9 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View> {
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-	public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
 #else
-	public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query>(table, ${f.code.attributes.index}, "${f.name}");
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(table, ${f.code.attributes.index}, "${f.name}");
 #end
 #end
 

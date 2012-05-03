@@ -11,8 +11,8 @@ import com.tightdb.lib.*;
  */
 public class PhoneTable extends AbstractTable<Phone, PhoneView> {
 
-	public final StringColumn<Phone, PhoneQuery> type = new StringColumn<Phone, PhoneQuery>(table, 0, "type");
-	public final StringColumn<Phone, PhoneQuery> number = new StringColumn<Phone, PhoneQuery>(table, 1, "number");
+	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(table, 0, "type");
+	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(table, 1, "number");
 
 	public PhoneTable() {
 		super(Phone.class, PhoneView.class);
