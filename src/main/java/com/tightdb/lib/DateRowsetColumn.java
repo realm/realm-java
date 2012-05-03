@@ -5,15 +5,15 @@ import java.util.Date;
 
 import com.tightdb.TableBase;
 
-public class DateColumn<Cursor, Query> extends DateQueryColumn<Cursor, Query> {
+public class DateRowsetColumn<Cursor, Query> extends DateQueryColumn<Cursor, Query> {
 
 	private static final DateFormat FORMATTER = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 
-	public DateColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+	public DateRowsetColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(table, cursor, index, name);
 	}
 
-	public DateColumn(TableBase table, int index, String name) {
+	public DateRowsetColumn(TableBase table, int index, String name) {
 		super(table, index, name);
 	}
 

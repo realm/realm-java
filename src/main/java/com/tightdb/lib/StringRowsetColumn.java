@@ -2,13 +2,13 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 
-public class StringColumn<Cursor, Query> extends StringQueryColumn<Cursor, Query> {
+public class StringRowsetColumn<Cursor, Query> extends StringQueryColumn<Cursor, Query> {
 
-	public StringColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+	public StringRowsetColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(table, cursor, index, name);
 	}
 
-	public StringColumn(TableBase table, int index, String name) {
+	public StringRowsetColumn(TableBase table, int index, String name) {
 		super(table, index, name);
 	}
 

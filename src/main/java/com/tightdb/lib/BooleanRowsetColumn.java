@@ -2,13 +2,13 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 
-public class BooleanColumn<Cursor, Query> extends BooleanQueryColumn<Cursor, Query> {
+public class BooleanRowsetColumn<Cursor, Query> extends BooleanQueryColumn<Cursor, Query> {
 
-	public BooleanColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+	public BooleanRowsetColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(table, cursor, index, name);
 	}
 
-	public BooleanColumn(TableBase table, int index, String name) {
+	public BooleanRowsetColumn(TableBase table, int index, String name) {
 		super(table, index, name);
 	}
 

@@ -2,7 +2,7 @@ package com.tightdb.example.generated;
 
 import com.tightdb.TableSpec;
 import com.tightdb.lib.AbstractSubtable;
-import com.tightdb.lib.StringColumn;
+import com.tightdb.lib.StringRowsetColumn;
 
 public class PhoneTable extends AbstractSubtable<Phone, PhoneView> {
 
@@ -16,9 +16,9 @@ public class PhoneTable extends AbstractSubtable<Phone, PhoneView> {
 		registerStringColumn(spec, "number");
 	}
 
-	public final StringColumn<Phone, PhoneQuery> type = new StringColumn<Phone, PhoneQuery>(table, 0, "type");
+	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(table, 0, "type");
 
-	public final StringColumn<Phone, PhoneQuery> number = new StringColumn<Phone, PhoneQuery>(table, 1, "number");
+	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(table, 1, "number");
 
 	public Phone add(String type, String number) {
 		try {

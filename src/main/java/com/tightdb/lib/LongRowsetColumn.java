@@ -2,13 +2,13 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 
-public class LongColumn<Cursor, Query> extends LongQueryColumn<Cursor, Query> {
+public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Query> {
 
-	public LongColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+	public LongRowsetColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(table, cursor, index, name);
 	}
 
-	public LongColumn(TableBase table, int index, String name) {
+	public LongRowsetColumn(TableBase table, int index, String name) {
 		super(table, index, name);
 	}
 

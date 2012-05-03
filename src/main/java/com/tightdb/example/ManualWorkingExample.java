@@ -21,6 +21,8 @@ public class ManualWorkingExample {
 		TDBUtils.printTable(persons);
 
 		nikolche.lastName.set("MIHAJLOVSKI");
+		
+		nikolche.lastName.set("MIHAJLOVSKI");
 		persons.remove(0);
 
 		TDBUtils.printTable(persons);

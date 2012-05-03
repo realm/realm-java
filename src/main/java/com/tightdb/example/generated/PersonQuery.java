@@ -1,15 +1,15 @@
 package com.tightdb.example.generated;
 
 import com.tightdb.lib.AbstractQuery;
-import com.tightdb.lib.LongColumn;
-import com.tightdb.lib.StringColumn;
+import com.tightdb.lib.LongRowsetColumn;
+import com.tightdb.lib.StringRowsetColumn;
 
 public class PersonQuery extends AbstractQuery<Person, PersonView> {
 
-	public final StringColumn<Person, PersonQuery> firstName = null;
+	public final StringRowsetColumn<Person, PersonQuery> firstName = null;
 
-	public final StringColumn<Person, PersonQuery> lastName = null;
+	public final StringRowsetColumn<Person, PersonQuery> lastName = null;
 
-	public final LongColumn<Person, PersonQuery> salary = null;
+	public final LongRowsetColumn<Person, PersonQuery> salary = null;
 
 }
