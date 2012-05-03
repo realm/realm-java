@@ -11,26 +11,26 @@ import com.tightdb.lib.*;
  */
 public class Employee extends AbstractCursor<Employee> {
 
-    public final StringColumn<Employee, EmployeeQuery> firstName;
-    public final StringColumn<Employee, EmployeeQuery> lastName;
-    public final LongColumn<Employee, EmployeeQuery> salary;
-    public final BooleanColumn<Employee, EmployeeQuery> driver;
-    public final BinaryColumn<Employee, EmployeeQuery> photo;
-    public final DateColumn<Employee, EmployeeQuery> birthdate;
-    public final MixedColumn<Employee, EmployeeQuery> extra;
-    public final TableColumn<Employee, EmployeeQuery, PhoneTable> phones;
+    public final StringCursorColumn<Employee, EmployeeQuery> firstName;
+    public final StringCursorColumn<Employee, EmployeeQuery> lastName;
+    public final LongCursorColumn<Employee, EmployeeQuery> salary;
+    public final BooleanCursorColumn<Employee, EmployeeQuery> driver;
+    public final BinaryCursorColumn<Employee, EmployeeQuery> photo;
+    public final DateCursorColumn<Employee, EmployeeQuery> birthdate;
+    public final MixedCursorColumn<Employee, EmployeeQuery> extra;
+    public final TableCursorColumn<Employee, EmployeeQuery, PhoneTable> phones;
 
 	public Employee(TableBase table, long position) {
 		super(table, Employee.class, position);
 
-        firstName = new StringColumn<Employee, EmployeeQuery>(table, this, 0, "firstName");
-        lastName = new StringColumn<Employee, EmployeeQuery>(table, this, 1, "lastName");
-        salary = new LongColumn<Employee, EmployeeQuery>(table, this, 2, "salary");
-        driver = new BooleanColumn<Employee, EmployeeQuery>(table, this, 3, "driver");
-        photo = new BinaryColumn<Employee, EmployeeQuery>(table, this, 4, "photo");
-        birthdate = new DateColumn<Employee, EmployeeQuery>(table, this, 5, "birthdate");
-        extra = new MixedColumn<Employee, EmployeeQuery>(table, this, 6, "extra");
-        phones = new TableColumn<Employee, EmployeeQuery, PhoneTable>(table, this, 7, "phones", PhoneTable.class);
+        firstName = new StringCursorColumn<Employee, EmployeeQuery>(table, this, 0, "firstName");
+        lastName = new StringCursorColumn<Employee, EmployeeQuery>(table, this, 1, "lastName");
+        salary = new LongCursorColumn<Employee, EmployeeQuery>(table, this, 2, "salary");
+        driver = new BooleanCursorColumn<Employee, EmployeeQuery>(table, this, 3, "driver");
+        photo = new BinaryCursorColumn<Employee, EmployeeQuery>(table, this, 4, "photo");
+        birthdate = new DateCursorColumn<Employee, EmployeeQuery>(table, this, 5, "birthdate");
+        extra = new MixedCursorColumn<Employee, EmployeeQuery>(table, this, 6, "extra");
+        phones = new TableCursorColumn<Employee, EmployeeQuery, PhoneTable>(table, this, 7, "phones", PhoneTable.class);
 	}
 
 	public java.lang.String getFirstName() {

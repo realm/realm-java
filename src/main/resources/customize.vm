@@ -122,9 +122,9 @@ public class ${entity} extends AbstractCursor<${entity}> {
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-    public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name};
+    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name};
 #else
-    public final ${f.code.attributes.columnType}Column<${entity}, ${entity}Query> ${f.name};
+    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query> ${f.name};
 #end
 #end
 
@@ -133,9 +133,9 @@ public class ${entity} extends AbstractCursor<${entity}> {
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-        ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(table, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(table, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
 #else
-        ${f.name} = new ${f.code.attributes.columnType}Column<${entity}, ${entity}Query>(table, this, ${f.code.attributes.index}, "${f.name}");
+        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query>(table, this, ${f.code.attributes.index}, "${f.name}");
 #end
 #end
 	}
