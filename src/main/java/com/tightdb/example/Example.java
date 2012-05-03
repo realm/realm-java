@@ -81,7 +81,7 @@ public class Example {
 		// options 2:
 		// int sum2 = persons.firstName.is("X").or().salary.is(5).findAll().salary.sum();
 
-		persons.firstName.is("Y").salary.is(6).lastName.set("Z");
+		persons.firstName.is("Y").salary.is(6).lastName.setAll("Z");
 		persons.salary.greaterThan(1234).remove();
 
 		for (String phone : persons.phones.get().type.is("mobile").findAll().phone.all()) {

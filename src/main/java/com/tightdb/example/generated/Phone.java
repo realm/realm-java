@@ -2,7 +2,7 @@ package com.tightdb.example.generated;
 
 import com.tightdb.TableBase;
 import com.tightdb.lib.AbstractCursor;
-import com.tightdb.lib.StringRowsetColumn;
+import com.tightdb.lib.StringCursorColumn;
 
 public class Phone extends AbstractCursor<Phone> {
 
@@ -10,9 +10,9 @@ public class Phone extends AbstractCursor<Phone> {
 		super(table, Phone.class, position);
 	}
 
-	public final StringRowsetColumn<Phone, PhoneQuery> type = null;
+	public final StringCursorColumn<Phone, PhoneQuery> type = null;
 
-	public final StringRowsetColumn<Phone, PhoneQuery> phone = null;
+	public final StringCursorColumn<Phone, PhoneQuery> phone = null;
 
 	public String getType() {
 		return this.type.get();

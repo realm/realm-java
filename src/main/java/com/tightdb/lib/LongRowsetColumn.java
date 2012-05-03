@@ -2,11 +2,7 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 
-public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Query> {
-
-	public LongRowsetColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
-		super(table, cursor, index, name);
-	}
+public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Query> implements RowsetColumn<Long> {
 
 	public LongRowsetColumn(TableBase table, int index, String name) {
 		super(table, index, name);
@@ -33,16 +29,16 @@ public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Que
 	}
 
 	@Override
-	public Long get() {
-		return table.getLong(columnIndex, (int) cursor.getPosition());
+	public Long[] getAll() {
+		return null; //table.getLong(columnIndex, (int) cursor.getPosition());
 	}
 
 	@Override
-	public void set(Long value) {
-		table.setLong(columnIndex, (int) cursor.getPosition(), value);
+	public void setAll(Long value) {
+		//table.setLong(columnIndex, (int) cursor.getPosition(), value);
 	}
 
-	public void set(long value) {
+	public void setAll(long value) {
 		set(Long.valueOf(value));
 	}
 

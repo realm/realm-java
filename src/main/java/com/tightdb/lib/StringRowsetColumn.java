@@ -4,38 +4,24 @@ import com.tightdb.TableBase;
 
 public class StringRowsetColumn<Cursor, Query> extends StringQueryColumn<Cursor, Query> {
 
-	public StringRowsetColumn(TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
-		super(table, cursor, index, name);
-	}
-
 	public StringRowsetColumn(TableBase table, int index, String name) {
 		super(table, index, name);
 	}
 
-	public Query startsWith(String value) {
-		return null;
+	public String[] getAll() {
+		int count = table.getCount();
+		String[] values = new String[count];
+		for (int i = 0; i < count; i++) {
+			values[i] = table.getString(columnIndex, i);
+		}
+		return values;
 	}
 
-	public Query endWith(String value) {
-		return null;
-	}
-
-	public Query contains(String value) {
-		return null;
-	}
-
-	public Query matches(String regex) {
-		return null;
-	}
-
-	@Override
-	public String get() {
-		return table.getString(columnIndex, (int) cursor.getPosition());
-	}
-
-	@Override
-	public void set(String value) {
-		table.setString(columnIndex, (int) cursor.getPosition(), value);
+	public void setAll(String value) {
+		int count = table.getCount();
+		for (int i = 0; i < count; i++) {
+			table.setString(columnIndex, i, value);
+		}
 	}
 
 }
