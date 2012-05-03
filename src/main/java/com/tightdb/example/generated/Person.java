@@ -3,35 +3,35 @@ package com.tightdb.example.generated;
 import com.tightdb.TableBase;
 import com.tightdb.lib.AbstractColumn;
 import com.tightdb.lib.AbstractCursor;
-import com.tightdb.lib.BinaryColumn;
-import com.tightdb.lib.BooleanColumn;
-import com.tightdb.lib.DateColumn;
-import com.tightdb.lib.LongColumn;
-import com.tightdb.lib.MixedColumn;
-import com.tightdb.lib.StringColumn;
-import com.tightdb.lib.TableColumn;
+import com.tightdb.lib.BinaryCursorColumn;
+import com.tightdb.lib.BooleanCursorColumn;
+import com.tightdb.lib.DateCursorColumn;
+import com.tightdb.lib.LongCursorColumn;
+import com.tightdb.lib.MixedCursorColumn;
+import com.tightdb.lib.StringCursorColumn;
+import com.tightdb.lib.TableCursorColumn;
 
 public class Person extends AbstractCursor<Person> {
 
-	public final StringColumn<Person, PersonQuery> firstName;
-	public final StringColumn<Person, PersonQuery> lastName;
-	public final LongColumn<Person, PersonQuery> salary;
-	public final BooleanColumn<Person, PersonQuery> driver;
-	public final BinaryColumn<Person, PersonQuery> photo;
-	public final DateColumn<Person, PersonQuery> birthdate;
-	public final MixedColumn<Person, PersonQuery> extra;
-	public final TableColumn<Person, PersonQuery, PhoneTable> phones;
+	public final StringCursorColumn<Person, PersonQuery> firstName;
+	public final StringCursorColumn<Person, PersonQuery> lastName;
+	public final LongCursorColumn<Person, PersonQuery> salary;
+	public final BooleanCursorColumn<Person, PersonQuery> driver;
+	public final BinaryCursorColumn<Person, PersonQuery> photo;
+	public final DateCursorColumn<Person, PersonQuery> birthdate;
+	public final MixedCursorColumn<Person, PersonQuery> extra;
+	public final TableCursorColumn<Person, PersonQuery, PhoneTable> phones;
 
 	public Person(TableBase table, long position) {
 		super(table, Person.class, position);
-		firstName = new StringColumn<Person, PersonQuery>(table, this, 0, "firstName");
-		lastName = new StringColumn<Person, PersonQuery>(table, this, 1, "lastName");
-		salary = new LongColumn<Person, PersonQuery>(table, this, 2, "salary");
-		driver = new BooleanColumn<Person, PersonQuery>(table, this, 3, "driver");
-		photo = new BinaryColumn<Person, PersonQuery>(table, this, 4, "photo");
-		birthdate = new DateColumn<Person, PersonQuery>(table, this, 5, "birthdate");
-		extra = new MixedColumn<Person, PersonQuery>(table, this, 6, "extra");
-		phones = new TableColumn<Person, PersonQuery, PhoneTable>(table, 7, "phones", PhoneTable.class);
+		firstName = new StringCursorColumn<Person, PersonQuery>(table, this, 0, "firstName");
+		lastName = new StringCursorColumn<Person, PersonQuery>(table, this, 1, "lastName");
+		salary = new LongCursorColumn<Person, PersonQuery>(table, this, 2, "salary");
+		driver = new BooleanCursorColumn<Person, PersonQuery>(table, this, 3, "driver");
+		photo = new BinaryCursorColumn<Person, PersonQuery>(table, this, 4, "photo");
+		birthdate = new DateCursorColumn<Person, PersonQuery>(table, this, 5, "birthdate");
+		extra = new MixedCursorColumn<Person, PersonQuery>(table, this, 6, "extra");
+		phones = new TableCursorColumn<Person, PersonQuery, PhoneTable>(table, 7, "phones", PhoneTable.class);
 	}
 
 	public String getFirstName() {

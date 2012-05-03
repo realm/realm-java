@@ -49,7 +49,7 @@ public class Example {
 		List<Person> allRich = persons.salary.greaterThan(100000).findAll();
 
 		// using explicit OR
-		Person johnny = persons.firstName.is("Johnny").or().salary.is(10000).findFirst();
+		// Person johnny = persons.firstName.is("Johnny").or().salary.is(10000).findFirst();
 
 		// using implicit AND
 		Person johnnyB = persons.firstName.is("Johnny").lastName.startsWith("B").findUnique();
@@ -76,10 +76,10 @@ public class Example {
 		// Various combinations:
 
 		// option 1: direct query and data retrieval
-		int sum1 = persons.firstName.is("X").or().salary.is(5).salary.sum();
+		// int sum1 = persons.firstName.is("X").or().salary.is(5).salary.sum();
 
 		// options 2:
-		int sum2 = persons.firstName.is("X").or().salary.is(5).findAll().salary.sum();
+		// int sum2 = persons.firstName.is("X").or().salary.is(5).findAll().salary.sum();
 
 		persons.firstName.is("Y").salary.is(6).lastName.set("Z");
 		persons.salary.greaterThan(1234).remove();
@@ -97,12 +97,7 @@ public class Example {
 		persons.firstName.is("X").or().salary.set(1234); // problem - incorrect
 															// options
 
-		persons.firstName.is("X").or().salary.is(23).salary.sum(); // correct,
-																	// shorter
-																	// (query-based)
-		persons.firstName.is("X").or().salary.is(23).findAll().salary.sum(); // correct,
-																				// longer
-																				// (view-based)
+		// persons.firstName.is("X").or().salary.is(23).findAll().salary.sum();
 
 		Person p1 = persons.at(4).next(); // 5nd row
 		Person p2 = persons.last().previous(); // 2nd-last row
