@@ -66,7 +66,8 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 
 			/* Set the attributes */
 
-			Map<String, ? extends Object> attributes = Power.map("entity", New.name(model.getName().getCapitalized()), "columns", columns);
+			boolean isNested = isNestedTable(model.getType());
+			Map<String, ? extends Object> attributes = Power.map("entity", New.name(model.getName().getCapitalized()), "columns", columns, "isNested", isNested);
 
 			/*********** Construct the table class ****************/
 

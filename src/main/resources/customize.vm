@@ -13,7 +13,11 @@ import com.tightdb.lib.*;
 /**
  * This class represents a TightDB table and was automatically generated.
  */
+#if($isNested)
+public class ${entity}Table extends AbstractSubtable<${entity}, ${entity}View, ${entity}Query> {
+#else
 public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${entity}Query> {
+#end    
 
 	public static final EntityTypes<${entity}Table, ${entity}View, ${entity}, ${entity}Query> TYPES = new EntityTypes<${entity}Table, ${entity}View, ${entity}, ${entity}Query>(${entity}Table.class, ${entity}View.class, ${entity}.class, ${entity}Query.class); 
 
@@ -25,15 +29,20 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 #end
 #end
 
+#if($isNested)
+	public ${entity}Table(SubTableBase subTableBase) {
+		super(${entity}.class, ${entity}View.class, ${entity}Query.class, subTableBase);
+#else
 	public ${entity}Table() {
 		super(${entity}.class, ${entity}View.class, ${entity}Query.class);
+#end    
 	}
 
 	@Override
 	protected void specifyStructure(TableSpec spec) {
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-        register${f.code.attributes.columnType}Column(spec, "${f.name}", new ${f.code.attributes.subtable}());
+        register${f.code.attributes.columnType}Column(spec, "${f.name}", new ${f.code.attributes.subtable}(null));
 #else
         register${f.code.attributes.columnType}Column(spec, "${f.name}");
 #end
