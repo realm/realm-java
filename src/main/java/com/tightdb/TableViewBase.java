@@ -82,6 +82,12 @@ public class TableViewBase {
 		this.nativePtr = nativePtr;
 	}
 	
+	public void clear(){
+		nativeClear();
+	}
+	
+	protected native void nativeClear();
+
 	/**
 	 * Returns the number of entries of the tableview.
 	 * @return
@@ -180,11 +186,17 @@ public class TableViewBase {
 	
 	protected native byte[] nativeGetBinaryData(int columnIndex, int rowIndex);
 	
-	public TableBase getTable(int columnIndex, int rowIndex){
-		return new TableBase(nativeGetTable(columnIndex, rowIndex));
+	public Mixed getMixed(int columnIndex, int rowIndex, Mixed value){
+		return nativeGetMixed(columnIndex, rowIndex, value);
 	}
 	
-	protected native long nativeGetTable(int columnIndex, int rowIndex);
+	protected native Mixed nativeGetMixed(int columnIndex, int rowIndex, Mixed value);
+	
+	public SubTableBase getSubTable(int columnIndex, int rowIndex){
+		return new SubTableBase(nativeGetSubTable(columnIndex, rowIndex));
+	}
+	
+	protected native long nativeGetSubTable(int columnIndex, int rowIndex);
 	
 	/**
 	 * Sets the long value for a particular cell identified by columnIndex
@@ -241,6 +253,12 @@ public class TableViewBase {
 	
 	protected native void nativeSetBinaryData(int columnIndex, int rowIndex, byte[] data);
 
+	public void setMixed(int columnIndex, int rowIndex, Mixed data){
+		nativeSetMixed(columnIndex, rowIndex, data);
+	}
+	
+	protected native void nativeSetMixed(int columnIndex, int rowIndex, Mixed value);
+	
 	/** 
 	 * Returns the summation of the values of a particular column of this 
 	 * tableview. The column is identified by the columnIndex and rowIndex.

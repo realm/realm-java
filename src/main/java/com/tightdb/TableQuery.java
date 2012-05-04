@@ -126,6 +126,13 @@ public class TableQuery {
 		nativeOr();
 		return this;
 	}
+	
+	TableViewBase findAll(TableBase tableBase, int start, int end, int limit){
+		return new TableViewBase(tableBase, nativeFindAll(tableBase, start, end, limit));
+	}
+	
+	protected native long nativeFindAll(TableBase tableBase, int start, int end, int limit);
+	
 	protected native void nativeOr();
 	
 	protected native long createNativePtr();

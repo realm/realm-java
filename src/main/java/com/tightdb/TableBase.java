@@ -54,22 +54,22 @@ public class TableBase {
 		// have nothing to do with the native functions. Generated Java Table 
 		// classes will work as a wrapper on top of table.
 		this.nativePtr = createNative();
-		this.parentTable = null;
-		this.columnIndex = -1;
-		this.rowIndex = -1;
+		//this.parentTable = null;
+		//this.columnIndex = -1;
+		//this.rowIndex = -1;
 	}
 
-	protected TableBase(TableBase parent, int columnIndex, int rowIndex){
+	/*protected TableBase(TableBase parent, int columnIndex, int rowIndex){
 		this.parentTable = parent;
 		this.columnIndex = columnIndex;
 		this.rowIndex = rowIndex;
-	}
+	}*/
 
-	protected TableBase(TableViewBase parent, int columnIndex, int rowIndex){
+	/*protected TableBase(TableViewBase parent, int columnIndex, int rowIndex){
 		//TODO for the support of a table from tableview this.parentView = parent;
 		this.columnIndex = columnIndex;
 		this.rowIndex = rowIndex;
-	}
+	}*/
 	/**
 	 * Updates a table specification from a Table specification structure.
 	 * types that are supported refer to @see ColumnType. 
@@ -89,10 +89,10 @@ public class TableBase {
 	 * @return value of the particular cell
 	 */
 	public String getString(int columnIndex, int rowIndex){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowTreeList = getColumnRowPairForParents();
 			return nativeGetStringFromRoot(getTopLevelTable(), columnRowTreeList, columnIndex, rowIndex);
-		}
+		}*/
 		return nativeGetString(columnIndex, rowIndex);
 	}
 	
@@ -107,10 +107,10 @@ public class TableBase {
 	 * @return value of the particular cell.
 	 */
 	public long getLong(int columnIndex, int rowIndex){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			return nativeGetLongFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
-		}
+		}*/
 		return nativeGetLong(columnIndex, rowIndex);
 	}
 	
@@ -125,10 +125,10 @@ public class TableBase {
 	 * @return value of the particular cell.
 	 */
 	public boolean getBoolean(int columnIndex, int rowIndex){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			return nativeGetBooleanFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
-		}
+		}*/
 		return nativeGetBoolean(columnIndex, rowIndex);
 	}
 	
@@ -143,10 +143,10 @@ public class TableBase {
 	 * @return value of the particular cell.
 	 */
 	public byte[] getBinaryData(int columnIndex, int rowIndex){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			return nativeGetBinaryDataFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
-		}
+		}*/
 		return nativeGetBinaryData(columnIndex, rowIndex);
 	}
 	
@@ -154,34 +154,31 @@ public class TableBase {
 	protected native byte[] nativeGetBinaryDataFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex);
 	
 	public Mixed getMixed(int columnIndex, int rowIndex){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			return nativeGetMixedFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
-		}
+		}*/
 		return nativeGetMixed(columnIndex, rowIndex);
 	}
 	
 	protected native Mixed nativeGetMixed(int columnIndex, int rowIndex);
 	protected native Mixed nativeGetMixedFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex);
 	
-/*
- * This methods are removed as in JNI Layer we can not keep a reference 
- * of a sub-table for long	
- * 	public TableBase getTable(int columnIndex, int rowIndex){
-		return new TableBase(nativeGetTable(columnIndex, rowIndex));
+  	public SubTableBase getSubTable(int columnIndex, int rowIndex){
+		return new SubTableBase(nativeGetSubTable(columnIndex, rowIndex));
 	}
 	
-	protected native long nativeGetTable(int columnIndex, int rowIndex);
-*/	
+	protected native long nativeGetSubTable(int columnIndex, int rowIndex);
+
 	/**
 	 * use this method to get the number of columns of the table.
 	 * @return number of column.
 	 */
 	public int getColumnCount(){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowTree = getColumnRowPairForParents();
 			return nativeGetColumnCountFromRoot(getTopLevelTable(), columnRowTree);
-		}
+		}*/
 		return nativeGetColumnCount();
 	}
 	
@@ -194,10 +191,10 @@ public class TableBase {
 	 * @return
 	 */
 	public String getColumnName(int columnIndex){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			return nativeGetColumnNameFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex);
-		}
+		}*/
 		return nativeGetColumnName(columnIndex);
 	}
 
@@ -211,12 +208,13 @@ public class TableBase {
 	 */
 	public ColumnType getColumnType(int columnIndex){
 		int columnType;
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			columnType = nativeGetColumnTypeFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex);
 		}else{
 			columnType = nativeGetColumnType(columnIndex);
-		}
+		}*/
+		columnType = nativeGetColumnType(columnIndex);
 		ColumnType[] columnTypes = ColumnType.values();
 		return columnTypes[columnType];
 	}
@@ -247,10 +245,10 @@ public class TableBase {
 	 * @return
 	 */
 	public int getCount(){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowTree = getColumnRowPairForParents();
 			return nativeGetCountFromRoot(getTopLevelTable(), columnRowTree);
-		}
+		}*/
 		return nativeGetCount();
 	}
 	
@@ -276,11 +274,11 @@ public class TableBase {
 	 * @param value
 	 */
 	public void setString(int columnIndex, int rowIndex, String value){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeSetStringFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
 			return;
-		}
+		}*/
 		nativeSetString(columnIndex, rowIndex, value);
 	}
 	
@@ -295,11 +293,11 @@ public class TableBase {
 	 * @param value
 	 */
 	public void setLong(int columnIndex, int rowIndex, long value){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeSetLongFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
 			return;
-		}
+		}*/
 		nativeSetLong(columnIndex, rowIndex, value);
 	}
 	
@@ -313,11 +311,11 @@ public class TableBase {
 	 * @param value
 	 */
 	public void setBoolean(int columnIndex, int rowIndex, boolean value){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeSetBooleanFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
 			return;
-		}
+		}*/
 		nativeSetBoolean(columnIndex, rowIndex, value);
 	}
 	
@@ -333,11 +331,11 @@ public class TableBase {
 	public void setBinaryData(int columnIndex, int rowIndex, byte[] data){
 		if(data == null)
 			throw new NullPointerException("Null array");
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeSetBinaryDataFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, data);
 			return;
-		}
+		}*/
 		nativeSetBinaryData(columnIndex, rowIndex, data);
 	}
 	
@@ -348,11 +346,11 @@ public class TableBase {
 	protected void setMixed(int columnIndex, int rowIndex, Mixed data){
 		if(data == null)
 			throw new NullPointerException();
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeSetMixedFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, data);
 			return;
-		}
+		}*/
 		nativeSetMixed(columnIndex, rowIndex, data);
 	}
 	
@@ -366,11 +364,11 @@ public class TableBase {
 	 * @param value
 	 */
 	public void insertString(int columnIndex, int rowIndex, String value){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowTree = getColumnRowPairForParents();
 			nativeInsertStringFromRoot(getTopLevelTable(), columnRowTree, columnIndex, rowIndex, value);
 			return;
-		}
+		}*/
 		nativeInsertString(columnIndex, rowIndex, value);
 	}
 	
@@ -386,11 +384,11 @@ public class TableBase {
 	 * @param value new value for the cell to be inserted.
 	 */
 	public void insertLong(int columnIndex, int rowIndex, long value){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeInsertLongFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
 			return;
-		}
+		}*/
 		nativeInsertLong(columnIndex, rowIndex, value);
 	}
 	
@@ -407,11 +405,11 @@ public class TableBase {
 	 * @param value value to be inserted.
 	 */
 	public void insertBoolean(int columnIndex, int rowIndex, boolean value){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeInsertBooleanFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
 			return;
-		}
+		}*/
 		nativeInsertBoolean(columnIndex, rowIndex, value);
 	}
 	
@@ -428,11 +426,11 @@ public class TableBase {
 	 * @param data data to be inserted.
 	 */
 	public void insertBinaryData(int columnIndex, int rowIndex, byte[] data){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeInsertBinaryDataFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, data);
 			return;
-		}
+		}*/
 		nativeInsertBinaryData(columnIndex, rowIndex, data);
 	}
 	
@@ -440,11 +438,11 @@ public class TableBase {
 	protected native void nativeInsertBinaryDataFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, byte[] data);
 	
 	public void insertTable(int columnIndex, int rowIndex){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeInsertTableFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
 			return;
-		}
+		}*/
 		nativeInsertTable(columnIndex, rowIndex);	
 	}
 	
@@ -452,11 +450,11 @@ public class TableBase {
 	protected native void nativeInsertTableFromRoot(TableBase tableBase, List<CellId> columnRowIndexList, int columnIndex, int rowIndex);
 	
 	public void insertMixed(int columnIndex, int rowIndex, Mixed data){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeInsertMixedFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, data);
 			return;
-		}
+		}*/
 		nativeInsertMixed(columnIndex, rowIndex, data);
 	}
 	
@@ -469,11 +467,11 @@ public class TableBase {
 	 * 
 	 */
 	public void insertDone(){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowTree = getColumnRowPairForParents();
 			nativeInsertDoneFromRoot(getTopLevelTable(), columnRowTree);
 			return;
-		}
+		}*/
 		nativeInsertDone();
 	}
 	
@@ -487,34 +485,34 @@ public class TableBase {
 	 * 
 	 */
 	public void removeRow(int rowIndex){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeRemoveRowFromRoot(getTopLevelTable(), columnRowIndexList, rowIndex);
 			return;
-		}
+		}*/
 		nativeRemoveRow(rowIndex);
 	}
 
 	protected native void nativeRemoveRow(int rowIndex);
 	protected native void nativeRemoveRowFromRoot(TableBase table, List<CellId> columnRowIndexList, int rowIndex);
 	
-	public TableBase getTopLevelTable(){
+	/*public TableBase getTopLevelTable(){
 		TableBase root = this;
 		while(root.parentTable != null){
 			root = root.parentTable;
 		}
 		return root;
-	}
+	}*/
 	
 	/**
 	 * Clears this table. After this call all the row's of this table is deleted.
 	 */
 	public void clear(){
-		if(parentTable != null){
+		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
 			nativeClearFromRoot(getTopLevelTable(), columnRowIndexList);
 			return;
-		}
+		}*/
 		nativeClear();
 	}
 	
@@ -546,7 +544,7 @@ public class TableBase {
 	}
 	List<CellId> rowColTreeList = null;
 
-	protected List<CellId>getColumnRowPairForParents(){
+	/*protected List<CellId>getColumnRowPairForParents(){
 		if(rowColTreeList != null)
 			return rowColTreeList;
 		TableBase currentBase = this;
@@ -561,7 +559,7 @@ public class TableBase {
 			Collections.reverse(rowColTreeList);
 		}
 		return rowColTreeList;
-	}
+	}*/
 
 	protected native long createNative();
 	
@@ -570,7 +568,7 @@ public class TableBase {
 	
 	protected long nativePtr;
 	
-	protected TableBase parentTable;
-	protected int columnIndex;
-	protected int rowIndex;
+	//protected TableBase parentTable;
+	//protected int columnIndex;
+	//protected int rowIndex;
 }
