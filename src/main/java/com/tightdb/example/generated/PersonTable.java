@@ -47,7 +47,7 @@ public class PersonTable extends AbstractTable<Person, PersonView, PersonQuery> 
 		registerBinaryColumn(spec, "photo");
 		registerDateColumn(spec, "birthdate");
 		registerMixedColumn(spec, "extra");
-		registerTableColumn(spec, "attributes", new PhoneTable());
+		registerTableColumn(spec, "attributes", new PhoneTable(null));
 	}
 
 	public Person add(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Serializable extra) {

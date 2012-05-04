@@ -3,21 +3,24 @@
 package com.tightdb.generated;
 
 
-import com.tightdb.*;
-import com.tightdb.lib.*;
+import com.tightdb.SubTableBase;
+import com.tightdb.TableSpec;
+import com.tightdb.lib.AbstractSubtable;
+import com.tightdb.lib.EntityTypes;
+import com.tightdb.lib.StringRowsetColumn;
 
 /**
  * This class represents a TightDB table and was automatically generated.
  */
-public class PhoneTable extends AbstractTable<Phone, PhoneView, PhoneQuery> {
+public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
 
 	public static final EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery> TYPES = new EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery>(PhoneTable.class, PhoneView.class, Phone.class, PhoneQuery.class); 
 
 	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, null, 0, "type");
 	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, null, 1, "number");
 
-	public PhoneTable() {
-		super(Phone.class, PhoneView.class, PhoneQuery.class);
+	public PhoneTable(SubTableBase subtable) {
+		super(Phone.class, PhoneView.class, PhoneQuery.class, subtable);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package com.tightdb.example.generated;
 
+import com.tightdb.SubTableBase;
 import com.tightdb.TableSpec;
 import com.tightdb.lib.AbstractSubtable;
 import com.tightdb.lib.EntityTypes;
@@ -13,8 +14,8 @@ public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
 
 	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, null, 1, "number");
 	
-	public PhoneTable() {
-		super(Phone.class, PhoneView.class, PhoneQuery.class);
+	public PhoneTable(SubTableBase subTableBase) {
+		super(Phone.class, PhoneView.class, PhoneQuery.class, subTableBase);
 	}
 
 	@Override
