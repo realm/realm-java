@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Date;
 
 import com.tightdb.example.generated.Person;
-import com.tightdb.example.generated.PersonQuery;
 import com.tightdb.example.generated.PersonTable;
 import com.tightdb.lib.TDBUtils;
 
@@ -22,6 +21,10 @@ public class ManualWorkingExample {
 
 		TDBUtils.printTable(persons);
 		System.out.println("- First names: " + Arrays.toString(persons.firstName.getAll()));
+
+		System.out.println("max salary: " + persons.salary.max());
+		System.out.println("min salary: " + persons.salary.min());
+		System.out.println("salary sum: " + persons.salary.sum());
 		
 		persons.salary.setAll(100000);
 		TDBUtils.printTable(persons);
@@ -37,9 +40,9 @@ public class ManualWorkingExample {
 		persons.clear();
 
 		TDBUtils.printTable(persons);
-		
-		PersonQuery q1 = persons.firstName.startsWith("N").salary.is(11);
-		System.out.println(q1);
+	
+//		PersonQuery q1 = persons.firstName.startsWith("N").salary.is(11);
+//		System.out.println(q1);
 	}
 
 }

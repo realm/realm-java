@@ -6,8 +6,6 @@ import java.util.List;
 import com.tightdb.example.generated.Person;
 import com.tightdb.example.generated.PersonTable;
 import com.tightdb.example.generated.PersonView;
-import com.tightdb.lib.NestedTable;
-import com.tightdb.lib.Table;
 
 public class Example {
 
@@ -59,7 +57,7 @@ public class Example {
 		List<Person> nikolches = persons.firstName.is("Nikolche").findAll();
 
 		// projection and aggregation of the salary
-		int salarySum = persons.salary.sum();
+		long salarySum = persons.salary.sum();
 
 		// lazy iteration through the table - now simpler
 		for (Person person : persons) {
@@ -71,7 +69,7 @@ public class Example {
 		for (Person person : view) {
 			System.out.println(person);
 		}
-		int maxSalary = view.salary.max();
+		long maxSalary = view.salary.max();
 
 		// Various combinations:
 

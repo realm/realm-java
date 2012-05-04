@@ -9,20 +9,16 @@ public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Que
 		super(types, table, query, index, name);
 	}
 
-	public int sum() {
-		return 0;
+	public long sum() {
+		return getView().sum(columnIndex);
 	}
 
-	public int max() {
-		return 0;
+	public long max() {
+		return getView().max(columnIndex);
 	}
 
-	public int min() {
-		return 0;
-	}
-
-	public int average() {
-		return 0;
+	public long min() {
+		return getView().min(columnIndex);
 	}
 
 	@Override

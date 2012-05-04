@@ -2,6 +2,7 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
+import com.tightdb.TableViewBase;
 
 public abstract class AbstractColumn<Type, Cursor, Query> {
 
@@ -59,7 +60,7 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		return query != null ? query : new TableQuery(table);
 	}
 
-	protected Query query(TableQuery tableQuery) { // String info is temporary
+	protected Query query(TableQuery tableQuery) {
 		try {
 			return types.getQueryClass().getConstructor(TableBase.class, TableQuery.class).newInstance(table, tableQuery);
 		} catch (Exception e) {
@@ -67,4 +68,9 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		}
 	}
 
+	protected TableViewBase getView() {
+		return new TableViewBase(table); // FIXME: finish this for specified queries
+	}
+	
+	
 }

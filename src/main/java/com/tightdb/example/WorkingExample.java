@@ -49,6 +49,10 @@ public class WorkingExample {
 		TDBUtils.printTable(persons);
 		System.out.println("- First names: " + Arrays.toString(persons.firstName.getAll()));
 		
+		System.out.println("max salary: " + persons.salary.max());
+		System.out.println("min salary: " + persons.salary.min());
+		System.out.println("salary sum: " + persons.salary.sum());
+		
 		persons.salary.setAll(100000);
 		TDBUtils.printTable(persons);
 		
