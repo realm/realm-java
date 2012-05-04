@@ -19,9 +19,9 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(TYPES, table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(TYPES, table, null, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
 #else
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(TYPES, table, ${f.code.attributes.index}, "${f.name}");
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(TYPES, table, null, ${f.code.attributes.index}, "${f.name}");
 #end
 #end
 
@@ -107,6 +107,25 @@ import com.tightdb.lib.*;
  * This class represents a TightDB query and was automatically generated.
  */
 public class ${entity}Query extends AbstractQuery {
+
+#foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+    public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name};
+#else
+    public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name};
+#end
+#end
+
+	public ${entity}Query(TableBase table, TableQuery query) {
+		super(table, query);
+#foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+        ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(${entity}Table.TYPES, table, query, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+#else
+        ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, table, query, ${f.code.attributes.index}, "${f.name}");
+#end
+#end
+	}
 
 }
 #end

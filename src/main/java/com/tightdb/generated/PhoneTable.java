@@ -13,8 +13,8 @@ public class PhoneTable extends AbstractTable<Phone, PhoneView, PhoneQuery> {
 
 	public static final EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery> TYPES = new EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery>(PhoneTable.class, PhoneView.class, Phone.class, PhoneQuery.class); 
 
-	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, 0, "type");
-	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, 1, "number");
+	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, null, 0, "type");
+	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, null, 1, "number");
 
 	public PhoneTable() {
 		super(Phone.class, PhoneView.class, PhoneQuery.class);

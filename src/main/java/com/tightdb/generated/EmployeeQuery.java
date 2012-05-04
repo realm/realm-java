@@ -11,4 +11,25 @@ import com.tightdb.lib.*;
  */
 public class EmployeeQuery extends AbstractQuery {
 
+    public final StringRowsetColumn<Employee, EmployeeQuery> firstName;
+    public final StringRowsetColumn<Employee, EmployeeQuery> lastName;
+    public final LongRowsetColumn<Employee, EmployeeQuery> salary;
+    public final BooleanRowsetColumn<Employee, EmployeeQuery> driver;
+    public final BinaryRowsetColumn<Employee, EmployeeQuery> photo;
+    public final DateRowsetColumn<Employee, EmployeeQuery> birthdate;
+    public final MixedRowsetColumn<Employee, EmployeeQuery> extra;
+    public final TableRowsetColumn<Employee, EmployeeQuery, PhoneTable> phones;
+
+	public EmployeeQuery(TableBase table, TableQuery query) {
+		super(table, query);
+        firstName = new StringRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 0, "firstName");
+        lastName = new StringRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 1, "lastName");
+        salary = new LongRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 2, "salary");
+        driver = new BooleanRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 3, "driver");
+        photo = new BinaryRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 4, "photo");
+        birthdate = new DateRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 5, "birthdate");
+        extra = new MixedRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 6, "extra");
+        phones = new TableRowsetColumn<Employee, EmployeeQuery, PhoneTable>(EmployeeTable.TYPES, table, query, 7, "phones", PhoneTable.class);
+	}
+
 }

@@ -11,4 +11,13 @@ import com.tightdb.lib.*;
  */
 public class PhoneQuery extends AbstractQuery {
 
+    public final StringRowsetColumn<Phone, PhoneQuery> type;
+    public final StringRowsetColumn<Phone, PhoneQuery> number;
+
+	public PhoneQuery(TableBase table, TableQuery query) {
+		super(table, query);
+        type = new StringRowsetColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, query, 0, "type");
+        number = new StringRowsetColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, query, 1, "number");
+	}
+
 }
