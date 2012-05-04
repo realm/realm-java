@@ -10,10 +10,6 @@ public class MixedCursorColumn<Cursor, Query> extends AbstractColumn<Serializabl
 		super(types, table, cursor, index, name);
 	}
 
-	public MixedCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
-	}
-
 	@Override
 	public Serializable get() {
 		return TDBUtils.deserialize(table.getBinaryData(columnIndex, (int) cursor.getPosition()));

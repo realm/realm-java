@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
 import com.tightdb.TableBase;
+import com.tightdb.TableQuery;
 
 public class BooleanQueryColumn<Cursor, Query> extends AbstractColumn<Boolean, Cursor, Query> {
 
@@ -8,8 +9,8 @@ public class BooleanQueryColumn<Cursor, Query> extends AbstractColumn<Boolean, C
 		super(types, table, cursor, index, name);
 	}
 
-	public BooleanQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
+	public BooleanQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, TableQuery query, int index, String name) {
+		super(types, table, query, index, name);
 	}
 
 }

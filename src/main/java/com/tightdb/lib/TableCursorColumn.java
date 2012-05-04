@@ -15,15 +15,6 @@ public class TableCursorColumn<Cursor, Query, Subtable> extends AbstractColumn<S
 		}
 	}
 
-	public TableCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name, Class<Subtable> subtableClass) {
-		super(types, table, index, name);
-		try {
-			subtable = subtableClass.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot create subtable instance!", e);
-		}
-	}
-
 	@Override
 	public Subtable get() {
 		return subtable;

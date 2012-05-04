@@ -13,10 +13,6 @@ public class DateCursorColumn<Cursor, Query> extends AbstractColumn<Date, Cursor
 		super(types, table, cursor, index, name);
 	}
 
-	public DateCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
-	}
-
 	@Override
 	public Date get() {
 		return new Date(table.getLong(columnIndex, (int) cursor.getPosition()));

@@ -1,11 +1,12 @@
 package com.tightdb.lib;
 
 import com.tightdb.TableBase;
+import com.tightdb.TableQuery;
 
 public class BinaryRowsetColumn<Cursor, Query> extends BinaryQueryColumn<Cursor, Query> implements RowsetColumn<byte[]> {
 
-	public BinaryRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
+	public BinaryRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, TableQuery query, int index, String name) {
+		super(types, table, query, index, name);
 	}
 
 	@Override

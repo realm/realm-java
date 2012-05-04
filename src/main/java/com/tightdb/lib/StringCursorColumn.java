@@ -8,10 +8,6 @@ public class StringCursorColumn<Cursor, Query> extends AbstractColumn<String, Cu
 		super(types, table, cursor, index, name);
 	}
 
-	public StringCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
-	}
-
 	@Override
 	public String get() {
 		return table.getString(columnIndex, (int) cursor.getPosition());

@@ -8,10 +8,6 @@ public class BinaryCursorColumn<Cursor, Query> extends AbstractColumn<byte[], Cu
 		super(types, table, cursor, index, name);
 	}
 
-	public BinaryCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
-	}
-
 	@Override
 	public byte[] get() {
 		return table.getBinaryData(columnIndex, (int) cursor.getPosition());

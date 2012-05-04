@@ -8,10 +8,6 @@ public class BooleanCursorColumn<Cursor, Query> extends AbstractColumn<Boolean, 
 		super(types, table, cursor, index, name);
 	}
 
-	public BooleanCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
-	}
-
 	@Override
 	public Boolean get() {
 		return table.getBoolean(columnIndex, (int) cursor.getPosition());

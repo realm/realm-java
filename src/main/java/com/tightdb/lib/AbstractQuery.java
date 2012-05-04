@@ -5,21 +5,12 @@ import com.tightdb.TableQuery;
 
 public abstract class AbstractQuery<Cursor, View> {
 
-	private TableQuery query;
-	
-	private String info;
+	private final TableQuery query;
+	private final TableBase table;
 
-	public AbstractQuery(TableBase table) {
+	public AbstractQuery(TableBase table, TableQuery query2) {
+		this.table = table;
 		query = new TableQuery(table);
-	}
-
-	public AbstractQuery(String info) {
-		this.info = info;
-		query = null;
-	}
-	
-	public AbstractQuery() {
-		// FIXME: not finished
 	}
 
 	public View findAll() {
@@ -49,7 +40,6 @@ public abstract class AbstractQuery<Cursor, View> {
 
 	@Override
 	public String toString() {
-		return info;
+		return getClass().getSimpleName();
 	}
 }
-

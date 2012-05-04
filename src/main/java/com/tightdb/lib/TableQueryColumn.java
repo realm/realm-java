@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
 import com.tightdb.TableBase;
+import com.tightdb.TableQuery;
 
 public class TableQueryColumn<Cursor, Query, Subtable> extends AbstractColumn<Subtable, Cursor, Query> {
 
@@ -15,8 +16,8 @@ public class TableQueryColumn<Cursor, Query, Subtable> extends AbstractColumn<Su
 		}
 	}
 
-	public TableQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name, Class<Subtable> subtableClass) {
-		super(types, table, index, name);
+	public TableQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, TableQuery query, int index, String name, Class<Subtable> subtableClass) {
+		super(types, table, query, index, name);
 		try {
 			subtable = subtableClass.newInstance();
 		} catch (Exception e) {

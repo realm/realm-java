@@ -3,11 +3,12 @@ package com.tightdb.lib;
 import java.util.Date;
 
 import com.tightdb.TableBase;
+import com.tightdb.TableQuery;
 
 public class DateRowsetColumn<Cursor, Query> extends DateQueryColumn<Cursor, Query> implements RowsetColumn<Date> {
 
-	public DateRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
+	public DateRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, TableQuery query, int index, String name) {
+		super(types, table, query, index, name);
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
 import com.tightdb.TableBase;
+import com.tightdb.TableQuery;
 
 public class BinaryQueryColumn<Cursor, Query> extends AbstractColumn<byte[], Cursor, Query> {
 
@@ -8,8 +9,8 @@ public class BinaryQueryColumn<Cursor, Query> extends AbstractColumn<byte[], Cur
 		super(types, table, cursor, index, name);
 	}
 
-	public BinaryQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
+	public BinaryQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, TableQuery query, int index, String name) {
+		super(types, table, query, index, name);
 	}
 
 }

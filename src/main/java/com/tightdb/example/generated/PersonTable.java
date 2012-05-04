@@ -18,21 +18,21 @@ public class PersonTable extends AbstractTable<Person, PersonView, PersonQuery> 
 
 	public static final EntityTypes<PersonTable, PersonView, Person, PersonQuery> TYPES = new EntityTypes<PersonTable, PersonView, Person, PersonQuery>(PersonTable.class, PersonView.class, Person.class, PersonQuery.class); 
 	
-	public final StringRowsetColumn<Person, PersonQuery> firstName = new StringRowsetColumn<Person, PersonQuery>(TYPES, table, 0, "firstName");
+	public final StringRowsetColumn<Person, PersonQuery> firstName = new StringRowsetColumn<Person, PersonQuery>(TYPES, table, null, 0, "firstName");
 
-	public final StringRowsetColumn<Person, PersonQuery> lastName = new StringRowsetColumn<Person, PersonQuery>(TYPES, table, 1, "lastName");
+	public final StringRowsetColumn<Person, PersonQuery> lastName = new StringRowsetColumn<Person, PersonQuery>(TYPES, table, null, 1, "lastName");
 
-	public final LongRowsetColumn<Person, PersonQuery> salary = new LongRowsetColumn<Person, PersonQuery>(TYPES, table, 2, "salary");
+	public final LongRowsetColumn<Person, PersonQuery> salary = new LongRowsetColumn<Person, PersonQuery>(TYPES, table, null, 2, "salary");
 
-	public final BooleanRowsetColumn<Person, PersonQuery> driver = new BooleanRowsetColumn<Person, PersonQuery>(TYPES, table, 3, "driver");
+	public final BooleanRowsetColumn<Person, PersonQuery> driver = new BooleanRowsetColumn<Person, PersonQuery>(TYPES, table, null, 3, "driver");
 
-	public final BinaryRowsetColumn<Person, PersonQuery> photo = new BinaryRowsetColumn<Person, PersonQuery>(TYPES, table, 4, "photo");
+	public final BinaryRowsetColumn<Person, PersonQuery> photo = new BinaryRowsetColumn<Person, PersonQuery>(TYPES, table, null, 4, "photo");
 
-	public final DateRowsetColumn<Person, PersonQuery> birthdate = new DateRowsetColumn<Person, PersonQuery>(TYPES, table, 5, "birthdate");
+	public final DateRowsetColumn<Person, PersonQuery> birthdate = new DateRowsetColumn<Person, PersonQuery>(TYPES, table, null, 5, "birthdate");
 
-	public final MixedRowsetColumn<Person, PersonQuery> extra = new MixedRowsetColumn<Person, PersonQuery>(TYPES, table, 6, "extra");
+	public final MixedRowsetColumn<Person, PersonQuery> extra = new MixedRowsetColumn<Person, PersonQuery>(TYPES, table, null, 6, "extra");
 
-	public final TableRowsetColumn<Person, PersonQuery, PhoneTable> phones = new TableRowsetColumn<Person, PersonQuery, PhoneTable>(TYPES, table, 7, "phones", PhoneTable.class);
+	public final TableRowsetColumn<Person, PersonQuery, PhoneTable> phones = new TableRowsetColumn<Person, PersonQuery, PhoneTable>(TYPES, table, null, 7, "phones", PhoneTable.class);
 
 	public PersonTable() {
 		super(Person.class, PersonView.class, PersonQuery.class);

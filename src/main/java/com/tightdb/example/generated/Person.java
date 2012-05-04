@@ -31,7 +31,7 @@ public class Person extends AbstractCursor<Person> {
 		photo = new BinaryCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 4, "photo");
 		birthdate = new DateCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 5, "birthdate");
 		extra = new MixedCursorColumn<Person, PersonQuery>(PersonTable.TYPES, table, this, 6, "extra");
-		phones = new TableCursorColumn<Person, PersonQuery, PhoneTable>(PersonTable.TYPES, table, 7, "phones", PhoneTable.class);
+		phones = new TableCursorColumn<Person, PersonQuery, PhoneTable>(PersonTable.TYPES, table, this, 7, "phones", PhoneTable.class);
 	}
 
 	public String getFirstName() {

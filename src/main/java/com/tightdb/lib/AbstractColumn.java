@@ -5,23 +5,26 @@ import com.tightdb.TableQuery;
 
 public abstract class AbstractColumn<Type, Cursor, Query> {
 
+	private final EntityTypes<?, ?, Cursor, Query> types;
 	protected final TableBase table;
 	protected final AbstractCursor<Cursor> cursor;
 	protected final String name;
 	protected final int columnIndex;
-	private final EntityTypes<?, ?, Cursor, Query> types;
+	protected final TableQuery query;
 
 	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
 		this.types = types;
 		this.table = table;
+		this.query = null;
 		this.cursor = cursor;
 		this.columnIndex = index;
 		this.name = name;
 	}
 
-	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
+	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, TableQuery query, int index, String name) {
 		this.types = types;
 		this.table = table;
+		this.query = query;
 		this.cursor = null;
 		this.columnIndex = index;
 		this.name = name;
@@ -33,14 +36,6 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 
 	protected void set(Type value) {
 		throw new UnsupportedOperationException("Cannot set the column's value!");
-	}
-
-	public Query is(Type value) {
-		return query("is:" + value); // FIXME: remove from here
-	}
-
-	public Query isnt(Type value) {
-		return query("isnt:" + value); // FIXME: remove from here
 	}
 
 	@Override
@@ -60,10 +55,13 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		}
 	}
 
-	private Query query(String info) { // String info is temporary PoC
+	protected TableQuery getQuery() {
+		return query != null ? query : new TableQuery(table);
+	}
+
+	protected Query query(TableQuery tableQuery) { // String info is temporary
 		try {
-			info = getName() + ":" + info;
-			return types.getQueryClass().getConstructor(String.class).newInstance(info);
+			return types.getQueryClass().getConstructor(TableBase.class, TableQuery.class).newInstance(table, tableQuery);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot create a query!", e);
 		}

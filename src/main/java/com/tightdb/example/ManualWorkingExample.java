@@ -38,7 +38,7 @@ public class ManualWorkingExample {
 
 		TDBUtils.printTable(persons);
 		
-		PersonQuery q1 = persons.driver.is(true);
+		PersonQuery q1 = persons.firstName.startsWith("N").salary.is(11);
 		System.out.println(q1);
 	}
 

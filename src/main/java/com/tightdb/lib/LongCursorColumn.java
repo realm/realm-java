@@ -8,10 +8,6 @@ public class LongCursorColumn<Cursor, Query> extends AbstractColumn<Long, Cursor
 		super(types, table, cursor, index, name);
 	}
 
-	public LongCursorColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
-	}
-
 	@Override
 	public Long get() {
 		return table.getLong(columnIndex, (int) cursor.getPosition());

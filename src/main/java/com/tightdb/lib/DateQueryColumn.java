@@ -3,6 +3,7 @@ package com.tightdb.lib;
 import java.util.Date;
 
 import com.tightdb.TableBase;
+import com.tightdb.TableQuery;
 
 public class DateQueryColumn<Cursor, Query> extends AbstractColumn<Date, Cursor, Query> {
 
@@ -10,8 +11,8 @@ public class DateQueryColumn<Cursor, Query> extends AbstractColumn<Date, Cursor,
 		super(types, table, cursor, index, name);
 	}
 
-	public DateQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, int index, String name) {
-		super(types, table, index, name);
+	public DateQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, TableQuery query, int index, String name) {
+		super(types, table, query, index, name);
 	}
 
 }
