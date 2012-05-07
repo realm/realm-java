@@ -7,7 +7,7 @@ import com.tightdb.ColumnType;
 import com.tightdb.TableBase;
 import com.tightdb.TableSpec;
 
-public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<Cursor, View> implements Iterable<Cursor> {
+public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<Cursor, View> {
 
 	static {
 		TDBUtils.loadLibrary();
@@ -156,11 +156,11 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		table.removeRow((int) id);
 	}
 
-	@Override
-	public Cursor remove(int index) {
-		table.removeRow(index);
-		return null;
-	}
+//	@Override
+//	public Cursor remove(int index) {
+//		table.removeRow(index);
+//		return null;
+//	}
 
 	@Override
 	public void clear() {

@@ -44,7 +44,7 @@ public class Example {
 
 		Person johnDoe = persons.firstName.is("John").findUnique();
 
-		List<Person> allRich = persons.salary.greaterThan(100000).findAll();
+		PersonView allRich = persons.salary.greaterThan(100000).findAll();
 
 		// using explicit OR
 		// Person johnny = persons.firstName.is("Johnny").or().salary.is(10000).findFirst();
@@ -54,7 +54,7 @@ public class Example {
 
 		persons.firstName.is("John").findLast().salary.set(30000);
 
-		List<Person> nikolches = persons.firstName.is("Nikolche").findAll();
+		PersonView nikolches = persons.firstName.is("Nikolche").findAll();
 
 		// projection and aggregation of the salary
 		long salarySum = persons.salary.sum();
