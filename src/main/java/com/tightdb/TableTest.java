@@ -9,23 +9,29 @@ public class TableTest {
 		
 		TableBase base = new TableBase();
 
+		System.out.println("created table");
+		
 		TableSpec tableSpec = new TableSpec();
-		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+		//tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "salary");
 		base.updateFromSpec(tableSpec);
 
-		base.insertString(0, 0, "John");
-		base.insertLong(1, 0, 24000);
+		System.out.println("specified structure");
+		
+		base.insertLong(0, 0, 24000); // FAILS HERE!
+		//base.insertString(0, 0, "John");
 		base.insertDone();
+		
+		System.out.println("inserted data");
 
-		System.out.println(base.getColumnName(0));
-		System.out.println(base.getColumnName(1));
-
-		System.out.println(base.getCount());
-		System.out.println(base.getString(0, 0));
-		System.out.println(base.getLong(1, 0));
-
-		base.removeRow(0);
+//		System.out.println(base.getColumnName(0));
+//		System.out.println(base.getColumnName(1));
+//
+//		System.out.println(base.getCount());
+//		System.out.println(base.getString(0, 0));
+//		System.out.println(base.getLong(1, 0));
+//
+//		base.removeRow(0);
 	}
 
 }
