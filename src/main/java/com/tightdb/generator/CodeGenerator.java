@@ -25,7 +25,7 @@ import com.tightdb.lib.Table;
 
 public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 
-	private static final boolean DEBUG_MODE = true;
+	private static final boolean DEBUG_MODE = false;
 
 	private final static PowerSet<String> NUM_TYPES = Power.set("long", "int", "byte", "short", "Long", "Integer", "Byte", "Short");
 	private final static PowerSet<String> OTHER_TYPES = Power.set("String", "Date");
