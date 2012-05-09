@@ -1,5 +1,6 @@
 package com.tightdb.example.generated;
 
+import com.tightdb.TableViewBase;
 import com.tightdb.lib.AbstractView;
 import com.tightdb.lib.LongRowsetColumn;
 import com.tightdb.lib.StringRowsetColumn;
@@ -14,4 +15,8 @@ public class PersonView extends AbstractView<Person, PersonView> {
 
 	public final PhoneTable phones = null;
 
+	public PersonView(TableViewBase viewBase) {
+		super(viewBase);
+	}
+	
 }

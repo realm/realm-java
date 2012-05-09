@@ -127,7 +127,7 @@ public class TableQuery {
 		return this;
 	}
 	
-	TableViewBase findAll(TableBase tableBase, int start, int end, int limit){
+	public TableViewBase findAll(TableBase tableBase, int start, int end, int limit){
 		return new TableViewBase(tableBase, nativeFindAll(tableBase, start, end, limit));
 	}
 	

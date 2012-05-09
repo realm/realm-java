@@ -12,7 +12,7 @@ public class PhoneQuery extends AbstractQuery<Phone, PhoneView> {
 	public final StringRowsetColumn<Phone, PhoneQuery> phone = null;
 
 	public PhoneQuery(TableBase table, TableQuery query2) {
-		super(table, query2);
+		super(PhoneTable.TYPES, table, query2);
 	}
 
 }
