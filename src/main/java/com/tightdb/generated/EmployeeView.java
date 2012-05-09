@@ -11,4 +11,8 @@ import com.tightdb.lib.*;
  */
 public class EmployeeView extends AbstractView<Employee, EmployeeView> {
 
+	public EmployeeView(TableViewBase viewBase) {
+		super(viewBase);
+	}
+
 }

@@ -21,7 +21,7 @@ public class EmployeeQuery extends AbstractQuery {
     public final TableRowsetColumn<Employee, EmployeeQuery, PhoneTable> phones;
 
 	public EmployeeQuery(TableBase table, TableQuery query) {
-		super(table, query);
+		super(EmployeeTable.TYPES, table, query);
         firstName = new StringRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 0, "firstName");
         lastName = new StringRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 1, "lastName");
         salary = new LongRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 2, "salary");
