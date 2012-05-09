@@ -14,11 +14,11 @@ public class Phone extends AbstractCursor<Phone> {
     public final StringCursorColumn<Phone, PhoneQuery> type;
     public final StringCursorColumn<Phone, PhoneQuery> number;
 
-	public Phone(TableBase table, long position) {
-		super(table, Phone.class, position);
+	public Phone(IRowsetBase rowset, long position) {
+		super(PhoneTable.TYPES, rowset, position);
 
-        type = new StringCursorColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, this, 0, "type");
-        number = new StringCursorColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, this, 1, "number");
+        type = new StringCursorColumn<Phone, PhoneQuery>(PhoneTable.TYPES, this, 0, "type");
+        number = new StringCursorColumn<Phone, PhoneQuery>(PhoneTable.TYPES, this, 1, "number");
 	}
 
 	public java.lang.String getType() {

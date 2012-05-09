@@ -24,7 +24,7 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView, Employe
 	public final TableRowsetColumn<Employee, EmployeeQuery, PhoneTable> phones = new TableRowsetColumn<Employee, EmployeeQuery, PhoneTable>(TYPES, table, null, 7, "phones", PhoneTable.class);
 
 	public EmployeeTable() {
-		super(Employee.class, EmployeeView.class, EmployeeQuery.class);
+		super(TYPES);
 	}
 
 	@Override

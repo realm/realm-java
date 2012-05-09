@@ -17,7 +17,7 @@ public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
 	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, null, 1, "number");
 
 	public PhoneTable(SubTableBase subTableBase) {
-		super(Phone.class, PhoneView.class, PhoneQuery.class, subTableBase);
+		super(TYPES, subTableBase);
 	}
 
 	@Override

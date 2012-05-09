@@ -20,17 +20,17 @@ public class Employee extends AbstractCursor<Employee> {
     public final MixedCursorColumn<Employee, EmployeeQuery> extra;
     public final TableCursorColumn<Employee, EmployeeQuery, PhoneTable> phones;
 
-	public Employee(TableBase table, long position) {
-		super(table, Employee.class, position);
+	public Employee(IRowsetBase rowset, long position) {
+		super(EmployeeTable.TYPES, rowset, position);
 
-        firstName = new StringCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 0, "firstName");
-        lastName = new StringCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 1, "lastName");
-        salary = new LongCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 2, "salary");
-        driver = new BooleanCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 3, "driver");
-        photo = new BinaryCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 4, "photo");
-        birthdate = new DateCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 5, "birthdate");
-        extra = new MixedCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, this, 6, "extra");
-        phones = new TableCursorColumn<Employee, EmployeeQuery, PhoneTable>(EmployeeTable.TYPES, table, this, 7, "phones", PhoneTable.class);
+        firstName = new StringCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 0, "firstName");
+        lastName = new StringCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 1, "lastName");
+        salary = new LongCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 2, "salary");
+        driver = new BooleanCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 3, "driver");
+        photo = new BinaryCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 4, "photo");
+        birthdate = new DateCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 5, "birthdate");
+        extra = new MixedCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 6, "extra");
+        phones = new TableCursorColumn<Employee, EmployeeQuery, PhoneTable>(EmployeeTable.TYPES, this, 7, "phones", PhoneTable.class);
 	}
 
 	public java.lang.String getFirstName() {

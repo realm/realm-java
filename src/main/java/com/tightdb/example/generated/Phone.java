@@ -1,13 +1,13 @@
 package com.tightdb.example.generated;
 
-import com.tightdb.TableBase;
 import com.tightdb.lib.AbstractCursor;
+import com.tightdb.lib.IRowsetBase;
 import com.tightdb.lib.StringCursorColumn;
 
 public class Phone extends AbstractCursor<Phone> {
 
-	public Phone(TableBase table, long position) {
-		super(table, Phone.class, position);
+	public Phone(IRowsetBase rowset, long position) {
+		super(PhoneTable.TYPES, rowset, position);
 	}
 
 	public final StringCursorColumn<Phone, PhoneQuery> type = null;

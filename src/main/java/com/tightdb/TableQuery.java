@@ -1,8 +1,11 @@
 package com.tightdb;
 
-
 public class TableQuery {
+	
+	public final TableBase table;
+
 	public TableQuery(TableBase table){
+		this.table = table;
 		this.nativePtr = createNativePtr();
 	}
 	

@@ -6,25 +6,33 @@ import com.tightdb.TableViewBase;
 
 public abstract class AbstractColumn<Type, Cursor, Query> {
 
-	private final EntityTypes<?, ?, Cursor, Query> types;
-	protected final TableBase table;
+	protected final EntityTypes<?, ?, Cursor, Query> types;
 	protected final AbstractCursor<Cursor> cursor;
 	protected final String name;
 	protected final int columnIndex;
 	protected final TableQuery query;
+	protected final IRowsetBase rowset;
 
-	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, AbstractCursor<Cursor> cursor, int index, String name) {
+	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
+		this(types, cursor.rowset, cursor, index, name);
+	}
+
+	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, TableQuery query, int index, String name) {
+		this(types, query.table, query, index, name);
+	}
+
+	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, AbstractCursor<Cursor> cursor, int index, String name) {
 		this.types = types;
-		this.table = table;
+		this.rowset = rowset;
 		this.query = null;
 		this.cursor = cursor;
 		this.columnIndex = index;
 		this.name = name;
 	}
 
-	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, TableQuery query, int index, String name) {
+	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
 		this.types = types;
-		this.table = table;
+		this.rowset = rowset;
 		this.query = query;
 		this.cursor = null;
 		this.columnIndex = index;
@@ -56,21 +64,25 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		}
 	}
 
+	private TableBase table() {
+		return (TableBase) rowset;
+	}
+
 	protected TableQuery getQuery() {
-		return query != null ? query : new TableQuery(table);
+		return query != null ? query : new TableQuery(table());
 	}
 
 	protected Query query(TableQuery tableQuery) {
 		try {
-			return types.getQueryClass().getConstructor(TableBase.class, TableQuery.class).newInstance(table, tableQuery);
+			return types.getQueryClass().getConstructor(TableBase.class, TableQuery.class).newInstance(table(), tableQuery);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot create a query!", e);
 		}
 	}
 
 	protected TableViewBase getView() {
-		return new TableViewBase(table); // FIXME: finish this for specified queries
+		return new TableViewBase(table()); // FIXME: finish this for specified
+											// queries
 	}
-	
-	
+
 }

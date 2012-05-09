@@ -12,7 +12,7 @@ import com.tightdb.lib.*;
 public class PhoneView extends AbstractView<Phone, PhoneView> {
 
 	public PhoneView(TableViewBase viewBase) {
-		super(viewBase);
+		super(PhoneTable.TYPES, viewBase);
 	}
 
 }

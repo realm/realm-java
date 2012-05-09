@@ -6,8 +6,8 @@ public abstract class AbstractSubtable<Cursor, View, Query> extends AbstractTabl
 
 	protected final SubTableBase subtable;
 
-	public AbstractSubtable(Class<Cursor> cursorClass, Class<View> viewClass, Class<Query> queryClass, SubTableBase subtable) {
-		super(cursorClass, viewClass, queryClass);
+	public AbstractSubtable(EntityTypes<?, View, Cursor, Query> types, SubTableBase subtable) {
+		super(types);
 		this.subtable = subtable;
 	}
 

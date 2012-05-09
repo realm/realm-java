@@ -1,12 +1,11 @@
 package com.tightdb.lib;
 
-import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
 
 public class StringQueryColumn<Cursor, Query> extends AbstractColumn<String, Cursor, Query> {
 
-	public StringQueryColumn(EntityTypes<?, ?, Cursor, Query> types, TableBase table, TableQuery query, int index, String name) {
-		super(types, table, query, index, name);
+	public StringQueryColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
+		super(types, rowset, query, index, name);
 	}
 
 	public Query is(String value) {

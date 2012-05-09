@@ -6,13 +6,14 @@ public abstract class AbstractView<Cursor, View> extends AbstractRowset<Cursor, 
 
 	protected final TableViewBase viewBase;
 
-	public AbstractView(TableViewBase viewBase) {
+	public AbstractView(EntityTypes<?, View, Cursor, ?> types, TableViewBase viewBase) {
+		super(types, viewBase);
 		this.viewBase = viewBase;
 	}
-	
+
 	@Override
 	public int size() {
-		throw new UnsupportedOperationException("Not implemented yet!");
+		return viewBase.getCount();
 	}
 
 	@Override

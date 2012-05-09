@@ -11,7 +11,7 @@ public class PhoneView extends AbstractView<Phone, PhoneView> {
 	public final StringRowsetColumn<Phone, PhoneQuery> phone = null;
 
 	public PhoneView(TableViewBase viewBase) {
-		super(viewBase);
+		super(PhoneTable.TYPES, viewBase);
 	}
 
 }

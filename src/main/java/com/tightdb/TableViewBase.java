@@ -2,6 +2,8 @@ package com.tightdb;
 
 import java.util.Date;
 
+import com.tightdb.lib.IRowsetBase;
+
 /**
  * This class represents a view of a particular table. We can think
  * a tableview is a subset of a table. It contains less than and 
@@ -40,7 +42,7 @@ import java.util.Date;
  * @author Anirban Talukdar
  *
  */
-public class TableViewBase {
+public class TableViewBase implements IRowsetBase {
 	/**
 	 * Creates a TableViewBase for the TableBase table. The constructor
 	 * implicitly create the native object tableview which is the backbone

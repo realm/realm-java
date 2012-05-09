@@ -1,9 +1,9 @@
 package com.tightdb;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
+import com.tightdb.lib.IRowsetBase;
 
 /**
  * This class a base class for any table structure. This class supports 
@@ -43,7 +43,7 @@ import java.util.List;
  *
  */
 
-public class TableBase {
+public class TableBase implements IRowsetBase {
 	/**
 	 * Contruct a Table base object. Which can be used to register columns in this 
 	 * table. Registering into table is allowed only in empty table. Creates a native 
@@ -343,8 +343,8 @@ public class TableBase {
 	protected native void nativeSetBinaryDataFromRoot(TableBase tableBase, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, byte[] data);
 	
 	
-	protected void setMixed(int columnIndex, int rowIndex, Mixed data){
-		if(data == null)
+	public void setMixed(int columnIndex, int rowIndex, Mixed data) {
+		if (data == null)
 			throw new NullPointerException();
 		/*if(parentTable != null){
 			List<CellId> columnRowIndexList = getColumnRowPairForParents();
@@ -567,6 +567,16 @@ public class TableBase {
 	public native static void executeNative();
 	
 	protected long nativePtr;
+
+	@Override
+	public Date getDate(int columnIndex, int rowIndex) {
+		return null;
+	}
+
+	@Override
+	public Mixed getMixed(int columnIndex, int rowIndex, Mixed value) {
+		return null;
+	}
 	
 	//protected TableBase parentTable;
 	//protected int columnIndex;

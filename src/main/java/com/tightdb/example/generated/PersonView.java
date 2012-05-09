@@ -16,7 +16,7 @@ public class PersonView extends AbstractView<Person, PersonView> {
 	public final PhoneTable phones = null;
 
 	public PersonView(TableViewBase viewBase) {
-		super(viewBase);
+		super(PersonTable.TYPES, viewBase);
 	}
 	
 }

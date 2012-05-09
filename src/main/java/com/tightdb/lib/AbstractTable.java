@@ -13,15 +13,11 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		TDBUtils.loadLibrary();
 	}
 
-	protected final TableBase table = new TableBase();
-	protected final Class<Cursor> cursorClass;
-	protected final Class<View> viewClass;
-	protected final Class<Query> queryClass;
+	protected final TableBase table;
 
-	public AbstractTable(Class<Cursor> cursorClass, Class<View> viewClass, Class<Query> queryClass) {
-		this.cursorClass = cursorClass;
-		this.viewClass = viewClass;
-		this.queryClass = queryClass;
+	public AbstractTable(EntityTypes<?, View, Cursor, Query> types) {
+		super(types, new TableBase());
+		table = (TableBase) rowset;
 		defineTableStructure();
 	}
 
@@ -136,22 +132,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		table.insertDone();
 	}
 
-	public View range(long from, long to) {
-		throw new UnsupportedOperationException();
-	}
-
-	public Cursor at(long position) {
-		return cursor(position);
-	}
-
-	public Cursor first() {
-		return cursor(0);
-	}
-
-	public Cursor last() {
-		return cursor(size() - 1);
-	}
-
 	public void remove(long id) {
 		table.removeRow((int) id);
 	}
@@ -165,18 +145,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	@Override
 	public void clear() {
 		table.clear();
-	}
-
-	protected Cursor cursor(long position) {
-		Cursor cursor;
-
-		try {
-			cursor = cursorClass.getDeclaredConstructor(TableBase.class, long.class).newInstance(table, position);
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to instantiate a cursor!", e);
-		}
-
-		return cursor;
 	}
 
 	protected RuntimeException addRowException(Exception e) throws RuntimeException {

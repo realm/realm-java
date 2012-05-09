@@ -8,14 +8,15 @@ import com.tightdb.lib.StringRowsetColumn;
 
 public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
 
-	public static final EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery> TYPES = new EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery>(PhoneTable.class, PhoneView.class, Phone.class, PhoneQuery.class); 
+	public static final EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery> TYPES = new EntityTypes<PhoneTable, PhoneView, Phone, PhoneQuery>(
+			PhoneTable.class, PhoneView.class, Phone.class, PhoneQuery.class);
 
-	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, null, 0, "type");
+	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, 0, "type");
 
-	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, null, 1, "number");
-	
+	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(TYPES, table, 1, "number");
+
 	public PhoneTable(SubTableBase subTableBase) {
-		super(Phone.class, PhoneView.class, PhoneQuery.class, subTableBase);
+		super(TYPES, subTableBase);
 	}
 
 	@Override
@@ -23,7 +24,7 @@ public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
 		registerStringColumn(spec, "type");
 		registerStringColumn(spec, "number");
 	}
-	
+
 	public Phone add(String type, String number) {
 		try {
 			int position = size();

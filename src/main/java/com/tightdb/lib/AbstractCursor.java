@@ -1,16 +1,14 @@
 package com.tightdb.lib;
 
-import com.tightdb.TableBase;
-
 public abstract class AbstractCursor<Cursor> {
 
-	protected final TableBase table;
-	protected final Class<Cursor> cursorClass;
 	protected long position;
+	protected final EntityTypes<?, ?, Cursor, ?> types;
+	protected final IRowsetBase rowset;
 
-	public AbstractCursor(TableBase table, Class<Cursor> cursorClass, long position) {
-		this.table = table;
-		this.cursorClass = cursorClass;
+	public AbstractCursor(EntityTypes<?, ?, Cursor, ?> types, IRowsetBase rowset, long position) {
+		this.types = types;
+		this.rowset = rowset;
 		this.position = position;
 	}
 
@@ -36,7 +34,7 @@ public abstract class AbstractCursor<Cursor> {
 
 	@Override
 	public String toString() {
-		return cursorClass.getSimpleName() + "[" + position + "]";
+		return types.getCursorClass().getSimpleName() + "[" + position + "]";
 	}
 
 	public AbstractColumn<?, ?, ?>[] columns() {
