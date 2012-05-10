@@ -14,7 +14,7 @@ public class TableQueryColumn<Cursor, Query, Subtable> extends AbstractColumn<Su
 	}
 
 	@Override
-	public String getReadable() {
+	public String getReadableValue() {
 		return "subtable";
 	}
 

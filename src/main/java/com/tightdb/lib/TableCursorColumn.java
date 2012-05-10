@@ -31,7 +31,7 @@ public class TableCursorColumn<Cursor, Query, Subtable> extends AbstractColumn<S
 	}
 
 	@Override
-	public String getReadable() {
+	public String getReadableValue() {
 		return "subtable";
 	}
 

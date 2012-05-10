@@ -49,14 +49,14 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 
 	@Override
 	public String toString() {
-		return cursor + "." + name;
+		return types.getTableClass().getSimpleName() + "." + name;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public String getReadable() {
+	public String getReadableValue() {
 		try {
 			return String.valueOf(get());
 		} catch (Exception e) {

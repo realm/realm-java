@@ -25,4 +25,9 @@ public abstract class AbstractView<Cursor, View> extends AbstractRowset<Cursor, 
 	public String getName() {
 		return getClass().getSimpleName();
 	}
+
+	@Override
+	public String toString() {
+		return types.getViewClass().getSimpleName() + " {" + size() + " records}";
+	}
 }

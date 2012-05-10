@@ -34,7 +34,18 @@ public abstract class AbstractCursor<Cursor> {
 
 	@Override
 	public String toString() {
-		return types.getCursorClass().getSimpleName() + "[" + position + "]";
+		StringBuffer sb = new StringBuffer();
+		AbstractColumn<?, ?, ?>[] columns = columns();
+
+		for (int i = 0; i < columns.length; i++) {
+			AbstractColumn<?, ?, ?> column = columns[i];
+			sb.append(String.format("%s=%s", column.getName(), column.getReadableValue()));
+			if (i < columns.length - 1) {
+				sb.append(", ");
+			}
+		}
+
+		return types.getCursorClass().getSimpleName() + " {" + sb + "}";
 	}
 
 	public AbstractColumn<?, ?, ?>[] columns() {
@@ -43,6 +54,14 @@ public abstract class AbstractCursor<Cursor> {
 
 	protected AbstractColumn<?, ?, ?>[] getColumnsArray(AbstractColumn<?, ?, ?>... columns) {
 		return columns;
+	}
+
+	protected static <C> C createCursor(Class<C> cursorClass, IRowsetBase targetRowset, long position) {
+		try {
+			return cursorClass.getDeclaredConstructor(IRowsetBase.class, long.class).newInstance(targetRowset, position);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to instantiate a cursor!", e);
+		}
 	}
 
 }

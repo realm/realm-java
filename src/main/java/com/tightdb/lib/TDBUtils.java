@@ -46,7 +46,7 @@ public class TDBUtils {
 			for (int i = 0; i < rowset.size(); i++) {
 				AbstractCursor<?> p = rowset.at(i);
 				for (AbstractColumn<?, ?, ?> column : p.columns()) {
-					System.out.print(String.format(format, column.getReadable()));
+					System.out.print(String.format(format, column.getReadableValue()));
 				}
 				System.out.println();
 			}

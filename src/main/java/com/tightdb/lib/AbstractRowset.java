@@ -37,15 +37,7 @@ public abstract class AbstractRowset<Cursor, View> implements Iterable<Cursor> {
 	}
 
 	protected Cursor cursor(long position) {
-		Cursor cursor;
-
-		try {
-			cursor = types.getCursorClass().getDeclaredConstructor(IRowsetBase.class, long.class).newInstance(rowset, position);
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to instantiate a cursor!", e);
-		}
-
-		return cursor;
+		return AbstractCursor.createCursor(types.getCursorClass(), rowset, position);
 	}
 
 	@Override

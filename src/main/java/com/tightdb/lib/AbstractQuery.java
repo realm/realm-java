@@ -22,15 +22,35 @@ public abstract class AbstractQuery<Cursor, View extends AbstractView<Cursor, Vi
 	}
 
 	public Cursor findFirst() {
-		return null;
+		TableViewBase viewBase = query.findAll(table, 0, table.getCount(), 1);
+		if (viewBase.getCount() > 0) {
+			return cursor(viewBase, 0);
+		} else {
+			return null;
+		}
 	}
 
 	public Cursor findLast() {
-		return null;
+		// TODO: find more efficient way to search
+		TableViewBase viewBase = query.findAll(table, 0, table.getCount(), Integer.MAX_VALUE);
+		int count = viewBase.getCount();
+		if (count > 0) {
+			return cursor(viewBase, count - 1);
+		} else {
+			return null;
+		}
 	}
 
 	public Cursor findUnique() {
-		return null;
+		TableViewBase viewBase = query.findAll(table, 0, table.getCount(), 2);
+		switch (viewBase.getCount()) {
+		case 0:
+			throw new IllegalStateException("Expected exactly one result, but found none!");
+		case 1:
+			return cursor(viewBase, 0);
+		default:
+			throw new IllegalStateException("Expected exactly one result, but found more!");
+		}
 	}
 
 	// FIXME: we need other class
@@ -56,6 +76,10 @@ public abstract class AbstractQuery<Cursor, View extends AbstractView<Cursor, Vi
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot create a query!", e);
 		}
+	}
+
+	private Cursor cursor(TableViewBase viewBase, long position) {
+		return AbstractCursor.createCursor(types.getCursorClass(), viewBase, position);
 	}
 
 }

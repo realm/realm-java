@@ -27,6 +27,14 @@ public class EmployeeSearchExample {
 		EmployeeView results = q1.findAll();
 		System.out.println(results);
 
+		Employee first = q1.findFirst();
+		Employee last = q1.findLast();
+		System.out.println("First result: " + first);
+		System.out.println("Last result: " + last);
+		
+		Employee niko = employees.firstName.startsWith("Nik").findUnique();
+		System.out.println("Unique Niko: " + niko);
+		
 		TDBUtils.print(results);
 
 		System.out.println("First names: " + Arrays.toString(results.firstName.getAll()));

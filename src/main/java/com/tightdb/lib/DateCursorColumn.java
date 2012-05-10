@@ -22,7 +22,7 @@ public class DateCursorColumn<Cursor, Query> extends AbstractColumn<Date, Cursor
 	}
 
 	@Override
-	public String getReadable() {
+	public String getReadableValue() {
 		return FORMATTER.format(get());
 	}
 
