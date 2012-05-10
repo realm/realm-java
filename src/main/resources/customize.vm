@@ -108,6 +108,14 @@ import com.tightdb.lib.*;
  */
 public class ${entity}View extends AbstractView<${entity}, ${entity}View> {
 
+#foreach($f in $columns)
+#if($f.code.attributes.isSubtable)
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(${entity}Table.TYPES, rowset, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+#else
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, rowset, ${f.code.attributes.index}, "${f.name}");
+#end
+#end
+
 	public ${entity}View(TableViewBase viewBase) {
 		super(${entity}Table.TYPES, viewBase);
 	}
@@ -125,7 +133,7 @@ import com.tightdb.lib.*;
 /**
  * This class represents a TightDB query and was automatically generated.
  */
-public class ${entity}Query extends AbstractQuery {
+public class ${entity}Query extends AbstractQuery<${entity}, ${entity}View> {
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)

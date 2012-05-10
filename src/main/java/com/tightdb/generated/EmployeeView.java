@@ -11,6 +11,15 @@ import com.tightdb.lib.*;
  */
 public class EmployeeView extends AbstractView<Employee, EmployeeView> {
 
+	public final StringRowsetColumn<Employee, EmployeeQuery> firstName = new StringRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, rowset, 0, "firstName");
+	public final StringRowsetColumn<Employee, EmployeeQuery> lastName = new StringRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, rowset, 1, "lastName");
+	public final LongRowsetColumn<Employee, EmployeeQuery> salary = new LongRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, rowset, 2, "salary");
+	public final BooleanRowsetColumn<Employee, EmployeeQuery> driver = new BooleanRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, rowset, 3, "driver");
+	public final BinaryRowsetColumn<Employee, EmployeeQuery> photo = new BinaryRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, rowset, 4, "photo");
+	public final DateRowsetColumn<Employee, EmployeeQuery> birthdate = new DateRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, rowset, 5, "birthdate");
+	public final MixedRowsetColumn<Employee, EmployeeQuery> extra = new MixedRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, rowset, 6, "extra");
+	public final TableRowsetColumn<Employee, EmployeeQuery, PhoneTable> phones = new TableRowsetColumn<Employee, EmployeeQuery, PhoneTable>(EmployeeTable.TYPES, rowset, 7, "phones", PhoneTable.class);
+
 	public EmployeeView(TableViewBase viewBase) {
 		super(EmployeeTable.TYPES, viewBase);
 	}

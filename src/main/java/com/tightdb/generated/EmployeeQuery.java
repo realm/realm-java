@@ -9,7 +9,7 @@ import com.tightdb.lib.*;
 /**
  * This class represents a TightDB query and was automatically generated.
  */
-public class EmployeeQuery extends AbstractQuery {
+public class EmployeeQuery extends AbstractQuery<Employee, EmployeeView> {
 
     public final StringRowsetColumn<Employee, EmployeeQuery> firstName;
     public final StringRowsetColumn<Employee, EmployeeQuery> lastName;

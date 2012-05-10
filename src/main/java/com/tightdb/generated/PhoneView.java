@@ -11,6 +11,9 @@ import com.tightdb.lib.*;
  */
 public class PhoneView extends AbstractView<Phone, PhoneView> {
 
+	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(PhoneTable.TYPES, rowset, 0, "type");
+	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(PhoneTable.TYPES, rowset, 1, "number");
+
 	public PhoneView(TableViewBase viewBase) {
 		super(PhoneTable.TYPES, viewBase);
 	}
