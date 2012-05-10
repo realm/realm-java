@@ -53,4 +53,6 @@ public abstract class AbstractRowset<Cursor, View> implements Iterable<Cursor> {
 		throw new UnsupportedOperationException("Not implemented yet!");
 	}
 
+	public abstract String getName();
+
 }

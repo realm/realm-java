@@ -4,16 +4,16 @@ import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
 import com.tightdb.TableViewBase;
 
-public abstract class AbstractQuery<Cursor, View> {
+public abstract class AbstractQuery<Cursor, View extends AbstractView<Cursor, View>> {
 
 	private final TableQuery query;
 	private final TableBase table;
 	private final EntityTypes<?, View, Cursor, ?> types;
 
-	public AbstractQuery(EntityTypes<?, View, Cursor, ?> types, TableBase table, TableQuery query2) {
+	public AbstractQuery(EntityTypes<?, View, Cursor, ?> types, TableBase table, TableQuery query) {
 		this.types = types;
 		this.table = table;
-		query = new TableQuery(table);
+		this.query = query;
 	}
 
 	public View findAll() {
@@ -38,8 +38,11 @@ public abstract class AbstractQuery<Cursor, View> {
 		return null;
 	}
 
-	public long remove() {
-		return 0;
+	public long clear() {
+		View results = findAll();
+		int count = results.size();
+		results.clear();
+		return count;
 	}
 
 	@Override

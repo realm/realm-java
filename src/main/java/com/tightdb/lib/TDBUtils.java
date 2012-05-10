@@ -34,24 +34,24 @@ public class TDBUtils {
 		}
 	}
 
-	public static void printTable(AbstractTable<? extends AbstractCursor<?>, ? extends AbstractView<?, ?>, ?> table) {
+	public static void print(AbstractRowset<? extends AbstractCursor<?>, ? extends AbstractView<?, ?>> rowset) {
 		String format = "%-15s| ";
-		System.out.println(String.format("================== Table %s ====================", table.getName()));
-		if (!table.isEmpty()) {
-			for (AbstractColumn<?, ?, ?> column : table.at(0).columns()) {
+		System.out.println(String.format("================== %s ====================", rowset.getName()));
+		if (!rowset.isEmpty()) {
+			for (AbstractColumn<?, ?, ?> column : rowset.at(0).columns()) {
 				System.out.print(String.format(format, column.getName()));
 			}
 			System.out.println();
 
-			for (int i = 0; i < table.size(); i++) {
-				AbstractCursor<?> p = table.at(i);
+			for (int i = 0; i < rowset.size(); i++) {
+				AbstractCursor<?> p = rowset.at(i);
 				for (AbstractColumn<?, ?, ?> column : p.columns()) {
 					System.out.print(String.format(format, column.getReadable()));
 				}
 				System.out.println();
 			}
 		} else {
-			System.out.println(" - the table is empty");
+			System.out.println(" - No records to show!");
 		}
 	}
 

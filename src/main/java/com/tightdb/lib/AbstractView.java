@@ -18,7 +18,11 @@ public abstract class AbstractView<Cursor, View> extends AbstractRowset<Cursor, 
 
 	@Override
 	public void clear() {
-		throw new UnsupportedOperationException("Not implemented yet!");
+		viewBase.clear();
 	}
 
+	@Override
+	public String getName() {
+		return getClass().getSimpleName();
+	}
 }

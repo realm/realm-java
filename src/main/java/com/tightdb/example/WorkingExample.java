@@ -46,7 +46,7 @@ public class WorkingExample {
 
 		System.out.println(john.phones.get().size());
 
-		TDBUtils.printTable(persons);
+		TDBUtils.print(persons);
 		System.out.println("- First names: " + Arrays.toString(persons.firstName.getAll()));
 		
 		System.out.println("max salary: " + persons.salary.max());
@@ -54,16 +54,16 @@ public class WorkingExample {
 		System.out.println("salary sum: " + persons.salary.sum());
 		
 		persons.salary.setAll(100000);
-		TDBUtils.printTable(persons);
+		TDBUtils.print(persons);
 		
 		nikolche.lastName.set("MIHAJLOVSKI");
 		persons.remove(0);
 
-		TDBUtils.printTable(persons);
+		TDBUtils.print(persons);
 
 		persons.clear();
 
-		TDBUtils.printTable(persons);
+		TDBUtils.print(persons);
 	}
 
 }

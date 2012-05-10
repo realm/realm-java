@@ -19,7 +19,7 @@ public class ManualWorkingExample {
 		System.out.println("second record: " + nikolche);
 		System.out.println("some column: " + john.driver);
 
-		TDBUtils.printTable(persons);
+		TDBUtils.print(persons);
 		System.out.println("- First names: " + Arrays.toString(persons.firstName.getAll()));
 
 		System.out.println("max salary: " + persons.salary.max());
@@ -28,17 +28,17 @@ public class ManualWorkingExample {
 		
 		// promote all! :P
 		persons.salary.setAll(100000);
-		TDBUtils.printTable(persons);
+		TDBUtils.print(persons);
 		
 		nikolche.lastName.set("MIHAJLOVSKI");
 		
 		persons.remove(0);
 
-		TDBUtils.printTable(persons);
+		TDBUtils.print(persons);
 
 		persons.clear();
 
-		TDBUtils.printTable(persons);
+		TDBUtils.print(persons);
 	}
 
 }

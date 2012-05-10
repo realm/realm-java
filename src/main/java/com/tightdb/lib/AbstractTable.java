@@ -21,6 +21,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		defineTableStructure();
 	}
 
+	@Override
 	public String getName() {
 		return getClass().getSimpleName();
 	}
@@ -28,11 +29,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	@Override
 	public int size() {
 		return table.getCount();
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return size() == 0;
 	}
 
 	private void defineTableStructure() {

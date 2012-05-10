@@ -68,21 +68,36 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		return (TableBase) rowset;
 	}
 
+	private TableBase tableOrNull() {
+		if (rowset instanceof TableBase) {
+			return (TableBase) rowset;
+		} else {
+			return null;
+		}
+	}
+
 	protected TableQuery getQuery() {
 		return query != null ? query : new TableQuery(table());
 	}
 
 	protected Query query(TableQuery tableQuery) {
 		try {
-			return types.getQueryClass().getConstructor(TableBase.class, TableQuery.class).newInstance(table(), tableQuery);
+			return types.getQueryClass().getConstructor(TableBase.class, TableQuery.class).newInstance(tableOrNull(), tableQuery);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot create a query!", e);
 		}
 	}
 
 	protected TableViewBase getView() {
-		return new TableViewBase(table()); // FIXME: finish this for specified
-											// queries
+		if (rowset instanceof TableBase) {
+			TableBase tableBase = (TableBase) rowset;
+			return new TableViewBase(tableBase);
+		} else if (rowset instanceof TableViewBase) {
+			TableViewBase viewBase = (TableViewBase) rowset;
+			return viewBase;
+		} else {
+			throw new IllegalStateException("Unknown rowset type!");
+		}
 	}
 
 }
