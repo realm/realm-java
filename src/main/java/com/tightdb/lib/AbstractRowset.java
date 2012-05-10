@@ -2,12 +2,12 @@ package com.tightdb.lib;
 
 import java.util.Iterator;
 
-public abstract class AbstractRowset<Cursor, View> implements Iterable<Cursor> {
+public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cursor> {
 
-	protected final EntityTypes<?, View, Cursor, ?> types;
+	protected final EntityTypes<?, View, Cursor, Query> types;
 	protected final IRowsetBase rowset;
 
-	public AbstractRowset(EntityTypes<?, View, Cursor, ?> types, IRowsetBase rowset) {
+	public AbstractRowset(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset) {
 		this.types = types;
 		this.rowset = rowset;
 	}

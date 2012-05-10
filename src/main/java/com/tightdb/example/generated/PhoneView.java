@@ -4,7 +4,7 @@ import com.tightdb.TableViewBase;
 import com.tightdb.lib.AbstractView;
 import com.tightdb.lib.StringRowsetColumn;
 
-public class PhoneView extends AbstractView<Phone, PhoneView> {
+public class PhoneView extends AbstractView<Phone, PhoneView, PhoneQuery> {
 
 	public final StringRowsetColumn<Phone, PhoneQuery> type = null;
 

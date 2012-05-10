@@ -4,13 +4,13 @@ import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
 import com.tightdb.TableViewBase;
 
-public abstract class AbstractQuery<Cursor, View extends AbstractView<Cursor, View>> {
+public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cursor, View, ?>> {
 
 	private final TableQuery query;
 	private final TableBase table;
-	private final EntityTypes<?, View, Cursor, ?> types;
+	private final EntityTypes<?, View, Cursor, Query> types;
 
-	public AbstractQuery(EntityTypes<?, View, Cursor, ?> types, TableBase table, TableQuery query) {
+	public AbstractQuery(EntityTypes<?, View, Cursor, Query> types, TableBase table, TableQuery query) {
 		this.types = types;
 		this.table = table;
 		this.query = query;
@@ -53,9 +53,20 @@ public abstract class AbstractQuery<Cursor, View extends AbstractView<Cursor, Vi
 		}
 	}
 
-	// FIXME: we need other class
-	public Cursor or() {
-		return null;
+	public Query or() {
+		return newQuery(query.or());
+	}
+
+	public Query startGroup() {
+		return newQuery(query.startGroup());
+	}
+
+	public Query endGroup() {
+		return newQuery(query.endGroup());
+	}
+
+	private Query newQuery(TableQuery q) {
+		return createQuery(types.getQueryClass(), table, q);
 	}
 
 	public long clear() {
@@ -80,6 +91,14 @@ public abstract class AbstractQuery<Cursor, View extends AbstractView<Cursor, Vi
 
 	private Cursor cursor(TableViewBase viewBase, long position) {
 		return AbstractCursor.createCursor(types.getCursorClass(), viewBase, position);
+	}
+
+	protected static <Q> Q createQuery(Class<Q> queryClass, TableBase tableBase, TableQuery tableQuery) {
+		try {
+			return queryClass.getConstructor(TableBase.class, TableQuery.class).newInstance(tableBase, tableQuery);
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot create a query!", e);
+		}
 	}
 
 }

@@ -34,7 +34,7 @@ public class TDBUtils {
 		}
 	}
 
-	public static void print(AbstractRowset<? extends AbstractCursor<?>, ? extends AbstractView<?, ?>> rowset) {
+	public static void print(AbstractRowset<? extends AbstractCursor<?>, ?, ?> rowset) {
 		String format = "%-15s| ";
 		System.out.println(String.format("================== %s ====================", rowset.getName()));
 		if (!rowset.isEmpty()) {
@@ -50,6 +50,7 @@ public class TDBUtils {
 				}
 				System.out.println();
 			}
+			System.out.println();
 		} else {
 			System.out.println(" - No records to show!");
 		}

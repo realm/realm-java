@@ -5,9 +5,10 @@ import java.util.Date;
 
 import com.tightdb.ColumnType;
 import com.tightdb.TableBase;
+import com.tightdb.TableQuery;
 import com.tightdb.TableSpec;
 
-public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<Cursor, View> {
+public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<Cursor, View, Query> {
 
 	static {
 		TDBUtils.loadLibrary();
@@ -132,11 +133,11 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		table.removeRow((int) id);
 	}
 
-//	@Override
-//	public Cursor remove(int index) {
-//		table.removeRow(index);
-//		return null;
-//	}
+	// @Override
+	// public Cursor remove(int index) {
+	// table.removeRow(index);
+	// return null;
+	// }
 
 	@Override
 	public void clear() {
@@ -151,4 +152,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		return new RuntimeException("Error occured while inserting a new row!", e);
 	}
 
+	public Query query() {
+		return AbstractQuery.createQuery(types.getQueryClass(), table, new TableQuery(table));
+	}
 }

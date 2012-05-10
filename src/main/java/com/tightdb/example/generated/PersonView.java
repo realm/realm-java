@@ -10,7 +10,7 @@ import com.tightdb.lib.MixedRowsetColumn;
 import com.tightdb.lib.StringRowsetColumn;
 import com.tightdb.lib.TableRowsetColumn;
 
-public class PersonView extends AbstractView<Person, PersonView> {
+public class PersonView extends AbstractView<Person, PersonView, PersonQuery> {
 
 	public final StringRowsetColumn<Person, PersonQuery> firstName = new StringRowsetColumn<Person, PersonQuery>(PersonTable.TYPES, rowset, 0, "firstName");
 	public final StringRowsetColumn<Person, PersonQuery> lastName = new StringRowsetColumn<Person, PersonQuery>(PersonTable.TYPES, rowset, 1, "lastName");

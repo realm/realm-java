@@ -64,20 +64,16 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		}
 	}
 
-	private TableBase table() {
-		return (TableBase) rowset;
-	}
-
 	private TableBase tableOrNull() {
 		if (rowset instanceof TableBase) {
 			return (TableBase) rowset;
 		} else {
-			return null;
+			throw new IllegalStateException("Cannot construct a query from a view!");
 		}
 	}
 
 	protected TableQuery getQuery() {
-		return query != null ? query : new TableQuery(table());
+		return query != null ? query : new TableQuery(tableOrNull());
 	}
 
 	protected Query query(TableQuery tableQuery) {

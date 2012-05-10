@@ -79,7 +79,7 @@ public class Example {
 		// options 2:
 		// int sum2 = persons.firstName.is("X").or().salary.is(5).findAll().salary.sum();
 
-		persons.firstName.is("Y").salary.is(6).lastName.setAll("Z");
+		persons.firstName.is("Y").salary.is(6).findAll().lastName.setAll("Z");
 		persons.salary.greaterThan(1234).clear();
 
 		for (String phone : persons.phones.get().type.is("mobile").findAll().phone.getAll()) {
@@ -91,9 +91,7 @@ public class Example {
 
 		// TODO: discuss the trade-offs (new class, longer queries or incorrect
 		// options?) between such options:
-		persons.firstName.is("d").salary.sum(); // no problem without OR
-		persons.firstName.is("X").or().salary.set(1234); // problem - incorrect
-															// options
+		persons.firstName.is("d").findAll().salary.sum(); // no problem without OR
 
 		// persons.firstName.is("X").or().salary.is(23).findAll().salary.sum();
 
