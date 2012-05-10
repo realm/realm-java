@@ -27,18 +27,18 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(TYPES, table, null, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(TYPES, table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
 #else
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(TYPES, table, null, ${f.code.attributes.index}, "${f.name}");
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(TYPES, table, ${f.code.attributes.index}, "${f.name}");
 #end
 #end
 
 #if($isNested)
 	public ${entity}Table(SubTableBase subTableBase) {
-		super(${entity}.class, ${entity}View.class, ${entity}Query.class, subTableBase);
+		super(TYPES, subTableBase);
 #else
 	public ${entity}Table() {
-		super(${entity}.class, ${entity}View.class, ${entity}Query.class);
+		super(TYPES);
 #end    
 	}
 
@@ -109,7 +109,7 @@ import com.tightdb.lib.*;
 public class ${entity}View extends AbstractView<${entity}, ${entity}View> {
 
 	public ${entity}View(TableViewBase viewBase) {
-		super(viewBase);
+		super(${entity}Table.TYPES, viewBase);
 	}
 
 }
@@ -169,14 +169,14 @@ public class ${entity} extends AbstractCursor<${entity}> {
 #end
 #end
 
-	public ${entity}(TableBase table, long position) {
-		super(table, ${entity}.class, position);
+	public ${entity}(IRowsetBase rowset, long position) {
+		super(${entity}Table.TYPES, rowset, position);
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(${entity}Table.TYPES, table, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
 #else
-        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, table, this, ${f.code.attributes.index}, "${f.name}");
+        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}");
 #end
 #end
 	}

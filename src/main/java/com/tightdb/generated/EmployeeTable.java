@@ -14,14 +14,14 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView, Employe
 
 	public static final EntityTypes<EmployeeTable, EmployeeView, Employee, EmployeeQuery> TYPES = new EntityTypes<EmployeeTable, EmployeeView, Employee, EmployeeQuery>(EmployeeTable.class, EmployeeView.class, Employee.class, EmployeeQuery.class); 
 
-	public final StringRowsetColumn<Employee, EmployeeQuery> firstName = new StringRowsetColumn<Employee, EmployeeQuery>(TYPES, table, null, 0, "firstName");
-	public final StringRowsetColumn<Employee, EmployeeQuery> lastName = new StringRowsetColumn<Employee, EmployeeQuery>(TYPES, table, null, 1, "lastName");
-	public final LongRowsetColumn<Employee, EmployeeQuery> salary = new LongRowsetColumn<Employee, EmployeeQuery>(TYPES, table, null, 2, "salary");
-	public final BooleanRowsetColumn<Employee, EmployeeQuery> driver = new BooleanRowsetColumn<Employee, EmployeeQuery>(TYPES, table, null, 3, "driver");
-	public final BinaryRowsetColumn<Employee, EmployeeQuery> photo = new BinaryRowsetColumn<Employee, EmployeeQuery>(TYPES, table, null, 4, "photo");
-	public final DateRowsetColumn<Employee, EmployeeQuery> birthdate = new DateRowsetColumn<Employee, EmployeeQuery>(TYPES, table, null, 5, "birthdate");
-	public final MixedRowsetColumn<Employee, EmployeeQuery> extra = new MixedRowsetColumn<Employee, EmployeeQuery>(TYPES, table, null, 6, "extra");
-	public final TableRowsetColumn<Employee, EmployeeQuery, PhoneTable> phones = new TableRowsetColumn<Employee, EmployeeQuery, PhoneTable>(TYPES, table, null, 7, "phones", PhoneTable.class);
+	public final StringRowsetColumn<Employee, EmployeeQuery> firstName = new StringRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 0, "firstName");
+	public final StringRowsetColumn<Employee, EmployeeQuery> lastName = new StringRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 1, "lastName");
+	public final LongRowsetColumn<Employee, EmployeeQuery> salary = new LongRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 2, "salary");
+	public final BooleanRowsetColumn<Employee, EmployeeQuery> driver = new BooleanRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 3, "driver");
+	public final BinaryRowsetColumn<Employee, EmployeeQuery> photo = new BinaryRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 4, "photo");
+	public final DateRowsetColumn<Employee, EmployeeQuery> birthdate = new DateRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 5, "birthdate");
+	public final MixedRowsetColumn<Employee, EmployeeQuery> extra = new MixedRowsetColumn<Employee, EmployeeQuery>(TYPES, table, 6, "extra");
+	public final TableRowsetColumn<Employee, EmployeeQuery, PhoneTable> phones = new TableRowsetColumn<Employee, EmployeeQuery, PhoneTable>(TYPES, table, 7, "phones", PhoneTable.class);
 
 	public EmployeeTable() {
 		super(TYPES);
