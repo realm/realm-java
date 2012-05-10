@@ -20,7 +20,15 @@ public class EmployeeSearchExample {
 
 		TDBUtils.print(employees);
 
-		// .salary.is(11) doesn't work
+		System.out.println("Query 1:");
+		TDBUtils.print(employees.firstName.startsWith("Nik").lastName.contains("vski").or().firstName.is("John").findAll());
+
+		System.out.println("Query 2a:");
+		TDBUtils.print(employees.firstName.startsWith("Nik").startGroup().lastName.contains("vski").or().firstName.is("John").endGroup().findAll());
+
+		System.out.println("Query 2b:");
+		TDBUtils.print(employees.query().startGroup().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
+		
 		EmployeeQuery q1 = employees.firstName.startsWith("J").lastName.endWith("e");
 		System.out.println(q1);
 
@@ -31,10 +39,10 @@ public class EmployeeSearchExample {
 		Employee last = q1.findLast();
 		System.out.println("First result: " + first);
 		System.out.println("Last result: " + last);
-		
+
 		Employee niko = employees.firstName.startsWith("Nik").findUnique();
 		System.out.println("Unique Niko: " + niko);
-		
+
 		TDBUtils.print(results);
 
 		System.out.println("First names: " + Arrays.toString(results.firstName.getAll()));
@@ -52,6 +60,13 @@ public class EmployeeSearchExample {
 		System.out.println("Removed " + count + " rows!");
 
 		TDBUtils.print(employees);
+
+		try {
+			results.salary.greaterThan(3);
+		} catch (IllegalStateException e) {
+			System.out.println(e.getMessage());
+		}
+
 	}
 
 }

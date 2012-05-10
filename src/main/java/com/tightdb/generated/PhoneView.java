@@ -9,7 +9,7 @@ import com.tightdb.lib.*;
 /**
  * This class represents a TightDB view and was automatically generated.
  */
-public class PhoneView extends AbstractView<Phone, PhoneView> {
+public class PhoneView extends AbstractView<Phone, PhoneView, PhoneQuery> {
 
 	public final StringRowsetColumn<Phone, PhoneQuery> type = new StringRowsetColumn<Phone, PhoneQuery>(PhoneTable.TYPES, rowset, 0, "type");
 	public final StringRowsetColumn<Phone, PhoneQuery> number = new StringRowsetColumn<Phone, PhoneQuery>(PhoneTable.TYPES, rowset, 1, "number");

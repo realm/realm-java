@@ -9,15 +9,15 @@ import com.tightdb.lib.*;
 /**
  * This class represents a TightDB query and was automatically generated.
  */
-public class PhoneQuery extends AbstractQuery<Phone, PhoneView> {
+public class PhoneQuery extends AbstractQuery<PhoneQuery, Phone, PhoneView> {
 
-    public final StringRowsetColumn<Phone, PhoneQuery> type;
-    public final StringRowsetColumn<Phone, PhoneQuery> number;
+    public final StringQueryColumn<Phone, PhoneQuery> type;
+    public final StringQueryColumn<Phone, PhoneQuery> number;
 
 	public PhoneQuery(TableBase table, TableQuery query) {
 		super(PhoneTable.TYPES, table, query);
-        type = new StringRowsetColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, query, 0, "type");
-        number = new StringRowsetColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, query, 1, "number");
+        type = new StringQueryColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, query, 0, "type");
+        number = new StringQueryColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, query, 1, "number");
 	}
 
 }

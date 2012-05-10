@@ -9,27 +9,27 @@ import com.tightdb.lib.*;
 /**
  * This class represents a TightDB query and was automatically generated.
  */
-public class EmployeeQuery extends AbstractQuery<Employee, EmployeeView> {
+public class EmployeeQuery extends AbstractQuery<EmployeeQuery, Employee, EmployeeView> {
 
-    public final StringRowsetColumn<Employee, EmployeeQuery> firstName;
-    public final StringRowsetColumn<Employee, EmployeeQuery> lastName;
-    public final LongRowsetColumn<Employee, EmployeeQuery> salary;
-    public final BooleanRowsetColumn<Employee, EmployeeQuery> driver;
-    public final BinaryRowsetColumn<Employee, EmployeeQuery> photo;
-    public final DateRowsetColumn<Employee, EmployeeQuery> birthdate;
-    public final MixedRowsetColumn<Employee, EmployeeQuery> extra;
-    public final TableRowsetColumn<Employee, EmployeeQuery, PhoneTable> phones;
+    public final StringQueryColumn<Employee, EmployeeQuery> firstName;
+    public final StringQueryColumn<Employee, EmployeeQuery> lastName;
+    public final LongQueryColumn<Employee, EmployeeQuery> salary;
+    public final BooleanQueryColumn<Employee, EmployeeQuery> driver;
+    public final BinaryQueryColumn<Employee, EmployeeQuery> photo;
+    public final DateQueryColumn<Employee, EmployeeQuery> birthdate;
+    public final MixedQueryColumn<Employee, EmployeeQuery> extra;
+    public final TableQueryColumn<Employee, EmployeeQuery, PhoneTable> phones;
 
 	public EmployeeQuery(TableBase table, TableQuery query) {
 		super(EmployeeTable.TYPES, table, query);
-        firstName = new StringRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 0, "firstName");
-        lastName = new StringRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 1, "lastName");
-        salary = new LongRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 2, "salary");
-        driver = new BooleanRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 3, "driver");
-        photo = new BinaryRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 4, "photo");
-        birthdate = new DateRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 5, "birthdate");
-        extra = new MixedRowsetColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 6, "extra");
-        phones = new TableRowsetColumn<Employee, EmployeeQuery, PhoneTable>(EmployeeTable.TYPES, table, query, 7, "phones", PhoneTable.class);
+        firstName = new StringQueryColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 0, "firstName");
+        lastName = new StringQueryColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 1, "lastName");
+        salary = new LongQueryColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 2, "salary");
+        driver = new BooleanQueryColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 3, "driver");
+        photo = new BinaryQueryColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 4, "photo");
+        birthdate = new DateQueryColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 5, "birthdate");
+        extra = new MixedQueryColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, table, query, 6, "extra");
+        phones = new TableQueryColumn<Employee, EmployeeQuery, PhoneTable>(EmployeeTable.TYPES, table, query, 7, "phones", PhoneTable.class);
 	}
 
 }
