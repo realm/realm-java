@@ -7,6 +7,7 @@ import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.EmployeeView;
 import com.tightdb.generated.PhoneTable;
+import com.tightdb.lib.AbstractColumn;
 import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
@@ -111,6 +112,14 @@ public class Example {
 		employees.salary.setAll(100000);
 
 		TightDB.print(employees);
+
+		/****************************** COLUMN RETRIEVAL *****************************/
+
+		System.out.print("- Columns:");
+		for (AbstractColumn<?, ?, ?> column : john.columns()) {
+			System.out.print(column.getName() + " ");
+		}
+		System.out.println();
 
 		/****************************** NESTED TABLES *****************************/
 
