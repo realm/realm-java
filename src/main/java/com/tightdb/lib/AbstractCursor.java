@@ -2,7 +2,7 @@ package com.tightdb.lib;
 
 public abstract class AbstractCursor<Cursor> {
 
-	protected long position;
+	protected final long position;
 	protected final EntityTypes<?, ?, Cursor, ?> types;
 	protected final IRowsetBase rowset;
 

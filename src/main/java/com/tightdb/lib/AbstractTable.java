@@ -11,7 +11,7 @@ import com.tightdb.TableSpec;
 public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<Cursor, View, Query> {
 
 	static {
-		TDBUtils.loadLibrary();
+		TightDB.loadLibrary();
 	}
 
 	protected final TableBase table;
@@ -100,7 +100,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	protected void insertMixed(long columnIndex, long rowIndex, Serializable value) {
-		table.insertBinaryData((int) columnIndex, (int) rowIndex, TDBUtils.serialize(value)); // FIXME:
+		table.insertBinaryData((int) columnIndex, (int) rowIndex, TightDB.serialize(value)); // FIXME:
 																								// use
 																								// real
 																								// type
@@ -110,7 +110,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 
 	protected void insertMixed(long columnIndex, long rowIndex, Object value) {
 		if (value instanceof Serializable) {
-			table.insertBinaryData((int) columnIndex, (int) rowIndex, TDBUtils.serialize((Serializable) value)); // FIXME:
+			table.insertBinaryData((int) columnIndex, (int) rowIndex, TightDB.serialize((Serializable) value)); // FIXME:
 																													// use
 																													// real
 																													// type

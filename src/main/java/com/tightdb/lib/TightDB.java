@@ -6,7 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-public class TDBUtils {
+public class TightDB {
 
 	private static boolean loadedLibrary;
 
@@ -34,9 +34,9 @@ public class TDBUtils {
 		}
 	}
 
-	public static void print(AbstractRowset<? extends AbstractCursor<?>, ?, ?> rowset) {
+	public static void print(String caption, AbstractRowset<? extends AbstractCursor<?>, ?, ?> rowset) {
 		String format = "%-15s| ";
-		System.out.println(String.format("================== %s ====================", rowset.getName()));
+		System.out.println(String.format("================== %s ====================", caption));
 		if (!rowset.isEmpty()) {
 			for (AbstractColumn<?, ?, ?> column : rowset.at(0).columns()) {
 				System.out.print(String.format(format, column.getName()));
@@ -54,6 +54,14 @@ public class TDBUtils {
 		} else {
 			System.out.println(" - No records to show!");
 		}
+	}
+
+	public static void print(AbstractRowset<? extends AbstractCursor<?>, ?, ?> rowset) {
+		print(rowset.getName(), rowset);
+	}
+
+	public static void print(String caption, AbstractCursor<?> cursor) {
+		System.out.println(caption + ": " + cursor);
 	}
 
 	public static void loadLibrary() {

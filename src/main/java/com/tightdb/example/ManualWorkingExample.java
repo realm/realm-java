@@ -5,7 +5,7 @@ import java.util.Date;
 
 import com.tightdb.example.generated.Person;
 import com.tightdb.example.generated.PersonTable;
-import com.tightdb.lib.TDBUtils;
+import com.tightdb.lib.TightDB;
 
 public class ManualWorkingExample {
 
@@ -19,7 +19,7 @@ public class ManualWorkingExample {
 		System.out.println("second record: " + nikolche);
 		System.out.println("some column: " + john.driver);
 
-		TDBUtils.print(persons);
+		TightDB.print(persons);
 		System.out.println("- First names: " + Arrays.toString(persons.firstName.getAll()));
 
 		System.out.println("max salary: " + persons.salary.max());
@@ -28,17 +28,17 @@ public class ManualWorkingExample {
 		
 		// promote all! :P
 		persons.salary.setAll(100000);
-		TDBUtils.print(persons);
+		TightDB.print(persons);
 		
 		nikolche.lastName.set("MIHAJLOVSKI");
 		
 		persons.remove(0);
 
-		TDBUtils.print(persons);
+		TightDB.print(persons);
 
 		persons.clear();
 
-		TDBUtils.print(persons);
+		TightDB.print(persons);
 	}
 
 }

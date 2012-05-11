@@ -7,7 +7,7 @@ import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeQuery;
 import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.EmployeeView;
-import com.tightdb.lib.TDBUtils;
+import com.tightdb.lib.TightDB;
 
 public class EmployeeSearchExample {
 
@@ -18,17 +18,16 @@ public class EmployeeSearchExample {
 		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
 		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234.56);
 
-		TDBUtils.print(employees);
+		TightDB.print("Employees", employees);
 
-		System.out.println("Query 1:");
-		TDBUtils.print(employees.firstName.startsWith("Nik").lastName.contains("vski").or().firstName.is("John").findAll());
+		TightDB.print("Query 1", employees.firstName.startsWith("Nik").lastName.contains("vski").or().firstName.is("John").findAll());
 
-		System.out.println("Query 2a:");
-		TDBUtils.print(employees.firstName.startsWith("Nik").startGroup().lastName.contains("vski").or().firstName.is("John").endGroup().findAll());
+		TightDB.print("Query 2a", employees.firstName.startsWith("Nik").startGroup().lastName.contains("vski").or().firstName.is("John").endGroup()
+				.findAll());
 
-		System.out.println("Query 2b:");
-		TDBUtils.print(employees.query().startGroup().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
-		
+		TightDB.print("Query 2b",
+				employees.query().startGroup().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
+
 		EmployeeQuery q1 = employees.firstName.startsWith("J").lastName.endWith("e");
 		System.out.println(q1);
 
@@ -40,26 +39,23 @@ public class EmployeeSearchExample {
 		System.out.println("First result: " + first);
 		System.out.println("Last result: " + last);
 
-		Employee niko = employees.firstName.startsWith("Nik").findUnique();
-		System.out.println("Unique Niko: " + niko);
-
-		TDBUtils.print(results);
+		TightDB.print(results);
 
 		System.out.println("First names: " + Arrays.toString(results.firstName.getAll()));
 		System.out.println("Salary sum: " + results.salary.sum());
 		System.out.println("Salary min: " + results.salary.min());
 		System.out.println("Salary max: " + results.salary.max());
 
-		TDBUtils.print(results);
+		TightDB.print(results);
 
 		results.clear();
 
-		TDBUtils.print(employees);
+		TightDB.print(employees);
 
 		long count = employees.firstName.contains("iko").clear();
 		System.out.println("Removed " + count + " rows!");
 
-		TDBUtils.print(employees);
+		TightDB.print(employees);
 
 		try {
 			results.salary.greaterThan(3);

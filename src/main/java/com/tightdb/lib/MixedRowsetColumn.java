@@ -30,7 +30,7 @@ public class MixedRowsetColumn<Cursor, Query> extends MixedQueryColumn<Cursor, Q
 	public void setAll(Serializable value) {
 		int count = rowset.getCount();
 		for (int i = 0; i < count; i++) {
-			rowset.setBinaryData(columnIndex, i, TDBUtils.serialize(value));
+			rowset.setBinaryData(columnIndex, i, TightDB.serialize(value));
 		}
 	}
 

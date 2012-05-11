@@ -16,4 +16,9 @@ public class BinaryCursorColumn<Cursor, Query> extends AbstractColumn<byte[], Cu
 		cursor.rowset.setBinaryData(columnIndex, (int) cursor.getPosition(), value);
 	}
 
+	@Override
+	public String getReadableValue() {
+		return "{binary}";
+	}
+	
 }

@@ -14,14 +14,8 @@ public class TableCursorColumn<Cursor, Query, Subtable> extends AbstractColumn<S
 
 	@Override
 	public Subtable get() {
-		SubTableBase sub = cursor.rowset.getSubTable(columnIndex, (int) cursor.getPosition());
-
-		try {
-			Subtable subtable = subtableClass.getConstructor(SubTableBase.class).newInstance(sub);
-			return subtable;
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot create subtable instance!", e);
-		}
+		SubTableBase subTableBase = cursor.rowset.getSubTable(columnIndex, (int) cursor.getPosition());
+		return AbstractSubtable.createSubtable(subtableClass, subTableBase);
 	}
 
 	@Override

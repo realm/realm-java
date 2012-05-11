@@ -11,4 +11,13 @@ public abstract class AbstractSubtable<Cursor, View, Query> extends AbstractTabl
 		this.subtable = subtable;
 	}
 
+	public static <S> S createSubtable(Class<S> subtableClass, SubTableBase subTableBase) {
+		try {
+			S subtable = subtableClass.getConstructor(SubTableBase.class).newInstance(subTableBase);
+			return subtable;
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot create subtable instance!", e);
+		}
+	}
+
 }

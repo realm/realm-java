@@ -42,7 +42,7 @@ public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cu
 
 	@Override
 	public Iterator<Cursor> iterator() {
-		throw new UnsupportedOperationException("Not implemented yet!");
+		return new RowsetIterator<Cursor>(this);
 	}
 
 	public abstract String getName();

@@ -7,7 +7,7 @@ import com.tightdb.example.generated.Person;
 import com.tightdb.example.generated.PersonQuery;
 import com.tightdb.example.generated.PersonTable;
 import com.tightdb.example.generated.PersonView;
-import com.tightdb.lib.TDBUtils;
+import com.tightdb.lib.TightDB;
 
 public class SearchExample {
 
@@ -18,7 +18,7 @@ public class SearchExample {
 		Person johny = persons.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
 		Person nikolche = persons.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234.56);
 
-		TDBUtils.print(persons);
+		TightDB.print(persons);
 
 		// .salary.is(11) doesn't work
 		PersonQuery q1 = persons.firstName.startsWith("J").lastName.endWith("e");
@@ -27,23 +27,23 @@ public class SearchExample {
 		PersonView results = q1.findAll();
 		System.out.println(results);
 		
-		TDBUtils.print(results);
+		TightDB.print(results);
 		
 		System.out.println("First names: " + Arrays.toString(results.firstName.getAll()));
 		System.out.println("Salary sum: " + results.salary.sum());
 		System.out.println("Salary min: " + results.salary.min());
 		System.out.println("Salary max: " + results.salary.max());
 		
-		TDBUtils.print(results);
+		TightDB.print(results);
 		
 		results.clear();
 		
-		TDBUtils.print(persons);
+		TightDB.print(persons);
 		
 		long count = persons.firstName.contains("iko").clear();
 		System.out.println("Removed " + count + " rows!");
 		
-		TDBUtils.print(persons);
+		TightDB.print(persons);
 	}
 
 }
