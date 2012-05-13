@@ -53,7 +53,7 @@ public class Example {
 
 		// 2 ways to get the value
 		System.out.println("name1: " + john.firstName.get());
-		System.out.println("name2: " + employees.at(0).getFirstName());
+		System.out.println("name2: " + john.getFirstName());
 
 		// 2 ways to set the value
 		employees.at(2).lastName.set("NewName");
@@ -79,15 +79,6 @@ public class Example {
 			System.out.println("iterating: " + employee);
 		}
 
-		john.phones.get().add("mobile", "123456");
-		john.phones.get().add("home", "567890");
-
-		nikolche.phones.get().add("home", "13579");
-
-		System.out.println("John phones count: " + john.phones.get().size());
-
-		TightDB.print("Employees", employees);
-
 		/****************************** AGGREGATION *****************************/
 
 		// aggregation of the salary
@@ -110,6 +101,7 @@ public class Example {
 		System.out.println("- First names: " + Arrays.toString(employees.firstName.getAll()));
 
 		employees.salary.setAll(100000);
+		employees.firstName.contains("o").findAll().firstName.setAll("Bill");
 
 		TightDB.print(employees);
 
@@ -117,12 +109,15 @@ public class Example {
 
 		System.out.print("- Columns:");
 		for (AbstractColumn<?, ?, ?> column : john.columns()) {
-			System.out.print(column.getName() + " ");
+			System.out.print(column.getName() + "=" + column.getReadableValue());
 		}
 		System.out.println();
 
-		/****************************** NESTED TABLES *****************************/
+		/****************************** SUBTABLES *****************************/
 
+		PhoneTable subtable = john.phones.get();
+		subtable.add("mobile", "111");
+		
 		john.getPhones().add("mobile", "111");
 		john.getPhones().add("home", "222");
 
@@ -130,8 +125,6 @@ public class Example {
 
 		nikolche.getPhones().add("mobile", "444");
 		nikolche.getPhones().add("work", "555");
-
-		TightDB.print(employees);
 
 		for (PhoneTable phoneTable : employees.phones.getAll()) {
 			TightDB.print(phoneTable);
