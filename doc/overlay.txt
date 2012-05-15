@@ -1,0 +1,7 @@
+@@Overlay: bracket @@
+the <tt>at</tt> method which returns a cursor to the row
+@@EndOverlay
+
+@@Overlay: query @@
+column object
+@@EndOverlay

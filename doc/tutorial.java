@@ -12,38 +12,31 @@ import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
 
-public class Example {
-
-
-	@Table
-	class people {
-		String name;
-		int age;
-		boolean hired;
-	}
-
-	@NestedTable
-	class phone {
-		String type;
-		String number;
-	}
-
-	public static void main(String[] args) {
 // @@Example: create_table @@
-PeopleTable peopletable = new PeopleTable();
+public class Example {
+    @Table
+    class people {
+	String name;
+	int age;
+	boolean hired;
+    }
+
+    public static void main(String[] args) {
+        PeopleTable peopletable = new PeopleTable();
+        // ...
 // @@EndExample@@
 
 		/****************************** BASIC OPERATIONS *****************************/
 
 // @@Example: insert_rows @@
-People john = peopletable.add("John", 20, true);
-People mary = peopletable.add("Mary", 21, false);
-People lars = peopletable.add("Lars", 32, true);
-People phil = peopletable.add("Phil", 43, false);
-People anni = peopletable.add("Anni", 53, true);
+peopletable.add("John", 20, true);
+peopletable.add("Mary", 21, false);
+peopletable.add("Lars", 32, true);
+peopletable.add("Phil", 43, false);
+peopletable.add("Anni", 53, true);
 // @@EndExample@@
 // @@Example: insert_at_index @@
-People frank = peopletable.insert(2, "Frank", 34, true);
+peopletable.insert(2, "Frank", 34, true);
 // @@EndExample@@
 
 		TightDB.print("Employees", employees);
@@ -58,12 +51,21 @@ People frank = peopletable.insert(2, "Frank", 34, true);
 
 // @@Example: accessing_rows @@
 // 2 ways to get the value
-System.out.println("name1: " + john.name.get());
-System.out.println("name2: " + john.getname());
+String name = peopletable.at(2).getName(); // name => "Mary"
+// or
+String name = peopletable.at(2).name.get();
 
 // 2 ways to set the value
-peopletable.at(2).lastname.set("NewName");
-peopletable.at(2).setLastname("NewName");
+peopletable.at(2).name.set("NewName");
+// or
+peopletable.at(2).setName("NewName"); 
+// @@EndExample@@
+
+
+// @@Example: number_of_rows @@
+if (!peopletable.isEmpty()) {
+    long s = peopletable.size(); // s => 6
+}
 // @@EndExample@@
 
 		Employee niko = employees.firstName.startsWith("Nik").findUnique();
@@ -84,7 +86,7 @@ peopletable.at(2).setLastname("NewName");
 		// lazy iteration over the table
 // @@Example: iteration @@
 for (People people : peopletable) {
-	System.out.println(people.name.get() + " is " + people.age.get() + " years old.");
+	System.out.println(people.getName() + " is " + people.getAge() + " years old.");
 }
 // @@EndExample@@
 
@@ -95,18 +97,19 @@ for (People people : peopletable) {
 		System.out.println("min salary: " + employees.salary.min());
 		System.out.println("salary sum: " + employees.salary.sum());
 
+                /****************************** SIMPLE QUERY ******************************/
+// @@Example: simple_seach @@
+People p = peopletable.name.is("John").findFirst();
+// @@EndExample@@
 		/****************************** COMPLEX QUERY *****************************/
 		
-// @@Example: simple_search @@
-// To be implemented
-// @@EndExample
 
 // @@Example: advanced_search @@
 PeopleQuery query = peopletable.age.between(20, 30);
 System.out.println(query.count());
-System.out.println(query.avg());
+System.out.println(query.average());
 for (People people : query.findAll()) {
-    System.out.println(people.name.get() + " is " + people.age.get() + " years old");
+    System.out.println(people.getName() + " is " + people.getAge() + " years old");
 }        
 // @@EndExample
 
@@ -155,7 +158,6 @@ for (People people : query.findAll()) {
 		/****************************** DATA REMOVAL *****************************/
 // @@Example: deleting_row @@
 peopletable.remove(2);
-System.out.println(peopletable.count());
 // @@EndExample@@
 
 		/****************************** NOT IMPLEMENTED YET *****************************/
