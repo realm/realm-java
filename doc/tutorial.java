@@ -160,6 +160,61 @@ for (People people : query.findAll()) {
 peopletable.remove(2);
 // @@EndExample@@
 
+
+        /****************************** SERIALIZE ***************************************/
+        
+// @@Example: serialisation @@
+// Create Table in Group
+Group group = new Group();
+TableBase t = group.getTable("people");
+        
+// Add some rows by low-level interface - similar to highlevel and typesafe "add()"
+t.insertString(0, 0, "John");
+t.insertLong(1, 0, 20);
+t.insertBoolean(2, 0, true);
+t.insertDone();
+      
+t.insertString(0, 1, "Mary");
+t.insertLong(1, 1, 21);
+t.insertBoolean(2, 1, false);
+t.insertDone();
+        
+t.insertString(0, 2, "Lars");
+t.insertLong(1, 2, 21);
+t.insertBoolean(2, 2, true);
+t.insertDone();
+        
+t.insertString(0, 3, "Phil");
+t.insertLong(1, 3, 43);
+t.insertBoolean(2, 3, false);
+t.insertDone();
+        
+// Write to disk
+try {
+    group.writeToFile("people.tightdb");
+} catch (IOException e) {
+    e.printStackTrace();
+}
+        
+// Load a group from disk (and print contents)
+Group fromDisk = new Group();
+fromDisk.load("people.tightdb");
+       
+TableBase diskTable = fromDisk.getTable("people");
+for (int i = 0; i < diskTable.getCount(); i++)
+    System.out.println(i + ": " + diskTable.getString(0, i) );     // print names
+        
+// Write same group to memory buffer
+byte[] buffer = group.writeToBuffer();
+        
+// Load a group from memory (and print contents)
+Group fromMem = new Group();
+fromMem.loadData(buffer);    // method will be renamed to "loadMem"
+TableBase memTable = fromMem.getTable("people");
+for (int i = 0; i < memTable.getCount(); i++)
+    System.out.println(i + ": " + memTable.getString(0, i) );     // print names
+// @@EndExample@@
+
 		/****************************** NOT IMPLEMENTED YET *****************************/
 
 		try {
