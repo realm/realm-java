@@ -1,0 +1,121 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.tightdb</groupId>
+	<artifactId>tightdb-example</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.tightdb</groupId>
+			<artifactId>tightdb</artifactId>
+			<version>1.1.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/tightdb.jar</systemPath>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>generate-code</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+
+					<plugin>
+						<artifactId>maven-clean-plugin</artifactId>
+						<version>2.4.1</version>
+						<executions>
+							<execution>
+								<id>clean-generated-code</id>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>clean</goal>
+								</goals>
+								<configuration>
+								</configuration>
+							</execution>
+						</executions>
+						<configuration>
+							<filesets>
+								<fileset>
+									<directory>${project.basedir}/src/main/java/com/tightdb/generated</directory>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</fileset>
+							</filesets>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>com.googlecode.jannocessor</groupId>
+						<artifactId>jannocessor-maven-plugin</artifactId>
+						<version>0.7.0</version>
+						<executions>
+							<execution>
+								<id>generate-code</id>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>process</goal>
+								</goals>
+								<configuration>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
+
+				<pluginManagement>
+					<plugins>
+						<!-- This plugin's configuration is used to store Eclipse m2e settings 
+							only. It has no influence on the Maven build itself. -->
+						<plugin>
+							<groupId>org.eclipse.m2e</groupId>
+							<artifactId>lifecycle-mapping</artifactId>
+							<version>1.0.0</version>
+							<configuration>
+								<lifecycleMappingMetadata>
+									<pluginExecutions>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>com.googlecode.jannocessor</groupId>
+												<artifactId>jannocessor-maven-plugin</artifactId>
+												<versionRange>[0.7.0,)</versionRange>
+												<goals>
+													<goal>process</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<ignore />
+											</action>
+										</pluginExecution>
+									</pluginExecutions>
+								</lifecycleMappingMetadata>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+
+			</build>
+		</profile>
+	</profiles>
+
+</project>
