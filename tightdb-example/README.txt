@@ -66,6 +66,34 @@ you need to regenerate the typesafe classes that Tightdb provides based on the T
 You can now run your application again.
 
 
+Buiding Tightdb example from the command line with ant
+======================================================
+
+Generate tightdb classes
+----------------
+
+Prerequisite: install Maven
+
+mvn generate-sources
+
+Build
+-----
+
+ant build
+
+Clean
+-----
+
+ant clean
+
+NOTE: The ant makefile (build.xml) can be generated from Eclipse by running Export -> General -> Ant Buildfiles
+
+Run
+---
+
+java -Djava.library.path=. -cp lib/tightdb.jar:target/classes com.tightdb.example.Example
+
+
 
 FAQ:
 ====
