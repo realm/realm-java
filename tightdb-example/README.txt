@@ -66,6 +66,16 @@ you need to regenerate the typesafe classes that Tightdb provides based on the T
 You can now run your application again.
 
 
+
+FAQ:
+====
+Q1: I get the following error when generating classes as describe in step 4) above:
+"[ERROR] JVM is not suitable for processing annotation! ToolProvider.getSystemJavaCompiler() is null."
+A1: Configure JDK6 as described in 2.4.
+
+
+
+
 Feedback is more than welcome!
 Don't hesitate to contact us at support@tightdb.com.
 
