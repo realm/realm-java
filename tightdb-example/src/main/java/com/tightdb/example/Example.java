@@ -26,17 +26,20 @@ public class Example {
 
 	public static void main(String[] args) {
 		
-		showExample();
+		ShowLongExample();
 		
-		//showSerialization();
+		// TutorialExample.ShowShortExample();
 		
-		//Performance.TestJava();
+		// Enable below to compare Tightdb performance against a Java ArrayList
+		
+		// Performance.TestTightdb(250000);
+		// Performance.TestJavaArray(250000);	
 	}
 	
-/******************************************************************/
-/* Example of simple Tightdb operations using highlevel interface */
-/******************************************************************/
-	
+	/******************************************************************/
+	/* Example of simple Tightdb operations using highlevel interface */
+	/******************************************************************/
+		
 	/* Define a table like below and name it in lowercase. 
 	 * A class will be generated with first letter uppercase: Employee.
 	 * Employee is a cursor to rows in the EmployeeTable, which will also be generated.
@@ -62,20 +65,21 @@ public class Example {
 		String number;
 	}
 
-	static void showExample() {
+	static void ShowLongExample() {
 		EmployeeTable employees = new EmployeeTable();
 
 		/****************************** BASIC OPERATIONS *****************************/
 
 		Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
-		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234.56);
+		Employee johnny = employees.add("Johnny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
+		Employee hansen = employees.insert(1, "Tom", "Hansen", 30000, false, new byte[] { 4, 5 }, new Date(), 1234.56);
+		//Employee tommy = employees.insert(1, "Tommy", "Hansen", 30000, false, new byte[] { 4, 5 }, new Date(), 1234.56);
 
 		TightDB.print("Employees", employees);
-		TightDB.print("Johny", johny);
+		TightDB.print("Johnny", johnny);
 
 		System.out.println("first record: " + john);
-		System.out.println("second record: " + nikolche);
+		System.out.println("third record: " + hansen);
 		System.out.println("some column: " + john.firstName);
 
 		/****************************** GETTERS AND SETTERS *****************************/
@@ -88,13 +92,13 @@ public class Example {
 		employees.at(2).lastName.set("NewName");
 		employees.at(2).setLastName("NewName");
 
-		Employee niko = employees.firstName.startsWith("Nik").findUnique();
-		System.out.println("Unique Niko: " + niko);
+		Employee someTom = employees.firstName.startsWith("Tom").findUnique();
+		System.out.println("Unique Tom: " + someTom);
 
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
 		// using explicit OR
-		TightDB.print("Search example", employees.firstName.is("Johnny").or().lastName.is("Mihajlovski").findFirst());
+		TightDB.print("Search example", employees.firstName.is("Johnny").or().lastName.is("Hansen").findFirst());
 
 		// using implicit AND
 		TightDB.print("Search example 2", employees.firstName.is("Johnny").lastName.startsWith("B").findLast());
@@ -117,13 +121,14 @@ public class Example {
 
 		/****************************** COMPLEX QUERY *****************************/
 
-		TightDB.print("Query 1", employees.firstName.startsWith("Nik").lastName.contains("vski").or().firstName.is("John").findAll());
+		TightDB.print("Query 1", employees.firstName.startsWith("To").lastName.contains("sen").or().firstName.is("John").findAll());
 
-		TightDB.print("Query 2a", employees.firstName.startsWith("Nik").startGroup().lastName.contains("vski").or().firstName.is("John").endGroup()
+		TightDB.print("Query 2a", employees.firstName.startsWith("To").startGroup().lastName.contains("sen").or().firstName.is("John").endGroup()
 				.findAll());
 
+		// Currently non functional!!!
 		TightDB.print("Query 2b",
-				employees.query().startGroup().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
+				employees.query().startGroup().lastName.contains("sen").or().firstName.is("John").endGroup().firstName.startsWith("Tom").findAll());
 
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
@@ -138,22 +143,24 @@ public class Example {
 
 		System.out.print("- Columns:");
 		for (AbstractColumn<?, ?, ?> column : john.columns()) {
-			System.out.print(column.getName() + "=" + column.getReadableValue());
+			System.out.print(column.getName() + "=" + column.getReadableValue() + ", ");
 		}
 		System.out.println();
 
 		/****************************** SUBTABLES *****************************/
 
+		// Currently non functional!!!
+		
 		PhoneTable subtable = john.phones.get();
 		subtable.add("mobile", "111");
 		
 		john.getPhones().add("mobile", "111");
 		john.getPhones().add("home", "222");
 
-		johny.getPhones().add("mobile", "333");
+		johnny.getPhones().add("mobile", "333");
 
-		nikolche.getPhones().add("mobile", "444");
-		nikolche.getPhones().add("work", "555");
+		hansen.getPhones().add("mobile", "444");
+		hansen.getPhones().add("work", "555");
 
 		for (PhoneTable phoneTable : employees.phones.getAll()) {
 			TightDB.print(phoneTable);
@@ -183,58 +190,5 @@ public class Example {
 		} catch (Exception e) {
 		}
 	}
-	
-	
-	static void showSerialization() {
-		// Create Table in Group
-	    Group group = new Group();
-	    TableBase t = group.getTable("people");
-	    
-	    // Add some rows by low-level interface - similar to highlevel and typesafe "add()"
-	    t.insertString(	0, 0, "John");
-	    t.insertLong(	1, 0, 20);
-	    t.insertBoolean(2, 0, true);
-	    t.insertDone();
-	    
-	    t.insertString(	0, 1, "Mary");
-	    t.insertLong(	1, 1, 21);
-	    t.insertBoolean(2, 1, false);
-	    t.insertDone();
-	    
-	    t.insertString(	0, 2, "Lars");
-	    t.insertLong(	1, 2, 21);
-	    t.insertBoolean(2, 2, true);
-	    t.insertDone();
-	    
-	    t.insertString(	0, 3, "Phil");
-	    t.insertLong(	1, 3, 43);
-	    t.insertBoolean(2, 3, false);
-	    t.insertDone();
-	    
-	    // Write to disk
-	    try {
-			group.writeToFile("people.tightdb");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	    
-	    // Load a group from disk (and print contents)
-	    Group fromDisk = new Group();
-	    fromDisk.load("people.tightdb");
-	    
-	    TableBase diskTable = fromDisk.getTable("people");
-	    for (int i = 0; i < diskTable.getCount(); i++)
-	        System.out.println(i + ": " + diskTable.getString(0, i) ); 	// print names
-	    
-	    // Write same group to memory buffer
-	    byte[] buffer = group.writeToBuffer();
-	    
-	    // Load a group from memory (and print contents)
-	    Group fromMem = new Group();
-	    fromMem.loadData(buffer);	// method will be renamed to "loadMem"
-	    TableBase memTable = fromMem.getTable("people");
-	    for (int i = 0; i < memTable.getCount(); i++)
-	    	System.out.println(i + ": " + memTable.getString(0, i) ); 	// print names
 		
-	}
 }
