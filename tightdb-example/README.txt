@@ -24,8 +24,13 @@ Below are instructions for testing the Tightdb example application in Java.
    Select "File->Import". 
    Choose "Maven->Existing Maven Project". Root directory: Browse for "tightdb-example"
 
-4. Configure JDK6 on your project.
-   - Ensure JDK6 is selected in Window -> Preferences -> Java -> Installed JREs
+   Note: Errors may occur at this point about missing Maven plugins. 
+   Those will be resolved after generating and installing additional plugins later on 
+   (see 4. Generating tightdb classes)
+
+4. Configure JDK on your project.
+   - Ensure the JDK6 is selected in Preferences -> Java -> Installed JREs. 
+     Preferences is located in the "Eclipse" menu on Mac and in the "Window" menu on Windows and linux.
    - If it's not there, use the "Search" command on the same screen 
      and navigate to the folder where it was installed.
    - Make sure the project is configured to use the JDK6 by right-clicking "tightdb-example" 
@@ -36,6 +41,7 @@ Below are instructions for testing the Tightdb example application in Java.
 
 3. Running the application
 --------------------------
+
 1. Run the application
    - Select "Run -> Run"
 
@@ -53,11 +59,15 @@ you need to regenerate the typesafe classes that Tightdb provides based on the T
 
 2. Right-click tightdb-example -> Run As -> Maven generate-sources.
    This will generate custom classes for your tables in "com.tightdb.generated".
+   The first time this is done, Eclipse will installadditional plugins if not already present.
 
 3. Refresh the project (F5) and the generated classes are available with full autocompletion etc.
 
 You can now run your application again.
 
+
+Feedback is more than welcome!
+Don't hesitate to contact us at support@tightdb.com.
 
 Enjoy!
 /The Tightdb team
