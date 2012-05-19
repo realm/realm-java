@@ -14,6 +14,20 @@ import com.tightdb.lib.TightDB;
 
 public class Example {
 
+	public static void main(String[] args) {
+		int rowArg = 250000;
+		if (args.length > 0) {
+		    try {
+		        rowArg = Integer.parseInt(args[0]);
+		    } catch (NumberFormatException e) {
+		        System.err.println("Argument" + " must be an integer");
+		        System.exit(1);
+		    }
+		}
+		
+		//showExample();
+	}
+	
 	@Table
 	class employee {
 		String firstName;
@@ -32,9 +46,9 @@ public class Example {
 		String number;
 	}
 
-	public static void main(String[] args) {
+	public static void showExample() {
 		EmployeeTable employees = new EmployeeTable();
-
+		
 		/****************************** BASIC OPERATIONS *****************************/
 
 		Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
@@ -61,6 +75,14 @@ public class Example {
 
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
+		Employee ny = employees.salary.is(17).findFirst();
+		TightDB.print("**************** Findes 17?: ", ny);
+		if (ny==null)
+			System.out.println("NOPE!!)");
+					
+		Employee ny2 = employees.salary.is(30000).findFirst();
+		TightDB.print("**************** Findes 30000?: ", ny2);
+		
 		// using explicit OR
 		TightDB.print("Search example", employees.firstName.is("Johnny").or().lastName.is("Mihajlovski").findFirst());
 
@@ -89,10 +111,13 @@ public class Example {
 
 		TightDB.print("Query 2a", employees.firstName.startsWith("Nik").group().lastName.contains("vski").or().firstName.is("John").endGroup()
 				.findAll());
-
 		TightDB.print("Query 2b",
 				employees.query().group().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
 
+		// lazy iteration over query (use find_next() )
+//		for (Employee employee : employees.firstName.startsWith("N")) {
+						
+//		}
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
 		System.out.println("- First names: " + Arrays.toString(employees.firstName.getAll()));
@@ -151,5 +176,4 @@ public class Example {
 		} catch (Exception e) {
 		}
 	}
-
 }
