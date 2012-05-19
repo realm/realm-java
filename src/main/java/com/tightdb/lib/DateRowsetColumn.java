@@ -16,8 +16,8 @@ public class DateRowsetColumn<Cursor, Query> extends DateQueryColumn<Cursor, Que
 
 	@Override
 	public Date[] getAll() {
-		int count = rowset.getCount();
-		Date[] values = new Date[count];
+		long count = rowset.size();
+		Date[] values = new Date[(int) count];
 		for (int i = 0; i < count; i++) {
 			values[i] = new Date(rowset.getLong(columnIndex, i));
 		}
@@ -26,7 +26,7 @@ public class DateRowsetColumn<Cursor, Query> extends DateQueryColumn<Cursor, Que
 
 	@Override
 	public void setAll(Date value) {
-		int count = rowset.getCount();
+		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
 			rowset.setLong(columnIndex, i, value.getTime());
 		}

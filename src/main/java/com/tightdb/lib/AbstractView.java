@@ -12,8 +12,8 @@ public abstract class AbstractView<Cursor, View, Query> extends AbstractRowset<C
 	}
 
 	@Override
-	public int size() {
-		return viewBase.getCount();
+	public long size() {
+		return viewBase.size();
 	}
 
 	@Override

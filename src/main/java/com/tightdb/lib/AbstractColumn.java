@@ -17,10 +17,6 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		this(types, cursor.rowset, cursor, index, name);
 	}
 
-	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, TableQuery query, int index, String name) {
-		this(types, query.table, query, index, name);
-	}
-
 	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, AbstractCursor<Cursor> cursor, int index, String name) {
 		this.types = types;
 		this.rowset = rowset;
@@ -73,7 +69,7 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 	}
 
 	protected TableQuery getQuery() {
-		return query != null ? query : new TableQuery(tableOrNull());
+		return query != null ? query : new TableQuery();
 	}
 
 	protected Query query(TableQuery tableQuery) {

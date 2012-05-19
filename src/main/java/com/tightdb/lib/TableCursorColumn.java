@@ -1,6 +1,6 @@
 package com.tightdb.lib;
 
-import com.tightdb.SubTableBase;
+import com.tightdb.TableBase;
 
 public class TableCursorColumn<Cursor, Query, Subtable> extends AbstractColumn<Subtable, Cursor, Query> {
 
@@ -14,7 +14,7 @@ public class TableCursorColumn<Cursor, Query, Subtable> extends AbstractColumn<S
 
 	@Override
 	public Subtable get() {
-		SubTableBase subTableBase = cursor.rowset.getSubTable(columnIndex, (int) cursor.getPosition());
+		TableBase subTableBase = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
 		return AbstractSubtable.createSubtable(subtableClass, subTableBase);
 	}
 

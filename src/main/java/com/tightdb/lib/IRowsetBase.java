@@ -3,7 +3,7 @@ package com.tightdb.lib;
 import java.util.Date;
 
 import com.tightdb.Mixed;
-import com.tightdb.SubTableBase;
+import com.tightdb.TableBase;
 
 public interface IRowsetBase {
 
@@ -14,7 +14,7 @@ public interface IRowsetBase {
 	 * 
 	 * @return
 	 */
-	int getCount();
+	long size();
 
 	/**
 	 * Removes a particular row identified by the index from the table/view.
@@ -23,7 +23,7 @@ public interface IRowsetBase {
 	 * 
 	 * @param index
 	 */
-	void removeRow(int index);
+	void removeRow(long index);
 
 	/**
 	 * Get the long value of a cell of the table/view identified by the
@@ -33,7 +33,7 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @return
 	 */
-	long getLong(int columnIndex, int rowIndex);
+	long getLong(long columnIndex, long rowIndex);
 
 	/**
 	 * Get the boolean value of a cell of the table identified by the
@@ -43,7 +43,7 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @return
 	 */
-	boolean getBoolean(int columnIndex, int rowIndex);
+	boolean getBoolean(long columnIndex, long rowIndex);
 
 	/**
 	 * Gets the string value of a cell identified by the columnIndex and
@@ -53,7 +53,7 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @return
 	 */
-	String getString(int columnIndex, int rowIndex);
+	String getString(long columnIndex, long rowIndex);
 
 	/**
 	 * Returns the Date value (java.util.Date) for a particular cell specified
@@ -63,7 +63,7 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @return
 	 */
-	Date getDate(int columnIndex, int rowIndex);
+	Date getDate(long columnIndex, long rowIndex);
 
 	/**
 	 * Returns the binary byte[] data for a cell identified by the columnIndex
@@ -73,11 +73,11 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @return
 	 */
-	byte[] getBinaryData(int columnIndex, int rowIndex);
+	byte[] getBinary(long columnIndex, long rowIndex);
 
-	Mixed getMixed(int columnIndex, int rowIndex, Mixed value);
+	Mixed getMixed(long columnIndex, long rowIndex);
 
-	SubTableBase getSubTable(int columnIndex, int rowIndex);
+	TableBase getSubTable(long columnIndex, long rowIndex);
 
 	/**
 	 * Sets the long value for a particular cell identified by columnIndex and
@@ -87,7 +87,7 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @param value
 	 */
-	void setLong(int columnIndex, int rowIndex, long value);
+	void setLong(long columnIndex, long rowIndex, long value);
 
 	/**
 	 * Sets the boolean value of a cell identified by the columnIndex and the
@@ -97,7 +97,7 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @param value
 	 */
-	void setBoolean(int columnIndex, int rowIndex, boolean value);
+	void setBoolean(long columnIndex, long rowIndex, boolean value);
 
 	/**
 	 * Sets the string value of a particular cell of the table/view identified
@@ -107,7 +107,7 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @param value
 	 */
-	void setString(int columnIndex, int rowIndex, String value);
+	void setString(long columnIndex, long rowIndex, String value);
 
 	/**
 	 * Sets the binary value byte[] for a particular cell identified by the
@@ -117,8 +117,8 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @param data
 	 */
-	void setBinaryData(int columnIndex, int rowIndex, byte[] data);
+	void setBinary(long columnIndex, long rowIndex, byte[] data);
 
-	void setMixed(int columnIndex, int rowIndex, Mixed data);
+	void setMixed(long columnIndex, long rowIndex, Mixed data);
 
 }

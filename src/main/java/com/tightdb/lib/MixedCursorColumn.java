@@ -10,12 +10,12 @@ public class MixedCursorColumn<Cursor, Query> extends AbstractColumn<Serializabl
 
 	@Override
 	public Serializable get() {
-		return TightDB.deserialize(cursor.rowset.getBinaryData(columnIndex, (int) cursor.getPosition()));
+		return TightDB.deserialize(cursor.rowset.getBinary(columnIndex, (int) cursor.getPosition()));
 	}
 
 	@Override
 	public void set(Serializable value) {
-		cursor.rowset.setBinaryData(columnIndex, (int) cursor.getPosition(), TightDB.serialize(value));
+		cursor.rowset.setBinary(columnIndex, (int) cursor.getPosition(), TightDB.serialize(value));
 	}
 
 }

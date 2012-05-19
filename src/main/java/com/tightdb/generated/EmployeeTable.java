@@ -41,7 +41,7 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView, Employe
 
     public Employee add(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra) {
         try {
-        	int position = size();
+        	long position = size();
 
         	insertString(0, position, firstName);
         	insertString(1, position, lastName);

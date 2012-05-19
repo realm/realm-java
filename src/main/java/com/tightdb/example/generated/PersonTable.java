@@ -45,7 +45,7 @@ public class PersonTable extends AbstractTable<Person, PersonView, PersonQuery> 
 
 	public Person add(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Serializable extra) {
 		try {
-			int position = size();
+			long position = size();
 
 			insertString(0, position, firstName);
 			insertString(1, position, lastName);

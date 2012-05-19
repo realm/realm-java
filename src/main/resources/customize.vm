@@ -61,7 +61,7 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 
 #macro(table_add)
 try {
-	int position = size();
+	long position = size();
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)

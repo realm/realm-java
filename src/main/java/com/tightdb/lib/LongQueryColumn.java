@@ -17,11 +17,11 @@ public class LongQueryColumn<Cursor, Query> extends AbstractColumn<Long, Cursor,
 	}
 
 	public Query lessThan(int value) {
-		return query(getQuery().lessThan(columnIndex, value));
+		return query(getQuery().less(columnIndex, value));
 	}
 
 	public Query lessOrEqual(int value) {
-		return query(getQuery().lessThanEqualTo(columnIndex, value));
+		return query(getQuery().lessEqual(columnIndex, value));
 	}
 
 	public Query between(int from, int to) {
@@ -29,7 +29,7 @@ public class LongQueryColumn<Cursor, Query> extends AbstractColumn<Long, Cursor,
 	}
 
 	public Query is(long value) {
-		return query(getQuery().equals(columnIndex, value));
+		return query(getQuery().equal(columnIndex, value));
 	}
 
 }

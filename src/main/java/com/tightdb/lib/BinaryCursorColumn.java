@@ -8,12 +8,12 @@ public class BinaryCursorColumn<Cursor, Query> extends AbstractColumn<byte[], Cu
 
 	@Override
 	public byte[] get() {
-		return cursor.rowset.getBinaryData(columnIndex, (int) cursor.getPosition());
+		return cursor.rowset.getBinary(columnIndex, (int) cursor.getPosition());
 	}
 
 	@Override
 	public void set(byte[] value) {
-		cursor.rowset.setBinaryData(columnIndex, (int) cursor.getPosition(), value);
+		cursor.rowset.setBinary(columnIndex, (int) cursor.getPosition(), value);
 	}
 
 	@Override

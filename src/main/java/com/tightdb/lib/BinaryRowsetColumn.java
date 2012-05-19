@@ -14,19 +14,19 @@ public class BinaryRowsetColumn<Cursor, Query> extends BinaryQueryColumn<Cursor,
 
 	@Override
 	public byte[][] getAll() {
-		int count = rowset.getCount();
-		byte[][] values = new byte[count][];
+		long count = rowset.size();
+		byte[][] values = new byte[(int) count][];
 		for (int i = 0; i < count; i++) {
-			values[i] = rowset.getBinaryData(columnIndex, i);
+			values[i] = rowset.getBinary(columnIndex, i);
 		}
 		return values;
 	}
 
 	@Override
 	public void setAll(byte[] value) {
-		int count = rowset.getCount();
+		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
-			rowset.setBinaryData(columnIndex, i, value);
+			rowset.setBinary(columnIndex, i, value);
 		}
 	}
 

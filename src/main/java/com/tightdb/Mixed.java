@@ -1,5 +1,6 @@
 package com.tightdb;
 
+import java.util.Arrays;
 import java.util.Date;
 
 public class Mixed {
@@ -19,6 +20,25 @@ public class Mixed {
 		this.value = value;
 	}
 	
+	public Mixed(byte[] value){
+		this.value = value;
+	}
+	
+	public boolean equals(Object second){
+		if(second == null)
+			return false;
+		if(!(second instanceof Mixed))
+			return false;
+		Mixed secondMixed = (Mixed)second;
+		if(!getType().equals(secondMixed.getType())){
+			return false;
+		}
+		if(value instanceof byte[]){
+			return Arrays.equals((byte[])value, (byte[])secondMixed.value);
+		}
+		return this.value.equals(secondMixed.value);
+	}
+	
 	public ColumnType getType(){
 		if(value instanceof String)
 			return ColumnType.ColumnTypeString;
@@ -28,6 +48,9 @@ public class Mixed {
 			return ColumnType.ColumnTypeDate;
 		else if(value instanceof Boolean)
 			return ColumnType.ColumnTypeBool;
+		else if(value instanceof byte[]){
+			return ColumnType.ColumnTypeBinary;
+		}
 		return null;
 	}
 	
@@ -57,5 +80,15 @@ public class Mixed {
 		return (Date)value;
 	}
 	
+	protected long getDateTimeValue() throws IllegalAccessException {
+		return getDateValue().getTime();
+	}
+	
+	public byte[] getBinaryValue() throws IllegalAccessException {
+		if(!(value instanceof byte[])){
+			throw new IllegalAccessException("Trying to access a different type from mixed");
+		}
+		return (byte[])value;
+	}
 	private Object value;
 }

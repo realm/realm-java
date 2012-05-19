@@ -14,8 +14,8 @@ public class BooleanRowsetColumn<Cursor, Query> extends BooleanQueryColumn<Curso
 
 	@Override
 	public Boolean[] getAll() {
-		int count = rowset.getCount();
-		Boolean[] values = new Boolean[count];
+		long count = rowset.size();
+		Boolean[] values = new Boolean[(int) count];
 		for (int i = 0; i < count; i++) {
 			values[i] = rowset.getBoolean(columnIndex, i);
 		}
@@ -24,7 +24,7 @@ public class BooleanRowsetColumn<Cursor, Query> extends BooleanQueryColumn<Curso
 
 	@Override
 	public void setAll(Boolean value) {
-		int count = rowset.getCount();
+		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
 			rowset.setBoolean(columnIndex, i, value);
 		}

@@ -1,19 +1,19 @@
 package com.tightdb.lib;
 
-import com.tightdb.SubTableBase;
+import com.tightdb.TableBase;
 
 public abstract class AbstractSubtable<Cursor, View, Query> extends AbstractTable<Cursor, View, Query> {
 
-	protected final SubTableBase subtable;
+	protected final TableBase subtable;
 
-	public AbstractSubtable(EntityTypes<?, View, Cursor, Query> types, SubTableBase subtable) {
+	public AbstractSubtable(EntityTypes<?, View, Cursor, Query> types, TableBase subtable) {
 		super(types);
 		this.subtable = subtable;
 	}
 
-	public static <S> S createSubtable(Class<S> subtableClass, SubTableBase subTableBase) {
+	public static <S> S createSubtable(Class<S> subtableClass, TableBase subtableBase) {
 		try {
-			S subtable = subtableClass.getConstructor(SubTableBase.class).newInstance(subTableBase);
+			S subtable = subtableClass.getConstructor(TableBase.class).newInstance(subtableBase);
 			return subtable;
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot create subtable instance!", e);

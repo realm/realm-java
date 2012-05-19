@@ -27,7 +27,7 @@ public class TableTest {
 		System.out.println(base.getColumnName(0));
 		System.out.println(base.getColumnName(1));
 
-		System.out.println(base.getCount());
+		System.out.println(base.size());
 		System.out.println(base.getString(0, 0));
 		System.out.println(base.getLong(1, 0));
 

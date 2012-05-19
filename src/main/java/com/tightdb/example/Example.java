@@ -59,9 +59,6 @@ public class Example {
 		employees.at(2).lastName.set("NewName");
 		employees.at(2).setLastName("NewName");
 
-		Employee niko = employees.firstName.startsWith("Nik").findUnique();
-		System.out.println("Unique Niko: " + niko);
-
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
 		// using explicit OR
@@ -90,11 +87,11 @@ public class Example {
 
 		TightDB.print("Query 1", employees.firstName.startsWith("Nik").lastName.contains("vski").or().firstName.is("John").findAll());
 
-		TightDB.print("Query 2a", employees.firstName.startsWith("Nik").startGroup().lastName.contains("vski").or().firstName.is("John").endGroup()
+		TightDB.print("Query 2a", employees.firstName.startsWith("Nik").group().lastName.contains("vski").or().firstName.is("John").endGroup()
 				.findAll());
 
 		TightDB.print("Query 2b",
-				employees.query().startGroup().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
+				employees.query().group().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
 
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 

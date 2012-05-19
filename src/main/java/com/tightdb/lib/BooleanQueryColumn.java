@@ -9,11 +9,11 @@ public class BooleanQueryColumn<Cursor, Query> extends AbstractColumn<Boolean, C
 	}
 
 	public Query is(boolean value) {
-		return query(getQuery().equals(columnIndex, value));
+		return query(getQuery().equal(columnIndex, value));
 	}
 
 	public Query isnt(boolean value) {
-		return query(getQuery().equals(columnIndex, !value));
+		return query(getQuery().equal(columnIndex, !value));
 	}
 
 }

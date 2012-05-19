@@ -1,43 +1,44 @@
 package com.tightdb;
 
 import java.util.Date;
-import java.util.List;
 
 import com.tightdb.lib.IRowsetBase;
 
+
+
 /**
- * This class a base class for any table structure. This class supports 
- * all the low level methods of define/insert/delete/update a table have.
- * Along with this, all the native communications are also taken care by 
- * this class (Note: tightdb-java is a java support of C++ based tightdb 
+ * This class is a base class for any table structure. The class supports 
+ * all low level methods (define/insert/delete/update) a table has.
+ * Moreover, all the native communications are also taken care by 
+ * this class (Note: tightdb-java is a java support of C++ based TightDB 
  * implementation.)
  * 
  * Any user who wants to create a table of his choice will be automatically
  * inherited from this class by tightdb-class generator.
  * 
- * For an example lets have a table which will take care of an employee of a 
+ * As an example let us have a table to keep record of an employee of a 
  * company.
  * 
  * For this purpose we will create a class named Employee_Spec with an Entity
  * annotation as follows.
  * 
- * 		@Entity
+ * 		@Table
  *		public class Employee_Spec {
  *			String name;
  *			long age;
  *			boolean hired;
  *			byte[] imageData;
  *		}
- * Now our tightdb class generator will generate some important class relevant 
- * to the employee
+ *
+ * The tightdb class generator will generate classes relevant to the employee:
  * 
- * 1. Employee.java : Represents one employee of the employee table. Getter/setter 
- *                    methods are there from which user will be able to set/get values
- *                    for a particular employee.
- * 2. EmployeeTable.java : Represents the class for storing a collection of employee. This class
- *                    is inherited from the TableBase class as stated above. Have all higher 
- *                    level methods to manipulate Employee objects from the table.
- * 3. EmployeeView.java: Represent one view of the employee table.
+ * 1. Employee.java:  Represents one employee of the employee table i.e., a single row. Getter/setter 
+ *                    methods are declared from which you will be able to set/get values
+ *                    for a particular employee. 
+ * 2. EmployeeTable.java:  Represents the class for storing a collection of employee i.e., a table 
+ *                    of rows. The class is inherited from the TableBase class as described above. 
+ *                    It has all the high level methods to manipulate Employee objects from the table.
+ * 3. EmployeeView.java: Represents view of the employee table i.e., result set of queries.
  * 					
  * @author Anirban Talukdar
  *
@@ -45,8 +46,8 @@ import com.tightdb.lib.IRowsetBase;
 
 public class TableBase implements IRowsetBase {
 	/**
-	 * Contruct a Table base object. Which can be used to register columns in this 
-	 * table. Registering into table is allowed only in empty table. Creates a native 
+	 * Contruct a Table base object. It can be used to register columns in this 
+	 * table. Registering into table is allowed only for empty tables. It creates a native 
 	 * reference of the object and keeps a reference to it.
 	 */
 	public TableBase(){
@@ -54,184 +55,84 @@ public class TableBase implements IRowsetBase {
 		// have nothing to do with the native functions. Generated Java Table 
 		// classes will work as a wrapper on top of table.
 		this.nativePtr = createNative();
-		//this.parentTable = null;
-		//this.columnIndex = -1;
-		//this.rowIndex = -1;
 	}
 
-	/*protected TableBase(TableBase parent, int columnIndex, int rowIndex){
-		this.parentTable = parent;
-		this.columnIndex = columnIndex;
-		this.rowIndex = rowIndex;
-	}*/
-
-	/*protected TableBase(TableViewBase parent, int columnIndex, int rowIndex){
-		//TODO for the support of a table from tableview this.parentView = parent;
-		this.columnIndex = columnIndex;
-		this.rowIndex = rowIndex;
-	}*/
 	/**
 	 * Updates a table specification from a Table specification structure.
-	 * types that are supported refer to @see ColumnType. 
+	 * Supported types - refer to @see ColumnType. 
 	 * 
 	 * @param columnType data type of the column @see <code>ColumnType</code>
 	 * @param columnName name of the column. Duplicate column name is not allowed.
 	 */
 	public void updateFromSpec(TableSpec tableSpec){
-		nativeUpdateFromSpec(tableSpec);
+		nativeUpdateFromSpec(nativePtr, tableSpec);
 	}
 	
-	protected native void nativeUpdateFromSpec(TableSpec tableSpec);
-	/**
-	 * Returns the string of a cell identified by rowIndex and columnIndex.
-	 * @param columnIndex 0 based index value of the column
-	 * @param rowIndex 0 based index of the row.
-	 * @return value of the particular cell
-	 */
-	public String getString(int columnIndex, int rowIndex){
-		/*if(parentTable != null){
-			List<CellId> columnRowTreeList = getColumnRowPairForParents();
-			return nativeGetStringFromRoot(getTopLevelTable(), columnRowTreeList, columnIndex, rowIndex);
-		}*/
-		return nativeGetString(columnIndex, rowIndex);
-	}
+	protected native void nativeUpdateFromSpec(long nativePtr, TableSpec tableSpec);
 	
-	protected native String nativeGetString(int columnIndex, int rowIndex);
-	protected native String nativeGetStringFromRoot(TableBase tableBase, List<CellId> columnRowTreeList, int columnIndex, int rowIndex);
-	
+	// Table Size and deletion. AutoGeneraed subclasses are nothing to do with this 
+	// class.
 	/**
-	 * Get the long value of the particular cell, identified by columnIndex and rowIndex.
+	 * Get the number of entries/rows of this table. 
 	 * 
-	 * @param columnIndex 0 based index value of the column.
-	 * @param rowIndex 0 based row value of the column.
-	 * @return value of the particular cell.
+	 * @return The number of rows.
 	 */
-	public long getLong(int columnIndex, int rowIndex){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			return nativeGetLongFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
-		}*/
-		return nativeGetLong(columnIndex, rowIndex);
-	}
-	
-	protected native long nativeGetLong(int columnIndex, int rowIndex);
-	protected native long nativeGetLongFromRoot(TableBase table, List<CellId> columnRowIndexList, int columnIndex, int rowIndex);
-
-	/**
-	 * Get the boolean value of the particular cell, indentified the columnIndex and rowIndex.
-	 * 
-	 * @param columnIndex 0 based index value of the cell column.
-	 * @param rowIndex 0 based index of the row.
-	 * @return value of the particular cell.
-	 */
-	public boolean getBoolean(int columnIndex, int rowIndex){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			return nativeGetBooleanFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
-		}*/
-		return nativeGetBoolean(columnIndex, rowIndex);
-	}
-	
-	protected native boolean nativeGetBoolean(int columnIndex, int rowIndex);
-	protected native boolean nativeGetBooleanFromRoot(TableBase table, List<CellId> columnRowIndexList, int columnIndex, int rowIndex);
-	
-	/**
-	 * Get the binary byte[] based value of a cell identified by the columnIndex and rowIndex.
-	 * 
-	 * @param columnIndex 0 based index value of the cell column
-	 * @param rowIndex 0 based index value of the cell row
-	 * @return value of the particular cell.
-	 */
-	public byte[] getBinaryData(int columnIndex, int rowIndex){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			return nativeGetBinaryDataFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
-		}*/
-		return nativeGetBinaryData(columnIndex, rowIndex);
-	}
-	
-	protected native byte[] nativeGetBinaryData(int columnIndex, int rowIndex);
-	protected native byte[] nativeGetBinaryDataFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex);
-	
-	public Mixed getMixed(int columnIndex, int rowIndex){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			return nativeGetMixedFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
-		}*/
-		return nativeGetMixed(columnIndex, rowIndex);
-	}
-	
-	protected native Mixed nativeGetMixed(int columnIndex, int rowIndex);
-	protected native Mixed nativeGetMixedFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex);
-	
-  	public SubTableBase getSubTable(int columnIndex, int rowIndex){
-		return new SubTableBase(nativeGetSubTable(columnIndex, rowIndex));
-	}
-	
-	protected native long nativeGetSubTable(int columnIndex, int rowIndex);
-
-	/**
-	 * use this method to get the number of columns of the table.
-	 * @return number of column.
-	 */
-	public int getColumnCount(){
-		/*if(parentTable != null){
-			List<CellId> columnRowTree = getColumnRowPairForParents();
-			return nativeGetColumnCountFromRoot(getTopLevelTable(), columnRowTree);
-		}*/
-		return nativeGetColumnCount();
-	}
-	
-	protected native int nativeGetColumnCount();
-	protected native int nativeGetColumnCountFromRoot(TableBase rootTable, List<CellId> columnRowTree);
-	
-	/**
-	 * Returns the name of a column identified by columnIndex, which is 0 based.
-	 * @param columnIndex
-	 * @return
-	 */
-	public String getColumnName(int columnIndex){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			return nativeGetColumnNameFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex);
-		}*/
-		return nativeGetColumnName(columnIndex);
+	public long size(){
+		return nativeSize(nativePtr);
 	}
 
-	protected native String nativeGetColumnName(int columnIndex);
-	protected native String nativeGetColumnNameFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex);
+	protected native long nativeSize(long nativeTablePtr);
 	
 	/**
-	 * Get the type of a column identified by the columnIdex. 
-	 * @param columnIndex 0 based index value of the column.
-	 * @return Type of the particular column.
+	 * Checks whether this table is empty or not.
+	 * 
+	 * @return true if empty, otherwise false.
 	 */
-	public ColumnType getColumnType(int columnIndex){
-		int columnType;
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			columnType = nativeGetColumnTypeFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex);
-		}else{
-			columnType = nativeGetColumnType(columnIndex);
-		}*/
-		columnType = nativeGetColumnType(columnIndex);
-		ColumnType[] columnTypes = ColumnType.values();
-		return columnTypes[columnType];
+	public boolean isEmpty(){
+		return size() == 0;
+	}
+
+	/**
+	 * Clears the table i.e., deleting all rows in the table.
+	 */
+	public void clear(){
+		nativeClear(nativePtr);
 	}
 	
-	protected native int nativeGetColumnType(int columnIndex);
-	protected native int nativeGetColumnTypeFromRoot(TableBase tableBase, List<CellId> columnRowIndexList, int columnIndex);
+	protected native void nativeClear(long nativeTablePtr);
+	
+	// Column Information.
+	/**
+	 * Use this method to get the number of columns of the table.
+	 * 
+	 * @return the number of column.
+	 */
+	public long getColumnCount(){
+		return nativeGetColumnCount(nativePtr);
+	}
+	
+	protected native long nativeGetColumnCount(long nativeTablePtr);
 	
 	/**
-	 * Returns the index of a column based on its name index.
-	 * It first searches against the name. if found returns the index found 
-	 * otherwise returns -1.
-	 * 
-	 * @param name
-	 * @return
+	 * Returns the name of a column identified by columnIndex. Notice that the index is zero based.
+     * 
+	 * @param columnIndex the column index
+	 * @return the name of the column
 	 */
-	public int getColumnIndex(String name){
-		int columnCount = getColumnCount();
+	public String getColumnName(long columnIndex){
+		return nativeGetColumnName(nativePtr, columnIndex);
+	}
+
+	protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+	
+	/**
+	 * Returns the index of a column based on the name.
+	 * 
+	 * @param name column name
+	 * @return the index, -1 if not found
+	 */
+	public long getColumnIndex(String name){
+		long columnCount = getColumnCount();
 		for(int i=0; i<columnCount; i++){
 			if(name.equals(getColumnName(i))){
 				return i;
@@ -241,344 +142,412 @@ public class TableBase implements IRowsetBase {
 	}
 
 	/**
-	 * Get the number of entires of this table. 
-	 * @return
+	 * Get the type of a column identified by the columnIdex. 
+     *
+	 * @param columnIndex index of the column.
+	 * @return Type of the particular column.
 	 */
-	public int getCount(){
-		/*if(parentTable != null){
-			List<CellId> columnRowTree = getColumnRowPairForParents();
-			return nativeGetCountFromRoot(getTopLevelTable(), columnRowTree);
-		}*/
-		return nativeGetCount();
+	public ColumnType getColumnType(long columnIndex){
+		int columnType;
+		columnType = nativeGetColumnType(nativePtr, columnIndex);
+		ColumnType[] columnTypes = ColumnType.values();
+		return columnTypes[columnType];
 	}
 	
-	protected native int nativeGetCountFromRoot(TableBase rootTable, List<CellId> columnRowTree);
-	protected native int nativeGetCount();
+	protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
 	
+	// Row Handling methods.
 	/**
-	 * checks whether this table is empty or not.
-	 * @return
-	 */
-	public boolean isEmpty(){
-		return getCount() == 0;
-	}
-	
-	/**
-	 * Sets a string value for a cell identified by columnIndex and rowIndex. 
-	 * Note that if we call this method on the table for a particular column 
-	 * marked by the columnIndex, that column has to be an String based column
-	 * which means the type of the column must be ColumnType.ColumnTypeString.
+	 * Removes a row from the specific index. As of now the entry is simply 
+	 * removed from the table. No Cascading delete for other table is not 
+	 * taken care of. Notice that row index is zero based.
+	 *
+	 * @param rowIndex the row index
 	 * 
-	 * @param columnIndex
-	 * @param rowIndex
-	 * @param value
 	 */
-	public void setString(int columnIndex, int rowIndex, String value){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeSetStringFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
-			return;
-		}*/
-		nativeSetString(columnIndex, rowIndex, value);
+	public void removeRow(long rowIndex){
+		nativeRemoveRow(nativePtr, rowIndex);
 	}
-	
-	protected native void nativeSetString(int columnIndex, int rowIndex, String value);
-	protected native void nativeSetStringFromRoot(TableBase tableBase, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, String value);
-	
-	/**
-	 * Sets the long value for a particular cell identified by rowIndex and columnIndex.
-	 * 
-	 * @param columnIndex
-	 * @param rowIndex
-	 * @param value
-	 */
-	public void setLong(int columnIndex, int rowIndex, long value){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeSetLongFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
-			return;
-		}*/
-		nativeSetLong(columnIndex, rowIndex, value);
-	}
-	
-	protected native void nativeSetLong(int columnIndex, int rowIndex, long value);
-	protected native void nativeSetLongFromRoot(TableBase topLevelTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, long value);
 
-	/**
-	 * Sets boolean value for a particular cell marked by the rowIndex and columnIndex.
-	 * @param columnIndex
-	 * @param rowIndex
-	 * @param value
-	 */
-	public void setBoolean(int columnIndex, int rowIndex, boolean value){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeSetBooleanFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
-			return;
-		}*/
-		nativeSetBoolean(columnIndex, rowIndex, value);
+	protected native void nativeRemoveRow(long nativeTablePtr, long rowIndex);
+	
+	public void removeLastRow(){
+		nativeRemoveLastRow(nativePtr);
 	}
 	
-	protected native void nativeSetBoolean(int columnIndex, int rowIndex, boolean value);
-	protected native void nativeSetBooleanFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, boolean value);
+	protected native void nativeRemoveLastRow(long nativeTablePtr);
 	
+	//Insert Row
 	/**
-	 * Sets the binary value for a cell marked by the rowIndex and columnIndex.
-	 * @param columnIndex
-	 * @param rowIndex
-	 * @param data
-	 */
-	public void setBinaryData(int columnIndex, int rowIndex, byte[] data){
-		if(data == null)
-			throw new NullPointerException("Null array");
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeSetBinaryDataFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, data);
-			return;
-		}*/
-		nativeSetBinaryData(columnIndex, rowIndex, data);
-	}
-	
-	protected native void nativeSetBinaryData(int columnIndex, int rowIndex, byte[] data);
-	protected native void nativeSetBinaryDataFromRoot(TableBase tableBase, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, byte[] data);
-	
-	
-	public void setMixed(int columnIndex, int rowIndex, Mixed data) {
-		if (data == null)
-			throw new NullPointerException();
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeSetMixedFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, data);
-			return;
-		}*/
-		nativeSetMixed(columnIndex, rowIndex, data);
-	}
-	
-	protected native void nativeSetMixed(int columnIndex, int rowIndex, Mixed data);
-	protected native void nativeSetMixedFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, Mixed data);
-	
-	/**
-	 * Inserts a string on a cell identified by rowindex and columnindex. 
-	 * @param columnIndex
-	 * @param rowIndex
-	 * @param value
-	 */
-	public void insertString(int columnIndex, int rowIndex, String value){
-		/*if(parentTable != null){
-			List<CellId> columnRowTree = getColumnRowPairForParents();
-			nativeInsertStringFromRoot(getTopLevelTable(), columnRowTree, columnIndex, rowIndex, value);
-			return;
-		}*/
-		nativeInsertString(columnIndex, rowIndex, value);
-	}
-	
-	protected native void nativeInsertString(int columnIndex, int rowIndex, String value);
-	protected native void nativeInsertStringFromRoot(TableBase rootTable, List<CellId> columnRowCellTree, int columnIndex, int rowIndex, String value);
-	
-	/**
-	 * Inserts long value on the specific cell identified by columnIndex and rowIndex.
-	 * Note that after the insertion old value will vanish whose place is taken by the new value.
+	 * Inserts long value on the specific cell.
+	 * Note that the insertion will replace old values.
 	 * 
 	 * @param columnIndex 0 based column index of the cell
 	 * @param rowIndex 0 based row index of the cell.
 	 * @param value new value for the cell to be inserted.
 	 */
-	public void insertLong(int columnIndex, int rowIndex, long value){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeInsertLongFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
-			return;
-		}*/
-		nativeInsertLong(columnIndex, rowIndex, value);
+	public void insertLong(long columnIndex, long rowIndex, long value){
+		nativeInsertLong(nativePtr, columnIndex, rowIndex, value);
 	}
 	
-	protected native void nativeInsertLong(int columnIndex, int rowIndex, long value);
-	protected native void nativeInsertLongFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, long value);
+	protected native void nativeInsertLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
 	/**
 	 * Inserts a boolean value into the cell identified by the columnIndex and rowIndex
-	 * Note that after the insertion old value of that cell will vanish whose place is
-	 * taken by new value.
+	 * Note that the insertion will replace old values.
 	 * 
 	 * @param columnIndex 0 based columnIndex of the cell
 	 * @param rowIndex 0 based rowIndex of the cell
 	 * @param value value to be inserted.
 	 */
-	public void insertBoolean(int columnIndex, int rowIndex, boolean value){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeInsertBooleanFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, value);
-			return;
-		}*/
-		nativeInsertBoolean(columnIndex, rowIndex, value);
+	public void insertBoolean(long columnIndex, long rowIndex, boolean value){
+		nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
 	}
 	
-	protected native void nativeInsertBoolean(int columnIndex, int rowIndex, boolean value);
-	protected native void nativeInsertBooleanFromRoot(TableBase tableBase, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, boolean value);
+	protected native void nativeInsertBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
+	
+	public void insertDate(long columnIndex, long rowIndex, Date date){
+		nativeInsertDate(nativePtr, columnIndex, rowIndex, date.getTime());
+	}
+	
+	protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
 	
 	/**
-	 * Inserts a binary byte[] data into the cell identified by the columnIndex and rowIndex.
-	 * Note that after the insertion old value of that call will vanish whose place is
-	 * taken by new value.
+	 * Inserts a string in a cell. 
+	 * Note that the insertion will replace old values.
+	 *
+	 * @param columnIndex  0 based columnIndex of the cell
+	 * @param rowIndex 0 based rowIndex of the cell
+	 * @param value value to be inserted.
+	 */
+	public void insertString(long columnIndex, long rowIndex, String value){
+		nativeInsertString(nativePtr, columnIndex, rowIndex, value);
+	}
+	
+	protected native void nativeInsertString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+	
+	public void insertMixed(long columnIndex, long rowIndex, Mixed data){
+		nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
+	}
+	
+	protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
+
+	/**
+	 * Inserts a binary byte[] data into the cell.
+	 * Note that the insertion will replace old values.
 	 * 
 	 * @param columnIndex 0 based column index of the cell
 	 * @param rowIndex 0 based row index of the cell
 	 * @param data data to be inserted.
 	 */
-	public void insertBinaryData(int columnIndex, int rowIndex, byte[] data){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeInsertBinaryDataFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, data);
-			return;
-		}*/
-		nativeInsertBinaryData(columnIndex, rowIndex, data);
+	public void insertBinaryData(long columnIndex, long rowIndex, byte[] data){
+		nativeInsertBinaryData(nativePtr, columnIndex, rowIndex, data);
 	}
 	
-	protected native void nativeInsertBinaryData(int columnIndex, int rowIndex, byte[] data);
-	protected native void nativeInsertBinaryDataFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, byte[] data);
+	protected native void nativeInsertBinaryData(long nativeTablePtr, long columnIndex, long rowIndex, byte[] data);
 	
-	public void insertTable(int columnIndex, int rowIndex){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeInsertTableFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex);
-			return;
-		}*/
-		nativeInsertTable(columnIndex, rowIndex);	
+	public void insertSubTable(long columnIndex, long rowIndex){
+		nativeInsertSubTable(nativePtr, columnIndex, rowIndex);	
 	}
 	
-	protected native void nativeInsertTable(int columnIndex, int rowIndex);
-	protected native void nativeInsertTableFromRoot(TableBase tableBase, List<CellId> columnRowIndexList, int columnIndex, int rowIndex);
+	protected native void nativeInsertSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
 	
-	public void insertMixed(int columnIndex, int rowIndex, Mixed data){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeInsertMixedFromRoot(getTopLevelTable(), columnRowIndexList, columnIndex, rowIndex, data);
-			return;
-		}*/
-		nativeInsertMixed(columnIndex, rowIndex, data);
-	}
-	
-	protected native void nativeInsertMixed(int columnIndex, int rowIndex, Mixed mixed);
-	protected native void nativeInsertMixedFromRoot(TableBase rootTable, List<CellId> columnRowIndexList, int columnIndex, int rowIndex, Mixed data);
 	/**
 	 * Once insertions are done "say for a particular row" or before switching to a new row
-	 * user must call this method to keep the stability of the system, allowing tightdb a chance 
-	 * to perform internal works and make it ready for a new insertion.
+	 * user must call this method to keep the stability of the system, allowing TightDB 
+	 * to perform internal works and make it ready for a new insertion. This is similar to a "commit"
+	 * in transactional systems (note that TightDB is currently not a transactional system).
 	 * 
 	 */
 	public void insertDone(){
-		/*if(parentTable != null){
-			List<CellId> columnRowTree = getColumnRowPairForParents();
-			nativeInsertDoneFromRoot(getTopLevelTable(), columnRowTree);
-			return;
-		}*/
-		nativeInsertDone();
+		nativeInsertDone(nativePtr);
 	}
 	
-	protected native void nativeInsertDone();
-	protected native void nativeInsertDoneFromRoot(TableBase rootTable, List<CellId> columnRowTree);
+	protected native void nativeInsertDone(long nativeTablePtr);
 	
 	/**
-	 * Removes a row from the specific index. As of now the entry is simply 
-	 * removed from the table. No Cascading delete for other table is not 
-	 * taken care of.
+	 * Get the value of the particular (integer) cell.
 	 * 
+	 * @param columnIndex 0 based index value of the column.
+	 * @param rowIndex 0 based row value of the column.
+	 * @return value of the particular cell.
 	 */
-	public void removeRow(int rowIndex){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeRemoveRowFromRoot(getTopLevelTable(), columnRowIndexList, rowIndex);
-			return;
-		}*/
-		nativeRemoveRow(rowIndex);
+	public long getLong(long columnIndex, long rowIndex){
+		return nativeGetLong(nativePtr, columnIndex, rowIndex);
 	}
+	
+	protected native long nativeGetLong(long nativeTablePtr, long columnIndex, long rowIndex);
 
-	protected native void nativeRemoveRow(int rowIndex);
-	protected native void nativeRemoveRowFromRoot(TableBase table, List<CellId> columnRowIndexList, int rowIndex);
-	
-	/*public TableBase getTopLevelTable(){
-		TableBase root = this;
-		while(root.parentTable != null){
-			root = root.parentTable;
-		}
-		return root;
-	}*/
-	
 	/**
-	 * Clears this table. After this call all the row's of this table is deleted.
-	 */
-	public void clear(){
-		/*if(parentTable != null){
-			List<CellId> columnRowIndexList = getColumnRowPairForParents();
-			nativeClearFromRoot(getTopLevelTable(), columnRowIndexList);
-			return;
-		}*/
-		nativeClear();
-	}
-	
-	protected native void nativeClear();
-	protected native void nativeClearFromRoot(TableBase table, List<CellId> columnRowIndexList);
-	/**
-	 * Returns a TableQuery Object which can be later used to query the table based on 
-	 * some condition.
+	 * Get the value of the particular (boolean) cell.
 	 * 
-	 * @return
+	 * @param columnIndex 0 based index value of the cell column.
+	 * @param rowIndex 0 based index of the row.
+	 * @return value of the particular cell.
 	 */
-	public TableQuery query(){
-		return null;
+	public boolean getBoolean(long columnIndex, long rowIndex){
+		return nativeGetBoolean(nativePtr, columnIndex, rowIndex);
 	}
 	
-	public void optimize(){
+	protected native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
+	
+	public Date getDate(long columnIndex, long rowIndex){
+		return new Date(nativeGetDateTime(nativePtr, columnIndex, rowIndex));
 	}
+	
+	protected native long nativeGetDateTime(long nativeTablePtr, long columnIndex, long rowIndex);
+
+	/**
+	 * Get the value of a (string )cell.
+	 * 
+	 * @param columnIndex 0 based index value of the column
+	 * @param rowIndex 0 based index of the row.
+	 * @return value of the particular cell
+	 */
+	public String getString(long columnIndex, long rowIndex){
+		return nativeGetString(nativePtr, columnIndex, rowIndex);
+	}
+	
+	protected native String nativeGetString(long nativePtr, long columnIndex, long rowIndex);
+	
+	/**
+	 * Get the  value of a (binary) cell.
+	 * 
+	 * @param columnIndex 0 based index value of the cell column
+	 * @param rowIndex 0 based index value of the cell row
+	 * @return value of the particular cell.
+	 */
+	public byte[] getBinary(long columnIndex, long rowIndex){
+		return nativeGetBinary(nativePtr, columnIndex, rowIndex);
+	}
+	
+	protected native byte[] nativeGetBinary(long nativeTablePtr, long columnIndex, long rowIndex);
+	
+	public Mixed getMixed(long columnIndex, long rowIndex){
+		return nativeGetMixed(nativePtr, columnIndex, rowIndex);
+	}
+	
+	public ColumnType getMixedType(long columnIndex, long rowIndex){
+		int mixedColumnType = nativeGetMixedType(nativePtr, columnIndex, rowIndex);
+		ColumnType[] columnTypes = ColumnType.values();
+		if(mixedColumnType < 0 || mixedColumnType >= columnTypes.length){
+			return null;
+		}
+		return columnTypes[mixedColumnType];
+	}
+	
+	protected native int nativeGetMixedType(long nativePtr, long columnIndex, long rowIndex);
+	
+	protected native Mixed nativeGetMixed(long nativeTablePtr, long columnIndex, long rowIndex);
+	
+  	public TableBase getSubTable(long columnIndex, long rowIndex){
+		return new TableBase(nativeGetSubTable(nativePtr, columnIndex, rowIndex));
+	}
+	
+	protected native long nativeGetSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+
+	
+	public long getSubTableSize(long columnIndex, long rowIndex){
+		return nativeGetSubTableSize(nativePtr, columnIndex, rowIndex);
+	}
+	
+	protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);
+	
+	/**
+	 * Sets a value for a (string) cell. 
+	 * Note that if we call this method on the table for a particular column 
+	 * marked by the columnIndex, that column has to be an String based column
+	 * which means the type of the column must be ColumnType.ColumnTypeString.
+	 * 
+	 * @param columnIndex column index of the cell
+	 * @param rowIndex row index of the cell
+	 * @param value
+	 */
+	public void setString(long columnIndex, long rowIndex, String value){
+		nativeSetString(nativePtr, columnIndex, rowIndex, value);
+	}
+	
+	protected native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+	
+	/**
+	 * Sets the value for a particular (integer) cell.
+	 * 
+	 * @param columnIndex column index of the cell
+	 * @param rowIndex row index of the cell
+	 * @param value
+	 */
+	public void setLong(long columnIndex, long rowIndex, long value){
+		nativeSetLong(nativePtr, columnIndex, rowIndex, value);
+	}
+	
+	protected native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+
+	/**
+	 * Sets value for a particular (boolean) cell.
+	 *
+	 * @param columnIndex column index of the cell
+	 * @param rowIndex row index of the cell
+	 * @param value
+     */
+	public void setBoolean(long columnIndex, long rowIndex, boolean value){
+		nativeSetBoolean(nativePtr, columnIndex, rowIndex, value);
+	}
+	
+	protected native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
+	
+	public void setDate(long columnIndex, long rowIndex, Date date){
+		nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime());
+	}
+	
+	protected native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
+	
+	/**
+	 * Sets the value for a (binary) cell.
+	 *
+	 * @param columnIndex column index of the cell
+	 * @param rowIndex row index of the cell
+	 * @param data
+     */
+	public void setBinary(long columnIndex, long rowIndex, byte[] data){
+		if(data == null)
+			throw new NullPointerException("Null array");
+		nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
+	}
+	
+	protected native void nativeSetBinary(long nativeTablePtr, long columnIndex, long rowIndex, byte[] data);
+
+    /**
+	 * Sets the value for a (mixed typed) cell.
+	 *
+	 * @param columnIndex column index of the cell
+	 * @param rowIndex row index of the cell
+	 * @param data
+     */
+	public void setMixed(long columnIndex, long rowIndex, Mixed data){
+		if(data == null)
+			throw new NullPointerException();
+		nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
+	}
+	
+	protected native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);
+	
+	public void clearSubTable(long columnIndex, long rowIndex){
+		nativeClearSubTable(nativePtr, columnIndex, rowIndex);
+	}
+	
+	protected native void nativeClearSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+	
+	// Indexing 
+	public void setIndex(long columnIndex){
+		nativeSetIndex(nativePtr, columnIndex);
+	}
+	
+	protected native void nativeSetIndex(long nativePtr, long columnIndex);
+	
+	public boolean hasIndex(long columnIndex){
+		return nativeHasIndex(nativePtr, columnIndex);
+	}
+	
+	protected native boolean nativeHasIndex(long nativePtr, long columnIndex);
+	
+	// Agregate functions.
+	public long sum(long columnIndex){
+		return nativeSum(nativePtr, columnIndex);
+	}
+	
+	protected native long nativeSum(long nativePtr, long columnIndex);
+	
+	public long maximum(long columnIndex){
+		return nativeMaximum(nativePtr, columnIndex);
+	}
+	
+	protected native long nativeMaximum(long nativePtr, long columnIndex);
+	
+	public long minimum(long columnIndex){
+		return nativeMinimum(nativePtr, columnIndex);
+	}
+	
+	protected native long nativeMinimum(long nativePtr, long columnnIndex);
+	
+	public long average(long columnIndex){
+		return nativeAverage(nativePtr, columnIndex);
+	}
+	
+	protected native long nativeAverage(long nativePtr, long columnIndex);
+	
+	// Searching methods.
+	public long findFirstInt(long columnIndex, long value){
+		return nativeFindFirstInt(nativePtr, columnIndex, value);
+	}
+	
+	protected native long nativeFindFirstInt(long nativeTablePtr, long columnIndex, long value);
+	
+	public long findFirstBoolean(long columnIndex, boolean value){
+		return nativeFindFirstBoolean(nativePtr, columnIndex, value);
+	}
+	
+	protected native long nativeFindFirstBoolean(long nativePtr, long columnIndex, boolean value);
+	
+	public long findFirstDate(long columnIndex, Date date){
+		return nativeFindFirstDate(nativePtr, columnIndex, date.getTime());
+	}
+	
+	protected native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
+	
+	public long findFirstString(long columnIndex, String value){
+		return nativeFindFirstString(nativePtr, columnIndex, value);
+	}
+	
+	protected native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
+	
+	public TableViewBase findAllInt(long columnIndex, long value){
+		return new TableViewBase(this, nativeFindAllInt(nativePtr, columnIndex, value));
+	}
+	
+	protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
+	
+	public TableViewBase findAllAllBool(long columnIndex, boolean value){
+		return new TableViewBase(this, nativeFindAllBool(nativePtr, columnIndex, value));
+	}
+	
+	protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
+	
+	public TableViewBase findAllDate(long columnIndex, Date date){
+		return new TableViewBase(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()));
+	}
+	
+	protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
+	
+	public TableViewBase findAllString(long columnIndex, String value){
+		return new TableViewBase(this, nativeFindAllString(nativePtr, columnIndex, value));
+	}
+	
+	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
+	
+	// Optimize
+	public void optimize(){
+		nativeOptimize(nativePtr);
+	}
+	
+	protected native void nativeOptimize(long nativeTablePtr);
 	
 	protected TableBase(long nativePtr){
 		this.nativePtr = nativePtr;
 	}
-	class CellId {
-		protected int columnIndex;
-		protected int rowIndex;
-		public CellId(int columnIndex, int rowIndex){
-			this.columnIndex = columnIndex;
-			this.rowIndex = rowIndex;
-		}
-	}
-	List<CellId> rowColTreeList = null;
 
-	/*protected List<CellId>getColumnRowPairForParents(){
-		if(rowColTreeList != null)
-			return rowColTreeList;
-		TableBase currentBase = this;
-		while(currentBase.parentTable != null){
-			if(rowColTreeList == null){
-				rowColTreeList = new ArrayList<CellId>();
-			}
-			rowColTreeList.add(new CellId(currentBase.columnIndex, currentBase.rowIndex));
-			currentBase = currentBase.parentTable;
-		}
-		if(rowColTreeList != null){
-			Collections.reverse(rowColTreeList);
-		}
-		return rowColTreeList;
-	}*/
+	@Override
+	public void finalize(){
+		close();
+	}
+	
+	public void close(){
+		nativeClose(nativePtr);
+	}
+	
+	protected native void nativeClose(long nativeTablePtr);		
 
 	protected native long createNative();
 	
-	//TODO Test method, to be removed.
-	public native static void executeNative();
-	
 	protected long nativePtr;
 
-	@Override
-	public Date getDate(int columnIndex, int rowIndex) {
-		return null;
-	}
-
-	@Override
-	public Mixed getMixed(int columnIndex, int rowIndex, Mixed value) {
-		return null;
-	}
-	
-	//protected TableBase parentTable;
-	//protected int columnIndex;
-	//protected int rowIndex;
 }

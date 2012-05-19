@@ -9,7 +9,7 @@ public class StringQueryColumn<Cursor, Query> extends AbstractColumn<String, Cur
 	}
 
 	public Query is(String value) {
-		return query(getQuery().equals(columnIndex, value));
+		return query(getQuery().equal(columnIndex, value));
 	}
 
 	public Query isnt(String value) {

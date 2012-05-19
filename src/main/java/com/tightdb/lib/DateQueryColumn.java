@@ -11,11 +11,11 @@ public class DateQueryColumn<Cursor, Query> extends AbstractColumn<Date, Cursor,
 	}
 
 	public Query before(Date value) {
-		return query(getQuery().lessThan(columnIndex, value.getTime()));
+		return query(getQuery().less(columnIndex, value.getTime()));
 	}
 
 	public Query beforeOrEqual(Date value) {
-		return query(getQuery().lessThanEqualTo(columnIndex, value.getTime()));
+		return query(getQuery().lessEqual(columnIndex, value.getTime()));
 	}
 	
 	public Query after(Date value) {
@@ -31,7 +31,7 @@ public class DateQueryColumn<Cursor, Query> extends AbstractColumn<Date, Cursor,
 	}
 
 	public Query is(Date value) {
-		return query(getQuery().equals(columnIndex, value.getTime()));
+		return query(getQuery().equal(columnIndex, value.getTime()));
 	}
 	
 }

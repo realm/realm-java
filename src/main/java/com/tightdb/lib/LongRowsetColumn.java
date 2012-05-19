@@ -18,17 +18,17 @@ public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Que
 	}
 
 	public long max() {
-		return getView().max(columnIndex);
+		return getView().maximum(columnIndex);
 	}
 
 	public long min() {
-		return getView().min(columnIndex);
+		return getView().minimum(columnIndex);
 	}
 
 	@Override
 	public Long[] getAll() {
-		int count = rowset.getCount();
-		Long[] values = new Long[count];
+		long count = rowset.size();
+		Long[] values = new Long[(int) count];
 		for (int i = 0; i < count; i++) {
 			values[i] = rowset.getLong(columnIndex, i);
 		}
@@ -37,7 +37,7 @@ public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Que
 
 	@Override
 	public void setAll(Long value) {
-		int count = rowset.getCount();
+		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
 			rowset.setLong(columnIndex, i, value);
 		}

@@ -6,8 +6,8 @@ import java.util.NoSuchElementException;
 public class RowsetIterator<T> implements Iterator<T> {
 
 	private final AbstractRowset<?, ?, ?> rowset;
-	private int endIndex = 0;
-	private int index = 0;
+	private long endIndex = 0;
+	private long index = 0;
 
 	public RowsetIterator(final AbstractRowset<T, ?, ?> rowset) {
 		this.rowset = rowset;

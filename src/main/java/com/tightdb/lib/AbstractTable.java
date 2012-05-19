@@ -28,8 +28,8 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	@Override
-	public int size() {
-		return table.getCount();
+	public long size() {
+		return table.size();
 	}
 
 	private void defineTableStructure() {
@@ -122,7 +122,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	protected void insertTable(long columnIndex, long rowIndex) {
-		table.insertTable((int) columnIndex, (int) rowIndex);
+		table.insertSubTable(columnIndex, rowIndex);
 	}
 
 	protected void insertDone() {
@@ -153,6 +153,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	public Query query() {
-		return AbstractQuery.createQuery(types.getQueryClass(), table, new TableQuery(table));
+		return AbstractQuery.createQuery(types.getQueryClass(), table, new TableQuery());
 	}
 }

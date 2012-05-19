@@ -16,8 +16,8 @@ public class MixedRowsetColumn<Cursor, Query> extends MixedQueryColumn<Cursor, Q
 
 	@Override
 	public Serializable[] getAll() {
-		int count = rowset.getCount();
-		String[] values = new String[count];
+		long count = rowset.size();
+		String[] values = new String[(int) count];
 		for (int i = 0; i < count; i++) {
 			values[i] = rowset.getString(columnIndex, i);
 		}
@@ -28,9 +28,9 @@ public class MixedRowsetColumn<Cursor, Query> extends MixedQueryColumn<Cursor, Q
 
 	@Override
 	public void setAll(Serializable value) {
-		int count = rowset.getCount();
+		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
-			rowset.setBinaryData(columnIndex, i, TightDB.serialize(value));
+			rowset.setBinary(columnIndex, i, TightDB.serialize(value));
 		}
 	}
 

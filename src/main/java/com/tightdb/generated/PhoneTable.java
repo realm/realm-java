@@ -28,7 +28,7 @@ public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
 
     public Phone add(String type, String number) {
         try {
-        	int position = size();
+        	long position = size();
 
         	insertString(0, position, type);
         	insertString(1, position, number);

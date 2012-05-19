@@ -32,23 +32,23 @@ public class TableSpec {
 		return columnInfo.tableSpec;
 	}
 	
-	public TableSpec getTableSpec(int columnIndex){
-		return columnInfos.get(columnIndex).tableSpec;
+	public TableSpec getTableSpec(long columnIndex){
+		return columnInfos.get((int)columnIndex).tableSpec;
 	}
 
-	public int getColumnCount(){
+	public long getColumnCount(){
 		return columnInfos.size();
 	}
 	
-	public ColumnType getColumnType(int columnIndex){
-		return columnInfos.get(columnIndex).type;
+	public ColumnType getColumnType(long columnIndex){
+		return columnInfos.get((int)columnIndex).type;
 	}
 	
-	public String getColumnName(int columnIndex){
-		return columnInfos.get(columnIndex).name;
+	public String getColumnName(long columnIndex){
+		return columnInfos.get((int)columnIndex).name;
 	}
 	
-	public int getColumnIndex(String name){
+	public long getColumnIndex(String name){
 		for(int i=0; i< columnInfos.size(); i++){
 			ColumnInfo columnInfo = columnInfos.get(i);
 			if(columnInfo.name.equals(name)){

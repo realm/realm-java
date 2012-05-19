@@ -17,13 +17,13 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	public View findAll() {
-		TableViewBase viewBase = query.findAll(table, 0, table.getCount(), Integer.MAX_VALUE);
+		TableViewBase viewBase = query.findAll(table, 0, table.size(), Integer.MAX_VALUE);
 		return view(viewBase);
 	}
 
 	public Cursor findFirst() {
-		TableViewBase viewBase = query.findAll(table, 0, table.getCount(), 1);
-		if (viewBase.getCount() > 0) {
+		TableViewBase viewBase = query.findAll(table, 0, table.size(), 1);
+		if (viewBase.size() > 0) {
 			return cursor(viewBase, 0);
 		} else {
 			return null;
@@ -32,8 +32,8 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 
 	public Cursor findLast() {
 		// TODO: find more efficient way to search
-		TableViewBase viewBase = query.findAll(table, 0, table.getCount(), Integer.MAX_VALUE);
-		int count = viewBase.getCount();
+		TableViewBase viewBase = query.findAll(table, 0, table.size(), Integer.MAX_VALUE);
+		long count = viewBase.size();
 		if (count > 0) {
 			return cursor(viewBase, count - 1);
 		} else {
@@ -41,9 +41,10 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		}
 	}
 
+	/**
 	public Cursor findUnique() {
-		TableViewBase viewBase = query.findAll(table, 0, table.getCount(), 2);
-		switch (viewBase.getCount()) {
+		TableViewBase viewBase = query.findAll(table, 0, table.size(), 2);
+		switch (viewBase.size()) {
 		case 0:
 			throw new IllegalStateException("Expected exactly one result, but found none!");
 		case 1:
@@ -52,17 +53,21 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 			throw new IllegalStateException("Expected exactly one result, but found more!");
 		}
 	}
+	*/
 
 	public Query or() {
-		return newQuery(query.or());
+		query.or();
+		return newQuery(query);
 	}
 
-	public Query startGroup() {
-		return newQuery(query.startGroup());
+	public Query group() {
+		query.group();
+		return newQuery(query);
 	}
 
 	public Query endGroup() {
-		return newQuery(query.endGroup());
+		query.endGroup();
+		return newQuery(query);
 	}
 
 	private Query newQuery(TableQuery q) {
@@ -71,7 +76,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 
 	public long clear() {
 		View results = findAll();
-		int count = results.size();
+		long count = results.size();
 		results.clear();
 		return count;
 	}

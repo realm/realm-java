@@ -12,7 +12,7 @@ public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cu
 		this.rowset = rowset;
 	}
 
-	public abstract int size();
+	public abstract long size();
 
 	public boolean isEmpty() {
 		return size() == 0;

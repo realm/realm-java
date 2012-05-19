@@ -2,7 +2,7 @@ package com.tightdb.lib;
 
 import java.lang.reflect.Array;
 
-import com.tightdb.SubTableBase;
+import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
 
 public class TableRowsetColumn<Cursor, Query, Subtable> extends TableQueryColumn<Cursor, Query, Subtable> {
@@ -18,10 +18,10 @@ public class TableRowsetColumn<Cursor, Query, Subtable> extends TableQueryColumn
 
 	@SuppressWarnings("unchecked")
 	public Subtable[] getAll() {
-		int count = rowset.getCount();
-		Subtable[] values = (Subtable[]) Array.newInstance(subtableClass, count);
+		long count = rowset.size();
+		Subtable[] values = (Subtable[]) Array.newInstance(subtableClass, (int) count);
 		for (int i = 0; i < count; i++) {
-			SubTableBase subTableBase = rowset.getSubTable(columnIndex, i);
+			TableBase subTableBase = rowset.getSubTable(columnIndex, i);
 			values[i] = AbstractSubtable.createSubtable(subtableClass, subTableBase);
 		}
 		return values;

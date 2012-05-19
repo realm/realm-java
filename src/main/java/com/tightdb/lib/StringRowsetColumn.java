@@ -14,8 +14,8 @@ public class StringRowsetColumn<Cursor, Query> extends StringQueryColumn<Cursor,
 	}
 
 	public String[] getAll() {
-		int count = rowset.getCount();
-		String[] values = new String[count];
+		long count = rowset.size();
+		String[] values = new String[(int) count];
 		for (int i = 0; i < count; i++) {
 			values[i] = rowset.getString(columnIndex, i);
 		}
@@ -23,7 +23,7 @@ public class StringRowsetColumn<Cursor, Query> extends StringQueryColumn<Cursor,
 	}
 
 	public void setAll(String value) {
-		int count = rowset.getCount();
+		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
 			rowset.setString(columnIndex, i, value);
 		}
