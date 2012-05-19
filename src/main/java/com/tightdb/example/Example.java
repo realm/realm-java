@@ -112,7 +112,7 @@ public class Example {
 		TightDB.print("Query 2a", employees.firstName.startsWith("Nik").group().lastName.contains("vski").or().firstName.is("John").endGroup()
 				.findAll());
 		TightDB.print("Query 2b",
-				employees.query().group().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
+				employees.where().group().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
 
 		// lazy iteration over query (use find_next() )
 //		for (Employee employee : employees.firstName.startsWith("N")) {

@@ -152,7 +152,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		return new RuntimeException("Error occured while inserting a new row!", e);
 	}
 
-	public Query query() {
+	public Query where() {
 		return AbstractQuery.createQuery(types.getQueryClass(), table, new TableQuery());
 	}
 }
