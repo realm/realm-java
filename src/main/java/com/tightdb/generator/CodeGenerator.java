@@ -57,9 +57,9 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 				JavaField f = New.field(type, field.getName().getText());
 
 				boolean isSubtable = isNestedTable(type);
-				String subtable = isSubtable ? type.getSimpleName().getCapitalized() + "Table" : null;
+				String subtype = isSubtable ? type.getSimpleName().getCapitalized() : null;
 				PowerMap<String, ? extends Object> fieldAttrs = Power.map("index", index++, "columnType", columnType, "isSubtable", isSubtable).set(
-						"subtable", subtable);
+						"subtype", subtype);
 				f.getCode().setAttributes(fieldAttrs);
 				columns.add(f);
 			}

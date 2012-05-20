@@ -6,7 +6,7 @@ import java.util.Date;
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeQuery;
 import com.tightdb.generated.EmployeeTable;
-import com.tightdb.generated.EmployeeView;
+import com.tightdb.generated.Phone;
 import com.tightdb.generated.PhoneTable;
 import com.tightdb.lib.AbstractColumn;
 import com.tightdb.lib.NestedTable;
@@ -155,6 +155,21 @@ public class Example {
 			TightDB.print(phoneTable);
 		}
 
+		// convenience methods on the column:
+		
+		for (Phone phone : nikolche.phones) {
+			TightDB.print("- phone", phone);
+		}
+		
+		TightDB.print("- first phone", nikolche.phones.first());
+		
+		/*************************** CURSOR NAVIGATION ***************************/
+		
+		Employee p1 = employees.at(0).next(); // 2nd row
+		Employee p2 = employees.last().previous(); // 2nd-last row
+		Employee p3 = employees.first().after(2); // 3rd row
+		employees.last().before(2); // 3rd-last row
+		
 		/****************************** DATA REMOVAL *****************************/
 
 		employees.remove(0);
@@ -164,12 +179,6 @@ public class Example {
 		employees.clear();
 
 		TightDB.print(employees);
-
-		/*************************** CURSOR NAVIGATION ***************************/
 		
-		Employee p1 = employees.at(4).next(); // 5nd row
-		Employee p2 = employees.last().previous(); // 2nd-last row
-		Employee p3 = employees.first().after(3); // 4th row Employee p4 =
-		employees.last().before(2); // 3rd-last row
 	}
 }

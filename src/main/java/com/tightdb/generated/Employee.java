@@ -18,7 +18,7 @@ public class Employee extends AbstractCursor<Employee> {
     public final BinaryCursorColumn<Employee, EmployeeQuery> photo;
     public final DateCursorColumn<Employee, EmployeeQuery> birthdate;
     public final MixedCursorColumn<Employee, EmployeeQuery> extra;
-    public final TableCursorColumn<Employee, EmployeeQuery, PhoneTable> phones;
+    public final TableCursorColumn<Employee, EmployeeQuery, Phone, PhoneTable> phones;
 
 	public Employee(IRowsetBase rowset, long position) {
 		super(EmployeeTable.TYPES, rowset, position);
@@ -30,7 +30,7 @@ public class Employee extends AbstractCursor<Employee> {
         photo = new BinaryCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 4, "photo");
         birthdate = new DateCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 5, "birthdate");
         extra = new MixedCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 6, "extra");
-        phones = new TableCursorColumn<Employee, EmployeeQuery, PhoneTable>(EmployeeTable.TYPES, this, 7, "phones", PhoneTable.class);
+        phones = new TableCursorColumn<Employee, EmployeeQuery, Phone, PhoneTable>(EmployeeTable.TYPES, this, 7, "phones", PhoneTable.class);
 	}
 
 	public java.lang.String getFirstName() {

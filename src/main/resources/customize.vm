@@ -27,7 +27,7 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(TYPES, table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table>(TYPES, table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
 #else
 	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(TYPES, table, ${f.code.attributes.index}, "${f.name}");
 #end
@@ -46,7 +46,7 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 	protected void specifyStructure(TableSpec spec) {
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-        register${f.code.attributes.columnType}Column(spec, "${f.name}", new ${f.code.attributes.subtable}(null));
+        register${f.code.attributes.columnType}Column(spec, "${f.name}", new ${f.code.attributes.subtype}Table(null));
 #else
         register${f.code.attributes.columnType}Column(spec, "${f.name}");
 #end
@@ -110,7 +110,7 @@ public class ${entity}View extends AbstractView<${entity}, ${entity}View, ${enti
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(${entity}Table.TYPES, rowset, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, rowset, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
 #else
 	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, rowset, ${f.code.attributes.index}, "${f.name}");
 #end
@@ -137,7 +137,7 @@ public class ${entity}Query extends AbstractQuery<${entity}Query, ${entity}, ${e
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-    public final ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name};
+    public final ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name};
 #else
     public final ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query> ${f.name};
 #end
@@ -147,7 +147,7 @@ public class ${entity}Query extends AbstractQuery<${entity}Query, ${entity}, ${e
 		super(${entity}Table.TYPES, table, query);
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-        ${f.name} = new ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(${entity}Table.TYPES, table, query, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+        ${f.name} = new ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, table, query, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
 #else
         ${f.name} = new ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, table, query, ${f.code.attributes.index}, "${f.name}");
 #end
@@ -171,7 +171,7 @@ public class ${entity} extends AbstractCursor<${entity}> {
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}> ${f.name};
+    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}, ${f.code.attributes.subtype}Table> ${f.name};
 #else
     public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query> ${f.name};
 #end
@@ -182,7 +182,7 @@ public class ${entity} extends AbstractCursor<${entity}> {
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtable}>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtable}.class);
+        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
 #else
         ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}");
 #end
@@ -191,7 +191,7 @@ public class ${entity} extends AbstractCursor<${entity}> {
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-	public ${f.code.attributes.subtable} get${f.name.capitalized}() {
+	public ${f.code.attributes.subtype}Table get${f.name.capitalized}() {
 #else
 	public ${f.type.canonicalName} get${f.name.capitalized}() {
 #end
@@ -199,7 +199,7 @@ public class ${entity} extends AbstractCursor<${entity}> {
 	}
 
 #if($f.code.attributes.isSubtable)
-	public void set${f.name.capitalized}(${f.code.attributes.subtable} ${f.name}) {
+	public void set${f.name.capitalized}(${f.code.attributes.subtype}Table ${f.name}) {
 #else
 	public void set${f.name.capitalized}(${f.type.canonicalName} ${f.name}) {
 #end
