@@ -64,7 +64,7 @@ public interface IRowsetBase {
 	 * @return
 	 */
 	Date getDate(long columnIndex, long rowIndex);
-
+	
 	/**
 	 * Returns the binary byte[] data for a cell identified by the columnIndex
 	 * and rowIndex of that cell.
@@ -119,6 +119,8 @@ public interface IRowsetBase {
 	 */
 	void setBinary(long columnIndex, long rowIndex, byte[] data);
 
+	void setDate(long columnIndex, long rowIndex, Date date);
+	
 	void setMixed(long columnIndex, long rowIndex, Mixed data);
 
 	long sum(long columnIndex);

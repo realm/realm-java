@@ -19,7 +19,7 @@ public class DateRowsetColumn<Cursor, Query> extends DateQueryColumn<Cursor, Que
 		long count = rowset.size();
 		Date[] values = new Date[(int) count];
 		for (int i = 0; i < count; i++) {
-			values[i] = new Date(rowset.getLong(columnIndex, i));
+			values[i] = rowset.getDate(columnIndex, i);
 		}
 		return values;
 	}
@@ -28,7 +28,7 @@ public class DateRowsetColumn<Cursor, Query> extends DateQueryColumn<Cursor, Que
 	public void setAll(Date value) {
 		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
-			rowset.setLong(columnIndex, i, value.getTime());
+			rowset.setDate(columnIndex, i, value);
 		}
 	}
 
