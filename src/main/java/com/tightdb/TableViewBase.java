@@ -383,4 +383,5 @@ public class TableViewBase implements IRowsetBase {
 	protected long nativePtr;
 	protected TableBase table;
 	protected TableViewBase tableView;
+	
 }

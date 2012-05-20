@@ -121,4 +121,10 @@ public interface IRowsetBase {
 
 	void setMixed(long columnIndex, long rowIndex, Mixed data);
 
+	long sum(long columnIndex);
+	
+	long maximum(long columnIndex);
+	
+	long minimum(long columnIndex);
+	
 }

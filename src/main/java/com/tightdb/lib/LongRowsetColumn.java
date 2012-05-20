@@ -2,7 +2,6 @@ package com.tightdb.lib;
 
 import com.tightdb.TableQuery;
 
-
 public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Query> implements RowsetColumn<Long> {
 
 	public LongRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
@@ -14,15 +13,15 @@ public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Que
 	}
 
 	public long sum() {
-		return getView().sum(columnIndex);
+		return rowset.sum(columnIndex);
 	}
 
 	public long maximum() {
-		return getView().maximum(columnIndex);
+		return rowset.maximum(columnIndex);
 	}
 
 	public long minimum() {
-		return getView().minimum(columnIndex);
+		return rowset.minimum(columnIndex);
 	}
 
 	@Override

@@ -2,7 +2,6 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
-import com.tightdb.TableViewBase;
 
 public abstract class AbstractColumn<Type, Cursor, Query> {
 
@@ -77,18 +76,6 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 			return types.getQueryClass().getConstructor(TableBase.class, TableQuery.class).newInstance(tableOrNull(), tableQuery);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot create a query!", e);
-		}
-	}
-
-	protected TableViewBase getView() {
-		if (rowset instanceof TableBase) {
-			TableBase tableBase = (TableBase) rowset;
-			return new TableViewBase(tableBase);
-		} else if (rowset instanceof TableViewBase) {
-			TableViewBase viewBase = (TableViewBase) rowset;
-			return viewBase;
-		} else {
-			throw new IllegalStateException("Unknown rowset type!");
 		}
 	}
 
