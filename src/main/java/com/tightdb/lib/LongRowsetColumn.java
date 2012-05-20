@@ -17,11 +17,11 @@ public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Que
 		return getView().sum(columnIndex);
 	}
 
-	public long max() {
+	public long maximum() {
 		return getView().maximum(columnIndex);
 	}
 
-	public long min() {
+	public long minimum() {
 		return getView().minimum(columnIndex);
 	}
 

@@ -31,8 +31,8 @@ public class SearchExample {
 		
 		System.out.println("First names: " + Arrays.toString(results.firstName.getAll()));
 		System.out.println("Salary sum: " + results.salary.sum());
-		System.out.println("Salary min: " + results.salary.min());
-		System.out.println("Salary max: " + results.salary.max());
+		System.out.println("Salary min: " + results.salary.minimum());
+		System.out.println("Salary max: " + results.salary.maximum());
 		
 		TightDB.print(results);
 		

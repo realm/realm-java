@@ -6,6 +6,8 @@ import com.tightdb.TableViewBase;
 
 public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cursor, View, ?>> {
 
+	private long currPos = -1;;
+	
 	private final TableQuery query;
 	private final TableBase table;
 	private final EntityTypes<?, View, Cursor, Query> types;
@@ -21,6 +23,16 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		return view(viewBase);
 	}
 
+	public Cursor findNext() {
+		currPos = query.findNext(table, currPos);
+		if (currPos >= 0) {
+			return cursor(table, currPos);
+		} else {
+			currPos = Long.MAX_VALUE;
+			return null;
+		}
+	}
+	
 	public Cursor findFirst() {
 		TableViewBase viewBase = query.findAll(table, 0, table.size(), 1);
 		if (viewBase.size() > 0) {
@@ -94,8 +106,8 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		}
 	}
 
-	private Cursor cursor(TableViewBase viewBase, long position) {
-		return AbstractCursor.createCursor(types.getCursorClass(), viewBase, position);
+	private Cursor cursor(IRowsetBase rowset, long position) {
+		return AbstractCursor.createCursor(types.getCursorClass(), rowset, position);
 	}
 
 	protected static <Q> Q createQuery(Class<Q> queryClass, TableBase tableBase, TableQuery tableQuery) {
@@ -106,4 +118,8 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		}
 	}
 
+	public long size() {
+		return findAll().size();
+	}
+	
 }

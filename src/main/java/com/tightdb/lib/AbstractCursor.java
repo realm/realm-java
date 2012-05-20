@@ -13,19 +13,33 @@ public abstract class AbstractCursor<Cursor> {
 	}
 
 	public Cursor next() {
-		return null;
+		return after(1);
 	}
 
 	public Cursor previous() {
-		return null;
+		return before(1);
 	}
 
 	public Cursor before(long delta) {
-		return null;
+		long pos = position - delta;
+		if (isValidIndex(pos)) {
+			return createCursor(types.getCursorClass(), rowset, pos);
+		} else {
+			return null;
+		}
 	}
 
 	public Cursor after(long delta) {
-		return null;
+		long pos = position + delta;
+		if (isValidIndex(pos)) {
+			return createCursor(types.getCursorClass(), rowset, pos);
+		} else {
+			return null;
+		}
+	}
+
+	private boolean isValidIndex(long position) {
+		return 0 <= position && position < rowset.size();
 	}
 
 	public long getPosition() {

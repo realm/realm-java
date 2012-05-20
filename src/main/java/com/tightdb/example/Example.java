@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import com.tightdb.generated.Employee;
+import com.tightdb.generated.EmployeeQuery;
 import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.EmployeeView;
 import com.tightdb.generated.PhoneTable;
@@ -17,17 +18,17 @@ public class Example {
 	public static void main(String[] args) {
 		int rowArg = 250000;
 		if (args.length > 0) {
-		    try {
-		        rowArg = Integer.parseInt(args[0]);
-		    } catch (NumberFormatException e) {
-		        System.err.println("Argument" + " must be an integer");
-		        System.exit(1);
-		    }
+			try {
+				rowArg = Integer.parseInt(args[0]);
+			} catch (NumberFormatException e) {
+				System.err.println("Argument" + " must be an integer");
+				System.exit(1);
+			}
 		}
-		
-		//showExample();
+
+		showExample();
 	}
-	
+
 	@Table
 	class employee {
 		String firstName;
@@ -48,7 +49,7 @@ public class Example {
 
 	public static void showExample() {
 		EmployeeTable employees = new EmployeeTable();
-		
+
 		/****************************** BASIC OPERATIONS *****************************/
 
 		Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
@@ -77,12 +78,12 @@ public class Example {
 
 		Employee ny = employees.salary.is(17).findFirst();
 		TightDB.print("**************** Findes 17?: ", ny);
-		if (ny==null)
+		if (ny == null)
 			System.out.println("NOPE!!)");
-					
+
 		Employee ny2 = employees.salary.is(30000).findFirst();
 		TightDB.print("**************** Findes 30000?: ", ny2);
-		
+
 		// using explicit OR
 		TightDB.print("Search example", employees.firstName.is("Johnny").or().lastName.is("Mihajlovski").findFirst());
 
@@ -101,8 +102,8 @@ public class Example {
 		/****************************** AGGREGATION *****************************/
 
 		// aggregation of the salary
-		System.out.println("max salary: " + employees.salary.max());
-		System.out.println("min salary: " + employees.salary.min());
+		System.out.println("max salary: " + employees.salary.maximum());
+		System.out.println("min salary: " + employees.salary.minimum());
 		System.out.println("salary sum: " + employees.salary.sum());
 
 		/****************************** COMPLEX QUERY *****************************/
@@ -111,13 +112,15 @@ public class Example {
 
 		TightDB.print("Query 2a", employees.firstName.startsWith("Nik").group().lastName.contains("vski").or().firstName.is("John").endGroup()
 				.findAll());
-		TightDB.print("Query 2b",
-				employees.where().group().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll());
+		TightDB.print("Query 2b", employees.where().group().lastName.contains("vski").or().firstName.is("John").endGroup().firstName
+				.startsWith("Nik").findAll());
 
-		// lazy iteration over query (use find_next() )
-//		for (Employee employee : employees.firstName.startsWith("N")) {
-						
-//		}
+		// lazy iteration over query
+		EmployeeQuery employeesOnN = employees.firstName.startsWith("N");
+		Employee employee;
+		while ((employee = employeesOnN.findNext()) != null) {
+			TightDB.print("Employee on N: ", employee);
+		}
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
 		System.out.println("- First names: " + Arrays.toString(employees.firstName.getAll()));
@@ -139,7 +142,7 @@ public class Example {
 
 		PhoneTable subtable = john.phones.get();
 		subtable.add("mobile", "111");
-		
+
 		john.getPhones().add("mobile", "111");
 		john.getPhones().add("home", "222");
 
@@ -162,18 +165,11 @@ public class Example {
 
 		TightDB.print(employees);
 
-		/****************************** NOT IMPLEMENTED YET *****************************/
-
-		try {
-			// from 2nd to 4th row
-			EmployeeView view = employees.range(2, 4);
-
-			// cursor navigation
-			Employee p1 = employees.at(4).next(); // 5nd row
-			Employee p2 = employees.last().previous(); // 2nd-last row
-			Employee p3 = employees.first().after(3); // 4th row
-			Employee p4 = employees.last().before(2); // 3rd-last row
-		} catch (Exception e) {
-		}
+		/*************************** CURSOR NAVIGATION ***************************/
+		
+		Employee p1 = employees.at(4).next(); // 5nd row
+		Employee p2 = employees.last().previous(); // 2nd-last row
+		Employee p3 = employees.first().after(3); // 4th row Employee p4 =
+		employees.last().before(2); // 3rd-last row
 	}
 }

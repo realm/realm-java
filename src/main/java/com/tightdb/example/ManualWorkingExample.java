@@ -22,8 +22,8 @@ public class ManualWorkingExample {
 		TightDB.print(persons);
 		System.out.println("- First names: " + Arrays.toString(persons.firstName.getAll()));
 
-		System.out.println("max salary: " + persons.salary.max());
-		System.out.println("min salary: " + persons.salary.min());
+		System.out.println("max salary: " + persons.salary.maximum());
+		System.out.println("min salary: " + persons.salary.minimum());
 		System.out.println("salary sum: " + persons.salary.sum());
 		
 		// promote all! :P
