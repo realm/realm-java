@@ -34,8 +34,8 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 #end
 
 #if($isNested)
-	public ${entity}Table(SubTableBase subTableBase) {
-		super(TYPES, subTableBase);
+	public ${entity}Table(TableBase subtableBase) {
+		super(TYPES, subtableBase);
 #else
 	public ${entity}Table() {
 		super(TYPES);
