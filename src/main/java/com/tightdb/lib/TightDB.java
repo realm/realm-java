@@ -66,9 +66,23 @@ public class TightDB {
 
 	public static void loadLibrary() {
 		if (!loadedLibrary) {
-			System.loadLibrary("tightdb");
-			loadedLibrary = true;
+			loadedLibrary = loadCorrectLibrary("tightdbd", "tightdb32", "tightdb64");
+			if (!loadedLibrary) {
+				throw new RuntimeException("Couldn't load the TightDB library!");
+			}
 		}
+	}
+
+	private static boolean loadCorrectLibrary(String... libraryCandidateNames) {
+		for (String libraryCandidateName : libraryCandidateNames) {
+			try {
+				System.loadLibrary(libraryCandidateName);
+				return true;
+			} catch (Throwable e) {
+			}
+		}
+
+		return false;
 	}
 
 }
