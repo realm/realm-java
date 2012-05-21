@@ -116,10 +116,10 @@ public class Example {
 				.startsWith("Nik").findAll());
 
 		// lazy iteration over query
-		EmployeeQuery employeesOnN = employees.firstName.startsWith("N");
+		EmployeeQuery employeesOnN = employees.firstName.startsWith("J");
 		Employee employee;
 		while ((employee = employeesOnN.findNext()) != null) {
-			TightDB.print("Employee on N: ", employee);
+			TightDB.print("Employee starting with J: ", employee);
 		}
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
@@ -132,9 +132,9 @@ public class Example {
 
 		/****************************** COLUMN RETRIEVAL *****************************/
 
-		System.out.print("- Columns:");
+		System.out.print("- Columns: ");
 		for (AbstractColumn<?, ?, ?> column : john.columns()) {
-			System.out.print(column.getName() + "=" + column.getReadableValue());
+			System.out.print(column.getName() + "=" + column.getReadableValue()+" ");
 		}
 		System.out.println();
 

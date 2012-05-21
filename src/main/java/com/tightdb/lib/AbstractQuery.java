@@ -6,8 +6,8 @@ import com.tightdb.TableViewBase;
 
 public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cursor, View, ?>> {
 
-	private long currPos = -1;;
-	
+	private long currPos = -1;
+
 	private final TableQuery query;
 	private final TableBase table;
 	private final EntityTypes<?, View, Cursor, Query> types;
@@ -24,15 +24,19 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	public Cursor findNext() {
-		currPos = query.findNext(table, currPos);
-		if (currPos >= 0) {
-			return cursor(table, currPos);
+		if (currPos < Long.MAX_VALUE) {
+			currPos = query.findNext(table, currPos);
+			if (currPos >= 0 && currPos < table.size()) {
+				return cursor(table, currPos);
+			} else {
+				currPos = Long.MAX_VALUE;
+				return null;
+			}
 		} else {
-			currPos = Long.MAX_VALUE;
 			return null;
 		}
 	}
-	
+
 	public Cursor findFirst() {
 		TableViewBase viewBase = query.findAll(table, 0, table.size(), 1);
 		if (viewBase.size() > 0) {
@@ -54,18 +58,14 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	/**
-	public Cursor findUnique() {
-		TableViewBase viewBase = query.findAll(table, 0, table.size(), 2);
-		switch (viewBase.size()) {
-		case 0:
-			throw new IllegalStateException("Expected exactly one result, but found none!");
-		case 1:
-			return cursor(viewBase, 0);
-		default:
-			throw new IllegalStateException("Expected exactly one result, but found more!");
-		}
-	}
-	*/
+	 * public Cursor findUnique() { TableViewBase viewBase =
+	 * query.findAll(table, 0, table.size(), 2); switch (viewBase.size()) { case
+	 * 0: throw new
+	 * IllegalStateException("Expected exactly one result, but found none!");
+	 * case 1: return cursor(viewBase, 0); default: throw new
+	 * IllegalStateException("Expected exactly one result, but found more!"); }
+	 * }
+	 */
 
 	public Query or() {
 		query.or();
@@ -121,5 +121,5 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	public long size() {
 		return findAll().size();
 	}
-	
+
 }
