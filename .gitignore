@@ -35,3 +35,4 @@ obj/
 _ReSharper*/
 [Tt]est[Rr]esult*
 /target
+/.settings
