@@ -1,0 +1,5 @@
+1. Right click on the project -> Run As -> Maven build...
+
+2. Type "jar:jar" in the "Goals" field and click "Run".
+
+3. The created JAR file will be in the "target" folder, having name similar to "tightdb_java2-0.0.1-SNAPSHOT.jar".
