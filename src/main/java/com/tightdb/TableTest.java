@@ -1,11 +1,13 @@
 package com.tightdb;
 
+import com.tightdb.lib.TightDB;
+
 public class TableTest {
 
 	public static void main(String[] args) {
 		System.out.println("starting...");
 
-		System.loadLibrary("tightdb");
+		TightDB.loadLibrary();
 
 		TableBase base = new TableBase();
 
@@ -31,7 +33,7 @@ public class TableTest {
 		System.out.println(base.getString(0, 0));
 		System.out.println(base.getLong(1, 0));
 
-		base.removeRow(0);
+		base.remove(0);
 	}
 
 }

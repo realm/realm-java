@@ -1,8 +1,10 @@
 package com.tightdb.lib;
 
+import java.nio.ByteBuffer;
+
 import com.tightdb.TableQuery;
 
-public class BinaryRowsetColumn<Cursor, Query> extends BinaryQueryColumn<Cursor, Query> implements RowsetColumn<byte[]> {
+public class BinaryRowsetColumn<Cursor, Query> extends BinaryQueryColumn<Cursor, Query> implements RowsetColumn<ByteBuffer> {
 
 	public BinaryRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
 		this(types, rowset, null, index, name);
@@ -13,9 +15,9 @@ public class BinaryRowsetColumn<Cursor, Query> extends BinaryQueryColumn<Cursor,
 	}
 
 	@Override
-	public byte[][] getAll() {
+	public ByteBuffer[] getAll() {
 		long count = rowset.size();
-		byte[][] values = new byte[(int) count][];
+		ByteBuffer[] values = new ByteBuffer[(int) count];
 		for (int i = 0; i < count; i++) {
 			values[i] = rowset.getBinary(columnIndex, i);
 		}
@@ -23,7 +25,7 @@ public class BinaryRowsetColumn<Cursor, Query> extends BinaryQueryColumn<Cursor,
 	}
 
 	@Override
-	public void setAll(byte[] value) {
+	public void setAll(ByteBuffer value) {
 		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
 			rowset.setBinary(columnIndex, i, value);

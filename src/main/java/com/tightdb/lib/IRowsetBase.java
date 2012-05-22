@@ -1,5 +1,6 @@
 package com.tightdb.lib;
 
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.Mixed;
@@ -23,7 +24,7 @@ public interface IRowsetBase {
 	 * 
 	 * @param index
 	 */
-	void removeRow(long index);
+	void remove(long index);
 
 	/**
 	 * Get the long value of a cell of the table/view identified by the
@@ -66,14 +67,14 @@ public interface IRowsetBase {
 	Date getDate(long columnIndex, long rowIndex);
 	
 	/**
-	 * Returns the binary byte[] data for a cell identified by the columnIndex
+	 * Returns the binary data for a cell identified by the columnIndex
 	 * and rowIndex of that cell.
 	 * 
 	 * @param columnIndex
 	 * @param rowIndex
 	 * @return
 	 */
-	byte[] getBinary(long columnIndex, long rowIndex);
+	ByteBuffer getBinary(long columnIndex, long rowIndex);
 
 	Mixed getMixed(long columnIndex, long rowIndex);
 
@@ -110,14 +111,14 @@ public interface IRowsetBase {
 	void setString(long columnIndex, long rowIndex, String value);
 
 	/**
-	 * Sets the binary value byte[] for a particular cell identified by the
+	 * Sets the binary value for a particular cell identified by the
 	 * rowIndex and columnIndex of the cell.
 	 * 
 	 * @param columnIndex
 	 * @param rowIndex
 	 * @param data
 	 */
-	void setBinary(long columnIndex, long rowIndex, byte[] data);
+	void setBinary(long columnIndex, long rowIndex, ByteBuffer data);
 
 	void setDate(long columnIndex, long rowIndex, Date date);
 	

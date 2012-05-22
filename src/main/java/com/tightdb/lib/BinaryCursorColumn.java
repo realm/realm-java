@@ -1,18 +1,20 @@
 package com.tightdb.lib;
 
-public class BinaryCursorColumn<Cursor, Query> extends AbstractColumn<byte[], Cursor, Query> {
+import java.nio.ByteBuffer;
+
+public class BinaryCursorColumn<Cursor, Query> extends AbstractColumn<ByteBuffer, Cursor, Query> {
 
 	public BinaryCursorColumn(EntityTypes<?, ?, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(types, cursor, index, name);
 	}
 
 	@Override
-	public byte[] get() {
+	public ByteBuffer get() {
 		return cursor.rowset.getBinary(columnIndex, (int) cursor.getPosition());
 	}
 
 	@Override
-	public void set(byte[] value) {
+	public void set(ByteBuffer value) {
 		cursor.rowset.setBinary(columnIndex, (int) cursor.getPosition(), value);
 	}
 

@@ -1,5 +1,6 @@
 package com.tightdb;
 
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.lib.IRowsetBase;
@@ -45,6 +46,10 @@ import com.tightdb.lib.IRowsetBase;
  */
 
 public class TableBase implements IRowsetBase {
+	static {
+		LoadLibrary.Tightdb();
+	}
+	
 	/**
 	 * Contruct a Table base object. It can be used to register columns in this 
 	 * table. Registering into table is allowed only for empty tables. It creates a native 
@@ -157,6 +162,12 @@ public class TableBase implements IRowsetBase {
 	protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
 	
 	// Row Handling methods.
+	public long addEmptyRow(){
+		return nativeAddEmptyRow(nativePtr);
+	}
+	
+	protected native long nativeAddEmptyRow(long nativeTablePtr);
+	
 	/**
 	 * Removes a row from the specific index. As of now the entry is simply 
 	 * removed from the table. No Cascading delete for other table is not 
@@ -165,17 +176,17 @@ public class TableBase implements IRowsetBase {
 	 * @param rowIndex the row index
 	 * 
 	 */
-	public void removeRow(long rowIndex){
-		nativeRemoveRow(nativePtr, rowIndex);
+	public void remove(long rowIndex){
+		nativeRemove(nativePtr, rowIndex);
 	}
 
-	protected native void nativeRemoveRow(long nativeTablePtr, long rowIndex);
+	protected native void nativeRemove(long nativeTablePtr, long rowIndex);
 	
-	public void removeLastRow(){
-		nativeRemoveLastRow(nativePtr);
+	public void removeLast(){
+		nativeRemoveLast(nativePtr);
 	}
 	
-	protected native void nativeRemoveLastRow(long nativeTablePtr);
+	protected native void nativeRemoveLast(long nativeTablePtr);
 	
 	//Insert Row
 	/**
@@ -240,11 +251,11 @@ public class TableBase implements IRowsetBase {
 	 * @param rowIndex 0 based row index of the cell
 	 * @param data data to be inserted.
 	 */
-	public void insertBinaryData(long columnIndex, long rowIndex, byte[] data){
-		nativeInsertBinaryData(nativePtr, columnIndex, rowIndex, data);
+	public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data){
+		nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
 	}
 	
-	protected native void nativeInsertBinaryData(long nativeTablePtr, long columnIndex, long rowIndex, byte[] data);
+	protected native void nativeInsertBinary(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 	
 	public void insertSubTable(long columnIndex, long rowIndex){
 		nativeInsertSubTable(nativePtr, columnIndex, rowIndex);	
@@ -317,11 +328,11 @@ public class TableBase implements IRowsetBase {
 	 * @param rowIndex 0 based index value of the cell row
 	 * @return value of the particular cell.
 	 */
-	public byte[] getBinary(long columnIndex, long rowIndex){
+	public ByteBuffer getBinary(long columnIndex, long rowIndex){
 		return nativeGetBinary(nativePtr, columnIndex, rowIndex);
 	}
 	
-	protected native byte[] nativeGetBinary(long nativeTablePtr, long columnIndex, long rowIndex);
+	protected native ByteBuffer nativeGetBinary(long nativeTablePtr, long columnIndex, long rowIndex);
 	
 	public Mixed getMixed(long columnIndex, long rowIndex){
 		return nativeGetMixed(nativePtr, columnIndex, rowIndex);
@@ -408,13 +419,13 @@ public class TableBase implements IRowsetBase {
 	 * @param rowIndex row index of the cell
 	 * @param data
      */
-	public void setBinary(long columnIndex, long rowIndex, byte[] data){
+	public void setBinary(long columnIndex, long rowIndex, ByteBuffer data){
 		if(data == null)
 			throw new NullPointerException("Null array");
 		nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
 	}
 	
-	protected native void nativeSetBinary(long nativeTablePtr, long columnIndex, long rowIndex, byte[] data);
+	protected native void nativeSetBinary(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
     /**
 	 * Sets the value for a (mixed typed) cell.
@@ -423,7 +434,7 @@ public class TableBase implements IRowsetBase {
 	 * @param rowIndex row index of the cell
 	 * @param data
      */
-	public void setMixed(long columnIndex, long rowIndex, Mixed data){
+	public void setMixed(long columnIndex, long rowIndex, Mixed data) {
 		if(data == null)
 			throw new NullPointerException();
 		nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
@@ -541,7 +552,10 @@ public class TableBase implements IRowsetBase {
 	}
 	
 	public void close(){
+		if(nativePtr == 0)
+			return;
 		nativeClose(nativePtr);
+		nativePtr = 0;
 	}
 	
 	protected native void nativeClose(long nativeTablePtr);		

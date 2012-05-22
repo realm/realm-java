@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 
 import com.tightdb.TableQuery;
 
@@ -30,7 +31,7 @@ public class MixedRowsetColumn<Cursor, Query> extends MixedQueryColumn<Cursor, Q
 	public void setAll(Serializable value) {
 		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
-			rowset.setBinary(columnIndex, i, TightDB.serialize(value));
+			rowset.setBinary(columnIndex, i, ByteBuffer.wrap(TightDB.serialize(value)));
 		}
 	}
 

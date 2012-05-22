@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.ColumnType;
@@ -55,67 +56,50 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	protected void registerDateColumn(TableSpec spec, String name) {
-		spec.addColumn(ColumnType.ColumnTypeInt, name); // FIXME: use real
-														// type when
-														// available
+		spec.addColumn(ColumnType.ColumnTypeDate, name);
 	}
 
 	protected void registerMixedColumn(TableSpec spec, String name) {
-		spec.addColumn(ColumnType.ColumnTypeBinary, name); // FIXME: use
-															// real type
-															// when
-															// available
+		// FIXME: use real mixed type
+		spec.addColumn(ColumnType.ColumnTypeBinary, name);
 	}
 
 	protected void registerTableColumn(TableSpec spec, String name, AbstractTable<?, ?, ?> subtable) {
-		TableSpec subspec = spec.addColumnTable("phoneNumbers");
+		TableSpec subspec = spec.addSubtableColumn(name);
 		subtable.specifyStructure(subspec);
 	}
 
 	protected abstract void specifyStructure(TableSpec spec);
 
 	protected void insertLong(long columnIndex, long rowIndex, long value) {
-		table.insertLong((int) columnIndex, (int) rowIndex, value);
+		table.insertLong(columnIndex, rowIndex, value);
 	}
 
 	protected void insertString(long columnIndex, long rowIndex, String value) {
-		table.insertString((int) columnIndex, (int) rowIndex, value);
+		table.insertString(columnIndex, rowIndex, value);
 	}
 
 	protected void insertBoolean(long columnIndex, long rowIndex, boolean value) {
-		table.insertBoolean((int) columnIndex, (int) rowIndex, value);
+		table.insertBoolean(columnIndex, rowIndex, value);
 	}
 
 	protected void insertBinary(long columnIndex, long rowIndex, byte[] value) {
-		table.insertBinaryData((int) columnIndex, (int) rowIndex, value);
+		table.insertBinary(columnIndex, rowIndex, ByteBuffer.wrap(value));
 	}
 
 	protected void insertDate(long columnIndex, long rowIndex, Date value) {
-		table.insertLong((int) columnIndex, (int) rowIndex, value.getTime()); // FIXME:
-																				// use
-																				// real
-																				// type
-																				// when
-																				// available
+		table.insertDate(columnIndex, rowIndex, value);
 	}
 
 	protected void insertMixed(long columnIndex, long rowIndex, Serializable value) {
-		table.insertBinaryData((int) columnIndex, (int) rowIndex, TightDB.serialize(value)); // FIXME:
-																								// use
-																								// real
-																								// type
-																								// when
-																								// available
+		// FIXME: use real mixed type
+		table.insertBinary(columnIndex, rowIndex, ByteBuffer.wrap(TightDB.serialize(value)));
 	}
 
 	protected void insertMixed(long columnIndex, long rowIndex, Object value) {
 		if (value instanceof Serializable) {
-			table.insertBinaryData((int) columnIndex, (int) rowIndex, TightDB.serialize((Serializable) value)); // FIXME:
-																													// use
-																													// real
-																													// type
-																													// when
-																													// available
+			// FIXME: use real mixed type
+			table.insertBinary(columnIndex, rowIndex, ByteBuffer.wrap(TightDB.serialize((Serializable) value)));
 		} else {
 			throw new RuntimeException("Cannot insert non-serializable value!");
 		}
@@ -130,7 +114,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	public void remove(long id) {
-		table.removeRow((int) id);
+		table.remove(id);
 	}
 
 	// @Override

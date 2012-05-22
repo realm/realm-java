@@ -25,6 +25,7 @@ public class TableQuery {
 		nativeGreater(nativePtr, columnIndex, value);
 		return this;
 	}
+	
 	protected native void nativeGreater(long nativeQueryPtr, long columnIndex, long value);
 	
 	public TableQuery greaterEqual(long columnIndex, long value){
@@ -112,31 +113,37 @@ public class TableQuery {
 	}
 
 	// Grouping
-	public void group(){
+	public TableQuery group(){
 		nativeGroup(nativePtr);
+		return this;
 	}
 	
 	protected native void nativeGroup(long nativeQueryPtr);
 	
-	public void endGroup(){
+	public TableQuery endGroup(){
 		nativeEndGroup(nativePtr);
+		return this;
 	}
+	
 	protected native void nativeEndGroup(long nativeQueryPtr);
 	
-	public void subTable(long columnIndex){
+	public TableQuery subTable(long columnIndex){
 		nativeSubTable(nativePtr, columnIndex);
+		return this;
 	}
 	
 	protected native void nativeSubTable(long nativeQueryPtr, long columnIndex);
 
-	public void parent(){
+	public TableQuery parent(){
 		nativeParent(nativePtr);
+		return this;
 	}
 	
 	public native void nativeParent(long nativeQueryPtr);
 
-	public void or(){
+	public TableQuery or(){
 		nativeOr(nativePtr);
+		return this;
 	}
 	
 	protected native void nativeOr(long nativeQueryPtr);
@@ -226,8 +233,24 @@ public class TableQuery {
 	public String getErrorCode(){
 		return nativeGetErrorCode(nativePtr);
 	}
-	
+
 	protected native String nativeGetErrorCode(long nativePtr);
+
+	public TableViewBase findAllMulti(TableBase table, long start, long end){
+		return new TableViewBase(table, nativeFindAllMulti(nativePtr, table, start, end));
+	}
+	
+	protected native long nativeFindAllMulti(long nativeQueryPtr, TableBase tableBase, long start, long end);
+	
+	public TableViewBase findAllMulti(TableBase tableBase){
+		return findAllMulti(tableBase, 0L, -1L);
+	}
+	
+	public int setThreads(int threadCount){
+		return nativeSetThreads(nativePtr, threadCount);
+	}
+	
+	protected native int nativeSetThreads(long nativeQueryPtr, int threadCount);
 	
 	protected native long createNativePtr();
 	

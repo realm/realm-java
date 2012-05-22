@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 
 public class MixedCursorColumn<Cursor, Query> extends AbstractColumn<Serializable, Cursor, Query> {
 
@@ -15,7 +16,7 @@ public class MixedCursorColumn<Cursor, Query> extends AbstractColumn<Serializabl
 
 	@Override
 	public void set(Serializable value) {
-		cursor.rowset.setBinary(columnIndex, (int) cursor.getPosition(), TightDB.serialize(value));
+		cursor.rowset.setBinary(columnIndex, (int) cursor.getPosition(), ByteBuffer.wrap(TightDB.serialize(value)));
 	}
 
 }

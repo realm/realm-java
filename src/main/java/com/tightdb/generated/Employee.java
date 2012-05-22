@@ -65,11 +65,11 @@ public class Employee extends AbstractCursor<Employee> {
 		this.driver.set(driver);
 	}
 
-	public byte[] getPhoto() {
+	public java.nio.ByteBuffer getPhoto() {
 		return this.photo.get();
 	}
 
-	public void setPhoto(byte[] photo) {
+	public void setPhoto(java.nio.ByteBuffer photo) {
 		this.photo.set(photo);
 	}
 

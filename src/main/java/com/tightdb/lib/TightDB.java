@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 
 public class TightDB {
 
@@ -20,6 +21,10 @@ public class TightDB {
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot serialize the object!", e);
 		}
+	}
+
+	public static Serializable deserialize(ByteBuffer buf) {
+		return deserialize(buf.array());
 	}
 
 	public static Serializable deserialize(byte[] value) {

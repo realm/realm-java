@@ -1,5 +1,6 @@
 package com.tightdb;
 
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.lib.IRowsetBase;
@@ -166,11 +167,11 @@ public class TableViewBase implements IRowsetBase {
 	 * @param rowIndex 0 based index value of the cell row
 	 * @return value of the particular cell.
 	 */
-	public byte[] getBinary(long columnIndex, long rowIndex){
+	public ByteBuffer getBinary(long columnIndex, long rowIndex){
 		return nativeGetBinary(nativePtr, columnIndex, rowIndex);
 	}
 	
-	protected native byte[] nativeGetBinary(long nativeViewPtr, long columnIndex, long rowIndex);
+	protected native ByteBuffer nativeGetBinary(long nativeViewPtr, long columnIndex, long rowIndex);
 	
 	public Mixed getMixed(long columnIndex, long rowIndex){
 		return nativeGetMixed(nativePtr, columnIndex, rowIndex);
@@ -245,11 +246,11 @@ public class TableViewBase implements IRowsetBase {
 	 * @param rowIndex row index of the cell
 	 * @param data
 	 */
-	public void setBinary(long columnIndex, long rowIndex, byte[] data){
+	public void setBinary(long columnIndex, long rowIndex, ByteBuffer data){
 		nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
 	}
 	
-	protected native void nativeSetBinary(long nativeViewPtr, long columnIndex, long rowIndex, byte[] data);
+	protected native void nativeSetBinary(long nativeViewPtr, long columnIndex, long rowIndex, ByteBuffer data);
 
 	/**
 	 * Sets the value for a particular (mixed typed) cell.
@@ -374,6 +375,19 @@ public class TableViewBase implements IRowsetBase {
 	
 	protected native long createNativeTableView(TableBase table);
 	
+	public void finalize(){
+		close();
+	}
+	
+	public void close(){
+		if(nativePtr == 0)
+			return;
+		nativeClose(nativePtr);
+		nativePtr = 0;
+	}
+	
+	protected native void nativeClose(long nativeViewPtr);
+	
 	protected TableBase getRootTable(){
 		if(table != null)
 			return table;
@@ -383,5 +397,10 @@ public class TableViewBase implements IRowsetBase {
 	protected long nativePtr;
 	protected TableBase table;
 	protected TableViewBase tableView;
+	
+	@Override
+	public void remove(long index) {
+		removeRow(index);
+	}
 	
 }

@@ -26,13 +26,13 @@ public class TableSpec {
 		columnInfos.add(new ColumnInfo(type, name));
 	}
 	
-	public TableSpec addColumnTable(String name){
+	public TableSpec addSubtableColumn(String name){
 		ColumnInfo columnInfo = new ColumnInfo(ColumnType.ColumnTypeTable, name);
 		columnInfos.add(columnInfo);
 		return columnInfo.tableSpec;
 	}
 	
-	public TableSpec getTableSpec(long columnIndex){
+	public TableSpec getSubtableSpec(long columnIndex){
 		return columnInfos.get((int)columnIndex).tableSpec;
 	}
 

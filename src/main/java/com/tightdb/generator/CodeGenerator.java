@@ -67,7 +67,8 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 			/* Set the attributes */
 
 			boolean isNested = isNestedTable(model.getType());
-			Map<String, ? extends Object> attributes = Power.map("entity", New.name(model.getName().getCapitalized()), "columns", columns, "isNested", isNested);
+			Map<String, ? extends Object> attributes = Power.map("entity", New.name(model.getName().getCapitalized()), "columns", columns,
+					"isNested", isNested);
 
 			/*********** Construct the table class ****************/
 
@@ -158,7 +159,7 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 			type = "Long";
 		} else if ("boolean".equalsIgnoreCase(type)) {
 			type = "Boolean";
-		} else if ("byte[]".equalsIgnoreCase(type)) {
+		} else if ("byte[]".equalsIgnoreCase(type) || "ByteBuffer".equalsIgnoreCase(type)) {
 			type = "Binary";
 		} else if (isNestedTable(field.getType())) {
 			type = "Table";
@@ -179,6 +180,8 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 
 		if (NUM_TYPES.contains(simpleName)) {
 			type = New.type("long");
+		} else if (simpleName.equals("byte[]")) {
+			type = New.type("java.nio.ByteBuffer");
 		} else if (simpleName.equals("Object")) {
 			type = New.type("java.io.Serializable");
 		}

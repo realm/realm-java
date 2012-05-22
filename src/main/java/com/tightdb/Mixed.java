@@ -1,6 +1,6 @@
 package com.tightdb;
 
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 public class Mixed {
@@ -8,19 +8,27 @@ public class Mixed {
 		this.value = new Long(value);
 	}
 	
+	public Mixed(ColumnType columnType){
+		assert(columnType == ColumnType.ColumnTypeTable);
+		this.value = null;
+	}
+	
 	public Mixed(boolean value){
 		this.value = value ? Boolean.TRUE : Boolean.FALSE;
 	}
 	
 	public Mixed(Date value){
+		assert(value != null);
 		this.value = value;
 	}
 	
 	public Mixed(String value){
+		assert(value != null);
 		this.value = value;
 	}
 	
-	public Mixed(byte[] value){
+	public Mixed(ByteBuffer value){
+		assert(value != null);
 		this.value = value;
 	}
 	
@@ -30,16 +38,37 @@ public class Mixed {
 		if(!(second instanceof Mixed))
 			return false;
 		Mixed secondMixed = (Mixed)second;
+		if(value == null){
+			if(secondMixed.value == null){
+				return true;
+			}else{
+				return false;
+			}
+		}
 		if(!getType().equals(secondMixed.getType())){
 			return false;
 		}
-		if(value instanceof byte[]){
-			return Arrays.equals((byte[])value, (byte[])secondMixed.value);
+		if(value instanceof ByteBuffer){
+			ByteBuffer firstByteBuffer = (ByteBuffer)value;
+			ByteBuffer secondByteBuffer = (ByteBuffer)secondMixed.value;
+			if(firstByteBuffer.capacity() != secondByteBuffer.capacity()){
+				return false;
+			}
+			for(int i=0; i < firstByteBuffer.capacity(); i++){
+				byte firstByte = firstByteBuffer.get(i);
+				byte secondByte = secondByteBuffer.get(i);
+				if(firstByte != secondByte)
+					return false;
+			}
+			return true;
 		}
 		return this.value.equals(secondMixed.value);
 	}
 	
 	public ColumnType getType(){
+		if(value == null){
+			return ColumnType.ColumnTypeTable;
+		}
 		if(value instanceof String)
 			return ColumnType.ColumnTypeString;
 		else if(value instanceof Long)
@@ -48,7 +77,7 @@ public class Mixed {
 			return ColumnType.ColumnTypeDate;
 		else if(value instanceof Boolean)
 			return ColumnType.ColumnTypeBool;
-		else if(value instanceof byte[]){
+		else if(value instanceof ByteBuffer){
 			return ColumnType.ColumnTypeBinary;
 		}
 		return null;
@@ -84,11 +113,11 @@ public class Mixed {
 		return getDateValue().getTime();
 	}
 	
-	public byte[] getBinaryValue() throws IllegalAccessException {
-		if(!(value instanceof byte[])){
+	public ByteBuffer getBinaryValue() throws IllegalAccessException {
+		if(!(value instanceof ByteBuffer)){
 			throw new IllegalAccessException("Trying to access a different type from mixed");
 		}
-		return (byte[])value;
+		return (ByteBuffer)value;
 	}
 	private Object value;
 }

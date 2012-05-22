@@ -16,18 +16,52 @@ import java.io.IOException;
 public class Group {
 	
 	public Group(){
-		this(createNative());
+		this.nativePtr = createNative();
 	}
+	
+	protected native long createNative();
+	
+	public Group(File file){
+		this(file.getAbsolutePath(), !file.canWrite());
+	}
+	
+	public Group(String fileName, boolean readOnly){
+		this.nativePtr = createNative(fileName, readOnly);
+	}
+	
+	public Group(String fileName){
+		this(fileName, true);
+	}
+	
+	protected native long createNative(String filename, boolean readOnly);
+	
+	public Group(byte[] data){
+		this.nativePtr = createNative(data);
+	}
+	
+	protected native long createNative(byte[] data);
 	
 	protected Group(long nativePtr){
 		this.nativePtr = nativePtr;
 	}
 	
+	public void close(){
+		if(nativePtr != 0){
+			nativeClose(nativePtr);
+			nativePtr = 0;
+		}
+	}
+
+	public void finalize(){
+		close();
+	}
+	
+	protected native void nativeClose(long nativeGroupPtr);
+	
 	public boolean isValid(){
 		return nativeIsValid(nativePtr);
 	}
 	
-	//TODO to be implemented.
 	protected native boolean nativeIsValid(long nativeGroupPtr);
 	
 	public int getTableCount(){
@@ -73,49 +107,7 @@ public class Group {
 	}
 	
 	protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
-	/**
-	 * Loads the group (or a group of tables) from the input data. The data can 
-	 * not be an arbitrary string. It must be created from the string created from 
-	 * the {@code Group} writeToMemory method.
-	 * 
-	 * @param data The serialized table.
-	 * @return The group (of tables).
-	 */
-	public static Group loadData(byte[] data){
-		if(data == null || data.length == 0){
-			throw new IllegalArgumentException("input data is not in correct format.");
-		}
-		return new Group(nativeLoadData(data));
-	}
-	
-	/**
-	 * Loads a file and create a group loaded from the file data. The returned group
-	 * contains all the tables that are already stored into the group before writting 
-	 * the file with the writeToFile method.
-	 * 
-	 * @param file A File object representing the file.
-	 * @return The group (of tables).
-	 */
-	public static Group load(File file){
-		return new Group(nativeLoadFile(file.getAbsolutePath()));
-	}
-	
-	protected native static long nativeLoadFile(String fileName);
-	
-	public static Group load(String fileName){
-		if(fileName == null){
-			throw new NullPointerException("Null filename");
-		}
-		File file = new File(fileName);
-		if(!file.exists()){
-			throw new IllegalArgumentException("file does not exists");
-		}
-		if(file.isDirectory()){
-			throw new IllegalArgumentException("Invalid filename its a directory only");
-		}
-		return load(file);
-	}
-	
+
 	/**
 	 * Writes the table to the specific file in the disk.
 	 * 
@@ -148,7 +140,7 @@ public class Group {
 		}		
 	}
 	
-	protected static native long nativeLoadData(byte[] buffer);
+	protected static native long nativeLoadFromMem(byte[] buffer);
 	/**
 	 * Writes the table as a string which can be used for other purpose.
 	 * 
@@ -160,7 +152,11 @@ public class Group {
 	
 	protected native byte[] nativeWriteToMem(long nativeGroupPtr);
 	
-	protected static native long createNative();
+	public boolean commit(){
+		return nativeCommit(nativePtr);
+	}
+	
+	protected native boolean nativeCommit(long nativePtr);
 	
 	protected long nativePtr;
 }
