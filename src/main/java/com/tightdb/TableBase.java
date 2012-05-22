@@ -46,9 +46,6 @@ import com.tightdb.lib.IRowsetBase;
  */
 
 public class TableBase implements IRowsetBase {
-	static {
-		LoadLibrary.Tightdb();
-	}
 	
 	/**
 	 * Contruct a Table base object. It can be used to register columns in this 
