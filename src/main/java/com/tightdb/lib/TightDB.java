@@ -71,7 +71,7 @@ public class TightDB {
 
 	public static void loadLibrary() {
 		if (!loadedLibrary) {
-			loadedLibrary = loadCorrectLibrary("tightdbd_jni", "tightdb_jni32", "tightdb_jni64");
+			loadedLibrary = loadCorrectLibrary("tightdb_jni", "tightdb_jni32", "tightdb_jni64");
 			if (!loadedLibrary) {
 				throw new RuntimeException("Couldn't load the TightDB library!");
 			}

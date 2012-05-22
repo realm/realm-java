@@ -85,13 +85,13 @@ public class Example {
 
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
-		Employee ny = employees.salary.is(17).findFirst();
-		TightDB.print("**************** Findes 17?: ", ny);
-		if (ny == null)
-			System.out.println("NOPE!!)");
+		Employee is17 = employees.salary.is(17).findFirst();
+		TightDB.print("**************** Salary 17?: ", is17);
+		if (is17 == null)
+			System.out.println("No - (Correct.))");
 
-		Employee ny2 = employees.salary.is(30000).findFirst();
-		TightDB.print("**************** Findes 30000?: ", ny2);
+		Employee is30000 = employees.salary.is(30000).findFirst();
+		TightDB.print("**************** With Salary 30000?: ", is30000);
 
 		// using explicit OR
 		TightDB.print("Search example", employees.firstName.is("Johnny").or().lastName.is("Mihajlovski").findFirst());

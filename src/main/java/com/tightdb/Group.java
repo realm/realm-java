@@ -2,16 +2,12 @@ package com.tightdb;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * This class is used to serialize tables to either disk or memory. It consists
- * a collection of tables. 
+ * of a collection of tables. 
  * 
- * We can see this class as a database in RDBMS sense. We keep a collection of 
- * table by their names as key.
- * 
- * @author acer
- *
  */
 public class Group {
 	
@@ -38,8 +34,13 @@ public class Group {
 	public Group(byte[] data){
 		this.nativePtr = createNative(data);
 	}
-	
 	protected native long createNative(byte[] data);
+	
+	public Group(ByteBuffer buffer){
+		this.nativePtr = createNative(buffer);
+	}
+	
+	protected native long createNative(ByteBuffer buffer);
 	
 	protected Group(long nativePtr){
 		this.nativePtr = nativePtr;
@@ -109,7 +110,7 @@ public class Group {
 	protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
 
 	/**
-	 * Writes the table to the specific file in the disk.
+	 * Writes the group to the specific file on the disk.
 	 * 
 	 * @param fileName The file of the file.
 	 * @throws IOException
@@ -124,7 +125,7 @@ public class Group {
 	protected native void nativeWriteToFile(long nativeGroupPtr, String fileName) throws Exception;
 	
 	/**
-	 * Writes the table to the specific file in the disk.
+	 * Writes the group to the specific file on the disk.
 	 *
 	 * @param file A File object representing the file.
 	 * @throws IOException
@@ -151,6 +152,12 @@ public class Group {
 	}
 	
 	protected native byte[] nativeWriteToMem(long nativeGroupPtr);
+	
+	public ByteBuffer writeToByteBuffer(){
+		return nativeWriteToByteBuffer(nativePtr);
+	}
+	
+	protected native ByteBuffer nativeWriteToByteBuffer(long nativeGroupPtr);
 	
 	public boolean commit(){
 		return nativeCommit(nativePtr);

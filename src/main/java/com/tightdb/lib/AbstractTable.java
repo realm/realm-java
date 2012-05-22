@@ -84,7 +84,11 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	protected void insertBinary(long columnIndex, long rowIndex, byte[] value) {
-		table.insertBinary(columnIndex, rowIndex, ByteBuffer.wrap(value));
+		ByteBuffer buffer = ByteBuffer.allocateDirect(value.length);
+		buffer.put(value);
+		
+		table.insertBinary(columnIndex, rowIndex, buffer);
+		//table.insertBinary(columnIndex, rowIndex, ByteBuffer.wrap(value));
 	}
 
 	protected void insertDate(long columnIndex, long rowIndex, Date value) {
@@ -93,13 +97,13 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 
 	protected void insertMixed(long columnIndex, long rowIndex, Serializable value) {
 		// FIXME: use real mixed type
-		table.insertBinary(columnIndex, rowIndex, ByteBuffer.wrap(TightDB.serialize(value)));
+		insertBinary(columnIndex, rowIndex, TightDB.serialize(value));
 	}
 
 	protected void insertMixed(long columnIndex, long rowIndex, Object value) {
 		if (value instanceof Serializable) {
 			// FIXME: use real mixed type
-			table.insertBinary(columnIndex, rowIndex, ByteBuffer.wrap(TightDB.serialize((Serializable) value)));
+			insertMixed(columnIndex, rowIndex, (Serializable) value);
 		} else {
 			throw new RuntimeException("Cannot insert non-serializable value!");
 		}

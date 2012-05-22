@@ -8,23 +8,22 @@ import com.tightdb.lib.IRowsetBase;
 
 
 /**
- * This class is a base class for any table structure. The class supports 
+ * This class is a base class for all TightDB tables. The class supports 
  * all low level methods (define/insert/delete/update) a table has.
- * Moreover, all the native communications are also taken care by 
- * this class (Note: tightdb-java is a java support of C++ based TightDB 
- * implementation.)
+ * All the native communications to the TightDB C++ library are also handled 
+ * by this class.
  * 
- * Any user who wants to create a table of his choice will be automatically
- * inherited from this class by tightdb-class generator.
+ * A user who wants to create a table of his choice will automatically
+ * inherit from this class by the tightdb-class generator.
  * 
- * As an example let us have a table to keep record of an employee of a 
+ * As an example, let's create a table to keep records of an employee in a 
  * company.
  * 
- * For this purpose we will create a class named Employee_Spec with an Entity
+ * For this purpose we will create a class named "employee" with an Entity
  * annotation as follows.
  * 
  * 		@Table
- *		public class Employee_Spec {
+ *		public class employee {
  *			String name;
  *			long age;
  *			boolean hired;
@@ -40,15 +39,14 @@ import com.tightdb.lib.IRowsetBase;
  *                    of rows. The class is inherited from the TableBase class as described above. 
  *                    It has all the high level methods to manipulate Employee objects from the table.
  * 3. EmployeeView.java: Represents view of the employee table i.e., result set of queries.
- * 					
- * @author Anirban Talukdar
+ * 
  *
  */
 
 public class TableBase implements IRowsetBase {
 	
 	/**
-	 * Contruct a Table base object. It can be used to register columns in this 
+	 * Construct a Table base object. It can be used to register columns in this 
 	 * table. Registering into table is allowed only for empty tables. It creates a native 
 	 * reference of the object and keeps a reference to it.
 	 */
@@ -160,10 +158,14 @@ public class TableBase implements IRowsetBase {
 	
 	// Row Handling methods.
 	public long addEmptyRow(){
-		return nativeAddEmptyRow(nativePtr);
+		return nativeAddEmptyRow(nativePtr, 1);
 	}
 	
-	protected native long nativeAddEmptyRow(long nativeTablePtr);
+	public long addEmptyRows(long rows){
+		return nativeAddEmptyRow(nativePtr, rows);
+	}
+	
+	protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
 	
 	/**
 	 * Removes a row from the specific index. As of now the entry is simply 

@@ -6,11 +6,14 @@ import java.util.Date;
 import com.tightdb.lib.IRowsetBase;
 
 /**
- * This class represents a view of a particular table. We can think
+ * This class represents a view of a particular table. We can think of
  * a tableview is a subset of a table. It contains less than or 
  * equal to the number of entries of a table. A table view is often a
- * result of a query.
- *
+ * result of a query. 
+ * 
+ * The view don't copy data from the table, but merely has a list of 
+ * row-references into the original table with the real data.
+ * 
  * The class serves as a base class of all table view. It is a raw level table view, users 
  * are not encouraged to use this class. Instead users are advised to use 
  * the generated subclass version of the table.
@@ -23,14 +26,14 @@ import com.tightdb.lib.IRowsetBase;
  * entity
  * 
  * 	@Table
- *	public class Employee_Spec {
+ *	public class employee {
  *		String name;
  *		long age;
  *		boolean hired;
  *		byte[] imageData;
  *	}
  * 
- * Once this spec class is compiled along with TightDB annotation processor
+ * Once this class is compiled along with TightDB annotation processor
  * this will produce following classes.
  * 
  * 1. Employee
@@ -42,8 +45,6 @@ import com.tightdb.lib.IRowsetBase;
  * 
  * The generated class will have more specialized method to do operations on TableView.
  * 
- * @author Anirban Talukdar
- *
  */
 public class TableViewBase implements IRowsetBase {
 	/**
