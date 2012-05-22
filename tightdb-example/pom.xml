@@ -49,25 +49,23 @@
 									<goal>clean</goal>
 								</goals>
 								<configuration>
+									<filesets>
+										<fileset>
+											<directory>${project.basedir}/src/main/java/com/tightdb/generated</directory>
+											<includes>
+												<include>**/*</include>
+											</includes>
+										</fileset>
+									</filesets>
 								</configuration>
 							</execution>
 						</executions>
-						<configuration>
-							<filesets>
-								<fileset>
-									<directory>${project.basedir}/src/main/java/com/tightdb/generated</directory>
-									<includes>
-										<include>**/*</include>
-									</includes>
-								</fileset>
-							</filesets>
-						</configuration>
 					</plugin>
 
 					<plugin>
 						<groupId>com.googlecode.jannocessor</groupId>
 						<artifactId>jannocessor-maven-plugin</artifactId>
-						<version>0.7.0</version>
+						<version>0.7.2</version>
 						<executions>
 							<execution>
 								<id>generate-code</id>
