@@ -5,13 +5,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.math.*;
 
+
 import com.tightdb.generated.*;
 
 import com.tightdb.lib.AbstractColumn;
 import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
-
 
 public class Performance {
 	
@@ -43,13 +43,15 @@ public class Performance {
 		}	
 	}	
 
-	public static String number_name(int n)
+	public static String number_name(long nlong)
 	{
 	    String ones[] = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
 	                                 "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
 	                                 "eighteen", "nineteen"};
 	    String tens[] = {"", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"};
 	
+	    int n = (int)nlong;
+	    
 	    String txt = null;
 	    if (n >= 1000) {
 	        txt = number_name(n/1000) + " thousand ";
@@ -84,6 +86,17 @@ public class Performance {
     static int Fri = 4;
     static int Sat = 5;
     static int Sun = 6;
+    /* 
+	enum Days {
+	Mon,
+	Tue,
+	Wed,
+	Thu,
+	Fri,
+	Sat,
+	Sun
+	};
+*/
 	
     @Table
 	class test
@@ -92,19 +105,27 @@ public class Performance {
         String second;
         int third;
         int fourth; // enum Days
+        test(int first, String second, int third, int fourth) {
+        	this.first = first;
+        	this.second = second;
+        	this.third = third;
+        	this.fourth = fourth;
+        }
 	}
 
 	public static void TestTightdb(int totalRows) 
 	{
 		Timer 		timer = new Timer();
 		TestTable 	table = new TestTable();
-		long 		dummy = 0;
+		int 		MAX_SIZE = totalRows;
 		
 		System.out.println("\nTest TightDB: -------------------------");
 		
 		{
+			timer.Start();
+			
 			// Build large table
-			for (int i = 0; i < totalRows; ++i) {
+			for (int i = 0; i < MAX_SIZE; ++i) {
 			    // create random string
 			     int n = (int) (rand() % 1000);
 			     String s = number_name(n);
@@ -113,11 +134,15 @@ public class Performance {
 			}
 			table.add(0, "abcde", 123, Thu);
 			
-			System.out.printf("Added %d rows.\n", totalRows); 
-			System.out.printf("Memory usage (tigthdb): 10176 bytes\n"); // in Tightdb without Java
-
-			//for (long i = 0; i < Math.min(100, table.size()); ++i)
-			//	TightDB.print("row: ", table.at(i));
+			long add_time = timer.GetTimeInMs();
+			System.out.printf("Added %d rows in %d ms.\n", MAX_SIZE, add_time); 
+			System.out.printf("Memory usage: %d bytes\n", 0); //, (long long)GetMemUsage()); // %zu doesn't work in vc
+			
+			if (false) {
+				for (long i = 0; i < Math.min(100, table.size()); ++i) {
+					TightDB.print("row: ", table.at(i));
+				}
+			}
 		}
 		
 		// Search small integer column
@@ -158,6 +183,7 @@ public class Performance {
 		// Search string column
 		{
 		    timer.Start();
+		    long dummy = 0;
 		    
 		    // Do a search over entire column (value not found)
 		    for (int i = 0; i < 100; ++i) {
@@ -166,16 +192,16 @@ public class Performance {
 		        //TightDB.print("row: ", res);
 		        long row = res.getPosition();
 		        dummy += row;
-		        if (row != totalRows) {
+		        if (row != MAX_SIZE) {
 		        	//  System.out.printf("error %d. ", res.getPosition());
 		          //  break;
 		        }
 		    }
 		
 		    long search_time = timer.GetTimeInMs();
-		    System.out.printf("Search (string): %d ms.\n", search_time);
+		    System.out.printf("Search (string): %d ms.   %d\n", search_time, dummy);
 		}
-/*		
+		
 		// Add index
 		{
 		    timer.Start();
@@ -186,7 +212,7 @@ public class Performance {
 		    System.out.printf("Add index: %dms\n", search_time);
 		}
 		
-		//System.out.printf("Memory usage2: %d bytes\n", (long long)GetMemUsage());
+		//System.out.printf("Memory usage2: %lld bytes\n", (long long)GetMemUsage()); // %zu doesn't work in vc
 		
 		// Search with index
 		{
@@ -203,7 +229,6 @@ public class Performance {
 		    long search_time = timer.GetTimeInMs();
 		    System.out.printf("Search index: %d ms.  %d\n", search_time, dummy);
 		}
-*/
 	}
 
 	
@@ -227,12 +252,15 @@ public class Performance {
 	{
 		Timer 				timer = new Timer();
 		ArrayList<test2> 	table = new ArrayList<test2>();
-	
+		int 				MAX_SIZE = totalRows;
+		
 		System.out.println("\nTest Java ArrayList: -------------------------");
 		
 		{
+			timer.Start();
+			
 			// Build large table
-			for (int i = 0; i < totalRows; ++i) {
+			for (int i = 0; i < MAX_SIZE; ++i) {
 			    // create random string
 			    int n = (int) (rand() % 1000);
 			    String s = number_name(n);
@@ -241,11 +269,13 @@ public class Performance {
 			}
 			table.add(new test2(0, "abcde", 100, Wed));
 			
-			System.out.printf("Added %d rows.\n", totalRows); 
-			System.out.printf("Memory usage (Java): ??? bytes\n");
+			long add_time = timer.GetTimeInMs();
+			System.out.printf("Added %d rows in %d ms.\n", MAX_SIZE, add_time); 
+			System.out.printf("Memory usage: %d bytes\n", 0); //, (long long)GetMemUsage()); // %zu doesn't work in vc
 
 		}
 		
+		int totalElements = table.size();
         int index = 0;
         
 		// Search small integer column
@@ -254,12 +284,12 @@ public class Performance {
 		
 		    // Do a search over entire column (value not found)
 		    for (int i = 0; i < 100; ++i) {
-		    	for (index = 0; index < totalRows; index++) {
+		    	for (index = 0; index < totalElements; index++) {
 		        	if (table.get(index).fourth == Tue) {
 		        		break;
 		        	}
 		        }
-		    	if (index != totalRows) {
+		    	if (index != totalElements) {
 		            System.out.printf("error");
 		            break;
 		        }
@@ -275,12 +305,12 @@ public class Performance {
 		
 		    // Do a search over entire column (value not found)
 		    for (int i = 0; i < 100; ++i) {
-		    	for (index = 0; index < totalRows; index++) {
+		    	for (index = 0; index < totalElements; index++) {
 		        	if (table.get(index).third == 50) {
 		        		break;
 		        	}
 		        }
-		    	if (index != totalRows) {
+		    	if (index != totalElements) {
 		            System.out.printf("error");
 		            break;
 		        }
@@ -296,18 +326,18 @@ public class Performance {
 		
 		    // Do a search over entire column (value not found)
 		    for (int i = 0; i < 100; ++i) {
-		    	for (index = 0; index < totalRows; index++) {
+		    	for (index = 0; index < totalElements; index++) {
 		        	if (table.get(index).second.equalsIgnoreCase("abcde")) {
 		        		break;
 		        	}
 		        }
-		    	if (index != totalRows - 1) {
-		            System.out.printf("error %d != %d", index, totalRows);
+		    	if (index != totalElements - 1) {
+		            System.out.printf("error %d != %d", index, totalElements);
 		            break;
 		        }
 		        /*
 		        TightDB.print("row: ", res);
-		        if (res.getPosition() != totalRows) {
+		        if (res.getPosition() != MAX_SIZE) {
 		            System.out.printf("error %d. ", res.getPosition());
 		            break;
 		        }
