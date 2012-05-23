@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.Date;
 
@@ -9,6 +10,7 @@ import org.junit.Test;
 
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeTable;
+import com.tightdb.generated.EmployeeView;
 
 public class TableTest {
 
@@ -23,7 +25,7 @@ public class TableTest {
 		employees = new EmployeeTable();
 
 		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
-		employees.add(NAME2, "B. Good", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
+		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, new Date(), true);
 		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 	}
 
@@ -69,9 +71,25 @@ public class TableTest {
 	public void shouldFindFirstRecordByColumnValue() throws IllegalAccessException {
 		Employee record1 = employees.firstName.findFirst(NAME1);
 		assertEquals(1, record1.getPosition());
+
+		Employee record2 = employees.salary.findFirst(10000);
+		assertEquals(0, record2.getPosition());
 		
-		Employee record2 = employees.salary.findFirst(20000);
-		assertEquals(2, record2.getPosition());
+		Employee record3 = employees.salary.findFirst(12345);
+		assertNull(record3);
+	}
+
+	@Test
+	public void shouldFindAllRecordsByColumnValue() throws IllegalAccessException {
+		EmployeeView view1 = employees.firstName.findAll(NAME1);
+		assertEquals(1, view1.size());
+
+		EmployeeView view2 = employees.salary.findAll(10000);
+		assertEquals(2, view2.size());
+		
+		EmployeeView view3 = employees.salary.findAll(12345);
+		assertEquals(0, view3.size());
+		
 	}
 
 }

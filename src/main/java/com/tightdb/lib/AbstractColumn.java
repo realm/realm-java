@@ -81,7 +81,7 @@ public abstract class AbstractColumn<Type, Cursor, View, Query> {
 	}
 
 	protected Cursor cursor(long position) {
-		return position >= 0 ? AbstractCursor.createCursor(types.getCursorClass(), rowset, position) : null;
+		return (position >= 0 && position < rowset.size()) ? AbstractCursor.createCursor(types.getCursorClass(), rowset, position) : null;
 	}
 
 	protected View view(TableViewBase viewBase) {
