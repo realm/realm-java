@@ -30,4 +30,12 @@ public abstract class AbstractView<Cursor, View, Query> extends AbstractRowset<C
 	public String toString() {
 		return types.getViewClass().getSimpleName() + " {" + size() + " records}";
 	}
+
+	public static <V> V createView(Class<V> viewClass, TableViewBase viewBase) {
+		try {
+			return viewClass.getConstructor(TableViewBase.class).newInstance(viewBase);
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot create a view!", e);
+		}
+	}
 }

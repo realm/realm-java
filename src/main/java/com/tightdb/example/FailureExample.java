@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeTable;
+import com.tightdb.generated.PhoneTable;
 
 public class FailureExample {
 
@@ -17,6 +18,9 @@ public class FailureExample {
 
 		// Enable below to compare Tightdb performance against a Java ArrayList
 		Performance.TestTightdb(250000);
+		
+//		System.out.println(a);
+//		System.out.println(b);
 	}
 
 }

@@ -99,14 +99,10 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	protected View view(TableViewBase viewBase) {
-		try {
-			return types.getViewClass().getConstructor(TableViewBase.class).newInstance(viewBase);
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot create a query!", e);
-		}
+		return AbstractView.createView(types.getViewClass(), viewBase);
 	}
 
-	private Cursor cursor(IRowsetBase rowset, long position) {
+	protected Cursor cursor(IRowsetBase rowset, long position) {
 		return AbstractCursor.createCursor(types.getCursorClass(), rowset, position);
 	}
 

@@ -4,12 +4,12 @@ import java.util.Iterator;
 
 import com.tightdb.TableBase;
 
-public class TableCursorColumn<Cursor, Query, Subcursor, Subtable extends AbstractTable<Subcursor, ?, ?>> extends
-		AbstractColumn<Subtable, Cursor, Query> implements Iterable<Subcursor> {
+public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends AbstractTable<Subcursor, ?, ?>> extends
+		AbstractColumn<Subtable, Cursor, View, Query> implements Iterable<Subcursor> {
 
 	private final Class<Subtable> subtableClass;
 
-	public TableCursorColumn(EntityTypes<?, ?, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name,
+	public TableCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name,
 			Class<Subtable> subtableClass) {
 		super(types, cursor, index, name);
 		this.subtableClass = subtableClass;

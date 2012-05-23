@@ -3,11 +3,11 @@ package com.tightdb.lib;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class DateCursorColumn<Cursor, Query> extends AbstractColumn<Date, Cursor, Query> {
+public class DateCursorColumn<Cursor, View, Query> extends AbstractColumn<Date, Cursor, View, Query> {
 
 	private static final DateFormat FORMATTER = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 
-	public DateCursorColumn(EntityTypes<?, ?, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
+	public DateCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(types, cursor, index, name);
 	}
 

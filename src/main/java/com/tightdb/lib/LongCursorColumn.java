@@ -1,8 +1,8 @@
 package com.tightdb.lib;
 
-public class LongCursorColumn<Cursor, Query> extends AbstractColumn<Long, Cursor, Query> {
+public class LongCursorColumn<Cursor, View, Query> extends AbstractColumn<Long, Cursor, View, Query> {
 
-	public LongCursorColumn(EntityTypes<?, ?, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
+	public LongCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(types, cursor, index, name);
 	}
 

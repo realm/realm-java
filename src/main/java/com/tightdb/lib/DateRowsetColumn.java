@@ -4,13 +4,13 @@ import java.util.Date;
 
 import com.tightdb.TableQuery;
 
-public class DateRowsetColumn<Cursor, Query> extends DateQueryColumn<Cursor, Query> implements RowsetColumn<Date> {
+public class DateRowsetColumn<Cursor, View, Query> extends DateQueryColumn<Cursor, View, Query> implements RowsetColumn<Date> {
 
-	public DateRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
+	public DateRowsetColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
 		this(types, rowset, null, index, name);
 	}
 
-	public DateRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
+	public DateRowsetColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
 		super(types, rowset, query, index, name);
 	}
 

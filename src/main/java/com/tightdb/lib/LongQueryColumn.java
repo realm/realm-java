@@ -2,9 +2,9 @@ package com.tightdb.lib;
 
 import com.tightdb.TableQuery;
 
-public class LongQueryColumn<Cursor, Query> extends AbstractColumn<Long, Cursor, Query> {
+public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, Cursor, View, Query> {
 
-	public LongQueryColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
+	public LongQueryColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
 		super(types, rowset, query, index, name);
 	}
 

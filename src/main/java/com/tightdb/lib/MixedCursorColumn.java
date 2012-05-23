@@ -5,9 +5,9 @@ import java.util.Date;
 
 import com.tightdb.Mixed;
 
-public class MixedCursorColumn<Cursor, Query> extends AbstractColumn<Mixed, Cursor, Query> {
+public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed, Cursor, View, Query> {
 
-	public MixedCursorColumn(EntityTypes<?, ?, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
+	public MixedCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(types, cursor, index, name);
 	}
 

@@ -6,8 +6,6 @@ import java.util.Date;
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeQuery;
 import com.tightdb.generated.EmployeeTable;
-import com.tightdb.generated.Phone;
-import com.tightdb.generated.PhoneTable;
 import com.tightdb.lib.AbstractColumn;
 import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
@@ -16,13 +14,11 @@ import com.tightdb.lib.TightDB;
 public class Example {
 
 	public static void main(String[] args) {
-
 		showLongExample();
 
 		// Enable below to compare Tightdb performance against a Java ArrayList
-
-//		Performance.TestTightdb(250000);
-		//Performance.TestJavaArray(250000);
+		Performance.TestTightdb(250000);
+		Performance.TestJavaArray(250000);
 	}
 
 	/******************************************************************/
@@ -142,35 +138,38 @@ public class Example {
 		/****************************** COLUMN RETRIEVAL *****************************/
 
 		System.out.print("- Columns: ");
-		for (AbstractColumn<?, ?, ?> column : john.columns()) {
+		for (AbstractColumn<?, ?, ?, ?> column : john.columns()) {
 			System.out.print(column.getName() + "=" + column.getReadableValue() + " ");
 		}
 		System.out.println();
 
 		/****************************** SUBTABLES *****************************/
 
-		PhoneTable subtable = john.phones.get();
-		subtable.add("mobile", "111");
+		john.phones.get();
+		john.phones.get();
 
-		john.getPhones().add("mobile", "111");
-		john.getPhones().add("home", "222");
-
-		johny.getPhones().add("mobile", "333");
-
-		nikolche.getPhones().add("mobile", "444");
-		nikolche.getPhones().add("work", "555");
-
-		for (PhoneTable phoneTable : employees.phones.getAll()) {
-			TightDB.print(phoneTable);
-		}
-
-		// convenience methods on the column:
-
-		for (Phone phone : nikolche.phones) {
-			TightDB.print("- phone", phone);
-		}
-
-		TightDB.print("- first phone", nikolche.phones.first());
+		// PhoneTable subtable = john.phones.get();
+		// subtable.add("mobile", "111");
+		//
+		// john.getPhones().add("mobile", "111");
+		// john.getPhones().add("home", "222");
+		//
+		// johny.getPhones().add("mobile", "333");
+		//
+		// nikolche.getPhones().add("mobile", "444");
+		// nikolche.getPhones().add("work", "555");
+		//
+		// for (PhoneTable phoneTable : employees.phones.getAll()) {
+		// TightDB.print(phoneTable);
+		// }
+		//
+		// // convenience methods on the column:
+		//
+		// for (Phone phone : nikolche.phones) {
+		// TightDB.print("- phone", phone);
+		// }
+		//
+		// TightDB.print("- first phone", nikolche.phones.first());
 
 		/*************************** CURSOR NAVIGATION ***************************/
 

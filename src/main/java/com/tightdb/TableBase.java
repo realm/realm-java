@@ -351,7 +351,9 @@ public class TableBase implements IRowsetBase {
 	protected native Mixed nativeGetMixed(long nativeTablePtr, long columnIndex, long rowIndex);
 	
   	public TableBase getSubTable(long columnIndex, long rowIndex){
-		return new TableBase(nativeGetSubTable(nativePtr, columnIndex, rowIndex));
+		TableBase tableBase = new TableBase(nativeGetSubTable(nativePtr, columnIndex, rowIndex));
+		System.out.println("creating: "+tableBase.nativePtr);
+		return tableBase;
 	}
 	
 	protected native long nativeGetSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
@@ -553,6 +555,7 @@ public class TableBase implements IRowsetBase {
 	public void close(){
 		if(nativePtr == 0)
 			return;
+		System.out.println("closing: " + nativePtr);
 		nativeClose(nativePtr);
 		nativePtr = 0;
 	}

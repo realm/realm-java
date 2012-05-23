@@ -2,21 +2,22 @@ package com.tightdb.lib;
 
 import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
+import com.tightdb.TableViewBase;
 
-public abstract class AbstractColumn<Type, Cursor, Query> {
+public abstract class AbstractColumn<Type, Cursor, View, Query> {
 
-	protected final EntityTypes<?, ?, Cursor, Query> types;
+	protected final EntityTypes<?, View, Cursor, Query> types;
 	protected final AbstractCursor<Cursor> cursor;
 	protected final String name;
 	protected final int columnIndex;
 	protected final TableQuery query;
 	protected final IRowsetBase rowset;
 
-	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
+	public AbstractColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
 		this(types, cursor.rowset, cursor, index, name);
 	}
 
-	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, AbstractCursor<Cursor> cursor, int index, String name) {
+	public AbstractColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, AbstractCursor<Cursor> cursor, int index, String name) {
 		this.types = types;
 		this.rowset = rowset;
 		this.query = null;
@@ -25,7 +26,7 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		this.name = name;
 	}
 
-	public AbstractColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
+	public AbstractColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
 		this.types = types;
 		this.rowset = rowset;
 		this.query = query;
@@ -81,6 +82,10 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 
 	protected Cursor cursor(long position) {
 		return position >= 0 ? AbstractCursor.createCursor(types.getCursorClass(), rowset, position) : null;
+	}
+
+	protected View view(TableViewBase viewBase) {
+		return AbstractView.createView(types.getViewClass(), viewBase);
 	}
 
 }
