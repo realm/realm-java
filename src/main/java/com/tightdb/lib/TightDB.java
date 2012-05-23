@@ -46,14 +46,14 @@ public class TightDB {
 		String format = "%-15s| ";
 		System.out.println(String.format("================== %s ====================", caption));
 		if (!rowset.isEmpty()) {
-			for (AbstractColumn<?, ?, ?> column : rowset.at(0).columns()) {
+			for (AbstractColumn<?, ?, ?, ?> column : rowset.at(0).columns()) {
 				System.out.print(String.format(format, column.getName()));
 			}
 			System.out.println();
 
 			for (int i = 0; i < rowset.size(); i++) {
 				AbstractCursor<?> p = rowset.at(i);
-				for (AbstractColumn<?, ?, ?> column : p.columns()) {
+				for (AbstractColumn<?, ?, ?, ?> column : p.columns()) {
 					System.out.print(String.format(format, column.getReadableValue()));
 				}
 				System.out.println();

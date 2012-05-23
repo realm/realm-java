@@ -33,7 +33,7 @@ public class TableTest {
 		System.out.println(base.getString(0, 0));
 		System.out.println(base.getLong(1, 0));
 
-		TableViewBase results = base.findAllInt(1, 24000);
+		TableViewBase results = base.findAllLong(1, 24000);
 		System.out.println("Results size: " + results.size());
 
 		long rowIndex = base.findFirstString(0, "John");

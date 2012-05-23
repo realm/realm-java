@@ -49,10 +49,10 @@ public abstract class AbstractCursor<Cursor> {
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		AbstractColumn<?, ?, ?>[] columns = columns();
+		AbstractColumn<?, ?, ?, ?>[] columns = columns();
 
 		for (int i = 0; i < columns.length; i++) {
-			AbstractColumn<?, ?, ?> column = columns[i];
+			AbstractColumn<?, ?, ?, ?> column = columns[i];
 			sb.append(String.format("%s=%s", column.getName(), column.getReadableValue()));
 			if (i < columns.length - 1) {
 				sb.append(", ");
@@ -62,11 +62,11 @@ public abstract class AbstractCursor<Cursor> {
 		return types.getCursorClass().getSimpleName() + " {" + sb + "}";
 	}
 
-	public AbstractColumn<?, ?, ?>[] columns() {
+	public AbstractColumn<?, ?, ?, ?>[] columns() {
 		return null;
 	}
 
-	protected AbstractColumn<?, ?, ?>[] getColumnsArray(AbstractColumn<?, ?, ?>... columns) {
+	protected AbstractColumn<?, ?, ?, ?>[] getColumnsArray(AbstractColumn<?, ?, ?, ?>... columns) {
 		return columns;
 	}
 

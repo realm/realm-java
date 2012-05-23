@@ -4,9 +4,9 @@ import java.util.Date;
 
 import com.tightdb.TableQuery;
 
-public class DateQueryColumn<Cursor, Query> extends AbstractColumn<Date, Cursor, Query> {
+public class DateQueryColumn<Cursor, View, Query> extends AbstractColumn<Date, Cursor, View, Query> {
 
-	public DateQueryColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
+	public DateQueryColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
 		super(types, rowset, query, index, name);
 	}
 

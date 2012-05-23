@@ -5,6 +5,7 @@ import java.util.Date;
 
 import com.tightdb.Mixed;
 import com.tightdb.TableBase;
+import com.tightdb.TableViewBase;
 
 public interface IRowsetBase {
 
@@ -74,7 +75,9 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @return
 	 */
-	ByteBuffer getBinary(long columnIndex, long rowIndex);
+	ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
+	
+	byte[] getBinaryByteArray(long columnIndex, long rowIndex);
 
 	Mixed getMixed(long columnIndex, long rowIndex);
 
@@ -118,8 +121,10 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @param data
 	 */
-	void setBinary(long columnIndex, long rowIndex, ByteBuffer data);
-
+	void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
+	
+	void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data);
+	
 	void setDate(long columnIndex, long rowIndex, Date date);
 	
 	void setMixed(long columnIndex, long rowIndex, Mixed data);
@@ -129,5 +134,13 @@ public interface IRowsetBase {
 	long maximum(long columnIndex);
 	
 	long minimum(long columnIndex);
+
+	long findFirstLong(long columnIndex, long value);
+	
+	long findFirstString(long columnIndex, String value);
+
+	TableViewBase findAllLong(long columnIndex, long value);
+	
+	TableViewBase findAllString(long columnIndex, String value);
 	
 }

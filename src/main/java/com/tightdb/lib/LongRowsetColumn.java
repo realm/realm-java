@@ -2,13 +2,13 @@ package com.tightdb.lib;
 
 import com.tightdb.TableQuery;
 
-public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Query> implements RowsetColumn<Long> {
+public class LongRowsetColumn<Cursor, View, Query> extends LongQueryColumn<Cursor, View, Query> implements RowsetColumn<Long> {
 
-	public LongRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
+	public LongRowsetColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
 		this(types, rowset, null, index, name);
 	}
 
-	public LongRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
+	public LongRowsetColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
 		super(types, rowset, query, index, name);
 	}
 
@@ -44,6 +44,14 @@ public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Que
 
 	public void setAll(long value) {
 		setAll(new Long(value));
+	}
+
+	public Cursor findFirst(long value) {
+		return cursor(rowset.findFirstLong(columnIndex, value));
+	}
+	
+	public View findAll(long value) {
+		return view(rowset.findAllLong(columnIndex, value));
 	}
 
 }

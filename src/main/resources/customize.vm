@@ -27,9 +27,9 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table>(TYPES, table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}Table>(TYPES, table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
 #else
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(TYPES, table, ${f.code.attributes.index}, "${f.name}");
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query>(TYPES, table, ${f.code.attributes.index}, "${f.name}");
 #end
 #end
 
@@ -115,9 +115,9 @@ public class ${entity}View extends AbstractView<${entity}, ${entity}View, ${enti
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, rowset, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, rowset, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
 #else
-	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, rowset, ${f.code.attributes.index}, "${f.name}");
+	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query>(${entity}Table.TYPES, rowset, ${f.code.attributes.index}, "${f.name}");
 #end
 #end
 
@@ -142,9 +142,9 @@ public class ${entity}Query extends AbstractQuery<${entity}Query, ${entity}, ${e
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-    public final ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name};
+    public final ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name};
 #else
-    public final ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query> ${f.name};
+    public final ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}View, ${entity}Query> ${f.name};
 #end
 #end
 
@@ -152,9 +152,9 @@ public class ${entity}Query extends AbstractQuery<${entity}Query, ${entity}, ${e
 		super(${entity}Table.TYPES, table, query);
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-        ${f.name} = new ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, table, query, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
+        ${f.name} = new ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, table, query, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
 #else
-        ${f.name} = new ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, table, query, ${f.code.attributes.index}, "${f.name}");
+        ${f.name} = new ${f.code.attributes.columnType}QueryColumn<${entity}, ${entity}View, ${entity}Query>(${entity}Table.TYPES, table, query, ${f.code.attributes.index}, "${f.name}");
 #end
 #end
 	}
@@ -176,9 +176,9 @@ public class ${entity} extends AbstractCursor<${entity}> {
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}, ${f.code.attributes.subtype}Table> ${f.name};
+    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}, ${f.code.attributes.subtype}Table> ${f.name};
 #else
-    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query> ${f.name};
+    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}View, ${entity}Query> ${f.name};
 #end
 #end
 
@@ -187,9 +187,9 @@ public class ${entity} extends AbstractCursor<${entity}> {
 
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query, ${f.code.attributes.subtype}, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
+        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
 #else
-        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}Query>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}");
+        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}View, ${entity}Query>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}");
 #end
 #end
 	}
@@ -213,7 +213,7 @@ public class ${entity} extends AbstractCursor<${entity}> {
 
 #end
 	@Override
-	public AbstractColumn<?, ?, ?>[] columns() {
+	public AbstractColumn<?, ?, ?, ?>[] columns() {
 		return getColumnsArray(#list($columns, '${it.name}', ', '));
 	}
 

@@ -28,6 +28,9 @@ public class FailureExample {
 
 		// Enable below to compare Tightdb performance against a Java ArrayList
 		Performance.TestTightdb(250000);
+		
+//		System.out.println(a);
+//		System.out.println(b);
 	}
 
 }

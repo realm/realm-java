@@ -1,8 +1,8 @@
 package com.tightdb.lib;
 
-public class BooleanCursorColumn<Cursor, Query> extends AbstractColumn<Boolean, Cursor, Query> {
+public class BooleanCursorColumn<Cursor, View, Query> extends AbstractColumn<Boolean, Cursor, View, Query> {
 
-	public BooleanCursorColumn(EntityTypes<?, ?, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
+	public BooleanCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(types, cursor, index, name);
 	}
 

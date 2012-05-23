@@ -4,6 +4,10 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 public class Mixed {
+	
+	public static final int BINARY_TYPE_BYTE_ARRAY = 0;
+	public static final int BINARY_TYPE_BYTE_BUFFER = 1;
+	
 	public Mixed(long value){
 		this.value = new Long(value);
 	}
@@ -32,6 +36,11 @@ public class Mixed {
 		this.value = value;
 	}
 	
+	protected Mixed(byte[] value){
+		assert(value != null);
+		this.value = value;
+	}
+	
 	public boolean equals(Object second){
 		if(second == null)
 			return false;
@@ -47,6 +56,22 @@ public class Mixed {
 		}
 		if(!getType().equals(secondMixed.getType())){
 			return false;
+		}
+		if(value instanceof byte[]){
+			if(!(secondMixed.value instanceof byte[])){
+				return false;
+			}
+			byte[] firstBytes = (byte[])value;
+			byte[] secondBytes = (byte[])secondMixed.value;
+			if(firstBytes.length != secondBytes.length){
+				return false;
+			}
+			for(int i=0; i<firstBytes.length; i++){
+				if(firstBytes[i] != secondBytes[i]){
+					return false;
+				}
+			}
+			return true;
 		}
 		if(value instanceof ByteBuffer){
 			ByteBuffer firstByteBuffer = (ByteBuffer)value;
@@ -77,7 +102,7 @@ public class Mixed {
 			return ColumnType.ColumnTypeDate;
 		else if(value instanceof Boolean)
 			return ColumnType.ColumnTypeBool;
-		else if(value instanceof ByteBuffer){
+		else if(value instanceof ByteBuffer || (value instanceof byte[])){
 			return ColumnType.ColumnTypeBinary;
 		}
 		return null;
@@ -119,8 +144,26 @@ public class Mixed {
 		}
 		return (ByteBuffer)value;
 	}
-	private Object value;
 	
+	protected byte[] getByteArray() throws IllegalAccessException {
+		if(!(value instanceof byte[])){
+			throw new IllegalAccessException("Tryng to access a different type from Mixed");
+		}
+		return (byte[])value;
+	}
+	
+	protected int getBinaryType(){
+		if(value instanceof byte[]){
+			return BINARY_TYPE_BYTE_ARRAY;
+		}
+		if(value instanceof ByteBuffer){
+			return BINARY_TYPE_BYTE_BUFFER;
+		}
+		return -1;
+	}
+	
+	private Object value;
+
 	public Object getValue() {
 		return value;
 	}

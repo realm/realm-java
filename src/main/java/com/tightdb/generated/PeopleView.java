@@ -11,9 +11,9 @@ import com.tightdb.lib.*;
  */
 public class PeopleView extends AbstractView<People, PeopleView, PeopleQuery> {
 
-	public final StringRowsetColumn<People, PeopleQuery> name = new StringRowsetColumn<People, PeopleQuery>(PeopleTable.TYPES, rowset, 0, "name");
-	public final LongRowsetColumn<People, PeopleQuery> age = new LongRowsetColumn<People, PeopleQuery>(PeopleTable.TYPES, rowset, 1, "age");
-	public final BooleanRowsetColumn<People, PeopleQuery> hired = new BooleanRowsetColumn<People, PeopleQuery>(PeopleTable.TYPES, rowset, 2, "hired");
+	public final StringRowsetColumn<People, PeopleView, PeopleQuery> name = new StringRowsetColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, rowset, 0, "name");
+	public final LongRowsetColumn<People, PeopleView, PeopleQuery> age = new LongRowsetColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, rowset, 1, "age");
+	public final BooleanRowsetColumn<People, PeopleView, PeopleQuery> hired = new BooleanRowsetColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, rowset, 2, "hired");
 
 	public PeopleView(TableViewBase viewBase) {
 		super(PeopleTable.TYPES, viewBase);

@@ -2,14 +2,13 @@ package com.tightdb.lib;
 
 import com.tightdb.TableQuery;
 
+public class StringRowsetColumn<Cursor, View, Query> extends StringQueryColumn<Cursor, View, Query> {
 
-public class StringRowsetColumn<Cursor, Query> extends StringQueryColumn<Cursor, Query> {
-
-	public StringRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
+	public StringRowsetColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
 		this(types, rowset, null, index, name);
 	}
 
-	public StringRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
+	public StringRowsetColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
 		super(types, rowset, query, index, name);
 	}
 
@@ -27,6 +26,14 @@ public class StringRowsetColumn<Cursor, Query> extends StringQueryColumn<Cursor,
 		for (int i = 0; i < count; i++) {
 			rowset.setString(columnIndex, i, value);
 		}
+	}
+
+	public Cursor findFirst(String value) {
+		return cursor(rowset.findFirstString(columnIndex, value));
+	}
+
+	public View findAll(String value) {
+		return view(rowset.findAllString(columnIndex, value));
 	}
 
 }

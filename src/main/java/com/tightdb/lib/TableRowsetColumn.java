@@ -5,13 +5,13 @@ import java.lang.reflect.Array;
 import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
 
-public class TableRowsetColumn<Cursor, Query, Subtable> extends TableQueryColumn<Cursor, Query, Subtable> {
+public class TableRowsetColumn<Cursor, View, Query, Subtable> extends TableQueryColumn<Cursor, View, Query, Subtable> {
 
-	public TableRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, int index, String name, Class<Subtable> subtableClass) {
+	public TableRowsetColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, int index, String name, Class<Subtable> subtableClass) {
 		this(types, rowset, null, index, name, subtableClass);
 	}
 
-	public TableRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name,
+	public TableRowsetColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name,
 			Class<Subtable> subtableClass) {
 		super(types, rowset, query, index, name, subtableClass);
 	}

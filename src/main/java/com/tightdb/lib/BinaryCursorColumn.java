@@ -2,20 +2,20 @@ package com.tightdb.lib;
 
 import java.nio.ByteBuffer;
 
-public class BinaryCursorColumn<Cursor, Query> extends AbstractColumn<ByteBuffer, Cursor, Query> {
+public class BinaryCursorColumn<Cursor, View, Query> extends AbstractColumn<ByteBuffer, Cursor, View, Query> {
 
-	public BinaryCursorColumn(EntityTypes<?, ?, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
+	public BinaryCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
 		super(types, cursor, index, name);
 	}
 
 	@Override
 	public ByteBuffer get() {
-		return cursor.rowset.getBinary(columnIndex, cursor.getPosition());
+		return cursor.rowset.getBinaryByteBuffer(columnIndex, cursor.getPosition());
 	}
 
 	@Override
 	public void set(ByteBuffer value) {
-		cursor.rowset.setBinary(columnIndex, cursor.getPosition(), value);
+		cursor.rowset.setBinaryByteBuffer(columnIndex, cursor.getPosition(), value);
 	}
 
 	@Override
