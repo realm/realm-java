@@ -168,12 +168,18 @@ public class TableViewBase implements IRowsetBase {
 	 * @param rowIndex 0 based index value of the cell row
 	 * @return value of the particular cell.
 	 */
-	public ByteBuffer getBinary(long columnIndex, long rowIndex){
+	public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex){
 		return nativeGetBinary(nativePtr, columnIndex, rowIndex);
 	}
 	
 	protected native ByteBuffer nativeGetBinary(long nativeViewPtr, long columnIndex, long rowIndex);
 	
+	public byte[] getBinaryByteArray(long columnIndex, long rowIndex){
+		return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
+	}
+	
+	protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
+		
 	public Mixed getMixed(long columnIndex, long rowIndex){
 		return nativeGetMixed(nativePtr, columnIndex, rowIndex);
 	}
@@ -247,12 +253,18 @@ public class TableViewBase implements IRowsetBase {
 	 * @param rowIndex row index of the cell
 	 * @param data
 	 */
-	public void setBinary(long columnIndex, long rowIndex, ByteBuffer data){
+	public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data){
 		nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
 	}
 	
 	protected native void nativeSetBinary(long nativeViewPtr, long columnIndex, long rowIndex, ByteBuffer data);
 
+	public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
+		nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
+	}
+	
+	protected native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
+	
 	/**
 	 * Sets the value for a particular (mixed typed) cell.
 	 * 
@@ -388,12 +400,7 @@ public class TableViewBase implements IRowsetBase {
 	}
 	
 	protected native void nativeClose(long nativeViewPtr);
-	
-	protected TableBase getRootTable(){
-		if(table != null)
-			return table;
-		return tableView.getRootTable();
-	}
+
 	
 	protected long nativePtr;
 	protected TableBase table;

@@ -98,13 +98,10 @@ public class Group {
 	 * Returns a table with the specified name.
 	 * 
 	 * @param name The name of the table.
-	 * @return The table if it exists, otherwise null.
+	 * @return The table if it exists, otherwise create it.
 	 */
 	public TableBase getTable(String name){
-		if(hasTable(name)){
 			return new TableBase(nativeGetTableNativePtr(nativePtr, name));
-		}
-		return null;
 	}
 	
 	protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);

@@ -250,11 +250,17 @@ public class TableBase implements IRowsetBase {
 	 * @param rowIndex 0 based row index of the cell
 	 * @param data data to be inserted.
 	 */
-	public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data){
+	public void insertBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data){
 		nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
 	}
 	
 	protected native void nativeInsertBinary(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+
+	public void insertBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
+		nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
+	}
+	
+	protected native void nativeInsertBinary(long nativePtr, long columnIndex, long rowIndex, byte[] data);
 	
 	public void insertSubTable(long columnIndex, long rowIndex){
 		nativeInsertSubTable(nativePtr, columnIndex, rowIndex);	
@@ -327,11 +333,17 @@ public class TableBase implements IRowsetBase {
 	 * @param rowIndex 0 based index value of the cell row
 	 * @return value of the particular cell.
 	 */
-	public ByteBuffer getBinary(long columnIndex, long rowIndex){
+	public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex){
 		return nativeGetBinary(nativePtr, columnIndex, rowIndex);
 	}
 	
 	protected native ByteBuffer nativeGetBinary(long nativeTablePtr, long columnIndex, long rowIndex);
+	
+	public byte[] getBinaryByteArray(long columnIndex, long rowIndex){
+		return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
+	}
+	
+	protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
 	
 	public Mixed getMixed(long columnIndex, long rowIndex){
 		return nativeGetMixed(nativePtr, columnIndex, rowIndex);
@@ -350,7 +362,17 @@ public class TableBase implements IRowsetBase {
 	
 	protected native Mixed nativeGetMixed(long nativeTablePtr, long columnIndex, long rowIndex);
 	
-  	public TableBase getSubTable(long columnIndex, long rowIndex){
+	/**
+	 * 
+	 * Note: The subtable returned will have to be closed again after use.
+	 * You can let javas garbage collector handle that or better yet call close()
+	 * after use.
+	 * 
+	 * @param columnIndex column index of the cell
+	 * @param rowIndex row index of the cell
+	 * @return TableBase the subtable at the requested cell
+	 */
+	public TableBase getSubTable(long columnIndex, long rowIndex){
 		return new TableBase(nativeGetSubTable(nativePtr, columnIndex, rowIndex));
 	}
 	
@@ -418,7 +440,7 @@ public class TableBase implements IRowsetBase {
 	 * @param rowIndex row index of the cell
 	 * @param data
      */
-	public void setBinary(long columnIndex, long rowIndex, ByteBuffer data){
+	public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data){
 		if(data == null)
 			throw new NullPointerException("Null array");
 		nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
@@ -426,6 +448,14 @@ public class TableBase implements IRowsetBase {
 	
 	protected native void nativeSetBinary(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
+	public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
+		if(data == null)
+			throw new NullPointerException("Null Array");
+		nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
+	}
+	
+	protected native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
+	
     /**
 	 * Sets the value for a (mixed typed) cell.
 	 *
@@ -562,5 +592,4 @@ public class TableBase implements IRowsetBase {
 	protected native long createNative();
 	
 	protected long nativePtr;
-
 }
