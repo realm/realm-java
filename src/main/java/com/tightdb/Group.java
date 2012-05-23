@@ -4,12 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.tightdb.lib.TightDB;
+
 /**
  * This class is used to serialize tables to either disk or memory. It consists
  * of a collection of tables. 
  * 
  */
 public class Group {
+	
+	static {
+		TightDB.loadLibrary();
+	}
 	
 	public Group(){
 		this.nativePtr = createNative();
