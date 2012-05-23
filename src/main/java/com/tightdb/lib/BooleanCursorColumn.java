@@ -8,12 +8,12 @@ public class BooleanCursorColumn<Cursor, Query> extends AbstractColumn<Boolean, 
 
 	@Override
 	public Boolean get() {
-		return cursor.rowset.getBoolean(columnIndex, (int) cursor.getPosition());
+		return cursor.rowset.getBoolean(columnIndex, cursor.getPosition());
 	}
 
 	@Override
 	public void set(Boolean value) {
-		cursor.rowset.setBoolean(columnIndex, (int) cursor.getPosition(), value);
+		cursor.rowset.setBoolean(columnIndex, cursor.getPosition(), value);
 	}
 
 }

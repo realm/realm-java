@@ -8,12 +8,12 @@ public class StringCursorColumn<Cursor, Query> extends AbstractColumn<String, Cu
 
 	@Override
 	public String get() {
-		return cursor.rowset.getString(columnIndex, (int) cursor.getPosition());
+		return cursor.rowset.getString(columnIndex, cursor.getPosition());
 	}
 
 	@Override
 	public void set(String value) {
-		cursor.rowset.setString(columnIndex, (int) cursor.getPosition(), value);
+		cursor.rowset.setString(columnIndex, cursor.getPosition(), value);
 	}
 
 }
