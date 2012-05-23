@@ -69,7 +69,15 @@ public class QueryTest {
 
 	@Test
 	public void shouldMatchOnCriteriaHavingGroupInMiddle() {
-		EmployeeView niko = employees.salary.is(30000).group().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik").findAll();
+		EmployeeView niko = employees.where()
+		.firstName.startsWith("Nik")
+		.group()
+			.lastName.contains("vski")
+			.or()
+			.firstName.is("John")
+		.endGroup()
+		.salary.is(30000)
+		.findAll();
 
 		assertEquals(1, niko.size());
 	}

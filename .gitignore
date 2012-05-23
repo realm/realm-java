@@ -36,3 +36,4 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 /target
 /.settings
+*.tdb

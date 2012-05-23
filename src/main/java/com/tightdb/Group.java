@@ -169,4 +169,5 @@ public class Group {
 	protected native boolean nativeCommit(long nativePtr);
 	
 	protected long nativePtr;
+	
 }
