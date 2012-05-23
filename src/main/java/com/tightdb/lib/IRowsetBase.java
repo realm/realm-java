@@ -5,6 +5,7 @@ import java.util.Date;
 
 import com.tightdb.Mixed;
 import com.tightdb.TableBase;
+import com.tightdb.TableViewBase;
 
 public interface IRowsetBase {
 
@@ -129,5 +130,13 @@ public interface IRowsetBase {
 	long maximum(long columnIndex);
 	
 	long minimum(long columnIndex);
+
+	long findFirstLong(long columnIndex, long value);
+	
+	long findFirstString(long columnIndex, String value);
+
+	TableViewBase findAllLong(long columnIndex, long value);
+	
+	TableViewBase findAllString(long columnIndex, String value);
 	
 }

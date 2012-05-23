@@ -2,7 +2,6 @@ package com.tightdb.lib;
 
 import com.tightdb.TableQuery;
 
-
 public class StringRowsetColumn<Cursor, Query> extends StringQueryColumn<Cursor, Query> {
 
 	public StringRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
@@ -27,6 +26,10 @@ public class StringRowsetColumn<Cursor, Query> extends StringQueryColumn<Cursor,
 		for (int i = 0; i < count; i++) {
 			rowset.setString(columnIndex, i, value);
 		}
+	}
+
+	public Cursor findFirst(String value) {
+		return cursor(rowset.findFirstString(columnIndex, value));
 	}
 
 }

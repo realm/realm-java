@@ -486,7 +486,7 @@ public class TableBase implements IRowsetBase {
 	protected native long nativeAverage(long nativePtr, long columnIndex);
 	
 	// Searching methods.
-	public long findFirstInt(long columnIndex, long value){
+	public long findFirstLong(long columnIndex, long value){
 		return nativeFindFirstInt(nativePtr, columnIndex, value);
 	}
 	
@@ -510,7 +510,7 @@ public class TableBase implements IRowsetBase {
 	
 	protected native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
 	
-	public TableViewBase findAllInt(long columnIndex, long value){
+	public TableViewBase findAllLong(long columnIndex, long value){
 		return new TableViewBase(this, nativeFindAllInt(nativePtr, columnIndex, value));
 	}
 	

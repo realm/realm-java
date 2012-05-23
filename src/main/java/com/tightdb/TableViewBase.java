@@ -293,25 +293,25 @@ public class TableViewBase implements IRowsetBase {
 	}
 	
 	// Searching functions.
-	public long findFirst(long columnIndex, long value){
+	public long findFirstLong(long columnIndex, long value){
 		return nativeFindFirst(nativePtr, columnIndex, value);
 	}
 	
 	protected native long nativeFindFirst(long nativeTableViewPtr, long columnIndex, long value);
 	
-	protected long findFirst(long columnIndex, String value){
+	public long findFirstString(long columnIndex, String value){
 		return nativeFindFirst(nativePtr, columnIndex, value);
 	}
 	
 	protected native long nativeFindFirst(long nativePtr, long columnIndex, String value);
 	
-	public TableViewBase findAll(long columnIndex, long value){
+	public TableViewBase findAllLong(long columnIndex, long value){
 		return new TableViewBase(this,  nativeFindAll(nativePtr, columnIndex, value));
 	}
 	
 	protected native long nativeFindAll(long nativePtr, long columnIndex, long value);
 	
-	public TableViewBase findAll(long columnIndex, String value){
+	public TableViewBase findAllString(long columnIndex, String value){
 		return new TableViewBase(this, nativeFindAll(nativePtr, columnIndex, value));
 	}
 	

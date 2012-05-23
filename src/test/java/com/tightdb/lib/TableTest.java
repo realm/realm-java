@@ -7,6 +7,7 @@ import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeTable;
 
 public class TableTest {
@@ -52,16 +53,25 @@ public class TableTest {
 	public void shouldAllowMixedValues() throws IllegalAccessException {
 		assertEquals("extra", employees.at(0).getExtra().getValue());
 		assertEquals("extra", employees.at(0).getExtra().getStringValue());
-		
+
 		assertEquals(1234L, employees.at(1).getExtra().getValue());
 		assertEquals(1234L, employees.at(1).getExtra().getLongValue());
-		
+
 		assertEquals(true, employees.at(2).getExtra().getValue());
 		assertEquals(true, employees.at(2).getExtra().getBooleanValue());
-		
+
 		employees.at(1).setExtra(TightDB.mixedValue("new_value"));
 		assertEquals("new_value", employees.at(1).getExtra().getValue());
 		assertEquals("new_value", employees.at(1).getExtra().getStringValue());
+	}
+
+	@Test
+	public void shouldFindFirstRecordByColumnValue() throws IllegalAccessException {
+		Employee record1 = employees.firstName.findFirst(NAME1);
+		assertEquals(1, record1.getPosition());
+		
+		Employee record2 = employees.salary.findFirst(20000);
+		assertEquals(2, record2.getPosition());
 	}
 
 }

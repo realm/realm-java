@@ -46,4 +46,8 @@ public class LongRowsetColumn<Cursor, Query> extends LongQueryColumn<Cursor, Que
 		setAll(new Long(value));
 	}
 
+	public Cursor findFirst(long value) {
+		return cursor(rowset.findFirstLong(columnIndex, value));
+	}
+	
 }

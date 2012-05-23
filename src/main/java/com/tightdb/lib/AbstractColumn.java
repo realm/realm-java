@@ -79,4 +79,8 @@ public abstract class AbstractColumn<Type, Cursor, Query> {
 		}
 	}
 
+	protected Cursor cursor(long position) {
+		return position >= 0 ? AbstractCursor.createCursor(types.getCursorClass(), rowset, position) : null;
+	}
+
 }

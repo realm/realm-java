@@ -47,18 +47,18 @@ public class TableCursorColumn<Cursor, Query, Subcursor, Subtable extends Abstra
 	}
 
 	public Subcursor at(long position) {
-		return cursor(position);
+		return subcursor(position);
 	}
 
 	public Subcursor first() {
-		return cursor(0);
+		return subcursor(0);
 	}
 
 	public Subcursor last() {
-		return cursor(size() - 1);
+		return subcursor(size() - 1);
 	}
 
-	protected Subcursor cursor(long position) {
+	protected Subcursor subcursor(long position) {
 		Subtable subtable = get();
 		return AbstractCursor.createCursor(subtable.types.getCursorClass(), subtable.rowset, position);
 	}
