@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.ColumnType;
+import com.tightdb.Group;
 import com.tightdb.Mixed;
 import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
@@ -18,8 +19,16 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	protected final TableBase table;
 
 	public AbstractTable(EntityTypes<?, View, Cursor, Query> types) {
-		super(types, new TableBase());
-		table = (TableBase) rowset;
+		this(types, new TableBase());
+	}
+
+	public AbstractTable(EntityTypes<?, View, Cursor, Query> types, Group group) {
+		this(types, group.getTable(types.getTableClass().getCanonicalName()));
+	}
+
+	private AbstractTable(EntityTypes<?, View, Cursor, Query> types, TableBase table) {
+		super(types, table);
+		this.table = table;
 		defineTableStructure();
 	}
 
@@ -85,9 +94,9 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	protected void insertBinary(long columnIndex, long rowIndex, byte[] value) {
 		ByteBuffer buffer = ByteBuffer.allocateDirect(value.length);
 		buffer.put(value);
-		
+
 		table.insertBinary(columnIndex, rowIndex, buffer);
-		//table.insertBinary(columnIndex, rowIndex, ByteBuffer.wrap(value));
+		// table.insertBinary(columnIndex, rowIndex, ByteBuffer.wrap(value));
 	}
 
 	protected void insertDate(long columnIndex, long rowIndex, Date value) {

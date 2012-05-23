@@ -21,6 +21,10 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 	public TestTable() {
 		super(TYPES);
 	}
+	
+	public TestTable(Group group) {
+		super(TYPES, group);
+	}
 
 	@Override
 	protected void specifyStructure(TableSpec spec) {

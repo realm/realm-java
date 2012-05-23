@@ -36,11 +36,16 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 #if($isNested)
 	public ${entity}Table(TableBase subtableBase) {
 		super(TYPES, subtableBase);
+	}
 #else
 	public ${entity}Table() {
 		super(TYPES);
-#end    
 	}
+	
+	public ${entity}Table(Group group) {
+		super(TYPES, group);
+	}
+#end    
 
 	@Override
 	protected void specifyStructure(TableSpec spec) {

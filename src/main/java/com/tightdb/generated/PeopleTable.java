@@ -20,6 +20,10 @@ public class PeopleTable extends AbstractTable<People, PeopleView, PeopleQuery> 
 	public PeopleTable() {
 		super(TYPES);
 	}
+	
+	public PeopleTable(Group group) {
+		super(TYPES, group);
+	}
 
 	@Override
 	protected void specifyStructure(TableSpec spec) {
