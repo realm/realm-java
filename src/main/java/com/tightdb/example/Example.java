@@ -21,8 +21,8 @@ public class Example {
 
 		// Enable below to compare Tightdb performance against a Java ArrayList
 
-		Performance.TestTightdb(250000);
-		Performance.TestJavaArray(250000);
+//		Performance.TestTightdb(250000);
+		//Performance.TestJavaArray(250000);
 	}
 
 	/******************************************************************/
@@ -63,7 +63,7 @@ public class Example {
 
 		Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
 		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234.56);
+		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 
 		TightDB.print("Employees", employees);
 

@@ -81,11 +81,11 @@ public class Employee extends AbstractCursor<Employee> {
 		this.birthdate.set(birthdate);
 	}
 
-	public java.io.Serializable getExtra() {
+	public com.tightdb.Mixed getExtra() {
 		return this.extra.get();
 	}
 
-	public void setExtra(java.io.Serializable extra) {
+	public void setExtra(com.tightdb.Mixed extra) {
 		this.extra.set(extra);
 	}
 

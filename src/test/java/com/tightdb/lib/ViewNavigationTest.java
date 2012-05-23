@@ -16,7 +16,7 @@ public class ViewNavigationTest extends AbstractNavigationTest {
 
 		employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
 		employees.add("Johny", "B. Good", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234.56);
+		employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 		
 		view = employees.firstName.startsWith("").findAll();
 	}

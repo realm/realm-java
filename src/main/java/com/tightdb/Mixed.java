@@ -120,4 +120,8 @@ public class Mixed {
 		return (ByteBuffer)value;
 	}
 	private Object value;
+	
+	public Object getValue() {
+		return value;
+	}
 }

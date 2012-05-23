@@ -23,7 +23,7 @@ public class TableTest {
 
 		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
 		employees.add(NAME2, "B. Good", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234.56);
+		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 	}
 
 	@Test
@@ -46,6 +46,22 @@ public class TableTest {
 
 		employees.at(0).firstName.set("BAR");
 		assertEquals("BAR", employees.at(0).getFirstName());
+	}
+
+	@Test
+	public void shouldAllowMixedValues() throws IllegalAccessException {
+		assertEquals("extra", employees.at(0).getExtra().getValue());
+		assertEquals("extra", employees.at(0).getExtra().getStringValue());
+		
+		assertEquals(1234L, employees.at(1).getExtra().getValue());
+		assertEquals(1234L, employees.at(1).getExtra().getLongValue());
+		
+		assertEquals(true, employees.at(2).getExtra().getValue());
+		assertEquals(true, employees.at(2).getExtra().getBooleanValue());
+		
+		employees.at(1).setExtra(TightDB.mixedValue("new_value"));
+		assertEquals("new_value", employees.at(1).getExtra().getValue());
+		assertEquals("new_value", employees.at(1).getExtra().getStringValue());
 	}
 
 }

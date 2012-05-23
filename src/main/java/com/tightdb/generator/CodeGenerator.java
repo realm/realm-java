@@ -183,7 +183,7 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 		} else if (simpleName.equals("byte[]")) {
 			type = New.type("java.nio.ByteBuffer");
 		} else if (simpleName.equals("Object")) {
-			type = New.type("java.io.Serializable");
+			type = New.type("com.tightdb.Mixed");
 		}
 
 		return type;

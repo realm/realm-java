@@ -1,10 +1,10 @@
 package com.tightdb.lib;
 
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.ColumnType;
+import com.tightdb.Mixed;
 import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
 import com.tightdb.TableSpec;
@@ -60,8 +60,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	protected void registerMixedColumn(TableSpec spec, String name) {
-		// FIXME: use real mixed type
-		spec.addColumn(ColumnType.ColumnTypeBinary, name);
+		spec.addColumn(ColumnType.ColumnTypeMixed, name);
 	}
 
 	protected void registerTableColumn(TableSpec spec, String name, AbstractTable<?, ?, ?> subtable) {
@@ -95,18 +94,9 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		table.insertDate(columnIndex, rowIndex, value);
 	}
 
-	protected void insertMixed(long columnIndex, long rowIndex, Serializable value) {
-		// FIXME: use real mixed type
-		insertBinary(columnIndex, rowIndex, TightDB.serialize(value));
-	}
-
 	protected void insertMixed(long columnIndex, long rowIndex, Object value) {
-		if (value instanceof Serializable) {
-			// FIXME: use real mixed type
-			insertMixed(columnIndex, rowIndex, (Serializable) value);
-		} else {
-			throw new RuntimeException("Cannot insert non-serializable value!");
-		}
+		Mixed mixed = TightDB.mixedValue(value);
+		table.insertMixed(columnIndex, rowIndex, mixed);
 	}
 
 	protected void insertTable(long columnIndex, long rowIndex) {

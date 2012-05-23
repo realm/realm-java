@@ -6,6 +6,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.Date;
+
+import com.tightdb.Mixed;
 
 public class TightDB {
 
@@ -88,6 +91,28 @@ public class TightDB {
 		}
 
 		return false;
+	}
+
+	public static Mixed mixedValue(Object value) {
+		Mixed mixed;
+		if (value instanceof String) {
+			mixed = new Mixed((String) value);
+		} else if (value instanceof Long) {
+			mixed = new Mixed((Long) value);
+		} else if (value instanceof Integer) {
+			mixed = new Mixed(new Long(((Integer) value).intValue()));
+		} else if (value instanceof Boolean) {
+			mixed = new Mixed((Boolean) value);
+		} else if (value instanceof Date) {
+			mixed = new Mixed((Date) value);
+		} else if (value instanceof ByteBuffer) {
+			mixed = new Mixed((ByteBuffer) value);
+		} else if (value instanceof byte[]) {
+			throw new IllegalArgumentException("Not implemented yet!"); // FIXME: implement this
+		} else {
+			throw new IllegalArgumentException("The value is of unsupported type: " + value.getClass());
+		}
+		return mixed;
 	}
 
 }

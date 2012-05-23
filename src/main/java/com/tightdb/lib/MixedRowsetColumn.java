@@ -1,11 +1,9 @@
 package com.tightdb.lib;
 
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-
+import com.tightdb.Mixed;
 import com.tightdb.TableQuery;
 
-public class MixedRowsetColumn<Cursor, Query> extends MixedQueryColumn<Cursor, Query> implements RowsetColumn<Serializable> {
+public class MixedRowsetColumn<Cursor, Query> extends MixedQueryColumn<Cursor, Query> implements RowsetColumn<Mixed> {
 
 	public MixedRowsetColumn(EntityTypes<?, ?, Cursor, Query> types, IRowsetBase rowset, int index, String name) {
 		this(types, rowset, null, index, name);
@@ -16,22 +14,20 @@ public class MixedRowsetColumn<Cursor, Query> extends MixedQueryColumn<Cursor, Q
 	}
 
 	@Override
-	public Serializable[] getAll() {
+	public Mixed[] getAll() {
 		long count = rowset.size();
-		String[] values = new String[(int) count];
+		Mixed[] values = new Mixed[(int) count];
 		for (int i = 0; i < count; i++) {
-			values[i] = rowset.getString(columnIndex, i);
+			values[i] = rowset.getMixed(columnIndex, i);
 		}
 		return values;
-		// return TDBUtils.deserialize(table.getBinaryData(columnIndex, (int)
-		// cursor.getPosition()));
 	}
 
 	@Override
-	public void setAll(Serializable value) {
+	public void setAll(Mixed value) {
 		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
-			rowset.setBinary(columnIndex, i, ByteBuffer.wrap(TightDB.serialize(value)));
+			rowset.setMixed(columnIndex, i, value);
 		}
 	}
 
