@@ -25,11 +25,20 @@ public class GroupTest {
 		employees.add(NAME2, "B. Good", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
 		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 
-		EmployeeTable employees2 = new EmployeeTable(group);
+		byte[] data = group.writeToMem();
+		
+		Group group2 = new Group(data);
+		EmployeeTable employees2 = new EmployeeTable(group2);
 
+		assertEquals(3, employees2.size());
 		assertEquals(NAME0, employees2.at(0).getFirstName());
 		assertEquals(NAME1, employees2.at(1).getFirstName());
 		assertEquals(NAME2, employees2.at(2).getFirstName());
+		
+		Group group3 = new Group();
+		EmployeeTable employees3 = new EmployeeTable(group3);
+		
+		assertEquals(0, employees3.size());
 	}
 
 }
