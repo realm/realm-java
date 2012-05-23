@@ -75,7 +75,9 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @return
 	 */
-	ByteBuffer getBinary(long columnIndex, long rowIndex);
+	ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
+	
+	byte[] getBinaryByteArray(long columnIndex, long rowIndex);
 
 	Mixed getMixed(long columnIndex, long rowIndex);
 
@@ -119,8 +121,10 @@ public interface IRowsetBase {
 	 * @param rowIndex
 	 * @param data
 	 */
-	void setBinary(long columnIndex, long rowIndex, ByteBuffer data);
-
+	void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
+	
+	void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data);
+	
 	void setDate(long columnIndex, long rowIndex, Date date);
 	
 	void setMixed(long columnIndex, long rowIndex, Mixed data);

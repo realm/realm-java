@@ -19,7 +19,7 @@ public class BinaryRowsetColumn<Cursor, View, Query> extends BinaryQueryColumn<C
 		long count = rowset.size();
 		ByteBuffer[] values = new ByteBuffer[(int) count];
 		for (int i = 0; i < count; i++) {
-			values[i] = rowset.getBinary(columnIndex, i);
+			values[i] = rowset.getBinaryByteBuffer(columnIndex, i);
 		}
 		return values;
 	}
@@ -28,7 +28,7 @@ public class BinaryRowsetColumn<Cursor, View, Query> extends BinaryQueryColumn<C
 	public void setAll(ByteBuffer value) {
 		long count = rowset.size();
 		for (int i = 0; i < count; i++) {
-			rowset.setBinary(columnIndex, i, value);
+			rowset.setBinaryByteBuffer(columnIndex, i, value);
 		}
 	}
 
