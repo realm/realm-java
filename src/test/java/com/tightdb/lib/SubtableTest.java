@@ -37,6 +37,8 @@ public class SubtableTest {
 
 		PhoneTable phones2 = employee.getPhones();
 		assertEquals(1, phones2.size());
+		
+		employees.clear();
 	}
 
 }

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 
 import java.util.Date;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,6 +30,11 @@ public class TableTest {
 		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 	}
 
+	@After
+	public void clear() {
+		employees.clear();
+	}
+	
 	@Test
 	public void shouldRetrieveRowsByIndex() {
 		assertEquals(NAME0, employees.at(0).getFirstName());

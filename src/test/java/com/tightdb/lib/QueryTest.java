@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Date;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,6 +28,11 @@ public class QueryTest {
 		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 	}
 
+	@After
+	public void clear() {
+		employees.clear();
+	}
+	
 	@Test
 	public void shouldMatchOnSimpleNumberCriteria() {
 		assertEquals(1, employees.salary.is(30000).findAll().size());
