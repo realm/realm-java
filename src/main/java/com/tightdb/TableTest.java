@@ -40,6 +40,7 @@ public class TableTest {
 		System.out.println("First result index: " + rowIndex);
 
 		base.remove(0);
+		base.clear();
 	}
 
 }

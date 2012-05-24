@@ -27,6 +27,8 @@ public class GroupTest {
 
 		byte[] data = group.writeToMem();
 		
+		employees.clear();
+		
 		Group group2 = new Group(data);
 		EmployeeTable employees2 = new EmployeeTable(group2);
 
@@ -34,11 +36,14 @@ public class GroupTest {
 		assertEquals(NAME0, employees2.at(0).getFirstName());
 		assertEquals(NAME1, employees2.at(1).getFirstName());
 		assertEquals(NAME2, employees2.at(2).getFirstName());
+		employees2.clear();
 		
 		Group group3 = new Group();
 		EmployeeTable employees3 = new EmployeeTable(group3);
 		
 		assertEquals(0, employees3.size());
+		
+		employees3.clear();
 	}
 
 }
