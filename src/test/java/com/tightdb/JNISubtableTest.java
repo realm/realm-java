@@ -2,15 +2,17 @@ package com.tightdb;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class JNISubtableTest {
 
 	@Test
+	@Ignore
 	public void shouldSynchronizeNestedTables() {
 		Group group = new Group();
 		TableBase table = group.getTable("emp");
-		
+
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
 
@@ -28,14 +30,14 @@ public class JNISubtableTest {
 		TableBase subtable1 = table.getSubTable(1, 0);
 		subtable1.insertLong(0, 0, 123);
 		subtable1.insertDone();
-//
-//		assertEquals(1, subtable1.size());
-//
-//		TableBase subtable2 = table.getSubTable(1, 0);
-//		
-//		assertEquals(1, subtable2.size());
-//		assertEquals(123, subtable2.getLong(0, 0));
-		
+		//
+		// assertEquals(1, subtable1.size());
+		//
+		// TableBase subtable2 = table.getSubTable(1, 0);
+		//
+		// assertEquals(1, subtable2.size());
+		// assertEquals(123, subtable2.getLong(0, 0));
+
 		table.clear();
 	}
 

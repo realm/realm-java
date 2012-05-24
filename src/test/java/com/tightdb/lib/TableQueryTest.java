@@ -1,46 +1,21 @@
 package com.tightdb.lib;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.util.Date;
-
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.EmployeeView;
 
-public class QueryTest {
+public class TableQueryTest extends AbstractTableTest {
 
-	protected static final String NAME0 = "John";
-	protected static final String NAME1 = "Nikolche";
-	protected static final String NAME2 = "Johny";
-
-	protected EmployeeTable employees;
-
-	@Before
-	public void init() {
-		employees = new EmployeeTable();
-
-		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
-		employees.add(NAME2, "B. Good", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
-	}
-
-	@After
-	public void clear() {
-		employees.clear();
-	}
-	
 	@Test
 	public void shouldMatchOnSimpleNumberCriteria() {
 		assertEquals(1, employees.salary.is(30000).findAll().size());
-		
+
 		assertEquals(2, employees.salary.lessThan(30000).findAll().size());
 		assertEquals(3, employees.salary.lessOrEqual(30000).findAll().size());
-		
-		assertEquals(2, employees.salary.greaterThan(10000).findAll().size());
+
+		assertEquals(3, employees.salary.greaterThan(5000).findAll().size());
 		assertEquals(3, employees.salary.greaterOrEqual(10000).findAll().size());
 	}
 
@@ -60,15 +35,30 @@ public class QueryTest {
 
 	@Test
 	public void shouldMatchOnCriteriaEndingWithGroup() {
-		EmployeeView niko = employees.firstName.startsWith("Nik").group().lastName.contains("vski").or().firstName.is("John").endGroup().findAll();
+		EmployeeView niko = employees.where()
+		.firstName.startsWith("Nik")
+		.salary.is(30000)
+		.group()
+			.lastName.contains("vski")
+			.or()
+			.firstName.is("John")
+		.endGroup()
+		.findAll();
 
 		assertEquals(1, niko.size());
 	}
 
 	@Test
 	public void shouldMatchOnCriteriaBeginingWithGroup() {
-		EmployeeView niko = employees.where().group().lastName.contains("vski").or().firstName.is("John").endGroup().firstName.startsWith("Nik")
-				.findAll();
+		EmployeeView niko = employees.where()
+		.group()
+			.lastName.contains("vski")
+			.or()
+			.firstName.is("John")
+		.endGroup()
+		.firstName.startsWith("Nik")
+		.salary.is(30000)
+		.findAll();
 
 		assertEquals(1, niko.size());
 	}
@@ -76,14 +66,14 @@ public class QueryTest {
 	@Test
 	public void shouldMatchOnCriteriaHavingGroupInMiddle() {
 		EmployeeView niko = employees.where()
-		.firstName.startsWith("Nik")
-		.group()
-			.lastName.contains("vski")
-			.or()
-			.firstName.is("John")
-		.endGroup()
-		.salary.is(30000)
-		.findAll();
+			.firstName.startsWith("Nik")
+			.group()
+				.lastName.contains("vski")
+				.or()
+				.firstName.is("John")
+			.endGroup()
+			.salary.is(30000)
+			.findAll();
 
 		assertEquals(1, niko.size());
 	}
