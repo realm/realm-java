@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.lib.IRowsetBase;
+import com.tightdb.lib.TightDB;
 
 
 
@@ -44,6 +45,10 @@ import com.tightdb.lib.IRowsetBase;
 
 public class TableBase implements IRowsetBase {
 
+	static {
+		TightDB.loadLibrary();
+	}
+	
 	/**
 	 * Construct a Table base object. It can be used to register columns in this
 	 * table. Registering into table is allowed only for empty tables. It
