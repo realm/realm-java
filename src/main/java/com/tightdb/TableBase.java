@@ -525,7 +525,7 @@ public class TableBase implements IRowsetBase {
 
 	protected native boolean nativeHasIndex(long nativePtr, long columnIndex);
 
-	// Agregate functions.
+	// Aggregate functions.
 	public long sum(long columnIndex) {
 		return nativeSum(nativePtr, columnIndex);
 	}
