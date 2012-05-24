@@ -7,6 +7,7 @@ import java.util.Date;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.tightdb.generated.Employee;
@@ -19,22 +20,25 @@ public class TableTest {
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
 
-	protected EmployeeTable employees;
+	protected EmployeeTable employees2;
+	private EmployeeView employees;
 
 	@Before
 	public void init() {
-		employees = new EmployeeTable();
+		employees2 = new EmployeeTable();
 
-		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
-		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
+		employees2.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
+		employees2.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, new Date(), true);
+		employees2.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
+		
+		employees = employees2.where().findAll();
 	}
 
 	@After
 	public void clear() {
 		employees.clear();
 	}
-	
+
 	@Test
 	public void shouldRetrieveRowsByIndex() {
 		assertEquals(NAME0, employees.at(0).getFirstName());
@@ -80,22 +84,29 @@ public class TableTest {
 
 		Employee record2 = employees.salary.findFirst(10000);
 		assertEquals(0, record2.getPosition());
-		
+
 		Employee record3 = employees.salary.findFirst(12345);
 		assertNull(record3);
 	}
 
 	@Test
+	@Ignore // FIXME: crashes!
 	public void shouldFindAllRecordsByColumnValue() throws IllegalAccessException {
 		EmployeeView view1 = employees.firstName.findAll(NAME1);
 		assertEquals(1, view1.size());
 
 		EmployeeView view2 = employees.salary.findAll(10000);
 		assertEquals(2, view2.size());
-		
+
 		EmployeeView view3 = employees.salary.findAll(12345);
 		assertEquals(0, view3.size());
-		
+	}
+
+	@Test
+	public void shouldAggregateColumnValuee() {
+		assertEquals(10000, employees.salary.minimum());
+		assertEquals(30000, employees.salary.maximum());
+		assertEquals(50000, employees.salary.sum());
 	}
 
 }

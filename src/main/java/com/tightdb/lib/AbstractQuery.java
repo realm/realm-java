@@ -19,7 +19,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	public View findAll() {
-		TableViewBase viewBase = query.findAll(table, 0, table.size(), Integer.MAX_VALUE);
+		TableViewBase viewBase = query.findAll(table, 0, table.size(), Long.MAX_VALUE);
 		return view(viewBase);
 	}
 
