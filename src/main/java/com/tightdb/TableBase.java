@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.lib.IRowsetBase;
+import com.tightdb.lib.TightDB;
 
 /**
  * This class is a base class for all TightDB tables. The class supports all low
@@ -19,26 +20,33 @@ import com.tightdb.lib.IRowsetBase;
  * For this purpose we will create a class named "employee" with an Entity
  * annotation as follows.
  * 
- * @Table public class employee { String name; long age; boolean hired; byte[]
- *        imageData; }
+ * 		@Table
+ *		public class employee {
+ *			String name;
+ *			long age;
+ *			boolean hired;
+ *			byte[] imageData;
+ *		}
+ *
+ * The tightdb class generator will generate classes relevant to the employee:
  * 
- *        The tightdb class generator will generate classes relevant to the
- *        employee:
- * 
- *        1. Employee.java: Represents one employee of the employee table i.e.,
- *        a single row. Getter/setter methods are declared from which you will
- *        be able to set/get values for a particular employee. 2.
- *        EmployeeTable.java: Represents the class for storing a collection of
- *        employee i.e., a table of rows. The class is inherited from the
- *        TableBase class as described above. It has all the high level methods
- *        to manipulate Employee objects from the table. 3. EmployeeView.java:
- *        Represents view of the employee table i.e., result set of queries.
+ * 1. Employee.java:  Represents one employee of the employee table i.e., a single row. Getter/setter 
+ *                    methods are declared from which you will be able to set/get values
+ *                    for a particular employee. 
+ * 2. EmployeeTable.java:  Represents the class for storing a collection of employee i.e., a table 
+ *                    of rows. The class is inherited from the TableBase class as described above. 
+ *                    It has all the high level methods to manipulate Employee objects from the table.
+ * 3. EmployeeView.java: Represents view of the employee table i.e., result set of queries.
  * 
  * 
  */
 
 public class TableBase implements IRowsetBase {
 
+	static {
+		TightDB.loadLibrary();
+	}
+	
 	/**
 	 * Construct a Table base object. It can be used to register columns in this
 	 * table. Registering into table is allowed only for empty tables. It
@@ -208,8 +216,8 @@ public class TableBase implements IRowsetBase {
 	protected native void nativeInsertLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
 	/**
-	 * Inserts a boolean value into the cell identified by the columnIndex and
-	 * rowIndex Note that the insertion will replace old values.
+	 * Inserts a boolean value into the cell identified by the columnIndex and rowIndex
+	 * Note that the insertion will replace old values.
 	 * 
 	 * @param columnIndex
 	 *            0 based columnIndex of the cell
@@ -231,8 +239,7 @@ public class TableBase implements IRowsetBase {
 	protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
 
 	/**
-	 * Inserts a string in a cell. Note that the insertion will replace old
-	 * values.
+	 * Inserts a string in a cell. Note that the insertion will replace old values.
 	 * 
 	 * @param columnIndex
 	 *            0 based columnIndex of the cell
@@ -254,8 +261,8 @@ public class TableBase implements IRowsetBase {
 	protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
 	/**
-	 * Inserts a binary byte[] data into the cell. Note that the insertion will
-	 * replace old values.
+	 * Inserts a binary byte[] data into the cell.
+	 * Note that the insertion will replace old values.
 	 * 
 	 * @param columnIndex
 	 *            0 based column index of the cell
@@ -385,6 +392,16 @@ public class TableBase implements IRowsetBase {
 
 	protected native Mixed nativeGetMixed(long nativeTablePtr, long columnIndex, long rowIndex);
 
+	/**
+	 * 
+	 * Note: The subtable returned will have to be closed again after use.
+	 * You can let javas garbage collector handle that or better yet call close()
+	 * after use.
+	 * 
+	 * @param columnIndex column index of the cell
+	 * @param rowIndex row index of the cell
+	 * @return TableBase the subtable at the requested cell
+	 */
 	public TableBase getSubTable(long columnIndex, long rowIndex) {
 		return new TableBase(nativeGetSubTable(nativePtr, columnIndex, rowIndex));
 	}
@@ -398,10 +415,10 @@ public class TableBase implements IRowsetBase {
 	protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);
 
 	/**
-	 * Sets a value for a (string) cell. Note that if we call this method on the
-	 * table for a particular column marked by the columnIndex, that column has
-	 * to be an String based column which means the type of the column must be
-	 * ColumnType.ColumnTypeString.
+	 * Sets a value for a (string) cell. 
+	 * Note that if we call this method on the table for a particular column 
+	 * marked by the columnIndex, that column has to be an String based column
+	 * which means the type of the column must be ColumnType.ColumnTypeString.
 	 * 
 	 * @param columnIndex
 	 *            column index of the cell
@@ -614,5 +631,4 @@ public class TableBase implements IRowsetBase {
 	protected native long createNative();
 
 	protected long nativePtr;
-
 }
