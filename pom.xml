@@ -5,24 +5,19 @@
 
 	<groupId>tightdb_java2</groupId>
 	<artifactId>tightdb_java2</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.1.0</version>
 
 	<dependencies>
 		<dependency>
-			<groupId>
-				com.googlecode.jannocessor
-			</groupId>
-			<artifactId>
-				jannocessor
-			</artifactId>
-			<version>
-				0.7.0
-			</version>
+			<groupId>com.googlecode.jannocessor</groupId>
+			<artifactId>jannocessor</artifactId>
+			<version>0.7.0</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.10</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -80,7 +75,20 @@
 						</executions>
 					</plugin>
 
-
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>2.4</version>
+						<configuration>
+							<includes>
+								<include>com/tightdb/*.class</include>
+								<include>com/tightdb/lib/*.class</include>
+								<include>com/tightdb/generator/*.class</include>
+								<include>org/jannocessor/config/*.class</include>
+								<include>*.vm</include>
+							</includes>
+						</configuration>
+					</plugin>
 				</plugins>
 
 				<pluginManagement>
