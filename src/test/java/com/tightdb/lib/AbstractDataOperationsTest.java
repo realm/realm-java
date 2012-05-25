@@ -1,9 +1,8 @@
 package com.tightdb.lib;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.After;
-import org.junit.Test;
+import static org.testng.AssertJUnit.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
 
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeQuery;
@@ -17,7 +16,7 @@ public abstract class AbstractDataOperationsTest {
 
 	protected abstract AbstractRowset<Employee, EmployeeView, EmployeeQuery> getEmployees();
 
-	@After
+	@AfterMethod
 	public void clear() {
 		getEmployees().clear();
 	}

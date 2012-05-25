@@ -1,12 +1,11 @@
 package com.tightdb;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
+import static org.testng.AssertJUnit.*;
+import org.testng.annotations.Test;
 
 public class JNIViewSearchTest {
 
-	@Test
+	@Test(enabled = false)
 	public void shouldSearchByColumnValue() {
 		TableBase table = new TableBase();
 

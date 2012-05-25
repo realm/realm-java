@@ -1,14 +1,12 @@
 package com.tightdb.lib;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
 import java.util.Date;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.testng.AssertJUnit.*;
+
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeTable;
@@ -20,21 +18,18 @@ public class TableTest {
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
 
-	protected EmployeeTable employees2;
-	private EmployeeView employees;
+	protected EmployeeTable employees;
 
-	@Before
+	@BeforeMethod
 	public void init() {
-		employees2 = new EmployeeTable();
+		employees = new EmployeeTable();
 
-		employees2.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
-		employees2.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		employees2.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
-		
-		employees = employees2.where().findAll();
+		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
+		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, new Date(), true);
+		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 	}
 
-	@After
+	@AfterMethod
 	public void clear() {
 		employees.clear();
 	}
@@ -90,7 +85,6 @@ public class TableTest {
 	}
 
 	@Test
-	@Ignore // FIXME: crashes!
 	public void shouldFindAllRecordsByColumnValue() throws IllegalAccessException {
 		EmployeeView view1 = employees.firstName.findAll(NAME1);
 		assertEquals(1, view1.size());

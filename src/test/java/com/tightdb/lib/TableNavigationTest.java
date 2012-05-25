@@ -2,11 +2,14 @@ package com.tightdb.lib;
 
 import java.util.Date;
 
+import org.testng.annotations.Test;
+
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeQuery;
 import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.EmployeeView;
 
+@Test
 public class TableNavigationTest extends AbstractNavigationTest {
 
 	private EmployeeTable employees;
