@@ -1,6 +1,9 @@
 package com.tightdb.example;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.math.*;
 
 import com.tightdb.generated.Test;
 import com.tightdb.generated.TestQuery;
@@ -11,11 +14,11 @@ import com.tightdb.lib.TightDB;
 public class Performance {
 	
 	public static void main(String[] args) {
-		// Enable below to compare Tightdb performance against a Java ArrayList
+		// Compare Tightdb performance against a Java ArrayList
 		Performance.TestTightdb(250000);
 		Performance.TestJavaArray(250000);
 	}
-	
+
 	static class Timer {
 
 		static long startTime;
@@ -128,10 +131,10 @@ public class Performance {
 			// Build large table
 			for (int i = 0; i < MAX_SIZE; ++i) {
 			    // create random string
-			     //int n = (int) (rand() % 1000);
-			     //String s = number_name(n);
+			     int n = (int) (rand() % 1000);
+			     String s = number_name(n);
 			
-			    table.add(123, "fsf", 100, Wed);
+			    table.add(n, s, 100, Wed);
 			}
 			table.add(0, "abcde", 123, Thu);
 			

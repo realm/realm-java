@@ -8,12 +8,9 @@ import java.io.IOException;
 
 import com.tightdb.Group;
 import com.tightdb.generated.People;
-import com.tightdb.generated.PeopleTable;
-import com.tightdb.generated.PeopleView;
 import com.tightdb.generated.PeopleQuery;
-
+import com.tightdb.generated.PeopleTable;
 import com.tightdb.lib.Table;
-import com.tightdb.lib.TightDB;
 
 // @@Example: create_table @@
 public class TutorialExample {
@@ -23,8 +20,8 @@ public class TutorialExample {
     	int age;
     	boolean hired;
     }
-
-    public static void ShowShortExample() {
+    
+    public static void main(String[] args) {
         PeopleTable peopletable = new PeopleTable();
         // ...
 // @@EndExample@@
@@ -108,7 +105,7 @@ System.out.println("\nRemoved row 2. Down to " + peopletable.size() + " rows.");
 /****************************** SERIALIZE ***************************************/
 
 // @@Example: serialisation @@
-//Create Table in Group
+// Create Table in Group
 Group group = new Group();
 PeopleTable people = new PeopleTable(group);
 
@@ -141,6 +138,6 @@ for (People ppl : people3) {
     System.out.println(ppl.getName() + " is " + ppl.getAge() + " years old");
 }
 // @@EndExample@@
-    }
-    
+}
+
 }

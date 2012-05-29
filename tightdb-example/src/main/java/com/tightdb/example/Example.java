@@ -1,24 +1,23 @@
 package com.tightdb.example;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 
+import com.tightdb.Group;
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeQuery;
 import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.Phone;
 import com.tightdb.generated.PhoneTable;
 import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
 
 public class Example {
 
 	public static void main(String[] args) {
-
 		showLongExample();
-
 	}
 
 	/******************************************************************/
@@ -46,14 +45,15 @@ public class Example {
 		phone phones;
 	}
 
-	@NestedTable
+	@Table
 	class phone {
 		String type;
 		String number;
 	}
 
 	public static void showLongExample() {
-		EmployeeTable employees = new EmployeeTable();
+		Group group = new Group();
+		EmployeeTable employees = new EmployeeTable(group);
 
 		/****************************** BASIC OPERATIONS *****************************/
 
@@ -81,13 +81,13 @@ public class Example {
 
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
-		Employee ny = employees.salary.is(17).findFirst();
-		TightDB.print("**************** Findes 17?: ", ny);
-		if (ny == null)
-			System.out.println("NOPE!!)");
+		Employee is17 = employees.salary.is(17).findFirst();
+		TightDB.print("**************** Salary 17?: ", is17);
+		if (is17 == null)
+			System.out.println("No - (Correct.))");
 
-		Employee ny2 = employees.salary.is(30000).findFirst();
-		TightDB.print("**************** Findes 30000?: ", ny2);
+		Employee is30000 = employees.salary.is(30000).findFirst();
+		TightDB.print("**************** With Salary 30000?: ", is30000);
 
 		// using explicit OR
 		TightDB.print("Search example", employees.firstName.is("Johnny").or().lastName.is("Mihajlovski").findFirst());
@@ -175,6 +175,14 @@ public class Example {
 		Employee p3 = employees.first().after(2); // 3rd row
 		employees.last().before(2); // 3rd-last row
 
+		/***************************** SAVE TO FILE ******************************/
+
+		try {
+			group.writeToFile("employees.tdb");
+		} catch (IOException e) {
+			throw new RuntimeException("Couldn't save the data!", e);
+		}
+
 		/****************************** DATA REMOVAL *****************************/
 
 		employees.remove(0);
@@ -185,5 +193,10 @@ public class Example {
 
 		TightDB.print(employees);
 
+		/**************************** LOAD FROM FILE *****************************/
+
+		Group group2 = new Group("employees.tdb");
+		EmployeeTable employees2 = new EmployeeTable(group2);
+		TightDB.print(employees2);
 	}
 }

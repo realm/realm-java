@@ -5,17 +5,16 @@ import java.util.Arrays;
 import java.util.Date;
 import java.math.*;
 
-
-import com.tightdb.generated.*;
-
-import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.NestedTable;
+import com.tightdb.generated.Test;
+import com.tightdb.generated.TestQuery;
+import com.tightdb.generated.TestTable;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
 
 public class Performance {
 	
 	public static void main(String[] args) {
+		// Compare Tightdb performance against a Java ArrayList
 		Performance.TestTightdb(250000);
 		Performance.TestJavaArray(250000);
 	}
