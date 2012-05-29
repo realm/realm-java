@@ -15,6 +15,11 @@ import com.tightdb.lib.TightDB;
 
 public class Performance {
 	
+	public static void main(String[] args) {
+		Performance.TestTightdb(250000);
+		Performance.TestJavaArray(250000);
+	}
+
 	static class Timer {
 
 		static long startTime;

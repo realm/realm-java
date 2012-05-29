@@ -13,12 +13,16 @@ public class PeopleTable extends AbstractTable<People, PeopleView, PeopleQuery> 
 
 	public static final EntityTypes<PeopleTable, PeopleView, People, PeopleQuery> TYPES = new EntityTypes<PeopleTable, PeopleView, People, PeopleQuery>(PeopleTable.class, PeopleView.class, People.class, PeopleQuery.class); 
 
-	public final StringRowsetColumn<People, PeopleQuery> name = new StringRowsetColumn<People, PeopleQuery>(TYPES, table, 0, "name");
-	public final LongRowsetColumn<People, PeopleQuery> age = new LongRowsetColumn<People, PeopleQuery>(TYPES, table, 1, "age");
-	public final BooleanRowsetColumn<People, PeopleQuery> hired = new BooleanRowsetColumn<People, PeopleQuery>(TYPES, table, 2, "hired");
+	public final StringRowsetColumn<People, PeopleView, PeopleQuery> name = new StringRowsetColumn<People, PeopleView, PeopleQuery>(TYPES, table, 0, "name");
+	public final LongRowsetColumn<People, PeopleView, PeopleQuery> age = new LongRowsetColumn<People, PeopleView, PeopleQuery>(TYPES, table, 1, "age");
+	public final BooleanRowsetColumn<People, PeopleView, PeopleQuery> hired = new BooleanRowsetColumn<People, PeopleView, PeopleQuery>(TYPES, table, 2, "hired");
 
 	public PeopleTable() {
 		super(TYPES);
+	}
+	
+	public PeopleTable(Group group) {
+		super(TYPES, group);
 	}
 
 	@Override
@@ -30,7 +34,7 @@ public class PeopleTable extends AbstractTable<People, PeopleView, PeopleQuery> 
 
     public People add(String name, int age, boolean hired) {
         try {
-        	int position = size();
+        	long position = size();
 
         	insertString(0, position, name);
         	insertLong(1, position, age);

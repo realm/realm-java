@@ -141,8 +141,6 @@ for (People ppl : people3) {
     System.out.println(ppl.getName() + " is " + ppl.getAge() + " years old");
 }
 // @@EndExample@@
-
-*/
-	}
-
+    }
+    
 }

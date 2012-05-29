@@ -11,16 +11,16 @@ import com.tightdb.lib.*;
  */
 public class People extends AbstractCursor<People> {
 
-    public final StringCursorColumn<People, PeopleQuery> name;
-    public final LongCursorColumn<People, PeopleQuery> age;
-    public final BooleanCursorColumn<People, PeopleQuery> hired;
+    public final StringCursorColumn<People, PeopleView, PeopleQuery> name;
+    public final LongCursorColumn<People, PeopleView, PeopleQuery> age;
+    public final BooleanCursorColumn<People, PeopleView, PeopleQuery> hired;
 
 	public People(IRowsetBase rowset, long position) {
 		super(PeopleTable.TYPES, rowset, position);
 
-        name = new StringCursorColumn<People, PeopleQuery>(PeopleTable.TYPES, this, 0, "name");
-        age = new LongCursorColumn<People, PeopleQuery>(PeopleTable.TYPES, this, 1, "age");
-        hired = new BooleanCursorColumn<People, PeopleQuery>(PeopleTable.TYPES, this, 2, "hired");
+        name = new StringCursorColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, this, 0, "name");
+        age = new LongCursorColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, this, 1, "age");
+        hired = new BooleanCursorColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, this, 2, "hired");
 	}
 
 	public java.lang.String getName() {
@@ -48,7 +48,7 @@ public class People extends AbstractCursor<People> {
 	}
 
 	@Override
-	public AbstractColumn<?, ?, ?>[] columns() {
+	public AbstractColumn<?, ?, ?, ?>[] columns() {
 		return getColumnsArray(name, age, hired);
 	}
 

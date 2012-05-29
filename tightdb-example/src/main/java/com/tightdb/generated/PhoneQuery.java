@@ -11,13 +11,13 @@ import com.tightdb.lib.*;
  */
 public class PhoneQuery extends AbstractQuery<PhoneQuery, Phone, PhoneView> {
 
-    public final StringQueryColumn<Phone, PhoneQuery> type;
-    public final StringQueryColumn<Phone, PhoneQuery> number;
+    public final StringQueryColumn<Phone, PhoneView, PhoneQuery> type;
+    public final StringQueryColumn<Phone, PhoneView, PhoneQuery> number;
 
 	public PhoneQuery(TableBase table, TableQuery query) {
 		super(PhoneTable.TYPES, table, query);
-        type = new StringQueryColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, query, 0, "type");
-        number = new StringQueryColumn<Phone, PhoneQuery>(PhoneTable.TYPES, table, query, 1, "number");
+        type = new StringQueryColumn<Phone, PhoneView, PhoneQuery>(PhoneTable.TYPES, table, query, 0, "type");
+        number = new StringQueryColumn<Phone, PhoneView, PhoneQuery>(PhoneTable.TYPES, table, query, 1, "number");
 	}
 
 }

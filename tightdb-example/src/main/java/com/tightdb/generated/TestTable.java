@@ -13,13 +13,17 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 
 	public static final EntityTypes<TestTable, TestView, Test, TestQuery> TYPES = new EntityTypes<TestTable, TestView, Test, TestQuery>(TestTable.class, TestView.class, Test.class, TestQuery.class); 
 
-	public final LongRowsetColumn<Test, TestQuery> first = new LongRowsetColumn<Test, TestQuery>(TYPES, table, 0, "first");
-	public final StringRowsetColumn<Test, TestQuery> second = new StringRowsetColumn<Test, TestQuery>(TYPES, table, 1, "second");
-	public final LongRowsetColumn<Test, TestQuery> third = new LongRowsetColumn<Test, TestQuery>(TYPES, table, 2, "third");
-	public final LongRowsetColumn<Test, TestQuery> fourth = new LongRowsetColumn<Test, TestQuery>(TYPES, table, 3, "fourth");
+	public final LongRowsetColumn<Test, TestView, TestQuery> first = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 0, "first");
+	public final StringRowsetColumn<Test, TestView, TestQuery> second = new StringRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 1, "second");
+	public final LongRowsetColumn<Test, TestView, TestQuery> third = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 2, "third");
+	public final LongRowsetColumn<Test, TestView, TestQuery> fourth = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 3, "fourth");
 
 	public TestTable() {
 		super(TYPES);
+	}
+	
+	public TestTable(Group group) {
+		super(TYPES, group);
 	}
 
 	@Override
@@ -32,7 +36,7 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 
     public Test add(int first, String second, int third, int fourth) {
         try {
-        	int position = size();
+        	long position = size();
 
         	insertLong(0, position, first);
         	insertString(1, position, second);

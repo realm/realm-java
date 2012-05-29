@@ -11,18 +11,18 @@ import com.tightdb.lib.*;
  */
 public class Test extends AbstractCursor<Test> {
 
-    public final LongCursorColumn<Test, TestQuery> first;
-    public final StringCursorColumn<Test, TestQuery> second;
-    public final LongCursorColumn<Test, TestQuery> third;
-    public final LongCursorColumn<Test, TestQuery> fourth;
+    public final LongCursorColumn<Test, TestView, TestQuery> first;
+    public final StringCursorColumn<Test, TestView, TestQuery> second;
+    public final LongCursorColumn<Test, TestView, TestQuery> third;
+    public final LongCursorColumn<Test, TestView, TestQuery> fourth;
 
 	public Test(IRowsetBase rowset, long position) {
 		super(TestTable.TYPES, rowset, position);
 
-        first = new LongCursorColumn<Test, TestQuery>(TestTable.TYPES, this, 0, "first");
-        second = new StringCursorColumn<Test, TestQuery>(TestTable.TYPES, this, 1, "second");
-        third = new LongCursorColumn<Test, TestQuery>(TestTable.TYPES, this, 2, "third");
-        fourth = new LongCursorColumn<Test, TestQuery>(TestTable.TYPES, this, 3, "fourth");
+        first = new LongCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 0, "first");
+        second = new StringCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 1, "second");
+        third = new LongCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 2, "third");
+        fourth = new LongCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 3, "fourth");
 	}
 
 	public long getFirst() {
@@ -58,7 +58,7 @@ public class Test extends AbstractCursor<Test> {
 	}
 
 	@Override
-	public AbstractColumn<?, ?, ?>[] columns() {
+	public AbstractColumn<?, ?, ?, ?>[] columns() {
 		return getColumnsArray(first, second, third, fourth);
 	}
 
