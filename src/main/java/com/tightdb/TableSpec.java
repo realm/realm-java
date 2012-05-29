@@ -26,6 +26,10 @@ public class TableSpec {
 		columnInfos.add(new ColumnInfo(type, name));
 	}
 	
+	protected void addColumn(int colTypeIndex, String name){
+		ColumnType[] colTypes = ColumnType.values();
+		addColumn(colTypes[colTypeIndex], name);
+	}
 	public TableSpec addSubtableColumn(String name){
 		ColumnInfo columnInfo = new ColumnInfo(ColumnType.ColumnTypeTable, name);
 		columnInfos.add(columnInfo);

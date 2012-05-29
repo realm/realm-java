@@ -21,8 +21,8 @@ public class Example {
 		showLongExample();
 
 		// Enable below to compare Tightdb performance against a Java ArrayList
-		// Performance.TestTightdb(250000);
-		// Performance.TestJavaArray(250000);
+		 Performance.TestTightdb(250000);
+		 Performance.TestJavaArray(250000);
 	}
 
 	/******************************************************************/
@@ -100,8 +100,11 @@ public class Example {
 		// using implicit AND
 		TightDB.print("Search example 2", employees.firstName.is("Johnny").lastName.startsWith("B").findLast());
 
+		TightDB.print("Employees", employees);
+
 		employees.firstName.is("John").findLast().salary.set(30000);
 
+		
 		/****************************** ITERATION OF ALL RECORDS *****************************/
 
 		// lazy iteration over the table
