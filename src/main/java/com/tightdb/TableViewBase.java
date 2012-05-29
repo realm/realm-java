@@ -57,7 +57,7 @@ public class TableViewBase implements IRowsetBase {
 	public TableViewBase(TableBase table){
 		this.table = table;
 		this.tableView = null;
-		this.nativePtr = createNativeTableView(this.table);
+		this.nativePtr = createNativeTableView(table, table.nativePtr);
 	}
 	
 	/**
@@ -386,7 +386,7 @@ public class TableViewBase implements IRowsetBase {
 		sort(columnIndex, true);
 	}
 	
-	protected native long createNativeTableView(TableBase table);
+	protected native long createNativeTableView(TableBase table, long nativeTablePtr);
 	
 	public void finalize(){
 		close();

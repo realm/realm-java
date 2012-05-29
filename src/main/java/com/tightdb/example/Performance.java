@@ -10,6 +10,12 @@ import com.tightdb.lib.TightDB;
 
 public class Performance {
 	
+	public static void main(String[] args) {
+		// Enable below to compare Tightdb performance against a Java ArrayList
+		Performance.TestTightdb(250000);
+		Performance.TestJavaArray(250000);
+	}
+	
 	static class Timer {
 
 		static long startTime;

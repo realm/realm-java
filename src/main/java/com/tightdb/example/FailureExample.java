@@ -23,7 +23,7 @@ public class FailureExample {
 		}
 
 		employees.clear();
-
+		System.out.println("DONE");
 	}
 
 }

@@ -119,6 +119,12 @@ public class TableBase implements IRowsetBase {
 
 	protected native long nativeGetColumnCount(long nativeTablePtr);
 
+	public TableSpec getTableSpec(){
+		return nativeGetTableSpec(nativePtr);
+	}
+	
+	protected native TableSpec nativeGetTableSpec(long nativeTablePtr);
+	
 	/**
 	 * Returns the name of a column identified by columnIndex. Notice that the
 	 * index is zero based.
