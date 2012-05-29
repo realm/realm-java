@@ -19,10 +19,6 @@ public class Example {
 
 	public static void main(String[] args) {
 		showLongExample();
-
-		// Enable below to compare Tightdb performance against a Java ArrayList
-		// Performance.TestTightdb(250000);
-		// Performance.TestJavaArray(250000);
 	}
 
 	/******************************************************************/

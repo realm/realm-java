@@ -150,70 +150,74 @@ public class TableQuery {
 
 	// Searching methods.
 	public long findNext(TableBase table, long lastMatch){
-		return nativeFindNext(nativePtr, table, lastMatch);
+		return nativeFindNext(nativePtr, table, table.nativePtr, lastMatch);
 	}
 	
-	protected native long nativeFindNext(long nativeQueryPtr, TableBase table, long lastMatch);
+	protected native long nativeFindNext(long nativeQueryPtr, TableBase table, long tableNativePtr, long lastMatch);
 	
 	public long findNext(TableBase table){
 		return findNext(table, -1L);
 	}
 	
 	public TableViewBase findAll(TableBase tableBase, long start, long end, long limit){
-		return new TableViewBase(tableBase, nativeFindAll(nativePtr, tableBase, start, end, limit));
+		return new TableViewBase(tableBase, nativeFindAll(nativePtr, tableBase, tableBase.nativePtr, start, end, limit));
 	}
 	
-	protected native long nativeFindAll(long nativeQueryPtr, TableBase tableBase, long start, long end, long limit);
+	protected long nativeFindAll(long nativeQueryPtr, TableBase tableBase, long start, long end, long limit){
+		return nativeFindAll(nativeQueryPtr, tableBase, tableBase.nativePtr, start, end, limit);
+	}
+
+	protected native long nativeFindAll(long nativeQueryPtr, TableBase table, long tableNativePtr, long start, long end, long limit);
 	
 	public TableViewBase findAll(TableBase tableBase){
 		return findAll(tableBase, 0L, -1L, -1L);
 	}
 	
 	public long sum(TableBase table, long columnIndex, long start, long end, long limit){
-		return nativeSum(nativePtr, table, columnIndex, start, end, limit);
+		return nativeSum(nativePtr, table, table.nativePtr, columnIndex, start, end, limit);
 	}
 	
-	protected native long nativeSum(long nativeQueryPtr, TableBase table, long columnIndex, long start, long end, long limit);
+	protected native long nativeSum(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 	
 	public long sum(TableBase tableBase, long columnIndex){
 		return sum(tableBase, columnIndex, 0L, -1L, -1L);
 	}
 	
 	public long maximum(TableBase table, long columnIndex, long start, long end, long limit){
-		return nativeMaximum(nativePtr, table, columnIndex, start, end, limit);
+		return nativeMaximum(nativePtr, table, table.nativePtr, columnIndex, start, end, limit);
 	}
 	
-	protected native long nativeMaximum(long nativeQueryPtr, TableBase table, long columnIndex, long start, long end, long limit);
+	protected native long nativeMaximum(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 	
 	public long maximum(TableBase tableBase, long columnIndex){
 		return maximum(tableBase, columnIndex, 0L, -1L, -1L);
 	}
 	
 	public long minimum(TableBase table, long columnIndex, long start, long end, long limit){
-		return nativeMinimum(nativePtr, table, columnIndex, start, end, limit);
+		return nativeMinimum(nativePtr, table, table.nativePtr, columnIndex, start, end, limit);
 	}
 	
-	protected native long nativeMinimum(long nativeQueryPtr, TableBase table, long columnIndex, long start, long end, long limit);
+	protected native long nativeMinimum(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 	
 	public long minimum(TableBase tableBase, long columnIndex){
 		return minimum(tableBase, columnIndex, 0L, -1L, -1L);
 	}
 	
 	public double average(TableBase table, long columnIndex, long start, long end, long limit){
-		return nativeAverage(nativePtr, table, columnIndex, start, end, limit);
+		return nativeAverage(nativePtr, table, table.nativePtr, columnIndex, start, end, limit);
 	}
 	
-	protected native double nativeAverage(long nativeQueryPtr, TableBase table, long columnIndex, long start, long end, long limit);
+	protected native double nativeAverage(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 
 	public double average(TableBase tableBase, long columnIndex){
 		return average(tableBase, columnIndex, 0L, -1L, -1L);
 	}
 	
 	public long count(TableBase table, long start, long end, long limit){
-		return nativeCount(nativePtr, table, start, end, limit);
+		return nativeCount(nativePtr, table, table.nativePtr, start, end, limit);
 	}
 	
-	protected native long nativeCount(long nativeQueryPtr, TableBase table, long start, long end, long limit);
+	protected native long nativeCount(long nativeQueryPtr, TableBase table, long tableNativePtr, long start, long end, long limit);
 
 	public long count(TableBase tableBase){
 		return count(tableBase, 0L, -1L, -1L);
@@ -221,14 +225,14 @@ public class TableQuery {
 	
 	// Deletion.
 	public void remove(TableBase tableBase, long start, long end, long limit){
-		nativeRemove(nativePtr, tableBase, start, end, limit);
+		nativeRemove(nativePtr, tableBase, tableBase.nativePtr, start, end, limit);
 	}
 	
 	public void remove(TableBase tableBase){
 		remove(tableBase, 0L, -1L, -1L);
 	}
 	
-	protected native void nativeRemove(long nativeQueryPtr, TableBase tableBase, long start, long end, long limit);
+	protected native void nativeRemove(long nativeQueryPtr, TableBase tableBase, long tableBaseNativePtr, long start, long end, long limit);
 	
 	public String getErrorCode(){
 		return nativeGetErrorCode(nativePtr);
@@ -237,10 +241,10 @@ public class TableQuery {
 	protected native String nativeGetErrorCode(long nativePtr);
 
 	public TableViewBase findAllMulti(TableBase table, long start, long end){
-		return new TableViewBase(table, nativeFindAllMulti(nativePtr, table, start, end));
+		return new TableViewBase(table, nativeFindAllMulti(nativePtr, table, table.nativePtr, start, end));
 	}
 	
-	protected native long nativeFindAllMulti(long nativeQueryPtr, TableBase tableBase, long start, long end);
+	protected native long nativeFindAllMulti(long nativeQueryPtr, TableBase tableBase, long tableNativePtr, long start, long end);
 	
 	public TableViewBase findAllMulti(TableBase tableBase){
 		return findAllMulti(tableBase, 0L, -1L);
