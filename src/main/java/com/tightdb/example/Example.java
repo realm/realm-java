@@ -11,7 +11,6 @@ import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.Phone;
 import com.tightdb.generated.PhoneTable;
 import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
 
@@ -46,7 +45,7 @@ public class Example {
 		phone phones;
 	}
 
-	@NestedTable
+	@Table
 	class phone {
 		String type;
 		String number;

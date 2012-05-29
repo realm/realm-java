@@ -3,7 +3,6 @@ package com.tightdb.example;
 import com.tightdb.generated.People;
 import com.tightdb.generated.PeopleQuery;
 import com.tightdb.generated.PeopleTable;
-import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 
 public class ExampleTutorial {
@@ -13,9 +12,10 @@ public class ExampleTutorial {
 		String name;
 		int age;
 		boolean hired;
+		phone phones;
 	}
 
-	@NestedTable
+	@Table
 	class phone {
 		String type;
 		String number;
