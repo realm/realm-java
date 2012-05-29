@@ -11,17 +11,16 @@ import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.Phone;
 import com.tightdb.generated.PhoneTable;
 import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
 
 public class Example {
 
 	public static void main(String[] args) {
-		showLongExample();
+		//showLongExample();
 
 		// Enable below to compare Tightdb performance against a Java ArrayList
-		// Performance.TestTightdb(250000);
+		Performance.TestTightdb(250000);
 		// Performance.TestJavaArray(250000);
 	}
 
@@ -50,7 +49,7 @@ public class Example {
 		phone phones;
 	}
 
-	@NestedTable
+	@Table
 	class phone {
 		String type;
 		String number;

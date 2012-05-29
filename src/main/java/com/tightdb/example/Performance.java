@@ -1,15 +1,10 @@
 package com.tightdb.example;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.math.*;
 
-
-import com.tightdb.generated.*;
-
-import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.NestedTable;
+import com.tightdb.generated.Test;
+import com.tightdb.generated.TestQuery;
+import com.tightdb.generated.TestTable;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
 
@@ -127,10 +122,10 @@ public class Performance {
 			// Build large table
 			for (int i = 0; i < MAX_SIZE; ++i) {
 			    // create random string
-			     int n = (int) (rand() % 1000);
-			     String s = number_name(n);
+			     //int n = (int) (rand() % 1000);
+			     //String s = number_name(n);
 			
-			    table.add(n, s, 100, Wed);
+			    table.add(123, "fsf", 100, Wed);
 			}
 			table.add(0, "abcde", 123, Thu);
 			

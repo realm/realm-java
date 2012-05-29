@@ -7,7 +7,6 @@ import org.jannocessor.processor.annotation.Types;
 import org.jannocessor.processor.api.CodeProcessor;
 
 import com.tightdb.generator.CodeGenerator;
-import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 
 /**
@@ -18,7 +17,7 @@ import com.tightdb.lib.Table;
  */
 public class Processors {
 
-	@Annotated({ Table.class, NestedTable.class })
+	@Annotated(Table.class)
 	@Types(AbstractJavaClass.class)
 	public CodeProcessor<? extends JavaElement> tables() {
 		return new CodeGenerator();

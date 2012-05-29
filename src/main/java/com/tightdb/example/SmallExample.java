@@ -1,16 +1,9 @@
 package com.tightdb.example;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Date;
 
 import com.tightdb.generated.Employee;
-import com.tightdb.generated.EmployeeQuery;
 import com.tightdb.generated.EmployeeTable;
-import com.tightdb.generated.Phone;
-import com.tightdb.generated.PhoneTable;
-import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.NestedTable;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
 
@@ -41,7 +34,7 @@ public class SmallExample {
 		phone phones;
 	}
 
-	@NestedTable
+	@Table
 	class phone {
 		String type;
 		String number;
