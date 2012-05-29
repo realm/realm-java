@@ -1,8 +1,8 @@
 package com.tightdb.lib;
 
-import static org.junit.Assert.*;
+import static org.testng.AssertJUnit.*;
 
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeQuery;

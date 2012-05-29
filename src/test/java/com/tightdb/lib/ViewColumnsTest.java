@@ -1,10 +1,7 @@
 package com.tightdb.lib;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.testng.AssertJUnit.*;
+import org.testng.annotations.Test;
 
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeView;
@@ -23,8 +20,7 @@ public class ViewColumnsTest extends AbstractViewTest {
 		assertNull(record3);
 	}
 
-	@Test
-	@Ignore // crashes
+	@Test(enabled = false)
 	public void shouldFindAllRecordsByColumnValue() throws IllegalAccessException {
 		EmployeeView view1 = employees.firstName.findAll(NAME1);
 		assertEquals(1, view1.size());

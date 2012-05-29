@@ -1,10 +1,9 @@
 package com.tightdb.lib;
 
-import static org.junit.Assert.assertEquals;
-
+import static org.testng.AssertJUnit.*;
 import java.util.Date;
 
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 import com.tightdb.Group;
 import com.tightdb.generated.EmployeeTable;
@@ -15,7 +14,7 @@ public class GroupTest {
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
 
-	@Test
+	@Test(enabled = false)
 	public void shouldCreateTablesInGroup() {
 		Group group = new Group();
 

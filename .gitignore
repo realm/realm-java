@@ -37,3 +37,4 @@ _ReSharper*/
 /target
 /.settings
 *.tdb
+/test-output

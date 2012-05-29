@@ -1,14 +1,11 @@
 package com.tightdb;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.testng.AssertJUnit.*;
+import org.testng.annotations.Test;
 
 public class JNISubtableTest {
 
-	@Test
-	@Ignore
+	@Test(enabled = false)
 	public void shouldSynchronizeNestedTables() {
 		Group group = new Group();
 		TableBase table = group.getTable("emp");

@@ -1,9 +1,11 @@
 package com.tightdb.lib;
 
+
+import static org.testng.AssertJUnit.*;
 import java.util.Date;
 
-import org.junit.After;
-import org.junit.Before;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 
 import com.tightdb.generated.EmployeeTable;
 
@@ -15,7 +17,7 @@ public abstract class AbstractTableTest {
 
 	protected EmployeeTable employees;
 
-	@Before
+	@BeforeMethod
 	public void init() {
 		employees = new EmployeeTable();
 
@@ -24,7 +26,7 @@ public abstract class AbstractTableTest {
 		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 	}
 
-	@After
+	@AfterMethod
 	public void clear() {
 		employees.clear();
 	}
