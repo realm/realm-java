@@ -11,7 +11,7 @@
 		<dependency>
 			<groupId>com.googlecode.jannocessor</groupId>
 			<artifactId>jannocessor</artifactId>
-			<version>0.7.0</version>
+			<version>0.7.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -89,6 +89,26 @@
 							</includes>
 						</configuration>
 					</plugin>
+					
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>package-jar-with-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<appendAssemblyId>false</appendAssemblyId>
+									<descriptorRefs>
+										<descriptorRef>jar-with-dependencies</descriptorRef>
+									</descriptorRefs>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>					
 				</plugins>
 
 				<pluginManagement>
