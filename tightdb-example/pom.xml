@@ -26,10 +26,51 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.4.1</version>
+				<executions>
+					<execution>
+						<id>clean-generated-code</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+						<configuration>
+							<filesets>
+								<fileset>
+									<directory>${project.basedir}/src/main/java/com/tightdb/generated</directory>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</fileset>
+							</filesets>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.googlecode.jannocessor</groupId>
+				<artifactId>jannocessor-maven-plugin</artifactId>
+				<version>0.7.2</version>
+				<executions>
+					<execution>
+						<id>generate-code</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>process</goal>
+						</goals>
+						<configuration>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
+		
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -39,15 +80,9 @@
 							<pluginExecutions>
 								<pluginExecution>
 									<pluginExecutionFilter>
-										<groupId>
-											org.apache.maven.plugins
-										</groupId>
-										<artifactId>
-											maven-clean-plugin
-										</artifactId>
-										<versionRange>
-											[2.4.1,)
-										</versionRange>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-clean-plugin</artifactId>
+										<versionRange>[2.4.1,)</versionRange>
 										<goals>
 											<goal>clean</goal>
 										</goals>
@@ -60,95 +95,33 @@
 						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
+				
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.googlecode.jannocessor</groupId>
+										<artifactId>jannocessor-maven-plugin</artifactId>
+										<versionRange>[0.7.0,)</versionRange>
+										<goals>
+											<goal>process</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>generate-code</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<build>
-				<plugins>
-
-					<plugin>
-						<artifactId>maven-clean-plugin</artifactId>
-						<version>2.4.1</version>
-						<executions>
-							<execution>
-								<id>clean-generated-code</id>
-								<phase>generate-sources</phase>
-								<goals>
-									<goal>clean</goal>
-								</goals>
-								<configuration>
-									<filesets>
-										<fileset>
-											<directory>${project.basedir}/src/main/java/com/tightdb/generated</directory>
-											<includes>
-												<include>**/*</include>
-											</includes>
-										</fileset>
-									</filesets>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-					<plugin>
-						<groupId>com.googlecode.jannocessor</groupId>
-						<artifactId>jannocessor-maven-plugin</artifactId>
-						<version>0.7.2</version>
-						<executions>
-							<execution>
-								<id>generate-code</id>
-								<phase>generate-sources</phase>
-								<goals>
-									<goal>process</goal>
-								</goals>
-								<configuration>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-				</plugins>
-
-				<pluginManagement>
-					<plugins>
-						<!-- This plugin's configuration is used to store Eclipse m2e settings 
-							only. It has no influence on the Maven build itself. -->
-						<plugin>
-							<groupId>org.eclipse.m2e</groupId>
-							<artifactId>lifecycle-mapping</artifactId>
-							<version>1.0.0</version>
-							<configuration>
-								<lifecycleMappingMetadata>
-									<pluginExecutions>
-										<pluginExecution>
-											<pluginExecutionFilter>
-												<groupId>com.googlecode.jannocessor</groupId>
-												<artifactId>jannocessor-maven-plugin</artifactId>
-												<versionRange>[0.7.0,)</versionRange>
-												<goals>
-													<goal>process</goal>
-												</goals>
-											</pluginExecutionFilter>
-											<action>
-												<ignore />
-											</action>
-										</pluginExecution>
-									</pluginExecutions>
-								</lifecycleMappingMetadata>
-							</configuration>
-						</plugin>
-					</plugins>
-				</pluginManagement>
-
-			</build>
-		</profile>
-	</profiles>
 
 </project>

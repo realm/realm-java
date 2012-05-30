@@ -1,0 +1,116 @@
+1. Copy tightdb.jar in the project's "lib" folder (<project>/lib/tightdb.jar).
+
+2. Add the TightDB JAR as a Maven dependency (in <dependencies> ... </dependencies>):
+
+<dependency>
+	<groupId>com.tightdb</groupId>
+	<artifactId>tightdb</artifactId>
+	<version>1.1.0</version>
+	<scope>system</scope>
+	<systemPath>${project.basedir}/lib/tightdb.jar</systemPath>
+</dependency>
+
+3. Configure Java compiler (to version 1.6 or 1.7) and JAnnocessor (in <build> <plugins> ... </plugins> </build>):
+
+<plugin>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>2.3.2</version>
+	<configuration>
+		<source>1.6</source>
+		<target>1.6</target>
+	</configuration>
+</plugin>
+
+<plugin>
+	<artifactId>maven-clean-plugin</artifactId>
+	<version>2.4.1</version>
+	<executions>
+		<execution>
+			<id>clean-generated-code</id>
+			<phase>generate-sources</phase>
+			<goals>
+				<goal>clean</goal>
+			</goals>
+			<configuration>
+				<filesets>
+					<fileset>
+						<directory>${project.basedir}/src/main/java/com/tightdb/generated</directory>
+						<includes>
+							<include>**/*</include>
+						</includes>
+					</fileset>
+				</filesets>
+			</configuration>
+		</execution>
+	</executions>
+</plugin>
+
+<plugin>
+	<groupId>com.googlecode.jannocessor</groupId>
+	<artifactId>jannocessor-maven-plugin</artifactId>
+	<version>0.7.2</version>
+	<executions>
+		<execution>
+			<id>generate-code</id>
+			<phase>generate-sources</phase>
+			<goals>
+				<goal>process</goal>
+			</goals>
+			<configuration>
+			</configuration>
+		</execution>
+	</executions>
+</plugin>
+
+4. [Optional] In Eclipse 3.7 some "lifecycle connectors" errors might show up, so this additional configuration might be needed (in <build> <pluginManagement> <plugins> ... </plugins> </pluginManagement> </build>):
+
+<plugin>
+	<groupId>org.eclipse.m2e</groupId>
+	<artifactId>lifecycle-mapping</artifactId>
+	<version>1.0.0</version>
+	<configuration>
+		<lifecycleMappingMetadata>
+			<pluginExecutions>
+				<pluginExecution>
+					<pluginExecutionFilter>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-clean-plugin</artifactId>
+						<versionRange>[2.4.1,)</versionRange>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</pluginExecutionFilter>
+					<action>
+						<ignore></ignore>
+					</action>
+				</pluginExecution>
+			</pluginExecutions>
+		</lifecycleMappingMetadata>
+	</configuration>
+</plugin>
+
+<plugin>
+	<groupId>org.eclipse.m2e</groupId>
+	<artifactId>lifecycle-mapping</artifactId>
+	<version>1.0.0</version>
+	<configuration>
+		<lifecycleMappingMetadata>
+			<pluginExecutions>
+				<pluginExecution>
+					<pluginExecutionFilter>
+						<groupId>com.googlecode.jannocessor</groupId>
+						<artifactId>jannocessor-maven-plugin</artifactId>
+						<versionRange>[0.7.0,)</versionRange>
+						<goals>
+							<goal>process</goal>
+						</goals>
+					</pluginExecutionFilter>
+					<action>
+						<ignore />
+					</action>
+				</pluginExecution>
+			</pluginExecutions>
+		</lifecycleMappingMetadata>
+	</configuration>
+</plugin>
+				
