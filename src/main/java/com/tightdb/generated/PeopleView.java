@@ -14,6 +14,7 @@ public class PeopleView extends AbstractView<People, PeopleView, PeopleQuery> {
 	public final StringRowsetColumn<People, PeopleView, PeopleQuery> name = new StringRowsetColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, rowset, 0, "name");
 	public final LongRowsetColumn<People, PeopleView, PeopleQuery> age = new LongRowsetColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, rowset, 1, "age");
 	public final BooleanRowsetColumn<People, PeopleView, PeopleQuery> hired = new BooleanRowsetColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, rowset, 2, "hired");
+	public final TableRowsetColumn<People, PeopleView, PeopleQuery, PhoneTable> phones = new TableRowsetColumn<People, PeopleView, PeopleQuery, PhoneTable>(PeopleTable.TYPES, rowset, 3, "phones", PhoneTable.class);
 
 	public PeopleView(TableViewBase viewBase) {
 		super(PeopleTable.TYPES, viewBase);
