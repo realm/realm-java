@@ -1,6 +1,8 @@
-1. Copy tightdb.jar in the project's "lib" folder (<project>/lib/tightdb.jar).
+1. Copy the native TightDB library to the project's base folder.
 
-2. Add the TightDB JAR as a Maven dependency (in <dependencies> ... </dependencies>):
+2. Copy tightdb.jar in the project's "lib" folder (<project>/lib/tightdb.jar).
+
+3. Add the TightDB JAR as a Maven dependency (in <dependencies> ... </dependencies>):
 
 <dependency>
 	<groupId>com.tightdb</groupId>
@@ -10,7 +12,7 @@
 	<systemPath>${project.basedir}/lib/tightdb.jar</systemPath>
 </dependency>
 
-3. Configure Java compiler (to version 1.6 or 1.7) and JAnnocessor (in <build> <plugins> ... </plugins> </build>):
+4. Configure Java compiler (to version 1.6 or 1.7) and JAnnocessor (in <build> <plugins> ... </plugins> </build>):
 
 <plugin>
 	<artifactId>maven-compiler-plugin</artifactId>
@@ -62,7 +64,7 @@
 	</executions>
 </plugin>
 
-4. [Optional] In Eclipse 3.7 some "lifecycle connectors" errors might show up, so this additional configuration might be needed (in <build> <pluginManagement> <plugins> ... </plugins> </pluginManagement> </build>):
+5. [Optional] In Eclipse 3.7 some "lifecycle connectors" errors might show up, so this additional configuration might be needed (in <build> <pluginManagement> <plugins> ... </plugins> </pluginManagement> </build>):
 
 <plugin>
 	<groupId>org.eclipse.m2e</groupId>
@@ -113,4 +115,3 @@
 		</lifecycleMappingMetadata>
 	</configuration>
 </plugin>
-				
