@@ -2,28 +2,25 @@
 
 <project name="tightdb-ant-example" basedir="." default="generate-sources">
 	
-	<property name="src" value="src" />
-	<property name="target" value="1.6" />
-	<property name="source" value="1.6" />
-	<property name="processor" value="org.jannocessor.processor.JannocessorProcessor" />
-	<property name="tightdb" value="lib/tightdb.jar" />
+	<property name="srcdir" value="src" />
+	<property name="version" value="1.6" />
 
 	<target name="clean-generated-files">
 		<echo message="${ant.project.name}: ${ant.file}" />
-		<delete dir="${src}/com/tightdb/generated" />
+		<delete dir="${srcdir}/com/tightdb/generated" />
 	</target>
 
 	<target name="generate-sources" depends="clean-generated-files">
 		<echo message="${ant.project.name}: ${ant.file}" />
-		<javac source="${source}" target="${target}" srcdir="${src}">
+		<javac source="${version}" target="${version}" srcdir="${srcdir}">
 			<compilerarg value="-classpath" />
-			<compilerarg value="${tightdb}" />
+			<compilerarg value="lib/tightdb.jar" />
 			<compilerarg value="-processor" />
-			<compilerarg value="${processor}" />
+			<compilerarg value="org.jannocessor.processor.JannocessorProcessor" />
 			<compilerarg value="-processorpath" />
-			<compilerarg value="${tightdb}" />
+			<compilerarg value="lib/tightdb-devkit.jar" />
 			<compilerarg value="-s" />
-			<compilerarg value="${src}" />
+			<compilerarg value="${srcdir}" />
 			<compilerarg value="-proc:only" />
 		</javac>
 	</target>
