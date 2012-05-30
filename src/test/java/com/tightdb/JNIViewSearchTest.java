@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 
 public class JNIViewSearchTest {
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void shouldSearchByColumnValue() {
 		TableBase table = new TableBase();
 

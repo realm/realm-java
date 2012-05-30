@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 
 public class JNISubtableTest {
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void shouldSynchronizeNestedTables() {
 		Group group = new Group();
 		TableBase table = group.getTable("emp");
