@@ -8,12 +8,17 @@ public class BooleanQueryColumn<Cursor, View, Query> extends AbstractColumn<Bool
 		super(types, rowset, query, index, name);
 	}
 
-	public Query is(boolean value) {
+	public Query equal(boolean value) {
+		return query(getQuery().equal(columnIndex, value));
+	}
+	public Query eq(boolean value) {
 		return query(getQuery().equal(columnIndex, value));
 	}
 
-	public Query isnt(boolean value) {
+	public Query notEqual(boolean value) {
 		return query(getQuery().equal(columnIndex, !value));
 	}
-
+	public Query neq(boolean value) {
+		return query(getQuery().equal(columnIndex, !value));
+	}
 }

@@ -8,11 +8,17 @@ public class StringQueryColumn<Cursor, View, Query> extends AbstractColumn<Strin
 		super(types, rowset, query, index, name);
 	}
 
-	public Query is(String value) {
+	public Query equal(String value) {
+		return query(getQuery().equal(columnIndex, value));
+	}
+	public Query eq(String value) {
 		return query(getQuery().equal(columnIndex, value));
 	}
 
-	public Query isnt(String value) {
+	public Query notEqual(String value) {
+		return query(getQuery().notEqual(columnIndex, value));
+	}
+	public Query neq(String value) {
 		return query(getQuery().notEqual(columnIndex, value));
 	}
 

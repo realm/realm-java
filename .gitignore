@@ -1,3 +1,5 @@
+tightdb-example/target/*
+
 *.sdf
 *.opensdf
 *.ipch

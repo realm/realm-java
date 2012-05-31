@@ -97,7 +97,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		ByteBuffer buffer = ByteBuffer.allocateDirect(value.length);
 		buffer.put(value);
 
-		table.insertBinaryByteBuffer(columnIndex, rowIndex, buffer);
+		table.insertBinary(columnIndex, rowIndex, buffer);
 	}
 
 	protected void insertDate(long columnIndex, long rowIndex, Date value) {

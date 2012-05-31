@@ -154,7 +154,7 @@ public class Performance {
 		    timer.Start();
 		
 		    // Do a search over entire column (value not found)
-		    TestQuery q = table.fourth.is(Tue);
+		    TestQuery q = table.fourth.eq(Tue);
 		    for (int i = 0; i < 100; ++i) {
 		         Test res = q.findFirst();
 		         if (res != null) {
@@ -173,7 +173,7 @@ public class Performance {
 		
 		    // Do a search over entire column (value not found)
 		    for (int i = 0; i < 100; ++i) {
-		        Test res = table.third.is(50).findFirst();
+		        Test res = table.third.eq(50).findFirst();
 		        if (res != null) {
 		            System.out.printf("error");
 		            break;
@@ -191,7 +191,7 @@ public class Performance {
 		    
 		    // Do a search over entire column (value not found)
 		    for (int i = 0; i < 100; ++i) {
-		        Test res = table.second.is("abcde").findFirst();
+		        Test res = table.second.eq("abcde").findFirst();
 		        
 		        //TightDB.print("row: ", res);
 		        long row = res.getPosition();
@@ -225,7 +225,7 @@ public class Performance {
 		
 		    for (int i = 0; i < 100000; ++i) {
 		        long n = rand() % 1000;
-		        Test res = table.first.is(n).findFirst();
+		        Test res = table.first.eq(n).findFirst();
 		        long row = res.getPosition();
 		        dummy += row;
 		    }

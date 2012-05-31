@@ -9,7 +9,8 @@ public class DateQueryColumn<Cursor, View, Query> extends AbstractColumn<Date, C
 	public DateQueryColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
 		super(types, rowset, query, index, name);
 	}
-
+// FIXME: Add methods
+	
 //	public Query before(Date value) {
 //		return query(getQuery().less(columnIndex, value.getTime()));
 //	}

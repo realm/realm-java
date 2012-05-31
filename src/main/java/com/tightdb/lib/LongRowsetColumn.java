@@ -24,6 +24,7 @@ public class LongRowsetColumn<Cursor, View, Query> extends LongQueryColumn<Curso
 		return rowset.minimum(columnIndex);
 	}
 
+	
 	@Override
 	public Long[] getAll() {
 		long count = rowset.size();

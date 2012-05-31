@@ -8,28 +8,49 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 		super(types, rowset, query, index, name);
 	}
 
+	public Query equal(long value) {
+		return query(getQuery().equal(columnIndex, value));
+	}
+	public Query eq(long value) {
+		return query(getQuery().equal(columnIndex, value));
+	}
+	
+	public Query notQqual(long value) {
+		return query(getQuery().notEqual(columnIndex, value));
+	}
+	public Query neq(long value) {
+		return query(getQuery().notEqual(columnIndex, value));
+	}
+	
 	public Query greaterThan(int value) {
-		return query(getQuery().greater(columnIndex, value));
+		return query(getQuery().greaterThan(columnIndex, value));
+	}
+	public Query gt(int value) {
+		return query(getQuery().greaterThan(columnIndex, value));
 	}
 
-	public Query greaterOrEqual(int value) {
-		return query(getQuery().greaterEqual(columnIndex, value));
+	public Query greaterThanOrEqual(int value) {
+		return query(getQuery().greaterThanOrEqual(columnIndex, value));
 	}
-
+	public Query gte(int value) {
+		return query(getQuery().greaterThanOrEqual(columnIndex, value));
+	}
+	
 	public Query lessThan(int value) {
-		return query(getQuery().less(columnIndex, value));
+		return query(getQuery().lessThan(columnIndex, value));
+	}
+	public Query lt(int value) {
+		return query(getQuery().lessThan(columnIndex, value));
 	}
 
-	public Query lessOrEqual(int value) {
-		return query(getQuery().lessEqual(columnIndex, value));
+	public Query lessThanOrEqual(int value) {
+		return query(getQuery().lessThanOrEqual(columnIndex, value));
 	}
-
+	public Query lte(int value) {
+		return query(getQuery().lessThanOrEqual(columnIndex, value));
+	}
+	
 	public Query between(int from, int to) {
 		return query(getQuery().between(columnIndex, from, to));
 	}
-
-	public Query is(long value) {
-		return query(getQuery().equal(columnIndex, value));
-	}
-
 }

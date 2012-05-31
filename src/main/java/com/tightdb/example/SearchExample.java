@@ -20,7 +20,6 @@ public class SearchExample {
 
 		TightDB.print(Employees);
 
-		// .salary.is(11) doesn't work
 		EmployeeQuery q1 = Employees.firstName.startsWith("J").lastName.endWith("e");
 		System.out.println(q1);
 		
