@@ -2,7 +2,7 @@ package com.tightdb.doc;
 
 import com.tightdb.generated.Employee;
 
-public class DocExamples {
+public class RowExamples {
 
 	public static void main(String[] args) {
 

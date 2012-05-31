@@ -779,7 +779,110 @@ people.where().age.is(22).findAll();
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Query class.</td>
 				</tr>
 				</tbody></table>
+				
+                <p></p>
 
+				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<th align="left" colspan="2"><font size="+2">
+				<b>Method Summary</b></font></th>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#Query-clear">clear</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute the query and delete all matching rows</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="#Query-count">count</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a view</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="#Query-count">count</a></b>(<i>long</i> start, <i>long</i> end, <i>long</i> limit)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a view for the specified range and limit</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Query</code></font></td>
+					<td><code><b><a href="#Query-endGroup">endGroup</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group conditions ('right' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;View</code></font></td>
+					<td><code><b><a href="#Query-findAll">findAll</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute a query and retrieve a View of all results</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#Query-findFirst">findFirst</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute a query and retrieve the first result</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#Query-findLast">findLast</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute a query and retrieve the last result</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#Query-findNext">findNext</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Retrieve the next result for the previously executed query</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Query</code></font></td>
+					<td><code><b><a href="#Query-group">group</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group conditions ('left' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Query</code></font></td>
+					<td><code><b><a href="#Query-or">or</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logical OR</td>
+				</tr>
+
+
+				</tbody></table>
+                <br>
+			
                 <a href="#" name="table-query" id="table-query"></a>
                 <a href="#" class="section section_major" name="table-query_anchor" id="table-query_anchor"></a>
                 <h3>where</h3>
@@ -871,311 +974,281 @@ PeopleView v = people.hired.equals(true).age.between(20, 30).findAll();
                     </dl>
                 </dd></dl>
 
-                <a href="#" name="tablequery-group" id="tablequery-group"></a>
-                <a href="#" class="section section_major" name="tablequery-group_anchor" id="tablequery-group_anchor"></a>
-                <h4>startGroup</h4>
+                <a href="#" name="Query-clear" id="Query-clear"></a>
+				<a href="#" class="section section_major" name="Query-clear_anchor" id="Query-clear_anchor"></a>
+				<h4>clear</h4>
                 <p><div class="eks">
-                    <pre class="prettyprint" lang-java style="font-size: 16px">Query <b>startGroup</b>()</pre>
-                  </div>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>clear</b>()</pre>
+                </div>
                 </p>
                 <dl><dd>
-                    <p>
-                      Group conditions ("left" parenthesis). Group of conditions can be nested and they are conceptually a parenthesis.
-                    </p>
-                    <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>N/A</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><b><i>Table</i>Query</b>: Table query object</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Example:</b></dt>
-                      <dd>
-                        <pre class="prettyprint" lang-java>
-PeopleView view = people.start.startGroup()
-                          .equals(2, 19)
-                          .or()
-                          .equals(2, 20)
-                       .endGroup()
-                       .findAll();
-                        </pre>
+                	<p>
+                	Execute the query and delete all matching rows. 
+                	</p>
 
-                      </dd>
-                    </dl>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>void</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+people.age.lessThan(14).clear();
+							</pre>
+                        </p></dd>
+                	</dl>
                 </dd></dl>
 
-                <a href="#" name="tablequery-endgroup" id="tablequery-endgroup"></a>
-                <a href="#" class="section section_major" name="tablequery-endgroup_anchor" id="tablequery-endgroup_anchor"></a>
-                <h4>endGroup</h4>
+                <a href="#" name="Query-count" id="Query-count"></a>
+				<a href="#" class="section section_major" name="Query-count_anchor" id="Query-count_anchor"></a>
+				<h4>count</h4>
                 <p><div class="eks">
-                    <pre class="prettyprint" lang-java style="font-size: 16px"><i>Table</i>Query <b>endGroup</b>()</pre>
-                  </div>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>long</i> <b>count</b>()</pre>
+                </div>
                 </p>
                 <dl><dd>
-                    <p>
-                      Group conditions ("right" parenthesis).
-                    </p>
+                	<p>
+                	Get the number of rows in a view. 
+                	</p>
+
                     <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>N/A</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><b><i>Table</i>Query</b>: Table query object</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Example:</b></dt>
-                      <dd>
-                        <pre class="prettyprint" lang-java>
-PeopleView view = people.start.startGroup()
-                          .equals(2, 19)
-                          .or()
-                          .equals(2, 20)
-                       .endGroup()
-                       .findAll();
-                        </pre>
-                      </dd>
-                    </dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>long</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+long count = people.name.equal("John").count();
+							</pre>
+                        </p></dd>
+                	</dl>
                 </dd></dl>
 
-                <a href="#" name="tablequery-or" id="tablequery-or"></a>
-                <a href="#" class="section section_major" name="tablequery-or_anchor" id="tablequery-or_anchor"></a>
-                <h4>or</h4>
+                <a href="#" name="Query-count" id="Query-count"></a>
+				<a href="#" class="section section_major" name="Query-count_anchor" id="Query-count_anchor"></a>
+				<h4>count</h4>
                 <p><div class="eks">
-                    <pre class="prettyprint" lang-java style="font-size: 16px"><i>Table</i>Query <b>or</b></pre>
-                  </div>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>long</i> <b>count</b>(<i>long</i> start, <i>long</i> end, <i>long</i> limit)</pre>
+                </div>
                 </p>
                 <dl><dd>
-                    <p>
-                      Logical-or.
-                    </p>
-                    <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>N/A</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><b>Query</b>: Table query object</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Example:</b></dt>
-                      <dd>
-                        <pre class="prettyprint" lang-java>
-PeopleView view = people.start.startGroup()
-                          .equals(2, 19)
-                          .or()
-                          .equals(2, 20)
-                       .endGroup()
-                       .findAll();
-                        </pre>
-                      </dd>
-                    </dl>
-                </dd></dl>
-                
-                <a href="#" name="tablequery-do" id="table-do"></a>
-                <a href="#" class="section section_major" name="tablequery-do_anchor" id="tablequery-do_anchor"></a>
-                <h4>findAll</h4>
-                <p><div class="eks">
-                    <pre class="prettyprint" lang-java style="font-size: 16px"><i>Table</i>View <b>findAll</b>()</pre>
-                  </div>
-                </p>
-                <dl><dd>
-                    <p>
-                      Execute a query. See the <a class="" href="#tableview"><i>Table</i>View Class</a> for further details.
-                    </p>
-                    <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>N/A</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><b><i>Table</i>View</b>: Table view</p></dd>
-                    </dl>
-                    <dt><b>Example:</b></dt>
-                  <dd>
-                    <pre class="prettyprint" lang-java>
-PeopleQuery query = people.eq(2, 19);
-PeopleView  view  = query.findAll();
-                    </pre>
-                  </dd>
-                </dl>
-               </dd></dl>
+                	<p>
+                	Get the number of rows in a view for the specified range and limit. 
+                	</p>
 
-
-                <a href="#" name="tablequery-count" id="tablequery-count"></a>
-                <a href="#" class="section section_major" name="tablequery-count_anchor" id="tablequery-count_anchor"></a>
-                <h4>count</h4>
-                <p><div class="eks">
-                    <pre class="prettyprint" lang-java style="font-size: 16px">long <b>count</b>()</pre>
-                  </div>
-                </p>
-                <dl><dd>
-                    <p>
-                      Returns the number of rows.
-                    </p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>start : long</code>
+	                    </p></dd>
+                		<dd><p>
+	                    <code>end : long</code>
+	                    </p></dd>
+                		<dd><p>
+	                    <code>limit : long</code>
+	                    </p></dd>
+                	</dl>
                     <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>N/A</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><b>long</b>: number of rows</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Example:</b></dt>
-                      <dd>
-
-                        <pre class="prettyprint" lang-java>
-long cnt = table.startGroup()
-                           .equals(2, 19)
-                           .or()
-                           .equals(2, 20)
-                       .endGroup()
-                       .count();
-                       </pre>
-                      </dd>
-                    </dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>long</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+long count = people.name.equal("John").count();
+							</pre>
+                        </p></dd>
+                	</dl>
                 </dd></dl>
 
-
-
-                <a href="#" name="tablequery-sum" id="tablequery-sum"></a>
-                <a href="#" class="section section_major" name="tablequery-sum_anchor" id="tablequery-sum_anchor"></a>
-                <h4>sum</h4>
+                <a href="#" name="Query-endGroup" id="Query-endGroup"></a>
+				<a href="#" class="section section_major" name="Query-endGroup_anchor" id="Query-endGroup_anchor"></a>
+				<h4>endGroup</h4>
                 <p><div class="eks">
-                    <pre class="prettyprint" lang-cpp style="font-size: 16px">long <b>sum</b>()</pre>
-                  </div>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Query</i> <b>endGroup</b>()</pre>
+                </div>
                 </p>
                 <dl><dd>
-                    <p>
-                      Calculates the sum.
-                    </p>
+                	<p>
+                	Group conditions ('right' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis. 
+                	</p>
+
                     <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>None</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><b>long</b>: the sum</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Example:</b></dt>
-                      <dd>
-                      <pre class="prettyprint" lang-java>
-long total = people.startGroup()
-                           .equals(2, 19)
-                           .or()
-                           .equals(2, 20)
-                       .endGroup()
-                       .sum(3);
-                       </pre>
-                      </dd>
-                    </dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Query</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+people.name.eq("John").group().age.eq(10).or().age.eq(20).endGroup().findAll());
+							</pre>
+                        </p></dd>
+                	</dl>
                 </dd></dl>
 
-                <a href="#" name="tablequery-avg" id="tablequery-avg"></a>
-                <a href="#" class="section section_major" name="tablequery-avg_anchor" id="tablequery-avg_anchor"></a>
-                <h4>average</h4>
+                <a href="#" name="Query-findAll" id="Query-findAll"></a>
+				<a href="#" class="section section_major" name="Query-findAll_anchor" id="Query-findAll_anchor"></a>
+				<h4>findAll</h4>
                 <p><div class="eks">
-                    <pre class="prettyprint" lang-java style="font-size: 16px">double <b>average</b>()</pre>
-                  </div>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>View</i> <b>findAll</b>()</pre>
+                </div>
                 </p>
                 <dl><dd>
-                    <p>
-                      Calculates the average
-                    </p>
+                	<p>
+                	Execute a query and retrieve a View of all results. 
+                	</p>
+
                     <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>None</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><b>double</b>: the average</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Example:</b></dt>
-                      <dd>
-                      <pre class="prettyprint" lang-java>
-double mean = people.startGroup()
-                           .age.equals(20)
-                           .or()
-                           .age.equals(40)
-                       .endGroup()
-                       .weight.average();
-                       </pre>
-                      </dd>
-                    </dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>View</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+PersonView johns = people.name.equal("John").findAll();
+							</pre>
+                        </p></dd>
+                	</dl>
                 </dd></dl>
 
-                <a href="#" name="tablequery-max" id="tablequery-max"></a>
-                <a href="#" class="section section_major" name="tablequery-max_anchor" id="tablequery-max_anchor"></a>
-                <h4>maximum</h4>
+                <a href="#" name="Query-findFirst" id="Query-findFirst"></a>
+				<a href="#" class="section section_major" name="Query-findFirst_anchor" id="Query-findFirst_anchor"></a>
+				<h4>findFirst</h4>
                 <p><div class="eks">
-                    <pre class="prettyprint" lang-jav style="font-size: 16px">long <b>maximum</b>()</pre>
-                  </div>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>findFirst</b>()</pre>
+                </div>
                 </p>
                 <dl><dd>
-                    <p>
-                      The maximum value of a column
-                    </p>
+                	<p>
+                	Execute a query and retrieve the first result. 
+                	</p>
+
                     <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>None</dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><b>long</b>: the maximal value</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Example:</b></dt>
-                      <dd>
-                      <pre class="prettyprint" lang-java>
-long heavy = people.startGroup()
-                           age.equals(20)
-                           .or()
-                           .age.equals(40)
-                       .endGroup()
-                       .weight.maximum();
-                       </pre>
-                      </dd>
-                    </dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Person firstJohn = people.name.equal("John").findFirst();
+							</pre>
+                        </p></dd>
+                	</dl>
                 </dd></dl>
 
-                <a href="#" name="tablequery-min" id="tablequery-min"></a>
-                <a href="#" class="section section_major" name="tablequery-min_anchor" id="tablequery-min_anchor"></a>
-                <h4>minimum</h4>
+                <a href="#" name="Query-findLast" id="Query-findLast"></a>
+				<a href="#" class="section section_major" name="Query-findLast_anchor" id="Query-findLast_anchor"></a>
+				<h4>findLast</h4>
                 <p><div class="eks">
-                    <pre class="prettyprint" lang-java style="font-size: 16px">long <b>minimum</b>()</pre>
-                  </div>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>findLast</b>()</pre>
+                </div>
                 </p>
                 <dl><dd>
-                    <p>
-                      The minimum value of a column
-                    </p>
+                	<p>
+                	Execute a query and retrieve the last result. 
+                	</p>
+
                     <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>None</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><b>long</b>: the minimum value</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Example:</b></dt>
-                      <dd>
-                      <pre class="prettyprint" lang-java>
-long lite = people.startGroup()
-                           .age.equals(20)
-                           .or()
-                           .age.equals(40)
-                       .endGroup()
-                       .weight.minimum();
-                       </pre>
-                      </dd>
-                    </dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Person lastJohn = people.name.equal("John").findLast();
+							</pre>
+                        </p></dd>
+                	</dl>
                 </dd></dl>
+
+                <a href="#" name="Query-findNext" id="Query-findNext"></a>
+				<a href="#" class="section section_major" name="Query-findNext_anchor" id="Query-findNext_anchor"></a>
+				<h4>findNext</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>findNext</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Retrieve the next result for the previously executed query. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+EmployeeQuery johns = people.name.equal("John");
+Person p;
+while ((p = johns.findNext()) != null) System.out.println(p);
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Query-group" id="Query-group"></a>
+				<a href="#" class="section section_major" name="Query-group_anchor" id="Query-group_anchor"></a>
+				<h4>group</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Query</i> <b>group</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Group conditions ('left' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Query</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+PersonView view = people.name.eq("John").group().age.eq(10).or().age.eq(20).endGroup().findAll();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Query-or" id="Query-or"></a>
+				<a href="#" class="section section_major" name="Query-or_anchor" id="Query-or_anchor"></a>
+				<h4>or</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Query</i> <b>or</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Logical OR. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Query</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+PersonView view = people.age.eq(10).or().age.eq(20).findAll();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+
 
 
 <!--- TABLEVIEW CLASS --->

@@ -20,10 +20,10 @@ public class DocGenerator {
 		Context context = new VelocityContext();
 		
 		describeAndGen(new TableDesc(methods), "Table", context);
-		describeAndGen(new ViewDesc(methods), "Row", context);
-		describeAndGen(new ViewDesc(methods), "Query", context);
+		describeAndGen(new RowDesc(methods), "Row", context);
+		describeAndGen(new QueryDesc(methods), "Query", context);
 		describeAndGen(new ViewDesc(methods), "View", context);
-		describeAndGen(new ViewDesc(methods), "Group", context);
+		describeAndGen(new GroupDesc(methods), "Group", context);
 		
 		String docs = renderer.render("reference.vm", context);
 		// FIXME: hard-coded path (temporary)

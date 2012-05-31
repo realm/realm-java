@@ -1,63 +1,52 @@
 package com.tightdb.doc;
 
 import com.tightdb.generated.Employee;
+import com.tightdb.generated.EmployeeQuery;
+import com.tightdb.lib.TightDB;
 
-public class DocExamples {
+public class QueryExamples {
 
 	public static void main(String[] args) {
 
-		/* EXAMPLE: add */
-
-		people.add("Mary", 21, false);
-		people.add("Lars", 24, true);
-		
-		/* EXAMPLE: at */
-
-		People p = people.at(42);
-		
 		/* EXAMPLE: clear */
 
-		people.clear();
+		people.age.lessThan(14).clear();
 		
-		/* EXAMPLE: first */
+		/* EXAMPLE: count */
 
-		Person firstPerson = people.first();
+		long count = people.name.equal("John").count();
 		
-		/* EXAMPLE: getName */
+		/* EXAMPLE: endGroup */
 
-		String tableName = people.getName();
+		people.name.eq("John").group().age.eq(10).or().age.eq(20).endGroup().findAll());
 		
-		/* EXAMPLE: insert */
+		/* EXAMPLE: findAll */
 
-		people.insert(0, "Mary", 21, false);
-		people.insert(0, "Lars", 21, true);
+		PersonView johns = people.name.equal("John").findAll();
 		
-		/* EXAMPLE: isEmpty */
+		/* EXAMPLE: findFirst */
 
-		boolean empty = people.isEmpty();
+		Person firstJohn = people.name.equal("John").findFirst();
 		
-		/* EXAMPLE: iterator */
+		/* EXAMPLE: findLast */
 
-		for (Person p : people) System.out.println(p);
+		Person lastJohn = people.name.equal("John").findLast();
 		
-		/* EXAMPLE: last */
+		/* EXAMPLE: findNext */
 
-		Person lastPerson = people.last();
+		EmployeeQuery johns = people.name.equal("John");
+		Person p;
+		while ((p = johns.findNext()) != null) System.out.println(p);
 		
-		/* EXAMPLE: remove */
+		/* EXAMPLE: group */
 
-		people.remove(0);
+		PersonView view = people.name.eq("John").group().age.eq(10).or().age.eq(20).endGroup().findAll();
 		
-		/* EXAMPLE: size */
+		/* EXAMPLE: or */
 
-		long size = people.size();
-		
-		/* EXAMPLE: where */
-
-		people.where().age.is(22).findAll();
+		PersonView view = people.age.eq(10).or().age.eq(20).findAll();
 		
 		/* EXAMPLE: END! */
 		
 	}
-	
 }
