@@ -2,6 +2,7 @@
 
 package com.tightdb.generated;
 
+import java.util.Date;
 
 import com.tightdb.*;
 import com.tightdb.lib.*;
@@ -42,9 +43,46 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView, Employe
         registerTableColumn(spec, "phones", new PhoneTable(null));
     }
 
-    #render_method($params)
+    public Employee add(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra) {
+        try {
+        	long position = size();
 
-    #render_method($params)
+        	insertString(0, position, firstName);
+        	insertString(1, position, lastName);
+        	insertLong(2, position, salary);
+        	insertBoolean(3, position, driver);
+        	insertBinary(4, position, photo);
+        	insertDate(5, position, birthdate);
+        	insertMixed(6, position, extra);
+        	insertTable(7, position);
+        	insertDone();
+
+        	return cursor(position);
+        } catch (Exception e) {
+        	throw addRowException(e);
+        }
+
+    }
+
+    public Employee insert(long position, String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra) {
+        try {
+        	insertString(0, position, firstName);
+        	insertString(1, position, lastName);
+        	insertLong(2, position, salary);
+        	insertBoolean(3, position, driver);
+        	insertBinary(4, position, photo);
+        	insertDate(5, position, birthdate);
+        	insertMixed(6, position, extra);
+        	insertTable(7, position);
+        	insertDone();
+
+        	return cursor(position);
+        } catch (Exception e) {
+        	throw insertRowException(e);
+        }
+
+
+    }
 
 
 }

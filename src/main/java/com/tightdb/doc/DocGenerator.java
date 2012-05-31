@@ -47,7 +47,7 @@ public class DocGenerator {
 			context.put("doc", method.doc);
 			context.put("name", method.name);
 			context.put("params", method.params);
-			sb.append(renderer.render("method.vm", context));
+			sb.append(renderer.render("method-overview.vm", context));
 		}
 		return sb.toString();
 	}

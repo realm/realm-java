@@ -32,9 +32,36 @@ public class PeopleTable extends AbstractTable<People, PeopleView, PeopleQuery> 
         registerBooleanColumn(spec, "hired");
     }
 
-    #render_method($params)
+    public People add(String name, int age, boolean hired) {
+        try {
+        	long position = size();
 
-    #render_method($params)
+        	insertString(0, position, name);
+        	insertLong(1, position, age);
+        	insertBoolean(2, position, hired);
+        	insertDone();
+
+        	return cursor(position);
+        } catch (Exception e) {
+        	throw addRowException(e);
+        }
+
+    }
+
+    public People insert(long position, String name, int age, boolean hired) {
+        try {
+        	insertString(0, position, name);
+        	insertLong(1, position, age);
+        	insertBoolean(2, position, hired);
+        	insertDone();
+
+        	return cursor(position);
+        } catch (Exception e) {
+        	throw insertRowException(e);
+        }
+
+
+    }
 
 
 }
