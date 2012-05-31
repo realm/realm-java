@@ -53,4 +53,7 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 	public Query between(int from, int to) {
 		return query(getQuery().between(columnIndex, from, to));
 	}
+	public long minimum() {
+		return 0;
+	}
 }
