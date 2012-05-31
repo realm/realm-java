@@ -155,8 +155,8 @@ var App = {};
 								<strong class="first"><a class="" href="#table">Table Class</a></strong>
 							</li>
 
-                            <li data-section="tablecursor" class="major">
-							  <strong class="first"><a class="" href="#tablecursor">Row Class</a></strong>
+                            <li data-section="tablerow" class="major">
+							  <strong class="first"><a class="" href="#tablerow">Row Class</a></strong>
                             </li>
 
 							<li data-section="tablequery" class="major">
@@ -748,6 +748,281 @@ long size = people.size();
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
 people.where().age.is(22).findAll();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+
+
+
+
+<!--- TABLEVIEW CLASS --->
+
+                <a href="#" name="tablerow" id="tablerow"></a>
+                <a href="#" class="section section_minor" name="tablerow_anchor" id="tablerow_anchor"></a>
+                <h2>Row Class</h2>
+                <p>
+                This is a representation of a single row (record) in a table.
+                </p>
+
+                <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                <th align="left" colspan="2"><font size="+2">
+                <b>Method Summary</b></font></th>
+                </tr>
+                
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#Row-after">after</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#Row-before">before</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;AbstractColumn[]</code></font></td>
+					<td><code><b><a href="#Row-columns">columns</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#Row-next">next</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#Row-previous">previous</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;FooType</code></font></td>
+					<td><code><b><a href="#Row-getFoo">getFoo</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#Row-setFoo">setFoo</a></b>(<i>FooType</i> value)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				</tr>
+
+
+				</tbody></table>
+                <br>
+
+                <a href="#" name="Row-after" id="Row-after"></a>
+				<a href="#" class="section section_major" name="Row-after_anchor" id="Row-after_anchor"></a>
+				<h4>after</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>after</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Row-before" id="Row-before"></a>
+				<a href="#" class="section section_major" name="Row-before_anchor" id="Row-before_anchor"></a>
+				<h4>before</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>before</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Row-columns" id="Row-columns"></a>
+				<a href="#" class="section section_major" name="Row-columns_anchor" id="Row-columns_anchor"></a>
+				<h4>columns</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>AbstractColumn[]</i> <b>columns</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>AbstractColumn[]</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Row-next" id="Row-next"></a>
+				<a href="#" class="section section_major" name="Row-next_anchor" id="Row-next_anchor"></a>
+				<h4>next</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>next</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Row-previous" id="Row-previous"></a>
+				<a href="#" class="section section_major" name="Row-previous_anchor" id="Row-previous_anchor"></a>
+				<h4>previous</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>previous</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Row-getFoo" id="Row-getFoo"></a>
+				<a href="#" class="section section_major" name="Row-getFoo_anchor" id="Row-getFoo_anchor"></a>
+				<h4>getFoo</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>FooType</i> <b>getFoo</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>FooType</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Row-setFoo" id="Row-setFoo"></a>
+				<a href="#" class="section section_major" name="Row-setFoo_anchor" id="Row-setFoo_anchor"></a>
+				<h4>setFoo</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>setFoo</b>(<i>FooType</i> value)</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	. 
+                	</p>
+
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>value : FooType</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>void</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
 							</pre>
                         </p></dd>
                 	</dl>

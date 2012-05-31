@@ -9,7 +9,13 @@ public class RowDesc extends AbstractDesc {
 	}
 
 	public void describe() {
-
-		// Employee e = null;
+		method("Row", "after", "");
+		method("Row", "before", "");
+		method("AbstractColumn[]", "columns", "");
+		method("Row", "next", "");
+		method("Row", "previous", "");
+		method("FooType", "getFoo", "");
+		method("void", "setFoo", "", "FooType", "value");
 	}
+
 }

@@ -155,8 +155,8 @@ var App = {};
 								<strong class="first"><a class="" href="#table">Table Class</a></strong>
 							</li>
 
-                            <li data-section="tablecursor" class="major">
-							  <strong class="first"><a class="" href="#tablecursor">Row Class</a></strong>
+                            <li data-section="tablerow" class="major">
+							  <strong class="first"><a class="" href="#tablerow">Row Class</a></strong>
                             </li>
 
 							<li data-section="tablequery" class="major">
@@ -305,6 +305,30 @@ public class Example {
                 <h3>Method Detail</h3>
 
 ${table_method_details}
+
+
+
+<!--- TABLEVIEW CLASS --->
+
+                <a href="#" name="tablerow" id="tablerow"></a>
+                <a href="#" class="section section_minor" name="tablerow_anchor" id="tablerow_anchor"></a>
+                <h2>Row Class</h2>
+                <p>
+                This is a representation of a single row (record) in a table.
+                </p>
+
+                <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                <th align="left" colspan="2"><font size="+2">
+                <b>Method Summary</b></font></th>
+                </tr>
+                
+${row_method_overview}
+
+				</tbody></table>
+                <br>
+
+${row_method_details}
 
 
 <!--- QUERY CLASS --->
