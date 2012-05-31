@@ -1,12 +1,10 @@
 package com.tightdb.doc;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.context.Context;
@@ -14,11 +12,25 @@ import org.apache.velocity.context.Context;
 public class DocGenerator {
 
 	private static List<Method> methods = new ArrayList<Method>();
+	
+	private static TemplateRenderer renderer = new TemplateRenderer();
 
 	public static void main(String[] args) throws Exception {
 		Velocity.init();
 		describeTable();
 		generateDoc();
+	}
+
+	private static void generateDoc() throws Exception {
+		String overview = generateDocOverview();
+		String details = generateExtendedDoc();
+		
+		Context context = new VelocityContext();
+		context.put("table_method_overview", overview);
+		context.put("table_method_details", details);
+		
+		String docs = renderer.render("reference.vm", context);
+		FileUtils.writeStringToFile(new File("D:/docs/reference/reference.html"), docs);
 	}
 
 	private static void describeTable() {
@@ -27,20 +39,36 @@ public class DocGenerator {
 		tableDesc.describe();
 	}
 
-	private static void generateDoc() throws Exception {
-		Writer writer = new OutputStreamWriter(System.out);
+	private static String generateDocOverview() throws Exception {
+		StringBuilder sb = new StringBuilder();
 		for (Method method : methods) {
-			InputStream st = DocGenerator.class.getClassLoader().getResourceAsStream("method.vm");
-			InputStreamReader reader = new InputStreamReader(st);
 			Context context = new VelocityContext();
 			context.put("ret", method.ret);
 			context.put("name", method.name);
 			context.put("doc", method.doc);
 			context.put("name", method.name);
 			context.put("params", method.params);
-			Velocity.evaluate(context, writer, "", reader);
+			sb.append(renderer.render("method.vm", context));
 		}
-		writer.close();
+		return sb.toString();
 	}
 
+	private static String generateExtendedDoc() throws Exception {
+		StringBuilder sb = new StringBuilder();
+		ExampleReader exampleReader = new ExampleReader("DocExamples.java");
+
+		for (Method method : methods) {
+			Context context = new VelocityContext();
+			context.put("class", "Table");
+			context.put("ret", method.ret);
+			context.put("name", method.name);
+			context.put("doc", method.doc);
+			context.put("name", method.name);
+			context.put("params", method.params);
+			context.put("example", exampleReader.getExample(method.name));
+			sb.append(renderer.render("method-details.vm", context));
+		}
+		
+		return sb.toString();
+	}
 }

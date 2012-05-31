@@ -60,7 +60,7 @@ public class Example {
 		Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
 		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
 		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
-
+		
 		TightDB.print("Employees", employees);
 
 		TightDB.print("Johny", johny);
@@ -111,6 +111,8 @@ public class Example {
 		System.out.println("min salary: " + employees.salary.minimum());
 		System.out.println("salary sum: " + employees.salary.sum());
 
+		long min = employees.firstName.is("ff").salary.minimum();
+		
 		/****************************** COMPLEX QUERY *****************************/
 
 		TightDB.print("Query 1", employees.firstName.startsWith("Nik").lastName.contains("vski").or().firstName.is("John").findAll());
@@ -190,7 +192,9 @@ public class Example {
 		TightDB.print(employees);
 
 		employees.clear();
-
+		
+		employees.firstName.is("ff").findAll().salary.minimum();
+		
 		TightDB.print(employees);
 
 		/**************************** LOAD FROM FILE *****************************/

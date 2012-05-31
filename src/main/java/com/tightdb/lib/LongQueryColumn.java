@@ -32,4 +32,7 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 		return query(getQuery().equal(columnIndex, value));
 	}
 
+	public long minimum() {
+		return 0;
+	}
 }
