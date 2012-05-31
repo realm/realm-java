@@ -235,9 +235,9 @@ var App = {};
 
                 <a href="#" name="table" id="table"></a>
                 <a href="#" class="section section_minor" name="table_anchor" id="table_anchor"></a>
-                <h2>TableBase Class</h2>
+                <h2>Table Class</h2>
                 <p>
-                The TableBase class allows you to efficiently work with data in terms of rows and columns.
+                The Table class allows you to efficiently work with data in terms of rows and columns.
                 </p>
                 <p>
 				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
@@ -262,111 +262,114 @@ var App = {};
 				<b>Method Summary</b></font></th>
 				</tr>
 
-
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;boolean</code></font></td>
-				<td><code><b><a href="#table-is_empty">isEmpty</a></b>()</code>
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#table-add">add</a></b>(<i>row data</i> ...)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Insert a new row at the end of the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#table-at">at</a></b>(<i>long</i> rowIndex)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get a row as an object</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#table-clear">clear</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Delete all rows in the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#table-first">first</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the first row as an object</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;String</code></font></td>
+					<td><code><b><a href="#table-getName">getName</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the table name</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#table-insert">insert</a></b>(<i>long</i> position, <i>row data</i> ...)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Insert a new row at the end of the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;boolean</code></font></td>
+					<td><code><b><a href="#table-isEmpty">isEmpty</a></b>()
+				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if a table is empty</td>
 				</tr>
-
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;<i>Table</i></code></font></td>
-				<td><code><b><a href="#table-objectAtIndex">at</a></b>()</code>
+				<code>
+					&nbsp;Iterator<Row></code></font></td>
+					<td><code><b><a href="#table-iterator">iterator</a></b>()
+				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get a row as object</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get an iterator for the table rows</td>
 				</tr>
-
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;<i>Table</i></code></font></td>
-				<td><code><b><a href="#table-objectAtIndex">last</a></b>()</code>
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#table-last">last</a></b>()
+				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get last row as object</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the last row as an object</td>
 				</tr>
-				
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;long</code></font></td>
-				<td><code><b><a href="#table-count">count</a></b>()</code>
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#table-remove">remove</a></b>(<i>long</i> rowIndex)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove a row from a table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="#table-size">size</a></b>()
+				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a table</td>
 				</tr>
-
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;void</code></font></td>
-				<td><code><b><a href="#table-setAtIndex">set</a></b>(<i>type</i> value)</code>
+				<code>
+					&nbsp;Query</code></font></td>
+					<td><code><b><a href="#table-where">where</a></b>()
+				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Update an attribute</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Create a query for the table</td>
 				</tr>
-
-				
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;void</code></font></td>
-				<td><code><b><a href="#table-clear">clear</a></b>()</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Delete all rows</td>
-				</tr>
-
-				
-                <tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;<i>Table</i></code></font></td>
-				<td><code><b><a href="#table-find">findFirst</a></b>(<i>type</i> value)</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Find first occurrence value in a specific column</td>
-				</tr>
-				
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;<a href="#tableview"><i>Table</i>View</a></code></font></td>
-				<td><code><b><a href="#table-find_all">findAll</a></b>(<i>type</i> value)</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Find all matching values in a specific column</td>
-				</tr>
-				
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;long</code></font></td>
-				<td><code><b><a href="#table-sum">sum</a></b>()</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sum the values in an integer column</td>
-				</tr>
-				
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;long</code></font></td>
-				<td><code><b><a href="#table-min">minimum</a></b>()</code>
-				<br>
-				    Get the lowest value in an integer column</td>
-				</tr>
-				
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>&nbsp;long</code></font></td>
-				<td><code><b><a href="#table-max">maximum</a></b>()</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the highest value in an integer column</td>
-				</tr>
-
-				<tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;<a href="#tablequery"><i>Table</i>Query</a></code></fint></td>
-                <td><code><b><a href="#table-query">where</a></b>()</code>
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Create a query</td>
-                </tr>
-                <tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;void</code></font></td>
-                <td><code><b><a href="#table-optimize">optimize</a></b>()</code>
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Optimize table</td>
-                </tr>
 
 				</tbody></table>
                 <br>
@@ -594,7 +597,7 @@ People last_person = people.last();
 				<a href="#" class="section section_major" name="table-setAtIndex_anchor" id="table-setAtIndex_anchor"></a>
 				<h4>set</h4>
                 <p><div class="eks">
-                <pre class="prettyprint" lang-java style="font-size: 16px">void <b>set<i>type</i></b>(long row, int col, <i>type</i> value)</pre>
+                <pre class="prettyprint" lang-java style="font-size: 16px">void <b>set<i>Type</i></b>(long row, int col, <i>type</i> value)</pre>
             </div>
             </p>
         
