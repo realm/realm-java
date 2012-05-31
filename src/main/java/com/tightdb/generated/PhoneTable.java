@@ -26,34 +26,9 @@ public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
         registerStringColumn(spec, "number");
     }
 
-    public Phone add(String type, String number) {
-        try {
-        	long position = size();
+    #render_method($params)
 
-        	insertString(0, position, type);
-        	insertString(1, position, number);
-        	insertDone();
-
-        	return cursor(position);
-        } catch (Exception e) {
-        	throw addRowException(e);
-        }
-
-    }
-
-    public Phone insert(long position, String type, String number) {
-        try {
-        	insertString(0, position, type);
-        	insertString(1, position, number);
-        	insertDone();
-
-        	return cursor(position);
-        } catch (Exception e) {
-        	throw insertRowException(e);
-        }
-
-
-    }
+    #render_method($params)
 
 
 }

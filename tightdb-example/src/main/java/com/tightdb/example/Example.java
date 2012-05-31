@@ -60,9 +60,8 @@ public class Example {
 		Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
 		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
 		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
-
+		
 		TightDB.print("Employees", employees);
-
 		TightDB.print("Johny", johny);
 
 		System.out.println("first record: " + john);
@@ -81,21 +80,22 @@ public class Example {
 
 		/****************************** MANIPULATION OF ALL RECORDS *****************************/
 
-		Employee is17 = employees.salary.is(17).findFirst();
+		Employee is17 = employees.salary.equal(17).findFirst();
 		TightDB.print("**************** Salary 17?: ", is17);
 		if (is17 == null)
 			System.out.println("No - (Correct.))");
 
-		Employee is30000 = employees.salary.is(30000).findFirst();
+		Employee is30000 = employees.salary.equal(30000).findFirst();
 		TightDB.print("**************** With Salary 30000?: ", is30000);
 
 		// using explicit OR
-		TightDB.print("Search example", employees.firstName.is("Johnny").or().lastName.is("Mihajlovski").findFirst());
+		TightDB.print("Search example", employees.firstName.equal("Johnny")
+				.or().lastName.equal("Mihajlovski").findFirst());
 
 		// using implicit AND
-		TightDB.print("Search example 2", employees.firstName.is("Johnny").lastName.startsWith("B").findLast());
+		TightDB.print("Search example 2", employees.firstName.eq("Johnny").lastName.startsWith("B").findLast());
 
-		employees.firstName.is("John").findLast().salary.set(30000);
+		employees.firstName.eq("John").findLast().salary.set(30000);
 
 		/****************************** ITERATION OF ALL RECORDS *****************************/
 
@@ -111,14 +111,35 @@ public class Example {
 		System.out.println("min salary: " + employees.salary.minimum());
 		System.out.println("salary sum: " + employees.salary.sum());
 
+		long min = employees.firstName.eq("ff").salary.minimum();
+		
 		/****************************** COMPLEX QUERY *****************************/
 
-		TightDB.print("Query 1", employees.firstName.startsWith("Nik").lastName.contains("vski").or().firstName.is("John").findAll());
-
-		TightDB.print("Query 2a", employees.firstName.startsWith("Nik").group().lastName.contains("vski").or().firstName.is("John").endGroup()
+		TightDB.print("Query 1", 
+				employees
+				.firstName.startsWith("Nik")
+				.lastName.contains("vski")
+				.or().firstName.eq("John")
 				.findAll());
-		TightDB.print("Query 2b", employees.where().group().lastName.contains("vski").or().firstName.is("John").endGroup().firstName
-				.startsWith("Nik").findAll());
+
+		TightDB.print("Query 2a", 
+				employees.firstName.startsWith("Nik")
+				.group()
+					.lastName.contains("vski")
+					.or()
+					.firstName.eq("John")
+				.endGroup()
+				.findAll());
+		
+		TightDB.print("Query 2b", 
+				employees.where()
+				.group()
+					.lastName.contains("vski")
+					.or()
+					.firstName.eq("John")
+				.endGroup()
+				.firstName.startsWith("Nik")
+				.findAll());
 
 		// lazy iteration over query
 		EmployeeQuery employeesOnN = employees.firstName.startsWith("J");
@@ -170,10 +191,10 @@ public class Example {
 
 		/*************************** CURSOR NAVIGATION ***************************/
 
-		Employee p1 = employees.at(0).next(); // 2nd row
-		Employee p2 = employees.last().previous(); // 2nd-last row
-		Employee p3 = employees.first().after(2); // 3rd row
-		employees.last().before(2); // 3rd-last row
+		Employee p1 = employees.at(0).next(); 		// 2nd row
+		Employee p2 = employees.last().previous(); 	// 2nd-last row
+		Employee p3 = employees.first().after(2); 	// 3rd row
+		employees.last().before(2); 				// 3rd-last row
 
 		/***************************** SAVE TO FILE ******************************/
 
@@ -190,7 +211,9 @@ public class Example {
 		TightDB.print(employees);
 
 		employees.clear();
-
+		
+		employees.firstName.eq("ff").findAll().salary.minimum();
+		
 		TightDB.print(employees);
 
 		/**************************** LOAD FROM FILE *****************************/

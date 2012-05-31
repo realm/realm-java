@@ -1,5 +1,6 @@
 //
 // This example is used in the short introduction "Tightdb Java Interface"
+// The @@ comments below are used for automatic extraction to the documentation
 //
 
 package com.tightdb.example;
@@ -11,6 +12,7 @@ import com.tightdb.generated.People;
 import com.tightdb.generated.PeopleQuery;
 import com.tightdb.generated.PeopleTable;
 import com.tightdb.lib.Table;
+import com.tightdb.lib.TightDB;
 
 // @@Example: create_table @@
 public class TutorialExample {
@@ -76,8 +78,9 @@ public class TutorialExample {
 		// @@EndExample@@
 		
 		/****************************** SIMPLE QUERY *****************************/
+		
 		// @@Example: simple_seach @@
-		People p = people.name.is("John").findFirst();
+		People p = people.name.equal("John").findFirst();
 		// @@EndExample@@
 		
 		System.out.println("\nFind 'John': " + p + "\n");
@@ -85,16 +88,23 @@ public class TutorialExample {
 		/****************************** COMPLEX QUERY ****************************/
 		
 		// @@Example: advanced_search @@
-		PeopleQuery query = people.age.between(20, 30);
-		System.out.println(query.count() + "people are between 20 and 30.");	
+		// Define the query
+		PeopleQuery query = people.name.contains("a")
+								.group()
+									.hired.equal(false)
+									.or()
+									.name.endWith("y")
+								.endGroup()
+								.age.between(20, 30);
+		// Count matches
+		System.out.println(query.count() + " person match query.");
 		
+		// Perform query and use the result
 		for (People person : query.findAll()) {
-		    System.out.println(person.getName() + " is " + person.getAge() + " years old");
+		    // ... do something with matching 'person'
 		}        
 		// @@EndExample
-
-		//System.out.println("Average age is " + query.age.average() + " years.");
-
+		
 		/****************************** DATA REMOVAL *****************************/
 		// @@Example: deleting_row @@
 		people.remove(2);
@@ -107,10 +117,10 @@ public class TutorialExample {
 		// @@Example: serialisation @@
 		// Create Table in Group
 		Group group = new Group();
-		PeopleTable people = new PeopleTable(group);
+		PeopleTable people1 = new PeopleTable(group);
 		
-		people.add("John", 20, true);
-		people.add("Mary", 21, false);
+		people1.add("John", 20, true);
+		people1.add("Mary", 21, false);
 		        
 		// Write to disk
 		try {
@@ -118,7 +128,7 @@ public class TutorialExample {
 		} catch (IOException e) {
 		    e.printStackTrace();
 		}  
-		
+		        
 		// Load a group from disk (and print contents)
 		Group fromDisk = new Group("people.tightdb");
 		PeopleTable people2 = new PeopleTable(fromDisk);

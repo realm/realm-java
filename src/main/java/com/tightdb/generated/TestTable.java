@@ -34,38 +34,9 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
         registerLongColumn(spec, "fourth");
     }
 
-    public Test add(int first, String second, int third, int fourth) {
-        try {
-        	long position = size();
+    #render_method($params)
 
-        	insertLong(0, position, first);
-        	insertString(1, position, second);
-        	insertLong(2, position, third);
-        	insertLong(3, position, fourth);
-        	insertDone();
-
-        	return cursor(position);
-        } catch (Exception e) {
-        	throw addRowException(e);
-        }
-
-    }
-
-    public Test insert(long position, int first, String second, int third, int fourth) {
-        try {
-        	insertLong(0, position, first);
-        	insertString(1, position, second);
-        	insertLong(2, position, third);
-        	insertLong(3, position, fourth);
-        	insertDone();
-
-        	return cursor(position);
-        } catch (Exception e) {
-        	throw insertRowException(e);
-        }
-
-
-    }
+    #render_method($params)
 
 
 }

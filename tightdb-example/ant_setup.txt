@@ -1,0 +1,33 @@
+1. Copy the native TightDB library to the project's base folder.
+
+2. Copy tightdb.jar (the runtime) and tightdb-devkit.jar (the code generation kit) in the project's "lib" sub-folder.
+
+3. Add the tightdb.jar to the classpath (in Eclipse right-click it -> Build Path -> Add to build path).
+- Note: tightdb-devkit.jar is not required at runtime, it's only used by the Ant target "generate-sources".
+
+4. Copy the following Ant configuration in the build.xml Ant file:
+
+<property name="srcdir" value="src" />
+<property name="version" value="1.6" />
+
+<target name="clean-generated-files">
+	<echo message="${ant.project.name}: ${ant.file}" />
+	<delete dir="${srcdir}/com/tightdb/generated" />
+</target>
+
+<target name="generate-sources" depends="clean-generated-files">
+	<echo message="${ant.project.name}: ${ant.file}" />
+	<javac source="${version}" target="${version}" srcdir="${srcdir}">
+		<compilerarg value="-classpath" />
+		<compilerarg value="lib/tightdb.jar" />
+		<compilerarg value="-processor" />
+		<compilerarg value="org.jannocessor.processor.JannocessorProcessor" />
+		<compilerarg value="-processorpath" />
+		<compilerarg value="lib/tightdb-devkit.jar" />
+		<compilerarg value="-s" />
+		<compilerarg value="${srcdir}" />
+		<compilerarg value="-proc:only" />
+	</javac>
+</target>
+
+5. Executing the "generate-sources" Ant build target will generate the source files (overwriting the previously generated files). 

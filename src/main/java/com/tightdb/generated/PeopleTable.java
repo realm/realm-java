@@ -16,7 +16,6 @@ public class PeopleTable extends AbstractTable<People, PeopleView, PeopleQuery> 
 	public final StringRowsetColumn<People, PeopleView, PeopleQuery> name = new StringRowsetColumn<People, PeopleView, PeopleQuery>(TYPES, table, 0, "name");
 	public final LongRowsetColumn<People, PeopleView, PeopleQuery> age = new LongRowsetColumn<People, PeopleView, PeopleQuery>(TYPES, table, 1, "age");
 	public final BooleanRowsetColumn<People, PeopleView, PeopleQuery> hired = new BooleanRowsetColumn<People, PeopleView, PeopleQuery>(TYPES, table, 2, "hired");
-	public final TableRowsetColumn<People, PeopleView, PeopleQuery, PhoneTable> phones = new TableRowsetColumn<People, PeopleView, PeopleQuery, PhoneTable>(TYPES, table, 3, "phones", PhoneTable.class);
 
 	public PeopleTable() {
 		super(TYPES);
@@ -31,41 +30,11 @@ public class PeopleTable extends AbstractTable<People, PeopleView, PeopleQuery> 
         registerStringColumn(spec, "name");
         registerLongColumn(spec, "age");
         registerBooleanColumn(spec, "hired");
-        registerTableColumn(spec, "phones", new PhoneTable(null));
     }
 
-    public People add(String name, int age, boolean hired) {
-        try {
-        	long position = size();
+    #render_method($params)
 
-        	insertString(0, position, name);
-        	insertLong(1, position, age);
-        	insertBoolean(2, position, hired);
-        	insertTable(3, position);
-        	insertDone();
-
-        	return cursor(position);
-        } catch (Exception e) {
-        	throw addRowException(e);
-        }
-
-    }
-
-    public People insert(long position, String name, int age, boolean hired) {
-        try {
-        	insertString(0, position, name);
-        	insertLong(1, position, age);
-        	insertBoolean(2, position, hired);
-        	insertTable(3, position);
-        	insertDone();
-
-        	return cursor(position);
-        } catch (Exception e) {
-        	throw insertRowException(e);
-        }
-
-
-    }
+    #render_method($params)
 
 
 }

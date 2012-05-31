@@ -1,7 +1,16 @@
 Tightdb example instructions
 ============================
 
-Below are instructions for testing the Tightdb example application in Java.
+Below are instructions for testing the Tightdb example application in Java using Eclipse or 
+further down using a commandline.
+
+If you wish to integrate Tightdb in an _existing_ application that uses Maven, please read "maven_setup.txt".
+If you wish to integrate Tightdb in an _existing_ application that uses Ant, please read "ant_setup.txt".
+
+
+=====================================
+Buiding Tightdb example using Eclipse
+=====================================
 
 
 1. Prerequisites:
@@ -9,8 +18,8 @@ Below are instructions for testing the Tightdb example application in Java.
 1. Installation of Eclipse
    - Download and install Eclipse from www.eclipse.org
 
-2. Installation of JDK6
-   - Download and install JDK6 from oracle.com
+2. Installation of JDK6 or JDK7
+   - Download and install JDK6/7 from oracle.com
 
 
 2. Installation of tightdb example
@@ -28,7 +37,7 @@ Below are instructions for testing the Tightdb example application in Java.
    Those will be resolved after generating and installing additional plugins later on 
    (see 4. Generating tightdb classes)
 
-4. Configure JDK on your project.
+4. Configure JDK6/7 on your project.
    - Ensure the JDK6 is selected in Preferences -> Java -> Installed JREs. 
      Preferences is located in the "Eclipse" menu on Mac and in the "Window" menu on Windows and linux.
    - If it's not there, use the "Search" command on the same screen 
@@ -66,31 +75,37 @@ you need to regenerate the typesafe classes that Tightdb provides based on the T
 You can now run your application again.
 
 
-Buiding Tightdb example from the command line with ant
-======================================================
+
+
+   ---- OO ----
+
+
+
+
+================================================================
+Buiding Tightdb example from the command line using Maven or Ant
+================================================================
 
 Generate tightdb classes
-----------------
-
-Prerequisite: install Maven
-
+------------------------
+ant generate-sources
+- or - 
 mvn generate-sources
 
 Build
 -----
-
 ant build
+- or -
+mvn compile
 
 Clean
 -----
-
 ant clean
-
-NOTE: The ant makefile (build.xml) can be generated from Eclipse by running Export -> General -> Ant Buildfiles
+- or -
+mvn clean
 
 Run
 ---
-
 java -Djava.library.path=. -cp lib/tightdb.jar:target/classes com.tightdb.example.Example
 
 

@@ -111,7 +111,7 @@ public class Example {
 		System.out.println("min salary: " + employees.salary.minimum());
 		System.out.println("salary sum: " + employees.salary.sum());
 
-		long min = employees.firstName.is("ff").salary.minimum();
+		long min = employees.firstName.eq("ff").salary.minimum();
 		
 		/****************************** COMPLEX QUERY *****************************/
 
@@ -212,7 +212,7 @@ public class Example {
 
 		employees.clear();
 		
-		employees.firstName.is("ff").findAll().salary.minimum();
+		employees.firstName.eq("ff").findAll().salary.minimum();
 		
 		TightDB.print(employees);
 

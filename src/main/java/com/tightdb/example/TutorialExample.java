@@ -1,5 +1,6 @@
 //
 // This example is used in the short introduction "Tightdb Java Interface"
+// The @@ comments below are used for automatic extraction to the documentation
 //
 
 package com.tightdb.example;

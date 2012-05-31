@@ -14,7 +14,6 @@ public class People extends AbstractCursor<People> {
     public final StringCursorColumn<People, PeopleView, PeopleQuery> name;
     public final LongCursorColumn<People, PeopleView, PeopleQuery> age;
     public final BooleanCursorColumn<People, PeopleView, PeopleQuery> hired;
-    public final TableCursorColumn<People, PeopleView, PeopleQuery, Phone, PhoneTable> phones;
 
 	public People(IRowsetBase rowset, long position) {
 		super(PeopleTable.TYPES, rowset, position);
@@ -22,7 +21,6 @@ public class People extends AbstractCursor<People> {
         name = new StringCursorColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, this, 0, "name");
         age = new LongCursorColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, this, 1, "age");
         hired = new BooleanCursorColumn<People, PeopleView, PeopleQuery>(PeopleTable.TYPES, this, 2, "hired");
-        phones = new TableCursorColumn<People, PeopleView, PeopleQuery, Phone, PhoneTable>(PeopleTable.TYPES, this, 3, "phones", PhoneTable.class);
 	}
 
 	public java.lang.String getName() {
@@ -49,17 +47,9 @@ public class People extends AbstractCursor<People> {
 		this.hired.set(hired);
 	}
 
-	public PhoneTable getPhones() {
-		return this.phones.get();
-	}
-
-	public void setPhones(PhoneTable phones) {
-		this.phones.set(phones);
-	}
-
 	@Override
 	public AbstractColumn<?, ?, ?, ?>[] columns() {
-		return getColumnsArray(name, age, hired, phones);
+		return getColumnsArray(name, age, hired);
 	}
 
 }
