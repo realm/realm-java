@@ -30,7 +30,7 @@ public class ExampleReader {
 		if (m.find()) {
 			return removeIndentation(m.group(1).trim());
 		} else {
-			return null;
+			return "";
 		}
 	}
 

@@ -2,7 +2,7 @@ package com.tightdb.doc;
 
 import java.util.List;
 
-public class AbstractDesc {
+public abstract class AbstractDesc {
 
 	private final List<Method> methods;
 
@@ -23,5 +23,7 @@ public class AbstractDesc {
 		}
 		return parameters;
 	}
+
+	public abstract void describe();
 	
 }

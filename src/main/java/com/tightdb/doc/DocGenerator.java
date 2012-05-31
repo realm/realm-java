@@ -12,37 +12,36 @@ import org.apache.velocity.context.Context;
 public class DocGenerator {
 
 	private static List<Method> methods = new ArrayList<Method>();
-	
+
 	private static TemplateRenderer renderer = new TemplateRenderer();
 
 	public static void main(String[] args) throws Exception {
 		Velocity.init();
-		describeTable();
-		generateDoc();
-	}
-
-	private static void generateDoc() throws Exception {
-		String overview = generateDocOverview();
-		String details = generateExtendedDoc();
-		
 		Context context = new VelocityContext();
-		context.put("table_method_overview", overview);
-		context.put("table_method_details", details);
+		
+		describeAndGen(new TableDesc(methods), "Table", context);
+		describeAndGen(new ViewDesc(methods), "Row", context);
+		describeAndGen(new ViewDesc(methods), "Query", context);
+		describeAndGen(new ViewDesc(methods), "View", context);
+		describeAndGen(new ViewDesc(methods), "Group", context);
 		
 		String docs = renderer.render("reference.vm", context);
+		// FIXME: hard-coded path (temporary)
 		FileUtils.writeStringToFile(new File("D:/docs/reference/reference.html"), docs);
 	}
 
-	private static void describeTable() {
+	private static void describeAndGen(AbstractDesc desc, String cls, Context context) throws Exception {
 		methods.clear();
-		TableDesc tableDesc = new TableDesc(methods);
-		tableDesc.describe();
+		desc.describe(); 
+		context.put(cls.toLowerCase() + "_method_overview", generateDocOverview(cls));
+		context.put(cls.toLowerCase() + "_method_details", generateExtendedDoc(cls));
 	}
 
-	private static String generateDocOverview() throws Exception {
+	private static String generateDocOverview(String cls) throws Exception {
 		StringBuilder sb = new StringBuilder();
 		for (Method method : methods) {
 			Context context = new VelocityContext();
+			context.put("class", cls);
 			context.put("ret", method.ret);
 			context.put("name", method.name);
 			context.put("doc", method.doc);
@@ -53,13 +52,13 @@ public class DocGenerator {
 		return sb.toString();
 	}
 
-	private static String generateExtendedDoc() throws Exception {
+	private static String generateExtendedDoc(String cls) throws Exception {
 		StringBuilder sb = new StringBuilder();
-		ExampleReader exampleReader = new ExampleReader("DocExamples.java");
+		ExampleReader exampleReader = new ExampleReader(cls + "Examples.java");
 
 		for (Method method : methods) {
 			Context context = new VelocityContext();
-			context.put("class", "Table");
+			context.put("class", cls);
 			context.put("ret", method.ret);
 			context.put("name", method.name);
 			context.put("doc", method.doc);
@@ -68,7 +67,7 @@ public class DocGenerator {
 			context.put("example", exampleReader.getExample(method.name));
 			sb.append(renderer.render("method-details.vm", context));
 		}
-		
+
 		return sb.toString();
 	}
 }

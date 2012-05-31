@@ -153,58 +153,31 @@ var App = {};
 						<ul>
 							<li data-section="table" class="major">
 								<strong class="first"><a class="" href="#table">Table Class</a></strong>
-								<ul style="display: block;">
-									<li><a href="#table-constructor">constructor</a></li>
-<!--                                    <li><a href="#table-bracket">square bracket notation</a></li> -->
-                                    <li><a href="#table-objectAtIndex">at</a></li>
-                                    <li><a href="#table-lastObject">last</a></li>
-									<li><a href="#table-is_empty">isEmpty</a></li>
-									<li><a href="#table-count">getCount</a></li>
-									<li><a href="#table-clear">clear</a></li>
-									<li><a href="#table-find">findFirst</a></li>
-									<li><a href="#table-find_all">findAll</a></li>
-                                    <li><a href="#table-Add">add</a></li>
-                                    <li><a href="#table-setAtIndex">set</a></li>
-                                    <li><a href="#table-deleteRow">remove</a></li>
-									<li><a href="#table-optimize">optimize</a></li>
-<!--                                    <li><a href="#table-query">where</a></li> -->
-								</ul>
 							</li>
 
                             <li data-section="tablecursor" class="major">
 							  <strong class="first"><a class="" href="#tablecursor">Row Class</a></strong>
-							  <ul style="display: block;">
-							    <li><a href="#tablecursor-set">set</a></li>
-							    <li><a href="#tablecursor-get">get</a></li>					    
-                              </ul>
                             </li>
 
 							<li data-section="tablequery" class="major">
 								<strong class="first"><a class="" href="#tablequery">Query Class</a></strong>                                <ul style="display: block;">
-								    <li><a href="#tablequery-group">startGroup</a></li>
-									<li><a href="#tablequery-endgroup">endGroup</a></li>
-									<li><a href="#tablequery-or">or</a></li>
-									<li><a href="#tablequery-do">findAll</a></li>
-									<li><a href="#tablequery-count">count</a></li>
-									<li><a href="#tablequery-sum">sum</a></li>
-									<li><a href="#tablequery-avg">average</a></li>
-									<li><a href="#tablequery-min">minimum</a></li>
-									<li><a href="#tablequery-max">maximum</a></li>
-                                </ul>
                             </li>
 
                             <li data-section="tableview" class="major">
-                                <strong class="first"><a class="" href="#tableview">TableView Class</a></strong>
+                                <strong class="first"><a class="" href="#tableview">View Class</a></strong>
+								<!--
                                 <ul style="display: block;">
                                    <li><a href="#tableview-clear">clear</a></li>
                                    <li><a href="#tableview-deleterow">remove</a></li>
                                    <li><a href="#tableview-isempty">isEmpty</a></li>
                                    <li><a href="#tableview-count">count</a></li>
                                 </ul>
+								-->
                             </li>
 
 							<li data-section="group" class="major">
 								<strong class="first"><a class="" href="#group">Group Class</a></strong>
+								<!--
 								<ul style="display: block;">
 									<li><a href="#group-constructor">constructor</a></li>
 									<li><a href="#group-has_table">hasTable</a></li>
@@ -212,6 +185,7 @@ var App = {};
 									<li><a href="#group-write_to_file">writeToFile</a></li>
 									<li><a href="#group-write_to_mem">writeToMem</a></li>
 								</ul>
+								-->
 							</li>
 						</ul>
 					</div>
@@ -266,7 +240,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Row</code></font></td>
-					<td><code><b><a href="#table-add">add</a></b>(<i>RowDataTypes...</i> rowData...)
+					<td><code><b><a href="#Table-add">add</a></b>(<i>RowDataTypes...</i> rowData...)
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Insert a new row at the end of the table</td>
@@ -275,7 +249,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Row</code></font></td>
-					<td><code><b><a href="#table-at">at</a></b>(<i>long</i> rowIndex)
+					<td><code><b><a href="#Table-at">at</a></b>(<i>long</i> rowIndex)
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get a row as an object</td>
@@ -284,7 +258,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;void</code></font></td>
-					<td><code><b><a href="#table-clear">clear</a></b>()
+					<td><code><b><a href="#Table-clear">clear</a></b>()
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Delete all rows in the table</td>
@@ -293,7 +267,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Row</code></font></td>
-					<td><code><b><a href="#table-first">first</a></b>()
+					<td><code><b><a href="#Table-first">first</a></b>()
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the first row as an object</td>
@@ -302,7 +276,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;String</code></font></td>
-					<td><code><b><a href="#table-getName">getName</a></b>()
+					<td><code><b><a href="#Table-getName">getName</a></b>()
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the table name</td>
@@ -311,7 +285,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Row</code></font></td>
-					<td><code><b><a href="#table-insert">insert</a></b>(<i>long</i> position, <i>RowDataTypes...</i> rowData...)
+					<td><code><b><a href="#Table-insert">insert</a></b>(<i>long</i> position, <i>RowDataTypes...</i> rowData...)
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Insert a new row at the end of the table</td>
@@ -320,7 +294,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;boolean</code></font></td>
-					<td><code><b><a href="#table-isEmpty">isEmpty</a></b>()
+					<td><code><b><a href="#Table-isEmpty">isEmpty</a></b>()
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if a table is empty</td>
@@ -329,7 +303,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Iterator</code></font></td>
-					<td><code><b><a href="#table-iterator">iterator</a></b>()
+					<td><code><b><a href="#Table-iterator">iterator</a></b>()
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get an iterator for the table rows</td>
@@ -338,7 +312,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Row</code></font></td>
-					<td><code><b><a href="#table-last">last</a></b>()
+					<td><code><b><a href="#Table-last">last</a></b>()
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the last row as an object</td>
@@ -347,7 +321,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;void</code></font></td>
-					<td><code><b><a href="#table-remove">remove</a></b>(<i>long</i> rowIndex)
+					<td><code><b><a href="#Table-remove">remove</a></b>(<i>long</i> rowIndex)
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove a row from a table</td>
@@ -356,7 +330,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;long</code></font></td>
-					<td><code><b><a href="#table-size">size</a></b>()
+					<td><code><b><a href="#Table-size">size</a></b>()
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a table</td>
@@ -365,7 +339,7 @@ var App = {};
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Query</code></font></td>
-					<td><code><b><a href="#table-where">where</a></b>()
+					<td><code><b><a href="#Table-where">where</a></b>()
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Create a query for the table</td>
@@ -438,8 +412,8 @@ public class Example {
 
                 <h3>Method Detail</h3>
 
-                <a href="#" name="table-add" id="table-add"></a>
-				<a href="#" class="section section_major" name="table-add_anchor" id="table-add_anchor"></a>
+                <a href="#" name="Table-add" id="Table-add"></a>
+				<a href="#" class="section section_major" name="Table-add_anchor" id="Table-add_anchor"></a>
 				<h4>add</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>add</b>(<i>RowDataTypes...</i> rowData...)</pre>
@@ -471,8 +445,8 @@ people.add("Lars", 24, true);
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-at" id="table-at"></a>
-				<a href="#" class="section section_major" name="table-at_anchor" id="table-at_anchor"></a>
+                <a href="#" name="Table-at" id="Table-at"></a>
+				<a href="#" class="section section_major" name="Table-at_anchor" id="Table-at_anchor"></a>
 				<h4>at</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>at</b>(<i>long</i> rowIndex)</pre>
@@ -497,14 +471,14 @@ people.add("Lars", 24, true);
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-People p = people.at(42);
+Person p = people.at(42);
 							</pre>
                         </p></dd>
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-clear" id="table-clear"></a>
-				<a href="#" class="section section_major" name="table-clear_anchor" id="table-clear_anchor"></a>
+                <a href="#" name="Table-clear" id="Table-clear"></a>
+				<a href="#" class="section section_major" name="Table-clear_anchor" id="Table-clear_anchor"></a>
 				<h4>clear</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>clear</b>()</pre>
@@ -529,8 +503,8 @@ people.clear();
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-first" id="table-first"></a>
-				<a href="#" class="section section_major" name="table-first_anchor" id="table-first_anchor"></a>
+                <a href="#" name="Table-first" id="Table-first"></a>
+				<a href="#" class="section section_major" name="Table-first_anchor" id="Table-first_anchor"></a>
 				<h4>first</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>first</b>()</pre>
@@ -555,8 +529,8 @@ Person firstPerson = people.first();
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-getName" id="table-getName"></a>
-				<a href="#" class="section section_major" name="table-getName_anchor" id="table-getName_anchor"></a>
+                <a href="#" name="Table-getName" id="Table-getName"></a>
+				<a href="#" class="section section_major" name="Table-getName_anchor" id="Table-getName_anchor"></a>
 				<h4>getName</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>String</i> <b>getName</b>()</pre>
@@ -581,8 +555,8 @@ String tableName = people.getName();
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-insert" id="table-insert"></a>
-				<a href="#" class="section section_major" name="table-insert_anchor" id="table-insert_anchor"></a>
+                <a href="#" name="Table-insert" id="Table-insert"></a>
+				<a href="#" class="section section_major" name="Table-insert_anchor" id="Table-insert_anchor"></a>
 				<h4>insert</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>insert</b>(<i>long</i> position, <i>RowDataTypes...</i> rowData...)</pre>
@@ -617,8 +591,8 @@ people.insert(0, "Lars", 21, true);
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-isEmpty" id="table-isEmpty"></a>
-				<a href="#" class="section section_major" name="table-isEmpty_anchor" id="table-isEmpty_anchor"></a>
+                <a href="#" name="Table-isEmpty" id="Table-isEmpty"></a>
+				<a href="#" class="section section_major" name="Table-isEmpty_anchor" id="Table-isEmpty_anchor"></a>
 				<h4>isEmpty</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>boolean</i> <b>isEmpty</b>()</pre>
@@ -643,8 +617,8 @@ boolean empty = people.isEmpty();
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-iterator" id="table-iterator"></a>
-				<a href="#" class="section section_major" name="table-iterator_anchor" id="table-iterator_anchor"></a>
+                <a href="#" name="Table-iterator" id="Table-iterator"></a>
+				<a href="#" class="section section_major" name="Table-iterator_anchor" id="Table-iterator_anchor"></a>
 				<h4>iterator</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Iterator</i> <b>iterator</b>()</pre>
@@ -669,8 +643,8 @@ for (Person p : people) System.out.println(p);
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-last" id="table-last"></a>
-				<a href="#" class="section section_major" name="table-last_anchor" id="table-last_anchor"></a>
+                <a href="#" name="Table-last" id="Table-last"></a>
+				<a href="#" class="section section_major" name="Table-last_anchor" id="Table-last_anchor"></a>
 				<h4>last</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>last</b>()</pre>
@@ -695,8 +669,8 @@ Person lastPerson = people.last();
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-remove" id="table-remove"></a>
-				<a href="#" class="section section_major" name="table-remove_anchor" id="table-remove_anchor"></a>
+                <a href="#" name="Table-remove" id="Table-remove"></a>
+				<a href="#" class="section section_major" name="Table-remove_anchor" id="Table-remove_anchor"></a>
 				<h4>remove</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>remove</b>(<i>long</i> rowIndex)</pre>
@@ -727,8 +701,8 @@ people.remove(0);
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-size" id="table-size"></a>
-				<a href="#" class="section section_major" name="table-size_anchor" id="table-size_anchor"></a>
+                <a href="#" name="Table-size" id="Table-size"></a>
+				<a href="#" class="section section_major" name="Table-size_anchor" id="Table-size_anchor"></a>
 				<h4>size</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>long</i> <b>size</b>()</pre>
@@ -753,8 +727,8 @@ long size = people.size();
                 	</dl>
                 </dd></dl>
 
-                <a href="#" name="table-where" id="table-where"></a>
-				<a href="#" class="section section_major" name="table-where_anchor" id="table-where_anchor"></a>
+                <a href="#" name="Table-where" id="Table-where"></a>
+				<a href="#" class="section section_major" name="Table-where_anchor" id="Table-where_anchor"></a>
 				<h4>where</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Query</i> <b>where</b>()</pre>
@@ -1204,14 +1178,13 @@ long lite = people.startGroup()
                 </dd></dl>
 
 
-
 <!--- TABLEVIEW CLASS --->
 
                 <a href="#" name="tableview" id="tableview"></a>
                 <a href="#" class="section section_minor" name="tableview_anchor" id="tableview_anchor"></a>
-                <h2>TableView Class</h2>
+                <h2>View Class</h2>
                 <p>
-                The <code>findAll</code> in the <code>Query</code> class returns a <code>TableView</code> object. You can interact with the TableView just as a regular table, and all changes to it will propagate to the original <a href="#table">table</a>.
+                The <code>findAll</code> in the <code>Query</code> class returns a <code>View</code> object. You can interact with the TableView just as a regular table, and all changes to it will propagate to the original <a href="#table">table</a>.
                 </p>
 
 				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
@@ -1233,162 +1206,262 @@ long lite = people.startGroup()
                 <b>Method Summary</b></font></th>
                 </tr>
                 
-                <tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;void</code></font></td>
-                <td><code><b><a href="#tableview-clear">clear</a></b>()</code>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#View-at">at</a></b>(<i>long</i> rowIndex)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get a row as an object</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#View-clear">clear</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Delete all rows in the view</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#View-first">first</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the first row as an object</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;boolean</code></font></td>
+					<td><code><b><a href="#View-isEmpty">isEmpty</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if a view is empty</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Iterator</code></font></td>
+					<td><code><b><a href="#View-iterator">iterator</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get an iterator for the view rows</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="#View-last">last</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the last row as an object</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="#View-size">size</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a view</td>
+				</tr>
+
+
+				</tbody></table>
                 <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove all rows</td>
-                </tr>
 
-                <tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;bool</code></font></td>
-                <td><code><b><a href="#tableview-isEmpty">isEmpty</a></b></code>
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if view is empty</td>
-                </tr>
+                <a href="#" name="View-at" id="View-at"></a>
+				<a href="#" class="section section_major" name="View-at_anchor" id="View-at_anchor"></a>
+				<h4>at</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>at</b>(<i>long</i> rowIndex)</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get a row as an object. 
+                	</p>
 
-                <tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;long</code></font></td>
-                <td><code><b><a href="#tableview-count">count</a></b></code>
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows</td>
-                </tr>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>rowIndex : long</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Person p = people.age.equals(19).findAll().at(1);
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
 
+                <a href="#" name="View-clear" id="View-clear"></a>
+				<a href="#" class="section section_major" name="View-clear_anchor" id="View-clear_anchor"></a>
+				<h4>clear</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>clear</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Delete all rows in the view. 
+                	</p>
 
-                <tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;void</code></font></td>
-                <td><code><b><a href="#tableview-unset">remove</a></b></code>
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove one row</td>
-                </tr>
-                </tbody></table>
-                <br>
-
-
-           			<a href="#" name="tableview-clear" id="tableview-clear"></a>
-					<a href="#" class="section section_minor" name="tableview-clear_anchor" id="tableview-clear_anchor"></a>
-					<h4>clear</h4>
-	                <p><div class="eks">
-	                <pre class="prettyprint" lang-java style="font-size: 16px">void <b>clear</b></pre>
-	            </div>
-	            </p>
-	                <dl><dd>
-	                	<p>
-	                		Remove all rows in a table view - and the corresponding rows in the source table.
-	                	</p>
-	                	<dl>
-	                		<dt><b>Parameters:</b></dt>
-	                		<dd><p>None</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Returns:</b></dt>
-	                		<dd><p>None</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Example:</b></dt>
-	                		<dd>
-								<pre class="prettyprint" lang-java>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>void</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
 people.age.equals(19).findAll().clear();
-								</pre>
-	                         </dd>
-	                	</dl>
-	                </dd></dl>
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
 
-           			<a href="#" name="tableview-deleterow" id="tableview-deleterow"></a>
-					<a href="#" class="section section_minor" name="tableview-deleterow_anchor" id="tableview-deleterow_anchor"></a>
-					<h4>remove</h4>
-	                <p><div class="eks">
-	                <pre class="prettyprint" lang-java style="font-size: 16px">void <b>remove</b>(long index)</pre>
-	            </div>
-	            </p>
-	                <dl><dd>
-	                	<p>
-	                		Remove a specific row from the table view and in the corresponding source table.
-	                	</p>
-	                	<dl>
-	                		<dt><b>Parameters:</b></dt>
-	                		<dd><p><code>index</code>: index to the row</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Returns:</b></dt>
-	                		<dd><p>N/A</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Example:</b></dt>
-	                		<dd>
-								<pre class="prettyprint" lang-java>
-people.name.equals("Jimmy").remove(5);
-								</pre>
-	                         </dd>
-	                	</dl>
-	                </dd></dl>
+                <a href="#" name="View-first" id="View-first"></a>
+				<a href="#" class="section section_major" name="View-first_anchor" id="View-first_anchor"></a>
+				<h4>first</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>first</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get the first row as an object. 
+                	</p>
 
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Person firstPerson = people.age.equals(19).findAll().first();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
 
-           			<a href="#" name="tableview-isempty" id="tableview-isempty"></a>
-					<a href="#" class="section section_minor" name="tableview-isempty_anchor" id="tableview-isempty_anchor"></a>
-					<h4>isEmpty</h4>
-	                <p><div class="eks">
-	                <pre class="prettyprint" lang-java style="font-size: 16px">boolean <b>isEmpty</b>()</pre>
-	            </div>
-	            </p>
-	                <dl><dd>
-	                	<p>
-                	      Check if a table is empty
-	                	</p>
-	                	<dl>
-	                		<dt><b>Parameters:</b></dt>
-	                		<dd><p>None</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Returns:</b></dt>
-	                		<dd><p><code>true</code> or <code>false</code></p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Example:</b></dt>
-	                		<dd>
-								<pre class="prettyprint" lang-java>
-if (people.name.equals("Jimmy").isEmpty()) {
-  ...
-}
-								</pre>
-	                         </dd>
-	                	</dl>
-	                </dd></dl>
+                <a href="#" name="View-isEmpty" id="View-isEmpty"></a>
+				<a href="#" class="section section_major" name="View-isEmpty_anchor" id="View-isEmpty_anchor"></a>
+				<h4>isEmpty</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>boolean</i> <b>isEmpty</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Check if a view is empty. 
+                	</p>
 
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>boolean</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+boolean empty = people.age.equals(19).findAll().isEmpty();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
 
-           			<a href="#" name="tableview-count" id="tableview-count"></a>
-					<a href="#" class="section section_minor" name="tableview-count_anchor" id="tableview-count_anchor"></a>
-					<h4>count</h4>
-	                <p><div class="eks">
-	                <pre class="prettyprint" lang-java style="font-size: 16px">long <b>count</b>()</pre>
-	            </div>
-	            </p>
-	                <dl><dd>
-	                	<p>
-                	      Get the number of rows in a table
-	                	</p>
-	                	<dl>
-	                		<dt><b>Parameters:</b></dt>
-	                		<dd><p>None</dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Returns:</b></dt>
-	                		<dd><p>The number of rows</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Example:</b></dt>
-	                		<dd>
-								<pre class="prettyprint" lang-java>
-long cnt = people.name.equals("Jimmy").count();
-System.out.println("We have "+cnt+" Jimmies");
-								</pre>
-	                         </dd>
-	                	</dl>
-	                </dd></dl>
+                <a href="#" name="View-iterator" id="View-iterator"></a>
+				<a href="#" class="section section_major" name="View-iterator_anchor" id="View-iterator_anchor"></a>
+				<h4>iterator</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Iterator</i> <b>iterator</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get an iterator for the view rows. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Iterator</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+for (Person p : people.age.equals(19).findAll()) System.out.println(p);
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="View-last" id="View-last"></a>
+				<a href="#" class="section section_major" name="View-last_anchor" id="View-last_anchor"></a>
+				<h4>last</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>last</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get the last row as an object. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>Row</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Person lastPerson = people.age.equals(19).findAll().last();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="View-size" id="View-size"></a>
+				<a href="#" class="section section_major" name="View-size_anchor" id="View-size_anchor"></a>
+				<h4>size</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>long</i> <b>size</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get the number of rows in a view. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>long</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+long size = people.age.equals(19).findAll().size();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
 
 
 <!--- GROUP CLASS --->

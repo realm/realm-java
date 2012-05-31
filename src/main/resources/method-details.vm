@@ -1,5 +1,5 @@
-                <a href="#" name="table-${name}" id="table-${name}"></a>
-				<a href="#" class="section section_major" name="table-${name}_anchor" id="table-${name}_anchor"></a>
+                <a href="#" name="${class}-${name}" id="${class}-${name}"></a>
+				<a href="#" class="section section_major" name="${class}-${name}_anchor" id="${class}-${name}_anchor"></a>
 				<h4>${name}</h4>
                 <p><div class="eks">
                 <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>${ret}</i> <b>${name}</b>(#foreach($p in $params)<i>${p.type}</i> ${p.name}#if($foreach.hasNext), #end#end)</pre>
