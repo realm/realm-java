@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?eclipse.ant.import?>
+<project name="tightdb-example-gen" basedir="." default="generate-sources">
+	
+	<property name="srcdir" value="src/main/java" />
+	<property name="version" value="1.6" />
+
+	<target name="clean-generated-files">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<delete dir="${srcdir}/main/java/com/tightdb/generated" />
+	</target>
+
+	<target name="generate-sources" depends="clean-generated-files">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac source="${version}" target="${version}" srcdir="${srcdir}">
+			<compilerarg value="-classpath" />
+			<compilerarg value="lib/tightdb.jar" />
+			<compilerarg value="-processor" />
+			<compilerarg value="org.jannocessor.processor.JannocessorProcessor" />
+			<compilerarg value="-processorpath" />
+			<compilerarg value="lib/tightdb-devkit.jar" />
+			<compilerarg value="-s" />
+			<compilerarg value="${srcdir}" />
+			<compilerarg value="-proc:only" />
+		</javac>
+	</target>
+	
+</project>

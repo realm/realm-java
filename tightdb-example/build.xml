@@ -6,19 +6,25 @@
               as the first entry and export the buildfile again. -->
 <project basedir="." default="build" name="tightdb-example">
     <property environment="env"/>
+    <property name="ECLIPSE_HOME" value="../../Downloads/eclipse"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
     <property name="source" value="1.6"/>
+    <import file="gen.xml"/>
     <path id="Maven Dependencies.libraryclasspath">
         <pathelement location="lib/tightdb.jar"/>
     </path>
-    <path id="Persisted container [org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER for project [tightdb-example]].libraryclasspath"/>
+    <path id="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER.libraryclasspath"/>
     <path id="tightdb-example.classpath">
         <pathelement location="target/classes"/>
         <path refid="Maven Dependencies.libraryclasspath"/>
-        <path refid="Persisted container [org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER for project [tightdb-example]].libraryclasspath"/>
+        <path refid="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER.libraryclasspath"/>
     </path>
     <path id="run.Example.classpath">
+        <path refid="tightdb-example.classpath"/>
+        <path refid="Maven Dependencies.libraryclasspath"/>
+    </path>
+    <path id="run.Performance.classpath">
         <path refid="tightdb-example.classpath"/>
         <path refid="Maven Dependencies.libraryclasspath"/>
     </path>
@@ -60,6 +66,11 @@
     <target name="Example">
         <java classname="com.tightdb.example.Example" failonerror="true" fork="yes">
             <classpath refid="run.Example.classpath"/>
+        </java>
+    </target>
+    <target name="Performance">
+        <java classname="com.tightdb.example.Performance" failonerror="true" fork="yes">
+            <classpath refid="run.Performance.classpath"/>
         </java>
     </target>
 </project>
