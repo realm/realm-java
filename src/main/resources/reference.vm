@@ -213,18 +213,56 @@ var App = {};
                 <p>
                 The Table class allows you to efficiently work with data in terms of rows and columns.
                 </p>
+
+                <p>
+                  <i>Note</i>: Tables should be generated using the <code>@Table</code> annotation. 
+                  The annotation for a Java class with name <code>foo</code> will 
+                  generate a number of classes representing rows (<code>Foo</code>), queries (<code>FooQuery</code>),
+                  result sets (<code>FooView</code>), and the table (<code>FooTable</code>). 
+                </p>
+				
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd>
+							<p>
+							<pre class="prettyprint" lang-java>
+public class Example {
+
+    // PersonTable, Person, PersonQuery, and PersonView are generated:
+
+    @Table
+    class person {
+        String name;
+        int age;
+        boolean hired;
+    }
+
+}
+							</pre>
+                            </p>
+                         </dd>
+                	</dl>
+                </dd></dl>
+				
                 <p>
 				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
 				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
 				<th align="left" colspan="2"><font size="+2">
 				<b>Constructor Summary</b></font></th>
 				</tr>
+				
 				<tr bgcolor="white" class="TableRowColor">
 				<td><code><b><a href="#table-constructor"><i>Table</i></a></b>()</code>
-
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Instantiates a TightDB table</td>
 				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#table-constructor-2"><i>Table</i></a></b>(<i>Group</i> group)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Instantiates a TightDB table in the specified group</td>
+				</tr>
+				
 				</tbody></table>
 
 				</p>
@@ -248,19 +286,13 @@ ${table_method_overview}
 				<h4>constructor</h4>
                 <dl><dd>
 	                <p><div class="eks">
-	                <pre class="prettyprint" lang-java style="font-size: 16px">new <b>Table</b>()</pre>
+	                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Table</b>()</pre>
 	                </div>
 	                </p>
                 	Allocates and instantiates a TightDB table.
                 	<p>
 	                <i>Note</i>: Only tables which are part of a <a href="#group">Group</a> can be serialized to memory or disk.
                 	</p>
-                    <p>
-                      <i>Note</i>: Tables should be generated using the <code>@Table</code> annotation. 
-                      The annotation for a Java class with name <code>foo</code> will 
-                      generate a number of classes representing rows (<code>Foo</code>), queries (<code>FooQuery</code>),
-                      result sets (<code>FooView</code>), and the table (<code>FooTable</code>). 
-                    </p>
                 	<dl>
                 		<dt><b>Parameters:</b></dt>
                 		<dd>
@@ -280,24 +312,49 @@ ${table_method_overview}
                 	<dl>
                 		<dt><b>Example:</b></dt>
                 		<dd>
+							<p>
 							<pre class="prettyprint" lang-java>
-public class Example {
-
-    @Table
-    class person {
-        String name;
-        int age;
-        boolean hired;
-    }
-
-// PersonTable, Person, PersonQuery, and PersonView are generated
-
-    public static void main(String[] args) {
-        PersonTable people = new PersonTable();
-        // ...
-    }
-}
+PersonTable people = new PersonTable();
 							</pre>
+                            </p>
+                         </dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="table-constructor-2" id="table-constructor-2"></a>
+				<a href="#" class="section section_major" name="table-constructor-2_anchor" id="table-constructor-2_anchor"></a>
+				<h4>constructor</h4>
+                <dl><dd>
+	                <p><div class="eks">
+	                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Table</b>(Group group)</pre>
+	                </div>
+	                </p>
+                	Allocates and instantiates a TightDB table, as part of the specified group.
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd>
+	                        <p>
+                              <code>group : Group</code>
+                             </p>
+                        </dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd>
+	                        <p>
+		                    Table object
+                            </p>
+                        </dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd>
+							<p>
+							<pre class="prettyprint" lang-java>
+Group group = new Group();								
+PersonTable people = new PersonTable(group);
+							</pre>
+                            </p>
                          </dd>
                 	</dl>
                 </dd></dl>
@@ -470,12 +527,50 @@ ${view_method_details}
 				<th align="left" colspan="2"><font size="+2">
 				<b>Constructor Summary</b></font></th>
 				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td><code><b><a href="#group">Group</a></b>()</code>
+				
+#set($desc1="Instantiates a TightDB table group")
+#set($desc2="Instantiates a TightDB table group with file (de)serialization")
+#set($desc3="Instantiates a TightDB table group with file (de)serialization")
+#set($desc4="Instantiates a TightDB table group with file (de)serialization")
+#set($desc5="Instantiates a TightDB table group with byte array (de)serialization")
+#set($desc6="Instantiates a TightDB table group with ByteBuffer (de)serialization")
 
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor"><i>Group</i></a></b>()</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group class.</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc1</td>
 				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-2"><i>Group</i></a></b>(<i>File</i> file)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc2</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-3"><i>Group</i></a></b>(<i>String</i> fileName, <i>boolean</i> readOnly)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc3</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-4"><i>Group</i></a></b>(<i>String</i> fileName)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc4</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-5"><i>Group</i></a></b>(<i>byte[]</i> data)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc5</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-6"><i>Group</i></a></b>(<i>ByteBuffer</i> buffer)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc6</td>
+				</tr>
+				
 				</tbody></table>
 
 				</p>
@@ -498,17 +593,17 @@ ${group_method_overview}
 				<a href="#" class="section section_minor" name="group-constructor_anchor" id="group-constructor_anchor"></a>
 				<h4>constructor</h4>
                 <p><div class="eks">
-                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b> group;</pre>
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>()</pre>
             </div>
             </p>
                 <dl><dd>
                 	<p>
-                	Creates a table group.
+                	${desc1}.
                 	</p>
                 	<dl>
                 		<dt><b>Parameters:</b></dt>
-                		<dd><p></p>
-	                    </dd>
+                		<dd><p>
+	                    </p></dd>
                 	</dl>
                     <dl>
                         <dt><b>Returns:</b></dt>
@@ -516,11 +611,168 @@ ${group_method_overview}
                     </dl>
                 	<dl>
                 		<dt><b>Example:</b></dt>
-                		<dd>
+                		<dd><p>
 							<pre class="prettyprint" lang-java>
-// Coming to a browser near you
+Group group = new Group();
 							</pre>
-                         </dd>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-2" id="group-constructor-2"></a>
+				<a href="#" class="section section_minor" name="group-constructor-2_anchor" id="group-constructor-2_anchor"></a>
+				<h4>constructor</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>File</i> file)</pre>
+            </div>
+            </p>
+                <dl><dd>
+                	<p>
+                	${desc2}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>file : File</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Group group = new Group(new File("data.tdb"));
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-3" id="group-constructor-3"></a>
+				<a href="#" class="section section_minor" name="group-constructor-3_anchor" id="group-constructor-3_anchor"></a>
+				<h4>constructor</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>String</i> fileName, <i>boolean</i> readOnly)</pre>
+            </div>
+            </p>
+                <dl><dd>
+                	<p>
+                	${desc3}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>fileName : String</code>
+	                    </p></dd>
+                		<dd><p>
+	                    <code>readOnly : boolean</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Group group = new Group("data.tdb", true);
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-4" id="group-constructor-4"></a>
+				<a href="#" class="section section_minor" name="group-constructor-4_anchor" id="group-constructor-4_anchor"></a>
+				<h4>constructor</h4>
+				<p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>String</i> fileName)</pre>
+				</div></p>
+                <dl><dd>
+                	<p>
+                	${desc4}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>fileName : String</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Group group = new Group("data.tdb");
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-5" id="group-constructor-5"></a>
+				<a href="#" class="section section_minor" name="group-constructor-5_anchor" id="group-constructor-5_anchor"></a>
+				<h4>constructor</h4>
+				<p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>byte[]</i> data)</pre>
+				</div></p>
+                <dl><dd>
+                	<p>
+                	${desc5}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>data : byte[]</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+byte[] data = loadData();
+Group group = new Group(data);
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-6" id="group-constructor-6"></a>
+				<a href="#" class="section section_minor" name="group-constructor-6_anchor" id="group-constructor-6_anchor"></a>
+				<h4>constructor</h4>
+				<p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>ByteBuffer</i> buffer)</pre>
+				</div></p>
+                <dl><dd>
+                	<p>
+                	${desc6}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>buffer : ByteBuffer</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+ByteBuffer buffer = loadBuffer();
+Group group = new Group(buffer);
+							</pre>
+                        </p></dd>
                 	</dl>
                 </dd></dl>
 
