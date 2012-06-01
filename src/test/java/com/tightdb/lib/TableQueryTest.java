@@ -22,7 +22,7 @@ public class TableQueryTest extends AbstractTableTest {
 	public void shouldMatchOnSimpleStringCriteria() {
 		assertEquals(1, employees.firstName.eq("John").findAll().size());
 		assertEquals(2, employees.firstName.startsWith("J").findAll().size());
-		assertEquals(1, employees.firstName.endWith("hny").findAll().size());
+		assertEquals(1, employees.firstName.endsWith("hny").findAll().size());
 	}
 
 	@Test

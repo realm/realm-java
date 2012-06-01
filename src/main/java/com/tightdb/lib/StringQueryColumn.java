@@ -26,7 +26,7 @@ public class StringQueryColumn<Cursor, View, Query> extends AbstractColumn<Strin
 		return query(getQuery().beginsWith(columnIndex, value));
 	}
 
-	public Query endWith(String value) {
+	public Query endsWith(String value) {
 		return query(getQuery().endsWith(columnIndex, value));
 	}
 
