@@ -33,8 +33,20 @@ public class DocGenerator {
 	private static void describeAndGen(AbstractDesc desc, String cls, Context context) throws Exception {
 		methods.clear();
 		desc.describe(); 
+		context.put(cls.toLowerCase() + "_method_list", generateDocList(cls));
 		context.put(cls.toLowerCase() + "_method_overview", generateDocOverview(cls));
 		context.put(cls.toLowerCase() + "_method_details", generateExtendedDoc(cls));
+	}
+
+	private static String generateDocList(String cls) throws Exception {
+		StringBuilder sb = new StringBuilder();
+		for (Method method : methods) {
+			Context context = new VelocityContext();
+			context.put("class", cls);
+			context.put("name", method.name);
+			sb.append(renderer.render("method-list.vm", context));
+		}
+		return sb.toString();
 	}
 
 	private static String generateDocOverview(String cls) throws Exception {
@@ -45,7 +57,6 @@ public class DocGenerator {
 			context.put("ret", method.ret);
 			context.put("name", method.name);
 			context.put("doc", method.doc);
-			context.put("name", method.name);
 			context.put("params", method.params);
 			sb.append(renderer.render("method-overview.vm", context));
 		}
@@ -62,7 +73,6 @@ public class DocGenerator {
 			context.put("ret", method.ret);
 			context.put("name", method.name);
 			context.put("doc", method.doc);
-			context.put("name", method.name);
 			context.put("params", method.params);
 			context.put("example", exampleReader.getExample(method.name));
 			sb.append(renderer.render("method-details.vm", context));

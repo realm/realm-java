@@ -144,8 +144,6 @@ var App = {};
 		<div class="main" style="width: 800px; margin: 0px auto -1px;">
 
 
-
-
 		<div class="container">
 			<div class="right_col_container">
 				<div class="right_col">
@@ -153,39 +151,45 @@ var App = {};
 						<ul>
 							<li data-section="table" class="major">
 								<strong class="first"><a class="" href="#table">Table Class</a></strong>
+								<ul style="display: block;">
+									<li><a href="#table-constructor">constructor</a></li>
+									<li><a href="#table-constructor-2">constructor</a></li>
+${table_method_list}
+								</ul>
 							</li>
 
                             <li data-section="tablerow" class="major">
 							  <strong class="first"><a class="" href="#tablerow">Row Class</a></strong>
+								<ul style="display: block;">
+${row_method_list}
+								</ul>
                             </li>
 
                             <li data-section="tablequery" class="major">
 							  <strong class="first"><a class="" href="#tablequery">Query Class</a></strong>
+								<ul style="display: block;">
+${query_method_list}
+								</ul>
                             </li>
 							
                             <li data-section="tableview" class="major">
                                 <strong class="first"><a class="" href="#tableview">View Class</a></strong>
-								<!--
-                                <ul style="display: block;">
-                                   <li><a href="#tableview-clear">clear</a></li>
-                                   <li><a href="#tableview-deleterow">remove</a></li>
-                                   <li><a href="#tableview-isempty">isEmpty</a></li>
-                                   <li><a href="#tableview-count">count</a></li>
-                                </ul>
-								-->
+								<ul style="display: block;">
+${view_method_list}
+								</ul>
                             </li>
 
 							<li data-section="group" class="major">
 								<strong class="first"><a class="" href="#group">Group Class</a></strong>
-								<!--
 								<ul style="display: block;">
 									<li><a href="#group-constructor">constructor</a></li>
-									<li><a href="#group-has_table">hasTable</a></li>
-									<li><a href="#group-get_table">getTable</a></li>
-									<li><a href="#group-write_to_file">writeToFile</a></li>
-									<li><a href="#group-write_to_mem">writeToMem</a></li>
+									<li><a href="#group-constructor-2">constructor</a></li>
+									<li><a href="#group-constructor-3">constructor</a></li>
+									<li><a href="#group-constructor-4">constructor</a></li>
+									<li><a href="#group-constructor-5">constructor</a></li>
+									<li><a href="#group-constructor-6">constructor</a></li>
+${group_method_list}
 								</ul>
-								-->
 							</li>
 						</ul>
 					</div>
