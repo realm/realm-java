@@ -1857,39 +1857,108 @@ long size = people.age.equals(19).findAll().size();
                 <th align="left" colspan="2"><font size="+2">
                 <b>Method Summary</b></font></th>
                 </tr>
-                
-                <tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;void</code></font></td>
-                <td><code><b><a href="#group-create_table">getTable</a></b>()</code>
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Create a table</td>
-                </tr>
 
-                <tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;bool</code></font></td>
-                <td><code><b><a href="#group-has_table">hasTable</a></b>()</code>
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if group has a specific named table</td>
-                </tr>
-                
-                
-                <tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;void</code></font></td>
-                <td><code><b><a href="#group-write_to_file">writeToFile</a></b>()</code>
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Write table group to disk</td>
-                </tr>
-                
-                <tr bgcolor="white" class="TableRowColor">
-                <td align="right" valign="top" width="1%"><font size="-1">
-                <code>&nbsp;byte[]</code></font></td>
-                <td><code><b><a href="#group-write_to_mem">writeToMem</a></b>()</code>
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Write table group to memory buffer</td>
-                </tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#Group-close">close</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Close the group and release resources</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;boolean</code></font></td>
+					<td><code><b><a href="#Group-commit">commit</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Commit the changes</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;TableBase</code></font></td>
+					<td><code><b><a href="#Group-getTable">getTable</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Low-level) Create and get a table with the specified name</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;int</code></font></td>
+					<td><code><b><a href="#Group-getTableCount">getTableCount</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of tables</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;String</code></font></td>
+					<td><code><b><a href="#Group-getTableName">getTableName</a></b>(<i>int</i> index)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the table at the specified position</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;boolean</code></font></td>
+					<td><code><b><a href="#Group-hasTable">hasTable</a></b>(<i>String</i> name)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if group contains a specific named table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;boolean</code></font></td>
+					<td><code><b><a href="#Group-isValid">isValid</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Validate the group</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;ByteBuffer</code></font></td>
+					<td><code><b><a href="#Group-writeToByteBuffer">writeToByteBuffer</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Serialize the group to a ByteBuffer</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#Group-writeToFile">writeToFile</a></b>(<i>File</i> file)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Serialize the group to disk</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#Group-writeToFile">writeToFile</a></b>(<i>String</i> fileName)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Serialize the group to disk</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;byte[]</code></font></td>
+					<td><code><b><a href="#Group-writeToMem">writeToMem</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Serialize the group to a memory buffer</td>
+				</tr>
+
+				
                 </tbody></table>
                 <br>
                 
@@ -1927,162 +1996,331 @@ long size = people.age.equals(19).findAll().size();
 
                 <h3>Method Detail</h3>
 
-           			<a href="#" name="group-load" id="group-load"></a>
-					<a href="#" class="section section_minor" name="group-load_anchor" id="group-load_anchor"></a>
-					<h4>load()</h4>
-	                <p><div class="eks">
-	                <pre class="prettyprint" lang-java style="font-size: 16px">Group <b>load</b>(File file)</pre>
-	            </div>
-	            </p>
-	                <dl><dd>
-	                	<p>
-	                		Load a group from disk.
-	                	</p>
-	                	<dl>
-	                		<dt><b>Parameters:</b></dt>
-	                		<dd><p><code>file</code>: file handler</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Returns:</b></dt>
-	                		<dd><p><code>Group</code> a group object</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Example:</b></dt>
-	                		<dd>
-								<pre class="prettyprint" lang-java>
-Group group = new Group();
-File file = new File("people.tightdb");
-group.load(file);
-								</pre>
-	                         </dd>
-	                	</dl>
-	                </dd></dl>
-
-
-
-           			<a href="#" name="group-has_table" id="group-has_table"></a>
-					<a href="#" class="section section_minor" name="group-has_table_anchor" id="group-has_table_anchor"></a>
-					<h4>hasTable()</h4>
-	                <p><div class="eks">
-	                <pre class="prettyprint" lang-java style="font-size: 16px">boolean <b>hasTable</b>(String table_name)</pre>
-	            </div>
-	            </p>
-	                <dl><dd>
-	                	<p>
-	                		Check if group contains a specific named table.
-	                	</p>
-	                	<dl>
-	                		<dt><b>Parameters:</b></dt>
-	                		<dd><p><code>String table_name</code>: Name of the table you wish to look for</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Returns:</b></dt>
-	                		<dd><p><code>true</code> if the table exists, otherwise <code>false</code>.</p></dd>
-	                	</dl>
-	                	<dl>
-	                		<dt><b>Example:</b></dt>
-	                		<dd>
-								<pre class="prettyprint" lang-java>
-if (group.hasTable("my great table")) {
-  ...
-}
-								</pre>
-	                         </dd>
-	                	</dl>
-	                </dd></dl>
-		
-
-				<a href="#" name="group-get_table" id="group-get_table"></a>
-				<a href="#" class="section section_minor" name="group-get_table_anchor" id="group-get_table_anchor"></a>
-				<h4>getTable</h4>
+                <a href="#" name="Group-close" id="Group-close"></a>
+				<a href="#" class="section section_major" name="Group-close_anchor" id="Group-close_anchor"></a>
+				<h4>close</h4>
                 <p><div class="eks">
-                <pre class="prettyprint" lang-java style="font-size: 16px"><i>Table</i> <b>getTable</b>(String name)</pre>
-            </div>
-            </p>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>close</b>()</pre>
+                </div>
+                </p>
                 <dl><dd>
                 	<p>
-                		Create a specific table from a group.
+                	Close the group and release resources. 
                 	</p>
-                	<dl>
-                		<dt><b>Parameters:</b></dt>
-                		<dd><p><code>name</code>: table name
-                        </dd>
-                	</dl>
-                	<dl>
-                		<dt><b>Return:</b></dt>
-                		<dd><p>A table object</p></dd>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>void</i></code></p></dd>
                 	</dl>
                 	<dl>
                 		<dt><b>Example:</b></dt>
-                		<dd>
+                		<dd><p>
 							<pre class="prettyprint" lang-java>
-PeopleTable table = group.getTable("My great table");
+group.close();
 							</pre>
-                         </dd>
+                        </p></dd>
                 	</dl>
                 </dd></dl>
 
-				<a href="#" name="group-write_to_file" id="group-write_to_file"></a>
-				<a href="#" class="section section_minor" name="group-write_to_file_anchor" id="group-write_to_file_anchor"></a>
+                <a href="#" name="Group-commit" id="Group-commit"></a>
+				<a href="#" class="section section_major" name="Group-commit_anchor" id="Group-commit_anchor"></a>
+				<h4>commit</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>boolean</i> <b>commit</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Commit the changes. 
+                	</p>
 
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>boolean</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+group.commit();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Group-getTable" id="Group-getTable"></a>
+				<a href="#" class="section section_major" name="Group-getTable_anchor" id="Group-getTable_anchor"></a>
+				<h4>getTable</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>TableBase</i> <b>getTable</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	(Low-level) Create and get a table with the specified name. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>TableBase</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+TableBase a = group.getTable("PersonTable");
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Group-getTableCount" id="Group-getTableCount"></a>
+				<a href="#" class="section section_major" name="Group-getTableCount_anchor" id="Group-getTableCount_anchor"></a>
+				<h4>getTableCount</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>int</i> <b>getTableCount</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get the number of tables. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>int</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+int tableCount = group.getTableCount();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Group-getTableName" id="Group-getTableName"></a>
+				<a href="#" class="section section_major" name="Group-getTableName_anchor" id="Group-getTableName_anchor"></a>
+				<h4>getTableName</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>String</i> <b>getTableName</b>(<i>int</i> index)</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get the table at the specified position. 
+                	</p>
+
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>index : int</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>String</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+String firstTableName = group.getTableName(0);
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Group-hasTable" id="Group-hasTable"></a>
+				<a href="#" class="section section_major" name="Group-hasTable_anchor" id="Group-hasTable_anchor"></a>
+				<h4>hasTable</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>boolean</i> <b>hasTable</b>(<i>String</i> name)</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Check if group contains a specific named table. 
+                	</p>
+
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>name : String</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>boolean</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+if (group.hasTable("PersonTable")) {
+// do something
+}
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Group-isValid" id="Group-isValid"></a>
+				<a href="#" class="section section_major" name="Group-isValid_anchor" id="Group-isValid_anchor"></a>
+				<h4>isValid</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>boolean</i> <b>isValid</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Validate the group. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>boolean</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+if (group.isValid()) {
+// do something
+}
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Group-writeToByteBuffer" id="Group-writeToByteBuffer"></a>
+				<a href="#" class="section section_major" name="Group-writeToByteBuffer_anchor" id="Group-writeToByteBuffer_anchor"></a>
+				<h4>writeToByteBuffer</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>ByteBuffer</i> <b>writeToByteBuffer</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Serialize the group to a ByteBuffer. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>ByteBuffer</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+ByteBuffer buffer = group.writeToByteBuffer();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Group-writeToFile" id="Group-writeToFile"></a>
+				<a href="#" class="section section_major" name="Group-writeToFile_anchor" id="Group-writeToFile_anchor"></a>
 				<h4>writeToFile</h4>
                 <p><div class="eks">
-                <pre class="prettyprint" lang-java style="font-size: 16px">void <b>writeToFile</b>(String name)</pre>
-            </div>
-            </p>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>writeToFile</b>(<i>File</i> file)</pre>
+                </div>
+                </p>
                 <dl><dd>
                 	<p>
-                	Write table group to disk.
+                	Serialize the group to disk. 
                 	</p>
+
                 	<dl>
                 		<dt><b>Parameters:</b></dt>
-                		<dd><p><code>name</code>: Filename of data file</p></dd>
+                		<dd><p>
+	                    <code>file : File</code>
+	                    </p></dd>
                 	</dl>
-                	<dl>
+                    <dl>
                 		<dt><b>Returns:</b></dt>
-                		<dd><p>void</p></dd>
+                		<dd><p><code><i>void</i></code></p></dd>
                 	</dl>
                 	<dl>
-                		<dt><p><b>Example:</b></p></dt>
-                		<dd>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
 							<pre class="prettyprint" lang-java>
-group.writeToFile("employees.tightdb");
+File file = new File("data.tdb");
+try {
+group.writeToFile(file);
+} catch (IOException e) {
+throw new RuntimeException("Couldn't write to file!", e);
+}
 							</pre>
-                         </dd>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Group-writeToFile" id="Group-writeToFile"></a>
+				<a href="#" class="section section_major" name="Group-writeToFile_anchor" id="Group-writeToFile_anchor"></a>
+				<h4>writeToFile</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>writeToFile</b>(<i>String</i> fileName)</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Serialize the group to disk. 
+                	</p>
+
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>fileName : String</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>void</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+File file = new File("data.tdb");
+try {
+group.writeToFile(file);
+} catch (IOException e) {
+throw new RuntimeException("Couldn't write to file!", e);
+}
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Group-writeToMem" id="Group-writeToMem"></a>
+				<a href="#" class="section section_major" name="Group-writeToMem_anchor" id="Group-writeToMem_anchor"></a>
+				<h4>writeToMem</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>byte[]</i> <b>writeToMem</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Serialize the group to a memory buffer. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>byte[]</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+byte[] mem = group.writeToMem();
+							</pre>
+                        </p></dd>
                 	</dl>
                 </dd></dl>
 
 
-				<a href="#" name="group-write_to_mem" id="group-write_to_mem"></a>
-				<a href="#" class="section section_minor" name="group-write_to_mem_anchor" id="group-write_to_mem_anchor"></a>
-				<h4>writeToMem</h4>
-                <p><div class="eks">
-                <pre class="prettyprint" lang-java style="font-size: 16px">byte[] <b>writeToMem</b>()</pre>
-            </div>
-            </p>
-                <dl><dd>
-                	<p>
-                	Write table group to memory buffer.
-                	</p>
-                	<dl>
-                		<dt><b>Parameters:</b></dt>
-                		<dd><p>None</dd>
-                	</dl>
-                	<dl>
-                		<dt><b>Returns:</b></dt>
-                		<dd><p>byte array containing group in serialized form (this is binary data).
-                	</dl>
-                	<dl>
-                		<dt><p><b>Example:</b></p></dt>
-                		<dd>
-							<pre class="prettyprint" lang-java>
-// Write same group to memory buffer
-byte buffer[] = group.writeToMem();
-							</pre>
-                         </dd>
-                	</dl>
-               </dd></dl>
-			</div>
 			
 			
 			<script type="text/javascript">
