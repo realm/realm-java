@@ -156,7 +156,8 @@ public class Performance {
 		    // Do a search over entire column (value not found)
 		    TestQuery q = table.fourth.eq(Tue);
 		    for (int i = 0; i < 100; ++i) {
-		         Test res = q.findFirst();
+		         //Test res = q.findFirst();
+		    	 Test res = table.fourth.findFirst(Tue);	// Search directly on one column is twice as fast as generic query above
 		         if (res != null) {
 		             System.out.printf("error !! %d", res.getPosition());
 		             break;
