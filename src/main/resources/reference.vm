@@ -374,6 +374,33 @@ ${table_method_details}
                 This is a representation of a single row (record) in a table.
                 </p>
 
+                <h3>Column fields</h3>
+				
+                    <dl>
+                      <dd><p> The table shows the declared methods for the row column representations:</p></dd>
+					  
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>ColumnType <b>get</b>()</tt></td><td>get the cell value</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>set</b>(ColumnType value)</tt></td><td>set the cell value</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+                    <dl>
+                      <dt><b>Examples:</b></dt>
+                      <dd>
+						<p>
+                        <pre class="prettyprint" lang-java>
+String name = people.first().name.get();
+people.at(3).age.set(33);
+                        </pre>
+						</p>
+                      </dd>
+                    </dl>
+                </dd></dl>
+				
                 <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                 <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                 <th align="left" colspan="2"><font size="+2">
