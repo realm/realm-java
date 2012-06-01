@@ -24,55 +24,55 @@ public class TutorialExample {
     }
     
     public static void main(String[] args) {
-        PeopleTable people = new PeopleTable();
+        PeopleTable peopletable = new PeopleTable();
         // ...
 		// @@EndExample@@
 		        
 		/****************************** BASIC OPERATIONS *************************/
 		
 		// @@Example: insert_rows @@
-		people.add("John", 20, true);
-		people.add("Mary", 21, false);
-		people.add("Lars", 32, true);
-		people.add("Phil", 43, false);
-		people.add("Anni", 53, true);
+        peopletable.add("John", 20, true);
+		peopletable.add("Mary", 21, false);
+		peopletable.add("Lars", 32, true);
+		peopletable.add("Phil", 43, false);
+		peopletable.add("Anni", 53, true);
 		// @@EndExample@@
 		
 		// @@Example: insert_at_index @@
-		people.insert(2, "Frank", 34, true);
+		peopletable.insert(2, "Frank", 34, true);
 		// @@EndExample@@
 		
 		/****************************** GETTERS AND SETTERS **********************/
 		
 		// @@Example: accessing_rows @@
 		// 2 ways to get the value
-		String name = people.at(2).getName(); // name => "Mary"
+		String name = peopletable.at(2).getName(); // name => "Mary"
 		// or
-		String name2 = people.at(2).name.get();
+		String name2 = peopletable.at(2).name.get();
 		
 		// 2 ways to set the value
-		people.at(2).name.set("NewName");
+		peopletable.at(2).name.set("NewName");
 		// or
-		people.at(2).setName("NewName"); 
+		peopletable.at(2).setName("NewName"); 
 		// @@EndExample@@
 		
 		System.out.println("at(2).getName -> " + name + " or " + name2);
-		System.out.println("at(2).setName('NewName') -> " + people.at(2).getName());
+		System.out.println("at(2).setName('NewName') -> " + peopletable.at(2).getName());
 				
 		// @@Example: number_of_rows @@
-		if (!people.isEmpty()) {
-		    long s = people.size(); // s => 6
+		if (!peopletable.isEmpty()) {
+		    long s = peopletable.size(); // s => 6
 		}
 		// @@EndExample@@
 		
-		System.out.println("Size = " + people.size() + "\n");
+		System.out.println("Size = " + peopletable.size() + "\n");
 		
 		/****************************** ITERATION OF ALL RECORDS *****************/
 		
 		// lazy iteration over the table
 		
 		// @@Example: iteration @@
-		for (People person : people) {
+		for (People person : peopletable) {
 			System.out.println(person.getName() + " is " + person.getAge() + " years old.");
 		}
 		// @@EndExample@@
@@ -80,7 +80,7 @@ public class TutorialExample {
 		/****************************** SIMPLE QUERY *****************************/
 		
 		// @@Example: simple_seach @@
-		People p = people.name.equal("John").findFirst();
+		People p = peopletable.name.equal("John").findFirst();
 		// @@EndExample@@
 		
 		System.out.println("\nFind 'John': " + p + "\n");
@@ -89,7 +89,7 @@ public class TutorialExample {
 		
 		// @@Example: advanced_search @@
 		// Define the query
-		PeopleQuery query = people.name.contains("a")
+		PeopleQuery query = peopletable.name.contains("a")
 								.group()
 									.hired.equal(false)
 									.or()
@@ -107,10 +107,10 @@ public class TutorialExample {
 		
 		/****************************** DATA REMOVAL *****************************/
 		// @@Example: deleting_row @@
-		people.remove(2);
+		peopletable.remove(2);
 		// @@EndExample@@
 		
-		System.out.println("\nRemoved row 2. Down to " + people.size() + " rows.\n");
+		System.out.println("\nRemoved row 2. Down to " + peopletable.size() + " rows.\n");
 		
 		/****************************** SERIALIZE ********************************/
 		
