@@ -12,6 +12,7 @@
    b) Select "Existing Maven projects" as an import source
    c) Select the "tightdb_java2" folder as root directory
    d) You should see 1 item in the projects list (e.g. /pom.xml - tightdb_java2...), make sure it is checked
+   e) For Linux users: add the native library (Properties / Libraries / JRE System Library / Native Library / Edit -> the tightdb_java2 folder)
 
 5. Execute the tests and examples.
    a) Execute the simple PoC "TableTest" (in the "com.tightdb" package) by right-clicking it -> Run As -> Java Application
