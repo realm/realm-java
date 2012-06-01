@@ -159,10 +159,10 @@ var App = {};
 							  <strong class="first"><a class="" href="#tablerow">Row Class</a></strong>
                             </li>
 
-							<li data-section="tablequery" class="major">
-								<strong class="first"><a class="" href="#tablequery">Query Class</a></strong>                                <ul style="display: block;">
+                            <li data-section="tablequery" class="major">
+							  <strong class="first"><a class="" href="#tablequery">Query Class</a></strong>
                             </li>
-
+							
                             <li data-section="tableview" class="major">
                                 <strong class="first"><a class="" href="#tableview">View Class</a></strong>
 								<!--
@@ -256,7 +256,7 @@ ${table_method_overview}
 	                <i>Note</i>: Only tables which are part of a <a href="#group">Group</a> can be serialized to memory or disk.
                 	</p>
                     <p>
-                      <i>Note</i>: Tables should be allocated and instantiated using the <code>@Table</code> annotation. 
+                      <i>Note</i>: Tables should be generated using the <code>@Table</code> annotation. 
                       The annotation for a Java class with name <code>foo</code> will 
                       generate a number of classes representing rows (<code>Foo</code>), queries (<code>FooQuery</code>),
                       result sets (<code>FooView</code>), and the table (<code>FooTable</code>). 
@@ -308,7 +308,7 @@ ${table_method_details}
 
 
 
-<!--- TABLEVIEW CLASS --->
+<!--- ROW CLASS --->
 
                 <a href="#" name="tablerow" id="tablerow"></a>
                 <a href="#" class="section section_minor" name="tablerow_anchor" id="tablerow_anchor"></a>
@@ -342,56 +342,13 @@ ${row_method_details}
                 the <code>@Table</code> annotation.
                 </p>
 
-				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<th align="left" colspan="2"><font size="+2">
-				<b>Constructor Summary</b></font></th>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td><code><b><a href="#tablequery">Query</a></b> query</code>
-
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Query class.</td>
-				</tr>
-				</tbody></table>
-				
                 <p></p>
-
-				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<th align="left" colspan="2"><font size="+2">
-				<b>Method Summary</b></font></th>
-				</tr>
-
-${query_method_overview}
-
-				</tbody></table>
-                <br>
-			
-                <a href="#" name="table-query" id="table-query"></a>
-                <a href="#" class="section section_major" name="table-query_anchor" id="table-query_anchor"></a>
-                <h3>where</h3>
-                <p><div class="eks">
-                    <pre class="prettyprint" lang-java style="font-size: 16px"><i>Table</i>Query <i>Table</i>.<b>where</b>()</pre>
-                  </div>
-                </p>
-                <dl><dd>
-                    <p>
-                      Create a query object for a table.
-                    </p>
-                    <dl>
-                      <dt><b>Parameters:</b></dt>
-                      <dd><p>N/A</p></dd>
-                    </dl>
-                    <dl>
-                      <dt><b>Returns:</b></dt>
-                      <dd><p><code><i>Table</i>Query</code>: Query object</p></dd>
-                    </dl>
+				
                     <dl>
                       <dt><b>Query interface:</b></dt>
                       <dd><p>Query objects are created by and associated with table objects. Query is build using a <a href="http://en.wikipedia.org/wiki/Fluent_interface">fluent interface</a> (method invocations can be daisy chained). Conditions are by default folded using logical-and. Query objects can be reused, and queries can be repeatly executed by the <tt>find_all()</tt> method (resembles the prepare/execute pattern in SQL clients).<p> The table shows the declared methods on TableQuery objects.</p></dd>
 
-                      <dd><p>For boolean columns:</p></dd>
+                      <dd><p><b>For boolean columns:</b></p></dd>
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                         	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
@@ -402,7 +359,7 @@ ${query_method_overview}
                         </p>
                       </dd>
 
-                      <dd<p>For integer columns:</p></dd>
+                      <dd><p><b>For integer columns:</b></p></dd>
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                         	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
@@ -422,7 +379,7 @@ ${query_method_overview}
                         </p>
                       </dd>
 
-                      <dd><p>For string columns:</p></dd>
+                      <dd><p><b>For string columns:</b></p></dd>
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                         	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
@@ -435,7 +392,7 @@ ${query_method_overview}
                           </table>
                       </p></dd>
 
-                      <dd><p>Other methods:</p></dd>
+                      <dd><p><b>Other methods:</b></p></dd>
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                         	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
@@ -452,37 +409,40 @@ ${query_method_overview}
                     <dl>
                       <dt><b>Examples:</b></dt>
                       <dd>
+						<p>
                         <pre class="prettyprint" lang-java>
 PeopleView v = people.hired.equals(true).age.between(20, 30).findAll();
                         </pre>
+						</p>
                       </dd>
                     </dl>
                 </dd></dl>
+				
+
+				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<th align="left" colspan="2"><font size="+2">
+				<b>Method Summary</b></font></th>
+				</tr>
+
+${query_method_overview}
+
+				</tbody></table>
+                <br>
+			
 
 ${query_method_details}
 
 
-<!--- TABLEVIEW CLASS --->
+<!--- VIEW CLASS --->
 
                 <a href="#" name="tableview" id="tableview"></a>
                 <a href="#" class="section section_minor" name="tableview_anchor" id="tableview_anchor"></a>
                 <h2>View Class</h2>
                 <p>
-                The <code>findAll</code> in the <code>Query</code> class returns a <code>View</code> object. You can interact with the TableView just as a regular table, and all changes to it will propagate to the original <a href="#table">table</a>.
+                The <code>findAll</code> method in the <code>Query</code> class returns a <code>View</code> object.
+				You can interact with the View just as a regular table, and all changes to it will propagate to the original <a href="#table">table</a>.
                 </p>
-
-				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<th align="left" colspan="2"><font size="+2">
-				<b>Constructor Summary</b></font></th>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td><code><b><a href="#tableview"><i>Table</i>View</a></b> <i>Table</i>Query.findAll()</code>
-
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TableView class.</td>
-				</tr>
-				</tbody></table>
 
                 <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                 <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
