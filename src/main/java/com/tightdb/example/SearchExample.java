@@ -20,7 +20,7 @@ public class SearchExample {
 
 		TightDB.print(Employees);
 
-		EmployeeQuery q1 = Employees.firstName.startsWith("J").lastName.endWith("e");
+		EmployeeQuery q1 = Employees.firstName.startsWith("J").lastName.endsWith("e");
 		System.out.println(q1);
 		
 		EmployeeView results = q1.findAll();

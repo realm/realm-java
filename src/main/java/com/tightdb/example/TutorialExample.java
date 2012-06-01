@@ -93,7 +93,7 @@ public class TutorialExample {
 								.group()
 									.hired.equal(false)
 									.or()
-									.name.endWith("y")
+									.name.endsWith("y")
 								.endGroup()
 								.age.between(20, 30);
 		// Count matches
