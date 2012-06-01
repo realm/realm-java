@@ -1,4 +1,5 @@
 tightdb-example/target/*
+*.tightdb
 
 *.sdf
 *.opensdf
