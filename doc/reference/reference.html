@@ -776,19 +776,19 @@ people.where().age.is(22).findAll();
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Row</code></font></td>
-					<td><code><b><a href="#Row-after">after</a></b>()
+					<td><code><b><a href="#Row-after">after</a></b>(<i>long</i> delta)
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the row after the next delta rows</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Row</code></font></td>
-					<td><code><b><a href="#Row-before">before</a></b>()
+					<td><code><b><a href="#Row-before">before</a></b>(<i>long</i> delta)
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the row before the previous delta rows</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -797,7 +797,7 @@ people.where().age.is(22).findAll();
 					<td><code><b><a href="#Row-columns">columns</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the columns with values from the row</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -806,7 +806,7 @@ people.where().age.is(22).findAll();
 					<td><code><b><a href="#Row-next">next</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the next row as an object</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -815,7 +815,7 @@ people.where().age.is(22).findAll();
 					<td><code><b><a href="#Row-previous">previous</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the previous row as an object</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -824,7 +824,7 @@ people.where().age.is(22).findAll();
 					<td><code><b><a href="#Row-getFoo">getFoo</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Generic) Get the value of the 'foo' column. For each column there will be such method</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -833,7 +833,7 @@ people.where().age.is(22).findAll();
 					<td><code><b><a href="#Row-setFoo">setFoo</a></b>(<i>FooType</i> value)
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Generic) Set the value of the 'foo' column. For each column there will be such method</td>
 				</tr>
 
 
@@ -844,14 +844,20 @@ people.where().age.is(22).findAll();
 				<a href="#" class="section section_major" name="Row-after_anchor" id="Row-after_anchor"></a>
 				<h4>after</h4>
                 <p><div class="eks">
-                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>after</b>()</pre>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>after</b>(<i>long</i> delta)</pre>
                 </div>
                 </p>
                 <dl><dd>
                 	<p>
-                	. 
+                	Get the row after the next delta rows. 
                 	</p>
 
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>delta : long</code>
+	                    </p></dd>
+                	</dl>
                     <dl>
                 		<dt><b>Returns:</b></dt>
                 		<dd><p><code><i>Row</i></code></p></dd>
@@ -860,7 +866,7 @@ people.where().age.is(22).findAll();
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-
+Person third = people.at(0).after(2);
 							</pre>
                         </p></dd>
                 	</dl>
@@ -870,14 +876,20 @@ people.where().age.is(22).findAll();
 				<a href="#" class="section section_major" name="Row-before_anchor" id="Row-before_anchor"></a>
 				<h4>before</h4>
                 <p><div class="eks">
-                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>before</b>()</pre>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>before</b>(<i>long</i> delta)</pre>
                 </div>
                 </p>
                 <dl><dd>
                 	<p>
-                	. 
+                	Get the row before the previous delta rows. 
                 	</p>
 
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>delta : long</code>
+	                    </p></dd>
+                	</dl>
                     <dl>
                 		<dt><b>Returns:</b></dt>
                 		<dd><p><code><i>Row</i></code></p></dd>
@@ -886,7 +898,7 @@ people.where().age.is(22).findAll();
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-
+Person second = people.at(4).before(3);
 							</pre>
                         </p></dd>
                 	</dl>
@@ -901,7 +913,7 @@ people.where().age.is(22).findAll();
                 </p>
                 <dl><dd>
                 	<p>
-                	. 
+                	Get the columns with values from the row. 
                 	</p>
 
                     <dl>
@@ -912,7 +924,9 @@ people.where().age.is(22).findAll();
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-
+for (AbstractColumn<?, ?, ?, ?> column : john.columns()) {
+System.out.println(column.getName() + "=" + column.getReadableValue());
+}
 							</pre>
                         </p></dd>
                 	</dl>
@@ -927,7 +941,7 @@ people.where().age.is(22).findAll();
                 </p>
                 <dl><dd>
                 	<p>
-                	. 
+                	Get the next row as an object. 
                 	</p>
 
                     <dl>
@@ -938,7 +952,7 @@ people.where().age.is(22).findAll();
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-
+Person fifth = people.at(3).next();
 							</pre>
                         </p></dd>
                 	</dl>
@@ -953,7 +967,7 @@ people.where().age.is(22).findAll();
                 </p>
                 <dl><dd>
                 	<p>
-                	. 
+                	Get the previous row as an object. 
                 	</p>
 
                     <dl>
@@ -964,7 +978,7 @@ people.where().age.is(22).findAll();
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-
+Person secondLast = people.last().previous();
 							</pre>
                         </p></dd>
                 	</dl>
@@ -979,7 +993,7 @@ people.where().age.is(22).findAll();
                 </p>
                 <dl><dd>
                 	<p>
-                	. 
+                	(Generic) Get the value of the 'foo' column. For each column there will be such method. 
                 	</p>
 
                     <dl>
@@ -990,7 +1004,8 @@ people.where().age.is(22).findAll();
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-
+String name = people.first().getName();
+int age = people.last().getAge();
 							</pre>
                         </p></dd>
                 	</dl>
@@ -1005,7 +1020,7 @@ people.where().age.is(22).findAll();
                 </p>
                 <dl><dd>
                 	<p>
-                	. 
+                	(Generic) Set the value of the 'foo' column. For each column there will be such method. 
                 	</p>
 
                 	<dl>
@@ -1022,7 +1037,8 @@ people.where().age.is(22).findAll();
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-
+people.last().setName("John");
+people.first().getAge(30);
 							</pre>
                         </p></dd>
                 	</dl>
