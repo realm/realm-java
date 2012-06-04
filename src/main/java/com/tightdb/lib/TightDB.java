@@ -15,7 +15,7 @@ public class TightDB {
 
 	private static final String JAVA_LIBRARY_PATH = "java.library.path";
 	private static final String BINARIES_PATH = "./lib";
-	
+
 	private static boolean loadedLibrary;
 
 	public static byte[] serialize(Serializable value) {
@@ -125,7 +125,7 @@ public class TightDB {
 
 	public static void addNativeLibraryPath(String path) {
 		try {
-			System.setProperty(JAVA_LIBRARY_PATH, System.getProperty(JAVA_LIBRARY_PATH) + path);
+			System.setProperty(JAVA_LIBRARY_PATH, System.getProperty(JAVA_LIBRARY_PATH) + ";" + path + ";");
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot set the library path!", e);
 		}
@@ -141,5 +141,5 @@ public class TightDB {
 			throw new RuntimeException("Cannot reset the library path!", e);
 		}
 	}
-	
+
 }
