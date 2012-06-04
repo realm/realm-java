@@ -50,31 +50,31 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		}
 	}
 
-	protected void registerLongColumn(TableSpec spec, String name) {
+	protected void addLongColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeInt, name);
 	}
 
-	protected void registerStringColumn(TableSpec spec, String name) {
+	protected void addStringColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeString, name);
 	}
 
-	protected void registerBooleanColumn(TableSpec spec, String name) {
+	protected void addBooleanColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeBool, name);
 	}
 
-	protected void registerBinaryColumn(TableSpec spec, String name) {
+	protected void addBinaryColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeBinary, name);
 	}
 
-	protected void registerDateColumn(TableSpec spec, String name) {
+	protected void addDateColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeDate, name);
 	}
 
-	protected void registerMixedColumn(TableSpec spec, String name) {
+	protected void addMixedColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeMixed, name);
 	}
 
-	protected void registerTableColumn(TableSpec spec, String name, AbstractTable<?, ?, ?> subtable) {
+	protected void addTableColumn(TableSpec spec, String name, AbstractTable<?, ?, ?> subtable) {
 		TableSpec subspec = spec.addSubtableColumn(name);
 		subtable.specifyStructure(subspec);
 	}
@@ -117,16 +117,18 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		table.insertDone();
 	}
 
-	public void remove(long id) {
-		table.remove(id);
+	public void remove(long rowIndex) {
+		table.remove(rowIndex);
 	}
 
-	// @Override
-	// public Cursor remove(int index) {
-	// table.removeRow(index);
-	// return null;
-	// }
+	public void setIndex(long columnIndex) {
+		table.setIndex(columnIndex);
+	}
 
+	public boolean hasIndex(long columnIndex) {
+		return table.hasIndex(columnIndex);
+	}
+	
 	@Override
 	public void clear() {
 		table.clear();

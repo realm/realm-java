@@ -23,8 +23,15 @@ public class LongRowsetColumn<Cursor, View, Query> extends LongQueryColumn<Curso
 	public long minimum() {
 		return rowset.minimum(columnIndex);
 	}
-
+/*
+	public void setIndex() {
+		rowset.setIndex(columnIndex);
+	}
 	
+	public boolean hasIndex() {
+		return rowset.hasIndex(columnIndex);
+	}
+*/	
 	@Override
 	public Long[] getAll() {
 		long count = rowset.size();
