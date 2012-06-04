@@ -13,10 +13,10 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 
 	public static final EntityTypes<TestTable, TestView, Test, TestQuery> TYPES = new EntityTypes<TestTable, TestView, Test, TestQuery>(TestTable.class, TestView.class, Test.class, TestQuery.class); 
 
-	public final LongRowsetColumn<Test, TestView, TestQuery> first = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 0, "first");
+	public final LongRowsetColumn<Test, TestView, TestQuery> indexInt = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 0, "indexInt");
 	public final StringRowsetColumn<Test, TestView, TestQuery> second = new StringRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 1, "second");
-	public final LongRowsetColumn<Test, TestView, TestQuery> third = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 2, "third");
-	public final LongRowsetColumn<Test, TestView, TestQuery> fourth = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 3, "fourth");
+	public final LongRowsetColumn<Test, TestView, TestQuery> byteInt = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 2, "byteInt");
+	public final LongRowsetColumn<Test, TestView, TestQuery> smallInt = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 3, "smallInt");
 
 	public TestTable() {
 		super(TYPES);
@@ -28,20 +28,20 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 
 	@Override
 	protected void specifyStructure(TableSpec spec) {
-        registerLongColumn(spec, "first");
-        registerStringColumn(spec, "second");
-        registerLongColumn(spec, "third");
-        registerLongColumn(spec, "fourth");
+        addLongColumn(spec, "indexInt");
+        addStringColumn(spec, "second");
+        addLongColumn(spec, "byteInt");
+        addLongColumn(spec, "smallInt");
     }
 
-    public Test add(int first, String second, int third, int fourth) {
+    public Test add(int indexInt, String second, int byteInt, int smallInt) {
         try {
         	long position = size();
 
-        	insertLong(0, position, first);
+        	insertLong(0, position, indexInt);
         	insertString(1, position, second);
-        	insertLong(2, position, third);
-        	insertLong(3, position, fourth);
+        	insertLong(2, position, byteInt);
+        	insertLong(3, position, smallInt);
         	insertDone();
 
         	return cursor(position);
@@ -51,12 +51,12 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 
     }
 
-    public Test insert(long position, int first, String second, int third, int fourth) {
+    public Test insert(long position, int indexInt, String second, int byteInt, int smallInt) {
         try {
-        	insertLong(0, position, first);
+        	insertLong(0, position, indexInt);
         	insertString(1, position, second);
-        	insertLong(2, position, third);
-        	insertLong(3, position, fourth);
+        	insertLong(2, position, byteInt);
+        	insertLong(3, position, smallInt);
         	insertDone();
 
         	return cursor(position);
