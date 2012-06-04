@@ -7,14 +7,14 @@
 
 	<target name="clean-generated-files">
 		<echo message="${ant.project.name}: ${ant.file}" />
-		<delete dir="${srcdir}/main/java/com/tightdb/generated" />
+		<delete dir="${srcdir}/com/tightdb/generated" />
 	</target>
 
 	<target name="generate-sources" depends="clean-generated-files">
 		<echo message="${ant.project.name}: ${ant.file}" />
 		<javac source="${version}" target="${version}" srcdir="${srcdir}">
 			<compilerarg value="-classpath" />
-			<compilerarg value="lib/tightdb.jar" />
+			<compilerarg value="lib/tightdb.jar;lib-sqlite/sqlite4java.jar" />
 			<compilerarg value="-processor" />
 			<compilerarg value="org.jannocessor.processor.JannocessorProcessor" />
 			<compilerarg value="-processorpath" />
