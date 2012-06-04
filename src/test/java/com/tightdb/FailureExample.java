@@ -1,4 +1,4 @@
-package com.tightdb.example;
+package com.tightdb;
 
 import java.io.IOException;
 import java.util.Date;
