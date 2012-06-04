@@ -28,10 +28,10 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 
 	@Override
 	protected void specifyStructure(TableSpec spec) {
-        registerLongColumn(spec, "indexInt");
-        registerStringColumn(spec, "second");
-        registerLongColumn(spec, "byteInt");
-        registerLongColumn(spec, "smallInt");
+        addLongColumn(spec, "indexInt");
+        addStringColumn(spec, "second");
+        addLongColumn(spec, "byteInt");
+        addLongColumn(spec, "smallInt");
     }
 
     public Test add(int indexInt, String second, int byteInt, int smallInt) {

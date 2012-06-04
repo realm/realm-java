@@ -22,8 +22,8 @@ public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
 
 	@Override
 	protected void specifyStructure(TableSpec spec) {
-        registerStringColumn(spec, "type");
-        registerStringColumn(spec, "number");
+        addStringColumn(spec, "type");
+        addStringColumn(spec, "number");
     }
 
     public Phone add(String type, String number) {

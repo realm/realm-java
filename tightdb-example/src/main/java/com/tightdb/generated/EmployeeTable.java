@@ -33,14 +33,14 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView, Employe
 
 	@Override
 	protected void specifyStructure(TableSpec spec) {
-        registerStringColumn(spec, "firstName");
-        registerStringColumn(spec, "lastName");
-        registerLongColumn(spec, "salary");
-        registerBooleanColumn(spec, "driver");
-        registerBinaryColumn(spec, "photo");
-        registerDateColumn(spec, "birthdate");
-        registerMixedColumn(spec, "extra");
-        registerTableColumn(spec, "phones", new PhoneTable(null));
+        addStringColumn(spec, "firstName");
+        addStringColumn(spec, "lastName");
+        addLongColumn(spec, "salary");
+        addBooleanColumn(spec, "driver");
+        addBinaryColumn(spec, "photo");
+        addDateColumn(spec, "birthdate");
+        addMixedColumn(spec, "extra");
+        addTableColumn(spec, "phones", new PhoneTable(null));
     }
 
     public Employee add(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra) {
