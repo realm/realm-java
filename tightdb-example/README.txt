@@ -60,6 +60,12 @@ you need to regenerate the typesafe classes that Tightdb provides based on the T
    This will generate custom classes for your tables in "com.tightdb.generated".
    The first time this is done, Eclipse will installadditional plugins if not already present.
 
+   Note: You may notice "[INFO]" messages like this:
+   "[INFO] diagnostic ...\tightdb-example\src\main\java\com\tightdb\example\Example.java:8: 
+    error: package     com.tightdb.generated does not exist"
+   These can safely be ignored.
+
+
 3. Refresh the project (F5) and the generated classes are available with full autocompletion etc.
 
 You can now run your application again.
@@ -105,7 +111,6 @@ FAQ:
 Q1: I get the following error when generating classes as describe in step 4) above:
 "[ERROR] JVM is not suitable for processing annotation! ToolProvider.getSystemJavaCompiler() is null."
 A1: Install and Configure the project to use JDK6 or JDK7.
-
 
 
 
