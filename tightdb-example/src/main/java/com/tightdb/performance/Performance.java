@@ -1,5 +1,7 @@
 package com.tightdb.performance;
 
+import com.tightdb.lib.TightDB;
+
 
 public class Performance {
 	
@@ -10,6 +12,8 @@ public class Performance {
 	final static int TESTS 			= 3;
 	
 	public static void main(String[] args) {
+		TightDB.addNativeLibraryPath("lib-sqlite");
+		
 		int numOfValues = 250000;
 		
 		System.out.println("Performance tests with " + numOfValues + " rows. Search repeated " 
