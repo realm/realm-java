@@ -14,6 +14,11 @@
 			<scope>system</scope>
 			<systemPath>${project.basedir}/lib/tightdb.jar</systemPath>
 		</dependency>
+		<dependency>
+			<groupId>com.almworks.sqlite4java</groupId>
+			<artifactId>sqlite4java</artifactId>
+			<version>0.282</version>
+		</dependency>
 	</dependencies>
 
 	<build>
