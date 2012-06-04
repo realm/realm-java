@@ -27,9 +27,9 @@ public class PeopleTable extends AbstractTable<People, PeopleView, PeopleQuery> 
 
 	@Override
 	protected void specifyStructure(TableSpec spec) {
-        registerStringColumn(spec, "name");
-        registerLongColumn(spec, "age");
-        registerBooleanColumn(spec, "hired");
+        addStringColumn(spec, "name");
+        addLongColumn(spec, "age");
+        addBooleanColumn(spec, "hired");
     }
 
     public People add(String name, int age, boolean hired) {
