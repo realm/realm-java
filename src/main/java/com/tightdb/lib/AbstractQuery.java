@@ -18,6 +18,14 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		this.query = query;
 	}
 
+	public long count() {
+		return query.count(table);
+	}
+	
+	public long count(long start, long end, long limit) {
+		return query.count(table, start, end, limit);
+	}
+	
 	public View findAll() {
 		TableViewBase viewBase = query.findAll(table, 0, table.size(), Long.MAX_VALUE);
 		return view(viewBase);
@@ -87,7 +95,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	public long clear() {
-		View results = findAll();
+		View results = findAll();		// FIXME: Too expensive clear.
 		long count = results.size();
 		results.clear();
 		return count;
@@ -113,9 +121,4 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 			throw new RuntimeException("Cannot create a query!", e);
 		}
 	}
-
-	public long size() {
-		return findAll().size();
-	}
-
 }

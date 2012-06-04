@@ -11,17 +11,17 @@ import com.tightdb.lib.*;
  */
 public class TestQuery extends AbstractQuery<TestQuery, Test, TestView> {
 
-    public final LongQueryColumn<Test, TestView, TestQuery> first;
+    public final LongQueryColumn<Test, TestView, TestQuery> indexInt;
     public final StringQueryColumn<Test, TestView, TestQuery> second;
-    public final LongQueryColumn<Test, TestView, TestQuery> third;
-    public final LongQueryColumn<Test, TestView, TestQuery> fourth;
+    public final LongQueryColumn<Test, TestView, TestQuery> byteInt;
+    public final LongQueryColumn<Test, TestView, TestQuery> smallInt;
 
 	public TestQuery(TableBase table, TableQuery query) {
 		super(TestTable.TYPES, table, query);
-        first = new LongQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 0, "first");
+        indexInt = new LongQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 0, "indexInt");
         second = new StringQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 1, "second");
-        third = new LongQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 2, "third");
-        fourth = new LongQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 3, "fourth");
+        byteInt = new LongQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 2, "byteInt");
+        smallInt = new LongQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 3, "smallInt");
 	}
 
 }

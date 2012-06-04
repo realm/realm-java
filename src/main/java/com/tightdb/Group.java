@@ -128,7 +128,7 @@ public class Group {
 	protected native void nativeWriteToFile(long nativeGroupPtr, String fileName) throws Exception;
 	
 	/**
-	 * Writes the group to the specific file on the disk.
+	 * Serialize the group to the specific file on the disk.
 	 *
 	 * @param file A File object representing the file.
 	 * @throws IOException
@@ -145,8 +145,9 @@ public class Group {
 	}
 	
 	protected static native long nativeLoadFromMem(byte[] buffer);
+	
 	/**
-	 * Writes the table as a string which can be used for other purpose.
+	 * Serialize the group to a memory buffer.
 	 * 
 	 * @return Binary array of the serialized group.
 	 */

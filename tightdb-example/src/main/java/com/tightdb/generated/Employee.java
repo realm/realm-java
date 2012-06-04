@@ -11,26 +11,26 @@ import com.tightdb.lib.*;
  */
 public class Employee extends AbstractCursor<Employee> {
 
-    public final StringCursorColumn<Employee, EmployeeQuery> firstName;
-    public final StringCursorColumn<Employee, EmployeeQuery> lastName;
-    public final LongCursorColumn<Employee, EmployeeQuery> salary;
-    public final BooleanCursorColumn<Employee, EmployeeQuery> driver;
-    public final BinaryCursorColumn<Employee, EmployeeQuery> photo;
-    public final DateCursorColumn<Employee, EmployeeQuery> birthdate;
-    public final MixedCursorColumn<Employee, EmployeeQuery> extra;
-    public final TableCursorColumn<Employee, EmployeeQuery, PhoneTable> phones;
+    public final StringCursorColumn<Employee, EmployeeView, EmployeeQuery> firstName;
+    public final StringCursorColumn<Employee, EmployeeView, EmployeeQuery> lastName;
+    public final LongCursorColumn<Employee, EmployeeView, EmployeeQuery> salary;
+    public final BooleanCursorColumn<Employee, EmployeeView, EmployeeQuery> driver;
+    public final BinaryCursorColumn<Employee, EmployeeView, EmployeeQuery> photo;
+    public final DateCursorColumn<Employee, EmployeeView, EmployeeQuery> birthdate;
+    public final MixedCursorColumn<Employee, EmployeeView, EmployeeQuery> extra;
+    public final TableCursorColumn<Employee, EmployeeView, EmployeeQuery, Phone, PhoneTable> phones;
 
 	public Employee(IRowsetBase rowset, long position) {
 		super(EmployeeTable.TYPES, rowset, position);
 
-        firstName = new StringCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 0, "firstName");
-        lastName = new StringCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 1, "lastName");
-        salary = new LongCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 2, "salary");
-        driver = new BooleanCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 3, "driver");
-        photo = new BinaryCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 4, "photo");
-        birthdate = new DateCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 5, "birthdate");
-        extra = new MixedCursorColumn<Employee, EmployeeQuery>(EmployeeTable.TYPES, this, 6, "extra");
-        phones = new TableCursorColumn<Employee, EmployeeQuery, PhoneTable>(EmployeeTable.TYPES, this, 7, "phones", PhoneTable.class);
+        firstName = new StringCursorColumn<Employee, EmployeeView, EmployeeQuery>(EmployeeTable.TYPES, this, 0, "firstName");
+        lastName = new StringCursorColumn<Employee, EmployeeView, EmployeeQuery>(EmployeeTable.TYPES, this, 1, "lastName");
+        salary = new LongCursorColumn<Employee, EmployeeView, EmployeeQuery>(EmployeeTable.TYPES, this, 2, "salary");
+        driver = new BooleanCursorColumn<Employee, EmployeeView, EmployeeQuery>(EmployeeTable.TYPES, this, 3, "driver");
+        photo = new BinaryCursorColumn<Employee, EmployeeView, EmployeeQuery>(EmployeeTable.TYPES, this, 4, "photo");
+        birthdate = new DateCursorColumn<Employee, EmployeeView, EmployeeQuery>(EmployeeTable.TYPES, this, 5, "birthdate");
+        extra = new MixedCursorColumn<Employee, EmployeeView, EmployeeQuery>(EmployeeTable.TYPES, this, 6, "extra");
+        phones = new TableCursorColumn<Employee, EmployeeView, EmployeeQuery, Phone, PhoneTable>(EmployeeTable.TYPES, this, 7, "phones", PhoneTable.class);
 	}
 
 	public java.lang.String getFirstName() {
@@ -65,11 +65,11 @@ public class Employee extends AbstractCursor<Employee> {
 		this.driver.set(driver);
 	}
 
-	public byte[] getPhoto() {
+	public java.nio.ByteBuffer getPhoto() {
 		return this.photo.get();
 	}
 
-	public void setPhoto(byte[] photo) {
+	public void setPhoto(java.nio.ByteBuffer photo) {
 		this.photo.set(photo);
 	}
 
@@ -81,11 +81,11 @@ public class Employee extends AbstractCursor<Employee> {
 		this.birthdate.set(birthdate);
 	}
 
-	public java.io.Serializable getExtra() {
+	public com.tightdb.Mixed getExtra() {
 		return this.extra.get();
 	}
 
-	public void setExtra(java.io.Serializable extra) {
+	public void setExtra(com.tightdb.Mixed extra) {
 		this.extra.set(extra);
 	}
 
@@ -98,7 +98,7 @@ public class Employee extends AbstractCursor<Employee> {
 	}
 
 	@Override
-	public AbstractColumn<?, ?, ?>[] columns() {
+	public AbstractColumn<?, ?, ?, ?>[] columns() {
 		return getColumnsArray(firstName, lastName, salary, driver, photo, birthdate, extra, phones);
 	}
 

@@ -11,7 +11,6 @@ import org.jannocessor.collection.api.PowerSet;
 import org.jannocessor.model.executable.JavaMethod;
 import org.jannocessor.model.structure.AbstractJavaClass;
 import org.jannocessor.model.structure.JavaClass;
-import org.jannocessor.model.structure.JavaMetadata;
 import org.jannocessor.model.type.JavaType;
 import org.jannocessor.model.util.Methods;
 import org.jannocessor.model.util.New;
@@ -19,9 +18,6 @@ import org.jannocessor.model.variable.JavaField;
 import org.jannocessor.model.variable.JavaParameter;
 import org.jannocessor.processor.api.CodeProcessor;
 import org.jannocessor.processor.api.ProcessingContext;
-
-import com.tightdb.lib.NestedTable;
-import com.tightdb.lib.Table;
 
 public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 
@@ -56,7 +52,7 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 				JavaType type = getFieldType(field);
 				JavaField f = New.field(type, field.getName().getText());
 
-				boolean isSubtable = isNestedTable(type);
+				boolean isSubtable = isSubtable(type);
 				String subtype = isSubtable ? type.getSimpleName().getCapitalized() : null;
 				PowerMap<String, ? extends Object> fieldAttrs = Power.map("index", index++, "columnType", columnType, "isSubtable", isSubtable).set(
 						"subtype", subtype);
@@ -66,7 +62,7 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 
 			/* Set the attributes */
 
-			boolean isNested = isNestedTable(model.getType());
+			boolean isNested = isSubtable(model.getType());
 			Map<String, ? extends Object> attributes = Power.map("entity", New.name(model.getName().getCapitalized()), "columns", columns,
 					"isNested", isNested);
 
@@ -82,7 +78,7 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 			List<JavaParameter> addParams = Power.list();
 
 			for (JavaField field : fields) {
-				if (!isNestedTable(field.getType())) {
+				if (!isSubtable(field.getType())) {
 					addParams.add(New.parameter(field.getType(), field.getName().getText()));
 				}
 			}
@@ -97,7 +93,7 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 			insertParams.add(New.parameter(long.class, "position"));
 
 			for (JavaField field : fields) {
-				if (!isNestedTable(field.getType())) {
+				if (!isSubtable(field.getType())) {
 					insertParams.add(New.parameter(field.getType(), field.getName().getText()));
 				}
 			}
@@ -139,17 +135,30 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 	private void prepareTables(PowerList<AbstractJavaClass> classes, ProcessingContext context) {
 		for (AbstractJavaClass model : classes) {
 			String name = model.getQualifiedName().getText();
-			for (JavaMetadata metadata : model.getAllMetadata()) {
-				Class<?> annotation = metadata.getAnnotation().getTypeClass();
-				if (Table.class.equals(annotation)) {
-					context.getLogger().info("- detected root table {}, annotated: {}", name, annotation);
-					tables.put(name, model);
-				} else if (NestedTable.class.equals(annotation)) {
-					context.getLogger().info("- detected nested table {}, annotated: {}", name, annotation);
-					subtables.put(name, model);
+
+			if (isReferencedBy(model, classes)) {
+				context.getLogger().info("- detected subtable: {}", name);
+				subtables.put(name, model);
+			} else {
+				context.getLogger().info("- detected top-level table: {}", name);
+				tables.put(name, model);
+			}
+		}
+	}
+
+	private boolean isReferencedBy(AbstractJavaClass model, PowerList<AbstractJavaClass> classes) {
+		String modelType = model.getType().getCanonicalName();
+		
+		for (AbstractJavaClass cls : classes) {
+			for (JavaField field : cls.getFields()) {
+				String fieldType = field.getType().getCanonicalName();
+				if (modelType.equals(fieldType)) {
+					return true;
 				}
 			}
 		}
+		
+		return false;
 	}
 
 	private String getColumnType(JavaField field) {
@@ -161,7 +170,7 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 			type = "Boolean";
 		} else if ("byte[]".equalsIgnoreCase(type) || "ByteBuffer".equalsIgnoreCase(type)) {
 			type = "Binary";
-		} else if (isNestedTable(field.getType())) {
+		} else if (isSubtable(field.getType())) {
 			type = "Table";
 		} else if (!OTHER_TYPES.contains(type)) {
 			type = "Mixed";
@@ -170,7 +179,7 @@ public class CodeGenerator implements CodeProcessor<AbstractJavaClass> {
 		return type;
 	}
 
-	private boolean isNestedTable(JavaType type) {
+	private boolean isSubtable(JavaType type) {
 		return subtables.containsKey(type.getCanonicalName());
 	}
 

@@ -1,0 +1,845 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<link href="css.css" rel="stylesheet" type="text/css">
+		<link href="main.css" media="screen" rel="stylesheet" type="text/css">
+
+	<!--[if lt IE 8]>
+		<link rel="stylesheet" type="text/css" href="/stylesheets/ie7.css" />
+	<![endif]-->
+
+
+	<link href="prettify.css" type="text/css" rel="stylesheet" />
+	<script type="text/javascript" src="prettify.js"></script>
+
+		<script type="text/javascript">
+var App = {};
+		</script>
+		<script src="main.js" type="text/javascript">
+</script>
+		<title>TightDB Java Reference</title>
+
+
+		<style type="text/css">
+        
+        strong, b {
+        font-weight: bolder;
+        }
+        
+        i {
+            font-style: italic;
+        }
+        
+        dl {
+        display: block;
+        -webkit-margin-before: 1em;
+        -webkit-margin-after: 1em;
+        -webkit-margin-start: 0px;
+        -webkit-margin-end: 0px;
+        }
+        
+        dd {
+        display: block;
+        -webkit-margin-start: 40px;
+        }
+        
+        dt {
+        display: block;
+        }
+        
+        pre, xmp, plaintext, listing {
+        font-family: monospace;
+        white-space: pre;
+        }
+        
+        p {
+        display: block;
+        -webkit-margin-before: 1em;
+        -webkit-margin-after: 1em;
+        -webkit-margin-start: 0px;
+        -webkit-margin-end: 0px;
+        }
+
+		.main {
+		color: #0067AB;
+		font-family: 'Open Sans','Helvetica Neue',Helvetica;
+		}
+
+		h1, h2, h3, h4, h5 {
+		color: #0067AB;
+		font-family: 'Open Sans','Helvetica Neue',Helvetica;
+		}
+
+		.p_docs h1 h2 h3 h4 {
+		margin-bottom: 25px;
+		-moz-border-radius: 3px;
+		-webkit-border-radius: 3px;
+		-o-border-radius: 3px;
+		-ms-border-radius: 3px;
+		-khtml-border-radius: 3px;
+		border-radius: 3px;
+		margin-top: 35px;
+		border-bottom: 1px solid #CBE3F3;
+		background: #E0EEF8;
+		padding: 10px;
+		color: #0067AB;
+		font-size: 22px;
+		}
+
+		.code {
+		background: #E0EEF8;
+		border: 1px solid #B6D7EF;
+		padding: 15px;
+		font-size: 13px;
+		line-height: 19px;
+		font-family: "Monaco","Courier New",Courier;
+		margin-bottom: 25px;
+		}
+
+		.header {
+		background: #E0EEF8;
+		border: 1px solid #E0EEF8;
+		padding: 5px;
+		font-size: 13px;
+		line-height: 3px;
+		font-family: "Monaco","Courier New",Courier;
+		margin-bottom: 25px;
+		color: #0067AB;
+		}
+		
+	.eks {
+	    border: 1px solid #CBE3F3;
+	    border-radius: 5px 5px 5px 5px;
+	    font-size: 14px;
+	    padding: 15px;
+	}
+
+		</style>
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-23135871-1']);
+      _gaq.push(['_setDomainName', '.tightdb.com']);
+        _gaq.push(['_trackPageview']);
+
+  (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+          ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                })();
+
+</script>
+
+
+	</head>
+		<body class="p_docs p_docs_ios_guide" onload="prettyPrint()">
+
+
+		<div>
+		<a href="../index.html"><img src=logo200.png></a>
+		</div>
+
+		<div class="main" style="width: 800px; margin: 0px auto -1px;">
+
+
+		<div class="container">
+			<div class="right_col_container">
+				<div class="right_col">
+					<div class="box">
+						<ul>
+							<li data-section="table" class="major">
+								<strong class="first"><a class="" href="#table">Table Class</a></strong>
+								<ul style="display: block;">
+									<li><a href="#table-constructor">constructor</a></li>
+									<li><a href="#table-constructor-2">constructor</a></li>
+${table_method_list}
+								</ul>
+							</li>
+
+                            <li data-section="tablerow" class="major">
+							  <strong class="first"><a class="" href="#tablerow">Row Class</a></strong>
+								<ul style="display: block;">
+${row_method_list}
+								</ul>
+                            </li>
+
+                            <li data-section="tablequery" class="major">
+							  <strong class="first"><a class="" href="#tablequery">Query Class</a></strong>
+								<ul style="display: block;">
+${query_method_list}
+								</ul>
+                            </li>
+							
+                            <li data-section="tableview" class="major">
+                                <strong class="first"><a class="" href="#tableview">View Class</a></strong>
+								<ul style="display: block;">
+${view_method_list}
+								</ul>
+                            </li>
+
+							<li data-section="group" class="major">
+								<strong class="first"><a class="" href="#group">Group Class</a></strong>
+								<ul style="display: block;">
+									<li><a href="#group-constructor">constructor</a></li>
+									<li><a href="#group-constructor-2">constructor</a></li>
+									<li><a href="#group-constructor-3">constructor</a></li>
+									<li><a href="#group-constructor-4">constructor</a></li>
+									<li><a href="#group-constructor-5">constructor</a></li>
+									<li><a href="#group-constructor-6">constructor</a></li>
+${group_method_list}
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="left_col">
+				
+				<h1>TightDB Java Reference</h1>
+
+                <p>
+                This reference manual documents the high-level Java interface to TightDB. The high-level
+                interface is suited for general application development. The low-level
+                interface is documented elsewhere.
+                </p> 
+
+                <p>
+                In this reference manual, a cell means a specific column at a specific row.
+                </p>
+
+<!--- TABLE CLASS --->
+
+                <a href="#" name="table" id="table"></a>
+                <a href="#" class="section section_minor" name="table_anchor" id="table_anchor"></a>
+                <h2>Table Class</h2>
+                <p>
+                The Table class allows you to efficiently work with data in terms of rows and columns.
+                </p>
+
+                <p>
+                  <i>Note</i>: Tables should be generated using the <code>@Table</code> annotation. 
+                  The annotation for a Java class with name <code>foo</code> will 
+                  generate a number of classes representing rows (<code>Foo</code>), queries (<code>FooQuery</code>),
+                  result sets (<code>FooView</code>), and the table (<code>FooTable</code>). 
+                </p>
+				
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd>
+							<p>
+							<pre class="prettyprint" lang-java>
+public class Example {
+
+    // PersonTable, Person, PersonQuery, and PersonView are generated:
+
+    @Table
+    class person {
+        String name;
+        int age;
+        boolean hired;
+    }
+
+}
+							</pre>
+                            </p>
+                         </dd>
+                	</dl>
+                </dd></dl>
+				
+                <p>
+				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<th align="left" colspan="2"><font size="+2">
+				<b>Constructor Summary</b></font></th>
+				</tr>
+				
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#table-constructor"><i>Table</i></a></b>()</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Instantiates a TightDB table</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#table-constructor-2"><i>Table</i></a></b>(<i>Group</i> group)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Instantiates a TightDB table in the specified group</td>
+				</tr>
+				
+				</tbody></table>
+
+				</p>
+				</p>
+
+				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<th align="left" colspan="2"><font size="+2">
+				<b>Method Summary</b></font></th>
+				</tr>
+
+${table_method_overview}
+
+				</tbody></table>
+                <br>
+                
+                <h3>Constructor Detail</h3>
+
+                <a href="#" name="table-constructor" id="table-constructor"></a>
+				<a href="#" class="section section_major" name="table-constructor_anchor" id="table-constructor_anchor"></a>
+				<h4>constructor</h4>
+                <dl><dd>
+	                <p><div class="eks">
+	                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Table</b>()</pre>
+	                </div>
+	                </p>
+                	Allocates and instantiates a TightDB table.
+                	<p>
+	                <i>Note</i>: Only tables which are part of a <a href="#group">Group</a> can be serialized to memory or disk.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd>
+	                        <p>
+                              None
+                             </p>
+                        </dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd>
+	                        <p>
+		                    Table object
+                            </p>
+                        </dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd>
+							<p>
+							<pre class="prettyprint" lang-java>
+PersonTable people = new PersonTable();
+							</pre>
+                            </p>
+                         </dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="table-constructor-2" id="table-constructor-2"></a>
+				<a href="#" class="section section_major" name="table-constructor-2_anchor" id="table-constructor-2_anchor"></a>
+				<h4>constructor</h4>
+                <dl><dd>
+	                <p><div class="eks">
+	                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Table</b>(Group group)</pre>
+	                </div>
+	                </p>
+                	Allocates and instantiates a TightDB table, as part of the specified group.
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd>
+	                        <p>
+                              <code>group : Group</code>
+                             </p>
+                        </dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd>
+	                        <p>
+		                    Table object
+                            </p>
+                        </dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd>
+							<p>
+							<pre class="prettyprint" lang-java>
+Group group = new Group();								
+PersonTable people = new PersonTable(group);
+							</pre>
+                            </p>
+                         </dd>
+                	</dl>
+                </dd></dl>
+
+                <h3>Method Detail</h3>
+
+${table_method_details}
+
+
+
+<!--- ROW CLASS --->
+
+                <a href="#" name="tablerow" id="tablerow"></a>
+                <a href="#" class="section section_minor" name="tablerow_anchor" id="tablerow_anchor"></a>
+                <h2>Row Class</h2>
+                <p>
+                This is a representation of a single row (record) in a table.
+                </p>
+
+                <h3>Column fields</h3>
+				
+                    <dl>
+                      <dd><p> The table shows the declared methods for the row column representations:</p></dd>
+					  
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>ColumnType <b>get</b>()</tt></td><td>get the cell value</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>set</b>(ColumnType value)</tt></td><td>set the cell value</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+                    <dl>
+                      <dt><b>Examples:</b></dt>
+                      <dd>
+						<p>
+                        <pre class="prettyprint" lang-java>
+String name = people.first().name.get();
+people.at(3).age.set(33);
+                        </pre>
+						</p>
+                      </dd>
+                    </dl>
+                </dd></dl>
+				
+                <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                <th align="left" colspan="2"><font size="+2">
+                <b>Method Summary</b></font></th>
+                </tr>
+                
+${row_method_overview}
+
+				</tbody></table>
+                <br>
+
+${row_method_details}
+
+
+<!--- QUERY CLASS --->
+
+
+                <a href="#" name="tablequery" id="tablequery"></a>
+                <a href="#" class="section section_minor" name="tablequery_anchor" id="tablequery_anchor"></a>
+                <h2>Query Class</h2>
+                <p>
+                <code>Query</code> objects are used to build-up queries. The query classes are generated by
+                the <code>@Table</code> annotation.
+                </p>
+                <p>Query is build using a <a href="http://en.wikipedia.org/wiki/Fluent_interface">fluent interface</a> (method invocations can be daisy chained). Conditions are by default folded using logical-and. Query objects can be reused, and queries can be repeatly executed by the <tt>find_all()</tt> method (resembles the prepare/execute pattern in SQL clients).</p>
+
+                <h3>Query column fields</h3>
+				
+                    <dl>
+                      <dd><p> The tables show the declared methods for various types of columns:</p></dd>
+					  
+                      <dd><p><b>For boolean columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>equal</b>(boolean value)</tt></td><td>equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>eq</b>(boolean value)</tt></td><td>equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>notEqual</b>(boolean value)</tt></td><td>not equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>ne</b>(boolean value)</tt></td><td>not equal to</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+
+                      <dd><p><b>For long columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>equal</b>(long value)</tt></td><td>equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>eq</b>(long value)</tt></td><td>equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>notEqual</b>(long value)</tt></td><td>not equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>ne</b>(long value)</tt></td><td>not equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>greaterThan</b>(long value)</tt></td><td>greater than</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>gt</b>(long value)</tt></td><td>greater than</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>greaterThanOrEqual</b>(long value)</tt></td><td>greater than or equal to</td></tr>                             
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>gte</b>(long value)</tt></td><td>greater than or equal to</td></tr>                             
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>lessThan</b>(long value)</tt></td><td>less than</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>lt</b>(long value)</tt></td><td>less than</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>lessThanOrEqual</b>(long value)</tt></td><td>less than or equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>lte</b>(long value)</tt></td><td>less than or equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>between</b>(long value_1, long value_2)</tt></td><td>belongs to interval between <tt>value_1</tt> and <tt>value_2</tt></td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+
+                      <dd><p><b>For string columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>equal</b>(String value)</tt></td><td>equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>eq</b>(String value)</tt></td><td>equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>notEqual</b>(String value)</tt></td><td>not equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>ne</b>(String value)</tt></td><td>not equal to</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>beginsWith</b>(String value)</tt></td><td>substring match at the begining of the text</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>endsWith</b>(String value)</tt></td><td>substring match at the end of the text</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>contains</b>(String value)</tt></td><td>substring search</td></tr>
+                            </tbody>
+                          </table>
+                      </p></dd>
+                    </dl>
+                    <dl>
+                      <dt><b>Examples:</b></dt>
+                      <dd>
+						<p>
+                        <pre class="prettyprint" lang-java>
+PeopleView v = people.hired.equals(true).age.between(20, 30).findAll();
+                        </pre>
+						</p>
+                      </dd>
+                    </dl>
+                </dd></dl>
+				
+
+				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<th align="left" colspan="2"><font size="+2">
+				<b>Method Summary</b></font></th>
+				</tr>
+
+${query_method_overview}
+
+				</tbody></table>
+                <br>
+			
+
+${query_method_details}
+
+
+<!--- VIEW CLASS --->
+
+                <a href="#" name="tableview" id="tableview"></a>
+                <a href="#" class="section section_minor" name="tableview_anchor" id="tableview_anchor"></a>
+                <h2>View Class</h2>
+                <p>
+                The <code>findAll</code> method in the <code>Query</code> class returns a <code>View</code> object.
+				You can interact with the View just as a regular table, and all changes to it will propagate to the original <a href="#table">table</a>.
+                </p>
+
+                <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                <th align="left" colspan="2"><font size="+2">
+                <b>Method Summary</b></font></th>
+                </tr>
+                
+${view_method_overview}
+
+				</tbody></table>
+                <br>
+
+${view_method_details}
+
+<!--- GROUP CLASS --->
+
+                <a href="#" name="group" id="group"></a>
+                <a href="#" class="section section_minor" name="group_anchor" id="group_anchor"></a>
+                <h2>Group Class</h2>
+                <p>
+                The <code>Group</code> is a container for <a href="#table">tables</a> and it allows the tables to be serialized to disk and memory.
+                </p>
+				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<th align="left" colspan="2"><font size="+2">
+				<b>Constructor Summary</b></font></th>
+				</tr>
+				
+#set($desc1="Instantiates a TightDB table group")
+#set($desc2="Instantiates a TightDB table group with file (de)serialization")
+#set($desc3="Instantiates a TightDB table group with file (de)serialization")
+#set($desc4="Instantiates a TightDB table group with file (de)serialization")
+#set($desc5="Instantiates a TightDB table group with byte array (de)serialization")
+#set($desc6="Instantiates a TightDB table group with ByteBuffer (de)serialization")
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor"><i>Group</i></a></b>()</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc1</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-2"><i>Group</i></a></b>(<i>File</i> file)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc2</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-3"><i>Group</i></a></b>(<i>String</i> fileName, <i>boolean</i> readOnly)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc3</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-4"><i>Group</i></a></b>(<i>String</i> fileName)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc4</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-5"><i>Group</i></a></b>(<i>byte[]</i> data)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc5</td>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="#group-constructor-6"><i>Group</i></a></b>(<i>ByteBuffer</i> buffer)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$desc6</td>
+				</tr>
+				
+				</tbody></table>
+
+				</p>
+				</p>
+
+                <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                <th align="left" colspan="2"><font size="+2">
+                <b>Method Summary</b></font></th>
+                </tr>
+
+${group_method_overview}
+				
+                </tbody></table>
+                <br>
+                
+                <h3>Constructor Detail</h3>
+
+                <a href="#" name="group-constructor" id="group-constructor"></a>
+				<a href="#" class="section section_minor" name="group-constructor_anchor" id="group-constructor_anchor"></a>
+				<h4>constructor</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>()</pre>
+            </div>
+            </p>
+                <dl><dd>
+                	<p>
+                	${desc1}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Group group = new Group();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-2" id="group-constructor-2"></a>
+				<a href="#" class="section section_minor" name="group-constructor-2_anchor" id="group-constructor-2_anchor"></a>
+				<h4>constructor</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>File</i> file)</pre>
+            </div>
+            </p>
+                <dl><dd>
+                	<p>
+                	${desc2}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>file : File</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Group group = new Group(new File("data.tdb"));
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-3" id="group-constructor-3"></a>
+				<a href="#" class="section section_minor" name="group-constructor-3_anchor" id="group-constructor-3_anchor"></a>
+				<h4>constructor</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>String</i> fileName, <i>boolean</i> readOnly)</pre>
+            </div>
+            </p>
+                <dl><dd>
+                	<p>
+                	${desc3}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>fileName : String</code>
+	                    </p></dd>
+                		<dd><p>
+	                    <code>readOnly : boolean</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Group group = new Group("data.tdb", true);
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-4" id="group-constructor-4"></a>
+				<a href="#" class="section section_minor" name="group-constructor-4_anchor" id="group-constructor-4_anchor"></a>
+				<h4>constructor</h4>
+				<p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>String</i> fileName)</pre>
+				</div></p>
+                <dl><dd>
+                	<p>
+                	${desc4}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>fileName : String</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+Group group = new Group("data.tdb");
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-5" id="group-constructor-5"></a>
+				<a href="#" class="section section_minor" name="group-constructor-5_anchor" id="group-constructor-5_anchor"></a>
+				<h4>constructor</h4>
+				<p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>byte[]</i> data)</pre>
+				</div></p>
+                <dl><dd>
+                	<p>
+                	${desc5}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>data : byte[]</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+byte[] data = loadData();
+Group group = new Group(data);
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="group-constructor-6" id="group-constructor-6"></a>
+				<a href="#" class="section section_minor" name="group-constructor-6_anchor" id="group-constructor-6_anchor"></a>
+				<h4>constructor</h4>
+				<p><div class="eks">
+                <pre class="prettyprint" lang-java style="font-size: 16px"><b>Group</b>(<i>ByteBuffer</i> buffer)</pre>
+				</div></p>
+                <dl><dd>
+                	<p>
+                	${desc6}.
+                	</p>
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>buffer : ByteBuffer</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                        <dt><b>Returns:</b></dt>
+                        <dd><p>A group object</p></dd>
+                    </dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+ByteBuffer buffer = loadBuffer();
+Group group = new Group(buffer);
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <h3>Method Detail</h3>
+
+${group_method_details}
+			
+			
+			<script type="text/javascript">
+			$(document).ready(function() {
+			new App.Views.Docs({ el: $("body"), accordian: true });
+			});
+
+			$(".toggled-code").each(function (index) {
+			$(".code-container .code-section:first-child", this).show();
+			$(".toggles .toggle-item:first-child", this).addClass("selected");
+
+			$(".toggles .toggle-item a", this).click(function () {
+			$(this).parent().siblings().removeClass("selected");
+			$(this).parent().addClass("selected");
+
+			var code_sections = $(this).parent().parent().parent().find(".code-container .code-section");
+			code_sections.hide();
+
+			var my_index = $(this).parent().index();
+			$(code_sections[my_index]).show();
+
+			return false;
+			});
+			});
+			$(".question_tip").click(function(e) {
+			return false;
+			});
+
+			// Initialize backbone history
+			if(Backbone.history) Backbone.history.start();
+
+			// Disable all buttons on click
+			$('form').submit(function(e) {
+			$(this).find("button").attr("disabled", "disabled").addClass("disabled");
+			});
+
+			</script>
+		</div>
+	</body>
+</html>
+

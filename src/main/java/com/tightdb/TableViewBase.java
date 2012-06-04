@@ -292,7 +292,7 @@ public class TableViewBase implements IRowsetBase {
 	 * 
 	 * @param rowIndex the row index 
 	 */
-	public void removeRow(long rowIndex){
+	public void remove(long rowIndex){
 		nativeRemoveRow(nativePtr, rowIndex);
 	}
 	
@@ -300,7 +300,7 @@ public class TableViewBase implements IRowsetBase {
 	
 	public void removeLast(){
 		if(!isEmpty()){
-			removeRow(size() - 1);
+			remove(size() - 1);
 		}
 	}
 	
@@ -405,10 +405,5 @@ public class TableViewBase implements IRowsetBase {
 	protected long nativePtr;
 	protected TableBase table;
 	protected TableViewBase tableView;
-	
-	@Override
-	public void remove(long index) {
-		removeRow(index);
-	}
 	
 }

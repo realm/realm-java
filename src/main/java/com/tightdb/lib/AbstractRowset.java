@@ -20,10 +20,11 @@ public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cu
 
 	public abstract void clear();
 
-	public View range(long from, long to) {
+/*	TODO:
+ * public View range(long from, long to) {
 		throw new UnsupportedOperationException();
 	}
-
+*/
 	public Cursor at(long position) {
 		return cursor(position);
 	}

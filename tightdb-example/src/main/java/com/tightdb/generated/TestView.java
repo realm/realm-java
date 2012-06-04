@@ -11,10 +11,10 @@ import com.tightdb.lib.*;
  */
 public class TestView extends AbstractView<Test, TestView, TestQuery> {
 
-	public final LongRowsetColumn<Test, TestQuery> first = new LongRowsetColumn<Test, TestQuery>(TestTable.TYPES, rowset, 0, "first");
-	public final StringRowsetColumn<Test, TestQuery> second = new StringRowsetColumn<Test, TestQuery>(TestTable.TYPES, rowset, 1, "second");
-	public final LongRowsetColumn<Test, TestQuery> third = new LongRowsetColumn<Test, TestQuery>(TestTable.TYPES, rowset, 2, "third");
-	public final LongRowsetColumn<Test, TestQuery> fourth = new LongRowsetColumn<Test, TestQuery>(TestTable.TYPES, rowset, 3, "fourth");
+	public final LongRowsetColumn<Test, TestView, TestQuery> indexInt = new LongRowsetColumn<Test, TestView, TestQuery>(TestTable.TYPES, rowset, 0, "indexInt");
+	public final StringRowsetColumn<Test, TestView, TestQuery> second = new StringRowsetColumn<Test, TestView, TestQuery>(TestTable.TYPES, rowset, 1, "second");
+	public final LongRowsetColumn<Test, TestView, TestQuery> byteInt = new LongRowsetColumn<Test, TestView, TestQuery>(TestTable.TYPES, rowset, 2, "byteInt");
+	public final LongRowsetColumn<Test, TestView, TestQuery> smallInt = new LongRowsetColumn<Test, TestView, TestQuery>(TestTable.TYPES, rowset, 3, "smallInt");
 
 	public TestView(TableViewBase viewBase) {
 		super(TestTable.TYPES, viewBase);

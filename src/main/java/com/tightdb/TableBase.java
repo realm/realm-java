@@ -193,6 +193,7 @@ public class TableBase implements IRowsetBase {
 	 *            the row index
 	 * 
 	 */
+	
 	public void remove(long rowIndex) {
 		nativeRemove(nativePtr, rowIndex);
 	}
@@ -279,13 +280,13 @@ public class TableBase implements IRowsetBase {
 	 * @param data
 	 *            data to be inserted.
 	 */
-	public void insertBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data) {
+	public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
 		nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
 	}
 
 	protected native void nativeInsertBinary(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
-	public void insertBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
+	public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
 		nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
 	}
 

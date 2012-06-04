@@ -2,10 +2,11 @@ package com.tightdb;
 
 import static org.testng.AssertJUnit.*;
 import org.testng.annotations.Test;
+import com.tightdb.*;
 
 public class JNISubtableTest {
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void shouldSynchronizeNestedTables() {
 		Group group = new Group();
 		TableBase table = group.getTable("emp");

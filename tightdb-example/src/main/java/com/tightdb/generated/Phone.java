@@ -11,14 +11,14 @@ import com.tightdb.lib.*;
  */
 public class Phone extends AbstractCursor<Phone> {
 
-    public final StringCursorColumn<Phone, PhoneQuery> type;
-    public final StringCursorColumn<Phone, PhoneQuery> number;
+    public final StringCursorColumn<Phone, PhoneView, PhoneQuery> type;
+    public final StringCursorColumn<Phone, PhoneView, PhoneQuery> number;
 
 	public Phone(IRowsetBase rowset, long position) {
 		super(PhoneTable.TYPES, rowset, position);
 
-        type = new StringCursorColumn<Phone, PhoneQuery>(PhoneTable.TYPES, this, 0, "type");
-        number = new StringCursorColumn<Phone, PhoneQuery>(PhoneTable.TYPES, this, 1, "number");
+        type = new StringCursorColumn<Phone, PhoneView, PhoneQuery>(PhoneTable.TYPES, this, 0, "type");
+        number = new StringCursorColumn<Phone, PhoneView, PhoneQuery>(PhoneTable.TYPES, this, 1, "number");
 	}
 
 	public java.lang.String getType() {
@@ -38,7 +38,7 @@ public class Phone extends AbstractCursor<Phone> {
 	}
 
 	@Override
-	public AbstractColumn<?, ?, ?>[] columns() {
+	public AbstractColumn<?, ?, ?, ?>[] columns() {
 		return getColumnsArray(type, number);
 	}
 

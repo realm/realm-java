@@ -51,9 +51,9 @@ public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${en
 	protected void specifyStructure(TableSpec spec) {
 #foreach($f in $columns)
 #if($f.code.attributes.isSubtable)
-        register${f.code.attributes.columnType}Column(spec, "${f.name}", new ${f.code.attributes.subtype}Table(null));
+        add${f.code.attributes.columnType}Column(spec, "${f.name}", new ${f.code.attributes.subtype}Table(null));
 #else
-        register${f.code.attributes.columnType}Column(spec, "${f.name}");
+        add${f.code.attributes.columnType}Column(spec, "${f.name}");
 #end
 #end
     }
