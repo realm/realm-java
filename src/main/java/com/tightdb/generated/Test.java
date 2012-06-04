@@ -11,26 +11,26 @@ import com.tightdb.lib.*;
  */
 public class Test extends AbstractCursor<Test> {
 
-    public final LongCursorColumn<Test, TestView, TestQuery> first;
+    public final LongCursorColumn<Test, TestView, TestQuery> indexInt;
     public final StringCursorColumn<Test, TestView, TestQuery> second;
-    public final LongCursorColumn<Test, TestView, TestQuery> third;
-    public final LongCursorColumn<Test, TestView, TestQuery> fourth;
+    public final LongCursorColumn<Test, TestView, TestQuery> byteInt;
+    public final LongCursorColumn<Test, TestView, TestQuery> smallInt;
 
 	public Test(IRowsetBase rowset, long position) {
 		super(TestTable.TYPES, rowset, position);
 
-        first = new LongCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 0, "first");
+        indexInt = new LongCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 0, "indexInt");
         second = new StringCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 1, "second");
-        third = new LongCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 2, "third");
-        fourth = new LongCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 3, "fourth");
+        byteInt = new LongCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 2, "byteInt");
+        smallInt = new LongCursorColumn<Test, TestView, TestQuery>(TestTable.TYPES, this, 3, "smallInt");
 	}
 
-	public long getFirst() {
-		return this.first.get();
+	public long getIndexInt() {
+		return this.indexInt.get();
 	}
 
-	public void setFirst(long first) {
-		this.first.set(first);
+	public void setIndexInt(long indexInt) {
+		this.indexInt.set(indexInt);
 	}
 
 	public java.lang.String getSecond() {
@@ -41,25 +41,25 @@ public class Test extends AbstractCursor<Test> {
 		this.second.set(second);
 	}
 
-	public long getThird() {
-		return this.third.get();
+	public long getByteInt() {
+		return this.byteInt.get();
 	}
 
-	public void setThird(long third) {
-		this.third.set(third);
+	public void setByteInt(long byteInt) {
+		this.byteInt.set(byteInt);
 	}
 
-	public long getFourth() {
-		return this.fourth.get();
+	public long getSmallInt() {
+		return this.smallInt.get();
 	}
 
-	public void setFourth(long fourth) {
-		this.fourth.set(fourth);
+	public void setSmallInt(long smallInt) {
+		this.smallInt.set(smallInt);
 	}
 
 	@Override
 	public AbstractColumn<?, ?, ?, ?>[] columns() {
-		return getColumnsArray(first, second, third, fourth);
+		return getColumnsArray(indexInt, second, byteInt, smallInt);
 	}
 
 }

@@ -7,7 +7,7 @@ public class Performance {
 	final public static int BYTE_TEST_VAL = 100;
 	
 	final static int REPEAT_SEARCH 	= 100;		// Number of times to repeat the search to get a measurable number
-	final static int TESTS 			= 5;
+	final static int TESTS 			= 3;
 	
 	public static void main(String[] args) {
 		int numOfValues = 250000;
@@ -32,10 +32,10 @@ public class Performance {
 				"Add Index:\t\t\t",
 				"Search for byte (indexed):\t"
 		};
-		System.out.println("\t\t\t\tTightdb \tArrayList\t SQLite");
+		System.out.println("\t\t\t\t   Tightdb\tArrayList\tSQLite");
 		for (int test = 0; test < TESTS; ++test) {
 			System.out.print( testText[test] );
-			printTime(time_Tightdb[test], " ms", "\t");
+			printTime(time_Tightdb[test], " ms (x1)", "\t");
 			
 			printTime(time_Array[test], " ms ", "");
 			if (time_Tightdb[test] > 0)
@@ -116,7 +116,7 @@ public class Performance {
 		    test.end_findString();
 		    System.out.printf("*");
 		}
-	
+/*
 		// Add index, and search
 		{
 		    timer.Start();
@@ -143,6 +143,7 @@ public class Performance {
 			    System.out.printf("*");
 			}
 		}
+*/		
 		test.closeTable();
 		
 		return durations;
