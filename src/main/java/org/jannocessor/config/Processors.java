@@ -3,9 +3,11 @@ package org.jannocessor.config;
 import org.jannocessor.model.JavaElement;
 import org.jannocessor.model.structure.AbstractJavaClass;
 import org.jannocessor.processor.annotation.Annotated;
+import org.jannocessor.processor.annotation.OnLifecycleEvents;
 import org.jannocessor.processor.annotation.Types;
 import org.jannocessor.processor.api.CodeProcessor;
 
+import com.tightdb.generator.CodeGenLifecycleListener;
 import com.tightdb.generator.CodeGenerator;
 import com.tightdb.lib.Table;
 
@@ -21,5 +23,10 @@ public class Processors {
 	@Types(AbstractJavaClass.class)
 	public CodeProcessor<? extends JavaElement> tables() {
 		return new CodeGenerator();
+	}
+
+	@OnLifecycleEvents
+	public CodeGenLifecycleListener codeGenListener() {
+		return CodeGenLifecycleListener.getInstance();
 	}
 }
