@@ -11,8 +11,24 @@ public class Performance {
 	final static int REPEAT_SEARCH 	= 100;		// Number of times to repeat the search to get a measurable number
 	final static int TESTS 			= 3;
 	
+	private static void testmem() {
+		long before = 0;
+		System.out.println("Memuse " +  Util.getUsedMemory());
+		System.out.println("Memuse " +  Util.getUsedMemory());
+		System.out.println("Memuse " +  Util.getUsedMemory());
+		before = Util.getUsedMemory();
+		System.out.println("Memuse " +  Util.getUsedMemory());
+		//int a[] = new int[1];
+		int a = 2;
+		System.out.println("Memuse after 1 int " +  (Util.getUsedMemory() - before));
+		System.out.println("Memuse " +  Util.getUsedMemory());
+		System.out.println("Memuse " +  Util.getUsedMemory());
+	}
+	
 	public static void main(String[] args) {
 		TightDB.addNativeLibraryPath("lib-sqlite");
+		
+		testmem();
 		
 		int numOfValues = 250000;
 		
@@ -26,7 +42,7 @@ public class Performance {
 		long time_Array[] = TestPerformance(new JavaArrayList(), numOfValues);
 		
 		System.out.print("\nPerformance testing SQLite: ");
-		long time_Sqlite[] = TestPerformance(new SQLite(), numOfValues);
+		long time_Sqlite[] = TestPerformance(new SQLiteTest(), numOfValues);
 	
 		System.out.println("\n\nRESULTS:");
 		String[] testText = {
@@ -70,8 +86,11 @@ public class Performance {
 		long[]		durations = new long[TESTS];
 		int			testNo = 0;
 		
+		long memBefore = Util.getUsedMemory();
+		
 		test.buildTable(rows);
-		// System.out.printf("Memory usage: %d bytes\n", 0); //, (long long)GetMemUsage()); 
+		
+		System.out.printf("Memory usage: %d + %d bytes\n", Util.getUsedMemory() - memBefore, test.usedNativeMemory()); 
 		
 		// Search small integer column
 		{

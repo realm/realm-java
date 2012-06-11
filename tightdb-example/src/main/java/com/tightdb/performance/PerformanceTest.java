@@ -2,6 +2,7 @@ package com.tightdb.performance;
 
 public abstract interface PerformanceTest {
 
+	public long usedNativeMemory();
 	public void buildTable(int rows);
 	
 	public void begin_findSmallInt(int value);

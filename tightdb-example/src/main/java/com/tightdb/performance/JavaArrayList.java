@@ -26,6 +26,10 @@ public class JavaArrayList implements PerformanceTest {
     	table = new ArrayList<Table>();
     }
     
+    public long usedNativeMemory() {
+    	return 0;
+    }
+    
     public void buildTable(int rows) {
 		for (int i = 0; i < rows; ++i) {
 		    // create random string
