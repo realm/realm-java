@@ -5,10 +5,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+
+import com.sun.xml.internal.bind.v2.runtime.RuntimeUtil;
 import com.tightdb.Mixed;
 
 public class TightDB {
@@ -76,13 +79,41 @@ public class TightDB {
 		System.out.println(caption + ": " + cursor);
 	}
 
+	/**
+	 * Guarantee gc is done.
+	 */
+	public static void gcGuaranteed(){
+        Object obj = new Object();
+        WeakReference<Object> ref = new WeakReference<Object>(obj);
+        obj = null;
+        while(ref.get()!=null)
+            System.gc();
+    }
+
+	/**
+	 * Guarantee gc is done after JVM shutdown.
+	 */
+	public static void gcOnExit(){
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run(){
+            	gcGuaranteed();
+            }
+        });
+    }
+
+	private static void initTightDB() {
+		gcOnExit();
+	}
+	
 	public static void loadLibrary() {
 		if (!loadedLibrary) {
+			initTightDB();
 			addNativeLibraryPath(BINARIES_PATH);
 			resetLibraryPath();
-			loadedLibrary = loadCorrectLibrary("tightdb_jnid", "tightdb_jni32d", "tightdb_jni64d", "tightdb_jni", "tightdb_jni32", "tightdb_jni64");
+			loadedLibrary = loadCorrectLibrary("tightdb_jni32d", "tightdb_jni64d", "tightdb_jni32", "tightdb_jni64");
 			if (!loadedLibrary) {
-				throw new RuntimeException("Couldn't load the TightDB library!");
+				throw new RuntimeException("Couldn't load the TightDB library. Please add 'lib/tightdb_jni??' as external jar.");
 			}
 		}
 	}
@@ -97,6 +128,26 @@ public class TightDB {
 		}
 
 		return false;
+	}
+
+	public static void addNativeLibraryPath(String path) {
+		try {
+			//System.out.println("JAVA_LIBRARY_PATH=" + System.getProperty(JAVA_LIBRARY_PATH));
+			System.setProperty(JAVA_LIBRARY_PATH, System.getProperty(JAVA_LIBRARY_PATH) + ";" + path + ";");
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot set the library path!", e);
+		}
+	}
+
+	private static void resetLibraryPath() {
+		try {
+			// reset the library path (a hack)
+			Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+			fieldSysPath.setAccessible(true);
+			fieldSysPath.set(null, null);
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot reset the library path!", e);
+		}
 	}
 
 	public static Mixed mixedValue(Object value) {
@@ -122,24 +173,4 @@ public class TightDB {
 		}
 		return mixed;
 	}
-
-	public static void addNativeLibraryPath(String path) {
-		try {
-			System.setProperty(JAVA_LIBRARY_PATH, System.getProperty(JAVA_LIBRARY_PATH) + ";" + path + ";");
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot set the library path!", e);
-		}
-	}
-
-	private static void resetLibraryPath() {
-		try {
-			// reset the library path (a hack)
-			Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
-			fieldSysPath.setAccessible(true);
-			fieldSysPath.set(null, null);
-		} catch (Exception e) {
-			throw new RuntimeException("Cannot reset the library path!", e);
-		}
-	}
-
 }

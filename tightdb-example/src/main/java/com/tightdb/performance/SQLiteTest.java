@@ -2,7 +2,7 @@ package com.tightdb.performance;
 
 import com.almworks.sqlite4java.*;
 
-public class SQLite implements PerformanceTest {
+public class SQLiteTest implements PerformanceTest {
 
 	private SQLiteConnection db = null;
 	private SQLiteStatement stmt = null;
@@ -13,7 +13,7 @@ public class SQLite implements PerformanceTest {
 		e.printStackTrace();
     }
     
-    public SQLite() {
+    public SQLiteTest() {
     	db = new SQLiteConnection();
     	try {
     		db.open(true);
@@ -22,6 +22,16 @@ public class SQLite implements PerformanceTest {
     	} catch (SQLiteException e) {
     		error(e);
     	}
+    }
+    
+    public long usedNativeMemory() {
+    	try {
+			return SQLite.getMemoryUsed();
+		} catch (SQLiteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
     }
     
     public void buildTable(int rows) {

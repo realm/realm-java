@@ -21,20 +21,20 @@ public class JNISubtableTest {
 
 		table.insertString(0, 0, "Foo");
 		table.insertSubTable(1, 0);
-		table.insertDone();
+		//table.insertDone();
 
 		assertEquals(1, table.size());
 
 		TableBase subtable1 = table.getSubTable(1, 0);
 		subtable1.insertLong(0, 0, 123);
 		subtable1.insertDone();
-		//
-		// assertEquals(1, subtable1.size());
-		//
-		// TableBase subtable2 = table.getSubTable(1, 0);
-		//
-		// assertEquals(1, subtable2.size());
-		// assertEquals(123, subtable2.getLong(0, 0));
+		subtable1.close();
+		
+		assertEquals(1, subtable1.size());
+		
+		TableBase subtable2 = table.getSubTable(1, 0);
+		assertEquals(1, subtable2.size());
+		assertEquals(123, subtable2.getLong(0, 0));
 
 		table.clear();
 	}

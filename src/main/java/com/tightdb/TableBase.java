@@ -44,7 +44,15 @@ import com.tightdb.lib.TightDB;
  */
 
 public class TableBase implements IRowsetBase {
-
+	protected long nativePtr;
+	// Keep a reference to the parent to ensure finalize() doesn't happen for the parent before this.
+	protected Object parent;
+	
+	// test:
+	protected int tableNo;
+	protected boolean DEBUG = false;
+	static int TableCount = 0;
+	
 	static {
 		TightDB.loadLibrary();
 	}
@@ -58,8 +66,42 @@ public class TableBase implements IRowsetBase {
 		// Native methods work will be initialized here. Generated classes will
 		// have nothing to do with the native functions. Generated Java Table
 		// classes will work as a wrapper on top of table.
-		this.nativePtr = createNative();
+		parent = null;
+		nativePtr = createNative();
+		if (DEBUG) {
+			tableNo = ++TableCount;
+			System.out.println("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
+		}
 	}
+ 
+	protected native long createNative();
+
+	protected TableBase(Object parent, long nativePtr) {
+		this.parent = parent;
+		this.nativePtr = nativePtr;
+		if (DEBUG) {
+			tableNo = ++TableCount;
+			System.out.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
+		}
+	}
+
+	@Override
+	public void finalize() {
+		if (DEBUG) System.out.println("==== FINALIZE " + tableNo + "...");
+		close();
+	}
+
+	public void close() {
+		if (DEBUG) System.out.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+		if (nativePtr == 0)
+			return;
+		if (DEBUG) TableCount--;
+		nativeClose(nativePtr);
+		nativePtr = 0;
+	}
+
+	protected native void nativeClose(long nativeTablePtr);
+
 
 	/**
 	 * Updates a table specification from a Table specification structure.
@@ -412,7 +454,7 @@ public class TableBase implements IRowsetBase {
 	 * @return TableBase the subtable at the requested cell
 	 */
 	public TableBase getSubTable(long columnIndex, long rowIndex) {
-		return new TableBase(nativeGetSubTable(nativePtr, columnIndex, rowIndex));
+		return new TableBase(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex));
 	}
 
 	protected native long nativeGetSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
@@ -618,26 +660,4 @@ public class TableBase implements IRowsetBase {
 	}
 
 	protected native void nativeOptimize(long nativeTablePtr);
-
-	protected TableBase(long nativePtr) {
-		this.nativePtr = nativePtr;
-	}
-
-	@Override
-	public void finalize() {
-		close();
-	}
-
-	public void close() {
-		if (nativePtr == 0)
-			return;
-		nativeClose(nativePtr);
-		nativePtr = 0;
-	}
-
-	protected native void nativeClose(long nativeTablePtr);
-
-	protected native long createNative();
-
-	protected long nativePtr;
 }

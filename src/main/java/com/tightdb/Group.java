@@ -52,15 +52,15 @@ public class Group {
 		this.nativePtr = nativePtr;
 	}
 	
-	public void close(){
-		if(nativePtr != 0){
+	public void finalize(){
+		close();
+	}
+	
+	public void close() {
+		if (nativePtr != 0) {
 			nativeClose(nativePtr);
 			nativePtr = 0;
 		}
-	}
-
-	public void finalize(){
-		close();
 	}
 	
 	protected native void nativeClose(long nativeGroupPtr);
@@ -107,7 +107,7 @@ public class Group {
 	 * @return The table if it exists, otherwise create it.
 	 */
 	public TableBase getTable(String name){
-			return new TableBase(nativeGetTableNativePtr(nativePtr, name));
+			return new TableBase(this, nativeGetTableNativePtr(nativePtr, name));
 	}
 	
 	protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);

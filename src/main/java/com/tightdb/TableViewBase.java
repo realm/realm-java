@@ -187,7 +187,7 @@ public class TableViewBase implements IRowsetBase {
 	protected native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
 	
 	public TableBase getSubTable(long columnIndex, long rowIndex){
-		return new TableBase(nativeGetSubTable(nativePtr, columnIndex, rowIndex));
+		return new TableBase(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex));
 	}
 	
 	protected native long nativeGetSubTable(long nativeViewPtr, long columnIndex, long rowIndex);
@@ -392,7 +392,7 @@ public class TableViewBase implements IRowsetBase {
 		close();
 	}
 	
-	public void close(){
+	private void close(){
 		if(nativePtr == 0)
 			return;
 		nativeClose(nativePtr);
