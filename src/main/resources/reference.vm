@@ -1,3 +1,133 @@
+#macro(inside)$!bodyContent#end
+
+#macro(column $ret_type $name $params $desc)
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>${ret_type} <b>${name} </b>(${params})</tt></td><td>${desc}</td></tr>
+#end
+
+#macro(query_column $name $params $desc)
+#column("Query", $name $params "Represents <b>'$desc'</b> criterium")
+#end
+
+#macro(bool_query_columns)
+#query_column("equal", "boolean value", "equal to")
+#query_column("eq", "boolean value", "equal to")
+#query_column("notEqual", "boolean value", "not equal to")
+#query_column("ne", "boolean value", "not equal to")
+#end
+
+#macro(num_query_columns)
+#query_column("equal", "long value", "equal to")
+#query_column("eq", "long value", "equal to")
+#query_column("notEqual", "long value", "not equal to")
+#query_column("ne", "long value", "not equal to")
+#query_column("greaterThan", "long value", "greater than")
+#query_column("gt", "long value", "greater than")
+#query_column("greaterThanOrEqual", "long value", "greater than or equal to")                             
+#query_column("gte", "long value", "greater than or equal to")                             
+#query_column("lessThan", "long value", "less than")
+#query_column("lt", "long value", "less than")
+#query_column("lessThanOrEqual", "long value", "less than or equal to")
+#query_column("lte", "long value", "less than or equal to")
+#query_column("between", "long value_1", "long value_2", "belongs to interval between <tt>value_1</tt> and <tt>value_2</tt>")
+#end
+
+#macro(string_query_columns)
+#query_column("equal", "String value", "equal to")
+#query_column("eq", "String value", "equal to")
+#query_column("notEqual", "String value", "not equal to")
+#query_column("ne", "String value", "not equal to")
+#query_column("beginsWith", "String value", "substring match at the begining of the text")
+#query_column("endsWith", "String value", "substring match at the end of the text")
+#query_column("contains", "String value", "substring search")
+#end
+
+#macro(table_or_view_columns_common $column_type)
+#column("${column_type}[]", "getAll", "", "Get all values for the represented column")
+#column("void", "setAll", "${column_type} value", "Set all values for the represented column")
+#end
+
+#macro(binary_table_or_view_columns)
+#table_or_view_columns_common("ByteBuffer")
+#end
+
+#macro(bool_table_or_view_columns)
+#table_or_view_columns_common("Boolean")
+#bool_query_columns()
+#end
+
+#macro(date_table_or_view_columns)
+#table_or_view_columns_common("Date")
+#end
+
+#macro(num_table_or_view_columns)
+#table_or_view_columns_common("Long")
+#column("long", "sum", "", "Calculate the sum of all values for the represented column")
+#column("long", "minimum", "", "Calculate the minimal value for the represented column")
+#column("long", "maximum", "", "Calculate the maximal value for the represented column")
+#column("Row", "findFirst", "String value", "Find first row having the specified column value")
+#column("View", "findAll", "String value", "Find all rows having the specified column value")
+#num_query_columns()
+#end
+
+#macro(mixed_table_or_view_columns)
+#table_or_view_columns_common("Mixed")
+#end
+
+#macro(string_table_or_view_columns)
+#table_or_view_columns_common("String")
+#column("Row", "findFirst", "String value", "Find first row having the specified column value")
+#column("View", "findAll", "String value", "Find all rows having the specified column value")
+#string_query_columns()
+#end
+
+#macro(table_table_or_view_columns)
+#column("Table[]", "getAll", "", "Get all subtables for the represented column")
+#end
+
+#macro(columns_html $col_type)
+                      <dd><p><b>For ${col_type} columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+#inside()
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+#end
+
+#macro(table_or_view_methods)
+
+#@columns_html("binary")
+#binary_table_or_view_columns()
+#end
+
+#@columns_html("boolean")
+#bool_table_or_view_columns()
+#end
+
+#@columns_html("date")
+#date_table_or_view_columns()
+#end
+
+#@columns_html("long")
+#num_table_or_view_columns()
+#end
+
+#@columns_html("mixed")
+#mixed_table_or_view_columns()
+#end
+
+#@columns_html("String")
+#string_table_or_view_columns()
+#end
+
+#@columns_html("table")
+#table_table_or_view_columns()
+#end
+
+#end
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
 	<head>
@@ -247,6 +377,27 @@ public class Example {
                          </dd>
                 	</dl>
                 </dd></dl>
+
+                <h3>Table column fields</h3>
+				
+                    <dl>
+                      <dd><p> The tables show the declared methods for various types of column fields:</p></dd>
+					  
+#table_or_view_methods()
+
+                    <dl>
+                      <dt><b>Examples:</b></dt>
+                      <dd>
+						<p>
+                        <pre class="prettyprint" lang-java>
+String[] names = people.name.getAll();
+Person firstJohn = people.name.findFirst("John");
+PeopleView hiredYoung = people.hired.equals(true).age.between(20, 30).findAll();
+                        </pre>
+						</p>
+                      </dd>
+                    </dl>
+                </dd></dl>
 				
                 <p>
 				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
@@ -435,57 +586,19 @@ ${row_method_details}
 				
                     <dl>
                       <dd><p> The tables show the declared methods for various types of columns:</p></dd>
+
+#@columns_html("boolean")
+#bool_query_columns()
+#end
+
+#@columns_html("long")
+#num_query_columns()
+#end
+
+#@columns_html("String")
+#string_query_columns()
+#end
 					  
-                      <dd><p><b>For boolean columns:</b></p></dd>
-                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
-                              <th>Method</th><th>Description</th></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>equal</b>(boolean value)</tt></td><td>equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>eq</b>(boolean value)</tt></td><td>equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>notEqual</b>(boolean value)</tt></td><td>not equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>ne</b>(boolean value)</tt></td><td>not equal to</td></tr>
-                            </tbody>
-                          </table>
-                        </p>
-                      </dd>
-
-                      <dd><p><b>For long columns:</b></p></dd>
-                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
-                              <th>Method</th><th>Description</th></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>equal</b>(long value)</tt></td><td>equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>eq</b>(long value)</tt></td><td>equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>notEqual</b>(long value)</tt></td><td>not equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>ne</b>(long value)</tt></td><td>not equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>greaterThan</b>(long value)</tt></td><td>greater than</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>gt</b>(long value)</tt></td><td>greater than</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>greaterThanOrEqual</b>(long value)</tt></td><td>greater than or equal to</td></tr>                             
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>gte</b>(long value)</tt></td><td>greater than or equal to</td></tr>                             
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>lessThan</b>(long value)</tt></td><td>less than</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>lt</b>(long value)</tt></td><td>less than</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>lessThanOrEqual</b>(long value)</tt></td><td>less than or equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>lte</b>(long value)</tt></td><td>less than or equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>between</b>(long value_1, long value_2)</tt></td><td>belongs to interval between <tt>value_1</tt> and <tt>value_2</tt></td></tr>
-                            </tbody>
-                          </table>
-                        </p>
-                      </dd>
-
-                      <dd><p><b>For string columns:</b></p></dd>
-                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
-                              <th>Method</th><th>Description</th></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>equal</b>(String value)</tt></td><td>equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>eq</b>(String value)</tt></td><td>equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>notEqual</b>(String value)</tt></td><td>not equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>ne</b>(String value)</tt></td><td>not equal to</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>beginsWith</b>(String value)</tt></td><td>substring match at the begining of the text</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>endsWith</b>(String value)</tt></td><td>substring match at the end of the text</td></tr>
-                              <tr bgcolor="white" class="TableRowColor"><td><tt><b>contains</b>(String value)</tt></td><td>substring search</td></tr>
-                            </tbody>
-                          </table>
-                      </p></dd>
-                    </dl>
                     <dl>
                       <dt><b>Examples:</b></dt>
                       <dd>
@@ -524,6 +637,28 @@ ${query_method_details}
 				You can interact with the View just as a regular table, and all changes to it will propagate to the original <a href="#table">table</a>.
                 </p>
 
+                <h3>View column fields</h3>
+				
+                    <dl>
+                      <dd><p> The tables show the declared methods for various types of column fields:</p></dd>
+					  
+#table_or_view_methods()
+
+                    <dl>
+                      <dt><b>Examples:</b></dt>
+                      <dd>
+						<p>
+                        <pre class="prettyprint" lang-java>
+PersonView adults = people.age.gte(18).findAll();
+String[] adultNames = adults.name.getAll();
+Person firstAdultJohn = adults.name.findFirst("John");
+PeopleView hiredAdults = adults.hired.equals(true).findAll();
+                        </pre>
+						</p>
+                      </dd>
+                    </dl>
+                </dd></dl>
+				
                 <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                 <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                 <th align="left" colspan="2"><font size="+2">
