@@ -11,7 +11,7 @@
 		<dependency>
 			<groupId>com.googlecode.jannocessor</groupId>
 			<artifactId>jannocessor</artifactId>
-			<version>0.7.3</version>
+			<version>0.7.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -45,7 +45,7 @@
 					<plugin>
 						<groupId>com.googlecode.jannocessor</groupId>
 						<artifactId>jannocessor-maven-plugin</artifactId>
-						<version>0.7.3</version>
+						<version>0.7.4</version>
 						<executions>
 							<execution>
 								<id>generate-code</id>
