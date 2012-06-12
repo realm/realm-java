@@ -17,6 +17,7 @@
 			<compilerarg value="-s" />
 			<compilerarg value="${srcdir}" />
 			<compilerarg value="-proc:only" />
+			<compilerarg value="-Aprofile=${srcdir}" />
 		</javac>
 	</target>
 	

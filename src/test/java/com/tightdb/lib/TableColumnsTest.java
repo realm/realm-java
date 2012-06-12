@@ -1,16 +1,18 @@
 package com.tightdb.lib;
 
 import static org.testng.AssertJUnit.*;
+
 import org.testng.annotations.Test;
 
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeView;
+import com.tightdb.test.EmployeesFixture;
 
 public class TableColumnsTest extends AbstractTableTest {
 
 	@Test
 	public void shouldFindFirstRecordByColumnValue() throws IllegalAccessException {
-		Employee record1 = employees.firstName.findFirst(NAME1);
+		Employee record1 = employees.firstName.findFirst(EmployeesFixture.FIRST_NAMES[1]);
 		assertEquals(1, record1.getPosition());
 
 		Employee record2 = employees.salary.findFirst(10000);
@@ -22,7 +24,7 @@ public class TableColumnsTest extends AbstractTableTest {
 
 	@Test
 	public void shouldFindAllRecordsByColumnValue() throws IllegalAccessException {
-		EmployeeView view1 = employees.firstName.findAll(NAME1);
+		EmployeeView view1 = employees.firstName.findAll(EmployeesFixture.FIRST_NAMES[1]);
 		assertEquals(1, view1.size());
 
 		EmployeeView view2 = employees.salary.findAll(10000);
