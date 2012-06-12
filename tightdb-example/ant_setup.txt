@@ -13,24 +13,28 @@ Instructions for setting up TightDB for a new or existing project using Ant
 
 5. Copy the following Ant configuration in the build.xml Ant file. Modify "srcdir" according to your preference or existing project:
 
-<project>
-	<property name="srcdir" value="src/main/java" />
-	<property name="version" value="1.6" />
+<?xml version="1.0"?>
 
-	<target name="generate-sources">
-		<echo message="${ant.project.name}: ${ant.file}" />
-		<javac source="${version}" target="${version}" srcdir="${srcdir}">
-			<compilerarg value="-classpath" />
-			<compilerarg value="lib/tightdb.jar" />
-			<compilerarg value="-processor" />
-			<compilerarg value="org.jannocessor.processor.JannocessorProcessor" />
-			<compilerarg value="-processorpath" />
-			<compilerarg value="lib/tightdb-devkit.jar" />
-			<compilerarg value="-s" />
-			<compilerarg value="${srcdir}" />
-			<compilerarg value="-proc:only" />
-		</javac>
-	</target>
+<project name="test" basedir="." default="generate-sources">
+
+        <property name="srcdir" value="src" />
+        <property name="version" value="1.6" />
+
+        <target name="generate-sources">
+                <echo message="${ant.project.name}: ${ant.file}" />
+                <javac source="${version}" target="${version}" srcdir="${srcdir}">
+                        <compilerarg value="-classpath" />
+                        <compilerarg value="lib/tightdb.jar" />
+                        <compilerarg value="-processor" />
+                        <compilerarg value="org.jannocessor.processor.JannocessorProcessor" />
+                        <compilerarg value="-processorpath" />
+                        <compilerarg value="lib/tightdb-devkit.jar" />
+                        <compilerarg value="-s" />
+                        <compilerarg value="${srcdir}" />
+                        <compilerarg value="-proc:only" />
+                </javac>
+        </target>
+
 </project>
 
 6. Create the "srcdir" directory, i.e. src/main/java dir
@@ -46,7 +50,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import com.tightdb.Group;
-import main.java.generated.*;
+import com.tightdb.generated.*;
 import com.tightdb.lib.AbstractColumn;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
