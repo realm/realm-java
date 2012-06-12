@@ -1,8 +1,6 @@
 package com.tightdb.lib;
 
-
-import static org.testng.AssertJUnit.*;
-import java.util.Date;
+import static com.tightdb.test.EmployeesFixture.*;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -11,19 +9,15 @@ import com.tightdb.generated.EmployeeTable;
 
 public abstract class AbstractTableTest {
 
-	protected static final String NAME0 = "John";
-	protected static final String NAME1 = "Nikolche";
-	protected static final String NAME2 = "Johny";
-
 	protected EmployeeTable employees;
 
 	@BeforeMethod
 	public void init() {
 		employees = new EmployeeTable();
 
-		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
-		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
+		employees.add(FIRST_NAMES[0], LAST_NAMES[0], SALARIES[0], DRIVERS[0], PHOTOS[0], BIRTHDATES[0], EXTRAS[0]);
+		employees.add(FIRST_NAMES[2], LAST_NAMES[2], SALARIES[2], DRIVERS[2], PHOTOS[2], BIRTHDATES[2], EXTRAS[2]);
+		employees.insert(1, FIRST_NAMES[1], LAST_NAMES[1], SALARIES[1], DRIVERS[1], PHOTOS[1], BIRTHDATES[1], EXTRAS[1]);
 	}
 
 	@AfterMethod
