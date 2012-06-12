@@ -11,8 +11,9 @@ Instructions for setting up TightDB for a new or existing project using Ant
 4. Add the tightdb.jar to the classpath (in Eclipse right-click it -> Build Path -> Add to build path).
 - Note: tightdb-devkit.jar is not required at runtime, it's only used by the Ant build target "generate-sources".
 
-5. Copy the following Ant configuration in the build.xml Ant file:
+5. Copy the following Ant configuration in the build.xml Ant file. Modify "srcdir" according to your preference or existing project:
 
+<project>
 	<property name="srcdir" value="src/main/java" />
 	<property name="version" value="1.6" />
 
@@ -20,7 +21,7 @@ Instructions for setting up TightDB for a new or existing project using Ant
 		<echo message="${ant.project.name}: ${ant.file}" />
 		<javac source="${version}" target="${version}" srcdir="${srcdir}">
 			<compilerarg value="-classpath" />
-			<compilerarg value="lib/tightdb.jar;lib-sqlite/sqlite4java.jar" />
+			<compilerarg value="lib/tightdb.jar" />
 			<compilerarg value="-processor" />
 			<compilerarg value="org.jannocessor.processor.JannocessorProcessor" />
 			<compilerarg value="-processorpath" />
@@ -30,5 +31,48 @@ Instructions for setting up TightDB for a new or existing project using Ant
 			<compilerarg value="-proc:only" />
 		</javac>
 	</target>
+</project>
 
-6. Executing the "generate-sources" Ant build target will generate the source files (overwriting the previously generated files).
+6. Create the "srcdir" directory, i.e. src/main/java dir
+
+7. Create java example code... 
+
+For example:
+------
+package main.java;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+
+import com.tightdb.Group;
+import main.java.generated.*;
+import com.tightdb.lib.AbstractColumn;
+import com.tightdb.lib.Table;
+import com.tightdb.lib.TightDB;
+
+public class test {
+
+	public static void main(String[] args) {
+		runTest();
+	}
+
+	@Table
+	class employee {
+		String firstName;
+		String lastName;
+		int salary;
+		boolean driver;
+		byte[] photo;
+		Date birthdate;
+		Object extra;
+		phone phones;
+	}
+
+
+	public static void runTest() {
+...
+------
+
+8. Executing the "ant generate-sources" Ant build target will generate the source files (overwriting the previously generated files).
+
