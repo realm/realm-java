@@ -9,11 +9,19 @@ extern "C" {
 #endif
 /*
  * Class:     com_tightdb_TableBase
- * Method:    nativeDebug
- * Signature: (I)V
+ * Method:    createNative
+ * Signature: ()J
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeDebug
-  (JNIEnv *, jobject, jint);
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_createNative
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_tightdb_TableBase
+ * Method:    nativeClose
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     com_tightdb_TableBase
@@ -430,22 +438,6 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllString
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeOptimize
   (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     com_tightdb_TableBase
- * Method:    nativeClose
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     com_tightdb_TableBase
- * Method:    createNative
- * Signature: ()J
- */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_createNative
-  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

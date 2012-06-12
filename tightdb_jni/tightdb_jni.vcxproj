@@ -24,6 +24,9 @@
     <ClInclude Include="src\com_tightdb_tablebase.h" />
     <ClInclude Include="src\com_tightdb_tablequery.h" />
     <ClInclude Include="src\com_tightdb_tableviewbase.h" />
+    <ClInclude Include="src\com_tightdb_util.h" />
+    <ClInclude Include="src\mem_usage\mem.hpp" />
+    <ClInclude Include="src\tablespecutil.h" />
     <ClInclude Include="src\util.h" />
     <ClInclude Include="src\mixedutil.h" />
   </ItemGroup>
@@ -33,7 +36,9 @@
     <ClCompile Include="src\com_tightdb_tablebase.cpp" />
     <ClCompile Include="src\com_tightdb_tablequery.cpp" />
     <ClCompile Include="src\com_tightdb_tableviewbase.cpp" />
+    <ClCompile Include="src\com_tightdb_util.cpp" />
     <ClCompile Include="src\java_lang_list_util.cpp" />
+    <ClCompile Include="src\mem_usage\win32\mem.cpp" />
     <ClCompile Include="src\util.cpp" />
     <ClCompile Include="src\mixedutil.cpp" />
     <ClCompile Include="src\tablespecutil.cpp" />
@@ -157,7 +162,7 @@
       <OutputFile>..\$(ProjectName)32d.dll</OutputFile>
       <ImportLibrary>
       </ImportLibrary>
-      <AdditionalDependencies>TightDB32d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TightDB32d.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>native\tightdb\libs\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcpmtd.lib;LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -206,7 +211,7 @@
       <OutputFile>..\$(ProjectName)64d.dll</OutputFile>
       <ImportLibrary>
       </ImportLibrary>
-      <AdditionalDependencies>TightDB64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TightDB64d.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>native\tightdb\libs\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>libcpmtd.lib;LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
@@ -257,7 +262,7 @@
       <OutputFile>..\$(ProjectName)32.dll</OutputFile>
       <ImportLibrary>
       </ImportLibrary>
-      <AdditionalDependencies>TightDB32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TightDB32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>native\tightdb\libs\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcpmt.lib;LIBCMT.lib</IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>
@@ -307,7 +312,7 @@
       <OutputFile>..\$(ProjectName)64.dll</OutputFile>
       <ImportLibrary>
       </ImportLibrary>
-      <AdditionalDependencies>TightDB64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TightDB64.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>native\tightdb\libs\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcpmt.lib;LIBCMT.lib</IgnoreSpecificDefaultLibraries>
     </Link>

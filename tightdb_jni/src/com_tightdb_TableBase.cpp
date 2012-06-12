@@ -2,6 +2,7 @@
 #include <tightdb.hpp>
 #include <tightdb/lang_bind_helper.hpp>
 
+#include "util.h"
 #include "mixedutil.h"
 #include "com_tightdb_TableBase.h"
 #include "ColumnTypeUtil.h"
@@ -10,19 +11,6 @@
 #include "mixedutil.h"
 
 using namespace tightdb;
-
-static int trace_level = 0;
-#ifdef NDEBUG
-#define TR(fmt, ...)
-#else
-#define TR(fmt, ...) if (trace_level > 0) { printf(fmt, ##__VA_ARGS__); } else {}
-#endif
-
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeDebug(
-	JNIEnv* env, jobject jTable, jint level)
-{
-    trace_level = level;
-}
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeUpdateFromSpec(
 	JNIEnv* env, jobject jTable, jlong nativePtr, jobject jTableSpec)
@@ -65,27 +53,17 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetColumnName(
 JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetTableSpec(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
-	Table* pTable = reinterpret_cast<Table*>(nativeTablePtr);
-	const Spec& tableSpec = pTable->get_spec();
-	size_t columnCount = tableSpec.get_column_count();
-	jclass jTableSpecClass = env->FindClass("com/tightdb/TableSpec");
-	if (jTableSpecClass == NULL) {
-		jclass jClassNotFoundException = env->FindClass("java/lang/ClassNotFoundException");
-		env->ThrowNew(jClassNotFoundException, "could not locate class 'com.tightdb.TableSpec'");
-		return NULL;
+	static jmethodID jTableSpecConsId = GetTableSpecMethodID(env, "<init>", "()V");
+	if (jTableSpecConsId) {
+    	jobject jTableSpec = env->NewObject(GetClassTableSpec(env), jTableSpecConsId);
+    	
+        Table* pTable = reinterpret_cast<Table*>(nativeTablePtr);
+	    const Spec& tableSpec = pTable->get_spec();
+        UpdateJTableSpecFromSpec(env, tableSpec, jTableSpec);
+	    
+        return jTableSpec;
 	}
-	static jmethodID jTableSpecConsId;
-	if (jTableSpecConsId == NULL) {
-		jTableSpecConsId = env->GetMethodID(jTableSpecClass, "<init>", "()V");
-		if (jTableSpecConsId == NULL) {
-			jclass jNoSuchMethodExceptionClass = env->FindClass("java/lang/NoSuchMethodException");
-			env->ThrowNew(jNoSuchMethodExceptionClass, "Could not locate empty constructor in class 'com.tightdb.TableSpec'");
-			return NULL;
-		}
-	}
-	jobject jTableSpec = env->NewObject(jTableSpecClass, jTableSpecConsId);
-	UpdateJTableSpecFromSpec(env, tableSpec, jTableSpec);
-	return jTableSpec;
+    return NULL;
 }
 
 JNIEXPORT jint JNICALL Java_com_tightdb_TableBase_nativeGetColumnType(
@@ -569,7 +547,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeOptimize(
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
-	TR("nativeClose(jTable: %x, nativeTablePtr: %x)", jTable, nativeTablePtr);
+	TR("nativeClose(jTable: %x, nativeTablePtr: %x)\n", jTable, nativeTablePtr);
     LangBindHelper::unbind_table_ref(reinterpret_cast<Table*>(nativeTablePtr));
 }
 

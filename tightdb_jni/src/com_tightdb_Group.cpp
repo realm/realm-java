@@ -25,7 +25,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
 	Group* pGroup = new Group(fileNameCharPtr, readOnly != 0 ? true : false);
 	if (!pGroup->is_valid()) {
 		delete pGroup;
-		env->ThrowNew(env->FindClass("java/lang/IllegalArgumentException"), "File is not a valid tightdb");
+		ThrowException(env, IllegalArgument, "Group(): File is not a valid tightdb database");
 		return NULL;
 	}
 	return reinterpret_cast<jlong>(pGroup);
@@ -36,14 +36,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
 {	
 	jbyte* jbytePtr = env->GetByteArrayElements(jData, NULL);
 	if (jbytePtr == NULL) {
-		env->ThrowNew(env->FindClass("java/lang/NullPointerException"), "Unable to fetch the buffer");
+		ThrowException(env, IllegalArgument, "Unable to fetch the buffer");
 		return NULL;
 	}
 	jlong byteArrayLength = env->GetArrayLength(jData);     // CHECK, FIXME: Does this return a long?
 	Group* pGroup = new Group((const char*)jbytePtr, static_cast<size_t>(byteArrayLength));
 	if (!pGroup->is_valid()) {
 	    delete pGroup;
-	    env->ThrowNew(env->FindClass("java/lang/IllegalArgumentException"), "Data is not a valid tightdb");
+        ThrowException(env, IllegalArgument, "Data is not a valid tightdb database");
 	    return NULL;
 	}
 	return reinterpret_cast<jlong>(pGroup);
@@ -55,7 +55,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
 	Group* pGroup = new Group(static_cast<const char*>(env->GetDirectBufferAddress(jByteBuffer)), static_cast<size_t>(env->GetDirectBufferCapacity(jByteBuffer)));
 	if (!(pGroup->is_valid())) {
 		delete pGroup;
-		env->ThrowNew(env->FindClass("java/lang/IllegalArgumentException"), "Data is not a valid tightdb");
+        ThrowException(env, IllegalArgument, "Data is not a valid tightdb database");
 		return NULL;
 	}
 	return reinterpret_cast<jlong>(pGroup);
@@ -88,9 +88,13 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
 {	
 	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
 	const char* tableNameCharPtr = env->GetStringUTFChars(jTableName, NULL);
-	bool result = pGroup->has_table(tableNameCharPtr);
-	env->ReleaseStringUTFChars(jTableName, tableNameCharPtr);
-	return result;
+    if (tableNameCharPtr) {
+	    bool result = pGroup->has_table(tableNameCharPtr);
+	    env->ReleaseStringUTFChars(jTableName, tableNameCharPtr);
+	    return result;
+    }
+    // (exception is thrown by GetStringUTFChars if it fails.)
+    return NULL;
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeGetTableName(
@@ -106,22 +110,27 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableNativePtr(
 {	
 	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
 	const char* tableNameCharPtr = env->GetStringUTFChars(name, NULL);
-	Table* pTable = LangBindHelper::get_table_ptr(pGroup, tableNameCharPtr); 
-	env->ReleaseStringUTFChars(name, tableNameCharPtr);
-	return (jlong)pTable;
+    if (tableNameCharPtr) {
+	    Table* pTable = LangBindHelper::get_table_ptr(pGroup, tableNameCharPtr); 
+	    env->ReleaseStringUTFChars(name, tableNameCharPtr);
+	    return (jlong)pTable;
+    }
+    // (exception is thrown by GetStringUTFChars if it fails.)
+    return 0;
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
 	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr, jstring jFileName)
 {	
 	const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
-	if (fileNameCharPtr == NULL) {
-		env->ThrowNew(env->FindClass("java/lang/IOException"), "filename not valid");
-		return;
-	}
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
-	pGroup->write(fileNameCharPtr);
-	env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
+	if (fileNameCharPtr) {	
+	    Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
+	    bool success = pGroup->write(fileNameCharPtr);
+        if (!success)
+            ThrowException(env, IOFailed, fileNameCharPtr);
+	    env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
+    }
+    // (exception is thrown by GetStringUTFChars if it fails.)
 }
 
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(

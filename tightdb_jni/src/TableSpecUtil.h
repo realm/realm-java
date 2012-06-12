@@ -27,6 +27,10 @@ jlong Java_com_tightdb_TableSpec_getColumnIndex(
 
 void updateSpecFromJSpec(JNIEnv* env, Spec& spec, jobject jTableSpec);
 void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec);
+
+jclass GetClassTableSpec(JNIEnv* env);
+jmethodID GetTableSpecMethodID(JNIEnv* env, char* methodStr, char* typeStr);
+
 #ifdef __cplusplus
 }
 #endif

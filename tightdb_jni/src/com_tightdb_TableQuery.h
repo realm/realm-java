@@ -9,6 +9,46 @@ extern "C" {
 #endif
 /*
  * Class:     com_tightdb_TableQuery
+ * Method:    nativeGroup
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeEndGroup
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeSubTable
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeParent
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeOr
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
  * Method:    nativeEqual
  * Signature: (JJJ)V
  */
@@ -81,6 +121,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_Str
 
 /*
  * Class:     com_tightdb_TableQuery
+ * Method:    nativeNotEqual
+ * Signature: (JJLjava/lang/String;Z)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_String_2Z
+  (JNIEnv *, jobject, jlong, jlong, jstring, jboolean);
+
+/*
+ * Class:     com_tightdb_TableQuery
  * Method:    nativeBeginsWith
  * Signature: (JJLjava/lang/String;Z)V
  */
@@ -102,54 +150,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains
   (JNIEnv *, jobject, jlong, jlong, jstring, jboolean);
-
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    nativeNotEqual
- * Signature: (JJLjava/lang/String;Z)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_String_2Z
-  (JNIEnv *, jobject, jlong, jlong, jstring, jboolean);
-
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    nativeGroup
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    nativeEndGroup
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    nativeSubTable
- * Signature: (JJ)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    nativeParent
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    nativeOr
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr
-  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery

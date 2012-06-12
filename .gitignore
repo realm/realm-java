@@ -1,3 +1,4 @@
+*.orig
 tightdb_jni??d*.dll
 tightdb_jni*.exp
 tightdb-example/target/*

@@ -118,7 +118,7 @@ public class Group {
 	 * @param fileName The file of the file.
 	 * @throws IOException
 	 */
-	public void writeToFile(String fileName) throws IOException{
+	public void writeToFile(String fileName) throws IOException, NullPointerException {
 		if(fileName == null)
 			throw new NullPointerException("file name is null");
 		File file = new File(fileName);
