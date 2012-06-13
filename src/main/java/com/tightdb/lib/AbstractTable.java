@@ -43,7 +43,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	private void defineTableStructure() {
-		if (table != null) {
+		if (table != null && table.getTableSpec().getColumnCount() <= 0) {
 			final TableSpec spec = new TableSpec();
 			specifyStructure(spec);
 			table.updateFromSpec(spec);
@@ -128,7 +128,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	public boolean hasIndex(long columnIndex) {
 		return table.hasIndex(columnIndex);
 	}
-	
+
 	@Override
 	public void clear() {
 		table.clear();
@@ -145,5 +145,5 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	public Query where() {
 		return AbstractQuery.createQuery(types.getQueryClass(), table, new TableQuery());
 	}
-	
+
 }
