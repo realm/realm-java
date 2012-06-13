@@ -1,43 +1,35 @@
 package com.tightdb.lib;
 
-import static com.tightdb.test.EmployeesFixture.*;
-import static org.testng.AssertJUnit.*;
-
-import java.nio.ByteBuffer;
-
 import org.testng.annotations.Test;
 
 import com.tightdb.generated.Employee;
+import com.tightdb.test.EmployeesFixture;
 
 public class CursorColumnsTest extends AbstractTableTest {
 
-	private static final String[] EXPECTED_COLUMNS = { "firstName", "lastName", "salary", "driver", "photo", "birthdate", "extra", "phones" };
-
 	@Test
 	public void shouldGetCorrectColumnValues() throws IllegalAccessException {
-		Employee employee = employees.first();
+		Employee employee0 = employees.first();
+		checkCursor(EmployeesFixture.EMPLOYEE0, employee0);
 
-		assertEquals(FIRST_NAMES[0], employee.firstName.get());
-		assertEquals(LAST_NAMES[0], employee.lastName.get());
-		assertEquals(SALARIES[0], employee.salary.get().longValue());
-		assertEquals(DRIVERS[0], employee.driver.get().booleanValue());
-		assertEquals(ByteBuffer.wrap(PHOTOS[0]), employee.photo.get());
-		assertEquals(BIRTHDATES[0], employee.birthdate.get());
-		assertEquals(EXTRAS[0], employee.extra.get().getStringValue());
-		assertEquals(TightDB.mixedValue(EXTRAS[0]), employee.extra.get());
+		Employee employee1 = employees.at(1);
+		checkCursor(EmployeesFixture.EMPLOYEE1, employee1);
 
-		AbstractColumn<?, ?, ?, ?>[] columns = employee.columns();
-		assertEquals(EXPECTED_COLUMNS.length, columns.length);
-
-		for (int i = 0; i < columns.length; i++) {
-			AbstractColumn<?, ?, ?, ?> column = columns[i];
-			assertEquals(EXPECTED_COLUMNS[i], column.getName());
-		}
+		Employee employee2 = employee1.next();
+		checkCursor(EmployeesFixture.EMPLOYEE2, employee2);
 	}
 
 	@Test
-	public void shouldSetAndGetCorrectColumnValues() throws IllegalAccessException {
-		// FIXME: implement this!
+	public void shouldSetAndGetCorrectColumnValues() {
+		Employee employee0 = employees.first();
+		checkCursor(EmployeesFixture.EMPLOYEE0, employee0);
+
+		updateEmployee(employee0, EmployeesFixture.EMPLOYEE2); // FIXME: CRASHES!
+//		checkCursor(EmployeesFixture.EMPLOYEE2, employee0);
+//
+//		updateEmployee(employee0, EmployeesFixture.EMPLOYEE1);
+//		checkCursor(EmployeesFixture.EMPLOYEE1, employee0);
+//		checkCursor(EmployeesFixture.EMPLOYEE1, employees.first());
 	}
 
 }
