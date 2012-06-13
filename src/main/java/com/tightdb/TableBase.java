@@ -636,7 +636,7 @@ public class TableBase implements IRowsetBase {
 
 	protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
-	public TableViewBase findAllAllBool(long columnIndex, boolean value) {
+	public TableViewBase findAllBool(long columnIndex, boolean value) {
 		return new TableViewBase(this, nativeFindAllBool(nativePtr, columnIndex, value));
 	}
 
