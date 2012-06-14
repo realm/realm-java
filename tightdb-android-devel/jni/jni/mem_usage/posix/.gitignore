@@ -1,0 +1,6 @@
+/*.d
+/*.o
+
+# Coverage data
+/*.gcno
+/*.gcda
