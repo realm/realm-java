@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.Mixed;
+import com.tightdb.TableBase;
 
 public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed, Cursor, View, Query> {
 
@@ -43,6 +44,14 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 
 	public void set(byte[] value) {
 		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), TightDB.mixedValue(value));
+	}
+
+	public <Tbl> Tbl createSubtable(Class<Tbl> tableClass) {
+		TableBase table = (TableBase) cursor.rowset;
+		table.insertSubTable(columnIndex, cursor.getPosition());
+		TableBase subtable = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
+		System.out.println("Subtable " + subtable);
+		return null; // FIXME: not finished!
 	}
 
 }
