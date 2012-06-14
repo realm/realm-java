@@ -1,10 +1,11 @@
 package com.tightdb.performance;
 
+import com.tightdb.util;
 import com.tightdb.generated.Test;
 import com.tightdb.generated.TestTable;
 import com.tightdb.lib.Table;
 
-public class Tightdb implements PerformanceTest {
+public class Tightdb extends PerformanceBase implements IPerformance {
 
     @Table
 	class test
@@ -22,7 +23,7 @@ public class Tightdb implements PerformanceTest {
     }
     
     public long usedNativeMemory() {
-    	return 0;
+    	return 0; //util.getNativeMemUsage();
     }
     
     public void buildTable(int rows) {
@@ -48,29 +49,19 @@ public class Tightdb implements PerformanceTest {
     	return (res != null);
     }
     
-    public void end_findSmallInt() {}
-    
-    //--------------- byte Int
-    
-	public void begin_findByteInt(int value) {}
+     //--------------- byte Int
 
     public boolean findByteInt(int value) {
     	Test res = table.byteInt.eq(value).findFirst();	
         return (res != null);
     }
     
-    public void end_findByteInt() {}
-    
     //---------------- string
-    
-    public void begin_findString(String value) {}
     
     public boolean findString(String value) {
     	Test res = table.second.eq(value).findFirst();	
         return (res != null);
     }
-    
-    public void end_findString() {}
     
     //---------------- int with index
     
@@ -78,15 +69,9 @@ public class Tightdb implements PerformanceTest {
     	return false;
     }
    
-	public void begin_findIntWithIndex() {}
-
 	public int findIntWithIndex(int value) 
 	{
         Test res = table.indexInt.eq(value).findFirst();
 		return (res != null) ? (int)res.getPosition() : -1;
 	}
-	
-	public void end_findIntWithIndex() {}
-
-	public void closeTable() {}
 }

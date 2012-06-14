@@ -2,7 +2,7 @@ package com.tightdb.performance;
 
 import java.util.ArrayList;
 
-public class JavaArrayList implements PerformanceTest {
+public class JavaArrayList extends PerformanceBase implements IPerformance {
 
 	public static class Table
 	{
@@ -43,8 +43,6 @@ public class JavaArrayList implements PerformanceTest {
     
   //--------------- small Int
     
-    public void begin_findSmallInt(int value) { }
-    
     public boolean findSmallInt(int value) {
     	int index;
     	for (index = 0; index < Rows; index++) {
@@ -55,12 +53,8 @@ public class JavaArrayList implements PerformanceTest {
     	return (index != Rows);	
     }
     
-    public void end_findSmallInt() {}
-    
     //--------------- byte Int
-    
-	public void begin_findByteInt(int value) {}
-
+ 
     public boolean findByteInt(int value) {
     	int index;
     	for (index = 0; index < Rows; index++) {
@@ -71,11 +65,7 @@ public class JavaArrayList implements PerformanceTest {
     	return (index != Rows);	
     }
     
-    public void end_findByteInt() {}
-    
     //---------------- string
-    
-    public void begin_findString(String value) {}
     
     public boolean findString(String value) {
     	int index;
@@ -87,22 +77,14 @@ public class JavaArrayList implements PerformanceTest {
     	return (index != Rows);	
     }
     
-    public void end_findString() {}
-    
     //---------------- int with index
     
     public boolean addIndex() {
     	return false;
     }
 
-	public void begin_findIntWithIndex() {}
-
 	public int findIntWithIndex(int value) 
 	{
 		return -1;
 	}
-	
-	public void end_findIntWithIndex() {}
-
-	public void closeTable() {}
 }
