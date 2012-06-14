@@ -7,7 +7,7 @@ public class util {
 	// Add version check
 	// TODO???
 	
-	static public long getNativeMemUsage() {
+	 public static long getNativeMemUsage() {
 		return nativeGetMemUsage();
 	}
 	
@@ -20,7 +20,7 @@ public class util {
 		System.out.print(txt);
 	}
 	
-	static void waitForEnter() {
+	public static void waitForEnter() {
 		System.out.println("Press Enter to continue...");
 		Scanner sc = new Scanner(System.in);
 	       while(!sc.nextLine().equals(""));

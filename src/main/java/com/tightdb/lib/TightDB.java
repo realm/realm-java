@@ -107,9 +107,12 @@ public class TightDB {
 	public static void loadLibrary() {
 		if (!loadedLibrary) {
 			initTightDB();
-			addNativeLibraryPath(BINARIES_PATH);
-			resetLibraryPath();
-			loadedLibrary = loadCorrectLibrary("tightdb_jni32d", "tightdb_jni64d", "tightdb_jni32", "tightdb_jni64");
+			try {
+				addNativeLibraryPath(BINARIES_PATH);
+				resetLibraryPath();
+			}
+			catch (Throwable e) {}
+			loadedLibrary = loadCorrectLibrary("tightdb_jni32d", "tightdb_jni64d", "tightdb_jni32", "tightdb_jni64", "tightdb-jni");
 			if (!loadedLibrary) {
 				throw new RuntimeException("Couldn't load the TightDB library. Please add 'lib/tightdb_jni??' as external jar.");
 			}

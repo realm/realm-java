@@ -2,7 +2,7 @@ package com.tightdb.performance;
 
 import com.almworks.sqlite4java.*;
 
-public class SQLiteTest implements PerformanceTest {
+public class SQLiteTest extends PerformanceBase implements IPerformance {
 
 	private SQLiteConnection db = null;
 	private SQLiteStatement stmt = null;

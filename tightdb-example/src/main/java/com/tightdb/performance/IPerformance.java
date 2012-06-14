@@ -1,6 +1,6 @@
 package com.tightdb.performance;
 
-public abstract interface PerformanceTest {
+public abstract interface IPerformance {
 
 	public long usedNativeMemory();
 	public void buildTable(int rows);

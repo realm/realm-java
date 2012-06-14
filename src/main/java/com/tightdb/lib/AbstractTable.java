@@ -29,9 +29,14 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	protected AbstractTable(EntityTypes<?, View, Cursor, Query> types, TableBase table) {
 		super(types, table);
 		this.table = table;
-		defineTableStructure();
+		if (table != null && table.getTableSpec().getColumnCount() <= 0) {
+			// Build table schema
+			final TableSpec spec = new TableSpec();
+			specifyStructure(spec);
+			table.updateFromSpec(spec);
+		}
 	}
-
+	
 	@Override
 	public String getName() {
 		return getClass().getSimpleName();
@@ -40,14 +45,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	@Override
 	public long size() {
 		return table.size();
-	}
-
-	private void defineTableStructure() {
-		if (table != null && table.getTableSpec().getColumnCount() <= 0) {
-			final TableSpec spec = new TableSpec();
-			specifyStructure(spec);
-			table.updateFromSpec(spec);
-		}
 	}
 
 	protected void addLongColumn(TableSpec spec, String name) {

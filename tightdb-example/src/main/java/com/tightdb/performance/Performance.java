@@ -1,5 +1,8 @@
 package com.tightdb.performance;
 
+import java.io.IOException;
+import java.util.Scanner;
+
 import com.tightdb.lib.TightDB;
 
 
@@ -11,24 +14,18 @@ public class Performance {
 	final static int REPEAT_SEARCH 	= 100;		// Number of times to repeat the search to get a measurable number
 	final static int TESTS 			= 3;
 	
-	private static void testmem() {
-		long before = 0;
-		System.out.println("Memuse " +  Util.getUsedMemory());
-		System.out.println("Memuse " +  Util.getUsedMemory());
-		System.out.println("Memuse " +  Util.getUsedMemory());
-		before = Util.getUsedMemory();
-		System.out.println("Memuse " +  Util.getUsedMemory());
-		//int a[] = new int[1];
-		int a = 2;
-		System.out.println("Memuse after 1 int " +  (Util.getUsedMemory() - before));
-		System.out.println("Memuse " +  Util.getUsedMemory());
-		System.out.println("Memuse " +  Util.getUsedMemory());
+	static class TestResult {
+		long testTime[];
+		long javaDBMemUsed;
+		long nativeDBMemUsed;
+		TestResult() { testTime = new long[5]; }
 	}
 	
 	public static void main(String[] args) {
 		TightDB.addNativeLibraryPath("lib-sqlite");
 		
-		testmem();
+		// Measuring memory is not very reliable in Java...
+		// Util.test_getMemUsed();
 		
 		int numOfValues = 250000;
 		
@@ -36,13 +33,13 @@ public class Performance {
 				+ REPEAT_SEARCH + " times.");
 		
 		System.out.print("Performance testing TightDB: ");
-		long time_Tightdb[] = TestPerformance(new Tightdb(), numOfValues);
+		TestResult tightdb = TestPerformance(new Tightdb(), numOfValues);
 		
 		System.out.print("\nPerformance testing Java ArrayList: ");
-		long time_Array[] = TestPerformance(new JavaArrayList(), numOfValues);
+		TestResult javaArray = TestPerformance(new JavaArrayList(), numOfValues);
 		
 		System.out.print("\nPerformance testing SQLite: ");
-		long time_Sqlite[] = TestPerformance(new SQLiteTest(), numOfValues);
+		TestResult sqlite = TestPerformance(new SQLiteTest(), numOfValues);
 	
 		System.out.println("\n\nRESULTS:");
 		String[] testText = {
@@ -55,22 +52,31 @@ public class Performance {
 		System.out.println("\t\t\t\t   Tightdb\tArrayList\tSQLite");
 		for (int test = 0; test < TESTS; ++test) {
 			System.out.print( testText[test] );
-			printTime(time_Tightdb[test], " ms (x1)", "\t");
+			printTime(tightdb.testTime[test], " ms (x1)", "\t");
 			
-			printTime(time_Array[test], " ms ", "");
-			if (time_Tightdb[test] > 0)
-				System.out.print( "(x" + time_Array[test] / time_Tightdb[test] + ")\t");
+			printTime(javaArray.testTime[test], " ms ", "");
+			if (tightdb.testTime[test] > 0)
+				System.out.print( "(x" + javaArray.testTime[test] / tightdb.testTime[test] + ")\t");
 			else
 				System.out.print("\t");
 			
-			printTime(time_Sqlite[test], " ms ", "");
-			if (time_Tightdb[test] > 0)
-				System.out.print( "(x" + time_Sqlite[test] / time_Tightdb[test] + ")\t");
+			printTime(sqlite.testTime[test], " ms ", "");
+			if (tightdb.testTime[test] > 0)
+				System.out.print( "(x" + sqlite.testTime[test] / tightdb.testTime[test] + ")\t");
 			else
 				System.out.print("\t");
-			
+			 
 			System.out.println();
 		}
+		long tightTotal  = tightdb.javaDBMemUsed + tightdb.nativeDBMemUsed;
+		long javaTotal   = javaArray.javaDBMemUsed + javaArray.nativeDBMemUsed;
+		long sqliteTotal = sqlite.javaDBMemUsed + sqlite.nativeDBMemUsed;
+		System.out.printf("Memory use (java+native):\t%5d KB (x1)\t%5d KB (x%d)\t%5d KB (x%x)\n",
+				toKB(tightTotal),
+				toKB(javaTotal), javaTotal/tightTotal,
+				toKB(sqliteTotal), sqliteTotal/tightTotal);
+		
+		System.out.println("\nDONE.");
 	}
 
 	static void printTime(long time, String str, String tab) {
@@ -80,17 +86,25 @@ public class Performance {
 			System.out.print("   -- \t" + tab);
 	}
 	
-   	public static long[] TestPerformance(PerformanceTest test, int rows) 
+	static long toKB(long val) {
+		return val/1024; 
+	}
+	
+   	public static TestResult TestPerformance(IPerformance test, int rows) 
 	{
+   		TestResult	result = new TestResult();
    		Timer 		timer = new Timer();
-		long[]		durations = new long[TESTS];
 		int			testNo = 0;
 		
-		long memBefore = Util.getUsedMemory();
+		long memBefore = Util.getUsedMemory(); memBefore = Util.getUsedMemory();
 		
+		// Build the test database
 		test.buildTable(rows);
 		
-		System.out.printf("Memory usage: %d + %d bytes\n", Util.getUsedMemory() - memBefore, test.usedNativeMemory()); 
+		result.javaDBMemUsed = Math.max(Util.getUsedMemory() - memBefore, 1);
+		result.nativeDBMemUsed = test.usedNativeMemory();
+		
+		//System.out.printf("Database memory: java: %d KB + native: %d KB.\n", toKB(result.javaDBMemUsed), toKB(result.nativeDBMemUsed)); 
 		
 		// Search small integer column
 		{
@@ -103,7 +117,7 @@ public class Performance {
 		    		break;
 		    	}
 		    }
-		    durations[testNo++] = timer.GetTimeInMs();
+		    result.testTime[testNo++] = timer.GetTimeInMs();
 		    test.end_findSmallInt();
 		    System.out.printf("*");
 		}
@@ -119,7 +133,7 @@ public class Performance {
 		            break;
 		        }
 		    }
-		    durations[testNo++] = timer.GetTimeInMs();
+		    result.testTime[testNo++] = timer.GetTimeInMs();
 		    test.end_findByteInt();
 		    System.out.printf("*");
 		}
@@ -135,7 +149,7 @@ public class Performance {
 		              break;
 		        }
 		    }
-		    durations[testNo++] = timer.GetTimeInMs();
+		    result.testTime[testNo++] = timer.GetTimeInMs();
 		    test.end_findString();
 		    System.out.printf("*");
 		}
@@ -147,7 +161,7 @@ public class Performance {
 		    boolean indexSupported = test.addIndex();
 		    
 		    if (indexSupported) {
-		    	durations[testNo++] = timer.GetTimeInMs();
+		    	result.testTime[testNo++] = timer.GetTimeInMs();
 		    	System.out.printf("*");
 			    //System.out.printf("Memory usage2: %lld bytes\n", (long long)GetMemUsage());
 			
@@ -161,7 +175,7 @@ public class Performance {
 			            break;
 			        }
 			    }
-			    durations[testNo++] = timer.GetTimeInMs();
+			    result.testTime[testNo++] = timer.GetTimeInMs();
 			    test.end_findIntWithIndex();
 			    System.out.printf("*");
 			}
@@ -169,7 +183,7 @@ public class Performance {
 */		
 		test.closeTable();
 		
-		return durations;
+		return result;
 	}
 		
 }
