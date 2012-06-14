@@ -23,7 +23,7 @@ public class Tightdb extends PerformanceBase implements IPerformance {
     }
     
     public long usedNativeMemory() {
-    	return 0; //util.getNativeMemUsage();
+    	return util.getNativeMemUsage();
     }
     
     public void buildTable(int rows) {
