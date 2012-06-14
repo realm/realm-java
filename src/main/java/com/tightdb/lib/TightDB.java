@@ -10,8 +10,6 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-
-import com.sun.xml.internal.bind.v2.runtime.RuntimeUtil;
 import com.tightdb.Mixed;
 
 public class TightDB {
@@ -165,9 +163,7 @@ public class TightDB {
 		} else if (value instanceof ByteBuffer) {
 			mixed = new Mixed((ByteBuffer) value);
 		} else if (value instanceof byte[]) {
-			throw new IllegalArgumentException("Not implemented yet!"); // FIXME:
-																		// implement
-																		// this
+			mixed = new Mixed(ByteBuffer.wrap((byte[]) value));
 		} else {
 			throw new IllegalArgumentException("The value is of unsupported type: " + value.getClass());
 		}
