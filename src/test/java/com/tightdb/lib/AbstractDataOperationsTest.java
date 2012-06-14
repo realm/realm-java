@@ -4,6 +4,7 @@ import static org.testng.AssertJUnit.*;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
+import com.tightdb.Mixed;
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeQuery;
 import com.tightdb.generated.EmployeeView;
@@ -54,7 +55,7 @@ public abstract class AbstractDataOperationsTest {
 		assertEquals(true, getEmployees().at(2).getExtra().getValue());
 		assertEquals(true, getEmployees().at(2).getExtra().getBooleanValue());
 
-		getEmployees().at(1).setExtra(TightDB.mixedValue("new_value"));
+		getEmployees().at(1).setExtra(Mixed.mixedValue("new_value"));
 		assertEquals("new_value", getEmployees().at(1).getExtra().getValue());
 		assertEquals("new_value", getEmployees().at(1).getExtra().getStringValue());
 	}

@@ -102,7 +102,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 
 	protected void insertMixed(long columnIndex, long rowIndex, Object value) {
-		Mixed mixed = TightDB.mixedValue(value);
+		Mixed mixed = Mixed.mixedValue(value);
 		table.insertMixed(columnIndex, rowIndex, mixed);
 	}
 

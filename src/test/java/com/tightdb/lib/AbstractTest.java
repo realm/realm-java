@@ -4,6 +4,7 @@ import static org.testng.AssertJUnit.*;
 
 import java.nio.ByteBuffer;
 
+import com.tightdb.Mixed;
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeTable;
 import com.tightdb.test.EmployeeData;
@@ -27,7 +28,7 @@ public abstract class AbstractTest {
 		employee.driver.set(data.driver);
 		employee.photo.set(ByteBuffer.wrap(data.photo));
 		employee.birthdate.set(data.birthdate);
-		employee.extra.set(TightDB.mixedValue(data.extra));
+		employee.extra.set(Mixed.mixedValue(data.extra));
 	}
 	
 	protected void checkCursorValues(EmployeeData expected, Employee employee) {
@@ -38,7 +39,7 @@ public abstract class AbstractTest {
 			assertEquals(expected.driver, employee.driver.get().booleanValue());
 			assertEquals(ByteBuffer.wrap(expected.photo), employee.photo.get());
 			assertEquals(expected.birthdate, employee.birthdate.get());
-			assertEquals(TightDB.mixedValue(expected.extra), employee.extra.get());
+			assertEquals(Mixed.mixedValue(expected.extra), employee.extra.get());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

@@ -8,6 +8,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.tightdb.Mixed;
 import com.tightdb.generated.Employee;
 import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.EmployeeView;
@@ -67,7 +68,7 @@ public class TableTest {
 		assertEquals(true, employees.at(2).getExtra().getValue());
 		assertEquals(true, employees.at(2).getExtra().getBooleanValue());
 
-		employees.at(1).setExtra(TightDB.mixedValue("new_value"));
+		employees.at(1).setExtra(Mixed.mixedValue("new_value"));
 		assertEquals("new_value", employees.at(1).getExtra().getValue());
 		assertEquals("new_value", employees.at(1).getExtra().getStringValue());
 	}

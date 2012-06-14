@@ -27,7 +27,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
 
         case IllegalArgument:
             jExceptionClass = env->FindClass("java/lang/IllegalArgumentException");
-            message = classStr;
+            message = "Illegal Argument: " + classStr;
             break;
         
         case IOFailed:
@@ -58,12 +58,22 @@ jclass GetClass(JNIEnv* env, char *classStr)
     return myClass;
 }
 
-void jprintf(JNIEnv *env, const char *fmt, ...) {
-    va_list argp;
+void jprint(JNIEnv *env, char *txt)
+{
+    static jclass myClass = GetClass(env, "com/tightdb/util");
+    static jmethodID myMethod = env->GetStaticMethodID(myClass, "javaPrint", "(Ljava/lang/String;)V");
+        
+    if (myMethod)
+        env->CallStaticVoidMethod(myClass, myMethod, env->NewStringUTF(txt));
+}
+
+void jprintf(JNIEnv *env, const char *format, ...) {
+    va_list argptr;
     char buf[200];
-    va_start(argp, fmt);
-    sprintf_s(buf, fmt, argp);
-    va_end(argp);
-    javaPrint(env, buf);
+    va_start(argptr, format);
+    //vfprintf(stderr, format, argptr);
+    vsnprintf_s(buf, 200, format, argptr);
+    jprint(env, buf);
+    va_end(argptr);    
 }
 

@@ -127,7 +127,7 @@ jboolean GetMixedBooleanValue(JNIEnv* env, jobject jMixed)
 
 jbyteArray GetMixedByteArrayValue(JNIEnv* env, jobject jMixed)
 {
-	static jmethodID jGetBinaryDataMethodId = GetMixedMethodID(env, "getByteArray", "()[B");
+	static jmethodID jGetBinaryDataMethodId = GetMixedMethodID(env, "getBinaryByteArray", "()[B");
 
 	if (jGetBinaryDataMethodId)
 		return reinterpret_cast<jbyteArray>(env->CallObjectMethod(jMixed, jGetBinaryDataMethodId));

@@ -4,6 +4,7 @@
 
 #include "com_tightdb_TableViewBase.h"
 #include "mixedutil.h"
+#include "util.h"
 
 using namespace tightdb;
 
@@ -55,8 +56,9 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_TableViewBase_nativeGetByteArray(
 {
 	BinaryData data = reinterpret_cast<TableView*>(nativeTableViewPtr)->
         get_binary(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
-	jbyteArray jresult = env->NewByteArray(data.len); 
-	env->SetByteArrayRegion(jresult, 0, data.len, (const jbyte*)data.pointer);
+	jbyteArray jresult = env->NewByteArray(data.len);
+    if (jresult)
+        env->SetByteArrayRegion(jresult, 0, data.len, (const jbyte*)data.pointer);
 	return jresult;
 }
 
@@ -101,6 +103,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetString(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jstring value)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
+    if (!valueCharPtr)
+        return;
+
 	reinterpret_cast<TableView*>(nativeViewPtr)->
         set_string(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), valueCharPtr);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
@@ -109,17 +114,27 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetString(
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetBinary(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {	
-	reinterpret_cast<TableView*>(nativeViewPtr)->
-        set_binary(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), (char*)env->GetDirectBufferAddress(byteBuffer), static_cast<size_t>(env->GetDirectBufferCapacity(byteBuffer)));
+	const char *dataPtr = (const char*)(env->GetDirectBufferAddress(byteBuffer));
+    if (!dataPtr) {
+        ThrowException(env, IllegalArgument, "nativeSetBinary byteBuffer");
+        return;
+    }
+    size_t dataLen = static_cast<size_t>(env->GetDirectBufferCapacity(byteBuffer));
+    reinterpret_cast<TableView*>(nativeViewPtr)->
+        set_binary(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), dataPtr, dataLen);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetByteArray(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jbyteArray byteArray)
 {
-	jsize len = env->GetArrayLength(byteArray);
 	jbyte* dataPtr = env->GetByteArrayElements(byteArray, NULL); 
-	reinterpret_cast<TableView*>(nativeViewPtr)->
-        set_binary(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), (char*)(dataPtr), static_cast<size_t>(len));
+	if (!dataPtr) {
+        ThrowException(env, IllegalArgument, "nativeSetByteArray");
+        return;
+    }
+    jsize dataLen = env->GetArrayLength(byteArray);
+    reinterpret_cast<TableView*>(nativeViewPtr)->
+        set_binary(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), (char*)(dataPtr), static_cast<size_t>(dataLen));
 	env->ReleaseByteArrayElements(byteArray, dataPtr, 0);
 }
 
@@ -152,6 +167,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetMixed(
 		{
 			jstring stringValue = GetMixedStringValue(env, jMixed);
 			const char* stringValueCharPtr = env->GetStringUTFChars(stringValue, NULL);
+            if (!stringValueCharPtr)
+                break;
 			pTableView->set_mixed(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), Mixed(stringValueCharPtr));
 			env->ReleaseStringUTFChars(stringValue, stringValueCharPtr);
 			return;
@@ -159,25 +176,27 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetMixed(
 	case COLUMN_TYPE_BINARY:
 		{
 			jobject jByteBuffer = GetMixedByteBufferValue(env, jMixed);
-
+            if (!jByteBuffer)
+                return;
 			//jbyteArray binaryDataArray = GetMixedByteArrayValue(env, jMixed);
 			//jsize length = env->GetArrayLength(binaryDataArray);
 			//jbyte* buf = new jbyte[length];
 			//env->GetByteArrayRegion(binaryDataArray, 0, length, buf);
 			BinaryData binaryData;
-			binaryData.len = static_cast<size_t>(env->GetDirectBufferCapacity(jByteBuffer));
 			binaryData.pointer = (const char*)(env->GetDirectBufferAddress(jByteBuffer));
-			pTableView->set_mixed(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), Mixed(binaryData));
-            //delete[] buf;
-			return;
+            if (!binaryData.pointer)
+                break;
+            binaryData.len = static_cast<size_t>(env->GetDirectBufferCapacity(jByteBuffer));
+			if (binaryData.len >= 0) {
+			    pTableView->set_mixed(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), Mixed(binaryData));
+			    return;
+            }
+            break;
 		}
 	default:
-		{
-            assert(false);
-			printf("\nType not supported as of now: %d in function %s", static_cast<int>(mixedType), __FUNCTION__);
-			return;
-		}
+		TR("\nType not supported as of now: %d in function %s\n", static_cast<int>(mixedType), __FUNCTION__);
 	}
+
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeClear(
@@ -203,6 +222,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirst__JJLjava_
 	JNIEnv* env, jobject jTableViewObject, jlong nativeViewPtr, jlong columnIndex, jstring value)
 {
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
+    if (!valueCharPtr)
+        return -1;
+
 	size_t searchIndex = reinterpret_cast<TableView*>(nativeViewPtr)->
         find_first_string(static_cast<size_t>(columnIndex), valueCharPtr);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
@@ -223,10 +245,12 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAll__JJLjava_la
 {	
 	TableView* pTableView = reinterpret_cast<TableView*>(nativeViewPtr);
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
+    if (!valueCharPtr)
+        return -1;
+
 	TableView* pResultView = new TableView(
         pTableView->find_all_string(static_cast<size_t>(columnIndex), valueCharPtr) );
 	env->ReleaseStringUTFChars(value, valueCharPtr);
-
 	return reinterpret_cast<jlong>(pResultView);
 }
 

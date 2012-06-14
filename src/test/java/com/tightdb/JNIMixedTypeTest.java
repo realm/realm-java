@@ -2,6 +2,7 @@ package com.tightdb;
 
 import static org.testng.AssertJUnit.*;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
@@ -24,16 +25,16 @@ public class JNIMixedTypeTest {
 		tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
 		table.updateFromSpec(tableSpec);
 
-		table.insertMixed(0, 0, TightDB.mixedValue(value1.value));
+		table.insertMixed(0, 0, Mixed.mixedValue(value1.value));
 		table.insertDone();
 
 		checkMixedCell(table, 0, 0, value1.type, value1.value);
 
-		table.setMixed(0, 0, TightDB.mixedValue(value2.value));
+		table.setMixed(0, 0, Mixed.mixedValue(value2.value));
 
 		checkMixedCell(table, 0, 0, value2.type, value2.value);
 
-		table.setMixed(0, 0, TightDB.mixedValue(value3.value));
+		table.setMixed(0, 0, Mixed.mixedValue(value3.value));
 
 		checkMixedCell(table, 0, 0, value3.type, value3.value);
 	}
@@ -41,9 +42,20 @@ public class JNIMixedTypeTest {
 	private void checkMixedCell(TableBase table, long col, long row, ColumnType columnType, Object value) throws IllegalAccessException {
 		ColumnType mixedType = table.getMixedType(col, row);
 		assertEquals(columnType, mixedType);
-
+	
 		Mixed mixed = table.getMixed(col, row);
-		assertEquals(value, mixed.getValue());
+		if (columnType == ColumnType.ColumnTypeBinary) {
+			if (mixed.getBinaryType() == Mixed.BINARY_TYPE_BYTE_ARRAY) {
+				byte[] bin = mixed.getBinaryByteArray();
+				assertEquals(Mixed.mixedValue(value), bin);
+			} else {
+				// TODO: This is not fully working...
+				ByteBuffer binBuf = mixed.getBinaryValue();
+				assertEquals(Mixed.mixedValue(value), binBuf);
+			}
+		} else {		
+			assertEquals(value, mixed.getValue());
+		}	
 	}
 
 	@DataProvider(name = "mixedValuesProvider")

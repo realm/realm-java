@@ -71,6 +71,9 @@ void updateSpecFromJSpec(JNIEnv* env, Spec& spec, jobject jTableSpec)
 	for (jlong i = 0; i < columnCount; ++i) {
 		jstring jColumnName = Java_com_tightdb_TableSpec_getColumnName(env, jTableSpec, i);
 		const char* columnNameCharPtr = env->GetStringUTFChars(jColumnName, NULL);
+        if (!columnNameCharPtr) 
+            return;
+
 		jobject jColumnType   = Java_com_tightdb_TableSpec_getColumnType(env, jTableSpec, i);
 		ColumnType columnType = GetColumnTypeFromJColumnType(env, jColumnType);
 		if (columnType != COLUMN_TYPE_TABLE) {

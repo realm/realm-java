@@ -36,7 +36,7 @@ public class Mixed {
 		this.value = value;
 	}
 	
-	protected Mixed(byte[] value){
+	public Mixed(byte[] value){
 		assert(value != null);
 		this.value = value;
 	}
@@ -108,6 +108,37 @@ public class Mixed {
 		return null;
 	}
 	
+	public static Mixed mixedValue(Object value) {
+		Mixed mixed;
+		// TODO: Isn't it a slow way to convert? Can it be done faster?
+		if (value instanceof String) {
+			mixed = new Mixed((String) value);
+		} else if (value instanceof Long) {
+			mixed = new Mixed((Long) value);
+		} else if (value instanceof Integer) {
+			mixed = new Mixed(new Long(((Integer) value).intValue()));
+		} else if (value instanceof Boolean) {
+			mixed = new Mixed((Boolean) value);
+		} else if (value instanceof Date) {
+			mixed = new Mixed((Date) value);
+		} else if (value instanceof ByteBuffer) {
+			mixed = new Mixed((ByteBuffer) value);
+		} else if (value instanceof byte[]) {
+			mixed = new Mixed((byte[]) value);
+			// TODO : cleanup
+			//mixed = new Mixed(ByteBuffer.wrap((byte[]) value));
+			/*
+			byte [] array = (byte[] )value;
+			ByteBuffer buffer = ByteBuffer.allocateDirect(array.length);
+			buffer.put(array);
+			mixed = new Mixed(buffer);
+			*/
+		} else {
+			throw new IllegalArgumentException("The value is of unsupported type: " + value.getClass());
+		}
+		return mixed;
+	}
+	
 	public long getLongValue() throws IllegalAccessException {
 		if(!(value instanceof Long)){
 			throw new IllegalAccessException("Tryng to access an different type from mixed");
@@ -145,14 +176,14 @@ public class Mixed {
 		return (ByteBuffer)value;
 	}
 	
-	protected byte[] getByteArray() throws IllegalAccessException {
+	public byte[] getBinaryByteArray() throws IllegalAccessException {
 		if(!(value instanceof byte[])){
 			throw new IllegalAccessException("Tryng to access a different type from Mixed");
 		}
 		return (byte[])value;
 	}
 	
-	protected int getBinaryType(){
+	public int getBinaryType() {
 		if(value instanceof byte[]){
 			return BINARY_TYPE_BYTE_ARRAY;
 		}

@@ -71,6 +71,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_Str
 	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
+    if (!valueCharPtr) 
+        return;
+
 	reinterpret_cast<Query*>(nativeQueryPtr)->
         equal(static_cast<size_t>(columnIndex), valueCharPtr, caseSensitive ? true : false);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
@@ -80,7 +83,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
 	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-	reinterpret_cast<Query*>(nativeQueryPtr)->
+    if (!valueCharPtr) 
+        return;
+
+    reinterpret_cast<Query*>(nativeQueryPtr)->
         begins_with(static_cast<size_t>(columnIndex), valueCharPtr, caseSensitive ? true : false);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
 }
@@ -89,7 +95,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
 	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-	reinterpret_cast<Query*>(nativeQueryPtr)->
+    if (!valueCharPtr) 
+        return;
+
+    reinterpret_cast<Query*>(nativeQueryPtr)->
         ends_with(static_cast<size_t>(columnIndex), valueCharPtr, caseSensitive ? true : false);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
 }
@@ -98,7 +107,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
 	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-	reinterpret_cast<Query*>(nativeQueryPtr)->
+    if (!valueCharPtr) 
+        return;
+
+    reinterpret_cast<Query*>(nativeQueryPtr)->
         contains(static_cast<size_t>(columnIndex), valueCharPtr, caseSensitive ? true : false);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
 }
@@ -107,7 +119,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
 	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-	reinterpret_cast<Query*>(nativeQueryPtr)->
+    if (!valueCharPtr) 
+        return;
+
+    reinterpret_cast<Query*>(nativeQueryPtr)->
         not_equal(static_cast<size_t>(columnIndex), valueCharPtr, caseSensitive ? true : false);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
 }

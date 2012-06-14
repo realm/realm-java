@@ -22,27 +22,27 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 	}
 
 	public void set(String value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), TightDB.mixedValue(value));
+		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(boolean value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), TightDB.mixedValue(value));
+		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(long value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), TightDB.mixedValue(value));
+		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(Date value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), TightDB.mixedValue(value));
+		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(ByteBuffer value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), TightDB.mixedValue(value));
+		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(byte[] value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), TightDB.mixedValue(value));
+		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 }

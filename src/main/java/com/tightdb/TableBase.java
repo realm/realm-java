@@ -322,6 +322,8 @@ public class TableBase implements IRowsetBase {
 	 *            data to be inserted.
 	 */
 	public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
+		//System.out.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
+		//System.out.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
 		nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
 	}
 
@@ -433,6 +435,7 @@ public class TableBase implements IRowsetBase {
 		int mixedColumnType = nativeGetMixedType(nativePtr, columnIndex, rowIndex);
 		ColumnType[] columnTypes = ColumnType.values();
 		if (mixedColumnType < 0 || mixedColumnType >= columnTypes.length) {
+			//?? Throw exception
 			return null;
 		}
 		return columnTypes[mixedColumnType];

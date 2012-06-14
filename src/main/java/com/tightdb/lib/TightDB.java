@@ -111,8 +111,16 @@ public class TightDB {
 				addNativeLibraryPath(BINARIES_PATH);
 				resetLibraryPath();
 			}
-			catch (Throwable e) {}
-			loadedLibrary = loadCorrectLibrary("tightdb_jni32d", "tightdb_jni64d", "tightdb_jni32", "tightdb_jni64", "tightdb-jni");
+			catch (Throwable e) {
+				// Above can't be used on Android.
+			}
+			// Load debug library first - if available
+			loadedLibrary = loadCorrectLibrary("tightdb_jni32d", "tightdb_jni64d", "tightdb-jnid");
+			if (loadedLibrary) {
+				System.out.println("!!! TightDB debug verion loaded. !!!");
+			} else {
+				loadedLibrary = loadCorrectLibrary("tightdb_jni32", "tightdb_jni64", "tightdb-jni");
+			}
 			if (!loadedLibrary) {
 				throw new RuntimeException("Couldn't load the TightDB library. Please add 'lib/tightdb_jni??' as external jar.");
 			}
@@ -127,7 +135,6 @@ public class TightDB {
 			} catch (Throwable e) {
 			}
 		}
-
 		return false;
 	}
 
@@ -149,27 +156,5 @@ public class TightDB {
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot reset the library path!", e);
 		}
-	}
-
-	public static Mixed mixedValue(Object value) {
-		Mixed mixed;
-		if (value instanceof String) {
-			mixed = new Mixed((String) value);
-		} else if (value instanceof Long) {
-			mixed = new Mixed((Long) value);
-		} else if (value instanceof Integer) {
-			mixed = new Mixed(new Long(((Integer) value).intValue()));
-		} else if (value instanceof Boolean) {
-			mixed = new Mixed((Boolean) value);
-		} else if (value instanceof Date) {
-			mixed = new Mixed((Date) value);
-		} else if (value instanceof ByteBuffer) {
-			mixed = new Mixed((ByteBuffer) value);
-		} else if (value instanceof byte[]) {
-			mixed = new Mixed(ByteBuffer.wrap((byte[]) value));
-		} else {
-			throw new IllegalArgumentException("The value is of unsupported type: " + value.getClass());
-		}
-		return mixed;
 	}
 }

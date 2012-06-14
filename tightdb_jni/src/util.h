@@ -31,14 +31,16 @@ jclass GetClass(JNIEnv* env, char *classStr);
 
 extern int trace_level;
 
-#ifdef NDEBUG
-#define TR(fmt, ...)
-#else
+#define TRACE 1
+
+#if TRACE
 #define TR(fmt, ...) if (trace_level > 0) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
+#else
+#define TR(fmt, ...)
 #endif
 
 void jprintf(JNIEnv *env, const char *fmt, ...);
 
-void javaPrint(JNIEnv *env, char *txt); // from com_tightdb_util.cpp
+void jprint(JNIEnv *env, char *txt);
 
 #endif // UTIL_H
