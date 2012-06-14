@@ -1,4 +1,4 @@
-package com.tightdb.lib;
+package com.tightdb;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 import com.tightdb.ColumnType;
 import com.tightdb.TableBase;
 import com.tightdb.TableSpec;
+import com.tightdb.test.DataProviderUtil;
 
 public class JNITableSpecTest {
 

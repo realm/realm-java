@@ -125,7 +125,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	public boolean hasIndex(long columnIndex) {
 		return table.hasIndex(columnIndex);
 	}
-	
+
 	@Override
 	public void clear() {
 		table.clear();
@@ -142,5 +142,5 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	public Query where() {
 		return AbstractQuery.createQuery(types.getQueryClass(), table, new TableQuery());
 	}
-	
+
 }
