@@ -102,7 +102,6 @@ public class TableBase implements IRowsetBase {
 
 	protected native void nativeClose(long nativeTablePtr);
 
-
 	/**
 	 * Updates a table specification from a Table specification structure.
 	 * Supported types - refer to @see ColumnType.
