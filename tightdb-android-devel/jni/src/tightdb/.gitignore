@@ -1,0 +1,11 @@
+/*.d
+/*.o
+
+# Coverage data
+/*.gcno
+/*.gcda
+
+/libtightdb.so
+/libtightdb.a
+/libtightdb_d.a
+/libtightdb_c.a
