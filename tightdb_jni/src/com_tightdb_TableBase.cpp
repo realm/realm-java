@@ -160,6 +160,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed(
 		{
             jint mixedBinaryType = GetMixedBinaryType(env, jMixedValue);
 			if (mixedBinaryType == 0) { // byte[]
+                TR("\ninsertMixed(byte[])\n");
 				jbyteArray dataArray = GetMixedByteArrayValue(env, jMixedValue);
                 if (!dataArray) {
                     TR("\nCan't get MixedValue, ByteArray\n");
@@ -177,6 +178,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed(
                 return;
 
 			} else if (mixedBinaryType == 1) { // ByteBuffer
+                TR("\ninsertMixed(ByteBuffer)\n");
                 jobject jByteBuffer = GetMixedByteBufferValue(env, jMixedValue);
                 if (!jByteBuffer) {
                     TR("\nCan't get ByteBuffer\n");
@@ -320,17 +322,17 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertDone(
 
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetLong(
-	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong colIndex, jlong rowIndex)
+	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
 	return reinterpret_cast<Table*>(nativeTablePtr)->
-        get_int(static_cast<size_t>(colIndex), static_cast<size_t>(rowIndex));
+        get_int(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeGetBoolean(
-	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong colIndex, jlong rowIndex)
+	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
 	return reinterpret_cast<Table*>(nativeTablePtr)->
-        get_bool(static_cast<size_t>(colIndex), static_cast<size_t>(rowIndex));
+        get_bool(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetDateTime(
@@ -341,10 +343,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetDateTime(
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetString(
-	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong colIndex, jlong rowIndex)
+	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
 	const char* valueCharPtr = reinterpret_cast<Table*>(nativeTablePtr)->
-        get_string(static_cast<size_t>(colIndex), static_cast<size_t>(rowIndex));
+        get_string(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
 	return env->NewStringUTF(valueCharPtr);
 }
 
@@ -385,46 +387,48 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetMixed(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTable(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-	Table* pSubTable = const_cast<Table*>(LangBindHelper::get_subtable_ptr(reinterpret_cast<Table*>(nativeTablePtr), static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex)));
-	jlong subTableNativePtrValue = 0;
-	*(Table**)&subTableNativePtrValue = pSubTable;
-
+    if (!IndexAndTypeValid(env, nativeTablePtr, columnIndex, rowIndex, COLUMN_TYPE_TABLE))
+        return NULL;
+	Table* pSubTable = const_cast<Table*>(LangBindHelper::get_subtable_ptr(reinterpret_cast<Table*>(nativeTablePtr), 
+        static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex)));
     TR("nativeGetSubTable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
-        jTableBase, nativeTablePtr, columnIndex, rowIndex, subTableNativePtrValue);
-    
-    return subTableNativePtrValue;
+        jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubTable);
+    return (jlong)pSubTable;
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableSize(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-	return reinterpret_cast<Table*>(nativeTablePtr)->
-        get_subtable_size(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
+    Table* tbl = reinterpret_cast<Table*>(nativeTablePtr);
+    if (IndexAndTypeValid(env, nativeTablePtr, columnIndex, rowIndex, COLUMN_TYPE_TABLE)) {
+        return tbl->get_subtable_size(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
+    }
+    return -1;
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetString(
-	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong colIndex, jlong rowIndex, jstring value)
+	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jstring value)
 {
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (valueCharPtr) {
 	    reinterpret_cast<Table*>(nativeTablePtr)->
-            set_string(static_cast<size_t>(colIndex), static_cast<size_t>(rowIndex), valueCharPtr);
+            set_string(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), valueCharPtr);
 	    env->ReleaseStringUTFChars(value, valueCharPtr);
     }
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetLong(
-	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong colIndex, jlong rowIndex, jlong value)
+	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong value)
 {
 	return reinterpret_cast<Table*>(nativeTablePtr)->
-        set_int(static_cast<size_t>(colIndex), static_cast<size_t>(rowIndex), value);
+        set_int(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), value);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetBoolean(
-	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong colIndex, jlong rowIndex, jboolean value)
+	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jboolean value)
 {
 	return reinterpret_cast<Table*>(nativeTablePtr)->
-        set_bool(static_cast<size_t>(colIndex), static_cast<size_t>(rowIndex), value == JNI_TRUE ? true : false);
+        set_bool(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), value == JNI_TRUE ? true : false);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetDate(

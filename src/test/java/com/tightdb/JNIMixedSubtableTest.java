@@ -18,6 +18,21 @@ public class JNIMixedSubtableTest {
 		subspec.addColumn(ColumnType.ColumnTypeInt, "num");
 		table.updateFromSpec(tableSpec);
 
+		// You can't "getSubTable()" unless there is one. And the addEmptyRow will put in a Mixed(0) as default.
+		// You now get an exception instead of crash if you try anyway
+		{
+			table.addEmptyRow();
+			
+			boolean gotException = false;
+			try {
+				TableBase subtable = table.getSubTable(1, 0);
+			} catch (IllegalArgumentException e) {
+				gotException = true;
+			}
+			assertEquals(true, gotException);
+			table.removeLast();
+		}
+		
 		long ROW = 0;
 		boolean simple = true;
 		// Add empty row - the simple way
@@ -27,8 +42,8 @@ public class JNIMixedSubtableTest {
 		} else {
 			// OR Add "empty" row - the "manual" way
 			table.insertLong(0, ROW, 0);
-			table.insertMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable)); // Mixed subtable
-			table.insertSubTable(2, ROW);	// Normal subtable
+			table.insertMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable)); 	// Mixed subtable
+			table.insertSubTable(2, ROW);										// Normal subtable
 			table.insertDone();
 		}
 		assertEquals(1, table.size());
@@ -49,7 +64,6 @@ public class JNIMixedSubtableTest {
 		assertEquals(2, table.getSubTableSize(1, ROW));
 		assertEquals(27, subtable.getLong(0, ROW));
 		assertEquals(273, subtable.getLong(0, ROW+1));
-
 	}
 
 	@Test
@@ -62,9 +76,10 @@ public class JNIMixedSubtableTest {
 		table.updateFromSpec(tableSpec);
 
 		table.addEmptyRow();
-		// You can't get a subtable unless there is one. And the addEmptyRow will put in a Mixed(0) as default.
 		table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));
+		
 		TableBase subtable = table.getSubTable(1, 0);
+
 	}
 
 }
