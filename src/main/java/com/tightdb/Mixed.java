@@ -80,9 +80,7 @@ public class Mixed {
 				return false;
 			}
 			for(int i=0; i < firstByteBuffer.capacity(); i++){
-				byte firstByte = firstByteBuffer.get(i);
-				byte secondByte = secondByteBuffer.get(i);
-				if(firstByte != secondByte)
+				if(firstByteBuffer.get(i) != secondByteBuffer.get(i))
 					return false;
 			}
 			return true;

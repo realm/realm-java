@@ -1,6 +1,9 @@
 package com.tightdb;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 import org.testng.annotations.Test;
+import com.tightdb.Mixed;
 
 public class JNIMixedSubtableTest {
 
@@ -11,9 +14,42 @@ public class JNIMixedSubtableTest {
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "num");
 		tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
+		TableSpec subspec = tableSpec.addSubtableColumn("subtable");
+		subspec.addColumn(ColumnType.ColumnTypeInt, "num");
 		table.updateFromSpec(tableSpec);
 
-		table.insertSubTable(1, 0);
+		long ROW = 0;
+		boolean simple = true;
+		// Add empty row - the simple way
+		if (simple) {
+			table.addEmptyRow();
+			table.setMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable));
+		} else {
+			// OR Add "empty" row - the "manual" way
+			table.insertLong(0, ROW, 0);
+			table.insertMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable)); // Mixed subtable
+			table.insertSubTable(2, ROW);	// Normal subtable
+			table.insertDone();
+		}
+		assertEquals(1, table.size());
+		assertEquals(0, table.getSubTableSize(1, 0));
+		
+		// Create schema for the one Mixed cell with a subtable
+		TableBase subtable = table.getSubTable(1, ROW);
+		TableSpec subspecMixed = subtable.getTableSpec();
+		subspecMixed.addColumn(ColumnType.ColumnTypeInt, "num");
+		subtable.updateFromSpec(subspecMixed);
+
+		// Insert value in the Mixed subtable
+		subtable.insertLong(0, 0, 27);
+		subtable.insertDone();
+		subtable.insertLong(0, 1, 273);
+		subtable.insertDone();
+		assertEquals(2, subtable.size());
+		assertEquals(2, table.getSubTableSize(1, ROW));
+		assertEquals(27, subtable.getLong(0, ROW));
+		assertEquals(273, subtable.getLong(0, ROW+1));
+
 	}
 
 	@Test
@@ -26,7 +62,8 @@ public class JNIMixedSubtableTest {
 		table.updateFromSpec(tableSpec);
 
 		table.addEmptyRow();
-
+		// You can't get a subtable unless there is one. And the addEmptyRow will put in a Mixed(0) as default.
+		table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));
 		TableBase subtable = table.getSubTable(1, 0);
 	}
 

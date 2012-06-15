@@ -16,7 +16,8 @@ public class NestedTablesExample {
 		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
 		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 
-		john.getPhones().add("mobile", "111");
+		PhoneTable p = john.getPhones();
+		p.add("mobile", "111");
 		john.getPhones().add("home", "222");
 
 		johny.getPhones().add("mobile", "333");
