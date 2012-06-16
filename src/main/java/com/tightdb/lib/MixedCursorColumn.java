@@ -3,6 +3,7 @@ package com.tightdb.lib;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
 import com.tightdb.TableBase;
 
@@ -47,11 +48,27 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 	}
 
 	public <Tbl> Tbl createSubtable(Class<Tbl> tableClass) {
-		TableBase table = (TableBase) cursor.rowset;
-		table.insertSubTable(columnIndex, cursor.getPosition());
+		set(new Mixed(ColumnType.ColumnTypeTable));
 		TableBase subtable = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
-		System.out.println("Subtable " + subtable);
-		return null; // FIXME: not finished!
+		return AbstractSubtable.createSubtable(tableClass, subtable);
+	}
+
+	public <Tbl extends AbstractTable<?, ?, ?>> Tbl getSubtable(Class<Tbl> tableClass) {
+		if (get() != null) {
+			throw new IllegalArgumentException("The mixed value doesn't contain a sub-table!");
+		}
+
+		if (!hasSubtable(tableClass)) {
+			throw new IllegalArgumentException("Wrong subtable type!");
+		}
+
+		TableBase subtableBase = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
+		return AbstractSubtable.createSubtable(tableClass, subtableBase);
+	}
+
+	public <Tbl extends AbstractTable<?, ?, ?>> boolean hasSubtable(Class<Tbl> tableClass) {
+		return true; // FIXME: implement this, hopefully delegate to some native
+						// method to check the spec
 	}
 
 }
