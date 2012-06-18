@@ -21,13 +21,17 @@ enum ExceptionKind {
     NoSuchField,
     NoSuchMethod,
     IllegalArgument, 
-    IOFailed
+    IOFailed,
+    IndexOutOfBounds
 };
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
 
 jclass GetClass(JNIEnv* env, char *classStr);
 
+bool IndexValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex);
+
+bool IndexAndTypeValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, int columnType);
 
 extern int trace_level;
 

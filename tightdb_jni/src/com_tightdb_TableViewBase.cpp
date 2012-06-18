@@ -16,17 +16,17 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeSize(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetLong(
-	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong colIndex, jlong rowIndex)
+	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
 	return reinterpret_cast<TableView*>(nativeViewPtr)->
-        get_int(static_cast<size_t>(colIndex), static_cast<size_t>(rowIndex));
+        get_int(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_TableViewBase_nativeGetBoolean(
-	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong colIndex, jlong rowIndex)
+	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
 	return reinterpret_cast<TableView*>(nativeViewPtr)->
-        get_bool(static_cast<size_t>(colIndex), static_cast<size_t>(rowIndex));
+        get_bool(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetDateTimeValue(
@@ -37,10 +37,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetDateTimeValue(
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableViewBase_nativeGetString(
-	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong colIndex, jlong rowIndex)
+	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
 	return env->NewStringUTF(reinterpret_cast<TableView*>(nativeViewPtr)->
-        get_string(static_cast<size_t>(colIndex), static_cast<size_t>(rowIndex)));
+        get_string(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex)));
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_TableViewBase_nativeGetBinary(
