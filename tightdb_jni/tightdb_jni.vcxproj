@@ -216,6 +216,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>libcpmtd.lib;LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
       <ShowProgress>NotSet</ShowProgress>
+      <AssemblyDebug>true</AssemblyDebug>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

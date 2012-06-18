@@ -8,8 +8,8 @@ public enum ColumnType {
 	ColumnTypeBinary(4),
 	ColumnTypeTable(5),
 	ColumnTypeMixed(6),
-	// Double refs
-	ColumnTypeStringEnum(7);
+	// Internal types
+	ColumnTypeStringEnum(7);	// This is NOT a user selectable datatype - You can not create a table containing this type
 	
 	private ColumnType(int index){
 		this.index = index;

@@ -30,6 +30,8 @@
 
 namespace tightdb {
 
+// Pre-declarations
+class GroupWriter;
 
 class SlabAlloc : public Allocator {
 public:
@@ -66,7 +68,9 @@ public:
     void Print() const;
 #endif //_DEBUG
 
-private:
+protected:
+    friend class GroupWriter;
+
     // Define internal tables
     TIGHTDB_TABLE_2(Slabs,
                     offset,     Int,
@@ -74,6 +78,8 @@ private:
     TIGHTDB_TABLE_2(FreeSpace,
                     ref,    Int,
                     size,   Int)
+
+    const FreeSpace& GetFreespace() const {return m_freeReadOnly;}
 
     // Member variables
     char*     m_shared;

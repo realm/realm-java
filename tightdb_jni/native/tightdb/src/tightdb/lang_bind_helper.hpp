@@ -34,10 +34,13 @@ namespace tightdb {
  * \note An application must never call these functions directly.
  *
  * All the get_*_ptr() functions in this class will return a Table
- * pointer where the reference count has already been incremented. The
- * application must make sure that the unbind_table_ref() function is
+ * pointer where the reference count has already been incremented. 
+ *
+ * The application must make sure that the unbind_table_ref() function is
  * called to decrement the reference count when it no longer needs
- * access to that table.
+ * access to that table. The order of unbinding is important as you must 
+ * unbind subtables to a table before unbinding the table itself.
+ * 
  */
 class LangBindHelper {
 public:

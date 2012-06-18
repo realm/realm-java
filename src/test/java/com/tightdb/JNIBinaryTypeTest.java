@@ -37,10 +37,10 @@ public class JNIBinaryTypeTest {
 	public void shouldStoreValuesOfBinaryType_ByteBuffer_Direct() throws Exception {
 		ByteBuffer bufDirect = ByteBuffer.allocateDirect(testArray.length);
 		bufDirect.put(testArray);
-		table.insertBinary(0,  1, bufDirect);
+		table.insertBinary(0,  0, bufDirect);
 		table.insertDone();
 		
-		checkBinaryCell(table, 0, 1, ColumnType.ColumnTypeBinary, testArray);
+		checkBinaryCell(table, 0, 0, ColumnType.ColumnTypeBinary, testArray);
 	}
 	
 	// TODO: handle wrap ByteBuffers
@@ -48,10 +48,10 @@ public class JNIBinaryTypeTest {
 	public void shouldStoreValuesOfBinaryType_ByteBuffer_wrap() throws Exception {
 		// This way of using ByteBuffer fails. It's not a "DirectBuffer"
 		ByteBuffer bufWrap = ByteBuffer.wrap(testArray);
-		table.insertBinary(0,  2, bufWrap);
+		table.insertBinary(0,  0, bufWrap);
 		table.insertDone();
 
-		checkBinaryCell(table, 0, 2, ColumnType.ColumnTypeBinary, testArray);
+		checkBinaryCell(table, 0, 0, ColumnType.ColumnTypeBinary, testArray);
 	}
 
 	private void checkBinaryCell(TableBase table, long col, long row, ColumnType columnType, byte[] value) throws IllegalAccessException {

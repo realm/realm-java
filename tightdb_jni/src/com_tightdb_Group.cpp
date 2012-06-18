@@ -14,6 +14,19 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__(
 	return reinterpret_cast<jlong>(new Group());
 }
 
+/* !!! TODO:
+    Update interface :
+
+enum GroupMode {
+    GROUP_DEFAULT  =  0,
+    GROUP_READONLY =  1,
+    GROUP_SHARED   =  2,
+    GROUP_APPEND   =  4,
+    GROUP_ASYNC    =  8,
+    GROUP_SWAPONLY = 16
+};
+*/
+
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2Z(
 	JNIEnv* env, jobject jGroup, jstring jFileName, jboolean readOnly)
 {	
@@ -22,7 +35,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
 		printf("\nUnable to fetch the characters from the filename input: %s", __FUNCTION__);
 		return NULL;
 	}
-	Group* pGroup = new Group(fileNameCharPtr, readOnly != 0 ? true : false);
+	Group* pGroup = new Group(fileNameCharPtr, readOnly != 0 ? GROUP_READONLY : GROUP_DEFAULT);
 	if (!pGroup->is_valid()) {
 		delete pGroup;
 		ThrowException(env, IllegalArgument, "Group(): File is not a valid tightdb database");

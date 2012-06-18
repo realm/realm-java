@@ -1,4 +1,4 @@
-package com.tightdb;
+package com.tightdb.experiment;
 
 import com.tightdb.ColumnType;
 import com.tightdb.TableBase;

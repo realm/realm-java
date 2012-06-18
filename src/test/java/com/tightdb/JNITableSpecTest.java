@@ -46,7 +46,9 @@ public class JNITableSpecTest {
 	}
 
 	private List<?> columnTypes() {
-		return Arrays.asList(ColumnType.values());
+		return Arrays.asList(ColumnType.ColumnTypeBinary, ColumnType.ColumnTypeBool, ColumnType.ColumnTypeDate,
+				ColumnType.ColumnTypeInt, ColumnType.ColumnTypeMixed, ColumnType.ColumnTypeString, ColumnType.ColumnTypeTable);
+		//return Arrays.asList(ColumnType.values()); // Can't include the ColumnTypeStringEnum - it's not valid user type
 	}
 
 }

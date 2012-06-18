@@ -51,7 +51,7 @@ public class JNIMixedTypeTest {
 			} else {
 				// TODO: This is not fully working...
 				ByteBuffer binBuf = mixed.getBinaryValue();
-				assertEquals(Mixed.mixedValue(value), binBuf);
+				assertEquals(value, binBuf);
 			}
 		} else {		
 			assertEquals(value, mixed.getValue());
