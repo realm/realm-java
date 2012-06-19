@@ -124,13 +124,6 @@ public class Mixed {
 			mixed = new Mixed((ByteBuffer) value);
 		} else if (value instanceof byte[]) {
 			mixed = new Mixed((byte[]) value);
-			// TODO : cleanup
-			// mixed = new Mixed(ByteBuffer.wrap((byte[]) value));
-			/*
-			 * byte [] array = (byte[] )value; ByteBuffer buffer =
-			 * ByteBuffer.allocateDirect(array.length); buffer.put(array); mixed
-			 * = new Mixed(buffer);
-			 */
 		} else {
 			throw new IllegalArgumentException("The value is of unsupported type: " + value.getClass());
 		}

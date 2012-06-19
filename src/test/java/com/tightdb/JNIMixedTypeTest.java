@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -39,6 +40,11 @@ public class JNIMixedTypeTest {
 		checkMixedCell(table, 0, 0, value3.type, value3.value);
 	}
 
+	@AfterTest
+	public void testEnded() {
+		//System.out.println("done.");
+	}
+	
 	private void checkMixedCell(TableBase table, long col, long row, ColumnType columnType, Object value) throws IllegalAccessException {
 		ColumnType mixedType = table.getMixedType(col, row);
 		assertEquals(columnType, mixedType);
@@ -46,12 +52,16 @@ public class JNIMixedTypeTest {
 		Mixed mixed = table.getMixed(col, row);
 		if (columnType == ColumnType.ColumnTypeBinary) {
 			if (mixed.getBinaryType() == Mixed.BINARY_TYPE_BYTE_ARRAY) {
+				// NOTE: We never get here because we always "get" a ByteBuffer.
 				byte[] bin = mixed.getBinaryByteArray();
 				assertEquals(Mixed.mixedValue(value), bin);
-			} else {
-				// TODO: This is not fully working...
+			} else {	
 				ByteBuffer binBuf = mixed.getBinaryValue();
-				assertEquals(value, binBuf);
+				// TODO: Below is sort of hack to compare the content of the buffers, since you always will get a ByteBuffer from a Mixed.
+				ByteBuffer valueBuf = ByteBuffer.wrap((byte[]) value);
+				if (!binBuf.equals(valueBuf))
+					System.out.println("***failed");
+				assertEquals(Mixed.mixedValue(valueBuf), Mixed.mixedValue(binBuf));
 			}
 		} else {		
 			assertEquals(value, mixed.getValue());
