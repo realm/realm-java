@@ -66,6 +66,9 @@
     <ClInclude Include="src\com_tightdb_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\tablebase_tpl.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

@@ -5,10 +5,14 @@
 #include "util.h"
 #include "com_tightdb_util.h"
 
+using namespace tightdb;
+
 void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr) 
 {
     std::string message;
     jclass jExceptionClass = NULL;
+
+    TR("\njni: ThrowingException %d, %s, %s.\n", exception, classStr.c_str(), itemStr.c_str());
 
     switch (exception) {
         case ClassNotFound:
@@ -47,6 +51,10 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     }
     if (jExceptionClass != NULL)
         env->ThrowNew(jExceptionClass, message.c_str());
+    else {
+        TR("\nERROR: Couldn't throw exception.\n");
+    }
+
     env->DeleteLocalRef(jExceptionClass);
 }
 
@@ -59,7 +67,7 @@ jclass GetClass(JNIEnv* env, char *classStr)
 		return NULL;
 	}
 
-    jclass myClass = (jclass)env->NewGlobalRef(localRefClass);
+    jclass myClass = reinterpret_cast<jclass>( env->NewGlobalRef(localRefClass) );
     env->DeleteLocalRef(localRefClass);
     return myClass;
 }
@@ -85,8 +93,8 @@ void jprintf(JNIEnv *env, const char *format, ...) {
 bool IndexValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex) 
 {
     tightdb::Table *tbl = reinterpret_cast<tightdb::Table*>(nativeTablePtr);
-    bool colErr = (columnIndex > tbl->get_column_count());
-    bool rowErr = (rowIndex > tbl->size());
+    bool colErr = (columnIndex >= tbl->get_column_count()) || (columnIndex < 0);
+    bool rowErr = (rowIndex >= tbl->size()) || (rowIndex < 0);
 
     if (!colErr && !rowErr)
         return true;
@@ -103,10 +111,11 @@ bool IndexAndTypeValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlo
 {
     if (!IndexValid(env, nativeTablePtr, columnIndex, rowIndex))
         return false;
-    tightdb::Table *tbl = reinterpret_cast<tightdb::Table*>(nativeTablePtr);
+    Table *tbl = TBL(nativeTablePtr);
     int colType = tbl->get_column_type(columnIndex);
-    if (colType == tightdb::COLUMN_TYPE_MIXED)
+    if (colType == COLUMN_TYPE_MIXED)
         colType = tbl->get_mixed_type(columnIndex, rowIndex);
+    
     if (colType != expectColType) {
         TR("Expected columnType %d, but got %d (real %d)", expectColType,
             tbl->get_column_type(columnIndex), tbl->GetRealColumnType(columnIndex));

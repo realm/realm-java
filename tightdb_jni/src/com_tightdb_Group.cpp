@@ -31,10 +31,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
 	JNIEnv* env, jobject jGroup, jstring jFileName, jboolean readOnly)
 {	
 	const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
-	if (fileNameCharPtr == NULL) {
-		printf("\nUnable to fetch the characters from the filename input: %s", __FUNCTION__);
+	if (fileNameCharPtr == NULL)
 		return NULL;
-	}
+
 	Group* pGroup = new Group(fileNameCharPtr, readOnly != 0 ? GROUP_READONLY : GROUP_DEFAULT);
 	if (!pGroup->is_valid()) {
 		delete pGroup;
@@ -53,7 +52,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
 		return NULL;
 	}
 	jlong byteArrayLength = env->GetArrayLength(jData);     // CHECK, FIXME: Does this return a long?
-	Group* pGroup = new Group((const char*)jbytePtr, static_cast<size_t>(byteArrayLength));
+	Group* pGroup = new Group((const char*)jbytePtr, S(byteArrayLength));
 	if (!pGroup->is_valid()) {
 	    delete pGroup;
         ThrowException(env, IllegalArgument, "Data is not a valid tightdb database");
@@ -65,7 +64,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffer_2(
 	JNIEnv* env, jobject jTableBase, jobject jByteBuffer)
 {	
-	Group* pGroup = new Group(static_cast<const char*>(env->GetDirectBufferAddress(jByteBuffer)), static_cast<size_t>(env->GetDirectBufferCapacity(jByteBuffer)));
+    // !!! TODO: Check Buffer for NULL!!!
+	Group* pGroup = new Group(static_cast<const char*>(env->GetDirectBufferAddress(jByteBuffer)), 
+        S(env->GetDirectBufferCapacity(jByteBuffer)));
 	if (!(pGroup->is_valid())) {
 		delete pGroup;
         ThrowException(env, IllegalArgument, "Data is not a valid tightdb database");
@@ -77,32 +78,28 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose(
 	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
 {	
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
-	delete pGroup;
+	delete G(nativeGroupPtr);
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeIsValid(
 	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
 {	
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
-	return pGroup->is_valid();
+	return G(nativeGroupPtr)->is_valid();
 }
 
 // TODO: return long
 JNIEXPORT jint JNICALL Java_com_tightdb_Group_nativeGetTableCount(
 	JNIEnv *env, jobject jGroup, jlong nativeGroupPtr)
 {	
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
-    return pGroup->get_table_count(); 
+    return G(nativeGroupPtr)->get_table_count(); 
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
 	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr, jstring jTableName)
 {	
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
 	const char* tableNameCharPtr = env->GetStringUTFChars(jTableName, NULL);
     if (tableNameCharPtr) {
-	    bool result = pGroup->has_table(tableNameCharPtr);
+	    bool result = G(nativeGroupPtr)->has_table(tableNameCharPtr);
 	    env->ReleaseStringUTFChars(jTableName, tableNameCharPtr);
 	    return result;
     }
@@ -113,18 +110,16 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
 JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeGetTableName(
 	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr, jint index)
 {	
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
-	const char* nameCharPtr = pGroup->get_table_name(index);
+	const char* nameCharPtr = G(nativeGroupPtr)->get_table_name(index);
 	return env->NewStringUTF(nameCharPtr);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableNativePtr(
 	JNIEnv *env, jobject jGroup, jlong nativeGroupPtr, jstring name)
 {	
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
 	const char* tableNameCharPtr = env->GetStringUTFChars(name, NULL);
     if (tableNameCharPtr) {
-	    Table* pTable = LangBindHelper::get_table_ptr(pGroup, tableNameCharPtr); 
+	    Table* pTable = LangBindHelper::get_table_ptr(G(nativeGroupPtr), tableNameCharPtr); 
 	    env->ReleaseStringUTFChars(name, tableNameCharPtr);
 	    return (jlong)pTable;
     }
@@ -137,8 +132,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
 {	
 	const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
 	if (fileNameCharPtr) {	
-	    Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
-	    bool success = pGroup->write(fileNameCharPtr);
+	    bool success = G(nativeGroupPtr)->write(fileNameCharPtr);
         if (!success)
             ThrowException(env, IOFailed, fileNameCharPtr);
 	    env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
@@ -149,28 +143,37 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
 	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
 {	
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
 	size_t len;
-	char* memValue = pGroup->write_to_mem(len);
-    // TODO: handle write size long.
-    jbyteArray jByteArray = env->NewByteArray(len);
-	env->SetByteArrayRegion(jByteArray, 0, len, (const jbyte*)memValue);
-	free(memValue);
+	char* memValue = G(nativeGroupPtr)->write_to_mem(len);
+    jbyteArray jByteArray;
+    if (len <= MAX_JLONG) {
+        jlong jlen = static_cast<jlong>(len);
+        jByteArray = env->NewByteArray(jlen);
+	    env->SetByteArrayRegion(jByteArray, 0, jlen, (const jbyte*)memValue);
+    } else {
+        jByteArray = NULL;
+        ThrowException(env, IndexOutOfBounds, "Group too big to write.");
+    }
+    free(memValue); // Data was copied to array - so we can free data.
 	return jByteArray;
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
 	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
 {	
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtr);
 	size_t len;
-	char* memValue = pGroup->write_to_mem(len);
-	return env->NewDirectByteBuffer(static_cast<void*>(memValue), static_cast<jlong>(len));
+	char* memValue = G(nativeGroupPtr)->write_to_mem(len);
+	if (len <= MAX_JLONG) {
+        return env->NewDirectByteBuffer(static_cast<void*>(memValue), static_cast<jlong>(len));
+        // Data is NOT copied in DirectByteBuffer - so we can't free it.
+    } else {
+        ThrowException(env, IndexOutOfBounds, "Group too big to write.");
+        return NULL;
+    }
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeCommit(
-	JNIEnv* env, jobject jGroup, jlong nativeGroupPtrValue)
+	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
 {
-	Group* pGroup = reinterpret_cast<Group*>(nativeGroupPtrValue);
-	return pGroup->commit();
+	return G(nativeGroupPtr)->commit();
 }

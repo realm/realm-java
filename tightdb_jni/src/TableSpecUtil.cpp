@@ -24,7 +24,6 @@ jmethodID GetTableSpecMethodID(JNIEnv* env, char* methodStr, char* typeStr)
     return myMethod;
 }
 
-
 jlong Java_com_tightdb_TableSpec_getColumnCount(JNIEnv* env, jobject jTableSpec)
 {
 	static jmethodID jGetColumnCountMethodId = GetTableSpecMethodID(env, "getColumnCount", "()J");

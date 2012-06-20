@@ -6,97 +6,83 @@
 #include "mixedutil.h"
 #include "util.h"
 
+#include "tablebase_tpl.hpp"
+
 using namespace tightdb;
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeSize(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr) 
 {
-	return reinterpret_cast<TableView*>(nativeViewPtr)->
-        size();
+	return TV(nativeViewPtr)->size();
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetLong(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
-	return reinterpret_cast<TableView*>(nativeViewPtr)->
-        get_int(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
+	return TV(nativeViewPtr)->get_int( S(columnIndex), S(rowIndex));
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_TableViewBase_nativeGetBoolean(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
-	return reinterpret_cast<TableView*>(nativeViewPtr)->
-        get_bool(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
+	return TV(nativeViewPtr)->get_bool( S(columnIndex), S(rowIndex));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetDateTimeValue(
-	JNIEnv* env, jobject jTableViewBase, jlong nativeTableViewPtr, jlong columnIndex, jlong rowIndex)
+	JNIEnv* env, jobject jTableViewBase, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
-	return reinterpret_cast<TableView*>(nativeTableViewPtr)->
-        get_date(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
+	return TV(nativeViewPtr)->get_date( S(columnIndex), S(rowIndex));
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableViewBase_nativeGetString(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
-	return env->NewStringUTF(reinterpret_cast<TableView*>(nativeViewPtr)->
-        get_string(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex)));
+	return env->NewStringUTF( TV(nativeViewPtr)->get_string( S(columnIndex), S(rowIndex)) );
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_TableViewBase_nativeGetBinary(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {	
-	BinaryData data = reinterpret_cast<TableView*>(nativeViewPtr)->
-        get_binary(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
-	return env->NewDirectByteBuffer((void*)data.pointer, data.len);
+	BinaryData data = TV(nativeViewPtr)->get_binary( S(columnIndex), S(rowIndex));
+	return env->NewDirectByteBuffer((void*)data.pointer,  static_cast<jlong>(data.len));
 }
 
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_TableViewBase_nativeGetByteArray(
 	JNIEnv* env, jobject jTableView, jlong nativeTableViewPtr, jlong columnIndex, jlong rowIndex)
 {
-	BinaryData data = reinterpret_cast<TableView*>(nativeTableViewPtr)->
-        get_binary(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
-	jbyteArray jresult = env->NewByteArray(data.len);
-    if (jresult)
-        env->SetByteArrayRegion(jresult, 0, data.len, (const jbyte*)data.pointer);
-	return jresult;
+    return tbl_GetByteArray<TableView>(env, nativeTableViewPtr, columnIndex, rowIndex);
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_TableViewBase_nativeGetMixed(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {	
-	Mixed value = reinterpret_cast<TableView*>(nativeViewPtr)->
-        get_mixed(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
+	Mixed value = TV(nativeViewPtr)->get_mixed( S(columnIndex), S(rowIndex));
 	return CreateJMixedFromMixed(env, value);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetSubTable(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {	
-    Table* pSubTable = LangBindHelper::get_subtable_ptr(reinterpret_cast<TableView*>(nativeViewPtr), 
-                                                        static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex));
+    Table* pSubTable = LangBindHelper::get_subtable_ptr(TV(nativeViewPtr), S(columnIndex), S(rowIndex));
 	return reinterpret_cast<jlong>(pSubTable);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetLong(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jlong value)
 {	
-	reinterpret_cast<TableView*>(nativeViewPtr)->
-        set_int(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), value);
+	TV(nativeViewPtr)->set_int( S(columnIndex), S(rowIndex), value);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetBoolean(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jboolean value)
 {	
-	reinterpret_cast<TableView*>(nativeViewPtr)->
-        set_bool(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), value != 0 ? true : false);
+	TV(nativeViewPtr)->set_bool( S(columnIndex), S(rowIndex), value != 0 ? true : false);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetDateTimeValue(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jlong dateTimeValue)
 {
-	reinterpret_cast<TableView*>(nativeViewPtr)->
-        set_date(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), dateTimeValue);
+	TV(nativeViewPtr)->set_date( S(columnIndex), S(rowIndex), dateTimeValue);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetString(
@@ -106,8 +92,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetString(
     if (!valueCharPtr)
         return;
 
-	reinterpret_cast<TableView*>(nativeViewPtr)->
-        set_string(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), valueCharPtr);
+	TV(nativeViewPtr)->set_string( S(columnIndex), S(rowIndex), valueCharPtr);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
 }
 
@@ -119,9 +104,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetBinary(
         ThrowException(env, IllegalArgument, "nativeSetBinary byteBuffer");
         return;
     }
-    size_t dataLen = static_cast<size_t>(env->GetDirectBufferCapacity(byteBuffer));
-    reinterpret_cast<TableView*>(nativeViewPtr)->
-        set_binary(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), dataPtr, dataLen);
+    size_t dataLen = S(env->GetDirectBufferCapacity(byteBuffer));
+    TV(nativeViewPtr)->set_binary( S(columnIndex), S(rowIndex), dataPtr, dataLen);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetByteArray(
@@ -133,34 +117,33 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetByteArray(
         return;
     }
     jsize dataLen = env->GetArrayLength(byteArray);
-    reinterpret_cast<TableView*>(nativeViewPtr)->
-        set_binary(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), (char*)(dataPtr), static_cast<size_t>(dataLen));
+    TV(nativeViewPtr)->set_binary( S(columnIndex), S(rowIndex), (char*)(dataPtr), S(dataLen));
 	env->ReleaseByteArrayElements(byteArray, dataPtr, 0);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetMixed(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jobject jMixed)
 {	
-	TableView* pTableView = reinterpret_cast<TableView*>(nativeViewPtr);
+	TableView* pTableView = TV(nativeViewPtr);
 	ColumnType mixedType = GetMixedObjectType(env, jMixed);
 	switch (mixedType) {
 	case COLUMN_TYPE_INT: 
 		{
 			jlong intValue = GetMixedIntValue(env, jMixed);
-			pTableView->set_mixed(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), Mixed((int64_t)intValue));
+			pTableView->set_mixed( S(columnIndex), S(rowIndex), Mixed((int64_t)intValue));
 			return;
 		}
 	case COLUMN_TYPE_BOOL:
 		{
 			jboolean boolValue = GetMixedBooleanValue(env, jMixed);
-			pTableView->set_mixed(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), Mixed(boolValue != 0 ? true : false));
+			pTableView->set_mixed( S(columnIndex), S(rowIndex), Mixed(boolValue != 0 ? true : false));
 			return;
 		}
 	case COLUMN_TYPE_DATE:
 		{
 			jlong dateTimeValue = GetMixedDateTimeValue(env, jMixed);
 			Date date(dateTimeValue);
-			pTableView->set_mixed(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), Mixed(date));
+			pTableView->set_mixed( S(columnIndex), S(rowIndex), Mixed(date));
 			return;
 		}
 	case COLUMN_TYPE_STRING:
@@ -169,7 +152,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetMixed(
 			const char* stringValueCharPtr = env->GetStringUTFChars(stringValue, NULL);
             if (!stringValueCharPtr)
                 break;
-			pTableView->set_mixed(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), Mixed(stringValueCharPtr));
+			pTableView->set_mixed( S(columnIndex), S(rowIndex), Mixed(stringValueCharPtr));
 			env->ReleaseStringUTFChars(stringValue, stringValueCharPtr);
 			return;
 		}
@@ -186,9 +169,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetMixed(
 			binaryData.pointer = (const char*)(env->GetDirectBufferAddress(jByteBuffer));
             if (!binaryData.pointer)
                 break;
-            binaryData.len = static_cast<size_t>(env->GetDirectBufferCapacity(jByteBuffer));
+            binaryData.len = S(env->GetDirectBufferCapacity(jByteBuffer));
 			if (binaryData.len >= 0) {
-			    pTableView->set_mixed(static_cast<size_t>(columnIndex), static_cast<size_t>(rowIndex), Mixed(binaryData));
+			    pTableView->set_mixed( S(columnIndex), S(rowIndex), Mixed(binaryData));
 			    return;
             }
             break;
@@ -202,20 +185,19 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetMixed(
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeClear(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr)
 {
-	reinterpret_cast<TableView*>(nativeViewPtr)->clear();
+	TV(nativeViewPtr)->clear();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeRemoveRow(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong rowIndex)
 {
-	reinterpret_cast<TableView*>(nativeViewPtr)->remove(static_cast<size_t>(rowIndex));
+	TV(nativeViewPtr)->remove( S(rowIndex));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirst__JJJ(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong value)
 {	
-	return static_cast<jlong>(reinterpret_cast<TableView*>(nativeViewPtr)->
-        find_first_int(static_cast<size_t>(columnIndex), value));
+	return static_cast<jlong>(TV(nativeViewPtr)->find_first_int( S(columnIndex), value));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirst__JJLjava_lang_String_2(
@@ -225,8 +207,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirst__JJLjava_
     if (!valueCharPtr)
         return -1;
 
-	size_t searchIndex = reinterpret_cast<TableView*>(nativeViewPtr)->
-        find_first_string(static_cast<size_t>(columnIndex), valueCharPtr);
+	size_t searchIndex = TV(nativeViewPtr)->find_first_string( S(columnIndex), valueCharPtr);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
 	return static_cast<jlong>(searchIndex);
 }
@@ -234,22 +215,20 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirst__JJLjava_
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAll__JJJ(
 	JNIEnv* env, jobject jTableViewBase, jlong nativeViewPtr, jlong columnIndex, jlong value)
 {	
-	TableView* pTableView = reinterpret_cast<TableView*>(nativeViewPtr);
-	TableView* pResultView = new TableView(
-        pTableView->find_all_int(static_cast<size_t>(columnIndex), value) );
+	TableView* pTableView = TV(nativeViewPtr);
+	TableView* pResultView = new TableView( pTableView->find_all_int( S(columnIndex), value) );
 	return reinterpret_cast<jlong>(pResultView);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAll__JJLjava_lang_String_2(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jstring value)
 {	
-	TableView* pTableView = reinterpret_cast<TableView*>(nativeViewPtr);
+	TableView* pTableView = TV(nativeViewPtr);
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr)
         return -1;
 
-	TableView* pResultView = new TableView(
-        pTableView->find_all_string(static_cast<size_t>(columnIndex), valueCharPtr) );
+	TableView* pResultView = new TableView( pTableView->find_all_string( S(columnIndex), valueCharPtr) );
 	env->ReleaseStringUTFChars(value, valueCharPtr);
 	return reinterpret_cast<jlong>(pResultView);
 }
@@ -257,29 +236,25 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAll__JJLjava_la
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeSum(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex)
 {	
-	return reinterpret_cast<TableView*>(nativeViewPtr)->
-        sum(static_cast<size_t>(columnIndex));
+	return TV(nativeViewPtr)->sum( S(columnIndex));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeMaximum(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnId)
 {	
-	return reinterpret_cast<TableView*>(nativeViewPtr)->
-        maximum(static_cast<size_t>(columnId));
+	return TV(nativeViewPtr)->maximum( S(columnId));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeMinimum(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnId)
 {	
-	return reinterpret_cast<TableView*>(nativeViewPtr)->
-        minimum(static_cast<size_t>(columnId));
+	return TV(nativeViewPtr)->minimum( S(columnId));
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSort(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jboolean ascending)
 {	
-	reinterpret_cast<TableView*>(nativeViewPtr)->
-        sort(static_cast<size_t>(columnIndex), ascending != 0 ? true : false);
+	TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_createNativeTableView(
@@ -291,7 +266,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_createNativeTableView(
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeClose(
 	JNIEnv* env, jobject jTableView, jlong nativeTableViewPtr)
 {
-	delete reinterpret_cast<TableView*>(nativeTableViewPtr);
+	delete TV(nativeTableViewPtr);
 }
 
 // FIXME: Add support for Count, Average, Remove
