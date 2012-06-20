@@ -19,8 +19,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeUpdateFromSpec(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jobject jTableSpec)
 {
 	Table* pTable = TBL(nativeTablePtr);
-	Spec& spec = pTable->get_spec();
+    TR("nativeUpdateFromSpec(tblPtr %x, spec %x) ", pTable, jTableSpec);
+    Spec& spec = pTable->get_spec();
 	updateSpecFromJSpec(env, spec, jTableSpec);
+    TR(" .. and updateSpecFromJSpec.\n");
 	pTable->update_from_spec();
 }
 
@@ -420,7 +422,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetBinary(
 {	
 	const char *dataPtr = (const char*)(env->GetDirectBufferAddress(byteBuffer));
     if (!dataPtr) {
-        ThrowException(env, IllegalArgument, "nativeSetBinary byteBuffer");
+         TR("\nERROR: nativeSetBinary( nativePtr %x, col %x, row %x, byteBuf %x) - can't get BufferAddress!\n",
+            nativeTablePtr, columnIndex, rowIndex, byteBuffer);
+        ThrowException(env, IllegalArgument, "nativeSetBinary(). ByteBuffer is invalid");
         return;
     }
     size_t dataLen = S(env->GetDirectBufferCapacity(byteBuffer));
@@ -438,7 +442,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertBinary__JJJLjava_n
     if (!dataPtr) {
         TR("\nERROR: nativeInsertBinary( nativePtr %x, col %x, row %x, byteBuf %x) - can't get BufferAddress!\n",
             nativeTablePtr, columnIndex, rowIndex, byteBuffer);
-        ThrowException(env, IllegalArgument, "nativeInsertBinary(byteBuffer) - can't get BufferAddress.");
+        ThrowException(env, IllegalArgument, "nativeInsertBinary(byteBuffer) - ByteBuffer is invalid.");
         return;
     }
     size_t dataLen = S(env->GetDirectBufferCapacity(byteBuffer));

@@ -50,7 +50,7 @@ public class TableBase implements IRowsetBase {
 	
 	// test:
 	protected int tableNo;
-	protected boolean DEBUG = false;
+	protected boolean DEBUG = true;
 	static int TableCount = 0;
 	
 	static {
@@ -91,7 +91,7 @@ public class TableBase implements IRowsetBase {
 		close();
 	}
 
-	public void close() {
+	public synchronized void close() {
 		if (DEBUG) System.out.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
 		if (nativePtr == 0)
 			return;
@@ -324,7 +324,10 @@ public class TableBase implements IRowsetBase {
 	public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
 		//System.out.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
 		//System.out.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
-		nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
+		if (data.isDirect())
+			nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
+		else
+			throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");	// FIXME: support other than allocateDirect
 	}
 
 	protected native void nativeInsertBinary(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
@@ -529,11 +532,15 @@ public class TableBase implements IRowsetBase {
 	 * @param rowIndex
 	 *            row index of the cell
 	 * @param data
+	 * 			  the ByteBuffer must be allocated with ByteBuffer.allocateDirect(len)
 	 */
 	public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data) {
 		if (data == null)
 			throw new NullPointerException("Null array");
-		nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
+		if (data.isDirect())
+			nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
+		else
+			throw new RuntimeException("Currently ByteBuffer must be allocateDirect()."); // FIXME: support other than allocateDirect
 	}
 
 	protected native void nativeSetBinary(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);

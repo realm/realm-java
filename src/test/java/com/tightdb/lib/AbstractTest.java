@@ -26,7 +26,12 @@ public abstract class AbstractTest {
 		employee.lastName.set(data.lastName);
 		employee.salary.set(data.salary);
 		employee.driver.set(data.driver);
-		employee.photo.set(ByteBuffer.wrap(data.photo));
+		// FIXME: NOTE: This is just a hack.  photo.set should take a byte[] as parameter.
+		// using wrap() doesn't create a Direct allocated buffer as expected.
+		ByteBuffer buf = ByteBuffer.allocateDirect(data.photo.length);
+		buf.put(data.photo);
+		employee.photo.set(buf);
+		//employee.photo.set(ByteBuffer.wrap(data.photo));
 		employee.birthdate.set(data.birthdate);
 		employee.extra.set(Mixed.mixedValue(data.extra));
 	}

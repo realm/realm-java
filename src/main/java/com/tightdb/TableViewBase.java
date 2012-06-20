@@ -392,7 +392,7 @@ public class TableViewBase implements IRowsetBase {
 		close();
 	}
 	
-	private void close(){
+	private synchronized void close(){
 		if(nativePtr == 0)
 			return;
 		nativeClose(nativePtr);

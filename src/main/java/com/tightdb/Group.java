@@ -56,7 +56,7 @@ public class Group {
 		close();
 	}
 	
-	public void close() {
+	public synchronized void close() {
 		if (nativePtr != 0) {
 			nativeClose(nativePtr);
 			nativePtr = 0;

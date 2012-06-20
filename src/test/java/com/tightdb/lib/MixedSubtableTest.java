@@ -30,7 +30,7 @@ public class MixedSubtableTest extends AbstractTableTest {
 		phones.add("mobile", "123");
 		assertEquals(1, phones.size());
 
-		// should fail
+		// should fail - since we try to get the wrong subtable class
 		employee.extra.getSubtable(PeopleTable.class);
 	}
 	

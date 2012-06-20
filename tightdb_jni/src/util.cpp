@@ -87,7 +87,8 @@ void jprintf(JNIEnv *env, const char *format, ...) {
     //vfprintf(stderr, format, argptr);
     vsnprintf_s(buf, 200, format, argptr);
     jprint(env, buf);
-    va_end(argptr);    
+    va_end(argptr);  
+    fflush(stdout);
 }
 
 bool IndexValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex) 

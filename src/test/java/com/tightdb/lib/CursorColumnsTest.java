@@ -24,12 +24,14 @@ public class CursorColumnsTest extends AbstractTableTest {
 		Employee employee0 = employees.first();
 		checkCursor(EmployeesFixture.EMPLOYEE0, employee0);
 
-		updateEmployee(employee0, EmployeesFixture.EMPLOYEE2); // FIXME: CRASHES!
-//		checkCursor(EmployeesFixture.EMPLOYEE2, employee0);
-//
-//		updateEmployee(employee0, EmployeesFixture.EMPLOYEE1);
-//		checkCursor(EmployeesFixture.EMPLOYEE1, employee0);
-//		checkCursor(EmployeesFixture.EMPLOYEE1, employees.first());
+		// FIXME: Fails with exception. You can't currently use ByteBuffer.wrap(byte[]) for binary data - it creates a "HeapByteBuffer"
+		updateEmployee(employee0, EmployeesFixture.EMPLOYEE2);  
+		
+		checkCursor(EmployeesFixture.EMPLOYEE2, employee0);
+
+		updateEmployee(employee0, EmployeesFixture.EMPLOYEE1);
+		checkCursor(EmployeesFixture.EMPLOYEE1, employee0);
+		checkCursor(EmployeesFixture.EMPLOYEE1, employees.first());
 	}
 
 }

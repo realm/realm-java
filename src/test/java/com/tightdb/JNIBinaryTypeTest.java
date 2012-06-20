@@ -17,7 +17,7 @@ public class JNIBinaryTypeTest {
 	@BeforeMethod
 	public void init() {
 		TightDB.loadLibrary();
-		util.setDebugLevel(1); //Set to 1 to see more JNI debug messages
+		//util.setDebugLevel(0); //Set to 1 to see more JNI debug messages
 		
 		table = new TableBase();
 
