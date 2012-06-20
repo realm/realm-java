@@ -18,6 +18,10 @@ public class JNIMixedSubtableTest {
 		subspec.addColumn(ColumnType.ColumnTypeInt, "num");
 		table.updateFromSpec(tableSpec);
 
+		// Doesn't work: no Mixed stored yet
+		//Mixed m1 = table.getMixed(1, 0);
+		//ColumnType mt = table.getMixedType(1,0);
+		
 		// You can't "getSubTable()" unless there is one. And the addEmptyRow will put in a Mixed(0) as default.
 		// You now get an exception instead of crash if you try anyway
 		{
@@ -79,7 +83,6 @@ public class JNIMixedSubtableTest {
 		table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));
 		
 		TableBase subtable = table.getSubTable(1, 0);
-
 	}
 
 }

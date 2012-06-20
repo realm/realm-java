@@ -42,6 +42,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
     if (jMixedClass == NULL)
         return NULL;
 
+    TR("\nCreateJMixedFromMixed(type %d)", mixed.get_type());
 	switch (mixed.get_type()) {
 	case COLUMN_TYPE_INT:
 	{
@@ -88,13 +89,22 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
 				return env->NewObject(jMixedClass, consId, jByteBuffer);
             }
 		}
+    case COLUMN_TYPE_TABLE:
+        {
+            TR("\n--Mixed(COLUMN_TYPE_TABLE)\n");
+            jmethodID consId = GetMixedMethodID(env, "<init>", "(Lcom/tightdb/ColumnType;)V");
+
+            jobject jColumnType = NULL; // GetJColumnTypeFromColumnType(env, COLUMN_TYPE_TABLE);
+            if (consId) 
+			    return env->NewObject(jMixedClass, consId, jColumnType);
+        }
 	default:
 		{
-			printf("\nMixed type is not supported: %d", mixed.get_type());
-			assert(false);
-            return NULL;
+	        ThrowException(env, IllegalArgument, "Invalid Mixed type.");
+            TR("\nMixed type is not supported: %d", mixed.get_type());
 		}
 	}
+    
 	return NULL;
 }
 

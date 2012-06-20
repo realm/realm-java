@@ -13,8 +13,9 @@ public class Mixed {
 	}
 
 	public Mixed(ColumnType columnType) {
-		assert (columnType == ColumnType.ColumnTypeTable);
-		this.value = null;
+		// It's actually ok to call with any columnType - it will however be assumed to be a ColumnTypeTable.
+		//assert (columnType == ColumnType.ColumnTypeTable);
+		this.value = null;	
 	}
 
 	public Mixed(boolean value) {
