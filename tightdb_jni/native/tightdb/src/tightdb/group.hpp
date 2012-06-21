@@ -47,6 +47,7 @@ public:
 
     bool is_valid() const {return m_isValid;}
     bool is_shared() const {return (m_persistMode & GROUP_SHARED) != 0;}
+    bool is_empty() const;
 
     size_t get_table_count() const;
     const char* get_table_name(size_t table_ndx) const;
@@ -80,6 +81,7 @@ protected:
 
     void init_shared();
     bool commit(size_t current_version, size_t readlock_version);
+    void rollback();
 
     SlabAlloc& get_allocator() {return m_alloc;}
     size_t get_free_space(size_t len, size_t& filesize, bool testOnly=false);
@@ -89,6 +91,7 @@ protected:
     void update_refs(size_t top_ref);
 
     void update_from_shared(size_t top_ref, size_t len);
+    void reset_to_new();
 
     // Overriding method in ArrayParent
     virtual void update_child_ref(size_t subtable_ndx, size_t new_ref)
@@ -140,31 +143,38 @@ private:
 
 inline TableRef Group::get_table(const char* name)
 {
+    assert(m_top.IsValid());
     return get_table_ptr(name)->get_table_ref();
 }
 
 inline ConstTableRef Group::get_table(const char* name) const
 {
+    assert(m_top.IsValid());
     return get_table_ptr(name)->get_table_ref();
 }
 
 template<class T> inline BasicTableRef<T> Group::get_table(const char* name)
 {
+    assert(m_top.IsValid());
     return get_table_ptr<T>(name)->get_table_ref();
 }
 
 template<class T> inline BasicTableRef<const T> Group::get_table(const char* name) const
 {
+    assert(m_top.IsValid());
+    assert(has_table(name));
     return get_table_ptr<T>(name)->get_table_ref();
 }
 
 inline const Table* Group::get_table_ptr(const char* name) const
 {
+    assert(has_table(name));
     return const_cast<Group*>(this)->get_table_ptr(name);
 }
 
 template<class T> inline const T* Group::get_table_ptr(const char* name) const
 {
+    assert(has_table(name));
     return const_cast<Group*>(this)->get_table_ptr<T>(name);
 }
 
@@ -222,6 +232,11 @@ size_t Group::write(S& out)
 template<class S>
 void Group::to_json(S& out)
 {
+    if (!m_top.IsValid()) {
+        out << "{}";
+        return;
+    }
+
     out << "{";
 
     for (size_t i = 0; i < m_tables.Size(); ++i) {

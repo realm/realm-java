@@ -124,7 +124,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed(
 {
 	Table* pTable = TBL(nativeTablePtr);
 	ColumnType columnType = GetMixedObjectType(env, jMixedValue);
-    TR("\nInsertMixed columnType %d\n", columnType);
+    TR("InsertMixed columnType %d\n", columnType);
 	switch(columnType) {
 	case COLUMN_TYPE_INT:
 		{
@@ -152,16 +152,16 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed(
 		{
             jint mixedBinaryType = GetMixedBinaryType(env, jMixedValue);
 			if (mixedBinaryType == 0) { // byte[]
-                TR("\ninsertMixed(byte[])\n");
+                TR("insertMixed(byte[])\n");
 				jbyteArray dataArray = GetMixedByteArrayValue(env, jMixedValue);
                 if (!dataArray) {
-                    TR("\nCan't get MixedValue, ByteArray\n");
+                    TR("Can't get MixedValue, ByteArray\n");
                     break;
                 }
 				BinaryData binaryData;
 				binaryData.pointer = (const char*)(env->GetByteArrayElements(dataArray, NULL));
                 if (!binaryData.pointer) {
-                    TR("\nCan't get ByteArray\n");
+                    TR("Can't get ByteArray\n");
                     break;
                 }
                 binaryData.len = S(env->GetArrayLength(dataArray));
@@ -170,17 +170,17 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed(
                 return;
 
 			} else if (mixedBinaryType == 1) { // ByteBuffer
-                TR("\ninsertMixed(ByteBuffer)\n");
+                TR("insertMixed(ByteBuffer)\n");
                 jobject jByteBuffer = GetMixedByteBufferValue(env, jMixedValue);
                 if (!jByteBuffer) {
-                    TR("\nCan't get ByteBuffer\n");
+                    TR("Can't get ByteBuffer\n");
                     break;
                 }
                 BinaryData binaryData;
 				binaryData.pointer = (const char*)(env->GetDirectBufferAddress(jByteBuffer));
                 TR("SetMixed(Binary, data=%x, len=%d)", binaryData.pointer, binaryData.len);
 				if (!binaryData.pointer) {
-                    TR("\nCan't get BufferAddress\n");
+                    TR("Can't get BufferAddress\n");
                     break;
                 }
                 binaryData.len = S(env->GetDirectBufferCapacity(jByteBuffer));
@@ -190,7 +190,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed(
                     return;
                 }
             } else {
-				TR("\nError Mixed binary type invalid: %\n", mixedBinaryType);
+				TR("Error Mixed binary type invalid: %\n", mixedBinaryType);
 			}
             break;
 		}
@@ -207,7 +207,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed(
         }
 	default:
 		{
-			TR("\nThis type of mixed is not supported yet: %s\n", __FUNCTION__);
+			TR("This type of mixed is not supported yet: %s\n", __FUNCTION__);
 		}
 	}
     ThrowException(env, IllegalArgument, "nativeInsertMixed()");
@@ -288,7 +288,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetMixed(
         }
     default:
 		{
-			TR("\nERROR: This type of mixed is not supported yet: %d.", columnType);
+			TR("ERROR: This type of mixed is not supported yet: %d.", columnType);
 		}
 	}
     TR("\nERROR: nativeSetMixed() failed.\n");
@@ -612,5 +612,5 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_createNative(JNIEnv* env, jobject jTable)
 {
     TR("CreateNative(jTable: %x)\n", jTable);
-    return reinterpret_cast<jlong>(new Table());
+    return reinterpret_cast<jlong>(LangBindHelper::new_table());
 }

@@ -50,7 +50,7 @@ public class TableBase implements IRowsetBase {
 	
 	// test:
 	protected int tableNo;
-	protected boolean DEBUG = true;
+	protected boolean DEBUG = false;
 	static int TableCount = 0;
 	
 	static {

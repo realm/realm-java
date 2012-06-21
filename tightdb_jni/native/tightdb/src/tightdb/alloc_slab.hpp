@@ -52,7 +52,7 @@ public:
 
     bool   CanPersist() const;
     size_t GetFileLen() const {return m_baseline;}
-    void   FreeAll(size_t filesize);
+    void   FreeAll(size_t filesize=(size_t)-1);
     void   ReMap(size_t filesize);
 
 #ifndef _MSC_VER

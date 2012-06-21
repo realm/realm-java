@@ -44,6 +44,7 @@ namespace tightdb {
  */
 class LangBindHelper {
 public:
+    static Table* new_table();
     static Table* get_subtable_ptr(Table*, size_t column_ndx, size_t row_ndx);
     static const Table* get_subtable_ptr(const Table*, size_t column_ndx, size_t row_ndx);
 
@@ -58,9 +59,14 @@ public:
 };
 
 
-
-
 // Implementation:
+
+inline Table* LangBindHelper::new_table() 
+{
+    Table* table = new Table();
+    table->bind_ref();
+    return table;
+}
 
 inline Table* LangBindHelper::get_subtable_ptr(Table* t, size_t column_ndx, size_t row_ndx)
 {

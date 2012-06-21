@@ -177,7 +177,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSetMixed(
             break;
 		}
 	default:
-		TR("\nType not supported as of now: %d in function %s\n", static_cast<int>(mixedType), __FUNCTION__);
+		TR("Type not supported as of now: %d in function %s\n", static_cast<int>(mixedType), __FUNCTION__);
 	}
 
 }

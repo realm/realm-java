@@ -87,7 +87,7 @@ public class TightDB {
         while(ref.get()!=null)
             System.gc();
     }
-
+	
 	/**
 	 * Guarantee gc is done after JVM shutdown.
 	 */
@@ -117,7 +117,7 @@ public class TightDB {
 			// Load debug library first - if available
 			loadedLibrary = loadCorrectLibrary("tightdb_jni32d", "tightdb_jni64d", "tightdb-jnid");
 			if (loadedLibrary) {
-				System.out.println("!!! TightDB debug verion loaded. !!!");
+				System.out.println("!!! TightDB debug version loaded. !!!\n");
 			} else {
 				loadedLibrary = loadCorrectLibrary("tightdb_jni32", "tightdb_jni64", "tightdb-jni");
 			}

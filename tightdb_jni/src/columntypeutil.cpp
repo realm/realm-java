@@ -42,7 +42,7 @@ jobject GetJColumnTypeFromColumnType(JNIEnv* env, ColumnType columnType)
     /*
 	jmethodID jColumnTypeConsId2 = env->GetMethodID(jColumnTypeClass, "<init>", "()V");
     if (jColumnTypeConsId2) {
-        TR("\n-GOT INIT\n");
+        TR("-GOT INIT\n");
         return NULL;
     }
     */

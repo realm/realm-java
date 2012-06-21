@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <string>
 #include <tightdb.hpp>
 
 #include "util.h"
@@ -58,7 +57,6 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     env->DeleteLocalRef(jExceptionClass);
 }
 
-
 jclass GetClass(JNIEnv* env, char *classStr) 
 {
     jclass localRefClass = env->FindClass(classStr);	
@@ -74,10 +72,14 @@ jclass GetClass(JNIEnv* env, char *classStr)
 
 void jprint(JNIEnv *env, char *txt)
 {
+#if 1
+    fprintf(stderr, " -- JNI: %s", txt);
+#else
     static jclass myClass = GetClass(env, "com/tightdb/util");
     static jmethodID myMethod = env->GetStaticMethodID(myClass, "javaPrint", "(Ljava/lang/String;)V");
     if (myMethod)
         env->CallStaticVoidMethod(myClass, myMethod, env->NewStringUTF(txt));
+#endif
 }
 
 void jprintf(JNIEnv *env, const char *format, ...) {

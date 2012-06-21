@@ -3,14 +3,15 @@ package com.tightdb.performance;
 import java.io.IOException;
 import java.util.Scanner;
 
+import com.tightdb.util;
 import com.tightdb.lib.TightDB;
 
 
 public class Performance {
-	
 	final public static int SMALL_TEST_VAL = 2;
 	final public static int BYTE_TEST_VAL = 100;
 	
+	final static boolean pause		= false;
 	final static int REPEAT_SEARCH 	= 100;		// Number of times to repeat the search to get a measurable number
 	final static int TESTS 			= 3;
 	
@@ -33,6 +34,7 @@ public class Performance {
 				+ REPEAT_SEARCH + " times.");
 		
 		System.out.print("Performance testing TightDB: ");
+		
 		TestResult tightdb = TestPerformance(new Tightdb(), numOfValues);
 		
 		System.out.print("\nPerformance testing Java ArrayList: ");
@@ -77,6 +79,7 @@ public class Performance {
 				toKB(sqliteTotal), sqliteTotal/tightTotal);
 		
 		System.out.println("\nDONE.");
+		if (pause) util.waitForEnter();
 	}
 
 	static void printTime(long time, String str, String tab) {
@@ -96,6 +99,7 @@ public class Performance {
    		Timer 		timer = new Timer();
 		int			testNo = 0;
 		
+		if (pause) util.waitForEnter();
 		long memBefore = Util.getUsedMemory(); memBefore = Util.getUsedMemory();
 		
 		// Build the test database
@@ -103,8 +107,6 @@ public class Performance {
 		
 		result.javaDBMemUsed = Math.max(Util.getUsedMemory() - memBefore, 1);
 		result.nativeDBMemUsed = test.usedNativeMemory();
-		
-		//System.out.printf("Database memory: java: %d KB + native: %d KB.\n", toKB(result.javaDBMemUsed), toKB(result.nativeDBMemUsed)); 
 		
 		// Search small integer column
 		{
@@ -181,6 +183,7 @@ public class Performance {
 			}
 		}
 */		
+		if (pause) util.waitForEnter();
 		test.closeTable();
 		
 		return result;
