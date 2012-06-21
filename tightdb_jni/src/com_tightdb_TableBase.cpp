@@ -19,10 +19,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeUpdateFromSpec(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jobject jTableSpec)
 {
 	Table* pTable = TBL(nativeTablePtr);
-    TR("nativeUpdateFromSpec(tblPtr %x, spec %x) ", pTable, jTableSpec);
+    TR("nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec);
     Spec& spec = pTable->get_spec();
 	updateSpecFromJSpec(env, spec, jTableSpec);
-    TR(" .. and updateSpecFromJSpec.\n");
 	pTable->update_from_spec();
 }
 
@@ -53,11 +52,12 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetColumnName(
 JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetTableSpec(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
+    TR("nativeGetTableSpec(table %x)\n", nativeTablePtr);
 	static jmethodID jTableSpecConsId = GetTableSpecMethodID(env, "<init>", "()V");
 	if (jTableSpecConsId) {
     	jobject jTableSpec = env->NewObject(GetClassTableSpec(env), jTableSpecConsId);
     	
-        Table* pTable = TBL(nativeTablePtr);
+        const Table* pTable = TBL(nativeTablePtr);
 	    const Spec& tableSpec = pTable->get_spec();
         UpdateJTableSpecFromSpec(env, tableSpec, jTableSpec);
 	    
@@ -178,13 +178,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed(
                 }
                 BinaryData binaryData;
 				binaryData.pointer = (const char*)(env->GetDirectBufferAddress(jByteBuffer));
-                TR("SetMixed(Binary, data=%x, len=%d)", binaryData.pointer, binaryData.len);
+                TR("SetMixed(Binary, data=%x, len=%d)\n", binaryData.pointer, binaryData.len);
 				if (!binaryData.pointer) {
                     TR("Can't get BufferAddress\n");
                     break;
                 }
                 binaryData.len = S(env->GetDirectBufferCapacity(jByteBuffer));
-				TR("SetMixed(Binary, data=%x, len=%d)", binaryData.pointer, binaryData.len);
+				TR("SetMixed(Binary, data=%x, len=%d)\n", binaryData.pointer, binaryData.len);
                 if (binaryData.len >= 0) {
                     pTable->insert_mixed( S(columnIndex), S(rowIndex), Mixed(binaryData));
                     return;
@@ -270,11 +270,11 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetMixed(
                     break;
 				BinaryData binaryData;
 				binaryData.pointer = (const char*)(env->GetDirectBufferAddress(jByteBuffer));
-                TR("SetMixed(Binary, data=%x, len=%d)", binaryData.pointer, binaryData.len);
+                TR("SetMixed(Binary, data=%x, len=%d)\n", binaryData.pointer, binaryData.len);
 				if (!binaryData.pointer) 
                     break;
                 binaryData.len = S(env->GetDirectBufferCapacity(jByteBuffer));
-				TR("SetMixed(Binary, data=%x, len=%d)", binaryData.pointer, binaryData.len);
+				TR("SetMixed(Binary, data=%x, len=%d)\n", binaryData.pointer, binaryData.len);
                 if (binaryData.len >= 0)
                     pTable->set_mixed( S(columnIndex), S(rowIndex), Mixed(binaryData));
                 return;

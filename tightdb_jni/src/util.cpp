@@ -73,7 +73,7 @@ jclass GetClass(JNIEnv* env, char *classStr)
 void jprint(JNIEnv *env, char *txt)
 {
 #if 1
-    fprintf(stderr, " -- JNI: %s", txt);
+    fprintf(stderr, " -- JNI: %s", txt);  fflush(stderr);
 #else
     static jclass myClass = GetClass(env, "com/tightdb/util");
     static jmethodID myMethod = env->GetStaticMethodID(myClass, "javaPrint", "(Ljava/lang/String;)V");
