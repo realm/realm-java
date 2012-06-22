@@ -15,6 +15,7 @@ public class TestView extends AbstractView<Test, TestView, TestQuery> {
 	public final StringRowsetColumn<Test, TestView, TestQuery> second = new StringRowsetColumn<Test, TestView, TestQuery>(TestTable.TYPES, rowset, 1, "second");
 	public final LongRowsetColumn<Test, TestView, TestQuery> byteInt = new LongRowsetColumn<Test, TestView, TestQuery>(TestTable.TYPES, rowset, 2, "byteInt");
 	public final LongRowsetColumn<Test, TestView, TestQuery> smallInt = new LongRowsetColumn<Test, TestView, TestQuery>(TestTable.TYPES, rowset, 3, "smallInt");
+	public final LongRowsetColumn<Test, TestView, TestQuery> longInt = new LongRowsetColumn<Test, TestView, TestQuery>(TestTable.TYPES, rowset, 4, "longInt");
 
 	public TestView(TableViewBase viewBase) {
 		super(TestTable.TYPES, viewBase);

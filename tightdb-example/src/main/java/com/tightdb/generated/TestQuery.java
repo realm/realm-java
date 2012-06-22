@@ -15,6 +15,7 @@ public class TestQuery extends AbstractQuery<TestQuery, Test, TestView> {
     public final StringQueryColumn<Test, TestView, TestQuery> second;
     public final LongQueryColumn<Test, TestView, TestQuery> byteInt;
     public final LongQueryColumn<Test, TestView, TestQuery> smallInt;
+    public final LongQueryColumn<Test, TestView, TestQuery> longInt;
 
 	public TestQuery(TableBase table, TableQuery query) {
 		super(TestTable.TYPES, table, query);
@@ -22,6 +23,7 @@ public class TestQuery extends AbstractQuery<TestQuery, Test, TestView> {
         second = new StringQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 1, "second");
         byteInt = new LongQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 2, "byteInt");
         smallInt = new LongQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 3, "smallInt");
+        longInt = new LongQueryColumn<Test, TestView, TestQuery>(TestTable.TYPES, table, query, 4, "longInt");
 	}
 
 }

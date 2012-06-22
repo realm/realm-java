@@ -17,6 +17,7 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 	public final StringRowsetColumn<Test, TestView, TestQuery> second = new StringRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 1, "second");
 	public final LongRowsetColumn<Test, TestView, TestQuery> byteInt = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 2, "byteInt");
 	public final LongRowsetColumn<Test, TestView, TestQuery> smallInt = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 3, "smallInt");
+	public final LongRowsetColumn<Test, TestView, TestQuery> longInt = new LongRowsetColumn<Test, TestView, TestQuery>(TYPES, table, 4, "longInt");
 
 	public TestTable() {
 		super(TYPES);
@@ -32,9 +33,10 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
         addStringColumn(spec, "second");
         addLongColumn(spec, "byteInt");
         addLongColumn(spec, "smallInt");
+        addLongColumn(spec, "longInt");
     }
 
-    public Test add(int indexInt, String second, int byteInt, int smallInt) {
+    public Test add(int indexInt, String second, int byteInt, int smallInt, long longInt) {
         try {
         	long position = size();
 
@@ -42,6 +44,7 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
         	insertString(1, position, second);
         	insertLong(2, position, byteInt);
         	insertLong(3, position, smallInt);
+        	insertLong(4, position, longInt);
         	insertDone();
 
         	return cursor(position);
@@ -51,12 +54,13 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 
     }
 
-    public Test insert(long position, int indexInt, String second, int byteInt, int smallInt) {
+    public Test insert(long position, int indexInt, String second, int byteInt, int smallInt, long longInt) {
         try {
         	insertLong(0, position, indexInt);
         	insertString(1, position, second);
         	insertLong(2, position, byteInt);
         	insertLong(3, position, smallInt);
+        	insertLong(4, position, longInt);
         	insertDone();
 
         	return cursor(position);

@@ -10,27 +10,38 @@ public abstract class PerformanceBase implements IPerformance {
 	public abstract void buildTable(int rows);
 
 	@Override
-	public void begin_findSmallInt(int value) {
+	public void begin_findSmallInt(long value) {
 	}
 
 	@Override
-	public abstract boolean findSmallInt(int value);
+	public abstract boolean findSmallInt(long value);
 
 	@Override
 	public void end_findSmallInt() {
 	}
 
 	@Override
-	public void begin_findByteInt(int value) {
+	public void begin_findByteInt(long value) {
 	}
 
 	@Override
-	public abstract boolean findByteInt(int value);
+	public abstract boolean findByteInt(long value);
 	
 	@Override
 	public void end_findByteInt() {
 	}
 
+	@Override
+	public void begin_findLongInt(long value) {
+	}
+
+	@Override
+	public abstract boolean findLongInt(long value);
+	
+	@Override
+	public void end_findLongInt() {
+	}
+	
 	@Override
 	public void begin_findString(String value) {
 	}
@@ -52,7 +63,7 @@ public abstract class PerformanceBase implements IPerformance {
 	}
 
 	@Override
-	public int findIntWithIndex(int value) {
+	public long findIntWithIndex(long value) {
 		return -1;
 	}
 

@@ -1,3 +1,4 @@
+*.bat
 tightdb_jni64.dll
 *.orig
 tightdb_jni??d*.dll

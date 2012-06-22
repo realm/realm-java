@@ -18,7 +18,7 @@ public class SQLiteTest extends PerformanceBase implements IPerformance {
     	try {
     		db.open(true);
     		// Create table
-    		db.exec("create table t1 (indexInt INTEGER, string VARCHAR(100), byteInt INTEGER, smallInt INTEGER);");
+    		db.exec("create table t1 (indexInt INTEGER, string VARCHAR(100), byteInt INTEGER, smallInt INTEGER, longInt INTEGER);");
     	} catch (SQLiteException e) {
     		error(e);
     	}
@@ -37,17 +37,15 @@ public class SQLiteTest extends PerformanceBase implements IPerformance {
     public void buildTable(int rows) {
     	SQLiteStatement stmt;
 		try {
-			stmt = db.prepare("INSERT INTO t1 VALUES(?1, ?2, ?3, ?4);", true);
+			stmt = db.prepare("INSERT INTO t1 VALUES(?1, ?2, ?3, ?4, ?5);", true);
 			for (int i = 0; i < rows; ++i) {
-			    // create random string
 			    int n = Util.getRandNumber();
-			    String s = Util.getNumberString(n);
-			    
 			    stmt.reset();
 		        stmt.bind(1, n);
-		        stmt.bind(2, s);
-		        stmt.bind(3, 1);
-		        stmt.bind(4, 2);
+		        stmt.bind(2, Util.getNumberString(n));
+		        stmt.bind(3, Performance.BYTE_TEST_VAL);
+		        stmt.bind(4, Performance.SMALL_TEST_VAL);
+		        stmt.bind(5, Performance.LONG_TEST_VAL);
 		        stmt.step();
 			}
 	    	stmt.dispose();
@@ -58,7 +56,7 @@ public class SQLiteTest extends PerformanceBase implements IPerformance {
     
     //--------------- small Int
 
-    public void begin_findSmallInt(int value) {
+    public void begin_findSmallInt(long value) {
     	try {
 			stmt = db.prepare("SELECT * FROM t1 WHERE smallInt=?1;", true);
 			stmt.bind(1, value);
@@ -67,7 +65,7 @@ public class SQLiteTest extends PerformanceBase implements IPerformance {
 		}
     }
     
-    public boolean findSmallInt(int value) {
+    public boolean findSmallInt(long value) {
     	try {
 			stmt.reset();
 			return stmt.step();
@@ -83,7 +81,7 @@ public class SQLiteTest extends PerformanceBase implements IPerformance {
  
     //--------------- byte Int
     
- 	public void begin_findByteInt(int value) {
+ 	public void begin_findByteInt(long value) {
  		try {
  			stmt = db.prepare("SELECT * FROM t1 WHERE byteInt=?1;", true);
  			stmt.bind(1, value);
@@ -92,7 +90,7 @@ public class SQLiteTest extends PerformanceBase implements IPerformance {
  		}
  	}
 
-     public boolean findByteInt(int value) {
+     public boolean findByteInt(long value) {
     	 try {
     		 stmt.reset();
     		 return stmt.step();
@@ -106,6 +104,31 @@ public class SQLiteTest extends PerformanceBase implements IPerformance {
     	 stmt.dispose();
      }
      
+     //--------------- long Int
+     
+  	public void begin_findLongInt(long value) {
+  		try {
+  			stmt = db.prepare("SELECT * FROM t1 WHERE longInt=?1;", true);
+  			stmt.bind(1, value);
+  		} catch (SQLiteException e) {
+  			error(e);
+  		}
+  	}
+
+      public boolean findLongInt(long value) {
+     	 try {
+     		 stmt.reset();
+     		 return stmt.step();
+     	 } catch (SQLiteException e) {
+   			error(e);
+   		 }
+          return false;
+      }
+      
+      public void end_findLongInt() {
+     	 stmt.dispose();
+      }
+      
      //---------------- string
      
      public void begin_findString(String value) {
@@ -154,7 +177,7 @@ public class SQLiteTest extends PerformanceBase implements IPerformance {
  		}
  	}
 
- 	public int findIntWithIndex(int value) 
+ 	public long findIntWithIndex(long value) 
  	{
  		try {
  			stmt.reset();

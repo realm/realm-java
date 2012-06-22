@@ -14,6 +14,7 @@ public class Tightdb extends PerformanceBase implements IPerformance {
         String 	second;
         int 	byteInt;
         int 	smallInt;
+        long 	longInt;
 	}
     
     private TestTable table = null;
@@ -28,34 +29,37 @@ public class Tightdb extends PerformanceBase implements IPerformance {
     
     public void buildTable(int rows) {
 		for (int i = 0; i < rows; ++i) {
-		    // create random string
 		    int n = Util.getRandNumber();
-		    String s = Util.getNumberString(n);
-		    
-		    table.add(n, s, Performance.BYTE_TEST_VAL, Performance.SMALL_TEST_VAL);
+		    table.add(n, Util.getNumberString(n), Performance.BYTE_TEST_VAL, Performance.SMALL_TEST_VAL, Performance.LONG_TEST_VAL);
 		}
-		//table.add(0, "abcde", 123, Thu);
     }
     
     //--------------- small Int
     
-    public void begin_findSmallInt(int value) {
+    public void begin_findSmallInt(long value) {
     	//TestQuery q = table.smallInt.eq(value);
     }
     
-    public boolean findSmallInt(int value) {
+    public boolean findSmallInt(long value) {
     	//Test res = q.findFirst();
     	Test res = table.smallInt.findFirst(value);	
     	return (res != null);
     }
     
-     //--------------- byte Int
+    //--------------- byte Int
 
-    public boolean findByteInt(int value) {
-    	Test res = table.byteInt.eq(value).findFirst();	
+    public boolean findByteInt(long value) {
+    	Test res = table.byteInt.findFirst(value);		
         return (res != null);
     }
     
+    //--------------- long Int
+
+    public boolean findLongInt(long value) {
+    	Test res = table.longInt.findFirst(value);		
+        return (res != null);
+    }
+
     //---------------- string
     
     public boolean findString(String value) {
@@ -69,9 +73,9 @@ public class Tightdb extends PerformanceBase implements IPerformance {
     	return false;
     }
    
-	public int findIntWithIndex(int value) 
+	public long findIntWithIndex(long value) 
 	{
-        Test res = table.indexInt.eq(value).findFirst();
+        Test res = table.indexInt.findFirst(value);
 		return (res != null) ? (int)res.getPosition() : -1;
 	}
 }

@@ -9,11 +9,12 @@ import com.tightdb.lib.TightDB;
 
 public class Performance {
 	final public static int SMALL_TEST_VAL = 2;
-	final public static int BYTE_TEST_VAL = 100;
+	final public static int BYTE_TEST_VAL = 214;
+	final public static long LONG_TEST_VAL = 0x1234567890ABCDEFL;
 	
 	final static boolean pause		= false;
 	final static int REPEAT_SEARCH 	= 100;		// Number of times to repeat the search to get a measurable number
-	final static int TESTS 			= 3;
+	final static int TESTS 			= 4;
 	
 	static class TestResult {
 		long testTime[];
@@ -47,6 +48,7 @@ public class Performance {
 		String[] testText = {
 				"Search for small integer:\t",
 				"Search for byte sized integer:\t",
+				"Search for long sized integer:\t",
 				"Search for string:\t\t",
 				"Add Index:\t\t\t",
 				"Search for byte (indexed):\t"
@@ -137,6 +139,22 @@ public class Performance {
 		    }
 		    result.testTime[testNo++] = timer.GetTimeInMs();
 		    test.end_findByteInt();
+		    System.out.printf("*");
+		}
+		
+		// Search long-size integer column
+		{
+			test.begin_findLongInt(LONG_TEST_VAL + 1);
+		    timer.Start();
+		    // Do a search over entire column (value not found)
+		    for (int i = 0; i < REPEAT_SEARCH; ++i) {
+		        if (test.findLongInt(LONG_TEST_VAL + 1)) {
+		            System.out.printf("Error - found value.");
+		            break;
+		        }
+		    }
+		    result.testTime[testNo++] = timer.GetTimeInMs();
+		    test.end_findLongInt();
 		    System.out.printf("*");
 		}
 		

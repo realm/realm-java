@@ -10,12 +10,14 @@ public class JavaArrayList extends PerformanceBase implements IPerformance {
         String 	second;
         int 	byteInt;
         int 	smallInt;
+        long	longInt;
 
-		public Table(int indexInt, String second, int byteInt, int smallInt) {
+		public Table(int indexInt, String second, int byteInt, int smallInt, long longInt) {
         	this.indexInt = indexInt;
         	this.second = second;
         	this.byteInt = byteInt;
         	this.smallInt = smallInt;
+        	this.longInt = longInt;
         }
 	}
 	
@@ -32,18 +34,15 @@ public class JavaArrayList extends PerformanceBase implements IPerformance {
     
     public void buildTable(int rows) {
 		for (int i = 0; i < rows; ++i) {
-		    // create random string
-		    int n = Util.getRandNumber();
-		    String s = Util.getNumberString(n);
-		    
-		    table.add(new Table(n, s, Performance.BYTE_TEST_VAL, Performance.SMALL_TEST_VAL) );
+		    int n = Util.getRandNumber();		    
+		    table.add(new Table(n, Util.getNumberString(n), Performance.BYTE_TEST_VAL, Performance.SMALL_TEST_VAL, Performance.LONG_TEST_VAL) );
 		}
 		this.Rows = rows;
     }
     
   //--------------- small Int
     
-    public boolean findSmallInt(int value) {
+    public boolean findSmallInt(long value) {
     	int index;
     	for (index = 0; index < Rows; index++) {
         	if (table.get(index).smallInt == value) {
@@ -55,10 +54,22 @@ public class JavaArrayList extends PerformanceBase implements IPerformance {
     
     //--------------- byte Int
  
-    public boolean findByteInt(int value) {
+    public boolean findByteInt(long value) {
     	int index;
     	for (index = 0; index < Rows; index++) {
         	if (table.get(index).byteInt == value) {
+        		break;
+        	}
+        }
+    	return (index != Rows);	
+    }
+    
+  //--------------- long Int
+    
+    public boolean findLongInt(long value) {
+    	int index;
+    	for (index = 0; index < Rows; index++) {
+        	if (table.get(index).longInt == value) {
         		break;
         	}
         }
@@ -83,7 +94,7 @@ public class JavaArrayList extends PerformanceBase implements IPerformance {
     	return false;
     }
 
-	public int findIntWithIndex(int value) 
+	public long findIntWithIndex(long value) 
 	{
 		return -1;
 	}
