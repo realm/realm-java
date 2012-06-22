@@ -54,7 +54,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 	}
 
 	public <Tbl extends AbstractTable<?, ?, ?>> Tbl getSubtable(Class<Tbl> tableClass) {
-		if (get() != null) {
+		if (get().getType() != ColumnType.ColumnTypeTable) {
 			throw new IllegalArgumentException("The mixed value doesn't contain a sub-table!");
 		}
 
