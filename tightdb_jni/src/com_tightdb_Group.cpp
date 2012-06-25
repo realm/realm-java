@@ -87,11 +87,10 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeIsValid(
 	return G(nativeGroupPtr)->is_valid();
 }
 
-// TODO: return long
-JNIEXPORT jint JNICALL Java_com_tightdb_Group_nativeGetTableCount(
+JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableCount(
 	JNIEnv *env, jobject jGroup, jlong nativeGroupPtr)
 {	
-    return G(nativeGroupPtr)->get_table_count(); 
+    return static_cast<jlong>( G(nativeGroupPtr)->get_table_count() ); 
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
@@ -146,8 +145,8 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
 	size_t len;
 	char* memValue = G(nativeGroupPtr)->write_to_mem(len);
     jbyteArray jByteArray;
-    if (len <= MAX_JLONG) {
-        jlong jlen = static_cast<jlong>(len);
+    if (len <= MAX_JSIZE) {
+        jsize jlen = static_cast<jsize>(len);
         jByteArray = env->NewByteArray(jlen);
 	    env->SetByteArrayRegion(jByteArray, 0, jlen, (const jbyte*)memValue);
     } else {

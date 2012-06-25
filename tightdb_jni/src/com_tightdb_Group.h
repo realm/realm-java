@@ -58,9 +58,9 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeIsValid
 /*
  * Class:     com_tightdb_Group
  * Method:    nativeGetTableCount
- * Signature: (J)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_com_tightdb_Group_nativeGetTableCount
+JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableCount
   (JNIEnv *, jobject, jlong);
 
 /*

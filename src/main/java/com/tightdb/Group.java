@@ -71,11 +71,11 @@ public class Group {
 	
 	protected native boolean nativeIsValid(long nativeGroupPtr);
 	
-	public int getTableCount(){
+	public long getTableCount(){
 		return nativeGetTableCount(nativePtr);
 	}
 
-	protected native int nativeGetTableCount(long nativeGroupPtr);
+	protected native long nativeGetTableCount(long nativeGroupPtr);
 
 	/**
 	 * Checks whether table exists in the Group.
