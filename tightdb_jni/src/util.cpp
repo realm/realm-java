@@ -96,8 +96,8 @@ void jprintf(JNIEnv *env, const char *format, ...) {
 bool IndexValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex) 
 {
     tightdb::Table *tbl = reinterpret_cast<tightdb::Table*>(nativeTablePtr);
-    bool colErr = (columnIndex >= tbl->get_column_count()) || (columnIndex < 0);
-    bool rowErr = (rowIndex >= tbl->size()) || (rowIndex < 0);
+    bool colErr = (S(columnIndex) >= tbl->get_column_count()) || (columnIndex < 0);
+    bool rowErr = (S(rowIndex) >= tbl->size()) || (rowIndex < 0);
 
     if (!colErr && !rowErr)
         return true;
