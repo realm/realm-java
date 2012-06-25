@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.Mixed;
+import com.tightdb.util;
 
 public class TightDB {
 
@@ -87,7 +88,7 @@ public class TightDB {
         while(ref.get()!=null)
             System.gc();
     }
-	
+
 	/**
 	 * Guarantee gc is done after JVM shutdown.
 	 */
@@ -105,6 +106,9 @@ public class TightDB {
 	}
 	
 	public static void loadLibrary() {
+		if (!util.versionCompatible()) {
+			throw new RuntimeException("Tightdb java jar and Tightdb dll are incompatible.");
+		}
 		if (!loadedLibrary) {
 			initTightDB();
 			try {

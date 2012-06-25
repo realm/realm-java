@@ -4,20 +4,22 @@ import java.util.Scanner;
 
 public class util {
 	
-	// Add version check
-	// TODO???
-	
 	public static long getNativeMemUsage() {
 		return nativeGetMemUsage();
 	}
 	static native long nativeGetMemUsage();
+	
+	public static boolean versionCompatible() {
+		return (nativeGetVersion() == 1);
+	}
+
+	static native int nativeGetVersion();
 	
 	// Set to level=1 to get some trace from JNI native part.
 	public static void setDebugLevel(int level) {
 		nativeSetDebugLevel(level);
 	}
 	static native void nativeSetDebugLevel(int level);
-	
 	
 	static void javaPrint(String txt) {	
 		System.out.print(txt);

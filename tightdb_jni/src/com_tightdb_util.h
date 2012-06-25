@@ -17,6 +17,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_util_nativeGetMemUsage
 
 /*
  * Class:     com_tightdb_util
+ * Method:    nativeGetVersion
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_com_tightdb_util_nativeGetVersion
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     com_tightdb_util
  * Method:    nativeSetDebugLevel
  * Signature: (I)V
  */
