@@ -106,9 +106,6 @@ public class TightDB {
 	}
 	
 	public static void loadLibrary() {
-		if (!util.versionCompatible()) {
-			throw new RuntimeException("Tightdb java jar and Tightdb dll are incompatible.");
-		}
 		if (!loadedLibrary) {
 			initTightDB();
 			try {
@@ -128,6 +125,9 @@ public class TightDB {
 			if (!loadedLibrary) {
 				throw new RuntimeException("Couldn't load the TightDB library. Please add 'lib/tightdb_jni??' as external jar.");
 			}
+		}
+		if (!util.versionCompatible()) {
+			throw new RuntimeException("Tightdb java jar and Tightdb dll are incompatible.");
 		}
 	}
 
