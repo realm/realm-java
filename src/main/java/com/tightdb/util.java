@@ -8,7 +8,7 @@ public class util {
 		return nativeGetMemUsage();
 	}
 	static native long nativeGetMemUsage();
-	
+
 	public static boolean versionCompatible() {
 		return (nativeGetVersion() == 1);
 	}
@@ -30,5 +30,4 @@ public class util {
 		Scanner sc = new Scanner(System.in);
 	       while(!sc.nextLine().equals(""));
 	}
-	
 }

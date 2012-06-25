@@ -56,7 +56,8 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetTableSpec(
 	static jmethodID jTableSpecConsId = GetTableSpecMethodID(env, "<init>", "()V");
 	if (jTableSpecConsId) {
         // Create a new TableSpec object in Java
-    	const Spec& tableSpec = TBL(nativeTablePtr)->get_spec();
+        const Table* pTable = TBL(nativeTablePtr);
+    	const Spec& tableSpec = pTable->get_spec();
         jobject jTableSpec = env->NewObject(GetClassTableSpec(env), jTableSpecConsId);	
 	    if (jTableSpec) {
             // copy the c++ spec to the new java TableSpec
@@ -208,7 +209,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTable(
 {
     if (!IndexAndTypeValid(env, nativeTablePtr, columnIndex, rowIndex, COLUMN_TYPE_TABLE))
         return NULL;
-	Table* pSubTable = const_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr), 
+	Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr), 
         S(columnIndex), S(rowIndex)));
     TR("nativeGetSubTable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
         jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubTable);
