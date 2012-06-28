@@ -537,9 +537,9 @@ public:
     bool has_index() const { return m_table->get_impl()->has_index(col_idx); }
     void set_index() const { m_table->get_impl()->set_index(col_idx); }
 
-    BasicTableView<RealTable> sorted(bool ascending=true) const
+    BasicTableView<RealTable> get_sorted_view(bool ascending=true) const
     {
-        return m_table->get_impl()->sorted(col_idx, ascending);
+        return m_table->get_impl()->get_sorted_view(col_idx, ascending);
     }
 
     void sort(bool ascending = true) const { m_table->get_impl()->sort(col_idx, ascending); }
@@ -570,7 +570,7 @@ public:
 
     std::size_t find_pos(int64_t value) const
     {
-        return Base::m_table->get_impl()->find_pos_int(col_idx, value);
+        return Base::m_table->find_pos_int(col_idx, value);
     }
 
     BasicTableView<typename Base::RealTable> find_all(int64_t value) const

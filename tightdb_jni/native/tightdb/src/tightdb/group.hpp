@@ -70,9 +70,11 @@ public:
 #ifdef _DEBUG
     void Verify(); // Must be upper case to avoid conflict with macro in ObjC
     void print() const;
+    void print_free() const;
     MemStats stats();
     void enable_mem_diagnostics(bool enable=true) {m_alloc.EnableDebug(enable);}
     void to_dot(std::ostream& out = std::cerr);
+    void zero_free_space(size_t file_size, size_t readlock_version);
 #endif //_DEBUG
 
 protected:
@@ -84,7 +86,6 @@ protected:
     void rollback();
 
     SlabAlloc& get_allocator() {return m_alloc;}
-    size_t get_free_space(size_t len, size_t& filesize, bool testOnly=false);
     Array& get_top_array() {return m_top;}
 
     // Recursively update all internal refs after commit
