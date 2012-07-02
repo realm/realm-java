@@ -257,6 +257,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableSize
 
 /*
  * Class:     com_tightdb_TableBase
+ * Method:    nativeClearSubTable
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClearSubTable
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableBase
  * Method:    nativeSetString
  * Signature: (JJJLjava/lang/String;)V
  */
@@ -317,14 +325,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetMixed
  * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeAddInt
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     com_tightdb_TableBase
- * Method:    nativeClearSubTable
- * Signature: (JJJ)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClearSubTable
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*

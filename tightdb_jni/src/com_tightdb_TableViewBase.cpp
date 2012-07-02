@@ -83,8 +83,13 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableViewBase_nativeGetMixed(
 	return CreateJMixedFromMixed(env, value);
 }
 
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetSubTableSize(
+	JNIEnv* env, jobject jTable, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
+{
+    if (!INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, COLUMN_TYPE_TABLE)) return 0;
 
-//TODO ?? add getSubtableSize ??
+    return TV(nativeViewPtr)->get_subtable_size( S(columnIndex), S(rowIndex));
+}
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetSubTable(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
