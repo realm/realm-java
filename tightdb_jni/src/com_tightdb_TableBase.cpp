@@ -199,7 +199,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetString(
 	return env->NewStringUTF(valueCharPtr);
 }
 
-JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetBinary(
+JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetByteBuffer(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
 	if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return NULL;
@@ -254,6 +254,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableSize(
     return TBL(nativeTablePtr)->get_subtable_size( S(columnIndex), S(rowIndex));
 }
 
+
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetString(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jstring value)
 {
@@ -290,7 +291,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetDate(
     TBL(nativeTablePtr)->set_date( S(columnIndex), S(rowIndex), dateTimeValue);
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetBinary(
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetByteBuffer(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
     if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
@@ -298,14 +299,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetBinary(
     tbl_nativeDoBinary(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, byteBuffer);
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertBinary__JJJLjava_nio_ByteBuffer_2(
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertByteBuffer(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
     if (!INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
 
     tbl_nativeDoBinary(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, byteBuffer);
 }
-
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetByteArray(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jbyteArray dataArray)
@@ -315,12 +315,20 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetByteArray(
     tbl_nativeDoByteArray(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertBinary__JJJ_3B(
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertByteArray(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jbyteArray dataArray)
 {
     if (!INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
 
     tbl_nativeDoByteArray(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeAddInt(
+	JNIEnv* env, jobject jTableView, jlong nativeTablePtr, jlong columnIndex, jlong value)
+{	
+	if (!COL_INDEX_VALID(env, TV(nativeTablePtr), columnIndex)) return;
+
+    TBL(nativeTablePtr)->add_int( S(columnIndex), value);
 }
 
 
@@ -446,6 +454,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllDate(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong dateTimeValue)
 {
   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+
 	TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_date( S(columnIndex), 
                                            static_cast<time_t>(dateTimeValue)) );
 	return reinterpret_cast<jlong>(pTableView);

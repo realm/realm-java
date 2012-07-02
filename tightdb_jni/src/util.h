@@ -3,6 +3,7 @@
 
 #include <string>
 #include <jni.h>
+#include <tightdb.hpp>
 #include "com_tightdb_util.h"
 
 
@@ -141,5 +142,8 @@ inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong r
     }
     return true;
 }
+
+
+bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data);
 
 #endif // UTIL_H

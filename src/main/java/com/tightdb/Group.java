@@ -53,11 +53,13 @@ public class Group {
 	}
 	
 	public void finalize(){
+		//System.err.println("FINALIZE GROUP -------------- this " + this + "   native " + nativePtr);
 		close();
 	}
 	
-	public synchronized void close() {
+	private synchronized void close() {
 		if (nativePtr != 0) {
+			//System.err.println("CLOSE GROUP -------------- this " + this + "   native " + nativePtr);
 			nativeClose(nativePtr);
 			nativePtr = 0;
 		}

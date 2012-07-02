@@ -145,18 +145,18 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed
 
 /*
  * Class:     com_tightdb_TableBase
- * Method:    nativeInsertBinary
+ * Method:    nativeInsertByteBuffer
  * Signature: (JJJLjava/nio/ByteBuffer;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertBinary__JJJLjava_nio_ByteBuffer_2
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertByteBuffer
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
  * Class:     com_tightdb_TableBase
- * Method:    nativeInsertBinary
+ * Method:    nativeInsertByteArray
  * Signature: (JJJ[B)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertBinary__JJJ_3B
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertByteArray
   (JNIEnv *, jobject, jlong, jlong, jlong, jbyteArray);
 
 /*
@@ -209,10 +209,10 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetString
 
 /*
  * Class:     com_tightdb_TableBase
- * Method:    nativeGetBinary
+ * Method:    nativeGetByteBuffer
  * Signature: (JJJ)Ljava/nio/ByteBuffer;
  */
-JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetBinary
+JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetByteBuffer
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -289,10 +289,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetDate
 
 /*
  * Class:     com_tightdb_TableBase
- * Method:    nativeSetBinary
+ * Method:    nativeSetByteBuffer
  * Signature: (JJJLjava/nio/ByteBuffer;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetBinary
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetByteBuffer
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
@@ -310,6 +310,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetByteArray
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetMixed
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
+
+/*
+ * Class:     com_tightdb_TableBase
+ * Method:    nativeAddInt
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeAddInt
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableBase

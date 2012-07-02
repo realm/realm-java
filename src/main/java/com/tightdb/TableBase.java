@@ -46,7 +46,7 @@ import com.tightdb.lib.TightDB;
 public class TableBase implements IRowsetBase {
 	protected long nativePtr;
 	// Keep a reference to the parent to ensure finalize() doesn't happen for the parent before this.
-	protected Object parent;
+	public Object parent;
 	
 	// test:
 	protected int tableNo;
@@ -70,7 +70,7 @@ public class TableBase implements IRowsetBase {
 		nativePtr = createNative();
 		if (DEBUG) {
 			tableNo = ++TableCount;
-			System.out.println("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
+			System.err.println("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
 		}
 	}
  
@@ -81,23 +81,25 @@ public class TableBase implements IRowsetBase {
 		this.nativePtr = nativePtr;
 		if (DEBUG) {
 			tableNo = ++TableCount;
-			System.out.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
+			System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
 		}
 	}
 
 	@Override
 	public void finalize() {
-		if (DEBUG) System.out.println("==== FINALIZE " + tableNo + "...");
+		if (DEBUG) System.err.println("==== FINALIZE " + tableNo + "...");
 		close();
 	}
 
 	public synchronized void close() {
-		if (DEBUG) System.out.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+		
+		if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
 		if (nativePtr == 0)
 			return;
 		if (DEBUG) TableCount--;
 		nativeClose(nativePtr);
 		nativePtr = 0;
+		parent = null;
 	}
 
 	protected native void nativeClose(long nativeTablePtr);
@@ -322,21 +324,21 @@ public class TableBase implements IRowsetBase {
 	 *            data to be inserted.
 	 */
 	public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
-		//System.out.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
-		//System.out.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
+		//System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
+		//System.err.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
 		if (data.isDirect())
-			nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
+			nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, data);
 		else
 			throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");	// FIXME: support other than allocateDirect
 	}
 
-	protected native void nativeInsertBinary(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+	protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
 	public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
-		nativeInsertBinary(nativePtr, columnIndex, rowIndex, data);
+		nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
 	}
 
-	protected native void nativeInsertBinary(long nativePtr, long columnIndex, long rowIndex, byte[] data);
+	protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
 
 	public void insertSubTable(long columnIndex, long rowIndex) {
 		nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
@@ -419,10 +421,10 @@ public class TableBase implements IRowsetBase {
 	 * @return value of the particular cell.
 	 */
 	public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex) {
-		return nativeGetBinary(nativePtr, columnIndex, rowIndex);
+		return nativeGetByteBuffer(nativePtr, columnIndex, rowIndex);
 	}
 
-	protected native ByteBuffer nativeGetBinary(long nativeTablePtr, long columnIndex, long rowIndex);
+	protected native ByteBuffer nativeGetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex);
 
 	public byte[] getBinaryByteArray(long columnIndex, long rowIndex) {
 		return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
@@ -438,7 +440,7 @@ public class TableBase implements IRowsetBase {
 		int mixedColumnType = nativeGetMixedType(nativePtr, columnIndex, rowIndex);
 		ColumnType[] columnTypes = ColumnType.values();
 		if (mixedColumnType < 0 || mixedColumnType >= columnTypes.length) {
-			//?? Throw exception
+			//TODO ?? Throw exception
 			return null;
 		}
 		return columnTypes[mixedColumnType];
@@ -538,12 +540,12 @@ public class TableBase implements IRowsetBase {
 		if (data == null)
 			throw new NullPointerException("Null array");
 		if (data.isDirect())
-			nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
+			nativeSetByteBuffer(nativePtr, columnIndex, rowIndex, data);
 		else
 			throw new RuntimeException("Currently ByteBuffer must be allocateDirect()."); // FIXME: support other than allocateDirect
 	}
 
-	protected native void nativeSetBinary(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+	protected native void nativeSetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
 	public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
 		if (data == null)
@@ -569,6 +571,19 @@ public class TableBase implements IRowsetBase {
 	}
 
 	protected native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);
+
+	/**
+	 * Add the value for to all cells in the column.
+	 * 
+	 * @param columnIndex column index of the cell
+	 * @param value
+	 */
+ 	//!!!TODO: New
+	public void addLong(long columnIndex, long value) {
+		nativeAddInt(nativePtr, columnIndex, value);
+	}
+	
+	protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
 	public void clearSubTable(long columnIndex, long rowIndex) {
 		nativeClearSubTable(nativePtr, columnIndex, rowIndex);

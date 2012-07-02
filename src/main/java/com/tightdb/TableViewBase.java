@@ -179,7 +179,20 @@ public class TableViewBase implements IRowsetBase {
 	}
 	
 	protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
-		
+	
+	//TODO: NEW!!!
+	public ColumnType getMixedType(long columnIndex, long rowIndex) {
+		int mixedColumnType = nativeGetMixedType(nativePtr, columnIndex, rowIndex);
+		ColumnType[] columnTypes = ColumnType.values();
+		if (mixedColumnType < 0 || mixedColumnType >= columnTypes.length) {
+			//TODO ?? Throw exception
+			return null;
+		}
+		return columnTypes[mixedColumnType];
+	}
+	
+	protected native int nativeGetMixedType(long nativeViewPtr, long columnIndex, long rowIndex);
+	
 	public Mixed getMixed(long columnIndex, long rowIndex){
 		return nativeGetMixed(nativePtr, columnIndex, rowIndex);
 	}
@@ -191,6 +204,21 @@ public class TableViewBase implements IRowsetBase {
 	}
 	
 	protected native long nativeGetSubTable(long nativeViewPtr, long columnIndex, long rowIndex);
+	
+	//TODO: NEW!!!
+	public long getSubTableSize(long columnIndex, long rowIndex) {
+		return nativeGetSubTableSize(nativePtr, columnIndex, rowIndex);
+	}
+
+	protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);	
+	
+	//TODO: NEW!!!
+	public void clearSubTable(long columnIndex, long rowIndex) {
+		nativeClearSubTable(nativePtr, columnIndex, rowIndex);
+	}
+
+	protected native void nativeClearSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+
 	
 	// Methods for setting values.
 
@@ -278,6 +306,19 @@ public class TableViewBase implements IRowsetBase {
 	
 	protected native void nativeSetMixed(long nativeViewPtr, long columnIndex, long rowIndex, Mixed value);
 	
+	/**
+	 * Add the value for to all cells in the column.
+	 * 
+	 * @param columnIndex column index of the cell
+	 * @param value
+	 */
+	//!!!TODO: New
+	public void addLong(long columnIndex, long value) {
+		nativeAddInt(nativePtr, columnIndex, value);
+	}
+	
+	protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
+	
 	// Methods for deleting.
 	public void clear(){
 		nativeClear(nativePtr);
@@ -287,8 +328,7 @@ public class TableViewBase implements IRowsetBase {
 
 	/**
 	 * Removes a particular row identified by the index from the tableview.
-	 * [citation needed] The corresponding row of the table also get deleted 
-	 * for which the tableview is part of.
+	 * The corresponding row of the underlying table also get deleted.
 	 * 
 	 * @param rowIndex the row index 
 	 */
@@ -304,30 +344,63 @@ public class TableViewBase implements IRowsetBase {
 		}
 	}
 	
-	// Searching functions.
+	
+	// Search for first match
+
 	public long findFirstLong(long columnIndex, long value){
-		return nativeFindFirst(nativePtr, columnIndex, value);
+		return nativeFindFirstInt(nativePtr, columnIndex, value);
 	}
 	
-	protected native long nativeFindFirst(long nativeTableViewPtr, long columnIndex, long value);
+	protected native long nativeFindFirstInt(long nativeTableViewPtr, long columnIndex, long value);
 	
+ 	//!!!TODO: New
+	public long findFirstBoolean(long columnIndex, boolean value) {
+		return nativeFindFirstBoolean(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeFindFirstBoolean(long nativePtr, long columnIndex, boolean value);
+
+ 	//!!!TODO: New
+	public long findFirstDate(long columnIndex, Date date) {
+		return nativeFindFirstDate(nativePtr, columnIndex, date.getTime());
+	}
+
+	protected native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
+
 	public long findFirstString(long columnIndex, String value){
-		return nativeFindFirst(nativePtr, columnIndex, value);
+		return nativeFindFirstString(nativePtr, columnIndex, value);
 	}
 	
-	protected native long nativeFindFirst(long nativePtr, long columnIndex, String value);
+	protected native long nativeFindFirstString(long nativePtr, long columnIndex, String value);
+	
+	
+	// Search for all matches
 	
 	public TableViewBase findAllLong(long columnIndex, long value){
-		return new TableViewBase(this,  nativeFindAll(nativePtr, columnIndex, value));
+		return new TableViewBase(this,  nativeFindAllInt(nativePtr, columnIndex, value));
 	}
 	
-	protected native long nativeFindAll(long nativePtr, long columnIndex, long value);
+	protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 	
+ 	//!!!TODO: New
+	public TableViewBase findAllBool(long columnIndex, boolean value) {
+		return new TableViewBase(this, nativeFindAllBool(nativePtr, columnIndex, value));
+	}
+
+	protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
+
+ 	//!!!TODO: New
+	public TableViewBase findAllDate(long columnIndex, Date date) {
+		return new TableViewBase(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()));
+	}
+
+	protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
+
 	public TableViewBase findAllString(long columnIndex, String value){
-		return new TableViewBase(this, nativeFindAll(nativePtr, columnIndex, value));
+		return new TableViewBase(this, nativeFindAllString(nativePtr, columnIndex, value));
 	}
 	
-	protected native long nativeFindAll(long nativePtr, long columnIndex, String value);
+	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
 	/** 
 	 * Calculate the sum of the values in a particular column of this 
@@ -380,11 +453,20 @@ public class TableViewBase implements IRowsetBase {
 		nativeSort(nativePtr, columnIndex, ascending);
 	}
 	
-	protected native void nativeSort(long nativeTableViewPtr, long columnIndex, boolean ascending);
-	
 	public void sort(long columnIndex){
 		sort(columnIndex, true);
 	}
+	
+	protected native void nativeSort(long nativeTableViewPtr, long columnIndex, boolean ascending);
+	
+
+ 	//!!!TODO: New
+	public TableViewBase getSortedView(long columnIndex, boolean ascending) {
+		return new TableViewBase(this, nativeGetSortedView(nativePtr, columnIndex, ascending));
+	}
+	protected native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
+	
+	
 	
 	protected native long createNativeTableView(TableBase table, long nativeTablePtr);
 	

@@ -4,7 +4,6 @@
 #include "util.h"
 #include "com_tightdb_util.h"
 
-using namespace tightdb;
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr) 
 {
@@ -92,3 +91,17 @@ void jprintf(JNIEnv *env, const char *format, ...) {
     va_end(argptr);
 }
 
+bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data)
+{
+	data.pointer = (const char*)(env->GetDirectBufferAddress(jByteBuffer));
+    if (!data.pointer) {
+        ThrowException(env, IllegalArgument, "ByteBuffer is invalid");
+        return false;
+    }
+    data.len = S(env->GetDirectBufferCapacity(jByteBuffer));
+    if (data.len < 0) {
+        ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
+        return false;
+    }
+    return true;
+}

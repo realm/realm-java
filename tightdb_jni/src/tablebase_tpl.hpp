@@ -14,7 +14,7 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
             env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(data.len), (const jbyte*)(data.pointer));
 	    return jresult;
     } else {
-        //???TODO: Better exception
+        //???TODO: More specific exception
         ThrowException(env, IndexOutOfBounds, "Length of ByteArray is larger than int.");
         return NULL;
     }
@@ -33,22 +33,13 @@ void tbl_nativeDoByteArray(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex
     env->ReleaseByteArrayElements(dataArray, bytePtr, 0);
 }
 
+
 template <class M, class T>
 void tbl_nativeDoBinary(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
-	const char *dataPtr = (const char*)(env->GetDirectBufferAddress(byteBuffer));
-    if (!dataPtr) {
-         TR("\nERROR: doBinary( nativePtr %x, col %x, row %x, byteBuf %x) - can't get BufferAddress!\n",
-            pTable, columnIndex, rowIndex, byteBuffer);
-        ThrowException(env, IllegalArgument, "doBinary(). ByteBuffer is invalid");
-        return;
-    }
-    size_t dataLen = S(env->GetDirectBufferCapacity(byteBuffer));
-    if (dataLen < 0) {
-        ThrowException(env, IllegalArgument, "doBinary(byteBuffer) - can't get BufferCapacity.");
-        return;
-    }
-    (pTable->*doBinary)( S(columnIndex), S(rowIndex), dataPtr, dataLen);            
+	BinaryData data;
+    if (GetBinaryData(env, byteBuffer, data))
+         (pTable->*doBinary)( S(columnIndex), S(rowIndex), data.pointer, data.len);
 }
 
 
@@ -109,13 +100,7 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
                 if (!jByteBuffer)
                     break;
 				BinaryData binaryData;
-				binaryData.pointer = (const char*)(env->GetDirectBufferAddress(jByteBuffer));
-                TR("nativeSetMixed(Binary, data=%x, len=%d)\n", binaryData.pointer, binaryData.len);
-				if (!binaryData.pointer) 
-                    break;
-                binaryData.len = S(env->GetDirectBufferCapacity(jByteBuffer));
-				TR("nativeSetMixed(Binary, data=%x, len=%d)\n", binaryData.pointer, binaryData.len);
-                if (binaryData.len >= 0)
+                if (GetBinaryData(env, jByteBuffer, binaryData))
                     (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(binaryData));
                 return;
 			}
