@@ -472,6 +472,13 @@ public class TableBase implements IRowsetBase {
 
 	protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);
 
+
+	public void clearSubTable(long columnIndex, long rowIndex) {
+		nativeClearSubTable(nativePtr, columnIndex, rowIndex);
+	}
+
+	protected native void nativeClearSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+
 	/**
 	 * Sets a value for a (string) cell. 
 	 * Note that if we call this method on the table for a particular column 
@@ -585,12 +592,7 @@ public class TableBase implements IRowsetBase {
 	
 	protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
-	public void clearSubTable(long columnIndex, long rowIndex) {
-		nativeClearSubTable(nativePtr, columnIndex, rowIndex);
-	}
-
-	protected native void nativeClearSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
-
+	
 	// Indexing
 	public void setIndex(long columnIndex) {
 		nativeSetIndex(nativePtr, columnIndex);

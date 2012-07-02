@@ -72,7 +72,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetTableSpec(
 JNIEXPORT jint JNICALL Java_com_tightdb_TableBase_nativeGetColumnType(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex)
 {
-    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
     return static_cast<int>( TBL(nativeTablePtr)->get_column_type( S(columnIndex)) );
 }
@@ -363,7 +363,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeHasIndex(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeSum(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex)
 {
-   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
     return TBL(nativeTablePtr)->sum( S(columnIndex));
 }
@@ -371,7 +371,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeSum(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMaximum(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex)
 {	
-   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
     return TBL(nativeTablePtr)->maximum( S(columnIndex));
 }
@@ -379,7 +379,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMaximum(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMinimum(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex)
 {	
-   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
     return TBL(nativeTablePtr)->minimum( S(columnIndex));
 }
@@ -387,7 +387,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMinimum(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeAverage(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex)
 {
-   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
     //return TBL(nativePtr)->average( S(columnIndex));
 	return 0;
@@ -396,7 +396,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeAverage(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstInt(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong value)
 {
-   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
 	return TBL(nativeTablePtr)->find_first_int( S(columnIndex), value);
 }
@@ -412,7 +412,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstBoolean(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstDate(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong dateTimeValue)
 {
-   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
 	return TBL(nativeTablePtr)->find_first_date( S(columnIndex), (time_t)dateTimeValue);
 }
@@ -420,11 +420,11 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstDate(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstString(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jstring value)
 {
-  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr) 
-        return -1;
+        return 0;
 
 	jlong result = TBL(nativeTablePtr)->find_first_string( S(columnIndex), valueCharPtr);
     env->ReleaseStringUTFChars(value, valueCharPtr);
@@ -434,7 +434,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstString(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllInt(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong value)
 {
-  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
 	TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_int( S(columnIndex), value) );
 	return reinterpret_cast<jlong>(pTableView);
@@ -443,7 +443,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllInt(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllBool(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jboolean value)
 {
-  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
 	TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_bool( S(columnIndex), 
                                            value != 0 ? true : false) );
@@ -453,7 +453,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllBool(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllDate(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong dateTimeValue)
 {
-  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
 	TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_date( S(columnIndex), 
                                            static_cast<time_t>(dateTimeValue)) );
@@ -463,12 +463,12 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllDate(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllString(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jstring value)
 {
-  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return -1;
+  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
     Table* pTable = TBL(nativeTablePtr);
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr) 
-        return -1;
+        return 0;
 
 	TableView* pTableView = new TableView( pTable->find_all_string( S(columnIndex), valueCharPtr) );
 	return reinterpret_cast<jlong>(pTableView);
