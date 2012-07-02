@@ -32,7 +32,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
 {	
 	const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
 	if (fileNameCharPtr == NULL)
-		return NULL;
+		return NULL;        // Exception is thrown by GetStringUTFChars()
 
 	Group* pGroup = new Group(fileNameCharPtr, readOnly != 0 ? GROUP_READONLY : GROUP_DEFAULT);
 	if (!pGroup->is_valid()) {
@@ -64,13 +64,15 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffer_2(
 	JNIEnv* env, jobject jTableBase, jobject jByteBuffer)
 {	
-    // !!! TODO: Check Buffer for NULL!!!
-	Group* pGroup = new Group(static_cast<const char*>(env->GetDirectBufferAddress(jByteBuffer)), 
-        S(env->GetDirectBufferCapacity(jByteBuffer)));
+    BinaryData data;
+    if (!GetBinaryData(env, jByteBuffer, data))
+        return 0;
+    
+	Group* pGroup = new Group(data.pointer, data.len);
 	if (!(pGroup->is_valid())) {
 		delete pGroup;
         ThrowException(env, IllegalArgument, "Data is not a valid tightdb database");
-		return NULL;
+		return 0;
 	}
 	return reinterpret_cast<jlong>(pGroup);
 }
