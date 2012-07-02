@@ -11,7 +11,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     std::string message;
     jclass jExceptionClass = NULL;
 
-    TR("\njni: ThrowingException %d, %s, %s.\n", exception, classStr.c_str(), itemStr.c_str());
+    TR_ERR("\njni: ThrowingException %d, %s, %s.\n", exception, classStr.c_str(), itemStr.c_str());
 
     switch (exception) {
         case ClassNotFound:
@@ -51,7 +51,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     if (jExceptionClass != NULL)
         env->ThrowNew(jExceptionClass, message.c_str());
     else {
-        TR("\nERROR: Couldn't throw exception.\n");
+        TR_ERR("\nERROR: Couldn't throw exception.\n");
     }
 
     env->DeleteLocalRef(jExceptionClass);
@@ -89,41 +89,6 @@ void jprintf(JNIEnv *env, const char *format, ...) {
     //vfprintf(stderr, format, argptr);
     vsnprintf_s(buf, 200, format, argptr);
     jprint(env, buf);
-    va_end(argptr);  
-    fflush(stdout);
+    va_end(argptr);
 }
 
-bool IndexValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex) 
-{
-    tightdb::Table *tbl = reinterpret_cast<tightdb::Table*>(nativeTablePtr);
-    bool colErr = (S(columnIndex) >= tbl->get_column_count()) || (columnIndex < 0);
-    bool rowErr = (S(rowIndex) >= tbl->size()) || (rowIndex < 0);
-
-    if (!colErr && !rowErr)
-        return true;
-
-    if (colErr)
-        ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
-    if (rowErr)
-        ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
-    return false;
-}
-
-bool IndexAndTypeValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, 
-    int expectColType) 
-{
-    if (!IndexValid(env, nativeTablePtr, columnIndex, rowIndex))
-        return false;
-    Table *tbl = TBL(nativeTablePtr);
-    int colType = tbl->get_column_type(columnIndex);
-    if (colType == COLUMN_TYPE_MIXED)
-        colType = tbl->get_mixed_type(columnIndex, rowIndex);
-    
-    if (colType != expectColType) {
-        TR("Expected columnType %d, but got %d (real %d)", expectColType,
-            tbl->get_column_type(columnIndex), tbl->GetRealColumnType(columnIndex));
-	    ThrowException(env, IllegalArgument, "column type != ColumnTypeTable.");
-        return false;
-    }
-    return true;
-}

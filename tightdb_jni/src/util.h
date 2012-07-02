@@ -42,19 +42,9 @@ enum ExceptionKind {
     IndexOutOfBounds
 };
 
-void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
+extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
 
-jclass GetClass(JNIEnv* env, char *classStr);
-
-
-// Check parameters
-#if CHECK_PARAMETERS
-bool IndexValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex);
-bool IndexAndTypeValid(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, int columnType);
-#else
-#define IndexValid(a,b,c,d) (TRUE)
-#define IndexAndTypeValid(a,b,c,d,e) (TRUE)
-#endif
+extern jclass GetClass(JNIEnv* env, char *classStr);
 
 
 // Debug trace
@@ -63,13 +53,93 @@ extern int trace_level;
 
 #if TRACE
 #define TR(fmt, ...) if (trace_level > 0) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
+#define TR_ERR(fmt, ...) if (trace_level >= 0) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
 #else
 #define TR(fmt, ...)
+#define TR_ERR(fmt, ...)
 #endif
 
-void jprintf(JNIEnv *env, const char *fmt, ...);
+extern void jprintf(JNIEnv *env, const char *fmt, ...);
 
-void jprint(JNIEnv *env, char *txt);
+extern void jprint(JNIEnv *env, char *txt);
 
+
+// Check parameters
+
+#if CHECK_PARAMETERS
+
+#define ROW_INDEX_VALID(env,ptr,row)                RowIndexValid(env, ptr, row)
+#define COL_INDEX_VALID(env,ptr,col)                ColIndexValid(env, ptr, col)
+#define INDEX_VALID(env,ptr,col,row)                IndexValid(env, ptr, col, row)
+#define INDEX_INSERT_VALID(env,ptr,col,row)         IndexInsertValid(env, ptr, col, row)
+#define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)  IndexAndTypeValid(env, ptr, col, row, type)
+
+#else
+
+#define ROW_INDEX_VALID(env,ptr,row) (true)
+#define COL_INDEX_VALID(env,ptr,col) (true)
+#define INDEX_VALID(env,ptr,col,row) (true)
+#define INDEX_INSERT_VALID(env,ptr,col,row) (true)
+#define INDEX_AND_TYPE_VALID(env,ptr,col,row,type) (true)
+
+#endif
+
+template <class T>
+inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex) 
+{
+    bool rowErr = (rowIndex < 0) || (S(rowIndex) >= pTable->size());
+    if (rowErr) {
+        TR_ERR("rowIndex %lld > %lld - invalid!", S(rowIndex), pTable->size()); 
+        ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
+    }
+    return !rowErr;
+}
+
+template <class T>
+inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex) 
+{
+    bool colErr = (S(columnIndex) >= pTable->get_column_count()) || (columnIndex < 0);
+    if (colErr) {
+        TR_ERR("columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()); 
+        ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
+    }
+    return !colErr;
+}
+
+template <class T>
+inline bool IndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex) 
+{
+    return ColIndexValid(env, pTable, columnIndex) && RowIndexValid(env, pTable, rowIndex);
+}
+
+template <class T>
+inline bool IndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex) 
+{
+    if (!ColIndexValid(env, pTable, columnIndex))
+        return false;
+    bool rowErr = (rowIndex < 0) || (S(rowIndex) > pTable->size()+1) ;
+    if (rowErr) {
+        TR_ERR("rowIndex %lld > %lld - invalid!", rowIndex, pTable->size()); 
+        ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
+    }
+    return !rowErr;
+}
+
+template <class T>
+inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType) 
+{
+    if (!IndexValid(env, pTable, columnIndex, rowIndex))
+        return false;
+    int colType = pTable->get_column_type(columnIndex);
+    if (colType == COLUMN_TYPE_MIXED)
+        colType = pTable->get_mixed_type(columnIndex, rowIndex);
+    
+    if (colType != expectColType) {
+        TR_ERR("Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(columnIndex));
+	    ThrowException(env, IllegalArgument, "column type != ColumnTypeTable.");
+        return false;
+    }
+    return true;
+}
 
 #endif // UTIL_H

@@ -5,6 +5,8 @@
 template <class T> 
 jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
+    if (!INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex)) return NULL;
+
 	BinaryData data = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
 	if (data.len <= MAX_JSIZE) {
         jbyteArray jresult = env->NewByteArray(static_cast<jsize>(data.len));
@@ -21,7 +23,7 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
 template <class M, class T>
 void tbl_nativeDoByteArray(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jbyteArray dataArray)
 {
-	jbyte* bytePtr = env->GetByteArrayElements(dataArray, NULL);
+    jbyte* bytePtr = env->GetByteArrayElements(dataArray, NULL);
     if (!bytePtr) {
         ThrowException(env, IllegalArgument, "doByteArray");
         return;
@@ -33,7 +35,7 @@ void tbl_nativeDoByteArray(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex
 
 template <class M, class T>
 void tbl_nativeDoBinary(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
-{	
+{
 	const char *dataPtr = (const char*)(env->GetDirectBufferAddress(byteBuffer));
     if (!dataPtr) {
          TR("\nERROR: doBinary( nativePtr %x, col %x, row %x, byteBuf %x) - can't get BufferAddress!\n",
@@ -55,8 +57,8 @@ void tbl_nativeDoBinary(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex, j
 template <class M, class T>
 void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
 {	
-	ColumnType columnType = GetMixedObjectType(env, jMixedValue);
-	switch(columnType) {
+	ColumnType valueType = GetMixedObjectType(env, jMixedValue);
+	switch(valueType) {
 	case COLUMN_TYPE_INT:
 		{
 			jlong longValue = GetMixedIntValue(env, jMixedValue);
@@ -126,10 +128,10 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
         }
     default:
 		{
-			TR("ERROR: This type of mixed is not supported yet: %d.", columnType);
+			TR_ERR("ERROR: This type of mixed is not supported yet: %d.", valueType);
 		}
 	}
-    TR("\nERROR: nativeSetMixed() failed.\n");
+    TR_ERR("\nERROR: nativeSetMixed() failed.\n");
     ThrowException(env, IllegalArgument, "nativeSetMixed()");
 }
 
