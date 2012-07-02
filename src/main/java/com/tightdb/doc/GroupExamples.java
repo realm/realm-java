@@ -27,7 +27,7 @@ public class GroupExamples {
 		
 		/* EXAMPLE: getTableCount */
 
-		int tableCount = group.getTableCount();
+		long tableCount = group.getTableCount();
 		
 		/* EXAMPLE: getTableName */
 

@@ -57,7 +57,7 @@ public class Group {
 		close();
 	}
 	
-	private synchronized void close() {
+	public synchronized void close() {
 		if (nativePtr != 0) {
 			//System.err.println("CLOSE GROUP -------------- this " + this + "   native " + nativePtr);
 			nativeClose(nativePtr);
