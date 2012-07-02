@@ -29,6 +29,7 @@ public class JNIMixedSubtableTest {
 			
 			boolean gotException = false;
 			try {
+				@SuppressWarnings("unused")
 				TableBase subtable = table.getSubTable(1, 0);
 			} catch (IllegalArgumentException e) {
 				gotException = true;

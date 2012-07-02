@@ -3,9 +3,10 @@ package com.tightdb;
 import static org.testng.AssertJUnit.*;
 import org.testng.annotations.Test;
 import com.tightdb.*;
+import com.tightdb.lib.TightDB;
 
 public class JNISubtableTest {
-
+	
 	@Test(enabled = true)
 	public void shouldSynchronizeNestedTables() {
 		Group group = new Group();
@@ -36,5 +37,6 @@ public class JNISubtableTest {
 
 		table.clear();
 	}
+	
 
 }

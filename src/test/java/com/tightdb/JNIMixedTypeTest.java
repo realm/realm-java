@@ -40,11 +40,6 @@ public class JNIMixedTypeTest {
 		checkMixedCell(table, 0, 0, value3.type, value3.value);
 		table.close();
 	}
-
-	@AfterTest
-	public void testEnded() {
-		//System.out.println("done.");
-	}
 	
 	private void checkMixedCell(TableBase table, long col, long row, ColumnType columnType, Object value) throws IllegalAccessException {
 		ColumnType mixedType = table.getMixedType(col, row);
