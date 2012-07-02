@@ -43,6 +43,17 @@ public class GroupTest {
 		assertEquals(0, employees3.size());
 		
 		employees3.clear();
+		
+		System.out.println("Closing group 1...");
+		group.close();
+		
+		System.out.println("Closing group 2...");
+		group2.close(); // FIXME: crashes here!
+		
+		System.out.println("Closing group 3...");
+		group3.close();
+		
+		System.out.println("Done");
 	}
 
 }
