@@ -91,6 +91,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
 		}
     case COLUMN_TYPE_TABLE:
         {
+            // param input: Table* t.   
             TR("   --Mixed(COLUMN_TYPE_TABLE)\n");
             jmethodID consId = GetMixedMethodID(env, "<init>", "(Lcom/tightdb/ColumnType;)V");
 

@@ -6,6 +6,7 @@ import java.util.Date;
 import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
 import com.tightdb.TableBase;
+import com.tightdb.TableSpec;
 
 public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed, Cursor, View, Query> {
 
@@ -54,11 +55,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 	}
 
 	public <Tbl extends AbstractTable<?, ?, ?>> Tbl getSubtable(Class<Tbl> tableClass) {
-		if (get().getType() != ColumnType.ColumnTypeTable) {
-			throw new IllegalArgumentException("The mixed value doesn't contain a sub-table!");
-		}
-
-		if (!hasSubtable(tableClass)) {
+		if (!isSubtable(tableClass)) {
 			throw new IllegalArgumentException("Wrong subtable type!");
 		}
 
@@ -66,7 +63,28 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 		return AbstractSubtable.createSubtable(tableClass, subtableBase);
 	}
 
-	public <Tbl extends AbstractTable<?, ?, ?>> boolean hasSubtable(Class<Tbl> tableClass) {
+	/*
+	 * Check if the subtable (this cursor points at) is the same as the tableClass provided as parameter
+	 */
+	public <Tbl extends AbstractTable<?, ?, ?>> boolean isSubtable(Class<Tbl> tableClass) {
+		if (get().getType() != ColumnType.ColumnTypeTable) {
+			throw new IllegalArgumentException("The mixed value doesn't contain a sub-table!");
+		}
+
+/*
+		TableBase subtableBase = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
+		
+		TableSpec spec = subtableBase.getTableSpec();
+		
+		// Build table schema
+		final TableSpec spec2 = new TableSpec();
+		
+		// hmmm can't call this as it isn't static.
+		Tbl.specifyStructure(spec2);
+		
+		// compare specs: spec and spec2
+		// ......
+*/		
 		return true; // FIXME: implement this, hopefully delegate to some native
 						// method to check the spec
 	}
