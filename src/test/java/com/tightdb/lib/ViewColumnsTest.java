@@ -20,7 +20,7 @@ public class ViewColumnsTest extends AbstractViewTest {
 		assertNull(record3);
 	}
 
-	@Test(enabled = false)
+	@Test
 	public void shouldFindAllRecordsByColumnValue() throws IllegalAccessException {
 		EmployeeView view1 = employees.firstName.findAll(NAME1);
 		assertEquals(1, view1.size());

@@ -14,7 +14,7 @@ public class GroupTest {
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
 
-	@Test(enabled = false)
+	@Test
 	public void shouldCreateTablesInGroup() {
 		Group group = new Group();
 
