@@ -27,7 +27,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 	
 	public View findAll() {
-		TableViewBase viewBase = query.findAll(table, 0, table.size(), Long.MAX_VALUE);
+		TableViewBase viewBase = query.findAll(table);
 		return view(viewBase);
 	}
 
@@ -46,7 +46,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	public Cursor findFirst() {
-		TableViewBase viewBase = query.findAll(table, 0, table.size(), 1);
+		TableViewBase viewBase = query.findAll(table, 0, -1, 1);
 		if (viewBase.size() > 0) {
 			return cursor(viewBase, 0);
 		} else {
@@ -56,7 +56,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 
 	public Cursor findLast() {
 		// TODO: find more efficient way to search
-		TableViewBase viewBase = query.findAll(table, 0, table.size(), Integer.MAX_VALUE);
+		TableViewBase viewBase = query.findAll(table);
 		long count = viewBase.size();
 		if (count > 0) {
 			return cursor(viewBase, count - 1);
