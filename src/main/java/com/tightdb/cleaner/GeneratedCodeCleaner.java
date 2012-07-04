@@ -1,17 +1,8 @@
 package com.tightdb.cleaner;
 
-import java.io.File;
-import java.util.Collection;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.AndFileFilter;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.jannocessor.processor.api.ProcessingContext;
-
 public class GeneratedCodeCleaner {
 
+	/*
 	public int removeObsoleteGeneratedCode(ProcessingContext context, long beforeTimestamp) {
 		File directory = new File(context.getOutputPath());
 		if (!directory.exists() && context.getProfile() != null) {
@@ -43,5 +34,5 @@ public class GeneratedCodeCleaner {
 
 		return removedFilesCount;
 	}
-
+*/
 }

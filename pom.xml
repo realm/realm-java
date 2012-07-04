@@ -9,15 +9,20 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.googlecode.jannocessor</groupId>
-			<artifactId>jannocessor</artifactId>
-			<version>0.7.4</version>
-		</dependency>
-		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>6.1.1</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.3</version>
 		</dependency>
 	</dependencies>
 
@@ -31,105 +36,44 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<includes>
+						<include>com/tightdb/*.class</include>
+						<include>com/tightdb/lib/*.class</include>
+						<include>com/tightdb/cleaner/*.class</include>
+						<include>com/tightdb/generator/*.class</include>
+						<include>org/jannocessor/config/*.class</include>
+						<include>*.vm</include>
+					</includes>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>package-jar-with-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>tightdb-devkit</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>generate-code</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.googlecode.jannocessor</groupId>
-						<artifactId>jannocessor-maven-plugin</artifactId>
-						<version>0.7.4</version>
-						<executions>
-							<execution>
-								<id>generate-code</id>
-								<phase>compile</phase>
-								<goals>
-									<goal>process</goal>
-								</goals>
-								<configuration>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-jar-plugin</artifactId>
-						<version>2.4</version>
-						<configuration>
-							<includes>
-								<include>com/tightdb/*.class</include>
-								<include>com/tightdb/lib/*.class</include>
-								<include>com/tightdb/cleaner/*.class</include>
-								<include>com/tightdb/generator/*.class</include>
-								<include>org/jannocessor/config/*.class</include>
-								<include>*.vm</include>
-							</includes>
-						</configuration>
-					</plugin>
-					
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>package-jar-with-dependencies</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<finalName>tightdb-devkit</finalName>
-									<appendAssemblyId>false</appendAssemblyId>
-									<descriptorRefs>
-										<descriptorRef>jar-with-dependencies</descriptorRef>
-									</descriptorRefs>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>					
-				</plugins>
-
-				<pluginManagement>
-					<plugins>
-						<!-- This plugin's configuration is used to store Eclipse m2e settings 
-							only. It has no influence on the Maven build itself. -->
-						<plugin>
-							<groupId>org.eclipse.m2e</groupId>
-							<artifactId>lifecycle-mapping</artifactId>
-							<version>1.0.0</version>
-							<configuration>
-								<lifecycleMappingMetadata>
-									<pluginExecutions>
-										<pluginExecution>
-											<pluginExecutionFilter>
-												<groupId>com.googlecode.jannocessor</groupId>
-												<artifactId>jannocessor-maven-plugin</artifactId>
-												<versionRange>[0.7.0,)</versionRange>
-												<goals>
-													<goal>process</goal>
-												</goals>
-											</pluginExecutionFilter>
-											<action>
-												<ignore />
-											</action>
-										</pluginExecution>
-									</pluginExecutions>
-								</lifecycleMappingMetadata>
-							</configuration>
-						</plugin>
-					</plugins>
-				</pluginManagement>
-
-			</build>
-		</profile>
-	</profiles>
 
 </project>

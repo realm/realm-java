@@ -19,7 +19,7 @@ public class PhoneTable extends AbstractSubtable<Phone, PhoneView, PhoneQuery> {
 	public PhoneTable(TableBase subtableBase) {
 		super(TYPES, subtableBase);
 	}
-	
+
 	@Override
 	protected void specifyStructure(TableSpec spec) {
         addStringColumn(spec, "type");

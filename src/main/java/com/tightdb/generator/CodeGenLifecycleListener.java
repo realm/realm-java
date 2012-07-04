@@ -1,14 +1,9 @@
 package com.tightdb.generator;
 
-import java.util.Calendar;
 
-import org.jannocessor.processor.api.LifecycleEvent;
-import org.jannocessor.processor.api.LifecycleListener;
+public class CodeGenLifecycleListener {
 
-import com.tightdb.cleaner.GeneratedCodeCleaner;
-
-public class CodeGenLifecycleListener implements LifecycleListener {
-
+	/*
 	private static final CodeGenLifecycleListener INSTANCE = new CodeGenLifecycleListener();
 
 	private long start;
@@ -31,4 +26,5 @@ public class CodeGenLifecycleListener implements LifecycleListener {
 		return INSTANCE;
 	}
 
+*/
 }
