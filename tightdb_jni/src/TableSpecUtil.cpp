@@ -29,7 +29,7 @@ jlong Java_com_tightdb_TableSpec_getColumnCount(JNIEnv* env, jobject jTableSpec)
 	static jmethodID jGetColumnCountMethodId = GetTableSpecMethodID(env, "getColumnCount", "()J");
 	if (jGetColumnCountMethodId)
 	    return env->CallLongMethod(jTableSpec, jGetColumnCountMethodId);
-    return -1;
+    return 0;
 }
 
 jobject Java_com_tightdb_TableSpec_getColumnType(JNIEnv* env, jobject jTableSpec, jlong columnIndex)
@@ -61,7 +61,7 @@ jlong Java_com_tightdb_TableSpec_getColumnIndex(JNIEnv* env, jobject jTableSpec,
 	static jmethodID jGetColumnIndexMethodId = GetTableSpecMethodID(env, "getColumnIndex", "(Ljava/lang/String;)J");
 	if (jGetColumnIndexMethodId)
 	    return env->CallLongMethod(jTableSpec, jGetColumnIndexMethodId, columnName);
-    return -1;
+    return 0;
 }
 
 void updateSpecFromJSpec(JNIEnv* env, Spec& spec, jobject jTableSpec)

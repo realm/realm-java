@@ -186,7 +186,7 @@ public class TableQuery {
 	protected native long nativeFindNext(long nativeQueryPtr, TableBase table, long tableNativePtr, long lastMatch);
 	
 	public long findNext(TableBase table){
-		return findNext(table, -1L);
+		return findNext(table, util.INFINITE);
 	}
 	
 	public TableViewBase findAll(TableBase tableBase, long start, long end, long limit){
@@ -200,7 +200,7 @@ public class TableQuery {
 	protected native long nativeFindAll(long nativeQueryPtr, TableBase table, long tableNativePtr, long start, long end, long limit);
 	
 	public TableViewBase findAll(TableBase tableBase){
-		return findAll(tableBase, 0L, -1L, -1L);
+		return findAll(tableBase, 0L, util.INFINITE, util.INFINITE);
 	}
 	
 	// Aggregation methods
@@ -212,7 +212,7 @@ public class TableQuery {
 	protected native long nativeSum(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 	
 	public long sum(TableBase tableBase, long columnIndex){
-		return sum(tableBase, columnIndex, 0L, -1L, -1L);
+		return sum(tableBase, columnIndex, 0L, util.INFINITE, util.INFINITE);
 	}
 	
 	public long maximum(TableBase table, long columnIndex, long start, long end, long limit){
@@ -222,7 +222,7 @@ public class TableQuery {
 	protected native long nativeMaximum(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 	
 	public long maximum(TableBase tableBase, long columnIndex){
-		return maximum(tableBase, columnIndex, 0L, -1L, -1L);
+		return maximum(tableBase, columnIndex, 0L, util.INFINITE, util.INFINITE);
 	}
 	
 	public long minimum(TableBase table, long columnIndex, long start, long end, long limit){
@@ -232,7 +232,7 @@ public class TableQuery {
 	protected native long nativeMinimum(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 	
 	public long minimum(TableBase tableBase, long columnIndex){
-		return minimum(tableBase, columnIndex, 0L, -1L, -1L);
+		return minimum(tableBase, columnIndex, 0L, util.INFINITE, util.INFINITE);
 	}
 	
 	public double average(TableBase table, long columnIndex, long start, long end, long limit){
@@ -242,7 +242,7 @@ public class TableQuery {
 	protected native double nativeAverage(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 
 	public double average(TableBase tableBase, long columnIndex){
-		return average(tableBase, columnIndex, 0L, -1L, -1L);
+		return average(tableBase, columnIndex, 0L, util.INFINITE, util.INFINITE);
 	}
 	
 	public long count(TableBase table, long start, long end, long limit){
@@ -252,7 +252,7 @@ public class TableQuery {
 	protected native long nativeCount(long nativeQueryPtr, TableBase table, long tableNativePtr, long start, long end, long limit);
 
 	public long count(TableBase tableBase){
-		return count(tableBase, 0L, -1L, -1L);
+		return count(tableBase, 0L, util.INFINITE, util.INFINITE);
 	}
 	
 	// Deletion.
@@ -261,7 +261,7 @@ public class TableQuery {
 	}
 	
 	public void remove(TableBase tableBase){
-		remove(tableBase, 0L, -1L, -1L);
+		remove(tableBase, 0L, util.INFINITE, util.INFINITE);
 	}
 	
 	protected native void nativeRemove(long nativeQueryPtr, TableBase tableBase, long tableBaseNativePtr, long start, long end, long limit);
@@ -279,7 +279,7 @@ public class TableQuery {
 	protected native long nativeFindAllMulti(long nativeQueryPtr, TableBase tableBase, long tableNativePtr, long start, long end);
 	
 	public TableViewBase findAllMulti(TableBase tableBase){
-		return findAllMulti(tableBase, 0L, -1L);
+		return findAllMulti(tableBase, 0L, util.INFINITE);
 	}
 	
 	public int setThreads(int threadCount){

@@ -203,7 +203,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstBool(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstDate(
 	JNIEnv* env, jobject jTable, jlong nativeViewPtr, jlong columnIndex, jlong dateTimeValue)
 {
-   	if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return -1;
+   	if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
 
 	return TV(nativeViewPtr)->find_first_date( S(columnIndex), (time_t)dateTimeValue);
 }
@@ -215,7 +215,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstString(
 
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr)
-        return -1;
+        return 0;
 
 	size_t searchIndex = TV(nativeViewPtr)->find_first_string( S(columnIndex), valueCharPtr);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
@@ -259,7 +259,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAllString(
 
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr)
-        return -1;
+        return 0;
     TR("nativeFindAllString(col %d, string '%s') ", columnIndex, valueCharPtr);
 
 	TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_string( S(columnIndex), valueCharPtr) );
