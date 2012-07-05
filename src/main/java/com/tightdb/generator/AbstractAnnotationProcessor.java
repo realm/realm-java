@@ -20,6 +20,8 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileManager.Location;
 import javax.tools.StandardLocation;
 
+import org.apache.commons.lang.StringUtils;
+
 public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 
 	private static final String[] SUPPORTED_ANNOTATIONS = { "com.tightdb.lib.Table" };
@@ -39,7 +41,7 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 				processAnnotations(annotations, env);
 				info("Successfully finished processing.");
 			} catch (Exception e) {
-				throw new RuntimeException("Unexpected error occured", e);
+				error("Unexpected error occured:\n" + StringUtils.join(e.getStackTrace(), "\n\n"));
 			}
 		} else {
 			info("Last round, processing is done.");
@@ -80,7 +82,7 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 		return new HashSet<String>(Arrays.asList(SUPPORTED_ANNOTATIONS));
 	}
 
-	protected abstract void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env);
+	protected abstract void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env) throws Exception;
 
 	protected void writeToFile(String pkg, String filename, String content) {
 		final Location location = StandardLocation.SOURCE_OUTPUT;

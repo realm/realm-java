@@ -8,12 +8,13 @@
 	<version>1.1.0</version>
 
 	<dependencies>
+	<!-- 
 		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>6.1.1</version>
-			<scope>test</scope>
+			<groupId>com.googlecode.jannocessor</groupId>
+			<artifactId>jannocessor</artifactId>
+			<version>0.7.4</version>
 		</dependency>
+	 -->
 		<dependency>
 			<groupId>org.apache.velocity</groupId>
 			<artifactId>velocity</artifactId>
@@ -23,6 +24,12 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.1.1</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
