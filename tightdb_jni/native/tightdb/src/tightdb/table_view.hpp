@@ -68,11 +68,7 @@ public:
     int64_t maximum(size_t column_ndx) const;
     int64_t minimum(size_t column_ndx) const;
 
-    
-    /**
-     * Sort the view according to the specified column and the
-     * specified direction.
-     */
+    // Sort the view according to the specified column and the specified direction.
     void sort(size_t column, bool ascending = true);
 
     // Get row index in the source table this view is "looking" at.
@@ -195,9 +191,6 @@ public:
     // FIXME: Need: TableView find_all_binary(size_t column_ndx, const char* value, size_t len);
     // FIXME: Need: ConstTableView find_all_binary(size_t column_ndx, const char* value, size_t len) const;
 
-    TableView      get_sorted_view(size_t column_ndx, bool ascending=true);
-    ConstTableView get_sorted_view(size_t column_ndx, bool ascending=true) const;
-
     Table& get_parent() { return *m_table; }
     const Table& get_parent() const { return *m_table; }
 
@@ -247,9 +240,7 @@ public:
     ConstTableView find_all_date(size_t column_ndx, time_t value) const;
     ConstTableView find_all_string(size_t column_ndx, const char *value) const;
 
-    ConstTableView get_sorted_view(size_t column_ndx, bool ascending=true) const;
-
-    const Table& get_parent() const { return *m_table; }
+   const Table& get_parent() const { return *m_table; }
 
 private:
     friend class TableView;
@@ -274,6 +265,10 @@ private:
 #define TIGHTDB_ASSERT_COLUMN_AND_TYPE(column_ndx, column_type)             \
     TIGHTDB_ASSERT_COLUMN(column_ndx)                                       \
     assert(m_table->get_column_type(column_ndx) == column_type);
+
+#define TIGHTDB_ASSERT_INDEX(column_ndx, row_ndx)                           \
+    TIGHTDB_ASSERT_COLUMN(column_ndx)                                       \
+    assert(row_ndx < m_refs.Size());
 
 #define TIGHTDB_ASSERT_INDEX_AND_TYPE(column_ndx, row_ndx, column_type)     \
     TIGHTDB_ASSERT_COLUMN_AND_TYPE(column_ndx, column_type)                 \
@@ -328,7 +323,7 @@ inline ColumnType TableViewBase::get_column_type(size_t column_ndx) const
 
 inline int64_t TableViewBase::get_int(size_t column_ndx, size_t row_ndx) const
 {
-    TIGHTDB_ASSERT_INDEX_AND_TYPE(column_ndx, row_ndx, COLUMN_TYPE_INT);
+    TIGHTDB_ASSERT_INDEX(column_ndx, row_ndx);
 
     const size_t real_ndx = size_t(m_refs.Get(row_ndx));
     return m_table->get_int(column_ndx, real_ndx);
@@ -527,22 +522,6 @@ inline ConstTableView ConstTableView::find_all_date(size_t column_ndx, time_t va
 {
     TIGHTDB_ASSERT_COLUMN_AND_TYPE(column_ndx, COLUMN_TYPE_DATE);
     return find_all_integer(column_ndx, (int64_t)value);
-}
-
-
-// Sorting
-
-
-inline TableView TableView::get_sorted_view(size_t column_ndx, bool ascending)
-{
-    TIGHTDB_ASSERT_COLUMN(column_ndx);
-    return m_table->get_sorted_view(column_ndx, ascending);
-}
-
-inline ConstTableView ConstTableView::get_sorted_view(size_t column_ndx, bool ascending) const
-{
-    TIGHTDB_ASSERT_COLUMN(column_ndx);
-    return m_table->get_sorted_view(column_ndx, ascending);
 }
 
 

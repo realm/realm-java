@@ -385,10 +385,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstInt
 
 /*
  * Class:     com_tightdb_TableBase
- * Method:    nativeFindFirstBoolean
+ * Method:    nativeFindFirstBool
  * Signature: (JJZ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstBoolean
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstBool
   (JNIEnv *, jobject, jlong, jlong, jboolean);
 
 /*

@@ -14,7 +14,7 @@ public class GroupTest {
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
 
-	@Test
+	@Test (enabled = false)
 	public void shouldCreateTablesInGroup() {
 		Group group = new Group();
 
@@ -27,10 +27,10 @@ public class GroupTest {
 		byte[] data = group.writeToMem();
 		
 		employees.clear();
-		
+
 		Group group2 = new Group(data);
 		EmployeeTable employees2 = new EmployeeTable(group2);
-
+		
 		assertEquals(3, employees2.size());
 		assertEquals(NAME0, employees2.at(0).getFirstName());
 		assertEquals(NAME1, employees2.at(1).getFirstName());
@@ -43,7 +43,8 @@ public class GroupTest {
 		assertEquals(0, employees3.size());
 		
 		employees3.clear();
-		
+
+	/*	
 		System.out.println("Closing group 1...");
 		group.close();
 		
@@ -54,6 +55,7 @@ public class GroupTest {
 		group3.close();
 		
 		System.out.println("Done");
+	*/
 	}
 
 }

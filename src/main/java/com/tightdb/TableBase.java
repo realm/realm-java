@@ -639,10 +639,10 @@ public class TableBase implements IRowsetBase {
 	protected native long nativeFindFirstInt(long nativeTablePtr, long columnIndex, long value);
 
 	public long findFirstBoolean(long columnIndex, boolean value) {
-		return nativeFindFirstBoolean(nativePtr, columnIndex, value);
+		return nativeFindFirstBool(nativePtr, columnIndex, value);
 	}
 
-	protected native long nativeFindFirstBoolean(long nativePtr, long columnIndex, boolean value);
+	protected native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
 
 	public long findFirstDate(long columnIndex, Date date) {
 		return nativeFindFirstDate(nativePtr, columnIndex, date.getTime());
@@ -662,7 +662,7 @@ public class TableBase implements IRowsetBase {
 
 	protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
-	public TableViewBase findAllBool(long columnIndex, boolean value) {
+	public TableViewBase findAllBoolean(long columnIndex, boolean value) {
 		return new TableViewBase(this, nativeFindAllBool(nativePtr, columnIndex, value));
 	}
 

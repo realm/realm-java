@@ -20,9 +20,9 @@ public abstract class AbstractViewTest extends AbstractTest {
 	public void init() {
 		EmployeeTable employeesTable = new EmployeeTable();
 
-		addEmployee(employeesTable, EMPLOYEE0);
-		addEmployee(employeesTable, EMPLOYEE2);
-		insertEmployee(employeesTable, 1, EMPLOYEE1);
+		addEmployee(employeesTable, EMPLOYEE[0]);
+		addEmployee(employeesTable, EMPLOYEE[2]);
+		insertEmployee(employeesTable, 1, EMPLOYEE[1]);
 
 		employees = employeesTable.where().findAll();
 	}

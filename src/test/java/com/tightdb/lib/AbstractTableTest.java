@@ -15,9 +15,9 @@ public abstract class AbstractTableTest extends AbstractTest {
 	public void init() {
 		employees = new EmployeeTable();
 
-		addEmployee(employees, EMPLOYEE0);
-		addEmployee(employees, EMPLOYEE2);
-		insertEmployee(employees, 1, EMPLOYEE1);
+		addEmployee(employees, EMPLOYEE[0]);
+		addEmployee(employees, EMPLOYEE[2]);
+		insertEmployee(employees, 1, EMPLOYEE[1]);
 	}
 
 	@AfterMethod

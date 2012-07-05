@@ -256,7 +256,10 @@ private:
 };
 
 
-
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4355)
+#endif
 
 template<class Spec> class BasicTable<Spec>::Query:
     public Spec::template ColNames<QueryCol, Query*> {
@@ -315,7 +318,9 @@ private:
     tightdb::Query m_impl;
 };
 
-
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 
 namespace _impl

@@ -30,4 +30,12 @@ public class BooleanRowsetColumn<Cursor, View, Query> extends BooleanQueryColumn
 		}
 	}
 
+	public Cursor findFirst(boolean value) {
+		return cursor(rowset.findFirstBoolean(columnIndex, value));
+	}
+	
+	public View findAll(boolean value) {
+		return view(rowset.findAllBoolean(columnIndex, value));
+	}
+
 }
