@@ -1,14 +1,13 @@
 package com.tightdb.generator;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
@@ -23,8 +22,6 @@ import javax.lang.model.type.TypeMirror;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
-import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.context.Context;
 
 import com.tightdb.doc.TemplateRenderer;
@@ -50,11 +47,9 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 	@Override
 	public void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env) throws Exception {
-		//renderer.init(null, false);
-		
-        Properties props = new Properties();
-        VelocityEngine ve = new VelocityEngine(props);
-        ve.init();		
+		CodeRenderer renderer = new CodeRenderer();
+		String content = renderer.test();
+		writeToFile("a.b", "Test.java", content + new Date());
 		
 		for (TypeElement annotation : annotations) {
 			String annotationName = annotation.getQualifiedName().toString();
