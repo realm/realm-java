@@ -3,7 +3,6 @@ package com.tightdb.generator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,10 +20,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.context.Context;
 
-import com.tightdb.doc.TemplateRenderer;
 import com.tightdb.lib.Table;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
@@ -35,7 +31,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	private final static Set<String> NUM_TYPES;
 	private final static Set<String> OTHER_TYPES;
 
-	private TemplateRenderer renderer = new TemplateRenderer();
+	private final CodeRenderer renderer = new CodeRenderer();
 
 	static {
 		NUM_TYPES = new HashSet<String>(Arrays.asList("long", "int", "byte", "short", "Long", "Integer", "Byte", "Short"));
@@ -47,15 +43,11 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 	@Override
 	public void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env) throws Exception {
-		CodeRenderer renderer = new CodeRenderer();
-		String content = renderer.test();
-		writeToFile("a.b", "Test.java", content + new Date());
-		
 		for (TypeElement annotation : annotations) {
 			String annotationName = annotation.getQualifiedName().toString();
 			if (annotationName.equals(Table.class.getCanonicalName())) {
 				Set<? extends Element> elements = env.getElementsAnnotatedWith(annotation);
-				//processAnnotatedElements(elements);
+				processAnnotatedElements(elements);
 			} else {
 				warn("Unexpected annotation: " + annotationName);
 			}
@@ -73,10 +65,10 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 				List<VariableElement> fields = getFields(element);
 
-				info("Generating code for entity with " + fields.size() + " columns...");
-
 				// get the capitalized model name
 				String entity = StringUtils.capitalize(model.getSimpleName().toString());
+
+				info("Generating code for entity '" + entity + "' with " + fields.size() + " columns...");
 
 				/*********** Prepare the attributes for the templates ****************/
 
@@ -113,12 +105,9 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				/*********** Construct the table class ****************/
 
 				Model table = new Model();
-				List<Model> tableMethods = new ArrayList<Model>();
-
 				table.put("name", entity + "Table");
 				table.put("macro", "table");
 				table.put("attributes", attributes);
-				table.put("methods", tableMethods);
 
 				/* Construct the "add" method in the table class */
 
@@ -134,16 +123,17 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				}
 
 				Model methodAdd = new Model();
-				methodAdd.put("macro", "table_add");
 				methodAdd.put("params", addParams);
-				tableMethods.add(methodAdd);
+				table.put("add", renderer.render("table_add.ftl", methodAdd));
 
 				/* Construct the "insert" method in the table class */
 
 				Model methodInsert = new Model();
-				methodInsert.put("macro", "table_insert");
 				methodInsert.put("params", addParams);
-				tableMethods.add(methodInsert);
+				table.put("insert", renderer.render("table_insert.ftl", methodInsert));
+
+				String tableContent = renderer.render("table.ftl", table);
+				writeToFile("com.tightdb.newgenerated", entity + "Table.java", tableContent);
 
 				/*********** Construct the cursor class ****************/
 
@@ -152,6 +142,9 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				cursor.put("macro", "cursor");
 				cursor.put("attributes", attributes);
 
+				String cursorContent = renderer.render("cursor.ftl", cursor);
+				writeToFile("com.tightdb.newgenerated", entity + ".java", cursorContent);
+
 				/*********** Construct the view class ****************/
 
 				Model view = new Model();
@@ -159,19 +152,20 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				view.put("macro", "view");
 				view.put("attributes", attributes);
 
+				String viewContent = renderer.render("view.ftl", view);
+				writeToFile("com.tightdb.newgenerated", entity + "View.java", viewContent);
+
 				/*********** Construct the query class ****************/
 
 				Model query = new Model();
 				query.put("name", entity + "Query");
 				query.put("macro", "query");
 				query.put("attributes", attributes);
+
+				String queryContent = renderer.render("query.ftl", query);
+				writeToFile("com.tightdb.newgenerated", entity + "Query.java", queryContent);
 			}
 		}
-
-		Context context = new VelocityContext();
-		context.put("x", "foo");
-		String content = renderer.render("test.vm", context);
-		writeToFile("com.tightdb.newgenerated", "Test.java", content);
 	}
 
 	private List<VariableElement> getFields(Element element) {
