@@ -41,7 +41,17 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 				processAnnotations(annotations, env);
 				info("Successfully finished processing.");
 			} catch (Exception e) {
-				error("Unexpected error occured:\n" + StringUtils.join(e.getStackTrace(), "\n\n"));
+				String info = e.getMessage() != null ? e.getMessage() : "";
+				String msg = "ERROR: " + info + "\n\n" + StringUtils.join(e.getStackTrace(), "\n");
+
+				Throwable cause = e.getCause();
+				while (cause != null) {
+					info = cause.getMessage() != null ? cause.getMessage() : "";
+					msg += "\n\nCause: " + info + "\n" + StringUtils.join(cause.getStackTrace(), "\n");
+					cause = cause.getCause();
+				}
+
+				error(msg);
 			}
 		} else {
 			info("Last round, processing is done.");
