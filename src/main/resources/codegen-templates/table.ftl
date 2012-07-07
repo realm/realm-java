@@ -1,4 +1,6 @@
-<#call java_header>()
+${java_header}
+package ${packageName};
+
 import com.tightdb.*;
 import com.tightdb.lib.*;
 
@@ -10,8 +12,8 @@ import com.tightdb.lib.*;
 </#if>
 	public static final EntityTypes<${entity}Table, ${entity}View, ${entity}, ${entity}Query> TYPES = new EntityTypes<${entity}Table, ${entity}View, ${entity}, ${entity}Query>(${entity}Table.class, ${entity}View.class, ${entity}.class, ${entity}Query.class); 
 
-<#foreach f in columns><#if f.code.attributes.isSubtable>	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}Table> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}Table>(TYPES, table, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
-<#else>	public final ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query> ${f.name} = new ${f.code.attributes.columnType}RowsetColumn<${entity}, ${entity}View, ${entity}Query>(TYPES, table, ${f.code.attributes.index}, "${f.name}");
+<#foreach f in columns><#if f.isSubtable>	public final ${f.type}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.subtype}Table> ${f.name} = new ${f.type}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.subtype}Table>(TYPES, table, ${f.index}, "${f.name}", ${f.subtype}Table.class);
+<#else>	public final ${f.type}RowsetColumn<${entity}, ${entity}View, ${entity}Query> ${f.name} = new ${f.type}RowsetColumn<${entity}, ${entity}View, ${entity}Query>(TYPES, table, ${f.index}, "${f.name}");
 </#if></#foreach>
 <#if isNested>	public ${entity}Table(TableBase subtableBase) {
 		super(TYPES, subtableBase);
@@ -26,10 +28,9 @@ import com.tightdb.lib.*;
 </#if>
 	@Override
 	protected void specifyStructure(TableSpec spec) {
-<#foreach f in columns><#if f.code.attributes.isSubtable>        add${f.code.attributes.columnType}Column(spec, "${f.name}", new ${f.code.attributes.subtype}Table(null));
-<#else>        add${f.code.attributes.columnType}Column(spec, "${f.name}");
+<#foreach f in columns><#if f.isSubtable>        add${f.type}Column(spec, "${f.name}", new ${f.subtype}Table(null));
+<#else>        add${f.type}Column(spec, "${f.name}");
 </#if></#foreach>    }
 
-<#call class_members>()
 
 }

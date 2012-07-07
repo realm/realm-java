@@ -1,4 +1,6 @@
-<#call java_header>()
+${java_header}
+package ${packageName};
+
 import com.tightdb.*;
 import com.tightdb.lib.*;
 
@@ -7,29 +9,29 @@ import com.tightdb.lib.*;
  */
 public class ${entity} extends AbstractCursor<${entity}> {
 
-<#foreach f in columns><#if f.code.attributes.isSubtable>    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}, ${f.code.attributes.subtype}Table> ${f.name};
-<#else>    public final ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}View, ${entity}Query> ${f.name};
+<#foreach f in columns><#if f.isSubtable>    public final ${f.type}CursorColumn<${entity}, ${entity}View, ${entity}Query, ${f.subtype}, ${f.subtype}Table> ${f.name};
+<#else>    public final ${f.type}CursorColumn<${entity}, ${entity}View, ${entity}Query> ${f.name};
 </#if></#foreach>
 	public ${entity}(IRowsetBase rowset, long position) {
 		super(${entity}Table.TYPES, rowset, position);
 
-<#foreach f in columns><#if f.code.attributes.isSubtable>        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}View, ${entity}Query, ${f.code.attributes.subtype}, ${f.code.attributes.subtype}Table>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}", ${f.code.attributes.subtype}Table.class);
-<#else>        ${f.name} = new ${f.code.attributes.columnType}CursorColumn<${entity}, ${entity}View, ${entity}Query>(${entity}Table.TYPES, this, ${f.code.attributes.index}, "${f.name}");
+<#foreach f in columns><#if f.isSubtable>        ${f.name} = new ${f.type}CursorColumn<${entity}, ${entity}View, ${entity}Query, ${f.subtype}, ${f.subtype}Table>(${entity}Table.TYPES, this, ${f.index}, "${f.name}", ${f.subtype}Table.class);
+<#else>        ${f.name} = new ${f.type}CursorColumn<${entity}, ${entity}View, ${entity}Query>(${entity}Table.TYPES, this, ${f.index}, "${f.name}");
 </#if></#foreach>	}
 
-<#foreach f in columns><#if f.code.attributes.isSubtable>	public ${f.code.attributes.subtype}Table get${f.name.capitalized}() {
-<#else>	public ${f.type.canonicalName} get${f.name.capitalized}() {
+<#foreach f in columns><#if f.isSubtable>	public ${f.subtype}Table get${f.name?cap_first}() {
+<#else>	public ${f.fieldType} get${f.name?cap_first}() {
 </#if>		return this.${f.name}.get();
 	}
 
-<#if f.code.attributes.isSubtable>	public void set${f.name.capitalized}(${f.code.attributes.subtype}Table ${f.name}) {
-<#else>	public void set${f.name.capitalized}(${f.type.canonicalName} ${f.name}) {
+<#if f.isSubtable>	public void set${f.name?cap_first}(${f.subtype}Table ${f.name}) {
+<#else>	public void set${f.name?cap_first}(${f.fieldType} ${f.name}) {
 </#if>		this.${f.name}.set(${f.name});
 	}
 
 </#foreach>	@Override
 	public AbstractColumn<?, ?, ?, ?>[] columns() {
-		return getColumnsArray(<#call list>(${columns}, '${it.name}', ', '));
+		return getColumnsArray(<#foreach f in columns>${f.name}<#if f_has_next>, </#if></#foreach>);
 	}
 
 }
