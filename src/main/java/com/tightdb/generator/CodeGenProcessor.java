@@ -1,6 +1,8 @@
 package com.tightdb.generator;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,6 +20,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.tools.StandardLocation;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -39,22 +42,30 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 	private Map<String, TypeElement> tables = new HashMap<String, TypeElement>();
 	private Map<String, TypeElement> subtables = new HashMap<String, TypeElement>();
+	private FieldSorter fieldSorter;
 
 	@Override
 	public void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env) throws Exception {
+		fieldSorter = new FieldSorter(logger);
+
 		for (TypeElement annotation : annotations) {
 			String annotationName = annotation.getQualifiedName().toString();
 			if (annotationName.equals(Table.class.getCanonicalName())) {
 				Set<? extends Element> elements = env.getElementsAnnotatedWith(annotation);
 				processAnnotatedElements(elements);
 			} else {
-				warn("Unexpected annotation: " + annotationName);
+				logger.warn("Unexpected annotation: " + annotationName);
 			}
 		}
 	}
 
 	private void processAnnotatedElements(Set<? extends Element> elements) throws IOException {
-		info("Processing " + elements.size() + " elements...");
+		logger.info("Processing " + elements.size() + " elements...");
+
+		URI uri = filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "foo").toUri();
+		File file = new File(uri);
+		File sourcesPath = file.getParentFile();
+
 		prepareTables(elements);
 
 		for (Element element : elements) {
@@ -64,10 +75,13 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 				List<VariableElement> fields = getFields(element);
 
+				// sort the fields, due to unresolved bug in Eclipse APT
+				fieldSorter.sortFields(fields, model, sourcesPath);
+
 				// get the capitalized model name
 				String entity = StringUtils.capitalize(model.getSimpleName().toString());
 
-				info("Generating code for entity '" + entity + "' with " + fields.size() + " columns...");
+				logger.info("Generating code for entity '" + entity + "' with " + fields.size() + " columns...");
 
 				/*********** Prepare the attributes for the templates ****************/
 
@@ -76,8 +90,10 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				int index = 0;
 				final List<Model> columns = new ArrayList<Model>();
 				for (VariableElement field : fields) {
+					String originalType = fieldType(field);
 					String columnType = getColumnType(field);
 					String fieldType = getAdjustedFieldType(field);
+					String paramType = getParamType(field);
 					String fieldName = field.getSimpleName().toString();
 
 					boolean isSubtable = isSubtable(fieldType);
@@ -86,7 +102,9 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 					Model column = new Model();
 					column.put("name", fieldName);
 					column.put("type", columnType);
+					column.put("originalType", originalType);
 					column.put("fieldType", fieldType);
+					column.put("paramType", paramType);
 					column.put("index", index++);
 					column.put("isSubtable", isSubtable);
 					column.put("subtype", subtype);
@@ -96,7 +114,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 				/* Set the attributes */
 
-				String packageName = "com.tightdb.newgenerated";
+				String packageName = "com.tightdb.generated";
 				boolean isNested = isSubtable(modelType);
 
 				Map<String, Object> commonAttr = new HashMap<String, Object>();
@@ -116,12 +134,14 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 				Model methodAdd = new Model();
 				methodAdd.put("columns", columns);
+				methodAdd.put("entity", entity);
 				table.put("add", renderer.render("table_add.ftl", methodAdd));
 
 				/* Generate the "insert" method in the table class */
 
 				Model methodInsert = new Model();
 				methodInsert.put("columns", columns);
+				methodInsert.put("entity", entity);
 				table.put("insert", renderer.render("table_insert.ftl", methodInsert));
 
 				/* Generate the table class */
@@ -162,14 +182,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	private List<VariableElement> getFields(Element element) {
 		List<VariableElement> fields = new ArrayList<VariableElement>();
 
-		List<? extends Element> dd = elementUtils.getAllMembers((TypeElement) element);
-		for (Element e : dd) {
-			info("el: " + e.getSimpleName());
-		}
-		
 		for (Element enclosedElement : element.getEnclosedElements()) {
 			if (enclosedElement.getKind().equals(ElementKind.FIELD)) {
-				info("field: " + enclosedElement.getSimpleName());
 				if (enclosedElement instanceof VariableElement) {
 					VariableElement field = (VariableElement) enclosedElement;
 					fields.add(field);
@@ -186,10 +200,10 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				TypeElement model = (TypeElement) element;
 				String name = model.getQualifiedName().toString();
 				if (isReferencedBy(model, elements)) {
-					info("- detected subtable: " + name);
+					logger.info("Detected subtable: " + name);
 					subtables.put(name, model);
 				} else {
-					info("- detected top-level table: " + name);
+					logger.info("Detected top-level table: " + name);
 					tables.put(name, model);
 				}
 			}
@@ -268,8 +282,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 		if (NUM_TYPES.contains(type)) {
 			type = "long";
-//		} else if (type.equals("byte[]")) {
-//			type = "java.nio.ByteBuffer";
+		} else if (type.equals("byte[]")) {
+			type = "java.nio.ByteBuffer";
 		} else if (type.equals("java.lang.Object")) {
 			type = "com.tightdb.Mixed";
 		}
@@ -277,4 +291,16 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		return type;
 	}
 
+	private String getParamType(VariableElement field) {
+		String type = fieldType(field);
+
+		if (NUM_TYPES.contains(type)) {
+			type = "long";
+		} else if (type.equals("java.lang.Object")) {
+			type = "com.tightdb.Mixed";
+		}
+
+		return type;
+	}
+	
 }
