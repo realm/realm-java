@@ -32,5 +32,8 @@ import com.tightdb.lib.*;
 <#else>        add${f.type}Column(spec, "${f.name}");
 </#if></#foreach>    }
 
+${add}
+
+${insert}
 
 }

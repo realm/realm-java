@@ -77,7 +77,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				final List<Model> columns = new ArrayList<Model>();
 				for (VariableElement field : fields) {
 					String columnType = getColumnType(field);
-					String fieldType = getFieldType(field);
+					String fieldType = getAdjustedFieldType(field);
 					String fieldName = field.getSimpleName().toString();
 
 					boolean isSubtable = isSubtable(fieldType);
@@ -162,8 +162,14 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	private List<VariableElement> getFields(Element element) {
 		List<VariableElement> fields = new ArrayList<VariableElement>();
 
+		List<? extends Element> dd = elementUtils.getAllMembers((TypeElement) element);
+		for (Element e : dd) {
+			info("el: " + e.getSimpleName());
+		}
+		
 		for (Element enclosedElement : element.getEnclosedElements()) {
 			if (enclosedElement.getKind().equals(ElementKind.FIELD)) {
+				info("field: " + enclosedElement.getSimpleName());
 				if (enclosedElement instanceof VariableElement) {
 					VariableElement field = (VariableElement) enclosedElement;
 					fields.add(field);
@@ -257,13 +263,13 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		return StringUtils.capitalize(fieldSimpleType(field));
 	}
 
-	private String getFieldType(VariableElement field) {
+	private String getAdjustedFieldType(VariableElement field) {
 		String type = fieldType(field);
 
 		if (NUM_TYPES.contains(type)) {
 			type = "long";
-		} else if (type.equals("byte[]")) {
-			type = "java.nio.ByteBuffer";
+//		} else if (type.equals("byte[]")) {
+//			type = "java.nio.ByteBuffer";
 		} else if (type.equals("java.lang.Object")) {
 			type = "com.tightdb.Mixed";
 		}
