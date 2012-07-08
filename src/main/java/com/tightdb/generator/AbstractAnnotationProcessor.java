@@ -15,7 +15,6 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.JavaFileManager.Location;
 import javax.tools.StandardLocation;
@@ -26,20 +25,20 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 
 	private static final String[] SUPPORTED_ANNOTATIONS = { "com.tightdb.lib.Table" };
 
-	protected Messager messager;
 	protected Elements elementUtils;
 	protected Types typeUtils;
 	protected Filer filer;
 	protected Map<String, String> options;
+	protected AnnotationProcessingLogger logger;
 
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
-		info("Entering annotation processor...");
+		logger.info("Entering annotation processor...");
 		if (!env.processingOver()) {
-			info("Processing resources...");
+			logger.info("Processing resources...");
 			try {
 				processAnnotations(annotations, env);
-				info("Successfully finished processing.");
+				logger.info("Successfully finished processing.");
 			} catch (Exception e) {
 				String info = e.getMessage() != null ? e.getMessage() : "";
 				String msg = "ERROR: " + info + "\n\n" + StringUtils.join(e.getStackTrace(), "\n");
@@ -51,44 +50,33 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 					cause = cause.getCause();
 				}
 
-				error(msg);
+				logger.error(msg);
 			}
 		} else {
-			info("Last round, processing is done.");
+			logger.info("Last round, processing is done.");
 		}
 		return true;
-	}
-
-	protected void info(String msg) {
-		messager.printMessage(Kind.NOTE, msg);
-	}
-
-	protected void warn(String msg) {
-		messager.printMessage(Kind.WARNING, msg);
-	}
-
-	protected void error(String msg) {
-		messager.printMessage(Kind.ERROR, msg);
 	}
 
 	@Override
 	public synchronized void init(ProcessingEnvironment env) {
 		super.init(env);
 
-		messager = env.getMessager(); // required for logging
-		info("Initializing annotation processor...");
+		Messager messager = env.getMessager(); // required for logging
+		logger = new AnnotationProcessingLogger(messager);
+		logger.info("Initializing annotation processor...");
 
 		elementUtils = env.getElementUtils();
 		typeUtils = env.getTypeUtils();
 		filer = env.getFiler();
 		options = env.getOptions();
 
-		info("Initialization finished.");
+		logger.info("Initialization finished.");
 	}
 
 	@Override
 	public Set<String> getSupportedAnnotationTypes() {
-		info("Specifying supported annotations...");
+		logger.info("Specifying supported annotations...");
 		return new HashSet<String>(Arrays.asList(SUPPORTED_ANNOTATIONS));
 	}
 
@@ -103,14 +91,14 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 			writer = fileRes.openWriter();
 			writer.write(content);
 		} catch (IOException e) {
-			error("Couldn't write to file: " + filename);
+			logger.error("Couldn't write to file: " + filename);
 			throw new RuntimeException("Couldn't write to file: " + filename, e);
 		} finally {
 			if (writer != null) {
 				try {
 					writer.close();
 				} catch (IOException e) {
-					error("Couldn't write to file: " + filename);
+					logger.error("Couldn't write to file: " + filename);
 					throw new RuntimeException("Couldn't write to file: " + filename, e);
 				}
 			}
