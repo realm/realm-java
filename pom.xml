@@ -8,13 +8,6 @@
 	<version>1.1.0</version>
 
 	<dependencies>
-	<!-- 
-		<dependency>
-			<groupId>com.googlecode.jannocessor</groupId>
-			<artifactId>jannocessor</artifactId>
-			<version>0.7.4</version>
-		</dependency>
-	 -->
 		<dependency>
 			<groupId>org.apache.velocity</groupId>
 			<artifactId>velocity</artifactId>
@@ -59,8 +52,7 @@
 						<include>com/tightdb/lib/*.class</include>
 						<include>com/tightdb/cleaner/*.class</include>
 						<include>com/tightdb/generator/*.class</include>
-						<include>org/jannocessor/config/*.class</include>
-						<include>*.vm</include>
+						<include>*.ftl</include>
 					</includes>
 				</configuration>
 			</plugin>
