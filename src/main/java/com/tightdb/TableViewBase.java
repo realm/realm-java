@@ -316,7 +316,7 @@ public class TableViewBase implements IRowsetBase {
 	public void addLong(long columnIndex, long value) {
 		nativeAddInt(nativePtr, columnIndex, value);
 	}
-	
+
 	protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 	
 	// Methods for deleting.
@@ -340,7 +340,7 @@ public class TableViewBase implements IRowsetBase {
 	
 	public void removeLast(){
 		if(!isEmpty()){
-			remove(size() - 1);
+			nativeRemoveRow(nativePtr, size() - 1);
 		}
 	}
 	

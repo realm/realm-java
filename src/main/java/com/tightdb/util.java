@@ -14,7 +14,7 @@ public class util {
 	static native long nativeGetMemUsage();
 
 	public static boolean versionCompatible() {
-		return (nativeGetVersion() == 5);
+		return (nativeGetVersion() == 6);
 	}
 
 	static native int nativeGetVersion();

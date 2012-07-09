@@ -20,6 +20,8 @@ public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cu
 
 	public abstract void clear();
 
+	public abstract void remove(long rowIndex);
+	
 /*	TODO:
  * public View range(long from, long to) {
 		throw new UnsupportedOperationException();

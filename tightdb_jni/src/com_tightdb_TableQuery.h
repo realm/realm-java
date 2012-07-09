@@ -9,6 +9,14 @@ extern "C" {
 #endif
 /*
  * Class:     com_tightdb_TableQuery
+ * Method:    createNativePtr
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_createNativePtr
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_tightdb_TableQuery
  * Method:    nativeGroup
  * Signature: (J)V
  */
@@ -210,9 +218,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeRemove
- * Signature: (JLcom/tightdb/TableBase;JJJJ)V
+ * Signature: (JLcom/tightdb/TableBase;JJJJ)J
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeRemove
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove
   (JNIEnv *, jobject, jlong, jobject, jlong, jlong, jlong, jlong);
 
 /*
@@ -238,14 +246,6 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAllMulti
  */
 JNIEXPORT jint JNICALL Java_com_tightdb_TableQuery_nativeSetThreads
   (JNIEnv *, jobject, jlong, jint);
-
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    createNativePtr
- * Signature: ()J
- */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_createNativePtr
-  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

@@ -9,11 +9,6 @@ import com.tightdb.generated.EmployeeTable;
 import com.tightdb.generated.EmployeeView;
 
 public abstract class AbstractViewTest extends AbstractTest {
-
-	protected static final String NAME0 = "John";
-	protected static final String NAME1 = "Nikolche";
-	protected static final String NAME2 = "Johny";
-
 	protected EmployeeView employees;
 
 	@BeforeMethod

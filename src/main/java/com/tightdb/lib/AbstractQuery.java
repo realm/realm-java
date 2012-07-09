@@ -27,6 +27,14 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		return query.count(table, start, end, limit);
 	}
 	
+	public long remove(long start, long end, long limit) {
+		return query.remove(table, start, end, limit);
+	}
+
+	public long remove() {
+		return query.remove(table);
+	}
+
 	public View findAll() {
 		TableViewBase viewBase = query.findAll(table);
 		return view(viewBase);
