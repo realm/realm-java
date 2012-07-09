@@ -1,6 +1,9 @@
 package com.tightdb.performance;
 
-import com.almworks.sqlite4java.*;
+import com.almworks.sqlite4java.SQLite;
+import com.almworks.sqlite4java.SQLiteConnection;
+import com.almworks.sqlite4java.SQLiteException;
+import com.almworks.sqlite4java.SQLiteStatement;
 
 public class SQLiteTest extends PerformanceBase implements IPerformance {
 

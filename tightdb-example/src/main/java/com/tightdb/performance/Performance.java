@@ -1,8 +1,5 @@
 package com.tightdb.performance;
 
-import java.io.IOException;
-import java.util.Scanner;
-
 import com.tightdb.util;
 import com.tightdb.lib.TightDB;
 

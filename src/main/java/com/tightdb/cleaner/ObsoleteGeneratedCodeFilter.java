@@ -6,7 +6,7 @@ import java.io.FileReader;
 
 import org.apache.commons.io.filefilter.IOFileFilter;
 
-import com.tightdb.generator.CodeGenerator;
+import com.tightdb.generator.CodeGenProcessor;
 
 public class ObsoleteGeneratedCodeFilter implements IOFileFilter {
 
@@ -15,7 +15,7 @@ public class ObsoleteGeneratedCodeFilter implements IOFileFilter {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			String firstLine = reader.readLine();
-			return CodeGenerator.INFO_GENERATED.equals(firstLine);
+			return CodeGenProcessor.INFO_GENERATED.equals(firstLine);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

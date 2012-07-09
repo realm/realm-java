@@ -1,0 +1,4 @@
+<factorypath>
+    <factorypathentry kind="PLUGIN" id="org.eclipse.jst.ws.annotations.core" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="WKSPJAR" id="/tightdb_java2/target/tightdb-devkit.jar" enabled="true" runInBatchMode="false"/>
+</factorypath>
