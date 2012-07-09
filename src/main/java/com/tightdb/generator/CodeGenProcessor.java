@@ -147,7 +147,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				/* Generate the table class */
 
 				String tableContent = renderer.render("table.ftl", table);
-				writeToFile(packageName, entity + "Table.java", tableContent);
+				writeToFile(packageName, entity + "Table.java", tableContent, model);
 
 				/*********** Generate the cursor class ****************/
 
@@ -156,7 +156,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				cursor.putAll(commonAttr);
 
 				String cursorContent = renderer.render("cursor.ftl", cursor);
-				writeToFile(packageName, entity + ".java", cursorContent);
+				writeToFile(packageName, entity + ".java", cursorContent, model);
 
 				/*********** Generate the view class ****************/
 
@@ -165,7 +165,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				view.putAll(commonAttr);
 
 				String viewContent = renderer.render("view.ftl", view);
-				writeToFile(packageName, entity + "View.java", viewContent);
+				writeToFile(packageName, entity + "View.java", viewContent, model);
 
 				/*********** Generate the query class ****************/
 
@@ -174,7 +174,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				query.putAll(commonAttr);
 
 				String queryContent = renderer.render("query.ftl", query);
-				writeToFile(packageName, entity + "Query.java", queryContent);
+				writeToFile(packageName, entity + "Query.java", queryContent, model);
 			}
 		}
 	}
@@ -302,5 +302,5 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 		return type;
 	}
-	
+
 }

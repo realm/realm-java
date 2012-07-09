@@ -12,6 +12,7 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -40,8 +41,8 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 				processAnnotations(annotations, env);
 				logger.info("Successfully finished processing.");
 			} catch (Exception e) {
-				String info = e.getMessage() != null ? e.getMessage() : "";
-				String msg = "ERROR: " + info + "\n\n" + StringUtils.join(e.getStackTrace(), "\n");
+				String info = e.getMessage() != null ? "(" + e.getMessage() + ")" : "";
+				String msg = "ERROR: " + e.getClass().getCanonicalName() + " " + info + "\n\n" + StringUtils.join(e.getStackTrace(), "\n");
 
 				Throwable cause = e.getCause();
 				while (cause != null) {
@@ -82,12 +83,12 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 
 	protected abstract void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env) throws Exception;
 
-	protected void writeToFile(String pkg, String filename, String content) {
+	protected void writeToFile(String pkg, String filename, String content, Element... originatingElements) {
 		final Location location = StandardLocation.SOURCE_OUTPUT;
 
 		Writer writer = null;
 		try {
-			FileObject fileRes = filer.createResource(location, pkg, filename);
+			FileObject fileRes = filer.createResource(location, pkg, filename, originatingElements);
 			writer = fileRes.openWriter();
 			writer.write(content);
 		} catch (IOException e) {
