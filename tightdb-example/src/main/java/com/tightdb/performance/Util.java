@@ -2,7 +2,7 @@ package com.tightdb.performance;
 
 import java.util.Scanner;
 
-import com.tightdb.lib.*;
+import com.tightdb.lib.TightDB;
 
 public class Util {
     
