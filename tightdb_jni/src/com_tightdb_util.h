@@ -9,6 +9,14 @@ extern "C" {
 #endif
 /*
  * Class:     com_tightdb_util
+ * Method:    nativeGetInfiniteValue
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_util_nativeGetInfiniteValue
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     com_tightdb_util
  * Method:    nativeGetMemUsage
  * Signature: ()J
  */

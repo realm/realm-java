@@ -129,6 +129,8 @@ public interface IRowsetBase {
 	
 	void setMixed(long columnIndex, long rowIndex, Mixed data);
 
+	void addLong(long columnIndex, long value);
+	
 	long sum(long columnIndex);
 	
 	long maximum(long columnIndex);
@@ -137,9 +139,17 @@ public interface IRowsetBase {
 
 	long findFirstLong(long columnIndex, long value);
 	
+	long findFirstBoolean(long columnIndex, boolean value);
+	
+	long findFirstDate(long columnIndex, Date value);
+	
 	long findFirstString(long columnIndex, String value);
 
 	TableViewBase findAllLong(long columnIndex, long value);
+	
+	TableViewBase findAllBoolean(long columnIndex, boolean value);
+	
+	TableViewBase findAllDate(long columnIndex, Date value);
 	
 	TableViewBase findAllString(long columnIndex, String value);
 	

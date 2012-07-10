@@ -3,6 +3,7 @@ package com.tightdb.lib;
 import static org.testng.AssertJUnit.*;
 import org.testng.annotations.Test;
 
+import com.tightdb.generated.EmployeeQuery;
 import com.tightdb.generated.EmployeeView;
 
 public class TableQueryTest extends AbstractTableTest {
@@ -90,4 +91,24 @@ public class TableQueryTest extends AbstractTableTest {
 		assertEquals(1, niko2.size());
 	}
 
+	@Test
+	public void shouldRemoveRows() {
+		// Remove all
+		EmployeeQuery q = employees.where().salary.lessThan(100000000); 
+		long n = q.remove();
+		assertEquals(3, n);
+		assertEquals(0, employees.size());
+		
+		// Remove some
+		q = employees.where().salary.lessThan(100000000); 
+		n = q.remove(1,2,1);
+		assertEquals(1, n);
+		assertEquals(2, employees.size());
+	
+		// Remove some
+		q = employees.where().salary.lessThan(10000); 
+		n = q.remove();
+		assertEquals(2, n);
+		assertEquals(1, employees.size());
+	}
 }

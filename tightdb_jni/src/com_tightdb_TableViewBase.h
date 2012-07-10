@@ -193,10 +193,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstInt
 
 /*
  * Class:     com_tightdb_TableViewBase
- * Method:    nativeFindFirstBoolean
+ * Method:    nativeFindFirstBool
  * Signature: (JJZ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstBoolean
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstBool
   (JNIEnv *, jobject, jlong, jlong, jboolean);
 
 /*
@@ -277,14 +277,6 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeMinimum
  * Signature: (JJZ)V
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSort
-  (JNIEnv *, jobject, jlong, jlong, jboolean);
-
-/*
- * Class:     com_tightdb_TableViewBase
- * Method:    nativeGetSortedView
- * Signature: (JJZ)J
- */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetSortedView
   (JNIEnv *, jobject, jlong, jlong, jboolean);
 
 /*

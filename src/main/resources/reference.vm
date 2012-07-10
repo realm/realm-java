@@ -9,33 +9,23 @@
 #end
 
 #macro(bool_query_columns)
-#query_column("equal", "boolean value", "equal to")
-#query_column("eq", "boolean value", "equal to")
-#query_column("notEqual", "boolean value", "not equal to")
-#query_column("ne", "boolean value", "not equal to")
+#query_column("equal/eq", "Boolean value", "equal to")
+#query_column("notEqual/neq", "Boolean value", "not equal to")
 #end
 
 #macro(num_query_columns)
-#query_column("equal", "long value", "equal to")
-#query_column("eq", "long value", "equal to")
-#query_column("notEqual", "long value", "not equal to")
-#query_column("ne", "long value", "not equal to")
-#query_column("greaterThan", "long value", "greater than")
-#query_column("gt", "long value", "greater than")
-#query_column("greaterThanOrEqual", "long value", "greater than or equal to")                             
-#query_column("gte", "long value", "greater than or equal to")                             
-#query_column("lessThan", "long value", "less than")
-#query_column("lt", "long value", "less than")
-#query_column("lessThanOrEqual", "long value", "less than or equal to")
-#query_column("lte", "long value", "less than or equal to")
+#query_column("equal/eq", "long value", "equal to")
+#query_column("notEqual/neq", "long value", "not equal to")
+#query_column("greaterThan/gt", "long value", "greater than")
+#query_column("greaterThanOrEqual/gte", "long value", "greater than or equal to")                             
+#query_column("lessThan/lt", "long value", "less than")
+#query_column("lessThanOrEqual/lte", "long value", "less than or equal to")
 #query_column("between", "long value_1", "long value_2", "belongs to interval between <tt>value_1</tt> and <tt>value_2</tt>")
 #end
 
 #macro(string_query_columns)
-#query_column("equal", "String value", "equal to")
-#query_column("eq", "String value", "equal to")
-#query_column("notEqual", "String value", "not equal to")
-#query_column("ne", "String value", "not equal to")
+#query_column("equal/eq", "String value", "equal to")
+#query_column("notEqual/neq", "String value", "not equal to")
 #query_column("beginsWith", "String value", "substring match at the begining of the text")
 #query_column("endsWith", "String value", "substring match at the end of the text")
 #query_column("contains", "String value", "substring search")
@@ -53,19 +43,24 @@
 #macro(bool_table_or_view_columns)
 #table_or_view_columns_common("Boolean")
 #bool_query_columns()
+#column("Row", "findFirst", "Boolean value", "Find first row having the specified column value")
+#column("View", "findAll", "Boolean value", "Find all rows having the specified column value")
 #end
 
 #macro(date_table_or_view_columns)
 #table_or_view_columns_common("Date")
+#column("Row", "findFirst", "Date value", "Find first row having the specified column value")
+#column("View", "findAll", "Date value", "Find all rows having the specified column value")
 #end
 
 #macro(num_table_or_view_columns)
 #table_or_view_columns_common("Long")
+#column("void", "addLong", "long value", "Add the value to all cells in the represented column")
 #column("long", "sum", "", "Calculate the sum of all values for the represented column")
 #column("long", "minimum", "", "Calculate the minimal value for the represented column")
 #column("long", "maximum", "", "Calculate the maximal value for the represented column")
-#column("Row", "findFirst", "String value", "Find first row having the specified column value")
-#column("View", "findAll", "String value", "Find all rows having the specified column value")
+#column("Row", "findFirst", "long value", "Find first row having the specified column value")
+#column("View", "findAll", "long value", "Find all rows having the specified column value")
 #num_query_columns()
 #end
 
@@ -337,6 +332,7 @@ ${group_method_list}
 
                 <p>
                 In this reference manual, a cell means a specific column at a specific row.
+                Column and row indexes starts at 0.
                 </p>
 
 <!--- TABLE CLASS --->
@@ -351,8 +347,8 @@ ${group_method_list}
                 <p>
                   <i>Note</i>: Tables should be generated using the <code>@Table</code> annotation. 
                   The annotation for a Java class with name <code>foo</code> will 
-                  generate a number of classes representing rows (<code>Foo</code>), queries (<code>FooQuery</code>),
-                  result sets (<code>FooView</code>), and the table (<code>FooTable</code>). 
+                  generate a number of classes representing the table (<code>FooTable</code>), rows (<code>Foo</code>), 
+                  queries (<code>FooQuery</code>) and query result sets (<code>FooView</code>). 
                 </p>
 				
                 	<dl>
@@ -392,7 +388,7 @@ public class Example {
                         <pre class="prettyprint" lang-java>
 String[] names = people.name.getAll();
 Person firstJohn = people.name.findFirst("John");
-PeopleView hiredYoung = people.hired.equals(true).age.between(20, 30).findAll();
+PersonView hiredYoung = people.hired.equals(true).age.between(20, 30).findAll();
                         </pre>
 						</p>
                       </dd>
@@ -526,7 +522,7 @@ ${table_method_details}
                 <a href="#" class="section section_minor" name="tablerow_anchor" id="tablerow_anchor"></a>
                 <h2>Row Class</h2>
                 <p>
-                This is a representation of a single row (record) in a table.
+                This is a representation of a cursor to a single row (or record) in a table.
                 </p>
 
                 <h3>Column fields</h3>
@@ -580,12 +576,14 @@ ${row_method_details}
                 <code>Query</code> objects are used to build-up queries. The query classes are generated by
                 the <code>@Table</code> annotation.
                 </p>
-                <p>Query is build using a <a href="http://en.wikipedia.org/wiki/Fluent_interface">fluent interface</a> (method invocations can be daisy chained). Conditions are by default folded using logical-and. Query objects can be reused, and queries can be repeatly executed by the <tt>find_all()</tt> method (resembles the prepare/execute pattern in SQL clients).</p>
+                <p>Query is build using a <a href="http://en.wikipedia.org/wiki/Fluent_interface">fluent interface</a> 
+                (method invocations can be daisy chained). Conditions are by default folded using logical-and. Query objects can be reused, and queries can be repeatly executed by the <tt>find_all()</tt> method (resembles the prepare/execute pattern in SQL clients).</p>
 
                 <h3>Query column fields</h3>
 				
                     <dl>
-                      <dd><p> The tables show the declared methods for various types of columns:</p></dd>
+                      <dd><p> The conditions you can use to build a query, depends on the type of column you query. 
+                      Below are the methods you can use for the different column types:</p></dd>
 
 #@columns_html("boolean")
 #bool_query_columns()
@@ -604,7 +602,7 @@ ${row_method_details}
                       <dd>
 						<p>
                         <pre class="prettyprint" lang-java>
-PeopleView v = people.hired.equals(true).age.between(20, 30).findAll();
+PersonView v = people.hired.equals(true).age.between(20, 30).findAll();
                         </pre>
 						</p>
                       </dd>
@@ -652,7 +650,7 @@ ${query_method_details}
 PersonView adults = people.age.gte(18).findAll();
 String[] adultNames = adults.name.getAll();
 Person firstAdultJohn = adults.name.findFirst("John");
-PeopleView hiredAdults = adults.hired.equals(true).findAll();
+PersonView hiredAdults = adults.hired.equals(true).findAll();
                         </pre>
 						</p>
                       </dd>

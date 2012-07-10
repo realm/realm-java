@@ -4,13 +4,17 @@ import java.util.Scanner;
 
 public class util {
 	
+	public static final long INFINITE = nativeGetInfiniteValue();
+	
+	static native long nativeGetInfiniteValue();
+	
 	public static long getNativeMemUsage() {
 		return nativeGetMemUsage();
 	}
 	static native long nativeGetMemUsage();
 
 	public static boolean versionCompatible() {
-		return (nativeGetVersion() == 2);
+		return (nativeGetVersion() == 6);
 	}
 
 	static native int nativeGetVersion();

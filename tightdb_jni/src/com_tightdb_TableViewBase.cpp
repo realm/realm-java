@@ -192,7 +192,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstInt(
     return static_cast<jlong>(TV(nativeViewPtr)->find_first_int( S(columnIndex), value));
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstBoolean(
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstBool(
 	JNIEnv* env, jobject jTable, jlong nativeViewPtr, jlong columnIndex, jboolean value)
 {
    	if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return false;
@@ -203,7 +203,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstBoolean(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstDate(
 	JNIEnv* env, jobject jTable, jlong nativeViewPtr, jlong columnIndex, jlong dateTimeValue)
 {
-   	if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return -1;
+   	if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
 
 	return TV(nativeViewPtr)->find_first_date( S(columnIndex), (time_t)dateTimeValue);
 }
@@ -215,7 +215,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindFirstString(
 
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr)
-        return -1;
+        return 0;
 
 	size_t searchIndex = TV(nativeViewPtr)->find_first_string( S(columnIndex), valueCharPtr);
 	env->ReleaseStringUTFChars(value, valueCharPtr);
@@ -231,7 +231,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAllInt(
 	return reinterpret_cast<jlong>(pResultView);
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAllBoolean(
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAllBool(
 	JNIEnv* env, jobject jTableViewBase, jlong nativeViewPtr, jlong columnIndex, jboolean value)
 {	
     if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
@@ -254,14 +254,17 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAllDate(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAllString(
 	JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jstring value)
 {	
+    
     if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
 
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr)
-        return -1;
+        return 0;
+    TR("nativeFindAllString(col %d, string '%s') ", columnIndex, valueCharPtr);
 
 	TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_string( S(columnIndex), valueCharPtr) );
-	env->ReleaseStringUTFChars(value, valueCharPtr);
+	TR("-- resultview size=%lld.\n", pResultView->size());
+    env->ReleaseStringUTFChars(value, valueCharPtr);
 	return reinterpret_cast<jlong>(pResultView);
 }
 
@@ -295,15 +298,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSort(
     if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return;
 
 	TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
-}
-
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeGetSortedView
-  (JNIEnv* env, jobject jTableView, jlong nativeViewPtr, jlong columnIndex, jboolean ascending)
-{
-    if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
-
-    TableView* pResultView = new TableView( TV(nativeViewPtr)->get_sorted_view( S(columnIndex)) );
-	return reinterpret_cast<jlong>( pResultView );
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_createNativeTableView(

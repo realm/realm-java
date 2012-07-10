@@ -326,7 +326,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertByteArray(
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeAddInt(
 	JNIEnv* env, jobject jTableView, jlong nativeTablePtr, jlong columnIndex, jlong value)
 {	
-	if (!COL_INDEX_VALID(env, TV(nativeTablePtr), columnIndex)) return;
+	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return;
 
     TBL(nativeTablePtr)->add_int( S(columnIndex), value);
 }
@@ -401,7 +401,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstInt(
 	return TBL(nativeTablePtr)->find_first_int( S(columnIndex), value);
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstBoolean(
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstBool(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jboolean value)
 {
    	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return false;

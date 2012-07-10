@@ -316,7 +316,7 @@ public class TableViewBase implements IRowsetBase {
 	public void addLong(long columnIndex, long value) {
 		nativeAddInt(nativePtr, columnIndex, value);
 	}
-	
+
 	protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 	
 	// Methods for deleting.
@@ -340,7 +340,7 @@ public class TableViewBase implements IRowsetBase {
 	
 	public void removeLast(){
 		if(!isEmpty()){
-			remove(size() - 1);
+			nativeRemoveRow(nativePtr, size() - 1);
 		}
 	}
 	
@@ -355,10 +355,10 @@ public class TableViewBase implements IRowsetBase {
 	
  	//!!!TODO: New
 	public long findFirstBoolean(long columnIndex, boolean value) {
-		return nativeFindFirstBoolean(nativePtr, columnIndex, value);
+		return nativeFindFirstBool(nativePtr, columnIndex, value);
 	}
 
-	protected native long nativeFindFirstBoolean(long nativePtr, long columnIndex, boolean value);
+	protected native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
 
  	//!!!TODO: New
 	public long findFirstDate(long columnIndex, Date date) {
@@ -383,7 +383,7 @@ public class TableViewBase implements IRowsetBase {
 	protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 	
  	//!!!TODO: New
-	public TableViewBase findAllBool(long columnIndex, boolean value) {
+	public TableViewBase findAllBoolean(long columnIndex, boolean value) {
 		return new TableViewBase(this, nativeFindAllBool(nativePtr, columnIndex, value));
 	}
 
@@ -448,25 +448,18 @@ public class TableViewBase implements IRowsetBase {
 	
 	protected native long nativeMinimum(long nativeViewPtr, long columnIndex);
 	
+	enum Order { ascending, descending };
 	
-	public void sort(long columnIndex, boolean ascending){
-		nativeSort(nativePtr, columnIndex, ascending);
+	public void sort(long columnIndex, Order order){
+		nativeSort(nativePtr, columnIndex, (order == Order.ascending) );
 	}
 	
 	public void sort(long columnIndex){
-		sort(columnIndex, true);
+		sort(columnIndex, Order.ascending);
 	}
 	
 	protected native void nativeSort(long nativeTableViewPtr, long columnIndex, boolean ascending);
-	
 
- 	//!!!TODO: New
-	public TableViewBase getSortedView(long columnIndex, boolean ascending) {
-		return new TableViewBase(this, nativeGetSortedView(nativePtr, columnIndex, ascending));
-	}
-	protected native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
-	
-	
 	
 	protected native long createNativeTableView(TableBase table, long nativeTablePtr);
 	

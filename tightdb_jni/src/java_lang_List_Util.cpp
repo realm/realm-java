@@ -6,11 +6,11 @@ jint java_lang_List_size(JNIEnv* env, jobject jList)
 	// WARNING: donot cache these methods, list class may be different based on the object jlist
 	jclass jListClass = env->GetObjectClass(jList);
 	if (jListClass == NULL)
-        return -1;
+        return 0;
     jmethodID jListSizeMethodId = env->GetMethodID(jListClass, "size", "()I");
 	if (jListSizeMethodId == NULL) {
         ThrowException(env, NoSuchMethod, "jList", "size");
-		return -1;
+		return 0;
 	}
 	return env->CallIntMethod(jList, jListSizeMethodId);
 }

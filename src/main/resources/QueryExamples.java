@@ -18,7 +18,12 @@ public class QueryExamples {
 		
 		/* EXAMPLE: endGroup */
 
-		people.name.eq("John").group().age.eq(10).or().age.eq(20).endGroup().findAll());
+		people.name.eq("John").group()
+                                      .age.eq(10)
+                                      .or()
+                                      .age.eq(20)
+                              .endGroup()
+                              .findAll());
 		
 		/* EXAMPLE: findAll */
 
@@ -34,13 +39,18 @@ public class QueryExamples {
 		
 		/* EXAMPLE: findNext */
 
-		EmployeeQuery johns = people.name.equal("John");
+		PersonQuery johns = people.name.equal("John");
 		Person p;
 		while ((p = johns.findNext()) != null) System.out.println(p);
 		
 		/* EXAMPLE: group */
 
-		PersonView view = people.name.eq("John").group().age.eq(10).or().age.eq(20).endGroup().findAll();
+		PersonView view = people.name.eq("John").group()
+                                                        .age.eq(10)
+                                                        .or()
+                                                        .age.eq(20)
+                                                .endGroup()
+                                                .findAll();
 		
 		/* EXAMPLE: or */
 

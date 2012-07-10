@@ -13,7 +13,7 @@ public class GroupDesc extends AbstractDesc {
 	public void describe() {
 
 		method("void", "close", "Close the group and release resources");
-		method("TableBase", "getTable", "(Low-level) Create and get a table with the specified name");
+		method("TableBase", "getTable", "(Low-level) Create and get a table with the specified name", "String", "name");
 		method("int", "getTableCount", "Get the number of tables");
 		method("String", "getTableName", "Get the table at the specified position", "int", "index");
 		method("boolean", "hasTable", "Check if group contains a specific named table", "String", "name");

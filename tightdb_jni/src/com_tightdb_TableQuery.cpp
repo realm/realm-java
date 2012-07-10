@@ -224,9 +224,9 @@ JNIEXPORT jint JNICALL Java_com_tightdb_TableQuery_nativeSetThreads(
 	return Q(nativeQueryPtr)->SetThreads(threadCount);
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeRemove(
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove(
 	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTableBase, jlong nativeTablePtr, 
     jlong start, jlong end, jlong limit)
 {
-	Q(nativeQueryPtr)->remove(*TBL(nativeTablePtr), S(start), S(end), S(limit));
+	return Q(nativeQueryPtr)->remove(*TBL(nativeTablePtr), S(start), S(end), S(limit));
 }

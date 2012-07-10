@@ -5,7 +5,7 @@
 
 int trace_level = 0;
 
-static int TIGHTDB_JNI_VERSION = 2;
+static int TIGHTDB_JNI_VERSION = 6;
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) 
 {
@@ -25,4 +25,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_util_nativeGetMemUsage(JNIEnv *, jclass
 JNIEXPORT jint JNICALL Java_com_tightdb_util_nativeGetVersion(JNIEnv *, jclass) 
 {
     return TIGHTDB_JNI_VERSION;
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_util_nativeGetInfiniteValue(JNIEnv *, jclass)
+{
+    return (size_t)(-1);
 }

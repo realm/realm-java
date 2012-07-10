@@ -37,7 +37,7 @@ public class RowExamples {
 		/* EXAMPLE: setFoo */
 
 		people.last().setName("John");
-		people.first().getAge(30);
+		people.first().setAge(30);
 		
 		/* EXAMPLE: END! */
 		

@@ -47,6 +47,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		return table.size();
 	}
 
+	
 	protected void addLongColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeInt, name);
 	}

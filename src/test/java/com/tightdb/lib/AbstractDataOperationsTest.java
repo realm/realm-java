@@ -60,4 +60,31 @@ public abstract class AbstractDataOperationsTest {
 		assertEquals("new_value", getEmployees().at(1).getExtra().getStringValue());
 	}
 
+	@Test
+	public void shouldRemoveFirstRow() throws IllegalAccessException {
+		// Remove first row
+		getEmployees().remove(0);
+		assertEquals(NAME1, getEmployees().at(0).getFirstName());
+		assertEquals(NAME2, getEmployees().at(1).getFirstName());
+		assertEquals(2, getEmployees().size());
+	}
+
+	@Test
+	public void shouldRemoveMiddleRow() throws IllegalAccessException {
+		// Remove middle row
+		getEmployees().remove(1);
+		assertEquals(NAME0, getEmployees().at(0).getFirstName());
+		assertEquals(NAME2, getEmployees().at(1).getFirstName());
+		assertEquals(2, getEmployees().size());
+	}
+
+	@Test
+	public void shouldRemoveLastRow() throws IllegalAccessException {
+		// Remove last row
+		getEmployees().remove(2);
+		assertEquals(NAME0, getEmployees().at(0).getFirstName());
+		assertEquals(NAME1, getEmployees().at(1).getFirstName());
+		assertEquals(2, getEmployees().size());
+	}
+
 }

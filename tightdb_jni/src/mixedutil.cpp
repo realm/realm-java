@@ -29,7 +29,7 @@ ColumnType GetMixedObjectType(JNIEnv* env, jobject jMixed)
     // Call Java "Mixed.getType"
 	static jmethodID jGetTypeMethodId = GetMixedMethodID(env, "getType", "()Lcom/tightdb/ColumnType;");
     if (jGetTypeMethodId == NULL)
-       	return static_cast<ColumnType>(-1);
+       	return static_cast<ColumnType>(0);
     
     // ???TODO optimize
 	jobject jColumnType = env->CallObjectMethod(jMixed, jGetTypeMethodId);

@@ -22,7 +22,7 @@ public class QueryDesc extends AbstractDesc {
 
 		method("Query", "group", "Group conditions ('left' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis");
 		method("Query", "or", "Logical OR");
+		//TODO: method("void", "remove", "Remove a row from the view", "long", "rowIndex");
 
-		// EmployeeQuery e = null;
 	}
 }

@@ -32,4 +32,12 @@ public class DateRowsetColumn<Cursor, View, Query> extends DateQueryColumn<Curso
 		}
 	}
 
+	public Cursor findFirst(Date value) {
+		return cursor(rowset.findFirstDate(columnIndex, value));
+	}
+	
+	public View findAll(Date value) {
+		return view(rowset.findAllDate(columnIndex, value));
+	}
+
 }

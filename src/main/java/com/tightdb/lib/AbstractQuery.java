@@ -3,6 +3,7 @@ package com.tightdb.lib;
 import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
 import com.tightdb.TableViewBase;
+import com.tightdb.util;
 
 public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cursor, View, ?>> {
 
@@ -26,6 +27,14 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		return query.count(table, start, end, limit);
 	}
 	
+	public long remove(long start, long end, long limit) {
+		return query.remove(table, start, end, limit);
+	}
+
+	public long remove() {
+		return query.remove(table);
+	}
+
 	public View findAll() {
 		TableViewBase viewBase = query.findAll(table);
 		return view(viewBase);
@@ -46,7 +55,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	public Cursor findFirst() {
-		TableViewBase viewBase = query.findAll(table, 0, -1, 1);
+		TableViewBase viewBase = query.findAll(table, 0, util.INFINITE, 1);
 		if (viewBase.size() > 0) {
 			return cursor(viewBase, 0);
 		} else {
@@ -100,6 +109,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		results.clear();
 		return count;
 	}
+
 
 	@Override
 	public String toString() {
