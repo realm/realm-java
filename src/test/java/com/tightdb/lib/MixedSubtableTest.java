@@ -5,6 +5,7 @@ import static org.testng.AssertJUnit.*;
 import org.testng.annotations.Test;
 
 import com.tightdb.example.generated.Employee;
+import com.tightdb.example.generated.EmployeeTable;
 import com.tightdb.example.generated.PeopleTable;
 import com.tightdb.example.generated.PhoneTable;
 
@@ -31,7 +32,7 @@ public class MixedSubtableTest extends AbstractTableTest {
 		assertEquals(1, phones.size());
 
 		// should fail - since we try to get the wrong subtable class
-		employee.extra.getSubtable(PeopleTable.class);
+		employee.extra.getSubtable(EmployeeTable.class);
 	}
 	
 	@Test(expectedExceptions = IllegalArgumentException.class)

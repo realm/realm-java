@@ -13,7 +13,7 @@ public class JNICloseTest {
 	
 	@Test (enabled=true)
 	public void shouldCloseTable() {
-		util.setDebugLevel(1);
+		// util.setDebugLevel(1);
 		
 		TableBase table = new TableBase();
 		table.close();
