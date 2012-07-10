@@ -43,8 +43,7 @@ public class GroupTest {
 		assertEquals(0, employees3.size());
 		
 		employees3.clear();
-
-	/*	
+	
 		System.out.println("Closing group 1...");
 		group.close();
 		
@@ -55,7 +54,6 @@ public class GroupTest {
 		group3.close();
 		
 		System.out.println("Done");
-	*/
 	}
 
 }
