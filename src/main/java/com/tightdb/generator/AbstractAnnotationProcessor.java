@@ -17,8 +17,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.FileObject;
-import javax.tools.JavaFileManager.Location;
-import javax.tools.StandardLocation;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -83,12 +81,12 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 
 	protected abstract void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env) throws Exception;
 
-	protected void writeToFile(String pkg, String filename, String content, Element... originatingElements) {
-		final Location location = StandardLocation.SOURCE_OUTPUT;
-
+	protected void writeToSourceFile(String pkg, String filename, String content, Element... originatingElements) {
 		Writer writer = null;
 		try {
-			FileObject fileRes = filer.createResource(location, pkg, filename, originatingElements);
+			String name = pkg + "/" + filename;
+			logger.info("Writing source file: " + name);
+			FileObject fileRes = filer.createSourceFile(name, originatingElements);
 			writer = fileRes.openWriter();
 			writer.write(content);
 		} catch (IOException e) {
