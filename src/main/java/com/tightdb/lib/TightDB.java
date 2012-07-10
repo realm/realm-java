@@ -8,9 +8,7 @@ import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.util.Date;
 
-import com.tightdb.Mixed;
 import com.tightdb.util;
 
 public class TightDB {

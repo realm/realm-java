@@ -5,10 +5,10 @@ import java.util.Date;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.tightdb.generated.Employee;
-import com.tightdb.generated.EmployeeQuery;
-import com.tightdb.generated.EmployeeTable;
-import com.tightdb.generated.EmployeeView;
+import com.tightdb.example.generated.Employee;
+import com.tightdb.example.generated.EmployeeQuery;
+import com.tightdb.example.generated.EmployeeTable;
+import com.tightdb.example.generated.EmployeeView;
 
 @Test
 public class ViewDataOperationsTest extends AbstractDataOperationsTest {

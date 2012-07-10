@@ -5,8 +5,8 @@ import static org.testng.AssertJUnit.*;
 import java.nio.ByteBuffer;
 
 import com.tightdb.Mixed;
-import com.tightdb.generated.Employee;
-import com.tightdb.generated.EmployeeTable;
+import com.tightdb.example.generated.Employee;
+import com.tightdb.example.generated.EmployeeTable;
 import com.tightdb.test.EmployeeData;
 
 public abstract class AbstractTest {

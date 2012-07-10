@@ -4,9 +4,9 @@ import static org.testng.AssertJUnit.*;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.generated.Employee;
-import com.tightdb.generated.PeopleTable;
-import com.tightdb.generated.PhoneTable;
+import com.tightdb.example.generated.Employee;
+import com.tightdb.example.generated.PeopleTable;
+import com.tightdb.example.generated.PhoneTable;
 
 public class MixedSubtableTest extends AbstractTableTest {
 
@@ -22,9 +22,8 @@ public class MixedSubtableTest extends AbstractTableTest {
 		assertEquals(1, phones2.size());
 	}
 
-// FIXME: enable test
-	@Test(enabled = false, expectedExceptions = IllegalArgumentException.class)
-	public void shouldFailOnOnWrongSubtableRetrtievalFromMixedTypeColumn() {
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	public void shouldFailOnOnWrongSubtableRetrievalFromMixedTypeColumn() {
 		Employee employee = employees.at(0);
 		PhoneTable phones = employee.extra.createSubtable(PhoneTable.class);
 

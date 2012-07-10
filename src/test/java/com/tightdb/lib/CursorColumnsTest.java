@@ -2,7 +2,7 @@ package com.tightdb.lib;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.generated.Employee;
+import com.tightdb.example.generated.Employee;
 import com.tightdb.test.EmployeesFixture;
 
 public class CursorColumnsTest extends AbstractTableTest {

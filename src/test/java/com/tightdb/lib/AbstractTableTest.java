@@ -1,12 +1,12 @@
 package com.tightdb.lib;
 
 import static com.tightdb.test.EmployeesFixture.*;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
-import com.tightdb.generated.EmployeeTable;
+import com.tightdb.example.generated.EmployeeTable;
 
 public abstract class AbstractTableTest extends AbstractTest {
 

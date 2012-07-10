@@ -1,10 +1,11 @@
 package com.tightdb.lib;
 
 import static org.testng.AssertJUnit.*;
+
 import org.testng.annotations.Test;
 
-import com.tightdb.generated.EmployeeQuery;
-import com.tightdb.generated.EmployeeView;
+import com.tightdb.example.generated.EmployeeQuery;
+import com.tightdb.example.generated.EmployeeView;
 
 public class TableQueryTest extends AbstractTableTest {
 

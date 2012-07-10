@@ -1,10 +1,13 @@
 package com.tightdb.experiment;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 import org.testng.annotations.Test;
+
+import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
-import com.tightdb.*;
+import com.tightdb.TableBase;
+import com.tightdb.TableSpec;
 
 public class MixedTest {
 

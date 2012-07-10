@@ -26,8 +26,7 @@ import com.tightdb.lib.*;
 		super(TYPES, group);
 	}
 </#if>
-	@Override
-	protected void specifyStructure(TableSpec spec) {
+	public static void specifyStructure(TableSpec spec) {
 <#foreach f in columns><#if f.isSubtable>        add${f.type}Column(spec, "${f.name}", new ${f.subtype}Table(null));
 <#else>        add${f.type}Column(spec, "${f.name}");
 </#if></#foreach>    }

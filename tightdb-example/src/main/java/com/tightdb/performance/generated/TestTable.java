@@ -22,8 +22,7 @@ public class TestTable extends AbstractTable<Test, TestView, TestQuery> {
 	public TestTable(Group group) {
 		super(TYPES, group);
 	}
-	@Override
-	protected void specifyStructure(TableSpec spec) {
+	public static void specifyStructure(TableSpec spec) {
         addLongColumn(spec, "indexInt");
         addStringColumn(spec, "second");
         addLongColumn(spec, "byteInt");

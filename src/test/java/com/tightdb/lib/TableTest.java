@@ -1,17 +1,15 @@
 package com.tightdb.lib;
 
-import java.util.Date;
-
 import static org.testng.AssertJUnit.*;
+
+import java.util.Date;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
-import com.tightdb.generated.Employee;
-import com.tightdb.generated.EmployeeTable;
-import com.tightdb.generated.EmployeeView;
+import com.tightdb.example.generated.EmployeeTable;
 
 public class TableTest {
 

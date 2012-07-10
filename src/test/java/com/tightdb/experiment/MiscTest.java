@@ -4,8 +4,8 @@ import com.tightdb.ColumnType;
 import com.tightdb.TableBase;
 import com.tightdb.TableSpec;
 import com.tightdb.TableViewBase;
-import com.tightdb.lib.TightDB;
 import com.tightdb.util;
+import com.tightdb.lib.TightDB;
 
 public class MiscTest {
 

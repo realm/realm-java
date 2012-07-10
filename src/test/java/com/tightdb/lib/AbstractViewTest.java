@@ -5,8 +5,8 @@ import static com.tightdb.test.EmployeesFixture.*;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
-import com.tightdb.generated.EmployeeTable;
-import com.tightdb.generated.EmployeeView;
+import com.tightdb.example.generated.EmployeeTable;
+import com.tightdb.example.generated.EmployeeView;
 
 public abstract class AbstractViewTest extends AbstractTest {
 	protected EmployeeView employees;

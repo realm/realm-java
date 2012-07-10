@@ -2,12 +2,13 @@ package com.tightdb.lib;
 
 import static org.testng.AssertJUnit.*;
 
+import java.util.Date;
+
 import org.testng.annotations.Test;
 
-import com.tightdb.generated.Employee;
-import com.tightdb.generated.EmployeeView;
+import com.tightdb.example.generated.Employee;
+import com.tightdb.example.generated.EmployeeView;
 import com.tightdb.test.EmployeesFixture;
-import java.util.Date;
 
 public class TableColumnsTest extends AbstractTableTest {
 

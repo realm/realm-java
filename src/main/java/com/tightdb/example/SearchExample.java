@@ -3,10 +3,10 @@ package com.tightdb.example;
 import java.util.Arrays;
 import java.util.Date;
 
-import com.tightdb.generated.Employee;
-import com.tightdb.generated.EmployeeQuery;
-import com.tightdb.generated.EmployeeTable;
-import com.tightdb.generated.EmployeeView;
+import com.tightdb.example.generated.Employee;
+import com.tightdb.example.generated.EmployeeQuery;
+import com.tightdb.example.generated.EmployeeTable;
+import com.tightdb.example.generated.EmployeeView;
 import com.tightdb.lib.TightDB;
 
 public class SearchExample {
