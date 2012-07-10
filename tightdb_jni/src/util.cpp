@@ -29,6 +29,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case IllegalArgument:
+        case TableInvalid:
             jExceptionClass = env->FindClass("java/lang/IllegalArgumentException");
             message = "Illegal Argument: " + classStr;
             break;
@@ -42,7 +43,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             jExceptionClass = env->FindClass("java/lang/ArrayIndexOutOfBoundsException");
             message = classStr;
             break;
-        
+
         default:
             assert(0);
             return;

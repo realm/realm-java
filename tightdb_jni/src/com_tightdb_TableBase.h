@@ -25,6 +25,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose
 
 /*
  * Class:     com_tightdb_TableBase
+ * Method:    nativeIsValid
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeIsValid
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableBase
  * Method:    nativeUpdateFromSpec
  * Signature: (JLcom/tightdb/TableSpec;)V
  */

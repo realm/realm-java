@@ -38,6 +38,10 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		}
 	}
 
+	public boolean isValid() {
+		return table.isValid();
+	}
+	
 	@Override
 	public String getName() {
 		return getClass().getSimpleName();

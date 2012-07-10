@@ -52,18 +52,17 @@ namespace _impl {
 
 
 
-/**
- * This class is non-polymorphic, that is, it has no virtual
- * functions. Further more, it has no destructor, and it adds no new
- * data-members. These properties are important, because it ensures
- * that there is no run-time distinction between a Table instance and
- * an instance of any variation of this class, and therefore it is
- * valid to cast a pointer from Table to BasicTable<Spec> even when
- * the instance is constructed as a Table. Of couse, this also assumes
- * that Table is non-polymorphic. Further more, accessing the Table
- * via a poiter or reference to a BasicTable is not in violation of
- * the strict aliasing rule.
- */
+/// This class is non-polymorphic, that is, it has no virtual
+/// functions. Further more, it has no destructor, and it adds no new
+/// data-members. These properties are important, because it ensures
+/// that there is no run-time distinction between a Table instance and
+/// an instance of any variation of this class, and therefore it is
+/// valid to cast a pointer from Table to BasicTable<Spec> even when
+/// the instance is constructed as a Table. Of couse, this also
+/// assumes that Table is non-polymorphic. Further more, accessing the
+/// Table via a poiter or reference to a BasicTable is not in
+/// violation of the strict aliasing rule.
+///
 template<class Spec> class BasicTable: private Table, public Spec::ConvenienceMethods {
 public:
     typedef Spec spec_type;
@@ -75,18 +74,14 @@ public:
     typedef BasicTableView<BasicTable> View;
     typedef BasicTableView<const BasicTable> ConstView;
 
+    using Table::is_valid;
     using Table::is_empty;
     using Table::size;
     using Table::clear;
     using Table::remove;
     using Table::optimize;
 
-    BasicTable(Allocator& alloc = GetDefaultAllocator()): Table(alloc)
-    {
-        tightdb::Spec& spec = get_spec();
-        ForEachType<typename Spec::Columns, _impl::AddCol>::exec(&spec, Spec::dyn_col_names());
-        update_from_spec();
-    }
+    BasicTable(Allocator& alloc = GetDefaultAllocator()): Table(alloc) { set_dynamic_spec(); }
 
     static int get_column_count() { return TypeCount<typename Spec::Columns>::value; }
 
@@ -146,13 +141,12 @@ public:
     RowAccessor front() { return RowAccessor(std::make_pair(this, 0)); }
     ConstRowAccessor front() const { return ConstRowAccessor(std::make_pair(this, 0)); }
 
-    /**
-     * Access the last row, or one of its predecessors.
-     *
-     * \param rel_idx An optional index of the row specified relative
-     * to the end. Thus, <tt>table.back(rel_idx)</tt> is the same as
-     * <tt>table[table.size() + rel_idx]</tt>.
-     */
+    /// Access the last row, or one of its predecessors.
+    ///
+    /// \param rel_idx An optional index of the row specified relative
+    /// to the end. Thus, <tt>table.back(rel_idx)</tt> is the same as
+    /// <tt>table[table.size() + rel_idx]</tt>.
+    ///
     RowAccessor back(int rel_idx = -1)
     {
         return RowAccessor(std::make_pair(this, m_size+rel_idx));
@@ -230,6 +224,13 @@ private:
         return static_cast<const Subtab*>(Table::get_subtable_ptr(col_idx, row_idx));
     }
 
+    void set_dynamic_spec()
+    {
+        tightdb::Spec& spec = get_spec();
+        ForEachType<typename Spec::Columns, _impl::AddCol>::exec(&spec, Spec::dyn_col_names());
+        update_from_spec();
+    }
+
     // This one allows a BasicTable to know that BasicTables with
     // other Specs are also derived from Table.
     template<class> friend class BasicTable;
@@ -249,6 +250,7 @@ private:
     friend class BasicTableView<const BasicTable>;
 
     template<class, int, class, bool> friend class _impl::FieldAccessor;
+    template<class, int, class> friend class _impl::MixedFieldAccessorBase;
     template<class, int, class> friend class _impl::ColumnAccessorBase;
     template<class, int, class> friend class _impl::ColumnAccessor;
     template<class, int, class> friend class _impl::QueryColumn;

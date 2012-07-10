@@ -2,7 +2,13 @@ package com.tightdb;
 
 import java.util.Scanner;
 
+import com.tightdb.lib.TightDB;
+
 public class util {
+	
+	static {
+		TightDB.loadLibrary();
+	}
 	
 	public static final long INFINITE = nativeGetInfiniteValue();
 	
@@ -14,7 +20,7 @@ public class util {
 	static native long nativeGetMemUsage();
 
 	public static boolean versionCompatible() {
-		return (nativeGetVersion() == 6);
+		return (nativeGetVersion() == 7);
 	}
 
 	static native int nativeGetVersion();

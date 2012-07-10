@@ -17,6 +17,8 @@ using namespace tightdb;
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeUpdateFromSpec(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jobject jTableSpec)
 {
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return;
+
 	Table* pTable = TBL(nativeTablePtr);
     TR("nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec);
     Spec& spec = pTable->get_spec();
@@ -27,18 +29,21 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeUpdateFromSpec(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeSize(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
-	return TBL(nativeTablePtr)->size();
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return 0;
+    return TBL(nativeTablePtr)->size();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClear(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return;
 	TBL(nativeTablePtr)->clear();
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetColumnCount(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return 0;
 	return TBL(nativeTablePtr)->get_column_count();
 }
 
@@ -53,6 +58,8 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetColumnName(
 JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetTableSpec(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return 0;
+
     TR("nativeGetTableSpec(table %x)\n", nativeTablePtr);
 	static jmethodID jTableSpecConsId = GetTableSpecMethodID(env, "<init>", "()V");
 	if (jTableSpecConsId) {
@@ -80,7 +87,9 @@ JNIEXPORT jint JNICALL Java_com_tightdb_TableBase_nativeGetColumnType(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeAddEmptyRow(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong rows)
 {
-	return static_cast<jlong>( TBL(nativeTablePtr)->add_empty_row( S(rows)) );
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return 0;
+
+    return static_cast<jlong>( TBL(nativeTablePtr)->add_empty_row( S(rows)) );
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeRemove(
@@ -94,7 +103,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeRemove(
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeRemoveLast(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr)
 {
-	TBL(nativeTablePtr)->remove_last();
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return;
+
+    TBL(nativeTablePtr)->remove_last();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertLong(
@@ -162,7 +173,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertSubTable(
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertDone(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
-	TBL(nativeTablePtr)->insert_done();
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return;
+    
+    TBL(nativeTablePtr)->insert_done();
 }
 
 
@@ -477,13 +490,17 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllString(
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeOptimize(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr)
 {
-	TBL(nativeTablePtr)->optimize();
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return;
+    
+    TBL(nativeTablePtr)->optimize();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
-	TR("nativeClose(jTable: %x, nativeTablePtr: %x)\n", jTable, nativeTablePtr);
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return;
+    
+    TR("nativeClose(jTable: %x, nativeTablePtr: %x)\n", jTable, nativeTablePtr);
     LangBindHelper::unbind_table_ref(TBL(nativeTablePtr));
 }
 
@@ -491,4 +508,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_createNative(JNIEnv* env, job
 {
     TR("CreateNative(jTable: %x)\n", jTable);
     return reinterpret_cast<jlong>(LangBindHelper::new_table());
+}
+
+JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeIsValid(
+    JNIEnv *env, jobject, jlong nativeTablePtr)
+{
+    return TBL(nativeTablePtr)->is_valid();
 }

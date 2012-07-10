@@ -111,6 +111,9 @@ protected:
     Array NodeGetRefs();
     template<class C> bool NodeInsert(size_t ndx, size_t ref);
     template<class C> bool NodeAdd(size_t ref);
+public: // FIXME: I had to make NodeAddKey() public. GCC woul not compile it. Alexander?
+    bool NodeAddKey(size_t ref);
+protected:
     bool NodeUpdateOffsets(size_t ndx);
     template<class C> bool NodeInsertSplit(size_t ndx, size_t newRef);
     size_t GetRefSize(size_t ref) const;
@@ -152,9 +155,9 @@ public:
     int64_t Get(size_t ndx) const;
     size_t GetAsRef(size_t ndx) const;
     bool Set(size_t ndx, int64_t value);
-    virtual void insert(size_t ndx) { Insert(ndx, 0); } // FIXME: Ignoring boolean return value here!
+    void insert(size_t ndx) { Insert(ndx, 0); } // FIXME: Ignoring boolean return value here!
     bool Insert(size_t ndx, int64_t value);
-    virtual bool add() {return add(0);}
+    bool add() {return add(0);}
     bool add(int64_t value);
 
     int64_t sum(size_t start = 0, size_t end = -1) const;

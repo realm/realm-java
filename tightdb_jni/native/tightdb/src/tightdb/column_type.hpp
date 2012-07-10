@@ -21,11 +21,11 @@
 #define TIGHTDB_COLUMN_TYPE_HPP
 
 #ifdef __cplusplus
-#define TIGHTDB_QAUL_CC(name) name
-#define TIGHTDB_QAUL_UC(name) name
+#define TIGHTDB_QUAL_CC(name) name
+#define TIGHTDB_QUAL_UC(name) name
 #else
-#define TIGHTDB_QAUL_CC(name) Tightdb##name
-#define TIGHTDB_QAUL_UC(name) TIGHTDB_##name
+#define TIGHTDB_QUAL_CC(name) Tightdb##name
+#define TIGHTDB_QUAL_UC(name) TIGHTDB_##name
 #endif
 
 #ifdef __cplusplus
@@ -33,24 +33,24 @@ namespace tightdb {
 #endif
 
 
-enum TIGHTDB_QAUL_CC(ColumnType) {
+enum TIGHTDB_QUAL_CC(ColumnType) {
     // Single ref
-    TIGHTDB_QAUL_UC(COLUMN_TYPE_INT)    = 0,
-    TIGHTDB_QAUL_UC(COLUMN_TYPE_BOOL)   = 1,
-    TIGHTDB_QAUL_UC(COLUMN_TYPE_STRING) = 2,
-    TIGHTDB_QAUL_UC(COLUMN_TYPE_DATE)   = 3, // FIXME: Why do we need a special column type for dates, can we not just use 'int'
-    TIGHTDB_QAUL_UC(COLUMN_TYPE_BINARY) = 4,
-    TIGHTDB_QAUL_UC(COLUMN_TYPE_TABLE)  = 5,
-    TIGHTDB_QAUL_UC(COLUMN_TYPE_MIXED)  = 6,
+    TIGHTDB_QUAL_UC(COLUMN_TYPE_INT)    = 0,
+    TIGHTDB_QUAL_UC(COLUMN_TYPE_BOOL)   = 1,
+    TIGHTDB_QUAL_UC(COLUMN_TYPE_DATE)   = 3, // FIXME: Why do we need a special column type for dates, can we not just use 'int'
+    TIGHTDB_QUAL_UC(COLUMN_TYPE_STRING) = 2,
+    TIGHTDB_QUAL_UC(COLUMN_TYPE_BINARY) = 4,
+    TIGHTDB_QUAL_UC(COLUMN_TYPE_TABLE)  = 5,
+    TIGHTDB_QUAL_UC(COLUMN_TYPE_MIXED)  = 6,
 
     // Double refs
-    TIGHTDB_QAUL_UC(COLUMN_TYPE_STRING_ENUM) = 7,
+    TIGHTDB_QUAL_UC(COLUMN_TYPE_STRING_ENUM) = 7,
 
     // Attributes
-    TIGHTDB_QAUL_UC(COLUMN_ATTR_INDEXED) = 8,
-    TIGHTDB_QAUL_UC(COLUMN_ATTR_UNIQUE)  = 9,
-    TIGHTDB_QAUL_UC(COLUMN_ATTR_SORTED)  = 10,
-    TIGHTDB_QAUL_UC(COLUMN_ATTR_NONE)    = 11
+    TIGHTDB_QUAL_UC(COLUMN_ATTR_INDEXED) = 8,
+    TIGHTDB_QUAL_UC(COLUMN_ATTR_UNIQUE)  = 9,
+    TIGHTDB_QUAL_UC(COLUMN_ATTR_SORTED)  = 10,
+    TIGHTDB_QUAL_UC(COLUMN_ATTR_NONE)    = 11
 };
 
 

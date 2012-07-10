@@ -26,20 +26,22 @@
 
 namespace tightdb {
 using std::size_t;
+class Table;
 
 class Spec {
 public:
-    Spec(Allocator& alloc);
-    Spec(Allocator& alloc, ArrayParent* parent, size_t pndx);
-    Spec(Allocator& alloc, size_t ref, ArrayParent *parent, size_t pndx);
-    Spec(const Spec& s);
-
     void add_column(ColumnType type, const char* name);
     Spec add_subtable_column(const char* name);
 
+    // FIXME: It seems that the application must make sure that the
+    // parent Spec object is kept alive for at least as long as the
+    // spec that is returned. This also has implications for language
+    // bindings such as Java.
     Spec get_subspec(size_t column_ndx);
     const Spec get_subspec(size_t column_ndx) const;
+private:
     size_t get_subspec_ref(size_t column_ndx) const;
+public:
 
     // Direct access to type and attribute list
     size_t get_type_attr_count() const;
@@ -49,12 +51,20 @@ public:
     size_t get_column_count() const;
     ColumnType get_column_type(size_t column_ndx) const;
     ColumnType get_real_column_type(size_t column_ndx) const;
-    void set_column_type(size_t column_ndx, ColumnType type);
     const char* get_column_name(size_t column_ndx) const;
+
+    /// Returns std::size_t(-1) if the specified column is not found.
     size_t get_column_index(const char* name) const;
 
     // Column Attributes
     ColumnType get_column_attr(size_t column_ndx) const;
+    // FIXME: What is the purpose of this one? Should it be public? It
+    // is not called from anywhere. If it must be public, it must aslo
+    // be made to emit a transaction log instruction. If it must also
+    // be internally callable from a function that itself emits a
+    // transaction log instruction, then the internal call must be to
+    // a version of this function that does not emit a transaction log
+    // instruction.
     void set_column_attr(size_t column_ndx, ColumnType attr);
 
 #ifdef _DEBUG
@@ -63,10 +73,11 @@ public:
     void to_dot(std::ostream& out, const char* title=NULL) const;
 #endif //_DEBUG
 
-private:
-    friend class Table;
+    Spec(const Spec& s);
+    ~Spec();
 
-    void create(size_t ref, ArrayParent *parent, size_t pndx);
+private:
+    void init_from_ref(size_t ref, ArrayParent *parent, size_t pndx);
     void destroy();
 
     size_t get_ref() const;
@@ -75,14 +86,86 @@ private:
     bool update_from_parent();
     void set_parent(ArrayParent* parent, size_t pndx);
 
+    // FIXME: This one was made private because it is called
+    // internally from Table::optimize(), and it is not call from any
+    // test case. If it must be public, it must aslo be made to emit a
+    // transaction log instruction, but the internal call must then
+    // call a different version that does not emit such an
+    // instruction.
+    void set_column_type(size_t column_ndx, ColumnType type);
+
     // Serialization
     template<class S> size_t write(S& out, size_t& pos) const;
 
+    const Table* const m_table;
     Array m_specSet;
     Array m_spec;
     ArrayString m_names;
     Array m_subSpecs;
+
+    Spec(const Table*, Allocator&); // Uninitialized
+    Spec(const Table*, Allocator&, ArrayParent* parent, size_t pndx);
+    Spec(const Table*, Allocator&, size_t ref, ArrayParent *parent, size_t pndx);
+
+    /// Construct an empty spec and return just the reference to the
+    /// underlying memory.
+    ///
+    /// \return Zero if allocation fails.
+    ///
+    static size_t create_empty_spec(Allocator&);
+
+#ifdef TIGHTDB_ENABLE_REPLICATION
+    size_t* record_subspec_path(const ArrayParent* root, size_t* begin, size_t* end) const;
+#endif
+
+    friend class Table;
 };
+
+
+
+
+// Implementation:
+
+inline size_t Spec::create_empty_spec(Allocator& alloc)
+{
+    // The 'spec_set' contains the specification (types and names) of
+    // all columns and sub-tables
+    Array spec_set(COLUMN_HASREFS, 0, 0, alloc);
+    spec_set.add(Array::create_empty_array(COLUMN_NORMAL, alloc)); // One type for each column
+    spec_set.add(ArrayString::create_empty_string_array(alloc)); // One name for each column
+    return spec_set.GetRef();
+}
+
+// Uninitialized Spec (call UpdateRef to init)
+inline Spec::Spec(const Table* table, Allocator& alloc):
+    m_table(table), m_specSet(alloc), m_spec(alloc), m_names(alloc), m_subSpecs(alloc) {}
+
+// Create a new Spec
+inline Spec::Spec(const Table* table, Allocator& alloc, ArrayParent* parent, size_t ndx_in_parent):
+    m_table(table), m_specSet(alloc), m_spec(alloc), m_names(alloc), m_subSpecs(alloc)
+{
+    const size_t ref = create_empty_spec(alloc);
+    if (!ref) throw_error(ERROR_OUT_OF_MEMORY); // FIXME: Check that this exception is handled properly in callers
+    init_from_ref(ref, parent, ndx_in_parent);
+}
+
+// Create Spec from ref
+inline Spec::Spec(const Table* table, Allocator& alloc, size_t ref, ArrayParent* parent, size_t pndx):
+    m_table(table), m_specSet(alloc), m_spec(alloc), m_names(alloc), m_subSpecs(alloc)
+{
+    init_from_ref(ref, parent, pndx);
+}
+
+inline Spec::Spec(const Spec& s):
+    m_table(s.m_table), m_specSet(s.m_specSet.GetAllocator()), m_spec(s.m_specSet.GetAllocator()),
+    m_names(s.m_specSet.GetAllocator()), m_subSpecs(s.m_specSet.GetAllocator())
+{
+    const size_t ref    = s.m_specSet.GetRef();
+    ArrayParent *parent = s.m_specSet.GetParent();
+    const size_t pndx   = s.m_specSet.GetParentNdx();
+
+    init_from_ref(ref, parent, pndx);
+}
 
 
 } // namespace tightdb

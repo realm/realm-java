@@ -27,10 +27,9 @@
 namespace tightdb {
 
 
-/**
- * Common base class for BasicTableView<Tab> and BasicTableView<const
- * Tab>.
- */
+/// Common base class for BasicTableView<Tab> and BasicTableView<const
+/// Tab>.
+///
 template<class Tab, class View, class Impl> class BasicTableViewBase {
 public:
     typedef typename Tab::spec_type spec_type;
@@ -90,6 +89,7 @@ public:
 
 protected:
     template<class, int, class, bool> friend class _impl::FieldAccessor;
+    template<class, int, class> friend class _impl::MixedFieldAccessorBase;
 
     Impl m_impl;
 
@@ -103,35 +103,34 @@ protected:
 
 
 
-/**
- * A BasicTableView wraps a TableView and provides a type and
- * structure safe set of access methods. The TableView methods are not
- * visible through a BasicTableView. A BasicTableView is used
- * essentially the same way as a BasicTable.
- *
- * Note that this class is specialized for const-qualified parent
- * tables.
- *
- * There are three levels of consteness to consider. A 'const
- * BasicTableView<Tab>' prohibits any modification of the table as
- * well as any modification of the table view, regardless of whether
- * Tab is const-qualified or not.
- *
- * A non-const 'BasicTableView<Tab>' where Tab is const-qualified,
- * still does not allow any modification of the parent table. However,
- * the view itself may be modified, for example, by reordering its
- * rows.
- *
- * A non-const 'BasicTableView<Tab>' where Tab is not const-qualified,
- * gives full modification access to both the parent table and the
- * view.
- *
- * Just like TableView, a BasicTableView has both copy and move
- * semantics. See TableView for more on this.
- *
- * \tparam Tab The possibly const-qualified parent table type. This
- * must always be an instance of the BasicTable template.
- */
+/// A BasicTableView wraps a TableView and provides a type and
+/// structure safe set of access methods. The TableView methods are
+/// not visible through a BasicTableView. A BasicTableView is used
+/// essentially the same way as a BasicTable.
+///
+/// Note that this class is specialized for const-qualified parent
+/// tables.
+///
+/// There are three levels of consteness to consider. A 'const
+/// BasicTableView<Tab>' prohibits any modification of the table as
+/// well as any modification of the table view, regardless of whether
+/// Tab is const-qualified or not.
+///
+/// A non-const 'BasicTableView<Tab>' where Tab is const-qualified,
+/// still does not allow any modification of the parent
+/// table. However, the view itself may be modified, for example, by
+/// reordering its rows.
+///
+/// A non-const 'BasicTableView<Tab>' where Tab is not
+/// const-qualified, gives full modification access to both the parent
+/// table and the view.
+///
+/// Just like TableView, a BasicTableView has both copy and move
+/// semantics. See TableView for more on this.
+///
+/// \tparam Tab The possibly const-qualified parent table type. This
+/// must always be an instance of the BasicTable template.
+///
 template<class Tab>
 class BasicTableView: public BasicTableViewBase<Tab, BasicTableView<Tab>, TableView> {
 private:
@@ -168,6 +167,7 @@ private:
 
     friend class BasicTableView<const Tab>;
     template<class, int, class, bool> friend class _impl::FieldAccessor;
+    template<class, int, class> friend class _impl::MixedFieldAccessorBase;
     template<class, int, class> friend class _impl::ColumnAccessorBase;
     template<class, int, class> friend class _impl::ColumnAccessor;
     friend class Tab::Query;
@@ -176,9 +176,8 @@ private:
 
 
 
-/**
- * Specialization for 'const' access to parent table.
- */
+/// Specialization for 'const' access to parent table.
+///
 template<class Tab> class BasicTableView<const Tab>:
     public BasicTableViewBase<const Tab, BasicTableView<const Tab>, ConstTableView> {
 private:
@@ -189,14 +188,12 @@ public:
     BasicTableView& operator=(BasicTableView tv) { Base::m_impl = move(tv.m_impl); return *this; }
     friend BasicTableView move(BasicTableView& tv) { return BasicTableView(&tv); }
 
-    /**
-     * Construct BasicTableView<const Tab> from BasicTableView<Tab>.
-     */
+    /// Construct BasicTableView<const Tab> from BasicTableView<Tab>.
+    ///
     BasicTableView(BasicTableView<Tab> tv): Base(move(tv.m_impl)) {}
 
-    /**
-     * Assign BasicTableView<Tab> to BasicTableView<const Tab>.
-     */
+    /// Assign BasicTableView<Tab> to BasicTableView<const Tab>.
+    ///
     BasicTableView& operator=(BasicTableView<Tab> tv)
     {
         Base::m_impl = move(tv.m_impl);
@@ -216,6 +213,7 @@ private:
     }
 
     template<class, int, class, bool> friend class _impl::FieldAccessor;
+    template<class, int, class> friend class _impl::MixedFieldAccessorBase;
     template<class, int, class> friend class _impl::ColumnAccessorBase;
     template<class, int, class> friend class _impl::ColumnAccessor;
     friend class Tab::Query;
