@@ -63,7 +63,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 		return AbstractSubtable.createSubtable(tableClass, subtableBase);
 	}
 
-	/*
+	/**
 	 * Check if the subtable (this cursor points at) is the same as the tableClass provided as parameter
 	 */
 	public <Tbl extends AbstractTable<?, ?, ?>> boolean isSubtable(Class<Tbl> tableClass) {
@@ -71,22 +71,14 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 			throw new IllegalArgumentException("The mixed value doesn't contain a sub-table!");
 		}
 
-/*
 		TableBase subtableBase = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
-		
 		TableSpec spec = subtableBase.getTableSpec();
 		
 		// Build table schema
 		final TableSpec spec2 = new TableSpec();
+		AbstractTable.specifyTableStructure(tableClass, spec2);
 		
-		// hmmm can't call this as it isn't static.
-		Tbl.specifyStructure(spec2);
-		
-		// compare specs: spec and spec2
-		// ......
-*/		
-		return true; // FIXME: implement this, hopefully delegate to some native
-						// method to check the spec
+		return spec.equals(spec2);
 	}
 
 }

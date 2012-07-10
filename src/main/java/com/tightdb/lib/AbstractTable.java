@@ -26,17 +26,18 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		this(types, group.getTable(types.getTableClass().getCanonicalName()));
 	}
 
+	@SuppressWarnings("unchecked")
 	protected AbstractTable(EntityTypes<?, View, Cursor, Query> types, TableBase table) {
 		super(types, table);
 		this.table = table;
 		if (table != null && table.getTableSpec().getColumnCount() <= 0) {
 			// Build table schema
 			final TableSpec spec = new TableSpec();
-			specifyStructure(spec);
+			specifyTableStructure((Class<? extends AbstractTable<?, ?, ?>>) types.getTableClass(), spec);
 			table.updateFromSpec(spec);
 		}
 	}
-	
+
 	@Override
 	public String getName() {
 		return getClass().getSimpleName();
@@ -47,37 +48,43 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		return table.size();
 	}
 
-	
-	protected void addLongColumn(TableSpec spec, String name) {
+	protected static void addLongColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeInt, name);
 	}
 
-	protected void addStringColumn(TableSpec spec, String name) {
+	protected static void addStringColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeString, name);
 	}
 
-	protected void addBooleanColumn(TableSpec spec, String name) {
+	protected static void addBooleanColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeBool, name);
 	}
 
-	protected void addBinaryColumn(TableSpec spec, String name) {
+	protected static void addBinaryColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeBinary, name);
 	}
 
-	protected void addDateColumn(TableSpec spec, String name) {
+	protected static void addDateColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeDate, name);
 	}
 
-	protected void addMixedColumn(TableSpec spec, String name) {
+	protected static void addMixedColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeMixed, name);
 	}
 
-	protected void addTableColumn(TableSpec spec, String name, AbstractTable<?, ?, ?> subtable) {
+	@SuppressWarnings("unchecked")
+	protected static void addTableColumn(TableSpec spec, String name, AbstractTable<?, ?, ?> subtable) {
 		TableSpec subspec = spec.addSubtableColumn(name);
-		subtable.specifyStructure(subspec);
+		specifyTableStructure((Class<? extends AbstractTable<?, ?, ?>>) subtable.getClass(), subspec);
 	}
 
-	protected abstract void specifyStructure(TableSpec spec);
+	protected static void specifyTableStructure(Class<? extends AbstractTable<?, ?, ?>> tableClass, TableSpec spec) {
+		try {
+			tableClass.getMethod("specifyStructure", TableSpec.class).invoke(tableClass, spec);
+		} catch (Exception e) {
+			throw new RuntimeException("Couldn't specify the table structure!", e);
+		}
+	}
 
 	protected void insertLong(long columnIndex, long rowIndex, long value) {
 		table.insertLong(columnIndex, rowIndex, value);
