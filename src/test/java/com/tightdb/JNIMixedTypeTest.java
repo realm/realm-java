@@ -8,11 +8,9 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.testng.annotations.AfterTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.tightdb.lib.TightDB;
 import com.tightdb.test.DataProviderUtil;
 import com.tightdb.test.MixedData;
 

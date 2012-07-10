@@ -1,12 +1,13 @@
 package com.tightdb.lib;
 
 import static org.testng.AssertJUnit.*;
+
 import java.util.Date;
 
 import org.testng.annotations.Test;
 
 import com.tightdb.Group;
-import com.tightdb.generated.EmployeeTable;
+import com.tightdb.example.generated.EmployeeTable;
 
 public class GroupTest {
 

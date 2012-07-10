@@ -1,13 +1,14 @@
 package com.tightdb.lib;
 
 import static org.testng.AssertJUnit.*;
+
 import org.testng.annotations.Test;
 
-import com.tightdb.generated.Employee;
-import com.tightdb.generated.Phone;
-import com.tightdb.generated.PhoneQuery;
-import com.tightdb.generated.PhoneTable;
-import com.tightdb.generated.PhoneView;
+import com.tightdb.example.generated.Employee;
+import com.tightdb.example.generated.Phone;
+import com.tightdb.example.generated.PhoneQuery;
+import com.tightdb.example.generated.PhoneTable;
+import com.tightdb.example.generated.PhoneView;
 
 public class SubtableTest extends AbstractTableTest {
 

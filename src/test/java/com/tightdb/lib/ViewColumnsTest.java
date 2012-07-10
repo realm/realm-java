@@ -6,8 +6,8 @@ import java.util.Date;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.generated.Employee;
-import com.tightdb.generated.EmployeeView;
+import com.tightdb.example.generated.Employee;
+import com.tightdb.example.generated.EmployeeView;
 import com.tightdb.test.EmployeesFixture;
 
 public class ViewColumnsTest extends AbstractViewTest {

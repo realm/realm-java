@@ -1,9 +1,8 @@
 package com.tightdb;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 import org.testng.annotations.Test;
-import com.tightdb.Mixed;
 
 public class JNIMixedSubtableTest {
 

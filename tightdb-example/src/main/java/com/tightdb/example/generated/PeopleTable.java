@@ -20,8 +20,7 @@ public class PeopleTable extends AbstractTable<People, PeopleView, PeopleQuery> 
 	public PeopleTable(Group group) {
 		super(TYPES, group);
 	}
-	@Override
-	protected void specifyStructure(TableSpec spec) {
+	public static void specifyStructure(TableSpec spec) {
         addStringColumn(spec, "name");
         addLongColumn(spec, "age");
         addBooleanColumn(spec, "hired");

@@ -7,9 +7,6 @@ import java.util.List;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.tightdb.ColumnType;
-import com.tightdb.TableBase;
-import com.tightdb.TableSpec;
 import com.tightdb.test.DataProviderUtil;
 
 public class JNITableSpecTest {

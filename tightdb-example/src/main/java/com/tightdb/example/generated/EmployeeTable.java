@@ -25,8 +25,7 @@ public class EmployeeTable extends AbstractTable<Employee, EmployeeView, Employe
 	public EmployeeTable(Group group) {
 		super(TYPES, group);
 	}
-	@Override
-	protected void specifyStructure(TableSpec spec) {
+	public static void specifyStructure(TableSpec spec) {
         addStringColumn(spec, "firstName");
         addStringColumn(spec, "lastName");
         addLongColumn(spec, "salary");
