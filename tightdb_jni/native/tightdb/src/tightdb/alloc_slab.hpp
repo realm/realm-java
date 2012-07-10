@@ -31,6 +31,7 @@
 namespace tightdb {
 
 // Pre-declarations
+class Group;
 class GroupWriter;
 
 class SlabAlloc : public Allocator {
@@ -69,6 +70,7 @@ public:
 #endif //_DEBUG
 
 protected:
+    friend class Group;
     friend class GroupWriter;
 
     // Define internal tables
@@ -100,6 +102,11 @@ protected:
 #ifdef _DEBUG
     bool      m_debugOut;
 #endif //_DEBUG
+
+private:
+#ifdef TIGHTDB_ENABLE_REPLICATION
+    void set_replication(Replication* r) { m_replication = r; }
+#endif
 };
 
 

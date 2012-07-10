@@ -58,8 +58,10 @@ public class TableViewBase implements IRowsetBase {
 		this.table = table;
 		this.tableView = null;
 		this.nativePtr = createNativeTableView(table, table.nativePtr);
+		if (this.nativePtr == 0) 
+			throw new OutOfMemoryError("Out of native memory.");
 	}
-	
+
 	/**
 	 * Creates a TableViewBase with a Java Object Table and a already created
 	 * native reference to a TableView. This method is not supposed to be 
@@ -94,7 +96,7 @@ public class TableViewBase implements IRowsetBase {
 	 * @return true if empty, otherwise false.
 	 */
 	public boolean isEmpty(){
-		return size() != 0;
+		return nativeSize(nativePtr) != 0;
 	}
 
 	/**

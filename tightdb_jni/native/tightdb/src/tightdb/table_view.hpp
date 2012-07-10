@@ -60,7 +60,7 @@ public:
     size_t find_first_int(size_t column_ndx, int64_t value) const;
     size_t find_first_bool(size_t column_ndx, bool value) const;
     size_t find_first_date(size_t column_ndx, time_t value) const;
-    size_t find_first_string(size_t column_ndx, const char* value) const; 
+    size_t find_first_string(size_t column_ndx, const char* value) const;
     // FIXME: Need: size_t find_first_binary(size_t column_ndx, const char* value, size_t len) const;
 
     // Aggregate functions
@@ -364,7 +364,7 @@ inline BinaryData TableViewBase::get_binary(size_t column_ndx, size_t row_ndx) c
 inline Mixed TableViewBase::get_mixed(size_t column_ndx, size_t row_ndx) const
 {
     TIGHTDB_ASSERT_INDEX_AND_TYPE(column_ndx, row_ndx, COLUMN_TYPE_MIXED);
-    
+
     const size_t real_ndx = size_t(m_refs.Get(row_ndx));
     return m_table->get_mixed(column_ndx, real_ndx);
 }
@@ -531,7 +531,7 @@ inline ConstTableView ConstTableView::find_all_date(size_t column_ndx, time_t va
 inline TableRef TableView::get_subtable(size_t column_ndx, size_t row_ndx)
 {
     TIGHTDB_ASSERT_INDEX_AND_TYPE(column_ndx, row_ndx, COLUMN_TYPE_TABLE);
-    
+
     const size_t real_ndx = size_t(m_refs.Get(row_ndx));
     return m_table->get_subtable(column_ndx, real_ndx);
 }
@@ -591,7 +591,7 @@ inline void TableView::set_date(size_t column_ndx, size_t row_ndx, time_t value)
 template<class E> inline void TableView::set_enum(size_t column_ndx, size_t row_ndx, E value)
 {
     const size_t real_ndx = size_t(m_refs.Get(row_ndx));
-    m_table->set_int(column_ndx, row_ndx, value);
+    m_table->set_int(column_ndx, real_ndx, value);
 }
 
 inline void TableView::set_string(size_t column_ndx, size_t row_ndx, const char* value)
@@ -620,7 +620,7 @@ inline void TableView::set_mixed(size_t column_ndx, size_t row_ndx, Mixed value)
 
 inline void TableView::add_int(size_t column_ndx, int64_t value)
 {
-    m_table->add_int(column_ndx, value); 
+    m_table->add_int(column_ndx, value);
 }
 
 } // namespace tightdb

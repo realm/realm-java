@@ -20,6 +20,8 @@
 #ifndef TIGHTDB_LANG_BIND_HELPER_HPP
 #define TIGHTDB_LANG_BIND_HELPER_HPP
 
+#include <new>
+
 #include "table.hpp"
 #include "table_view.hpp"
 #include "group.hpp"
@@ -27,24 +29,25 @@
 namespace tightdb {
 
 
-/**
- * These functions are only to be used by language bindings to gain
- * access to certain otherwise private memebers.
- *
- * \note An application must never call these functions directly.
- *
- * All the get_*_ptr() functions in this class will return a Table
- * pointer where the reference count has already been incremented. 
- *
- * The application must make sure that the unbind_table_ref() function is
- * called to decrement the reference count when it no longer needs
- * access to that table. The order of unbinding is important as you must 
- * unbind subtables to a table before unbinding the table itself.
- * 
- */
+/// These functions are only to be used by language bindings to gain
+/// access to certain otherwise private memebers.
+///
+/// \note An application must never call these functions directly.
+///
+/// All the get_*_ptr() functions in this class will return a Table
+/// pointer where the reference count has already been incremented.
+///
+/// The application must make sure that the unbind_table_ref() function is
+/// called to decrement the reference count when it no longer needs
+/// access to that table. The order of unbinding is important as you must
+/// unbind subtables to a table before unbinding the table itself.
+///
 class LangBindHelper {
 public:
-    static Table* new_table();
+    /// Construct a freestanding table. Returns null on memory
+    /// allocation failure.
+    static Table* new_table(); // FIXME: Verify that the caller checks for null!
+
     static Table* get_subtable_ptr(Table*, size_t column_ndx, size_t row_ndx);
     static const Table* get_subtable_ptr(const Table*, size_t column_ndx, size_t row_ndx);
 
@@ -59,11 +62,17 @@ public:
 };
 
 
+
+
 // Implementation:
 
-inline Table* LangBindHelper::new_table() 
+inline Table* LangBindHelper::new_table()
 {
-    Table* table = new Table();
+    Allocator& alloc = GetDefaultAllocator();
+    const size_t ref = Table::create_empty_table(alloc);
+    if (!ref) return 0;
+    Table* const table = new (std::nothrow) Table(Table::RefCountTag(), alloc, ref, 0, 0);
+    if (!table) return 0;
     table->bind_ref();
     return table;
 }

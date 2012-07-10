@@ -45,8 +45,6 @@ import com.tightdb.lib.TightDB;
 
 public class TableBase implements IRowsetBase {
 	protected long nativePtr;
-	// Keep a reference to the parent to ensure finalize() doesn't happen for the parent before this.
-	public Object parent;
 	
 	// test:
 	protected int tableNo;
@@ -66,8 +64,9 @@ public class TableBase implements IRowsetBase {
 		// Native methods work will be initialized here. Generated classes will
 		// have nothing to do with the native functions. Generated Java Table
 		// classes will work as a wrapper on top of table.
-		parent = null;
 		nativePtr = createNative();
+		if (nativePtr == 0)
+			throw new OutOfMemoryError("Out of native memory.");
 		if (DEBUG) {
 			tableNo = ++TableCount;
 			System.err.println("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
@@ -77,7 +76,6 @@ public class TableBase implements IRowsetBase {
 	protected native long createNative();
 
 	protected TableBase(Object parent, long nativePtr) {
-		this.parent = parent;
 		this.nativePtr = nativePtr;
 		if (DEBUG) {
 			tableNo = ++TableCount;
@@ -92,17 +90,27 @@ public class TableBase implements IRowsetBase {
 	}
 
 	public synchronized void close() {
-		
 		if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
 		if (nativePtr == 0)
 			return;
 		if (DEBUG) TableCount--;
 		nativeClose(nativePtr);
 		nativePtr = 0;
-		parent = null;
 	}
 
 	protected native void nativeClose(long nativeTablePtr);
+
+	/*
+	 * Check if the Table is valid.
+	 * Whenever a Table/subtable is changed/updated all it's subtables are invalidated.
+	 * You can no longer perform any actions on the table, and if done anyway, an exception is thrown.
+	 * The only method you can call is 'isValid()'.
+	 */
+	public boolean isValid(){
+		return nativeIsValid(nativePtr);
+	}
+	
+	protected native boolean nativeIsValid(long nativeTablePtr);
 
 	/**
 	 * Updates a table specification from a Table specification structure.

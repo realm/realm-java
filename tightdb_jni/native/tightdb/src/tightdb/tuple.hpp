@@ -37,16 +37,51 @@ template<class L> struct Tuple {
 template<> struct Tuple<void> {};
 
 
-inline Tuple<void> tuple() { return Tuple<void>(); }
-
-template<class T> inline Tuple<TypeCons<T, void> > tuple(const T& v)
-{
-    return Tuple<TypeCons<T, void> >(v, tuple());
-}
-
 template<class H, class T> inline Tuple<TypeCons<H,T> > cons(const H& h, const Tuple<T>& t)
 {
     return Tuple<TypeCons<H,T> >(h,t);
+}
+
+
+inline Tuple<void> tuple() { return Tuple<void>(); }
+
+template<class A> inline Tuple<TypeCons<A, void> > tuple(const A& a)
+{
+    return cons(a, tuple());
+}
+
+template<class A, class B>
+inline Tuple<TypeCons<A, TypeCons<B, void> > > tuple(const A& a, const B& b)
+{
+    return cons(a, tuple(b));
+}
+
+template<class A, class B, class C>
+inline Tuple<TypeCons<A, TypeCons<B, TypeCons<C, void> > > >
+tuple(const A& a, const B& b, const C& c)
+{
+    return cons(a, tuple(b,c));
+}
+
+template<class A, class B, class C, class D>
+inline Tuple<TypeCons<A, TypeCons<B, TypeCons<C, TypeCons<D, void> > > > >
+tuple(const A& a, const B& b, const C& c, const D& d)
+{
+    return cons(a, tuple(b,c,d));
+}
+
+template<class A, class B, class C, class D, class E>
+inline Tuple<TypeCons<A, TypeCons<B, TypeCons<C, TypeCons<D, TypeCons<E, void> > > > > >
+tuple(const A& a, const B& b, const C& c, const D& d, const E& e)
+{
+    return cons(a, tuple(b,c,d,e));
+}
+
+template<class A, class B, class C, class D, class E, class F> inline
+Tuple<TypeCons<A, TypeCons<B, TypeCons<C, TypeCons<D, TypeCons<E, TypeCons<F, void> > > > > > >
+tuple(const A& a, const B& b, const C& c, const D& d, const E& e, const F& f)
+{
+    return cons(a, tuple(b,c,d,e,f));
 }
 
 
@@ -92,13 +127,31 @@ namespace _impl {
     }
 }
 
-template<int i, class L> typename TypeAt<L,i>::type at(const Tuple<L>& tuple)
+template<int i, class L> inline typename TypeAt<L,i>::type at(const Tuple<L>& tuple)
 {
     return _impl::TupleAt<L,i>::exec(tuple);
 }
 
+template<template<class T> class Op, class L>
+inline void for_each(const Tuple<L>& tuple)
+{
+    Op<typename L::head>()(tuple.head);
+    for_each<Op>(tuple.m_tail);
+}
+template<template<class T> class Op>
+inline void for_each(const Tuple<void>&) {}
+
+template<template<class T> class Op, class L, class A>
+inline void for_each(const Tuple<L>& tuple, const A& a)
+{
+    Op<typename L::head>()(tuple.m_head, a);
+    for_each<Op>(tuple.m_tail, a);
+}
+template<template<class T> class Op, class A>
+inline void for_each(const Tuple<void>&, const A&) {}
+
 template<class Ch, class Tr, class L>
-std::basic_ostream<Ch, Tr>& operator<<(std::basic_ostream<Ch, Tr>& out, const Tuple<L>& t)
+inline std::basic_ostream<Ch, Tr>& operator<<(std::basic_ostream<Ch, Tr>& out, const Tuple<L>& t)
 {
     out << '(';
     _impl::write(out, t);

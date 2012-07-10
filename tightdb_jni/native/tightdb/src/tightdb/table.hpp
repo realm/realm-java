@@ -25,6 +25,10 @@
 #include "spec.hpp"
 #include "mixed.hpp"
 
+#ifdef TIGHTDB_ENABLE_REPLICATION
+#include <tightdb/replication.hpp>
+#endif
+
 namespace tightdb {
 
 using std::size_t;
@@ -34,26 +38,70 @@ class TableView;
 class ConstTableView;
 
 
-/**
- * The Table class is non-polymorphic, that is, it has no virtual
- * functions. This is important because it ensures that there is no
- * run-time distinction between a Table instance and an instance of
- * any variation of BasicTable<T>, and this, in turn, makes it valid
- * to cast a pointer from Table to BasicTable<T> even when the
- * instance is constructed as a Table. Of couse, this also assumes
- * that BasicTable<> is non-polymorphic, has no destructor, and adds
- * no extra data members.
- */
+/// The Table class is non-polymorphic, that is, it has no virtual
+/// functions. This is important because it ensures that there is no
+/// run-time distinction between a Table instance and an instance of
+/// any variation of BasicTable<T>, and this, in turn, makes it valid
+/// to cast a pointer from Table to BasicTable<T> even when the
+/// instance is constructed as a Table. Of couse, this also assumes
+/// that BasicTable<> is non-polymorphic, has no destructor, and adds
+/// no extra data members.
+///
+/// FIXME: Table copying (from any group to any group) could be made
+/// aliasing safe as follows: Start by cloning source table into
+/// target allocator. On success, assign, and then deallocate any
+/// previous structure at the target.
+///
+/// FIXME: It might be desirable to have a 'table move' feature
+/// between two places inside the same group (say from a subtable or a
+/// mixed column to group level). This could be done in a very
+/// efficient manner.
+///
+/// FIXME: When compiling in debug mode, all table methods should
+/// should assert(is_valid()).
+///
 class Table {
 public:
-    // Construct a new top-level table with an independent schema.
+    // Construct a new top-level table with an independent spec.
     Table(Allocator& alloc = GetDefaultAllocator());
     ~Table();
 
-    // Schema handling (see also Spec.hpp)
+    /// An invalid table must not be accessed in any way except by
+    /// calling is_valid(). A table that is obtained from a Group
+    /// becomes invalid if its group is destroyed. This is also true
+    /// for any subtable that is obtained indirectly from a group. A
+    /// subtable will generally become invalid if its parent table is
+    /// modified. Calling a const member function on a parent table,
+    /// will never invalidate its subtables. A free standing table
+    /// will never become invalid. A subtable of a freestanding table
+    /// may become invalid.
+    ///
+    /// FIXME: High level language bindings will probably want to be
+    /// able to explicitely invalidate a group and all tables of that
+    /// group if any modifying operation fails (e.g. memory allocation
+    /// failure) (and something similar for freestanding tables) since
+    /// that leaves the group in state where any further access is
+    /// disallowed. This way they will be able to reliably intercept
+    /// any attempt at accessing such a failed group.
+    ///
+    /// FIXME: The C++ documentation must state that if any modifying
+    /// operation on a group (incl. tables, subtables, and specs), or
+    /// on a free standing table (incl. subtables and specs), then any
+    /// further access to that group (except ~Group()) or freestanding
+    /// table (except ~Table()) has undefined behaviour and is
+    /// considered an error on behalf of the application. Note that
+    /// even Table::is_valid() is disallowed in this case.
+    ///
+    /// FIXME: When Spec changes become possible for non-empty tables,
+    /// such changes would generally have to invalidate subtables
+    /// (except add_column()).
+    ///
+    bool is_valid() const { return m_columns.HasParent(); }
+
+    // Schema handling (see also <tightdb/spec.hpp>)
     Spec&       get_spec();
     const Spec& get_spec() const;
-    void        update_from_spec(); // Must not be called for a table with shared schema
+    void        update_from_spec(); // Must not be called for a table with shared spec
                 // Add a column dynamically
     size_t      add_column(ColumnType type, const char* name);
 
@@ -69,8 +117,8 @@ public:
     ColumnType  get_column_type(size_t column_ndx) const;
 
     // Row handling
-    size_t      add_empty_row(size_t num_of_rows = 1);
-    void        insert_empty_row(size_t row_ndx, size_t num_of_rows = 1);
+    size_t      add_empty_row(size_t num_rows = 1);
+    void        insert_empty_row(size_t row_ndx, size_t num_rows = 1);
     void        remove(size_t row_ndx);
     void        remove_last() {if (!is_empty()) remove(m_size-1);}
 
@@ -104,12 +152,15 @@ public:
     void set_mixed(size_t column_ndx, size_t row_ndx, Mixed value);
     void add_int(size_t column_ndx, int64_t value);
 
-    // Sub-tables (works on columns whose type is either 'subtable' or 'mixed', for a value in a mixed column that is not a subtable, get_subtable() returns null, get_subtable_size() returns zero, and clear_subtable() does nothing.)
+    // Sub-tables (works on columns whose type is either 'subtable' or
+    // 'mixed', for a value in a mixed column that is not a subtable,
+    // get_subtable() returns null, get_subtable_size() returns zero,
+    // and clear_subtable() replaces the value with an empty table.)
     TableRef        get_subtable(size_t column_ndx, size_t row_ndx);
     ConstTableRef   get_subtable(size_t column_ndx, size_t row_ndx) const;
     size_t          get_subtable_size(size_t column_ndx, size_t row_ndx) const;
     void            clear_subtable(size_t column_ndx, size_t row_ndx);
-    void            insert_subtable(size_t column_ndx, size_t row_ndx); // Insert empty table
+    void            insert_subtable(size_t column_ndx, size_t row_ndx); // Insert empty table FIXME: Does not work for mixed columns yet (note that is must invalidate subtables).
 
     // Indexing
     bool has_index(size_t column_ndx) const;
@@ -185,36 +236,33 @@ protected:
     const ColumnMixed& GetColumnMixed(size_t column_ndx) const;
 
 
-    /**
-     * Construct a top-level table with independent schema from ref.
-     */
-    Table(Allocator& alloc, size_t top_ref, Parent* parent, size_t ndx_in_parent);
+    /// Used when the lifetime of a table is managed by reference
+    /// counting. The lifetime of free-standing tables allocated on
+    /// the stack by the application is not managed by reference
+    /// counting, so that is a case where this tag must not be
+    /// specified.
+    ///
+    class RefCountTag {};
 
-    /**
-     * Used when constructing subtables, that is, tables whose
-     * lifetime is managed by reference counting, and not by the
-     * application.
-     */
-    class SubtableTag {};
-
-    /**
-     * Construct a subtable with independent schema from ref.
-     */
-    Table(SubtableTag, Allocator& alloc, size_t top_ref,
+    /// Construct a wrapper for a table with independent spec, and
+    /// whose lifetime is managed by reference counting.
+    ///
+    Table(RefCountTag, Allocator& alloc, size_t top_ref,
           Parent* parent, size_t ndx_in_parent);
 
-    /**
-     * Construct a subtable with shared schema from ref.
-     *
-     * It is possible to construct a 'null' table by passing zero for
-     * columns_ref, in this case the columns will be created on
-     * demand.
-     */
-    Table(SubtableTag, Allocator& alloc, size_t schema_ref, size_t columns_ref,
+    /// Construct a wrapper for a table with shared spec, and whose
+    /// lifetime is managed by reference counting.
+    ///
+    /// It is possible to construct a 'null' table by passing zero for
+    /// \a columns_ref, in this case the columns will be created on
+    /// demand.
+    ///
+    Table(RefCountTag, Allocator& alloc, size_t spec_ref, size_t columns_ref,
           Parent* parent, size_t ndx_in_parent);
 
-    void Create(size_t ref_specSet, size_t ref_columns,
-                ArrayParent* parent, size_t ndx_in_parent);
+    void init_from_ref(size_t top_ref, ArrayParent* parent, size_t ndx_in_parent);
+    void init_from_ref(size_t spec_ref, size_t columns_ref,
+                       ArrayParent* parent, size_t ndx_in_parent);
     void CreateColumns();
     void CacheColumns();
     void ClearCachedColumns();
@@ -240,25 +288,25 @@ protected:
     // Cached columns
     Array m_cols;
 
-    /**
-     * Get the subtable at the specified column and row index.
-     *
-     * The returned table pointer must always end up being wrapped in
-     * a TableRef.
-     */
+    /// Get the subtable at the specified column and row index.
+    ///
+    /// The returned table pointer must always end up being wrapped in
+    /// a TableRef.
+    ///
     Table *get_subtable_ptr(size_t col_idx, size_t row_idx);
 
-    /**
-     * Get the subtable at the specified column and row index.
-     *
-     * The returned table pointer must always end up being wrapped in
-     * a ConstTableRef.
-     */
+    /// Get the subtable at the specified column and row index.
+    ///
+    /// The returned table pointer must always end up being wrapped in
+    /// a ConstTableRef.
+    ///
     const Table *get_subtable_ptr(size_t col_idx, size_t row_idx) const;
 
 private:
     Table(Table const &); // Disable copy construction
     Table &operator=(Table const &); // Disable copying assignment
+
+    void invalidate();
 
     mutable size_t m_ref_count;
     void bind_ref() const { ++m_ref_count; }
@@ -267,15 +315,24 @@ private:
     ColumnBase& GetColumnBase(size_t column_ndx);
     void InstantiateBeforeChange();
 
-    /**
-     * Construct a table with independent schema and return just the
-     * reference to the underlying memory.
-     */
-    static size_t create_table(Allocator&);
+    /// Construct an empty table with independent spec and return just
+    /// the reference to the underlying memory.
+    ///
+    /// \return Zero if allocation fails.
+    ///
+    static size_t create_empty_table(Allocator&);
 
     // Experimental
     TableView find_all_hamming(size_t column_ndx, uint64_t value, size_t max);
     ConstTableView find_all_hamming(size_t column_ndx, uint64_t value, size_t max) const;
+
+#ifdef TIGHTDB_ENABLE_REPLICATION
+    struct LocalTransactLog;
+    LocalTransactLog get_local_transact_log();
+    size_t* record_subspec_path(const Spec*, size_t* begin, size_t* end) const;
+    size_t* record_subtable_path(size_t* begin, size_t* end) const;
+    friend class Replication;
+#endif
 
     friend class Group;
     friend class Query;
@@ -295,12 +352,51 @@ protected:
      * Must be called whenever a child Table is destroyed.
      */
     virtual void child_destroyed(size_t child_ndx) = 0;
+
+#ifdef TIGHTDB_ENABLE_REPLICATION
+    virtual size_t* record_subtable_path(size_t* begin, size_t* end);
+#endif
 };
 
 
 
 
+
 // Implementation:
+
+inline size_t Table::create_empty_table(Allocator& alloc)
+{
+    Array top(COLUMN_HASREFS, 0, 0, alloc);
+    top.add(Spec::create_empty_spec(alloc));
+    top.add(Array::create_empty_array(COLUMN_HASREFS, alloc)); // Columns
+    return top.GetRef();
+}
+
+// Create new Table
+inline Table::Table(Allocator& alloc):
+    m_size(0), m_top(alloc), m_columns(alloc), m_spec_set(this, alloc), m_ref_count(1)
+{
+    const size_t ref = create_empty_table(alloc);
+    if (!ref) throw_error(ERROR_OUT_OF_MEMORY); // FIXME: Check that this exception is handled properly in callers
+    init_from_ref(ref, 0, 0);
+}
+
+// Create attached table from ref
+inline Table::Table(RefCountTag, Allocator& alloc, size_t top_ref,
+                    Parent* parent, size_t ndx_in_parent):
+    m_size(0), m_top(alloc), m_columns(alloc), m_spec_set(this, alloc), m_ref_count(0)
+{
+    init_from_ref(top_ref, parent, ndx_in_parent);
+}
+
+// Create attached sub-table from ref and spec_ref
+inline Table::Table(RefCountTag, Allocator& alloc, size_t spec_ref, size_t columns_ref,
+                    Parent* parent, size_t ndx_in_parent):
+    m_size(0), m_top(alloc), m_columns(alloc), m_spec_set(this, alloc), m_ref_count(0)
+{
+    init_from_ref(spec_ref, columns_ref, parent, ndx_in_parent);
+}
+
 
 inline void Table::insert_bool(size_t column_ndx, size_t row_ndx, bool value)
 {
@@ -331,6 +427,112 @@ inline ConstTableRef Table::get_subtable(size_t column_ndx, size_t row_ndx) cons
 {
     return ConstTableRef(get_subtable_ptr(column_ndx, row_ndx));
 }
+
+
+#ifdef TIGHTDB_ENABLE_REPLICATION
+
+struct Table::LocalTransactLog {
+    template<class T> error_code set_value(size_t column_ndx, size_t row_ndx, const T& value)
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->set_value(m_table, column_ndx, row_ndx, value);
+    }
+
+    template<class T> error_code insert_value(size_t column_ndx, size_t row_ndx, const T& value)
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->insert_value(m_table, column_ndx, row_ndx, value);
+    }
+
+    error_code row_insert_complete()
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->row_insert_complete(m_table);
+    }
+
+    error_code insert_empty_rows(std::size_t row_ndx, std::size_t num_rows)
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->insert_empty_rows(m_table, row_ndx, num_rows);
+    }
+
+    error_code remove_row(std::size_t row_ndx)
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->remove_row(m_table, row_ndx);
+    }
+
+    error_code add_int_to_column(std::size_t column_ndx, int64_t value)
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->add_int_to_column(m_table, column_ndx, value);
+    }
+
+    error_code add_index_to_column(std::size_t column_ndx)
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->add_index_to_column(m_table, column_ndx);
+    }
+
+    error_code clear_table()
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->clear_table(m_table);
+    }
+
+    error_code optimize_table()
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->optimize_table(m_table);
+    }
+
+    error_code add_column(ColumnType type, const char* name)
+    {
+        if (!m_repl) return ERROR_NONE;
+        return m_repl->add_column(m_table, &m_table->m_spec_set, type, name);
+    }
+
+    void on_table_destroyed()
+    {
+        if (!m_repl) return;
+        m_repl->on_table_destroyed(m_table);
+    }
+
+private:
+    Replication* const m_repl;
+    Table* const m_table;
+    LocalTransactLog(Replication* r, Table* t): m_repl(r), m_table(t) {}
+    friend class Table;
+};
+
+inline Table::LocalTransactLog Table::get_local_transact_log()
+{
+    return LocalTransactLog(m_top.GetAllocator().get_replication(), this);
+}
+
+inline size_t* Table::record_subspec_path(const Spec* spec, size_t* begin, size_t* end) const
+{
+    return spec->record_subspec_path(&m_top, begin, end);
+}
+
+inline size_t* Table::record_subtable_path(size_t* begin, size_t* end) const
+{
+    const Array& real_top = m_top.IsValid() ? m_top : m_columns;
+    const size_t index_in_parent = real_top.GetParentNdx();
+    *begin = index_in_parent;
+    if (++begin == end) return 0; // Error, not enough space in buffer
+    ArrayParent* parent = real_top.GetParent();
+    assert(parent);
+    assert(dynamic_cast<Parent*>(parent));
+    return static_cast<Parent*>(parent)->record_subtable_path(begin, end);
+}
+
+inline size_t* Table::Parent::record_subtable_path(size_t* begin, size_t*)
+{
+    return begin;
+}
+
+#endif // TIGHTDB_ENABLE_REPLICATION
 
 
 } // namespace tightdb

@@ -17,32 +17,19 @@
  * from TightDB Incorporated.
  *
  **************************************************************************/
-#ifndef TIGHTDB_DATE_HPP
-#define TIGHTDB_DATE_HPP
-
-#include <ctime>
-#include <ostream>
+#ifndef TIGHTDB_TABLE_BASIC_FWD_HPP
+#define TIGHTDB_TABLE_BASIC_FWD_HPP
 
 namespace tightdb {
 
 
-class Date {
-public:
-    Date(std::time_t d): m_date(d) {}
-    std::time_t get_date() const { return m_date; }
+template<class Spec> class BasicTable;
 
-    template<class Ch, class Tr>
-    friend std::basic_ostream<Ch, Tr>& operator<<(std::basic_ostream<Ch, Tr>& out, const Date& d)
-    {
-        out << "Date("<<d.m_date<<")";
-        return out;
-    }
-
-private:
-    std::time_t m_date;
-};
+template<class T> struct IsBasicTable { static const bool value = false; };
+template<class Spec> struct IsBasicTable<BasicTable<Spec> > { static const bool value = true; };
+template<class Spec> struct IsBasicTable<const BasicTable<Spec> > { static const bool value = true; };
 
 
 } // namespace tightdb
 
-#endif // TIGHTDB_DATE_HPP
+#endif // TIGHTDB_TABLE_BASIC_FWD_HPP

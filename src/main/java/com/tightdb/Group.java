@@ -17,39 +17,52 @@ public class Group {
 		TightDB.loadLibrary();
 	}
 	
+	private void checkNativePtr()
+	{
+		if (this.nativePtr == 0) 
+			throw new OutOfMemoryError("Out of native memory.");
+	}
+	
 	public Group(){
 		this.nativePtr = createNative();
+		checkNativePtr();
 	}
 	
 	protected native long createNative();
-	
+
 	public Group(File file){
 		this(file.getAbsolutePath(), !file.canWrite());
+		checkNativePtr();
 	}
 	
 	public Group(String fileName, boolean readOnly){
 		this.nativePtr = createNative(fileName, readOnly);
+		checkNativePtr();
 	}
 	
 	public Group(String fileName){
 		this(fileName, true);
+		checkNativePtr();
 	}
 	
 	protected native long createNative(String filename, boolean readOnly);
 	
 	public Group(byte[] data){
 		this.nativePtr = createNative(data);
+		checkNativePtr();	
 	}
 	protected native long createNative(byte[] data);
 	
 	public Group(ByteBuffer buffer){
 		this.nativePtr = createNative(buffer);
+		checkNativePtr();
 	}
 	
 	protected native long createNative(ByteBuffer buffer);
 	
 	protected Group(long nativePtr){
 		this.nativePtr = nativePtr;
+		checkNativePtr();
 	}
 	
 	public void finalize(){

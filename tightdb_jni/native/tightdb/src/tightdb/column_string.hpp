@@ -61,6 +61,7 @@ public:
     size_t FindWithIndex(int64_t) const {return (size_t)-1;}
 
     size_t GetRef() const {return m_array->GetRef();}
+    Allocator& GetAllocator() const {return m_array->GetAllocator();}
     void SetParent(ArrayParent* parent, size_t pndx) {m_array->SetParent(parent, pndx);}
 
     // Optimizing data layout

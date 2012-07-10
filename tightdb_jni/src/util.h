@@ -3,7 +3,10 @@
 
 #include <string>
 #include <jni.h>
+
 #include <tightdb.hpp>
+#include <tightdb\meta.hpp>
+
 #include "com_tightdb_util.h"
 
 
@@ -40,7 +43,8 @@ enum ExceptionKind {
     NoSuchMethod,
     IllegalArgument, 
     IOFailed,
-    IndexOutOfBounds
+    IndexOutOfBounds,
+    TableInvalid
 };
 
 extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
@@ -67,6 +71,8 @@ extern void jprint(JNIEnv *env, char *txt);
 
 // Check parameters
 
+#define TABLE_VALID(env,ptr)                        TableIsValid(env, ptr) 
+
 #if CHECK_PARAMETERS
 
 #define ROW_INDEX_VALID(env,ptr,row)                RowIndexValid(env, ptr, row)
@@ -85,9 +91,26 @@ extern void jprint(JNIEnv *env, char *txt);
 
 #endif
 
+inline bool TableIsValid(JNIEnv* env, tightdb::Table* pTable)
+{
+    bool valid = (pTable != NULL);
+    if (valid)
+        valid = pTable->is_valid();
+    if (!valid) {
+        TR_ERR("Table %x is invalid!", pTable); 
+        ThrowException(env, IllegalArgument, "Table is invalid.");
+    }
+    return valid;
+}
+
 template <class T>
 inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex) 
 {
+    // Check if Table is valid - but only if T is a 'Table' type
+    if (tightdb::SameType<Table*, T>::value)    
+        if (!TableIsValid(env, TBL(pTable)))
+            return false;
+
     bool rowErr = (rowIndex < 0) || (S(rowIndex) >= pTable->size());
     if (rowErr) {
         TR_ERR("rowIndex %lld > %lld - invalid!", S(rowIndex), pTable->size()); 
@@ -99,6 +122,11 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex)
 template <class T>
 inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex) 
 {
+    // Check if Table is valid - but only if T is a 'Table' type
+    if (tightdb::SameType<Table*, T>::value)
+        if (!TableIsValid(env, TBL(pTable)))
+            return false;
+
     bool colErr = (S(columnIndex) >= pTable->get_column_count()) || (columnIndex < 0);
     if (colErr) {
         TR_ERR("columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()); 

@@ -22,6 +22,7 @@
 
 #include <climits>
 #include <cwchar>
+#include <limits>
 
 #include "config.h"
 
@@ -139,6 +140,25 @@ public:
     typedef typename CondType<EitherTypeIs<long double, A, B>::value, long double, type_7>::type type;
 };
 #endif // !TIGHTDB_HAVE_CXX11_DECLTYPE
+
+
+
+namespace _impl {
+    template<class T, bool is_signed> struct IsNegative {
+        static bool test(T value) { return value < 0; }
+    };
+    template<class T> struct IsNegative<T, false> {
+        static bool test(T) { return false; }
+    };
+}
+
+/// This function allows you to test for a negative value in any
+/// numeric type. Normally, if the type is unsigned, such a test will
+/// produce a compiler warning.
+template<class T> inline bool is_negative(T value)
+{
+    return _impl::IsNegative<T, std::numeric_limits<T>::is_signed>::test(value);
+}
 
 
 } // namespace tightdb

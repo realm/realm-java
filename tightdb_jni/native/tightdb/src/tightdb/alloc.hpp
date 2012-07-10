@@ -30,6 +30,10 @@
 
 namespace tightdb {
 
+#ifdef TIGHTDB_ENABLE_REPLICATION
+struct Replication;
+#endif
+
 struct MemRef {
     MemRef(): pointer(NULL), ref(0) {}
     MemRef(void* p, size_t r): pointer(p), ref(r) {}
@@ -46,11 +50,23 @@ public:
     virtual void* Translate(size_t ref) const {return (void*)ref;}
     virtual bool IsReadOnly(size_t) const {return false;}
 
+#ifdef TIGHTDB_ENABLE_REPLICATION
+    Allocator(): m_replication(0) {}
+#endif
     virtual ~Allocator() {}
+
+#ifdef TIGHTDB_ENABLE_REPLICATION
+    Replication* get_replication() { return m_replication; }
+#endif
 
 #ifdef _DEBUG
     virtual void Verify() const {};
 #endif //_DEBUG
+
+#ifdef TIGHTDB_ENABLE_REPLICATION
+protected:
+    Replication* m_replication;
+#endif
 };
 
 Allocator& GetDefaultAllocator();
