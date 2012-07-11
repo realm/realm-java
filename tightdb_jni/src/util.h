@@ -58,8 +58,8 @@ extern jclass GetClass(JNIEnv* env, char *classStr);
 extern int trace_level;
 
 #if TRACE
-#define TR(fmt, ...) if (trace_level > 1) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
-#define TR_ERR(fmt, ...) if (trace_level >= 0) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
+#define TR(fmt, ...) if (trace_level >= 2) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
+#define TR_ERR(fmt, ...) if (trace_level >= 1) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
 #else
 #define TR(fmt, ...)
 #define TR_ERR(fmt, ...)

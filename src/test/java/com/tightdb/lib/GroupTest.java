@@ -2,6 +2,8 @@ package com.tightdb.lib;
 
 import static org.testng.AssertJUnit.*;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 import org.testng.annotations.Test;
@@ -15,12 +17,46 @@ public class GroupTest {
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
 
+	@Test (enabled=true)
+	public void groupFileCanClose() throws NullPointerException, IOException {
+		Group group = new Group();
+		group.writeToFile("testfile.tdb");
+		group.close();	
+		
+		Group group2 = new Group("testfile.tdb");
+		group2.close();
+	}
+	
+	@Test (enabled=true)
+	public void groupByteBufferCanClose() {
+		Group group = new Group();
+		ByteBuffer data = group.writeToByteBuffer();
+		group.close();	
+		
+		Group group2 = new Group(data);
+		group2.close();
+	}
+	
+	@Test (enabled=false)
+	public void groupMemCanClose() {
+		Group group = new Group();
+		byte[] data = group.writeToMem();
+		group.close();
+		
+		Group group2 = new Group(data);
+		group2.close();
+		
+		// data is deleted by group()!
+		// FIXME: 
+		System.out.println("Data len:" + data.length);
+	}
+	
+	
 	@Test (enabled = false)
 	public void shouldCreateTablesInGroup() {
 		Group group = new Group();
 
 		EmployeeTable employees = new EmployeeTable(group);
-
 		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
 		employees.add(NAME2, "B. Good", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
 		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
@@ -28,10 +64,13 @@ public class GroupTest {
 		byte[] data = group.writeToMem();
 		
 		employees.clear();
-
-		Group group2 = new Group(data);
-		EmployeeTable employees2 = new EmployeeTable(group2);
+		group.close();
 		
+		Group group2 = new Group(data);
+		
+		EmployeeTable employees2 = new EmployeeTable(group2);
+		group2.close();
+	
 		assertEquals(3, employees2.size());
 		assertEquals(NAME0, employees2.at(0).getFirstName());
 		assertEquals(NAME1, employees2.at(1).getFirstName());
@@ -56,5 +95,4 @@ public class GroupTest {
 		
 		System.out.println("Done");
 	}
-
 }
