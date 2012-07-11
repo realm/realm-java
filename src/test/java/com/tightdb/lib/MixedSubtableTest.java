@@ -6,7 +6,6 @@ import org.testng.annotations.Test;
 
 import com.tightdb.example.generated.Employee;
 import com.tightdb.example.generated.EmployeeTable;
-import com.tightdb.example.generated.PeopleTable;
 import com.tightdb.example.generated.PhoneTable;
 
 public class MixedSubtableTest extends AbstractTableTest {
