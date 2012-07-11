@@ -1,1 +1,0 @@
-Testing Freemarker: ${foo}-${bar} 
