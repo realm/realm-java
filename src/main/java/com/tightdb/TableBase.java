@@ -89,7 +89,11 @@ public class TableBase implements IRowsetBase {
 		close();
 	}
 
-	public synchronized void close() {
+	public void close() {
+		CloseHandler.getInstance().close(this);
+	}
+	
+	protected void doClose() {
 		if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
 		if (nativePtr == 0)
 			return;
@@ -694,4 +698,5 @@ public class TableBase implements IRowsetBase {
 	}
 
 	protected native void nativeOptimize(long nativeTablePtr);
+
 }

@@ -70,7 +70,12 @@ public class Group {
 		close();
 	}
 	
-	public synchronized void close() {
+	public void close() {
+		// Ensure synchronized close
+		CloseHandler.getInstance().close(this);
+	}
+	
+	protected void doClose() {
 		if (nativePtr != 0) {
 			//System.err.println("CLOSE GROUP -------------- this " + this + "   native " + nativePtr);
 			nativeClose(nativePtr);
