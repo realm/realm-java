@@ -109,6 +109,10 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		table.insertBinary(columnIndex, rowIndex, buffer);
 	}
 
+	protected void insertBinary(long columnIndex, long rowIndex, ByteBuffer value) {
+		table.insertBinary(columnIndex, rowIndex, value);
+	}
+
 	protected void insertDate(long columnIndex, long rowIndex, Date value) {
 		table.insertDate(columnIndex, rowIndex, value);
 	}
