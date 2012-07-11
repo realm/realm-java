@@ -20,6 +20,7 @@ public class TableDesc extends AbstractDesc {
 		method("Iterator", 	"iterator", "Get an iterator for the table rows");
 		method("Row", 		"last", "Get the last row as an object");
 		// method("View", "range", "");
+		method("void", 		"optimize", "Optimize the database size. (Currently pack strings)");
 		method("void", 		"remove", "Remove a specific row from the table", "long", "rowIndex");
 		//TODO: setIndex
 		method("long", 		"size", "Get the number of rows in the table");

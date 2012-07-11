@@ -43,6 +43,10 @@ public class TableExamples {
 		/* EXAMPLE: last */
 
 		Person lastPerson = people.last();
+
+		/* EXAMPLE: optimize */
+		
+		people.optimize();
 		
 		/* EXAMPLE: remove */
 

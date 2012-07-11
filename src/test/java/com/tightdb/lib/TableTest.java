@@ -72,5 +72,12 @@ public class TableTest {
 		assertEquals("new_value", employees.at(1).getExtra().getStringValue());
 	}
 
+	@Test
+	public void shouldOptimizeStrings() {
+		// TODO: Add a lot of identical strings and test the size of the database get's smaller
+		
+		employees.optimize();
+	}
+
 
 }

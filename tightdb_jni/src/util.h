@@ -9,6 +9,7 @@
 
 #include "com_tightdb_util.h"
 
+using tightdb::Table;
 
 #define TRACE               1       // disable for performance
 #define CHECK_PARAMETERS    1       // Check all parameters in API and throw exceptions in java if invalid
@@ -57,7 +58,7 @@ extern jclass GetClass(JNIEnv* env, char *classStr);
 extern int trace_level;
 
 #if TRACE
-#define TR(fmt, ...) if (trace_level > 0) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
+#define TR(fmt, ...) if (trace_level > 1) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
 #define TR_ERR(fmt, ...) if (trace_level >= 0) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
 #else
 #define TR(fmt, ...)
@@ -91,7 +92,7 @@ extern void jprint(JNIEnv *env, char *txt);
 
 #endif
 
-inline bool TableIsValid(JNIEnv* env, tightdb::Table* pTable)
+inline bool TableIsValid(JNIEnv* env, Table* pTable)
 {
     bool valid = (pTable != NULL);
     if (valid)

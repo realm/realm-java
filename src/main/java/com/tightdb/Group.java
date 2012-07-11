@@ -77,9 +77,13 @@ public class Group {
 	
 	protected void doClose() {
 		if (nativePtr != 0) {
-			//System.err.println("CLOSE GROUP -------------- this " + this + "   native " + nativePtr);
-			nativeClose(nativePtr);
-			nativePtr = 0;
+			if (isValid()) {
+				// System.err.println("CLOSE GROUP -------------- this " + this + "   native " + nativePtr);
+				nativeClose(nativePtr);
+			} else {
+				// System.err.println("CLOSE GROUP - INVALID!!!!");
+			}
+			nativePtr = 0;	
 		}
 	}
 	

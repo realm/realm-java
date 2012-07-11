@@ -143,6 +143,10 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		table.clear();
 	}
 
+	public void optimize() {
+		table.optimize();
+	}
+	
 	protected RuntimeException addRowException(Exception e) throws RuntimeException {
 		return new RuntimeException("Error occured while adding a new row!", e);
 	}
