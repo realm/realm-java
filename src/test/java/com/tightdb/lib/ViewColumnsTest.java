@@ -15,25 +15,25 @@ public class ViewColumnsTest extends AbstractViewTest {
 	@Test
 	public void shouldFindFirstRecordByColumnValue() throws IllegalAccessException {
 		Employee record = null;
-		record = employees.firstName.findFirst(EmployeesFixture.EMPLOYEE[1].firstName);
+		record = employees.firstName.findFirst(EmployeesFixture.EMPLOYEES[1].firstName);
 		assertEquals(1, record.getPosition());
 
-		record = employees.salary.findFirst(EmployeesFixture.EMPLOYEE[0].salary);
+		record = employees.salary.findFirst(EmployeesFixture.EMPLOYEES[0].salary);
 		assertEquals(0, record.getPosition());
 
 		record = employees.salary.findFirst(12345);
 		assertNull(record);
 
-		record = employees.driver.findFirst(EmployeesFixture.EMPLOYEE[0].driver);
+		record = employees.driver.findFirst(EmployeesFixture.EMPLOYEES[0].driver);
 		assertEquals(0, record.getPosition());
 
-		record = employees.driver.findFirst(EmployeesFixture.EMPLOYEE[1].driver);
+		record = employees.driver.findFirst(EmployeesFixture.EMPLOYEES[1].driver);
 		assertEquals(1, record.getPosition());
 
-		record = employees.birthdate.findFirst(EmployeesFixture.EMPLOYEE[1].birthdate);
+		record = employees.birthdate.findFirst(EmployeesFixture.EMPLOYEES[1].birthdate);
 		assertEquals(1, record.getPosition());
 
-		record = employees.birthdate.findFirst(EmployeesFixture.EMPLOYEE[2].birthdate);
+		record = employees.birthdate.findFirst(EmployeesFixture.EMPLOYEES[2].birthdate);
 		assertEquals(2, record.getPosition());
 
 		record = employees.birthdate.findFirst(new Date(12345));
@@ -44,10 +44,10 @@ public class ViewColumnsTest extends AbstractViewTest {
 	public void shouldFindAllRecordsByColumnValue() throws IllegalAccessException {
 		EmployeeView view = null;
 		
-		view = employees.firstName.findAll(EmployeesFixture.EMPLOYEE[1].firstName);
+		view = employees.firstName.findAll(EmployeesFixture.EMPLOYEES[1].firstName);
 		assertEquals(1, view.size());
 
-		view = employees.salary.findAll(EmployeesFixture.EMPLOYEE[0].salary);
+		view = employees.salary.findAll(EmployeesFixture.EMPLOYEES[0].salary);
 		assertEquals(2, view.size());
 
 		view = employees.salary.findAll(12345);
@@ -59,10 +59,10 @@ public class ViewColumnsTest extends AbstractViewTest {
 		view = employees.driver.findAll(true);
 		assertEquals(2, view.size());
 		
-		view = employees.birthdate.findAll(EmployeesFixture.EMPLOYEE[2].birthdate);
+		view = employees.birthdate.findAll(EmployeesFixture.EMPLOYEES[2].birthdate);
 		assertEquals(1, view.size());
 		
-		view = employees.birthdate.findAll(EmployeesFixture.EMPLOYEE[1].birthdate);
+		view = employees.birthdate.findAll(EmployeesFixture.EMPLOYEES[1].birthdate);
 		assertEquals(1, view.size());
 		
 		view = employees.birthdate.findAll(new Date(0));
@@ -71,18 +71,18 @@ public class ViewColumnsTest extends AbstractViewTest {
 
 	@Test
 	public void shouldAggregateColumnValue() {
-		assertEquals(EmployeesFixture.EMPLOYEE[0].salary, employees.salary.minimum());
-		assertEquals(EmployeesFixture.EMPLOYEE[1].salary, employees.salary.maximum());
-		long sum = EmployeesFixture.EMPLOYEE[0].salary + EmployeesFixture.EMPLOYEE[1].salary +
-				EmployeesFixture.EMPLOYEE[2].salary;
+		assertEquals(EmployeesFixture.EMPLOYEES[0].salary, employees.salary.minimum());
+		assertEquals(EmployeesFixture.EMPLOYEES[1].salary, employees.salary.maximum());
+		long sum = EmployeesFixture.EMPLOYEES[0].salary + EmployeesFixture.EMPLOYEES[1].salary +
+				EmployeesFixture.EMPLOYEES[2].salary;
 		assertEquals(sum, employees.salary.sum());
 	}
 
 	@Test
 	public void shouldAddValueToWholeColumn() {
 		employees.salary.addLong(123);
-		for (int i=0; i<EmployeesFixture.EMPLOYEE.length; ++i)
-			assertEquals(EmployeesFixture.EMPLOYEE[i].salary+123, employees.at(i).getSalary());
+		for (int i=0; i<EmployeesFixture.EMPLOYEES.length; ++i)
+			assertEquals(EmployeesFixture.EMPLOYEES[i].salary+123, employees.at(i).getSalary());
 	}
 
 

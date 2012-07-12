@@ -14,8 +14,9 @@ public class EmployeeData {
 	public byte[] photo;
 	public Date birthdate;
 	public Object extra;
+	public PhoneData[] phones;
 
-	public EmployeeData(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra) {
+	public EmployeeData(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra, PhoneData[] phones) {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.salary = salary;
@@ -23,6 +24,7 @@ public class EmployeeData {
 		this.photo = photo;
 		this.birthdate = birthdate;
 		this.extra = extra;
+		this.phones = phones;
 	}
 
 	public Object get(int index) {
@@ -41,6 +43,8 @@ public class EmployeeData {
 			return birthdate;
 		case 6:
 			return Mixed.mixedValue(extra);
+		case 7:
+			return phones;
 		default:
 			throw new IllegalArgumentException("Incorrect index: " + index);
 		}

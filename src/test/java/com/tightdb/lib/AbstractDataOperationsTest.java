@@ -88,4 +88,17 @@ public abstract class AbstractDataOperationsTest {
 		assertEquals(2, getEmployees().size());
 	}
 
+	@Test
+	public void shouldPrintData() {
+		assertNotNull(getEmployees().toString());
+		TightDB.print(getEmployees());
+		TightDB.print("Employees", getEmployees());
+		
+		assertNotNull(getEmployees().first().toString());
+		TightDB.print("First employee", getEmployees().first());
+		
+		assertNotNull(getEmployees().first().birthdate.toString());
+		assertNotNull(getEmployees().first().phones.toString());
+	}
+	
 }

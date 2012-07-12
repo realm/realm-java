@@ -120,25 +120,41 @@ public class TableQueryTest extends AbstractTableTest {
 		assertEquals(1, niko2.size());
 	}
 
-// TODO: REENABLE test
-	@Test (enabled = false)
-	public void shouldRemoveRows() {
+	@Test (enabled = false) // FIXME: enable the test (fix the bug) 
+	public void shouldRemoveAllMatchingRows() {
 		// Remove all
-		EmployeeQuery q = employees.where().salary.lessThan(100000000); 
+		EmployeeQuery q = employees.where().salary.lessThan(100000000);
+		// EmployeeQuery q = employees.where().firstName.neq("xy");
+
+		assertEquals(3, q.count());
+		
 		long n = q.remove();
 		assertEquals(3, n);
 		assertEquals(0, employees.size());
-		
+	}
+	
+	@Test (enabled = true)
+	public void shouldRemoveSomeMatchingRows() {
 		// Remove some
-		q = employees.where().salary.lessThan(100000000); 
-		n = q.remove(1,2,1);
+		EmployeeQuery q = employees.where().salary.lessThan(100000000);
+		
+		assertEquals(1, q.count(1, 2, 1));
+		
+		long n = q.remove(1, 2, 1);
 		assertEquals(1, n);
 		assertEquals(2, employees.size());
-	
-		// Remove some
-		q = employees.where().salary.lessThan(10000); 
-		n = q.remove();
-		assertEquals(2, n);
-		assertEquals(1, employees.size());
 	}
+	
+	@Test (enabled = true)
+	public void shouldntRemoveNonMatchingRows() {
+		// Remove some
+		EmployeeQuery q = employees.salary.lessThan(10000);
+		
+		assertEquals(0, q.count());
+		
+		long n = q.remove();
+		assertEquals(0, n);
+		assertEquals(3, employees.size());
+	}
+	
 }

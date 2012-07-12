@@ -24,39 +24,39 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 		return query(getQuery().notEqual(columnIndex, value));
 	}
 
-	public Query greaterThan(int value) {
+	public Query greaterThan(long value) {
 		return query(getQuery().greaterThan(columnIndex, value));
 	}
 
-	public Query gt(int value) {
+	public Query gt(long value) {
 		return query(getQuery().greaterThan(columnIndex, value));
 	}
 
-	public Query greaterThanOrEqual(int value) {
+	public Query greaterThanOrEqual(long value) {
 		return query(getQuery().greaterThanOrEqual(columnIndex, value));
 	}
 
-	public Query gte(int value) {
+	public Query gte(long value) {
 		return query(getQuery().greaterThanOrEqual(columnIndex, value));
 	}
 
-	public Query lessThan(int value) {
+	public Query lessThan(long value) {
 		return query(getQuery().lessThan(columnIndex, value));
 	}
 
-	public Query lt(int value) {
+	public Query lt(long value) {
 		return query(getQuery().lessThan(columnIndex, value));
 	}
 
-	public Query lessThanOrEqual(int value) {
+	public Query lessThanOrEqual(long value) {
 		return query(getQuery().lessThanOrEqual(columnIndex, value));
 	}
 
-	public Query lte(int value) {
+	public Query lte(long value) {
 		return query(getQuery().lessThanOrEqual(columnIndex, value));
 	}
 
-	public Query between(int from, int to) {
+	public Query between(long from, long to) {
 		return query(getQuery().between(columnIndex, from, to));
 	}
 
