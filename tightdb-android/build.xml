@@ -6,21 +6,26 @@
               as the first entry and export the buildfile again. -->
 <project basedir="." default="build" name="TightdbAndroid">
     <property environment="env"/>
-    <property name="ECLIPSE_HOME" value="../../../Downloads/eclipse"/>
+    <property name="ECLIPSE_HOME" value="../../Downloads/eclipse"/>
     <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.5"/>
-    <property name="source" value="1.5"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
     <import file="tightdb.xml"/>
     <path id="Android 1.5.libraryclasspath">
-        <pathelement location="../../../android-sdks/platforms/android-3/android.jar"/>
+        <pathelement location="../../android-sdks/platforms/android-3/android.jar"/>
     </path>
     <path id="Android Dependencies.libraryclasspath">
-        <pathelement location="../../../android-sdks/tools/support/annotations.jar"/>
+        <pathelement location="../../android-sdks/tools/support/annotations.jar"/>
+        <pathelement location="libs/achartengine-1.0.0.jar"/>
+        <pathelement location="libs/tightdb.jar"/>
+        <pathelement location="libs/stockchart.jar"/>
     </path>
     <path id="TightdbAndroid.classpath">
         <pathelement location="bin/classes"/>
         <path refid="Android 1.5.libraryclasspath"/>
         <path refid="Android Dependencies.libraryclasspath"/>
+        <pathelement location="libs/tightdb.jar"/>
+        <pathelement location="libs/stockchart.jar"/>
     </path>
     <target name="init">
         <mkdir dir="bin/classes"/>
