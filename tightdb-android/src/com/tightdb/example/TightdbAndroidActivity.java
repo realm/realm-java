@@ -1,8 +1,6 @@
 package com.tightdb.example;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -11,8 +9,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.ViewGroup.LayoutParams;
 
-import com.csvreader.CsvReader;
-import com.tightdb.generated.*;
+// import com.stocks.generate;
+import com.tightdb.example.generated.*;
 
 import com.tightdb.lib.AbstractColumn;
 import com.tightdb.lib.Table;
@@ -35,7 +33,7 @@ import org.stockchart.series.LinearSeries;
 import org.stockchart.series.StockSeries;
 
 public class TightdbAndroidActivity extends Activity {
-	
+
 	@Table
 	class stocka{
 		String Date;
@@ -52,19 +50,21 @@ public class TightdbAndroidActivity extends Activity {
 
 	private static long tttt = 0;
 	StockChartView s;
-	
 	private Runnable mUpdateTimeTask = new Runnable() {
 		public void run() {
 
+			// new generate().stocks();
+
 			File dir = Environment.getExternalStorageDirectory();
-			File file = new File(dir, "NOK.tightdb");
+//			File file = new File(dir, "NOK.tightdb");
+			File file = new File(dir, "stocks_ZBRA.tightdb");
 
 			Group group = new Group(file);
 			StockaTable stocks = new StockaTable(group);
 
-			
+			Log.i("STOCK", stocks.getName() + "SSS" );
 			for (Stocka stock : stocks) {
-			    //Log.i("STOCK", "BLA!" + stock.getDate() +" " + Long.toString(stock.getHigh()) );
+				Log.i("STOCK", "BLA!" + stock.getDate() +" " + Long.toString(stock.getHigh()) );
 				StockPoint ss = new StockPoint(++tttt);
 				ss.setLow(stock.getLow());
 				ss.setHigh(stock.getHigh());
@@ -72,111 +72,14 @@ public class TightdbAndroidActivity extends Activity {
 				ss.setOpen(stock.getOpen());
 				s1.addPoint(ss);
 			}
-
 			s.invalidate();
-
 		}
 	};
 
-
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-
-/*		
-		File mfile=new File("/");
-		File[] list=mfile.listFiles();
-
-		for(int i=0;i<mfile.listFiles().length;i++)
-		{
-	        Log.v("File", list[i].getAbsolutePath());
-		    if(list[i].isHidden())
-		    {
-		       // Log.v("hidden", list[i].getAbsolutePath());
-		    }
-		}
-*/
-		File dir = Environment.getExternalStorageDirectory();
-		File file = new File(dir, "NOK.tightdb");
-
-		Group group = new Group(file);
-//		Group group = new Group();
-//		Log.i("TDB", Long.toString(group.getTableCount()) );
-		StockaTable stocks = new StockaTable(group);
-//		stocks.add("test", 1, 2, 3, 4, 5, 6);
-
-		
-		
-		
-		
-		/*
-		
-		
-		
-		try {
-
-			CsvReader stock = new CsvReader("/sdcard/rawdata/NOK_20120710.csv");
-
-			stock.readHeaders();
-
-			while (stock.readRecord())
-			{
-				String Date     = stock.get("Date");
-				int Open        = (int) Math.round(new Float(stock.get("Open"))*100);
-				int High        = (int) Math.round(new Float(stock.get("High"))*100);
-				int Low         = (int) Math.round(new Float(stock.get("Low"))*100);
-				int Close       = (int) Math.round(new Float(stock.get("Close"))*100);
-				int Volume      = Integer.parseInt(stock.get("Volume"));
-				int Adj_Close   = (int) Math.round(new Float(stock.get("Adj Close"))*100);
-
-
-				// perform program logic here
-				System.out.println(Date + " : " + Open + " : " + High + " : " + Low + " : " + Close + " : " + Volume + " : " + Adj_Close);
-				stocks.add(Date, Open, High, Low, Close, Volume, Adj_Close);
-			}
-
-			stock.close();
-			System.out.println(Long.toString(stocks.last().getLow()));
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		// Write to disk
-		try {
-		    group.writeToFile("sdcard/NOK.tightdb");
-		} catch (IOException e) {
-		    e.printStackTrace();
-		} 
-		
-		
-		
-		*/
-		
-		
-		Log.i("TDB1", Long.toString(stocks.last().getLow()));
-		Log.i("TDB1", "name: "+stocks.getName() );
-		Log.i("TDB1", "VALID: "+stocks.isValid() );
-		
-/*		for (Stocka stock : stocks) {
-		    Log.i("STOCK", "BLA!" + stock.getDate() +" " + Long.toString(stock.getHigh()) );
-		}
-*/
-		// Write to disk
-		/*try {
-		    group.writeToFile("sdcard/stocksa.tightdb");
-		} catch (IOException e) {
-		    e.printStackTrace();
-		} 
-		File file_new = new File(dir, "stocksa.tightdb");
-		Group group_new = new Group(file_new);
-		StockaTable stocks_new = new StockaTable(group_new);
-		Log.i("TDB1_new", Long.toString(stocks_new.last().getLow()));
-*/
-
 		super.onCreate(savedInstanceState);
-		
+
 		s = new StockChartView(this);
 
 		AxisRange ar = new AxisRange();
@@ -217,7 +120,6 @@ public class TightdbAndroidActivity extends Activity {
 							return id.toString();
 					}
 				}
-
 				return null;
 			}
 		});
