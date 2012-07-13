@@ -2,19 +2,25 @@ package com.tightdb.generator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Collection;
 
 import javax.lang.model.element.TypeElement;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.AndFileFilter;
+import org.apache.commons.io.filefilter.FalseFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 
 public class TableSpecReader {
 
 	private AnnotationProcessingLogger logger;
 
+	private SpecMatcher specMatcher;
+
 	public TableSpecReader(AnnotationProcessingLogger logger) {
 		this.logger = logger;
+		this.specMatcher = new SpecMatcher(logger);
 	}
 
 	public String getSpecFields(TypeElement model, File sourcePath) {
@@ -35,14 +41,11 @@ public class TableSpecReader {
 			return null;
 		}
 
-		Matcher m = Pattern.compile("(?sm)class\\s+" + model.getSimpleName() + "\\s*\\{(.+?)\\}").matcher(source);
-		if (m.find()) {
-			String specSource = m.group(1).trim();
-			return specSource;
-		} else {
-			logger.error("Table spec retrieval failed, couldn't find table spec: " + model.getSimpleName());
-			return null;
+		String spec = specMatcher.matchSpec(model.getSimpleName().toString(), source);
+		if (spec == null) {
+			logger.error("Table spec retrieval failed, couldn't find table spec: " + modelName);
 		}
+		return spec;
 
 	}
 
@@ -58,14 +61,32 @@ public class TableSpecReader {
 				if (sourceFile.exists() && sourceFile.isFile()) {
 					return sourceFile;
 				} else {
-					logger.error("The file doesn't exist: " + sourceFile);
-					return null;
+					logger.warn("The file doesn't exist: " + sourceFile);
+					return scanSourcePath(sourcePath, modelNameParts[modelNameParts.length - 1]);
 				}
 			}
 		}
 
 		// this should never execute
 		return null;
+	}
+
+	private File scanSourcePath(File sourcePath, String modelName) {
+		logger.debug("Scanning source path '" + sourcePath + "' for table spec '" + modelName + "'");
+		IOFileFilter fileFilter = new AndFileFilter(new SuffixFileFilter(".java"), new SpecSourceFileFilter(specMatcher, modelName, logger));
+		IOFileFilter dirFilter = FalseFileFilter.FALSE;
+		Collection<File> files = FileUtils.listFiles(sourcePath, fileFilter, dirFilter);
+
+		switch (files.size()) {
+		case 0:
+			return null;
+		case 1:
+			return files.iterator().next();
+		default:
+			logger.warn("More than one source files were found containing the table specs with the same name!");
+			return files.iterator().next();
+		}
+
 	}
 
 }

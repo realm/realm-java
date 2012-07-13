@@ -12,6 +12,10 @@ public class AnnotationProcessingLogger {
 		this.messager = messager;
 	}
 
+	public void debug(String msg) {
+		messager.printMessage(Kind.NOTE, msg);
+	}
+
 	protected void info(String msg) {
 		messager.printMessage(Kind.NOTE, msg);
 	}
