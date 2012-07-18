@@ -165,9 +165,9 @@ public class TableBase implements IRowsetBase {
 
 	// Column Information.
 	/**
-	 * Use this method to get the number of columns of the table.
+	 * Returns the number of columns in the table.
 	 * 
-	 * @return the number of column.
+	 * @return the number of columns.
 	 */
 	public long getColumnCount() {
 		return nativeGetColumnCount(nativePtr);

@@ -13,6 +13,9 @@ public class TableDesc extends AbstractDesc {
 		method("Row", 		"at", "Get a specific row as an object (rowIndex starts at 0)", "long", "rowIndex");
 		method("void", 		"clear", "Delete all rows in the table");
 		method("Row", 		"first", "Get the first row as an object");
+		method("long", 		"getColumnCount", "Get number of columns in the table");
+		method("String", 	"getColumnName", "Get the name of the column");
+		method("ColumnType","getColumnType", "Get the type of the column");
 		method("String",	"getName", "Get the table name for tables named in a Group");
 		//TODO: hasIndex
 		method("Row", 		"insert", "Insert a new row at the index in the table", "long", "rowIndex", "RowDataTypes...", "rowData...");

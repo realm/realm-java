@@ -5,6 +5,7 @@ import static org.testng.AssertJUnit.*;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
+import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
 import com.tightdb.example.generated.Employee;
 import com.tightdb.example.generated.EmployeeTable;
@@ -14,8 +15,14 @@ import com.tightdb.test.PhoneData;
 
 public abstract class AbstractTest {
 
-	private static final String[] EXPECTED_COLUMNS = { "firstName", "lastName", "salary", "driver", "photo", "birthdate", "extra", "phones" };
-
+	protected static final String[] EXPECTED_COLUMNS = { "firstName", "lastName", "salary", "driver", 
+														 "photo", "birthdate", "extra", "phones" };
+	protected static final ColumnType[] EXPECTED_COLUMN_TYPE = { 
+			ColumnType.ColumnTypeString, ColumnType.ColumnTypeString, 
+			ColumnType.ColumnTypeInt, ColumnType.ColumnTypeBool,
+			ColumnType.ColumnTypeBinary, ColumnType.ColumnTypeDate, 
+			ColumnType.ColumnTypeMixed, ColumnType.ColumnTypeTable};
+	
 	protected void addEmployee(EmployeeTable employees, EmployeeData emp) {
 		Employee e = employees.add(emp.firstName, emp.lastName, emp.salary, emp.driver, emp.photo, emp.birthdate, emp.extra);
 		addPhones(emp, e);
