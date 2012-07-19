@@ -5,7 +5,7 @@
 #include <jni.h>
 
 #include <tightdb.hpp>
-#include <tightdb\meta.hpp>
+#include <tightdb/meta.hpp>
 
 #include "com_tightdb_util.h"
 
@@ -161,7 +161,7 @@ inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong r
     if (!IndexValid(env, pTable, columnIndex, rowIndex))
         return false;
     int colType = pTable->get_column_type(columnIndex);
-    if (colType == COLUMN_TYPE_MIXED)
+    if (colType == tightdb::COLUMN_TYPE_MIXED)
         colType = pTable->get_mixed_type(columnIndex, rowIndex);
     
     if (colType != expectColType) {

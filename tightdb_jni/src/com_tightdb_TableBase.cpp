@@ -5,7 +5,7 @@
 #include "util.h"
 #include "mixedutil.h"
 #include "com_tightdb_TableBase.h"
-#include "ColumnTypeUtil.h"
+#include "columntypeutil.h"
 #include "TableSpecUtil.h"
 #include "java_lang_List_Util.h"
 #include "mixedutil.h"
