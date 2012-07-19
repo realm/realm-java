@@ -14,7 +14,7 @@ import com.tightdb.util;
 public class TightDB {
 
 	private static final String JAVA_LIBRARY_PATH = "java.library.path";
-	private static final String BINARIES_PATH = "./lib";
+	private static final String BINARIES_PATH = "lib:tightdb-example/lib";
 
 	private static boolean loadedLibrary;
 
@@ -143,7 +143,7 @@ public class TightDB {
 	public static void addNativeLibraryPath(String path) {
 		try {
 			//System.out.println("JAVA_LIBRARY_PATH=" + System.getProperty(JAVA_LIBRARY_PATH));
-			System.setProperty(JAVA_LIBRARY_PATH, System.getProperty(JAVA_LIBRARY_PATH) + ";" + path + ";");
+			System.setProperty(JAVA_LIBRARY_PATH, System.getProperty(JAVA_LIBRARY_PATH) + System.getProperty("path.separator") + path + System.getProperty("path.separator"));
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot set the library path!", e);
 		}
