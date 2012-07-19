@@ -8,6 +8,7 @@ import java.util.Date;
 
 import org.testng.annotations.Test;
 
+import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
 import com.tightdb.example.generated.Employee;
 import com.tightdb.example.generated.EmployeeView;
@@ -161,4 +162,13 @@ public class TableColumnsTest extends AbstractTableTest {
 		employees.firstName.set("x");
 	}
 	
+	@Test
+	public void shouldGetColumnInformation() {
+		assertEquals(8, employees.getColumnCount());
+		for (int i=0; i < employees.getColumnCount(); ++i) {
+			assertEquals(EXPECTED_COLUMNS[i], employees.getColumnName(i));
+			assertEquals(EXPECTED_COLUMN_TYPE[i], employees.getColumnType(i));
+		}
+	}
+
 }
