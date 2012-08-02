@@ -42,10 +42,11 @@ enum ExceptionKind {
     ClassNotFound,
     NoSuchField,
     NoSuchMethod,
-    IllegalArgument, 
+    IllegalArgument,
     IOFailed,
     IndexOutOfBounds,
-    TableInvalid
+    TableInvalid,
+    UnsupportedOperation
 };
 
 extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");

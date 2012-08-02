@@ -5,7 +5,7 @@
 #include "com_tightdb_util.h"
 
 
-void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr) 
+void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr)
 {
     std::string message;
     jclass jExceptionClass = NULL;
@@ -33,7 +33,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             jExceptionClass = env->FindClass("java/lang/IllegalArgumentException");
             message = "Illegal Argument: " + classStr;
             break;
-        
+
         case IOFailed:
             jExceptionClass = env->FindClass("java/lang/IOException");
             message = "Failed to open " + classStr;
@@ -41,6 +41,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
 
         case IndexOutOfBounds:
             jExceptionClass = env->FindClass("java/lang/ArrayIndexOutOfBoundsException");
+            message = classStr;
+            break;
+
+        case UnsupportedOperation:
+            jExceptionClass = env->FindClass("java/lang/UnsupportedOperationException");
             message = classStr;
             break;
 
@@ -57,9 +62,9 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     env->DeleteLocalRef(jExceptionClass);
 }
 
-jclass GetClass(JNIEnv* env, char *classStr) 
+jclass GetClass(JNIEnv* env, char *classStr)
 {
-    jclass localRefClass = env->FindClass(classStr);	
+    jclass localRefClass = env->FindClass(classStr);
     if (localRefClass == NULL) {
 		ThrowException(env, ClassNotFound, classStr);
 		return NULL;
