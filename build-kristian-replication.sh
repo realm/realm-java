@@ -6,12 +6,12 @@ TIGHTDB_JAVA2_HOME=$HOME/tightdb_java2
 # Build libtightdb.so
 cd $TIGHTDB_HOME
 make clean || exit 1
-make EXTRA_CFLAGS=-DTIGHTDB_ENABLE_REPLICATION || exit 0
+make EXTRA_CFLAGS=-DTIGHTDB_ENABLE_REPLICATION -j8 || exit 1
 
 # Build libtightdb-jni.so
 cd $TIGHTDB_JAVA2_HOME/tightdb_jni/src || exit 1
 make clean || exit 1
-make EXTRA_CFLAGS="-I$JAVA_HOME/include -I$TIGHTDB_HOME/src -DTIGHTDB_ENABLE_REPLICATION" || exit 1
+make EXTRA_CFLAGS="-I$JAVA_HOME/include -I$TIGHTDB_HOME/src -DTIGHTDB_ENABLE_REPLICATION" -j8 || exit 1
 
 # Combine libtightdb-jni.so and libtightdb.so (The Java code should be changed such that this is not necessary!)
 cd $TIGHTDB_JAVA2_HOME/tightdb_jni/src || exit 1
