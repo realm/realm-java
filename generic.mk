@@ -15,9 +15,9 @@ GET_LIBRARY_NAME = $(patsubst %.a,%,$(1))$(2)
 GET_OBJECTS_FROM_SOURCES = $(patsubst %.c,%$(2),$(patsubst %.cpp,%$(2),$(1)))
 GET_OBJECTS_FOR_TARGET = $(call GET_OBJECTS_FROM_SOURCES,$($(call FOLD_TARGET,$(1))_SOURCES),$(2))
 GET_NOINST_LIBS_FOR_TARGET = $(foreach x,$($(call FOLD_TARGET,$(1))_NOINST_LIBADD),$(call GET_LIBRARY_NAME,$(x),$(2)))
-GET_LDFLAGS_HELPER = $($(if $(filter undefined,$(origin $(1)$(2))),$(1),$(1)$(2)))
-GET_LDFLAGS_FOR_TARGET = $(call GET_LDFLAGS_HELPER,$(call FOLD_TARGET,$(1))_LDFLAGS,$(2))
-
+GET_FLAGS_HELPER = $($(if $(filter undefined,$(origin $(1)$(2))),$(1),$(1)$(2)))
+GET_CFLAGS_FOR_OBJECT = $(call GET_FLAGS_HELPER,$(call FOLD_TARGET,$(1))_CFLAGS,$(2))
+GET_LDFLAGS_FOR_TARGET = $(call GET_FLAGS_HELPER,$(call FOLD_TARGET,$(1))_LDFLAGS,$(2))
 
 
 SOURCE_ROOT   = $(ROOT)/$(SOURCE_DIR)
@@ -94,9 +94,15 @@ endif
 
 
 # Update everything if any makefile has changed
-$(OBJECTS) $(TARGETS): Makefile $(CONFIG_MK) $(THIS_MAKEFILE)
+DEP_MAKEFILES = Makefile $(CONFIG_MK) $(THIS_MAKEFILE)
+$(OBJECTS) $(TARGETS): $(DEP_MAKEFILES)
 
 
+# Disable all suffix rules and some interfering implicit pattern rules
+.SUFFIXES:
+%: %.o
+%: %.c
+%: %.cpp
 
 
 # Subdirectories
@@ -190,30 +196,40 @@ $(foreach x,$(PROGRAMS),$(eval $(call PROGRAM_RULES,$(x))))
 
 
 
+# Flex and Bison
+
+%.flex.cpp %.flex.hpp: %.flex $(DEP_MAKEFILES)
+	flex --outfile=$*.flex.cpp --header-file=$*.flex.hpp $<
+
+%.bison.cpp %.bison.hpp: %.bison $(DEP_MAKEFILES)
+	bison --output=$*.bison.cpp --defines=$*.bison.hpp $<
+
+
+
 # Compiling + automatic dependencies
 
 %.o: %.c
-	$(CC_STATIC) $(CFLAGS) $(INC_FLAGS) -MMD -MP -c $< -o $@
+	$(CC_STATIC) $(CFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
 %.o: %.cpp
-	$(CXX_STATIC) $(CXXFLAGS) $(INC_FLAGS) -MMD -MP -c $< -o $@
+	$(CXX_STATIC) $(CXXFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
 %.dyn.o: %.c
-	$(CC_SHARED) $(CFLAGS) $(INC_FLAGS) -MMD -MP -c $< -o $@
+	$(CC_SHARED) $(CFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
 %.dyn.o: %.cpp
-	$(CXX_SHARED) $(CXXFLAGS) $(INC_FLAGS) -MMD -MP -c $< -o $@
+	$(CXX_SHARED) $(CXXFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
 %.dbg.o: %.c
-	$(CC_DEBUG) $(CFLAGS) $(INC_FLAGS) -MMD -MP -c $< -o $@
+	$(CC_DEBUG) $(CFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,_DEBUG) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
 %.dbg.o: %.cpp
-	$(CXX_DEBUG) $(CXXFLAGS) $(INC_FLAGS) -MMD -MP -c $< -o $@
+	$(CXX_DEBUG) $(CXXFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,_DEBUG) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
 %.cov.o: %.c
-	$(CC_COVERAGE) $(CFLAGS) $(INC_FLAGS_ABS) -MMD -MP -c $(abspath $<) -o $(abspath $@)
+	$(CC_COVERAGE) $(CFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,_COVER) $(INC_FLAGS_ABS) -MMD -MP -c $(abspath $<) -o $(abspath $@)
 
 %.cov.o: %.cpp
-	$(CXX_COVERAGE) $(CXXFLAGS) $(INC_FLAGS_ABS) -MMD -MP -c $(abspath $<) -o $(abspath $@)
+	$(CXX_COVERAGE) $(CXXFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,_COVER) $(INC_FLAGS_ABS) -MMD -MP -c $(abspath $<) -o $(abspath $@)
 
 -include $(OBJECTS:.o=.d)
