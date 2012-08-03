@@ -66,19 +66,14 @@ public class ReplicationExample {
                               new byte[] { 1, 2, 3 }, new Date(), "extra");
                 System.out.println(employees.size());
                 transact.commit();
-                System.err.println("CLICK-1");
             }
             catch (Throwable e) {
-                System.err.println("CLICK-2");
                 transact.rollback();
-                System.err.println("CLICK-3");
                 throw e;
             }
         }
         finally {
-            System.err.println("CLICK-4");
             db.close();
-            System.err.println("CLICK-5");
         }
     }
 }

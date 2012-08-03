@@ -5,6 +5,7 @@
 #include "util.h"
 #include "com_tightdb_SharedGroup.h"
 
+using namespace std;
 using namespace tightdb;
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
@@ -54,9 +55,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeCommit(
     JNIEnv*, jobject, jlong native_ptr)
 {
     SharedGroup* db = reinterpret_cast<SharedGroup*>(native_ptr);
-cerr << "COMMIT-1" << endl;
     db->commit();
-cerr << "COMMIT-2" << endl;
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeRollback(

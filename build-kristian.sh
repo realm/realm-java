@@ -1,5 +1,5 @@
 JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64 # Ununtu 12.04 64-bit
-TIGHTDB_HOME=$HOME/tightdb_bmunkholm
+TIGHTDB_HOME=$HOME/tightdb
 TIGHTDB_JAVA2_HOME=$HOME/tightdb_java2
 
 

@@ -1,12 +1,12 @@
 JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64 # Ununtu 12.04 64-bit
-TIGHTDB_HOME=$HOME/tightdb_bmunkholm
+TIGHTDB_HOME=$HOME/tightdb
 TIGHTDB_JAVA2_HOME=$HOME/tightdb_java2
 
 
 # Build libtightdb.so
-#cd $TIGHTDB_HOME
-#make clean || exit 1
-#make EXTRA_CFLAGS=-DTIGHTDB_ENABLE_REPLICATION || exit 0
+cd $TIGHTDB_HOME
+make clean || exit 1
+make EXTRA_CFLAGS=-DTIGHTDB_ENABLE_REPLICATION || exit 0
 
 # Build libtightdb-jni.so
 cd $TIGHTDB_JAVA2_HOME/tightdb_jni/src || exit 1
@@ -27,4 +27,4 @@ jar cf tightdb.jar $(find com/ -type f -name '*.class') || exit 1
 cd $TIGHTDB_JAVA2_HOME/tightdb-example/src/main/java || exit 1
 find com/ -type f -name '*.class' -delete || exit 1
 javac -cp $TIGHTDB_JAVA2_HOME/src/main/java/tightdb.jar com/tightdb/example/ReplicationExample.java com/tightdb/example/generated/*.java || exit 1
-java -Djava.library.path=$TIGHTDB_JAVA2_HOME/tightdb_jni/src -cp $TIGHTDB_JAVA2_HOME/src/main/java/tightdb.jar:. com.tightdb.example.ReplicationExample --database-file /tmp/hest.tdb
+java -Djava.library.path=$TIGHTDB_JAVA2_HOME/tightdb_jni/src -cp $TIGHTDB_JAVA2_HOME/src/main/java/tightdb.jar:. com.tightdb.example.ReplicationExample --database-file /tmp/hippo1.tdb
