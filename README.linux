@@ -1,7 +1,7 @@
 # Build essentials (Ununtu 12.04):
-sudo get-get install build-essential
-sudo get-get install openjdk-7-jdk
-sudo get-get install ant
+sudo apt-get install build-essential
+sudo apt-get install openjdk-7-jdk
+sudo apt-get install ant
 
 # Java dependencies (Ununtu 12.04):
 sudo apt-get install libcommons-io-java
