@@ -5,38 +5,53 @@ sudo get-get install ant
 
 # Java dependencies (Ununtu 12.04):
 sudo apt-get install libcommons-io-java
-sudo apt-get install libvelocity-tools-java
 sudo apt-get install libcommons-lang-java
 sudo apt-get install libfreemarker-java
 
+# Dependencies for test suite (Ubuntu 12.04):
+sudo apt-get install testng
+sudo apt-get install libqdox-java
+sudo apt-get install bsh
+
 
 JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64 # Ununtu 12.04 64-bit
-TIGHTDB_HOME=$HOME/tightdb
-TIGHTDB_JAVA2_HOME=$HOME/tightdb_java2
+TIGHTDB_HOME="$HOME/tightdb"
+TIGHTDB_JAVA2_HOME="$HOME/tightdb_java2"
 
 
 # Build libtightdb.so
-cd $TIGHTDB_HOME
+cd "$TIGHTDB_HOME"
 make clean
 make
 
 # Build libtightdb-jni.so
-cd $TIGHTDB_JAVA2_HOME/tightdb_jni/src
+cd "$TIGHTDB_JAVA2_HOME/tightdb_jni/src"
 make clean
-make EXTRA_CFLAGS="-I$JAVA_HOME/include -I$TIGHTDB_HOME/src"
+make EXTRA_CFLAGS="-I\"$JAVA_HOME/include\" -I\"$TIGHTDB_HOME/src\""
 
 # Combine libtightdb-jni.so and libtightdb.so (The Java code should be changed such that this is not necessary!)
-cd $TIGHTDB_JAVA2_HOME/tightdb_jni/src
-g++ -shared -fPIC -DPIC -O3 -msse4.2 -DUSE_SSE -pthread *.dyn.o $TIGHTDB_HOME/src/tightdb/*.dyn.o -o libtightdb-jni.so
+cd "$TIGHTDB_JAVA2_HOME/tightdb_jni/src"
+g++ -shared -fPIC -DPIC -O3 -msse4.2 -DUSE_SSE -pthread *.dyn.o "$TIGHTDB_HOME"/src/tightdb/*.dyn.o -o libtightdb-jni.so
 
 # Build tightdb.jar
-cd $TIGHTDB_JAVA2_HOME/src/main/java
+cd "$TIGHTDB_JAVA2_HOME/src/main/java"
 find com/ -type f -name '*.class' -delete
-javac -cp /usr/share/java/commons-io.jar:/usr/share/java/velocity.jar:/usr/share/java/commons-lang.jar:/usr/share/java/freemarker.jar $(find com/ -type f -name '*.java' | fgrep -v /example/)
+export CLASSPATH=/usr/share/java/commons-io.jar:/usr/share/java/commons-lang.jar:/usr/share/java/freemarker.jar
+javac $(find com/ -type f -name '*.java' | fgrep -v /doc/ | fgrep -v /example/)
 jar cf tightdb.jar $(find com/ -type f -name '*.class')
 
 # Build and run example
-cd $TIGHTDB_JAVA2_HOME/tightdb-example/src/main/java
+cd "$TIGHTDB_JAVA2_HOME/tightdb-example/src/main/java"
 find com/ -type f -name '*.class' -delete
-javac -cp $TIGHTDB_JAVA2_HOME/src/main/java/tightdb.jar com/tightdb/example/Example.java com/tightdb/example/generated/*.java
-java -Djava.library.path=$TIGHTDB_JAVA2_HOME/tightdb_jni/src -cp $TIGHTDB_JAVA2_HOME/src/main/java/tightdb.jar:. com.tightdb.example.Example
+export CLASSPATH="$TIGHTDB_JAVA2_HOME/src/main/java/tightdb.jar:."
+javac com/tightdb/example/Example.java com/tightdb/example/generated/*.java
+java -Djava.library.path="$TIGHTDB_JAVA2_HOME/tightdb_jni/src" com.tightdb.example.Example
+
+# Build and run test suite
+cd "$TIGHTDB_JAVA2_HOME/src/test/java"
+find com/ -type f -name '*.class' -delete
+test_sources="$(find * -type f -name '*Test.java')"
+test_classes="$(echo "$test_sources" | sed 's/\.java$/.class/')"
+export CLASSPATH="$TIGHTDB_JAVA2_HOME/src/main/java/tightdb.jar:$TIGHTDB_JAVA2_HOME/tightdb-example/src/main/java:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:."
+javac $test_sources
+java -Djava.library.path="$TIGHTDB_JAVA2_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA2_HOME/test_output" -testclass $test_classes
