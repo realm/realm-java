@@ -1,10 +1,5 @@
-#include <string>
-#include <jni.h>
-#include <tightdb.hpp>
-#include <tightdb/lang_bind_helper.hpp>
-
 #include "util.h"
-#include "com_tightdb_Group.h"
+#include "com_tightdb_group.h"
 
 using namespace tightdb;
 

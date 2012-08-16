@@ -22,9 +22,9 @@
 
 #include <new>
 
-#include "table.hpp"
-#include "table_view.hpp"
-#include "group.hpp"
+#include <tightdb/table.hpp>
+#include <tightdb/table_view.hpp>
+#include <tightdb/group.hpp>
 
 namespace tightdb {
 

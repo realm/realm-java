@@ -1,11 +1,6 @@
-#include <jni.h>
-#include <tightdb.hpp>
-#include <tightdb/lang_bind_helper.hpp>
-
-#include "com_tightdb_TableViewBase.h"
-#include "mixedutil.h"
 #include "util.h"
-
+#include "com_tightdb_tableviewbase.h"
+#include "mixedutil.h"
 #include "tablebase_tpl.hpp"
 
 using namespace tightdb;

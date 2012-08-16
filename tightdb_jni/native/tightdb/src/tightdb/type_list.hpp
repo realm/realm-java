@@ -122,6 +122,45 @@ template<template<class T, int i> class Op, int i> struct ForEachType<void, Op, 
 };
 
 
+/**
+ * Execute a predicate for each element in the specified list of
+ * types, and return true if, and only if the predicate returns true
+ * for at least one of those elements.
+ *
+ * \tparam List The list of types constructed using TypeCons<>. Note
+ * that 'void' is interpreted as a zero-length list.
+ */
+template<class List, template<class T, int i> class Pred, int i=0> struct HasType {
+    static bool exec()
+    {
+        return Pred<typename List::head, i>::exec() ||
+            HasType<typename List::tail, Pred, i+1>::exec();
+    }
+    template<class A> static bool exec(const A& a)
+    {
+        return Pred<typename List::head, i>::exec(a) ||
+            HasType<typename List::tail, Pred, i+1>::exec(a);
+    }
+    template<class A, class B> static bool exec(const A& a, const B& b)
+    {
+        return Pred<typename List::head, i>::exec(a,b) ||
+            HasType<typename List::tail, Pred, i+1>::exec(a,b);
+    }
+    template<class A, class B, class C> static bool exec(const A& a, const B& b, const C& c)
+    {
+        return Pred<typename List::head, i>::exec(a,b,c) ||
+            HasType<typename List::tail, Pred, i+1>::exec(a,b,c);
+    }
+};
+template<template<class T, int i> class Pred, int i> struct HasType<void, Pred, i> {
+    static bool exec() { return false; }
+    template<class A> static bool exec(const A&) { return false; }
+    template<class A, class B> static bool exec(const A&, const B&) { return false; }
+    template<class A, class B, class C>
+    static bool exec(const A&, const B&, const C&) { return false; }
+};
+
+
 } // namespace tightdb
 
 #endif // TIGHTDB_TYPE_LIST_HPP

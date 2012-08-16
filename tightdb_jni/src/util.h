@@ -1,11 +1,12 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <string>
-#include <jni.h>
-
 #include <tightdb.hpp>
 #include <tightdb/meta.hpp>
+#include <tightdb/lang_bind_helper.hpp>
+
+#include <jni.h>
+#include <string>
 
 #include "com_tightdb_util.h"
 
@@ -161,12 +162,14 @@ inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong r
 {
     if (!IndexValid(env, pTable, columnIndex, rowIndex))
         return false;
-    int colType = pTable->get_column_type(columnIndex);
+    size_t col = static_cast<size_t>(columnIndex);
+    size_t row = static_cast<size_t>(rowIndex);
+    int colType = pTable->get_column_type(col);
     if (colType == tightdb::COLUMN_TYPE_MIXED)
-        colType = pTable->get_mixed_type(columnIndex, rowIndex);
+        colType = pTable->get_mixed_type(col, row);
     
     if (colType != expectColType) {
-        TR_ERR("Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(columnIndex));
+        TR_ERR("Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col));
 	    ThrowException(env, IllegalArgument, "column type != ColumnTypeTable.");
         return false;
     }

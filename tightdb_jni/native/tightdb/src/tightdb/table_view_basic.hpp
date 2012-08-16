@@ -20,9 +20,9 @@
 #ifndef TIGHTDB_TABLE_VIEW_BASIC_HPP
 #define TIGHTDB_TABLE_VIEW_BASIC_HPP
 
-#include "meta.hpp"
-#include "table_view.hpp"
-#include "table_accessors.hpp"
+#include <tightdb/meta.hpp>
+#include <tightdb/table_view.hpp>
+#include <tightdb/table_accessors.hpp>
 
 namespace tightdb {
 
@@ -57,9 +57,9 @@ private:
     typedef typename Spec::template ColNames<ConstCol, const View*> ConstColsAccessor;
 
 public:
-    ColsAccessor cols() { return ColsAccessor(static_cast<View*>(this)); }
+    ColsAccessor column() { return ColsAccessor(static_cast<View*>(this)); }
 
-    ConstColsAccessor cols() const { return ConstColsAccessor(static_cast<const View*>(this)); }
+    ConstColsAccessor column() const { return ConstColsAccessor(static_cast<const View*>(this)); }
 
 private:
     template<int col_idx> struct Field {

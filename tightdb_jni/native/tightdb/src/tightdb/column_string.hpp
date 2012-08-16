@@ -20,9 +20,9 @@
 #ifndef TIGHTDB_COLUMN_STRING_HPP
 #define TIGHTDB_COLUMN_STRING_HPP
 
-#include "column.hpp"
-#include "array_string.hpp"
-#include "array_string_long.hpp"
+#include <tightdb/column.hpp>
+#include <tightdb/array_string.hpp>
+#include <tightdb/array_string_long.hpp>
 
 namespace tightdb {
 
@@ -67,10 +67,12 @@ public:
     // Optimizing data layout
     bool AutoEnumerate(size_t& ref_keys, size_t& ref_values) const;
 
-#ifdef _DEBUG
-    bool Compare(const AdaptiveStringColumn& c) const;
+    /// Compare two string columns for equality.
+    bool Compare(const AdaptiveStringColumn&) const;
+
+#ifdef TIGHTDB_DEBUG
     void Verify() const {}; // Must be upper case to avoid conflict with macro in ObjC
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
 
 protected:
     friend class ColumnBase;
@@ -88,9 +90,9 @@ protected:
 
     bool FindKeyPos(const char* target, size_t& pos) const;
 
-#ifdef _DEBUG
+#ifdef TIGHTDB_DEBUG
     virtual void LeafToDot(std::ostream& out, const Array& array) const;
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
 };
 
 

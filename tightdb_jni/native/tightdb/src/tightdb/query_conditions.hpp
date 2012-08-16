@@ -21,7 +21,8 @@
 #define TIGHTDB_QUERY_CONDITIONS_HPP
 
 #include <string>
-#include "utf8.hpp"
+
+#include <tightdb/utf8.hpp>
 
 namespace tightdb {
 

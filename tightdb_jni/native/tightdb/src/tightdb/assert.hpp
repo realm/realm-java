@@ -17,29 +17,33 @@
  * from TightDB Incorporated.
  *
  **************************************************************************/
-#ifndef TIGHTDB_STATIC_ASSERT_HPP
-#define TIGHTDB_STATIC_ASSERT_HPP
+#ifndef TIGHTDB_ASSERT_HPP
+#define TIGHTDB_ASSERT_HPP
 
-#include "config.h"
+#include <tightdb/config.h>
+
+
+#ifdef TIGHTDB_DEBUG
+#  include <tightdb/terminate.hpp>
+#  define TIGHTDB_ASSERT(condition) \
+    (condition ? static_cast<void>(0) : tightdb::terminate("Assertion failed: " #condition, __FILE__, __LINE__))
+#else
+#  define TIGHTDB_ASSERT(condition) static_cast<void>(0)
+#endif
 
 
 #ifdef TIGHTDB_HAVE_CXX11_STATIC_ASSERT
-
-#define TIGHTDB_STATIC_ASSERT(assertion, message) static_assert(assertion, message)
-
-#else // !TIGHTDB_HAVE_CXX11_STATIC_ASSERT
-
-#define TIGHTDB_STATIC_ASSERT(assertion, message) typedef \
-    tightdb::static_assert_dummy<sizeof(tightdb::STATIC_ASSERTION_FAILURE<bool(assertion)>)> \
+#  define TIGHTDB_STATIC_ASSERT(condition, message) static_assert(condition, message)
+#else
+#  define TIGHTDB_STATIC_ASSERT(condition, message) typedef \
+    tightdb::static_assert_dummy<sizeof(tightdb::STATIC_ASSERTION_FAILURE<bool(condition)>)> \
     _tightdb_static_assert_##__LINE__
-
 namespace tightdb {
     template<bool> struct STATIC_ASSERTION_FAILURE;
     template<> struct STATIC_ASSERTION_FAILURE<true> {};
     template<int> struct static_assert_dummy {};
-} // namespace tightdb
+}
+#endif
 
-#endif // !TIGHTDB_HAVE_CXX11_STATIC_ASSERT
 
-
-#endif // TIGHTDB_STATIC_ASSERT_HPP
+#endif // TIGHTDB_ASSERT_HPP

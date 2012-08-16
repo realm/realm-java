@@ -597,7 +597,7 @@ public class TableBase implements IRowsetBase {
 	 * @param columnIndex column index of the cell
 	 * @param value
 	 */
- 	//!!!TODO: New
+ 	//!!!TODO: New. Support in highlevel API
 	public void addLong(long columnIndex, long value) {
 		nativeAddInt(nativePtr, columnIndex, value);
 	}
@@ -698,5 +698,12 @@ public class TableBase implements IRowsetBase {
 	}
 
 	protected native void nativeOptimize(long nativeTablePtr);
+
+	public void toJson() {
+		// TODO: implement!
+		nativeToJson(nativePtr);
+	}
+
+	protected native void nativeToJson(long nativeTablePtr);
 
 }

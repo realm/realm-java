@@ -1,11 +1,10 @@
-#include <jni.h>
+#include "util.h"
 #include "mem_usage/mem.hpp"
 #include "com_tightdb_util.h"
-#include "util.h"
 
 int trace_level = 0;
 
-static int TIGHTDB_JNI_VERSION = 7;
+static int TIGHTDB_JNI_VERSION = 8;
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) 
 {

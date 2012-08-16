@@ -17,35 +17,24 @@
  * from TightDB Incorporated.
  *
  **************************************************************************/
-#ifndef TIGHTDB_DATE_HPP
-#define TIGHTDB_DATE_HPP
+#ifndef TIGHTDB_TERMINATE_HPP
+#define TIGHTDB_TERMINATE_HPP
 
-#include <ctime>
-#include <ostream>
+#include <cstdlib>
+#include <string>
+
+#ifdef TIGHTDB_DEBUG
+#  define TIGHTDB_TERMINATE(msg) tightdb::terminate((msg), __FILE__, __LINE__)
+#else
+#  define TIGHTDB_TERMINATE(msg) std::abort()
+#endif
 
 namespace tightdb {
 
 
-class Date {
-public:
-    Date(std::time_t d): m_date(d) {}
-    std::time_t get_date() const { return m_date; }
-
-    bool operator==(const Date& d) const { return m_date == d.m_date; }
-    bool operator!=(const Date& d) const { return m_date != d.m_date; }
-
-    template<class Ch, class Tr>
-    friend std::basic_ostream<Ch, Tr>& operator<<(std::basic_ostream<Ch, Tr>& out, const Date& d)
-    {
-        out << "Date("<<d.m_date<<")";
-        return out;
-    }
-
-private:
-    std::time_t m_date;
-};
+void terminate(std::string message, const char* file, long line);
 
 
 } // namespace tightdb
 
-#endif // TIGHTDB_DATE_HPP
+#endif // TIGHTDB_TERMINATE_HPP

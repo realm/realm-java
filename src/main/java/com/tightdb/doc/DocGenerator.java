@@ -27,7 +27,8 @@ public class DocGenerator {
 		
 		String docs = renderer.render("reference.vm", context);
 		// FIXME: hard-coded path (temporary)
-		FileUtils.writeStringToFile(new File("D:/docs/reference/reference.html"), docs);
+		FileUtils.writeStringToFile(new File("E:/docs/reference/reference.html"), docs);
+		System.out.println("Documentation updated.");
 	}
 
 	private static void describeAndGen(AbstractDesc desc, String cls, Context context) throws Exception {

@@ -26,26 +26,25 @@
 #include <stdint.h> // unint8_t etc
 #endif
 
-#include <cassert>
 #include <cstddef>
 #include <cstring> // strcmp()
 #include <ctime>
 #include <utility>
 
-#include "static_assert.hpp"
-#include "meta.hpp"
-#include "tuple.hpp"
-#include "table.hpp"
-#include "column.hpp"
-#include "query.hpp"
-#include "table_accessors.hpp"
-#include "table_view_basic.hpp"
+#include <tightdb/meta.hpp>
+#include <tightdb/tuple.hpp>
+#include <tightdb/table.hpp>
+#include <tightdb/column.hpp>
+#include <tightdb/query.hpp>
+#include <tightdb/table_accessors.hpp>
+#include <tightdb/table_view_basic.hpp>
 
 namespace tightdb {
 
 
 namespace _impl {
     template<class Type, int col_idx> struct AddCol;
+    template<class Type, int col_idx> struct DiffColType;
     template<class Type, int col_idx> struct InsertIntoCol;
     template<class Type, int col_idx> struct AssignIntoCol;
 }
@@ -62,7 +61,6 @@ namespace _impl {
 /// assumes that Table is non-polymorphic. Further more, accessing the
 /// Table via a poiter or reference to a BasicTable is not in
 /// violation of the strict aliasing rule.
-///
 template<class Spec> class BasicTable: private Table, public Spec::ConvenienceMethods {
 public:
     typedef Spec spec_type;
@@ -109,8 +107,8 @@ private:
     typedef typename Spec::template ColNames<ConstCol, const BasicTable*> ConstColsAccessor;
 
 public:
-    ColsAccessor cols() { return ColsAccessor(this); }
-    ConstColsAccessor cols() const { return ConstColsAccessor(this); }
+    ColsAccessor column() { return ColsAccessor(this); }
+    ConstColsAccessor column() const { return ConstColsAccessor(this); }
 
 private:
     template<int col_idx> struct Field {
@@ -194,14 +192,39 @@ public:
 
     class Query;
 
-    Query where() const {
-        return Query();
-    } // FIXME: Bad thing to copy queries
+    Query where() const
+    {
+        return Query(); // FIXME: Bad thing to copy queries
+    }
 
-#ifdef _DEBUG
+    /// Compare two tables for equality. Two tables are equal if, and
+    /// only if, they contain the same rows in the same order, that
+    /// is, for each value V at column index C and row index R in one
+    /// of the tables, there is a value at column index C and row
+    /// index R in the other table that is equal to V.
+    bool operator==(const BasicTable& t) const { return compare_rows(t); }
+
+    /// Compare two tables for inequality. See operator==().
+    bool operator!=(const BasicTable& t) const { return !compare_rows(t); }
+
+    /// Checks whether the dynamic type of the specified table matches
+    /// the statically specified table type. The two types (or specs)
+    /// must have the same columns, and in the same order. Two columns
+    /// are considered equal if, and only if they have the same name
+    /// and the same type. The type is understood as the value encoded
+    /// by the ColumnType enumeration. This check proceeds recursively
+    /// for subtable columns.
+    ///
+    /// \tparam T The static table type. It makes no difference
+    /// whether it is const-qualified or not.
+    template<class T> friend bool is_a(const Table&);
+
+    template<class T> friend BasicTableRef<T> checked_cast(TableRef);
+    template<class T> friend BasicTableRef<const T> checked_cast(ConstTableRef);
+
+#ifdef TIGHTDB_DEBUG
     using Table::Verify;
     using Table::print;
-    bool compare(const BasicTable& c) const { return Table::compare(c); }
 #endif
 
 private:
@@ -231,6 +254,12 @@ private:
         update_from_spec();
     }
 
+    static bool matches_dynamic_spec(const tightdb::Spec* spec)
+    {
+        return !HasType<typename Spec::Columns,
+                        _impl::DiffColType>::exec(spec, Spec::dyn_col_names());
+    }
+
     // This one allows a BasicTable to know that BasicTables with
     // other Specs are also derived from Table.
     template<class> friend class BasicTable;
@@ -249,12 +278,13 @@ private:
     friend class BasicTableView<BasicTable>;
     friend class BasicTableView<const BasicTable>;
 
+    template<class, int> friend struct _impl::DiffColType;
     template<class, int, class, bool> friend class _impl::FieldAccessor;
     template<class, int, class> friend class _impl::MixedFieldAccessorBase;
     template<class, int, class> friend class _impl::ColumnAccessorBase;
     template<class, int, class> friend class _impl::ColumnAccessor;
     template<class, int, class> friend class _impl::QueryColumn;
-    friend class Group; // FIXME: Probably only one method in Group
+    friend class Group;
 };
 
 
@@ -275,7 +305,7 @@ public:
 
     Query& end_group() { m_impl.end_group(); return *this; }
 
-    Query& parent() { m_impl.parent(); return *this; }
+    Query& end_subtable() { m_impl.end_subtable(); return *this; }
 
     Query& Or() { m_impl.Or(); return *this; }
 
@@ -312,7 +342,7 @@ public:
         return m_impl.remove(table, start, end, limit);
     }
 
-#ifdef _DEBUG
+#ifdef TIGHTDB_DEBUG
     std::string Verify() { return m_impl.Verify(); }
 #endif
 
@@ -324,6 +354,10 @@ private:
 #pragma warning(pop)
 #endif
 
+
+
+
+// Implementation:
 
 namespace _impl
 {
@@ -354,7 +388,7 @@ namespace _impl
     template<class Type, int col_idx> struct AddCol {
         static void exec(Spec* spec, const char* const* col_names)
         {
-            assert(col_idx == spec->get_column_count());
+            TIGHTDB_ASSERT(col_idx == spec->get_column_count());
             spec->add_column(GetColumnTypeId<Type>::id, col_names[col_idx]);
         }
     };
@@ -363,11 +397,32 @@ namespace _impl
     template<class Subtab, int col_idx> struct AddCol<SpecBase::Subtable<Subtab>, col_idx> {
         static void exec(Spec* spec, const char* const* col_names)
         {
-            assert(col_idx == spec->get_column_count());
+            TIGHTDB_ASSERT(col_idx == spec->get_column_count());
             typedef typename Subtab::Columns Subcolumns;
             Spec subspec = spec->add_subtable_column(col_names[col_idx]);
             const char* const* const subcol_names = Subtab::spec_type::dyn_col_names();
             ForEachType<Subcolumns, _impl::AddCol>::exec(&subspec, subcol_names);
+        }
+    };
+
+
+
+    template<class Type, int col_idx> struct DiffColType {
+        static bool exec(const Spec* spec, const char* const* col_names)
+        {
+            return GetColumnTypeId<Type>::id != spec->get_column_type(col_idx) ||
+                std::strcmp(col_names[col_idx], spec->get_column_name(col_idx)) != 0;
+        }
+    };
+
+    // DiffColType specialization for subtables
+    template<class Subtab, int col_idx> struct DiffColType<SpecBase::Subtable<Subtab>, col_idx> {
+        static bool exec(const Spec* spec, const char* const* col_names)
+        {
+            if (spec->get_column_type(col_idx) != COLUMN_TYPE_TABLE ||
+                std::strcmp(col_names[col_idx], spec->get_column_name(col_idx)) != 0) return true;
+            Spec subspec = spec->get_subtable_spec(col_idx);
+            return !Subtab::matches_dynamic_spec(&subspec);
         }
     };
 
@@ -428,7 +483,7 @@ namespace _impl
         template<class L> static void exec(Table* t, std::size_t row_idx, Tuple<L> tuple)
         {
             t->insert_subtable(col_idx, row_idx);
-            assert(!static_cast<const T*>(at<col_idx>(tuple))); // FIXME: Implement table copy when specified!
+            TIGHTDB_ASSERT(!static_cast<const T*>(at<col_idx>(tuple))); // FIXME: Implement table copy when specified!
             static_cast<void>(tuple);
         }
     };
@@ -498,7 +553,7 @@ namespace _impl
         template<class L> static void exec(Table* t, std::size_t row_idx, Tuple<L> tuple)
         {
             t->clear_subtable(col_idx, row_idx);
-            assert(!static_cast<const T*>(at<col_idx>(tuple))); // FIXME: Implement table copy when specified!
+            TIGHTDB_ASSERT(!static_cast<const T*>(at<col_idx>(tuple))); // FIXME: Implement table copy when specified!
             static_cast<void>(tuple);
         }
     };
@@ -510,6 +565,24 @@ namespace _impl
             t->set_mixed(col_idx, row_idx, at<col_idx>(tuple));
         }
     };
+}
+
+
+template<class T> inline bool is_a(const Table& t)
+{
+    return T::matches_dynamic_spec(&t.get_spec());
+}
+
+template<class T> inline BasicTableRef<T> checked_cast(TableRef t)
+{
+    if (!is_a<T>(*t)) return BasicTableRef<T>(); // Null
+    return unchecked_cast<T>(t);
+}
+
+template<class T> inline BasicTableRef<const T> checked_cast(ConstTableRef t)
+{
+    if (!is_a<T>(*t)) return BasicTableRef<const T>(); // Null
+    return unchecked_cast<T>(t);
 }
 
 
