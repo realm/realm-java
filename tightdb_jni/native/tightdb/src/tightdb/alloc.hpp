@@ -59,9 +59,9 @@ public:
     Replication* get_replication() { return m_replication; }
 #endif
 
-#ifdef _DEBUG
+#ifdef TIGHTDB_DEBUG
     virtual void Verify() const {};
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
 
 #ifdef TIGHTDB_ENABLE_REPLICATION
 protected:

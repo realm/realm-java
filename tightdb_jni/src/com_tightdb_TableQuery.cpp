@@ -1,8 +1,5 @@
-#include <tightdb.hpp>
-#include <jni.h>
-
 #include "util.h"
-#include "com_tightdb_TableQuery.h"
+#include "com_tightdb_tablequery.h"
 
 using namespace tightdb;
 
@@ -136,7 +133,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable(
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent(
 	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr)
 {
-	Q(nativeQueryPtr)->parent();
+	Q(nativeQueryPtr)->end_subtable();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
@@ -208,7 +205,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAllMulti(
 {
 	Table* pTable = TBL(nativeTablePtr);
 	Query* pQuery = Q(nativeQueryPtr);
-    TableView* pResultView = new TableView( pQuery->FindAllMulti(*pTable, S(start), S(end)) );
+    TableView* pResultView = new TableView( pQuery->find_all_multi(*pTable, S(start), S(end)) );
 	return reinterpret_cast<jlong>(pResultView);
 }
 
@@ -221,7 +218,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableQuery_nativeGetErrorCode(
 JNIEXPORT jint JNICALL Java_com_tightdb_TableQuery_nativeSetThreads(
 	JNIEnv* env, jobject jQuery, jlong nativeQueryPtr, jint threadCount)
 {	
-	return Q(nativeQueryPtr)->SetThreads(threadCount);
+	return Q(nativeQueryPtr)->set_threads(threadCount);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove(

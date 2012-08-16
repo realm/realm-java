@@ -20,13 +20,13 @@
 #ifndef TIGHTDB_ALLOC_SLAB_HPP
 #define TIGHTDB_ALLOC_SLAB_HPP
 
-#include "table_macros.hpp"
-
 #ifdef _MSC_VER
 #include <win32/stdint.h>
 #else
 #include <stdint.h> // unint8_t etc
 #endif
+
+#include <tightdb/table_macros.hpp>
 
 namespace tightdb {
 
@@ -44,7 +44,7 @@ public:
 
     MemRef Alloc(size_t size);
     MemRef ReAlloc(size_t ref, void* p, size_t size);
-    void   Free(size_t ref, void* p);
+    void   Free(size_t ref, void* p); // FIXME: It would be very nice if we could detect an invalid free operation in debug mode
     void*  Translate(size_t ref) const;
 
     bool   IsReadOnly(size_t ref) const;
@@ -55,6 +55,7 @@ public:
     size_t GetFileLen() const {return m_baseline;}
     void   FreeAll(size_t filesize=(size_t)-1);
     bool   ReMap(size_t filesize);
+    bool   RefreshMapping();
 
 #ifndef _MSC_VER
     int    GetFileDescriptor() {return m_fd;}
@@ -62,12 +63,12 @@ public:
     void*  GetFileDescriptor() {return m_fd;}
 #endif
 
-#ifdef _DEBUG
+#ifdef TIGHTDB_DEBUG
     void EnableDebug(bool enable) {m_debugOut = enable;}
     void Verify() const;
     bool IsAllFree() const;
     void Print() const;
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
 
 protected:
     friend class Group;
@@ -99,9 +100,9 @@ protected:
     void*     m_fd;
 #endif
 
-#ifdef _DEBUG
+#ifdef TIGHTDB_DEBUG
     bool      m_debugOut;
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
 
 private:
 #ifdef TIGHTDB_ENABLE_REPLICATION

@@ -1,8 +1,6 @@
-#include <assert.h>
-#include <tightdb.hpp>
-
 #include "util.h"
 #include "com_tightdb_util.h"
+#include <assert.h>
 
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr)
@@ -92,7 +90,7 @@ void jprintf(JNIEnv *env, const char *format, ...) {
     char buf[200];
     va_start(argptr, format);
     //vfprintf(stderr, format, argptr);
-    //vsnprintf_s(buf, 200, format, argptr);
+    vsnprintf_s(buf, 200, format, argptr);
     jprint(env, buf);
     va_end(argptr);
 }

@@ -1,13 +1,9 @@
-#include <jni.h>
-#include <tightdb.hpp>
-#include <tightdb/lang_bind_helper.hpp>
-
 #include "util.h"
 #include "mixedutil.h"
-#include "com_tightdb_TableBase.h"
+#include "com_tightdb_tableBase.h"
 #include "columntypeutil.h"
-#include "TableSpecUtil.h"
-#include "java_lang_List_Util.h"
+#include "tablespecutil.h"
+#include "java_lang_list_util.h"
 #include "mixedutil.h"
 #include "tablebase_tpl.hpp"
 

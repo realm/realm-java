@@ -23,11 +23,12 @@
 #include <cstddef>
 #include <algorithm>
 
-#include "bind_ptr.hpp"
+#include <tightdb/bind_ptr.hpp>
 
 namespace tightdb {
 
 
+class Table;
 template<class> class BasicTable;
 
 
@@ -112,8 +113,13 @@ public:
     using bind_ptr<T>::operator typename bind_ptr<T>::unspecified_bool_type;
 #endif
 
+    void reset() { bind_ptr<T>::reset(); }
+
     void swap(BasicTableRef& r) { this->bind_ptr<T>::swap(r); }
     friend void swap(BasicTableRef& a, BasicTableRef& b) { a.swap(b); }
+
+    template<class U> friend BasicTableRef<U> unchecked_cast(BasicTableRef<Table>);
+    template<class U> friend BasicTableRef<const U> unchecked_cast(BasicTableRef<const Table>);
 
 private:
     template<class> struct GetRowAccType { typedef void type; };
@@ -126,9 +132,7 @@ private:
     typedef typename GetRowAccType<T>::type RowAccessor;
 
 public:
-    /**
-     * Same as 'table[i]' where 'table' is the referenced table.
-     */
+    /// Same as 'table[i]' where 'table' is the referenced table.
     RowAccessor operator[](std::size_t i) const { return (*this->get())[i]; }
 
 private:
@@ -141,10 +145,13 @@ private:
 
     typedef typename bind_ptr<T>::move_tag move_tag;
     BasicTableRef(BasicTableRef* r, move_tag): bind_ptr<T>(r, move_tag()) {}
+
+    typedef typename bind_ptr<T>::casting_move_tag casting_move_tag;
+    template<class U> BasicTableRef(BasicTableRef<U>* r, casting_move_tag):
+        bind_ptr<T>(r, casting_move_tag()) {}
 };
 
 
-class Table;
 typedef BasicTableRef<Table> TableRef;
 typedef BasicTableRef<const Table> ConstTableRef;
 
@@ -154,6 +161,16 @@ inline std::basic_ostream<C,T>& operator<<(std::basic_ostream<C,T>& out, const B
 {
     out << static_cast<const void*>(&*p);
     return out;
+}
+
+template<class T> inline BasicTableRef<T> unchecked_cast(TableRef t)
+{
+    return BasicTableRef<T>(&t, typename BasicTableRef<T>::casting_move_tag());
+}
+
+template<class T> inline BasicTableRef<const T> unchecked_cast(ConstTableRef t)
+{
+    return BasicTableRef<const T>(&t, typename BasicTableRef<T>::casting_move_tag());
 }
 
 
