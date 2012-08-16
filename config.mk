@@ -103,6 +103,7 @@ exec_prefix = $(prefix)
 includedir  = $(prefix)/include
 bindir      = $(exec_prefix)/bin
 libdir      = $(exec_prefix)/lib
+jnidir      = $(libdir)/jni
 INSTALL         = install
 INSTALL_PROGRAM = $(INSTALL)
 INSTALL_DATA    = $(INSTALL) -m 644

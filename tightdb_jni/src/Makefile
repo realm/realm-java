@@ -1,6 +1,10 @@
-# -I/usr/lib/jvm/java-7-openjdk-amd64/include/ -I../native/tightdb/src
+EXTRA_INSTALL_PREFIXES = jni
 
-lib_LIBRARIES = libtightdb-jni.a
-libtightdb_jni_a_SOURCES = $(wildcard *.cpp)
+jni_LIBRARIES = libtightdb-jni.a
+jni_DIR       = $(jnidir)
+
+libtightdb_jni_a_SOURCES       = $(wildcard *.cpp)
+libtightdb_jni_a_LDFLAGS       = -ltightdb
+libtightdb_jni_a_LDFLAGS_DEBUG = -ltightdb_d
 
 include ../../generic.mk

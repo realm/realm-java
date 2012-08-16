@@ -1,7 +1,7 @@
 package com.tightdb.lib;
 
 import static org.testng.AssertJUnit.*;
-import static org.testng.internal.junit.ArrayAsserts.*;
+import static com.tightdb.test.ExtraTests.*;
 
 import java.nio.ByteBuffer;
 import java.util.Date;

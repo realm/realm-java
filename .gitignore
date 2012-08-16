@@ -1,4 +1,5 @@
 *~
+/test_output
 *.bat
 tightdb_jni64.dll
 *.orig

@@ -7,6 +7,20 @@ CONFIG_MK = $(ROOT)/config.mk
 SOURCE_DIR ?= src
 
 
+SUFFIX_OBJ_SHARED = .dyn.o
+SUFFIX_OBJ_STATIC = .o
+SUFFIX_OBJ_DEBUG  = .dbg.o
+SUFFIX_OBJ_COVER  = .cov.o
+
+SUFFIX_LIB_SHARED = .so
+SUFFIX_LIB_STATIC = .a
+SUFFIX_LIB_DEBUG  = -dbg.a
+SUFFIX_LIB_COVER  = -cov.a
+
+SUFFIX_PROG_DEBUG  = -dbg
+SUFFIX_PROG_COVER  = -cov
+
+
 
 # Functions:
 
@@ -18,37 +32,41 @@ GET_NOINST_LIBS_FOR_TARGET = $(foreach x,$($(call FOLD_TARGET,$(1))_NOINST_LIBAD
 GET_FLAGS_HELPER = $($(if $(filter undefined,$(origin $(1)$(2))),$(1),$(1)$(2)))
 GET_CFLAGS_FOR_OBJECT = $(call GET_FLAGS_HELPER,$(call FOLD_TARGET,$(1))_CFLAGS,$(2))
 GET_LDFLAGS_FOR_TARGET = $(call GET_FLAGS_HELPER,$(call FOLD_TARGET,$(1))_LDFLAGS,$(2))
+#GET_INST_LIB_TARGETS = $(foreach x,$($(1)_LIBRARIES),$(foreach y,$(SUFFIX_LIB_SHARED) $(SUFFIX_LIB_STATIC) $(SUFFIX_LIB_DEBUG),$(call GET_LIBRARY_NAME,$(x),$(y))))
 
 
 SOURCE_ROOT   = $(ROOT)/$(SOURCE_DIR)
 INC_FLAGS     = -I$(SOURCE_ROOT)
 INC_FLAGS_ABS = -I$(abspath $(SOURCE_ROOT))
 
-LIBRARIES = $(lib_LIBRARIES) $(NOINST_LIBRARIES)
-PROGRAMS  = $(bin_PROGRAMS) $(NOINST_PROGRAMS) $(TEST_PROGRAMS)
+INST_LIBRARIES = $(foreach x,lib $(EXTRA_INSTALL_PREFIXES),$($(x)_LIBRARIES))
+INST_PROGRAMS  = $(foreach x,bin $(EXTRA_INSTALL_PREFIXES),$($(x)_PROGRAMS))
 
-OBJECTS_SHARED = $(foreach x,$(lib_LIBRARIES),$(call GET_OBJECTS_FOR_TARGET,$(x),.dyn.o))
-OBJECTS_STATIC = $(foreach x,$(LIBRARIES) $(PROGRAMS),$(call GET_OBJECTS_FOR_TARGET,$(x),.o))
-OBJECTS_DEBUG  = $(foreach x,$(LIBRARIES) $(PROGRAMS),$(call GET_OBJECTS_FOR_TARGET,$(x),.dbg.o))
-OBJECTS_COVER  = $(foreach x,$(LIBRARIES) $(TEST_PROGRAMS),$(call GET_OBJECTS_FOR_TARGET,$(x),.cov.o))
+LIBRARIES = $(INST_LIBRARIES) $(NOINST_LIBRARIES)
+PROGRAMS  = $(INST_PROGRAMS)  $(NOINST_PROGRAMS) $(TEST_PROGRAMS)
+
+OBJECTS_SHARED = $(foreach x,$(INST_LIBRARIES),$(call GET_OBJECTS_FOR_TARGET,$(x),$(SUFFIX_OBJ_SHARED)))
+OBJECTS_STATIC = $(foreach x,$(LIBRARIES) $(PROGRAMS),$(call GET_OBJECTS_FOR_TARGET,$(x),$(SUFFIX_OBJ_STATIC)))
+OBJECTS_DEBUG  = $(foreach x,$(LIBRARIES) $(PROGRAMS),$(call GET_OBJECTS_FOR_TARGET,$(x),$(SUFFIX_OBJ_DEBUG)))
+OBJECTS_COVER  = $(foreach x,$(LIBRARIES) $(TEST_PROGRAMS),$(call GET_OBJECTS_FOR_TARGET,$(x),$(SUFFIX_OBJ_COVER)))
 OBJECTS = $(sort $(OBJECTS_SHARED) $(OBJECTS_STATIC) $(OBJECTS_DEBUG) $(OBJECTS_COVER))
 
-TARGETS_LIB_SHARED        = $(foreach x,$(lib_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),.so))
-TARGETS_LIB_STATIC        = $(foreach x,$(lib_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),.a))
-TARGETS_LIB_DEBUG         = $(foreach x,$(lib_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),-dbg.a))
-TARGETS_LIB_COVER         = $(foreach x,$(lib_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),-cov.a))
-TARGETS_NOINST_LIB        = $(foreach x,$(NOINST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),.a))
-TARGETS_NOINST_LIB_DEBUG  = $(foreach x,$(NOINST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),-dbg.a))
-TARGETS_NOINST_LIB_COVER  = $(foreach x,$(NOINST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),-cov.a))
-TARGETS_PROG              = $(bin_PROGRAMS)
-TARGETS_PROG_DEBUG        = $(patsubst %,%-dbg,$(bin_PROGRAMS))
-TARGETS_PROG_COVER        = $(patsubst %,%-cov,$(bin_PROGRAMS))
+TARGETS_LIB_SHARED        = $(foreach x,$(INST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),$(SUFFIX_LIB_SHARED)))
+TARGETS_LIB_STATIC        = $(foreach x,$(INST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),$(SUFFIX_LIB_STATIC)))
+TARGETS_LIB_DEBUG         = $(foreach x,$(INST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),$(SUFFIX_LIB_DEBUG)))
+TARGETS_LIB_COVER         = $(foreach x,$(INST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),$(SUFFIX_LIB_COVER)))
+TARGETS_NOINST_LIB        = $(foreach x,$(NOINST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),$(SUFFIX_LIB_STATIC)))
+TARGETS_NOINST_LIB_DEBUG  = $(foreach x,$(NOINST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),$(SUFFIX_LIB_DEBUG)))
+TARGETS_NOINST_LIB_COVER  = $(foreach x,$(NOINST_LIBRARIES),$(call GET_LIBRARY_NAME,$(x),$(SUFFIX_LIB_COVER)))
+TARGETS_PROG              = $(INST_PROGRAMS)
+TARGETS_PROG_DEBUG        = $(patsubst %,%$(SUFFIX_PROG_DEBUG),$(INST_PROGRAMS))
+TARGETS_PROG_COVER        = $(patsubst %,%$(SUFFIX_PROG_COVER),$(INST_PROGRAMS))
 TARGETS_NOINST_PROG       = $(NOINST_PROGRAMS)
-TARGETS_NOINST_PROG_DEBUG = $(patsubst %,%-dbg,$(NOINST_PROGRAMS))
-TARGETS_NOINST_PROG_COVER = $(patsubst %,%-cov,$(NOINST_PROGRAMS))
+TARGETS_NOINST_PROG_DEBUG = $(patsubst %,%$(SUFFIX_PROG_DEBUG),$(NOINST_PROGRAMS))
+TARGETS_NOINST_PROG_COVER = $(patsubst %,%$(SUFFIX_PROG_COVER),$(NOINST_PROGRAMS))
 TARGETS_TEST_PROG         = $(TEST_PROGRAMS)
-TARGETS_TEST_PROG_DEBUG   = $(patsubst %,%-dbg,$(TEST_PROGRAMS))
-TARGETS_TEST_PROG_COVER   = $(patsubst %,%-cov,$(TEST_PROGRAMS))
+TARGETS_TEST_PROG_DEBUG   = $(patsubst %,%$(SUFFIX_PROG_DEBUG),$(TEST_PROGRAMS))
+TARGETS_TEST_PROG_COVER   = $(patsubst %,%$(SUFFIX_PROG_COVER),$(TEST_PROGRAMS))
 
 TARGETS_DEFAULT    = $(TARGETS_LIB_SHARED) $(TARGETS_LIB_STATIC) $(TARGETS_LIB_DEBUG) $(TARGETS_NOINST_LIB) $(TARGETS_PROG) $(TARGETS_NOINST_PROG)
 TARGETS_DEBUG      = $(TARGETS_LIB_DEBUG) $(TARGETS_NOINST_LIB_DEBUG) $(TARGETS_PROG_DEBUG) $(TARGETS_NOINST_PROG_DEBUG)
@@ -75,6 +93,7 @@ clean/local:
 endif
 
 install/local: $(TARGETS_DEFAULT)
+#	$(INSTALL_LIB) $(call GET_INST_LIB_TARGETS,lib) $(DESTDIR)$(libdir)/
 # FIXME: Implement
 
 uninstall/local:
@@ -145,7 +164,7 @@ $(foreach x,$(RECURSIVE_MODES),$(eval $(call REVUSIVE_MODE_RULES,$(x))))
 define SHARED_LIBRARY_RULE
 $(1): $(2)
         # FIXME: add -Wl,-soname and -Wl,-rpath
-	$(LD_SHARED) $(2) -o $(1)
+	$(LD_SHARED) $(2) $(3) -o $(1)
 endef
 
 define STATIC_LIBRARY_RULE
@@ -154,17 +173,17 @@ $(1): $(2)
 endef
 
 define STATIC_LIBRARY_RULES
-$(call STATIC_LIBRARY_RULE,$(call GET_LIBRARY_NAME,$(1),.a),$(call GET_OBJECTS_FOR_TARGET,$(1),.o))
-$(call STATIC_LIBRARY_RULE,$(call GET_LIBRARY_NAME,$(1),-dbg.a),$(call GET_OBJECTS_FOR_TARGET,$(1),.dbg.o))
-$(call STATIC_LIBRARY_RULE,$(call GET_LIBRARY_NAME,$(1),-cov.a),$(call GET_OBJECTS_FOR_TARGET,$(1),.cov.o))
+$(call STATIC_LIBRARY_RULE,$(call GET_LIBRARY_NAME,$(1),$(SUFFIX_LIB_STATIC)),$(call GET_OBJECTS_FOR_TARGET,$(1),$(SUFFIX_OBJ_STATIC)))
+$(call STATIC_LIBRARY_RULE,$(call GET_LIBRARY_NAME,$(1),$(SUFFIX_LIB_DEBUG)),$(call GET_OBJECTS_FOR_TARGET,$(1),$(SUFFIX_OBJ_DEBUG)))
+$(call STATIC_LIBRARY_RULE,$(call GET_LIBRARY_NAME,$(1),$(SUFFIX_LIB_COVER)),$(call GET_OBJECTS_FOR_TARGET,$(1),$(SUFFIX_OBJ_COVER)))
 endef
 
 define LIBRARY_RULES
-$(call SHARED_LIBRARY_RULE,$(call GET_LIBRARY_NAME,$(1),.so),$(call GET_OBJECTS_FOR_TARGET,$(1),.dyn.o))
+$(call SHARED_LIBRARY_RULE,$(call GET_LIBRARY_NAME,$(1),$(SUFFIX_LIB_SHARED)),$(call GET_OBJECTS_FOR_TARGET,$(1),$(SUFFIX_OBJ_SHARED)),$(call GET_LDFLAGS_FOR_TARGET,$(1),))
 $(call STATIC_LIBRARY_RULES,$(1))
 endef
 
-$(foreach x,$(lib_LIBRARIES),$(eval $(call LIBRARY_RULES,$(x))))
+$(foreach x,$(INST_LIBRARIES),$(eval $(call LIBRARY_RULES,$(x))))
 $(foreach x,$(NOINST_LIBRARIES),$(eval $(call STATIC_LIBRARY_RULES,$(x))))
 
 
@@ -187,9 +206,9 @@ $(1): $(2)
 endef
 
 define PROGRAM_RULES
-$(call PROGRAM_RULE,$(1),$(call GET_OBJECTS_FOR_TARGET,$(1),.o) $(call GET_NOINST_LIBS_FOR_TARGET,$(1),.a),$(call GET_LDFLAGS_FOR_TARGET,$(1),))
-$(call PROGRAM_RULE_DEBUG,$(1)-dbg,$(call GET_OBJECTS_FOR_TARGET,$(1),.dbg.o) $(call GET_NOINST_LIBS_FOR_TARGET,$(1),-dbg.a),$(call GET_LDFLAGS_FOR_TARGET,$(1),_DEBUG))
-$(call PROGRAM_RULE_COVER,$(1)-cov,$(call GET_OBJECTS_FOR_TARGET,$(1),.cov.o) $(call GET_NOINST_LIBS_FOR_TARGET,$(1),-cov.a),$(call GET_LDFLAGS_FOR_TARGET,$(1),_COVER))
+$(call PROGRAM_RULE,$(1),$(call GET_OBJECTS_FOR_TARGET,$(1),$(SUFFIX_OBJ_STATIC)) $(call GET_NOINST_LIBS_FOR_TARGET,$(1),$(SUFFIX_LIB_STATIC)),$(call GET_LDFLAGS_FOR_TARGET,$(1),))
+$(call PROGRAM_RULE_DEBUG,$(1)$(SUFFIX_PROG_DEBUG),$(call GET_OBJECTS_FOR_TARGET,$(1),$(SUFFIX_OBJ_DEBUG)) $(call GET_NOINST_LIBS_FOR_TARGET,$(1),$(SUFFIX_LIB_DEBUG)),$(call GET_LDFLAGS_FOR_TARGET,$(1),_DEBUG))
+$(call PROGRAM_RULE_COVER,$(1)$(SUFFIX_PROG_COVER),$(call GET_OBJECTS_FOR_TARGET,$(1),$(SUFFIX_OBJ_COVER)) $(call GET_NOINST_LIBS_FOR_TARGET,$(1),$(SUFFIX_LIB_COVER)),$(call GET_LDFLAGS_FOR_TARGET,$(1),_COVER))
 endef
 
 $(foreach x,$(PROGRAMS),$(eval $(call PROGRAM_RULES,$(x))))
@@ -208,28 +227,28 @@ $(foreach x,$(PROGRAMS),$(eval $(call PROGRAM_RULES,$(x))))
 
 # Compiling + automatic dependencies
 
-%.o: %.c
-	$(CC_STATIC) $(CFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
-
-%.o: %.cpp
-	$(CXX_STATIC) $(CXXFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
-
-%.dyn.o: %.c
+%$(SUFFIX_OBJ_SHARED): %.c
 	$(CC_SHARED) $(CFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
-%.dyn.o: %.cpp
+%$(SUFFIX_OBJ_SHARED): %.cpp
 	$(CXX_SHARED) $(CXXFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
-%.dbg.o: %.c
+%$(SUFFIX_OBJ_STATIC): %.c
+	$(CC_STATIC) $(CFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
+
+%$(SUFFIX_OBJ_STATIC): %.cpp
+	$(CXX_STATIC) $(CXXFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,) $(INC_FLAGS) -MMD -MP -c $< -o $@
+
+%$(SUFFIX_OBJ_DEBUG): %.c
 	$(CC_DEBUG) $(CFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,_DEBUG) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
-%.dbg.o: %.cpp
+%$(SUFFIX_OBJ_DEBUG): %.cpp
 	$(CXX_DEBUG) $(CXXFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,_DEBUG) $(INC_FLAGS) -MMD -MP -c $< -o $@
 
-%.cov.o: %.c
+%$(SUFFIX_OBJ_COVER): %.c
 	$(CC_COVERAGE) $(CFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,_COVER) $(INC_FLAGS_ABS) -MMD -MP -c $(abspath $<) -o $(abspath $@)
 
-%.cov.o: %.cpp
+%$(SUFFIX_OBJ_COVER): %.cpp
 	$(CXX_COVERAGE) $(CXXFLAGS) $(call GET_CFLAGS_FOR_OBJECT,$@,_COVER) $(INC_FLAGS_ABS) -MMD -MP -c $(abspath $<) -o $(abspath $@)
 
 -include $(OBJECTS:.o=.d)
