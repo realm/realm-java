@@ -113,10 +113,10 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
         }
     default:
         {
-            TR_ERR("ERROR: This type of mixed is not supported yet: %d.", valueType);
+            TR_ERR((env, "ERROR: This type of mixed is not supported yet: %d.", valueType));
         }
     }
-    TR_ERR("\nERROR: nativeSetMixed() failed.\n");
+    TR_ERR((env, "\nERROR: nativeSetMixed() failed.\n"));
     ThrowException(env, IllegalArgument, "nativeSetMixed()");
 }
 

@@ -4,7 +4,7 @@ TIGHTDB_JAVA_HOME="$(pwd)"
 MAKE="make -j8"
 
 # Setup OS specific stuff
-OS="$(uname -o)" || exit 1
+OS="$(uname -s)" || exit 1
 if [ "$OS" = "Darwin" ]; then
     MAKE="$MAKE CC=gcc"
 fi

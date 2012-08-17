@@ -8,7 +8,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     std::string message;
     jclass jExceptionClass = NULL;
 
-    TR_ERR("\njni: ThrowingException %d, %s, %s.\n", exception, classStr.c_str(), itemStr.c_str());
+    TR_ERR((env, "\njni: ThrowingException %d, %s, %s.\n", exception, classStr.c_str(), itemStr.c_str()));
 
     switch (exception) {
         case ClassNotFound:
@@ -54,7 +54,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     if (jExceptionClass != NULL)
         env->ThrowNew(jExceptionClass, message.c_str());
     else {
-        TR_ERR("\nERROR: Couldn't throw exception.\n");
+        TR_ERR((env, "\nERROR: Couldn't throw exception.\n"));
     }
 
     env->DeleteLocalRef(jExceptionClass);
@@ -90,7 +90,7 @@ void jprintf(JNIEnv *env, const char *format, ...) {
     char buf[200];
     va_start(argptr, format);
     //vfprintf(stderr, format, argptr);
-    vsnprintf_s(buf, 200, format, argptr);
+    vsnprintf(buf, 200, format, argptr);
     jprint(env, buf);
     va_end(argptr);
 }

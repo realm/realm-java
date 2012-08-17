@@ -1,5 +1,5 @@
 #include "util.h"
-#include "tablespecutil.h"
+#include "TableSpecUtil.h"
 #include "columntypeutil.h"
 
 using namespace tightdb;

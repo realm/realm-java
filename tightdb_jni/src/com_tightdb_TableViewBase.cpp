@@ -1,5 +1,5 @@
 #include "util.h"
-#include "com_tightdb_tableviewbase.h"
+#include "com_tightdb_TableViewBase.h"
 #include "mixedutil.h"
 #include "tablebase_tpl.hpp"
 
@@ -255,10 +255,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeFindAllString(
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr)
         return 0;
-    TR("nativeFindAllString(col %d, string '%s') ", columnIndex, valueCharPtr);
+    TR((env, "nativeFindAllString(col %d, string '%s') ", columnIndex, valueCharPtr));
 
 	TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_string( S(columnIndex), valueCharPtr) );
-	TR("-- resultview size=%lld.\n", pResultView->size());
+	TR((env, "-- resultview size=%lld.\n", pResultView->size()));
     env->ReleaseStringUTFChars(value, valueCharPtr);
 	return reinterpret_cast<jlong>(pResultView);
 }

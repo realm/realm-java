@@ -60,11 +60,11 @@ extern jclass GetClass(JNIEnv* env, char *classStr);
 extern int trace_level;
 
 #if TRACE
-#define TR(fmt, ...) if (trace_level >= 2) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
-#define TR_ERR(fmt, ...) if (trace_level >= 1) { jprintf(env, fmt, ##__VA_ARGS__); } else {}
+#define TR(args) if (trace_level >= 2) { jprintf args; } else {}
+#define TR_ERR(args) if (trace_level >= 1) { jprintf args; } else {}
 #else
-#define TR(fmt, ...)
-#define TR_ERR(fmt, ...)
+#define TR(args)
+#define TR_ERR(args)
 #endif
 
 extern void jprintf(JNIEnv *env, const char *fmt, ...);
@@ -100,7 +100,7 @@ inline bool TableIsValid(JNIEnv* env, Table* pTable)
     if (valid)
         valid = pTable->is_valid();
     if (!valid) {
-        TR_ERR("Table %x is invalid!", pTable); 
+        TR_ERR((env, "Table %x is invalid!", pTable)); 
         ThrowException(env, IllegalArgument, "Table is invalid.");
     }
     return valid;
@@ -116,7 +116,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex)
 
     bool rowErr = (rowIndex < 0) || (S(rowIndex) >= pTable->size());
     if (rowErr) {
-        TR_ERR("rowIndex %lld > %lld - invalid!", S(rowIndex), pTable->size()); 
+        TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), pTable->size())); 
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
     }
     return !rowErr;
@@ -132,7 +132,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 
     bool colErr = (S(columnIndex) >= pTable->get_column_count()) || (columnIndex < 0);
     if (colErr) {
-        TR_ERR("columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()); 
+        TR_ERR((env, "columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()));
         ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
     }
     return !colErr;
@@ -151,7 +151,7 @@ inline bool IndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong ro
         return false;
     bool rowErr = (rowIndex < 0) || (S(rowIndex) > pTable->size()+1) ;
     if (rowErr) {
-        TR_ERR("rowIndex %lld > %lld - invalid!", rowIndex, pTable->size()); 
+        TR_ERR((env, "rowIndex %lld > %lld - invalid!", rowIndex, pTable->size())); 
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
     }
     return !rowErr;
@@ -169,7 +169,7 @@ inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong r
         colType = pTable->get_mixed_type(col, row);
     
     if (colType != expectColType) {
-        TR_ERR("Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col));
+        TR_ERR((env, "Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col)));
 	    ThrowException(env, IllegalArgument, "column type != ColumnTypeTable.");
         return false;
     }

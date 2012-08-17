@@ -1,9 +1,9 @@
 #include "util.h"
 #include "mixedutil.h"
-#include "com_tightdb_tableBase.h"
+#include "com_tightdb_TableBase.h"
 #include "columntypeutil.h"
-#include "tablespecutil.h"
-#include "java_lang_list_util.h"
+#include "TableSpecUtil.h"
+#include "java_lang_List_Util.h"
 #include "mixedutil.h"
 #include "tablebase_tpl.hpp"
 
@@ -16,7 +16,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeUpdateFromSpec(
     if (!TABLE_VALID(env, TBL(nativeTablePtr))) return;
 
 	Table* pTable = TBL(nativeTablePtr);
-    TR("nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec);
+    TR((env, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec));
     Spec& spec = pTable->get_spec();
 	updateSpecFromJSpec(env, spec, jTableSpec);
 	pTable->update_from_spec();
@@ -56,7 +56,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetTableSpec(
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr))) return 0;
 
-    TR("nativeGetTableSpec(table %x)\n", nativeTablePtr);
+    TR((env, "nativeGetTableSpec(table %x)\n", nativeTablePtr));
 	static jmethodID jTableSpecConsId = GetTableSpecMethodID(env, "<init>", "()V");
 	if (jTableSpecConsId) {
         // Create a new TableSpec object in Java
@@ -161,8 +161,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertSubTable(
 {
 	if (!INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
 
-    TR("nativeInsertSubTable(jTable:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld)\n",
-       jTable, nativeTablePtr,  columnIndex, rowIndex);
+    TR((env, "nativeInsertSubTable(jTable:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld)\n",
+       jTable, nativeTablePtr,  columnIndex, rowIndex));
 	TBL(nativeTablePtr)->insert_subtable( S(columnIndex), S(rowIndex));
 }
 
@@ -250,8 +250,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTable(
 
 	Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr), 
         S(columnIndex), S(rowIndex)));
-    TR("nativeGetSubTable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
-        jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubTable);
+    TR((env, "nativeGetSubTable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
+        jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubTable));
     return (jlong)pSubTable;
 }
 
@@ -496,13 +496,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose(
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr))) return;
     
-    TR("nativeClose(jTable: %x, nativeTablePtr: %x)\n", jTable, nativeTablePtr);
+    TR((env, "nativeClose(jTable: %x, nativeTablePtr: %x)\n", jTable, nativeTablePtr));
     LangBindHelper::unbind_table_ref(TBL(nativeTablePtr));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_createNative(JNIEnv* env, jobject jTable)
 {
-    TR("CreateNative(jTable: %x)\n", jTable);
+    TR((env, "CreateNative(jTable: %x)\n", jTable));
     return reinterpret_cast<jlong>(LangBindHelper::new_table());
 }
 

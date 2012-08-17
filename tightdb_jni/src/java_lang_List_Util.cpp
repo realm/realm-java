@@ -1,5 +1,5 @@
 #include "util.h"
-#include "java_lang_list_util.h"
+#include "java_lang_List_Util.h"
 
 jint java_lang_List_size(JNIEnv* env, jobject jList) 
 {

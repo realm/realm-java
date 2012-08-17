@@ -1,5 +1,5 @@
 #include "util.h"
-#include "com_tightdb_tablequery.h"
+#include "com_tightdb_TableQuery.h"
 
 using namespace tightdb;
 
