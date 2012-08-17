@@ -1,4 +1,8 @@
-#include "../mem.hpp"
+#include "mem_usage.hpp"
+
+#if defined(_MSC_VER) // Microsoft Windows
+
+
 #include <windows.h>
 #include <psapi.h>
 
@@ -101,3 +105,44 @@ DWORD CalculateWSPrivate(DWORD processID)
     }
     return -1;
 }
+
+
+/*
+#elif defined (__APPLE__) // Mac / Darwin
+
+
+#include <mach/mach.h>
+
+size_t GetMemUsage()
+{
+    struct task_basic_info t_info;
+
+    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+
+    if (KERN_SUCCESS != task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count)) return -1;
+
+    // resident size is in t_info.resident_size;
+    // virtual size is in t_info.virtual_size;
+    return t_info.resident_size;
+}
+*/
+
+
+#else // POSIX
+
+
+#include <cstdio>
+// Debian package: libproc-dev
+// Linker flag   : -lproc
+// Documentation : /usr/include/proc/readproc.h
+#include <proc/readproc.h>
+
+size_t GetMemUsage()
+{
+  struct proc_t usage;
+  look_up_our_self(&usage);
+  return usage.vsize;
+}
+
+
+#endif

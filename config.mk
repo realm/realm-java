@@ -2,10 +2,10 @@ ifeq ($(CXX),g++)
 CC := gcc
 else ifneq ($(filter g++-%,$(CXX)),)
 CC := $(patsubst g++-%,gcc-%,$(CXX))
-else ifeq ($(CXX),clang)
+else ifeq ($(CXX),clang++)
 CC := $(CXX)
-else ifneq ($(filter clang-%,$(CXX)),)
-CC := $(CXX)
+else ifneq ($(filter clang++-%,$(CXX)),)
+CC := $(patsubst clang++-%,clang-%,$(CXX))
 endif
 
 ifeq ($(CC),gcc)
@@ -13,10 +13,11 @@ CXX := g++
 else ifneq ($(filter gcc-%,$(CC)),)
 CXX := $(patsubst gcc-%,g++-%,$(CC))
 else ifeq ($(CC),clang)
-CXX := $(CC)
+CXX := clang++
 else ifneq ($(filter clang-%,$(CC)),)
-CXX := $(CC)
+CXX := $(patsubst clang-%,clang++-%,$(CC))
 endif
+
 
 # Linker - use the C++ compiler by default
 LD = $(CXX)
@@ -51,7 +52,7 @@ endif
 endif
 
 ifneq ($(filter clang%,$(CC)),)
-ifneq ($(filter clang%,$(CXX)),)
+ifneq ($(filter clang++%,$(CXX)),)
 
 # These compiler flags are those that are common to all build modes
 # (STATIC, SHARED, DEBUG, and COVERAGE).

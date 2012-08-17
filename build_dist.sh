@@ -12,7 +12,7 @@ JAVA_BIN=bin
 # Setup OS specific stuff
 OS="$(uname -s)" || exit 1
 if [ "$OS" = "Darwin" ]; then
-    MAKE="$MAKE CC=gcc"
+    MAKE="$MAKE CC=clang"
     JAVA_INC=Headers
     JAVA_BIN=Commands
 fi
@@ -86,7 +86,11 @@ case "$MODE" in
     ;;
 
 "install")
-    #$MAKE prefix="$INSTALL_ROOT" install || exit 1
+    MAKE="$MAKE"
+    if [ "$INSTALL_ROOT" ]; then
+        MAKE="$MAKE prefix=\"$INSTALL_ROOT\""
+    fi
+    $MAKE install || exit 1
     ;;
 
 "copy")
@@ -98,7 +102,7 @@ case "$MODE" in
     fi
     TEMP_DIR="$(mktemp -d /tmp/temp.XXXX)" || exit 1
     git ls-files -z >"$TEMP_DIR/files" || exit 1
-    tar czf "$TEMP_DIR/archive.tar.gz" -T "$TEMP_DIR/files" || exit 1
+    tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
     (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
     ;;
 
