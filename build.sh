@@ -15,7 +15,16 @@ if [ -z "$JAVA_HOME" ]; then
         echo "No JAVA_HOME and no Java compiler in PATH" 1>&2
         exit 1
     fi
-    JAVAC=$(readlink -f "$(which javac)")
+    readlink_f()
+    {
+        local l="$(readlink "$1")"
+        if [ -z "$l" -o "$l" = "$1" ]; then
+            echo "$1"
+            return
+        fi
+        readlink_f "$l"
+    }
+    JAVAC=$(readlink_f "$(which javac)")
     if ! echo "$JAVAC" | grep '/bin/javac$' >/dev/null 2>&1; then
         echo "Could not determine JAVA_HOME from path of 'javac' command" 1>&2
         exit 1
