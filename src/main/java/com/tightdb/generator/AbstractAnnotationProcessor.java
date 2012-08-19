@@ -40,7 +40,7 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 				logger.info("Successfully finished processing.");
 			} catch (Exception e) {
 				String info = e.getMessage() != null ? "(" + e.getMessage() + ")" : "";
-				String msg = "ERROR: " + e.getClass().getCanonicalName() + " " + info + "\n\n" + StringUtils.join(e.getStackTrace(), "\n");
+				String msg = e.getClass().getCanonicalName() + " " + info + "\n\n" + StringUtils.join(e.getStackTrace(), "\n");
 
 				Throwable cause = e.getCause();
 				while (cause != null) {

@@ -18,6 +18,7 @@ public class CodeRenderer {
 	private final Configuration cfg;
 
 	public CodeRenderer() {
+
 		cfg = new Configuration();
 		try {
 			templates = new HashMap<String, Template>();

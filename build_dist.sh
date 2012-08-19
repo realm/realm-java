@@ -60,39 +60,6 @@ fi
 
 case "$MODE" in
 
-"build")
-    # Build libtightdb-jni.so
-    cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
-    $MAKE clean || exit 1
-    $MAKE EXTRA_CFLAGS="-I\"$JAVA_HOME/$JAVA_INC\"" || exit 1
-
-    # Build tightdb.jar
-    cd "$TIGHTDB_JAVA_HOME/src/main/java" || exit 1
-    find com/ -type f -name '*.class' -delete || exit 1
-    export CLASSPATH=/usr/share/java/commons-io.jar:/usr/share/java/commons-lang.jar:/usr/share/java/freemarker.jar:.
-    $JAVAC $(find com/ -type f -name '*.java' | fgrep -v /doc/ | fgrep -v /example/) || exit 1
-    jar cf tightdb.jar $(find com/ -type f -name '*.class') || exit 1
-    ;;
-
-"test")
-    # Build and run test suite
-    cd "$TIGHTDB_JAVA_HOME/src/test/java" || exit 1
-    find com/ -type f -name '*.class' -delete || exit 1
-    test_sources="$(find * -type f -name '*Test.java')"
-    test_classes="$(echo "$test_sources" | sed 's/\.java$/.class/')"
-    export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/java/tightdb.jar:$TIGHTDB_JAVA_HOME/tightdb-example/src/main/java:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:."
-    $JAVAC $test_sources || exit 1
-    $JAVA -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $test_classes || exit 1
-    ;;
-
-"install")
-    MAKE="$MAKE"
-    if [ "$INSTALL_ROOT" ]; then
-        MAKE="$MAKE prefix=\"$INSTALL_ROOT\""
-    fi
-    $MAKE install || exit 1
-    ;;
-
 "copy")
     # Copy to distribution package
     TARGET_DIR="$1"
@@ -104,6 +71,72 @@ case "$MODE" in
     git ls-files -z >"$TEMP_DIR/files" || exit 1
     tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
     (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
+    ;;
+
+"build")
+    # Build libtightdb-jni.so
+    cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
+    $MAKE clean || exit 1
+    $MAKE EXTRA_CFLAGS="-I\"$JAVA_HOME/$JAVA_INC\"" || exit 1
+
+    # Build tightdb.jar
+    cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
+    find java/ -type f -name '*.class' -delete || exit 1
+    rm tightdb.jar
+    DEPENDENCIES="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/share/java/freemarker.jar"
+    export CLASSPATH="$(echo "$DEPENDENCIES" | sed -r 's/[[:space:]]+/:/g'):java"
+    # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
+    SOURCES="$(find java/ -type f -name '*.java' | fgrep -v /doc/ | fgrep -v /example/)" || exit 1
+    $JAVAC $SOURCES || exit 1
+    CLASSES="$(cd java && find * -type f -name '*.class')" || exit 1
+    TEMP_DIR="$(mktemp -d /tmp/temp.XXXX)" || exit 1
+    MANIFEST="$TEMP_DIR/MANIFEST.MF"
+    echo "Class-Path: $DEPENDENCIES" >>"$MANIFEST"
+    jar cfm tightdb.jar "$MANIFEST" -C resources META-INF || exit 1
+    (cd java && jar uf ../tightdb.jar $CLASSES) || exit 1
+    jar i tightdb.jar || exit 1
+    ;;
+
+"test")
+    # Build and run test suite
+    cd "$TIGHTDB_JAVA_HOME/src/test" || exit 1
+    find java/ -type f -name '*.class' -delete || exit 1
+    SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
+    CLASSES="$(echo "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
+    TEMP_DIR="$(mktemp -d /tmp/temp.XXXX)" || exit 1
+    export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:."
+    (cd java && $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" $SOURCES) || exit 1
+    (cd "$TEMP_DIR" && $JAVA -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $CLASSES) || exit 1
+    ;;
+
+"install")
+    PREFIX="$1"
+    INSTALL=install
+    if [ "$PREFIX" ]; then
+        INSTALL="prefix=$PREFIX $INSTALL"
+    fi
+    (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && $MAKE $INSTALL) || exit 1
+    if [ -z "$PREFIX" ]; then
+        PREFIX="/usr/local"
+    fi
+    install -d $PREFIX/share/java
+    install -m 644 src/main/tightdb.jar $PREFIX/share/java
+    ;;
+
+"test-installed")
+    PREFIX="$1"
+    if [ "$PREFIX" ]; then
+        JAVA="$JAVA -Djava.library.path=$PREFIX/lib/jni"
+    fi
+    if [ -z "$PREFIX" ]; then
+        PREFIX="/usr/local"
+    fi
+    cd "$TIGHTDB_JAVA_HOME/test-installed" || exit 1
+    find java/ -type f -name '*.class' -delete || exit 1
+    TEMP_DIR="$(mktemp -d /tmp/temp.XXXX)" || exit 1
+    export CLASSPATH="$PREFIX/share/java/tightdb.jar:."
+    $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" java/my/app/Test.java || exit 1
+    (cd "$TEMP_DIR" && $JAVA my.app.Test) || exit 1
     ;;
 
 *)
