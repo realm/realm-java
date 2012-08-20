@@ -4,7 +4,7 @@
 using namespace tightdb;
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__(
-	JNIEnv* env, jobject jGroup)
+	JNIEnv* env, jobject)
 {	
 	Group *ptr = new Group();
     TR((env, "Group::createNative(): %x.\n", ptr));
@@ -33,7 +33,7 @@ inline bool groupIsValid(JNIEnv* env, Group* pGroup) {
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2Z(
-	JNIEnv* env, jobject jGroup, jstring jFileName, jboolean readOnly)
+	JNIEnv* env, jobject, jstring jFileName, jboolean readOnly)
 {	
     TR((env, "Group::createNative(file): "));
 	const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
@@ -48,7 +48,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
-	JNIEnv* env, jobject jGroup, jbyteArray jData)
+	JNIEnv* env, jobject, jbyteArray jData)
 {	
     TR((env, "Group::createNative(byteArray): "));
 	jbyte* jbytePtr = env->GetByteArrayElements(jData, NULL);
@@ -66,7 +66,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffer_2(
-	JNIEnv* env, jobject jTableBase, jobject jByteBuffer)
+	JNIEnv* env, jobject, jobject jByteBuffer)
 {	
     TR((env, "Group::createNative(binaryData): "));
     BinaryData data;
@@ -81,26 +81,26 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose(
-	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
+	JNIEnv* env, jobject, jlong nativeGroupPtr)
 {	
     TR((env, "Group::nativeClose(%x)\n", nativeGroupPtr));
 	delete G(nativeGroupPtr);
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeIsValid(
-	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
+	JNIEnv*, jobject, jlong nativeGroupPtr)
 {	
 	return G(nativeGroupPtr)->is_valid();
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableCount(
-	JNIEnv *env, jobject jGroup, jlong nativeGroupPtr)
+	JNIEnv*, jobject, jlong nativeGroupPtr)
 {	
     return static_cast<jlong>( G(nativeGroupPtr)->get_table_count() ); 
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
-	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr, jstring jTableName)
+	JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jTableName)
 {	
 	const char* tableNameCharPtr = env->GetStringUTFChars(jTableName, NULL);
     if (tableNameCharPtr) {
@@ -113,14 +113,14 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeGetTableName(
-	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr, jint index)
+	JNIEnv* env, jobject, jlong nativeGroupPtr, jint index)
 {	
 	const char* nameCharPtr = G(nativeGroupPtr)->get_table_name(index);
 	return env->NewStringUTF(nameCharPtr);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableNativePtr(
-	JNIEnv *env, jobject jGroup, jlong nativeGroupPtr, jstring name)
+	JNIEnv *env, jobject, jlong nativeGroupPtr, jstring name)
 {	
 	const char* tableNameCharPtr = env->GetStringUTFChars(name, NULL);
     if (tableNameCharPtr) {
@@ -133,7 +133,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableNativePtr(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
-	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr, jstring jFileName)
+	JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName)
 {	
 	const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
 	if (fileNameCharPtr) {	
@@ -146,7 +146,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
 }
 
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
-	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
+	JNIEnv* env, jobject, jlong nativeGroupPtr)
 {	
     TR((env, "nativeWriteToMem(%x)\n", nativeGroupPtr));
 	size_t len;
@@ -166,7 +166,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
-	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
+	JNIEnv* env, jobject, jlong nativeGroupPtr)
 {	
     TR((env, "nativeWriteToByteBuffer(%x)\n", nativeGroupPtr));
 	size_t len;
@@ -181,7 +181,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeCommit(
-	JNIEnv* env, jobject jGroup, jlong nativeGroupPtr)
+	JNIEnv*, jobject, jlong nativeGroupPtr)
 {
 	return G(nativeGroupPtr)->commit();
 }

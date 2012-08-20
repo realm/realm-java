@@ -60,7 +60,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     env->DeleteLocalRef(jExceptionClass);
 }
 
-jclass GetClass(JNIEnv* env, char *classStr)
+jclass GetClass(JNIEnv* env, const char* classStr)
 {
     jclass localRefClass = env->FindClass(classStr);
     if (localRefClass == NULL) {
@@ -76,6 +76,7 @@ jclass GetClass(JNIEnv* env, char *classStr)
 void jprint(JNIEnv *env, char *txt)
 {
 #if 1
+    static_cast<void>(env);
     fprintf(stderr, " -- JNI: %s", txt);  fflush(stderr);
 #else
     static jclass myClass = GetClass(env, "com/tightdb/util");
@@ -103,9 +104,12 @@ bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data)
         return false;
     }
     data.len = S(env->GetDirectBufferCapacity(jByteBuffer));
+    // FIXME: Whoops - data.len is unsigned, so it can never be negative. Should it have been a check for size_t(-1)? Commented out to silence a compiler warning.
+/*
     if (data.len < 0) {
         ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
         return false;
     }
+*/
     return true;
 }

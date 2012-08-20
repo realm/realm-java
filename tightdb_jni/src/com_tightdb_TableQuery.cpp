@@ -4,61 +4,61 @@
 using namespace tightdb;
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_createNativePtr(
-	JNIEnv* env, jobject jQuery)
+	JNIEnv*, jobject)
 {
 	return reinterpret_cast<jlong>(new Query());
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJJ(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
 	Q(nativeQueryPtr)->equal(S(columnIndex), value);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJJ(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
 	Q(nativeQueryPtr)->not_equal(S(columnIndex), value);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
 	Q(nativeQueryPtr)->greater(S(columnIndex), value);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {	
 	Q(nativeQueryPtr)->greater_equal(S(columnIndex), value);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {	
 	Q(nativeQueryPtr)->less(S(columnIndex), value);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {	
 	Q(nativeQueryPtr)->less_equal(S(columnIndex), value);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jlong value1, jlong value2)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value1, jlong value2)
 {	
 	Q(nativeQueryPtr)->between(S(columnIndex), value1, value2);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJZ(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jboolean value)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jboolean value)
 {	
 	Q(nativeQueryPtr)->equal(S(columnIndex), value != 0 ? true : false);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_String_2Z(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
+	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr) 
@@ -69,7 +69,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_Str
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
+	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr) 
@@ -80,7 +80,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
+	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr) 
@@ -91,7 +91,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
+	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr) 
@@ -102,7 +102,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_String_2Z(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
+	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
 	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (!valueCharPtr) 
@@ -113,44 +113,44 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr)
+	JNIEnv*, jobject, jlong nativeQueryPtr)
 {
 	Q(nativeQueryPtr)->group();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr)
+	JNIEnv*, jobject, jlong nativeQueryPtr)
 {	
 	Q(nativeQueryPtr)->end_group();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jlong columnIndex)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex)
 {	
 	Q(nativeQueryPtr)->subtable(S(columnIndex));
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr)
+	JNIEnv*, jobject, jlong nativeQueryPtr)
 {
 	Q(nativeQueryPtr)->end_subtable();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr)
+	JNIEnv*, jobject, jlong nativeQueryPtr)
 {	
 	Q(nativeQueryPtr)->Or();
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindNext(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTable, jlong nativeTablePtr, jlong lastMatch)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, jlong lastMatch)
 {
 	Table* pTable = TBL(nativeTablePtr);
 	return Q(nativeQueryPtr)->find_next(*pTable, S(lastMatch));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTableBase, jlong nativeTablePtr, 
+	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
     jlong start, jlong end, jlong limit)
 {
 	Table* pTable = TBL(nativeTablePtr);
@@ -160,7 +160,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSum(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTableBase, jlong nativeTablePtr, 
+	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {	
 	Table* pTable = TBL(nativeTablePtr);
@@ -168,7 +168,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSum(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximum(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTableBase, jlong nativeTablePtr, 
+	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
 	Table* pTable = TBL(nativeTablePtr);
@@ -176,7 +176,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximum(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimum(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTableBase, jlong nativeTablePtr, 
+	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {	
     Table* pTable = TBL(nativeTablePtr);
@@ -184,7 +184,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimum(
 }
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTableBase, jlong nativeTablePtr, 
+	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
 	Table* pTable = TBL(nativeTablePtr);
@@ -192,7 +192,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTableBase, jlong nativeTablePtr, 
+	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
     jlong start, jlong end, jlong limit)
 {
 	Table* pTable = TBL(nativeTablePtr);
@@ -200,7 +200,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAllMulti(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTableBase, jlong nativeTablePtr, 
+	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
     jlong start, jlong end)
 {
 	Table* pTable = TBL(nativeTablePtr);
@@ -210,19 +210,19 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAllMulti(
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableQuery_nativeGetErrorCode(
-	JNIEnv* env, jobject jQuery, jlong nativeQueryPtr)
+	JNIEnv* env, jobject, jlong nativeQueryPtr)
 {	
 	return env->NewStringUTF(Q(nativeQueryPtr)->error_code.c_str());
 }
 
 JNIEXPORT jint JNICALL Java_com_tightdb_TableQuery_nativeSetThreads(
-	JNIEnv* env, jobject jQuery, jlong nativeQueryPtr, jint threadCount)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jint threadCount)
 {	
 	return Q(nativeQueryPtr)->set_threads(threadCount);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove(
-	JNIEnv* env, jobject jTableQuery, jlong nativeQueryPtr, jobject jTableBase, jlong nativeTablePtr, 
+	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
     jlong start, jlong end, jlong limit)
 {
 	return Q(nativeQueryPtr)->remove(*TBL(nativeTablePtr), S(start), S(end), S(limit));

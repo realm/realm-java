@@ -29,7 +29,7 @@ void updateSpecFromJSpec(JNIEnv* env, Spec& spec, jobject jTableSpec);
 void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec);
 
 jclass GetClassTableSpec(JNIEnv* env);
-jmethodID GetTableSpecMethodID(JNIEnv* env, char* methodStr, char* typeStr);
+jmethodID GetTableSpecMethodID(JNIEnv* env, const char* methodStr, const char* typeStr);
 
 #ifdef __cplusplus
 }

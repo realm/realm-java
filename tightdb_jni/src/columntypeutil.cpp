@@ -2,7 +2,7 @@
 #include "columntypeutil.h"
 
 
-static jfieldID GetFieldIDColumnType(JNIEnv* env, char* methodStr, char* typeStr)
+static jfieldID GetFieldIDColumnType(JNIEnv* env, const char* methodStr, const char* typeStr)
 {
     static jclass myClass = GetClass(env, "com/tightdb/ColumnType");
     if (myClass == NULL)

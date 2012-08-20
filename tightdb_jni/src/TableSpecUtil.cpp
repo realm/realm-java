@@ -10,7 +10,7 @@ jclass GetClassTableSpec(JNIEnv* env)
 	return myClass;
 }
 
-jmethodID GetTableSpecMethodID(JNIEnv* env, char* methodStr, char* typeStr)
+jmethodID GetTableSpecMethodID(JNIEnv* env, const char* methodStr, const char* typeStr)
 {
     jclass myClass = GetClassTableSpec(env);
     if (myClass == NULL) {

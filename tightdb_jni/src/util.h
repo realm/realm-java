@@ -52,7 +52,7 @@ enum ExceptionKind {
 
 extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
 
-extern jclass GetClass(JNIEnv* env, char *classStr);
+extern jclass GetClass(JNIEnv* env, const char* classStr);
 
 
 // Debug trace

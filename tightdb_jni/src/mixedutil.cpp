@@ -10,7 +10,7 @@ jclass GetClassMixed(JNIEnv* env)
 	return jMixedClass;
 }
 
-jmethodID GetMixedMethodID(JNIEnv* env, char* methodStr, char* typeStr)
+jmethodID GetMixedMethodID(JNIEnv* env, const char* methodStr, const char* typeStr)
 {
     jclass myClass = GetClassMixed(env);
     if (myClass == NULL)
