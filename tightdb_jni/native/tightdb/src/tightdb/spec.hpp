@@ -20,9 +20,9 @@
 #ifndef TIGHTDB_SPEC_HPP
 #define TIGHTDB_SPEC_HPP
 
-#include "array.hpp"
-#include "array_string.hpp"
-#include "column_type.hpp"
+#include <tightdb/array.hpp>
+#include <tightdb/array_string.hpp>
+#include <tightdb/column_type.hpp>
 
 namespace tightdb {
 using std::size_t;
@@ -37,11 +37,10 @@ public:
     // parent Spec object is kept alive for at least as long as the
     // spec that is returned. This also has implications for language
     // bindings such as Java.
-    Spec get_subspec(size_t column_ndx);
-    const Spec get_subspec(size_t column_ndx) const;
-private:
-    size_t get_subspec_ref(size_t column_ndx) const;
-public:
+    Spec get_subtable_spec(size_t column_ndx);
+    // FIXME: Returning a const Spec is futile since Spec has a public
+    // copy constructor.
+    const Spec get_subtable_spec(size_t column_ndx) const;
 
     // Direct access to type and attribute list
     size_t get_type_attr_count() const;
@@ -67,11 +66,16 @@ public:
     // instruction.
     void set_column_attr(size_t column_ndx, ColumnType attr);
 
-#ifdef _DEBUG
-    bool compare(const Spec& spec) const;
+    /// Compare two table specs for equality.
+    bool operator==(const Spec&) const;
+
+    /// Compare two tables specs for inequality. See operator==().
+    bool operator!=(const Spec& s) const { return !(*this == s); }
+
+#ifdef TIGHTDB_DEBUG
     void Verify() const; // Must be upper case to avoid conflict with macro in ObjC
     void to_dot(std::ostream& out, const char* title=NULL) const;
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
 
     Spec(const Spec& s);
     ~Spec();
@@ -87,10 +91,10 @@ private:
     void set_parent(ArrayParent* parent, size_t pndx);
 
     // FIXME: This one was made private because it is called
-    // internally from Table::optimize(), and it is not call from any
-    // test case. If it must be public, it must aslo be made to emit a
-    // transaction log instruction, but the internal call must then
-    // call a different version that does not emit such an
+    // internally from Table::optimize(), and it is not called from
+    // any test case. If it must be public, it must also be made to
+    // emit a transaction log instruction, but the internal call must
+    // then call a different version that does not emit such an
     // instruction.
     void set_column_type(size_t column_ndx, ColumnType type);
 
@@ -104,8 +108,12 @@ private:
     Array m_subSpecs;
 
     Spec(const Table*, Allocator&); // Uninitialized
-    Spec(const Table*, Allocator&, ArrayParent* parent, size_t pndx);
-    Spec(const Table*, Allocator&, size_t ref, ArrayParent *parent, size_t pndx);
+    Spec(const Table*, Allocator&, ArrayParent* parent, size_t ndx_in_parent);
+    Spec(const Table*, Allocator&, size_t ref, ArrayParent *parent, size_t ndx_in_parent);
+
+    size_t get_subspec_ref(size_t subspec_ndx) const;
+    size_t get_num_subspecs() const { return m_subSpecs.IsValid() ? m_subSpecs.Size() : 0; }
+    Spec get_subspec_by_ndx(size_t subspec_ndx);
 
     /// Construct an empty spec and return just the reference to the
     /// underlying memory.
@@ -115,7 +123,9 @@ private:
     static size_t create_empty_spec(Allocator&);
 
 #ifdef TIGHTDB_ENABLE_REPLICATION
-    size_t* record_subspec_path(const ArrayParent* root, size_t* begin, size_t* end) const;
+    // Precondition: 1 <= end - begin
+    size_t* record_subspec_path(const Array* root_subspecs, size_t* begin, size_t* end) const;
+    friend class Replication;
 #endif
 
     friend class Table;
@@ -135,6 +145,7 @@ inline size_t Spec::create_empty_spec(Allocator& alloc)
     spec_set.add(ArrayString::create_empty_string_array(alloc)); // One name for each column
     return spec_set.GetRef();
 }
+
 
 // Uninitialized Spec (call UpdateRef to init)
 inline Spec::Spec(const Table* table, Allocator& alloc):
@@ -165,6 +176,14 @@ inline Spec::Spec(const Spec& s):
     const size_t pndx   = s.m_specSet.GetParentNdx();
 
     init_from_ref(ref, parent, pndx);
+}
+
+
+inline Spec Spec::get_subspec_by_ndx(size_t subspec_ndx)
+{
+    Allocator& alloc = m_specSet.GetAllocator();
+    const size_t ref = m_subSpecs.GetAsRef(subspec_ndx);
+    return Spec(m_table, alloc, ref, &m_subSpecs, subspec_ndx);
 }
 
 

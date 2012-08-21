@@ -20,8 +20,6 @@
 #ifndef TIGHTDB_COLUMN_HPP
 #define TIGHTDB_COLUMN_HPP
 
-#include "array.hpp"
-
 #ifdef _MSC_VER
 #include <win32/stdint.h>
 #else
@@ -29,7 +27,8 @@
 #endif
 //#include <climits> // size_t
 #include <cstdlib> // size_t
-#include <assert.h>
+
+#include <tightdb/array.hpp>
 
 namespace tightdb {
 
@@ -37,6 +36,7 @@ namespace tightdb {
 // Pre-definitions
 class Column;
 class Index;
+class StringIndex;
 
 class ColumnBase {
 public:
@@ -67,15 +67,20 @@ public:
     virtual void UpdateParentNdx(int diff) {m_array->UpdateParentNdx(diff);}
     virtual void UpdateFromParent() {m_array->UpdateFromParent();}
 
-#ifdef _DEBUG
+#ifdef TIGHTDB_DEBUG
     virtual void Verify() const = 0; // Must be upper case to avoid conflict with macro in ObjC
     virtual void ToDot(std::ostream& out, const char* title=NULL) const;
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
 
-template<class C, class A> A* TreeGetArray(size_t start, size_t *first, size_t *last) const;
-template<typename T, class C, class F> size_t TreeFind(T value, size_t start, size_t end) const;
+    template<class C, class A>
+    A* TreeGetArray(size_t start, size_t *first, size_t *last) const;
+
+    template<typename T, class C, class F>
+    size_t TreeFind(T value, size_t start, size_t end) const;
 
 protected:
+    friend class StringIndex;
+
     struct NodeChange {
         size_t ref1;
         size_t ref2;
@@ -111,17 +116,15 @@ protected:
     Array NodeGetRefs();
     template<class C> bool NodeInsert(size_t ndx, size_t ref);
     template<class C> bool NodeAdd(size_t ref);
-public: // FIXME: I had to make NodeAddKey() public. GCC woul not compile it. Alexander?
     bool NodeAddKey(size_t ref);
-protected:
     bool NodeUpdateOffsets(size_t ndx);
     template<class C> bool NodeInsertSplit(size_t ndx, size_t newRef);
     size_t GetRefSize(size_t ref) const;
 
-#ifdef _DEBUG
+#ifdef TIGHTDB_DEBUG
     void ArrayToDot(std::ostream& out, const Array& array) const;
     virtual void LeafToDot(std::ostream& out, const Array& array) const;
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
 
     // Member variables
     mutable Array* m_array;
@@ -160,6 +163,7 @@ public:
     bool add() {return add(0);}
     bool add(int64_t value);
 
+    size_t  count(int64_t target) const;
     int64_t sum(size_t start = 0, size_t end = -1) const;
     int64_t maximum(size_t start = 0, size_t end = -1) const;
     int64_t minimum(size_t start = 0, size_t end = -1) const;
@@ -198,13 +202,15 @@ public:
 
     void sort();
 
+    /// Compare two columns for equality.
+    bool Compare(const Column&) const;
+
     // Debug
-#ifdef _DEBUG
-    bool Compare(const Column& c) const;
+#ifdef TIGHTDB_DEBUG
     void Print() const;
     virtual void Verify() const;
     MemStats Stats() const;
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
 
 protected:
     friend class ColumnBase;
@@ -217,7 +223,7 @@ protected:
     bool LeafInsert(size_t ndx, int64_t value) {return m_array->Insert(ndx, value);}
     void LeafDelete(size_t ndx) {m_array->Delete(ndx);}
 
-    template <class F>size_t LeafFind(int64_t value, size_t start, size_t end) const
+    template<class F> size_t LeafFind(int64_t value, size_t start, size_t end) const
     {
         return m_array->Query<F>(value, start, end);
     }
@@ -235,6 +241,6 @@ private:
 } // namespace tightdb
 
 // Templates
-#include "column_tpl.hpp"
+#include <tightdb/column_tpl.hpp>
 
 #endif // TIGHTDB_COLUMN_HPP

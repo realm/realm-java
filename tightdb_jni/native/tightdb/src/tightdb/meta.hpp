@@ -24,7 +24,7 @@
 #include <cwchar>
 #include <limits>
 
-#include "config.h"
+#include <tightdb/config.h>
 
 namespace tightdb {
 
@@ -140,6 +140,15 @@ public:
     typedef typename CondType<EitherTypeIs<long double, A, B>::value, long double, type_7>::type type;
 };
 #endif // !TIGHTDB_HAVE_CXX11_DECLTYPE
+
+
+
+template<class T> struct Wrap {
+    Wrap(const T& v): m_value(v) {}
+    operator T() const { return m_value; }
+private:
+    T m_value;
+};
 
 
 

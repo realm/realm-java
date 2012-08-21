@@ -1,0 +1,21 @@
+# Build essentials (Ununtu 12.04):
+sudo apt-get install build-essential
+sudo apt-get install ant
+sudo apt-get install openjdk-7-jre openjdk-7-jdk
+
+# Make sure you are using version 7 of both 'java' and 'javac'. You may need to run
+#   sudo update-alternatives --config java
+# and
+#   sudo update-alternatives --config javac
+
+# Java dependencies (Ununtu 12.04):
+sudo apt-get install libcommons-io-java
+sudo apt-get install libcommons-lang-java
+sudo apt-get install libfreemarker-java
+
+# Dependencies for test suite (Ubuntu 12.04):
+sudo apt-get install testng
+sudo apt-get install libqdox-java
+sudo apt-get install bsh
+
+For information on building see 'build.sh' in this directory.

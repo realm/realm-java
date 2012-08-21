@@ -20,7 +20,7 @@
 #ifndef TIGHTDB_COLUMN_STRING_ENUM_HPP
 #define TIGHTDB_COLUMN_STRING_ENUM_HPP
 
-#include "column_string.hpp"
+#include <tightdb/column_string.hpp>
 
 namespace tightdb {
 
@@ -51,11 +51,13 @@ public:
     void UpdateParentNdx(int diff);
     void  UpdateFromParent();
 
-#ifdef _DEBUG
-    bool Compare(const ColumnStringEnum& c) const;
+    /// Compare two string enumeration columns for equality
+    bool Compare(const ColumnStringEnum&) const;
+
+#ifdef TIGHTDB_DEBUG
     void Verify() const; // Must be upper case to avoid conflict with macro in ObjC
     void ToDot(std::ostream& out, const char* title) const;
-#endif // _DEBUG
+#endif // TIGHTDB_DEBUG
 
     size_t GetKeyNdx(const char* value) const;
     size_t GetKeyNdxOrAdd(const char* value);

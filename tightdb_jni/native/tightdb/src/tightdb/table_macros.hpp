@@ -20,7 +20,7 @@
 #ifndef TIGHTDB_TABLE_MACROS_HPP
 #define TIGHTDB_TABLE_MACROS_HPP
 
-#include "table_basic.hpp"
+#include <tightdb/table_basic.hpp>
 
 
 #define TIGHTDB_TABLE_1(Table, name1, type1) \

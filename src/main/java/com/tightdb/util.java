@@ -6,6 +6,8 @@ import com.tightdb.lib.TightDB;
 
 public class util {
 	
+	public static final long REQUIRED_JNI_VERSION = 8;
+
 	static {
 		TightDB.loadLibrary();
 	}
@@ -20,7 +22,7 @@ public class util {
 	static native long nativeGetMemUsage();
 
 	public static boolean versionCompatible() {
-		return (nativeGetVersion() == 7);
+		return (nativeGetVersion() == REQUIRED_JNI_VERSION);
 	}
 
 	static native int nativeGetVersion();

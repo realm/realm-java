@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <ostream>
 
-#include "config.h"
+#include <tightdb/config.h>
 
 #ifdef TIGHTDB_HAVE_CXX11_RVALUE_REFERENCE
 #include <utility>
@@ -120,6 +120,10 @@ namespace tightdb {
     protected:
         struct move_tag {};
         bind_ptr(bind_ptr* p, move_tag): m_ptr(p->release()) {}
+
+        struct casting_move_tag {};
+        template<class U> bind_ptr(bind_ptr<U>* p, casting_move_tag):
+            m_ptr(static_cast<T*>(p->release())) {}
 
     private:
         T* m_ptr;

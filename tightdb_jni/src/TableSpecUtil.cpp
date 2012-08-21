@@ -1,6 +1,6 @@
+#include "util.h"
 #include "TableSpecUtil.h"
 #include "columntypeutil.h"
-#include "util.h"
 
 using namespace tightdb;
 
@@ -10,7 +10,7 @@ jclass GetClassTableSpec(JNIEnv* env)
 	return myClass;
 }
 
-jmethodID GetTableSpecMethodID(JNIEnv* env, char* methodStr, char* typeStr)
+jmethodID GetTableSpecMethodID(JNIEnv* env, const char* methodStr, const char* typeStr)
 {
     jclass myClass = GetClassTableSpec(env);
     if (myClass == NULL) {
@@ -101,7 +101,7 @@ void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec)
 		const char* colName = spec.get_column_name(i);
 		if (colType == COLUMN_TYPE_TABLE) {
 			jobject jSubTableSpec = env->CallObjectMethod(jTableSpec, jAddSubtableColumnMethodId, env->NewStringUTF(colName));
-			const Spec& subTableSpec = spec.get_subspec(i);
+			const Spec& subTableSpec = spec.get_subtable_spec(i);
 			UpdateJTableSpecFromSpec(env, subTableSpec, jSubTableSpec);
 		} else {
 			env->CallVoidMethod(jTableSpec, jAddColumnMethodId, static_cast<jint>(colType), env->NewStringUTF(colName));

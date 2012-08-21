@@ -27,13 +27,13 @@
 #endif
 #include <cstdlib> // size_t
 #include <cstring> // memmove
-#include "alloc.hpp"
-#include <iostream>
-#include "utilities.hpp"
 #include <vector>
-#include <string>
-#include <cassert>
+#include <ostream>
+
+#include <tightdb/assert.hpp>
 #include <tightdb/error.hpp>
+#include <tightdb/alloc.hpp>
+#include <tightdb/utilities.hpp>
 
 #define TEMPEX(fun, arg) \
     if(m_width == 0) {fun<0> arg;} \
@@ -61,21 +61,19 @@
     #include <pmmintrin.h> // __SSE3__
 #endif
 
-#ifdef _DEBUG
+#ifdef TIGHTDB_DEBUG
 #include <stdio.h>
 #endif
 
-using namespace std;
-
 namespace tightdb {
 
-static const size_t not_found = (size_t)-1;
+const size_t not_found = size_t(-1);
 
 // Pre-definitions
 class Array;
 class AdaptiveStringColumn;
 
-#ifdef _DEBUG
+#ifdef TIGHTDB_DEBUG
 class MemStats {
 public:
     MemStats() : allocated(0), used(0), array_count(0) {}
@@ -112,12 +110,12 @@ public:
     virtual ~ArrayParent() {}
 
     // FIXME: Must be protected. Solve problem by having the Array constructor, that creates a new array, call it.
-    virtual void update_child_ref(size_t subtable_ndx, size_t new_ref) = 0;
+    virtual void update_child_ref(size_t child_ndx, size_t new_ref) = 0;
 
 protected:
     friend class Array;
 
-    virtual size_t get_child_ref(size_t subtable_ndx) const = 0;
+    virtual size_t get_child_ref(size_t child_ndx) const = 0;
 };
 
 
@@ -226,6 +224,7 @@ public:
     void find_all(Array& result, int64_t value, size_t offset=0, size_t start=0, size_t end=(size_t)-1) const;
     void FindAllHamming(Array& result, uint64_t value, size_t maxdist, size_t offset=0) const;
     int64_t sum(size_t start = 0, size_t end = (size_t)-1) const;
+    size_t count(int64_t value) const;
     bool maximum(int64_t& result, size_t start = 0, size_t end = (size_t)-1) const;
     bool minimum(int64_t& result, size_t start = 0, size_t end = (size_t)-1) const;
     template <class F> size_t Query(int64_t value, size_t start, size_t end);
@@ -247,21 +246,23 @@ public:
     template<class S> size_t Write(S& target, bool recurse=true, bool persist=false) const;
     template<class S> void WriteAt(size_t pos, S& out) const;
     size_t GetByteSize(bool align=false) const;
-    vector<int64_t> ToVector(void) const;
+    std::vector<int64_t> ToVector(void) const; // FIXME: We cannot use std::vector (or any other STL data structure) if we choose to disallow exceptions.
+
+    /// Compare two arrays for equality.
+    bool Compare(const Array&) const;
 
     // Debug
     size_t GetBitWidth() const {return m_width;}
-#ifdef _DEBUG
-    bool Compare(const Array& c) const;
+#ifdef TIGHTDB_DEBUG
     void Print() const;
     void Verify() const;
-    void ToDot(ostream& out, const char* title=NULL) const;
+    void ToDot(std::ostream& out, const char* title=NULL) const;
     void Stats(MemStats& stats) const;
-#endif //_DEBUG
+#endif // TIGHTDB_DEBUG
     mutable unsigned char* m_data; // FIXME: Should be 'char' not 'unsigned char'
 
 private:
-    template <size_t w>bool MinMax(size_t from, size_t to, uint64_t maxdiff, int64_t *min, int64_t *max);
+    template <size_t w> bool MinMax(size_t from, size_t to, uint64_t maxdiff, int64_t *min, int64_t *max);
     Array& operator=(const Array&) {return *this;} // not allowed
     template<size_t w> void QuickSort(size_t lo, size_t hi);
     void QuickSort(size_t lo, size_t hi);
@@ -357,8 +358,8 @@ protected:
     static size_t create_empty_array(ColumnDef, WidthType, Allocator&);
 
     // Overriding methods in ArrayParent
-    virtual void update_child_ref(size_t subtable_ndx, size_t new_ref);
-    virtual size_t get_child_ref(size_t subtable_ndx) const;
+    virtual void update_child_ref(size_t child_ndx, size_t new_ref);
+    virtual size_t get_child_ref(size_t child_ndx) const;
 };
 
 
@@ -403,7 +404,7 @@ inline Array::~Array() {}
 
 template<class S> size_t Array::Write(S& out, bool recurse, bool persist) const
 {
-    assert(IsValid());
+    TIGHTDB_ASSERT(IsValid());
 
     // Ignore un-changed arrays when persisting
     if (persist && m_alloc.IsReadOnly(m_ref)) return m_ref;
@@ -427,7 +428,7 @@ template<class S> size_t Array::Write(S& out, bool recurse, bool persist) const
             else {
                 const Array sub(ref, NULL, 0, GetAllocator());
                 const size_t sub_pos = sub.Write(out, true, persist);
-                assert((sub_pos & 0x7) == 0); // 64bit alignment
+                TIGHTDB_ASSERT((sub_pos & 0x7) == 0); // 64bit alignment
                 newRefs.add(sub_pos);
             }
         }
@@ -468,14 +469,14 @@ template<class S> size_t Array::Write(S& out, bool recurse, bool persist) const
     // Write array
     const char* const data = reinterpret_cast<const char*>(m_data-8);
     const size_t array_pos = out.write(data, len);
-    assert((array_pos & 0x7) == 0); /// 64bit alignment
+    TIGHTDB_ASSERT((array_pos & 0x7) == 0); /// 64bit alignment
 
     return array_pos; // Return position of this array
 }
 
 template<class S> void Array::WriteAt(size_t pos, S& out) const
 {
-    assert(IsValid());
+    TIGHTDB_ASSERT(IsValid());
 
     // TODO: replace capacity with checksum
 
@@ -523,19 +524,19 @@ inline size_t Array::create_empty_array(ColumnDef type, Allocator& alloc)
 
 inline void Array::update_ref_in_parent()
 {
-  if (!m_parent) return;
-  m_parent->update_child_ref(m_parentNdx, m_ref);
+    if (!m_parent) return;
+    m_parent->update_child_ref(m_parentNdx, m_ref);
 }
 
 
-inline void Array::update_child_ref(size_t subtable_ndx, size_t new_ref)
+inline void Array::update_child_ref(size_t child_ndx, size_t new_ref)
 {
-    Set(subtable_ndx, new_ref);
+    Set(child_ndx, new_ref);
 }
 
-inline size_t Array::get_child_ref(size_t subtable_ndx) const
+inline size_t Array::get_child_ref(size_t child_ndx) const
 {
-    return GetAsRef(subtable_ndx);
+    return GetAsRef(child_ndx);
 }
 
 

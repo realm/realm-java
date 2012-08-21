@@ -2,7 +2,7 @@
 #include "columntypeutil.h"
 
 
-static jfieldID GetFieldIDColumnType(JNIEnv* env, char* methodStr, char* typeStr)
+static jfieldID GetFieldIDColumnType(JNIEnv* env, const char* methodStr, const char* typeStr)
 {
     static jclass myClass = GetClass(env, "com/tightdb/ColumnType");
     if (myClass == NULL)
@@ -28,21 +28,21 @@ ColumnType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType)
 
 jobject GetJColumnTypeFromColumnType(JNIEnv* env, ColumnType columnType)
 {
-    TR("jni: Enter GetJColumnTypeFromColumnType(%d)\n", columnType);
+    TR((env, "jni: Enter GetJColumnTypeFromColumnType(%d)\n", columnType));
 	static jclass jColumnTypeClass = GetClass(env, "com/tightdb/ColumnType");
 
 	if (jColumnTypeClass == NULL) {
-	    TR("--class is NULL\n");
+	    TR((env, "--class is NULL\n"));
         return NULL;
     }
-    TR("---2\n");
+    TR((env, "---2\n"));
     
     // Couldn't figure out how to create a new enum on Java side and return as object...
     // A workaround in java to not check for the correct ColumnTypeTable works.
     /*
 	jmethodID jColumnTypeConsId2 = env->GetMethodID(jColumnTypeClass, "<init>", "()V");
     if (jColumnTypeConsId2) {
-        TR("-GOT INIT\n");
+        TR((env, "-GOT INIT\n"));
         return NULL;
     }
     */
@@ -50,25 +50,25 @@ jobject GetJColumnTypeFromColumnType(JNIEnv* env, ColumnType columnType)
    /*
     jfieldID subtable_id = env->GetStaticFieldID(jColumnTypeClass, "ColumnTypeTable", "LColumnType;");
 	if (!subtable_id) {
-        TR("--subtable_id is NULL\n");
+        TR((env, "--subtable_id is NULL\n"));
         return NULL;
     }
     
     jobject jColumnTypeConsId = env->GetStaticObjectField(jColumnTypeClass, subtable_id);
     if (jColumnTypeConsId == NULL) {
-        TR("---2.5");
+        TR((env, "---2.5"));
         ThrowException(env, NoSuchMethod, "ColumnType", "<init>");
     	return NULL;
 	}
     return jColumnTypeConsId; 
     */
-    TR("---3\n");
+    TR((env, "---3\n"));
     return NULL;
 	//jobject jColumnType = env->NewObject(jColumnTypeClass, jColumnTypeConsId, 
                                        //  static_cast<jint>(columnType));
     //jobject jColumnType = env->NewObject(jColumnTypeClass, jColumnTypeConsId);
                                          
-    //TR("jni: New ColumnType %d.\n", columnType);
+    //TR((env, "jni: New ColumnType %d.\n", columnType));
 	//return jColumnType;
     
 }

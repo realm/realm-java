@@ -36,14 +36,22 @@ public class TableQueryTest extends AbstractTableTest {
 	public void shouldMatchOnSimpleStringCriteria() {
 		assertEquals(1, employees.firstName.eq("John").findAll().size());
 		assertEquals(1, employees.firstName.equal("John").findAll().size());
-
+		assertEquals(1, employees.firstName.eq("john", false).findAll().size());
+		assertEquals(1, employees.firstName.equal("john", false).findAll().size());
+		
+		assertEquals(2, employees.firstName.neq("John").findAll().size());
+		assertEquals(2, employees.firstName.notEqual("John").findAll().size());
 		assertEquals(2, employees.firstName.neq("John").findAll().size());
 		assertEquals(2, employees.firstName.notEqual("John").findAll().size());
 		
 		assertEquals(2, employees.firstName.startsWith("J").findAll().size());
+		assertEquals(2, employees.firstName.startsWith("j", false).findAll().size());
+		
 		assertEquals(1, employees.firstName.endsWith("hny").findAll().size());
+		assertEquals(1, employees.firstName.endsWith("hnY", false).findAll().size());
 		
 		assertEquals(2, employees.firstName.contains("ohn").findAll().size());
+		assertEquals(2, employees.firstName.contains("ohN", false).findAll().size());
 	}
 
 	@Test

@@ -1,14 +1,14 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
-import static org.testng.internal.junit.ArrayAsserts.*;
+import static com.tightdb.test.ExtraTests.assertArrayEquals;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
 import com.tightdb.example.generated.Employee;
 import com.tightdb.example.generated.EmployeeView;

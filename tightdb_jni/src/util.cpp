@@ -1,16 +1,14 @@
-#include <assert.h>
-#include <tightdb.hpp>
-
 #include "util.h"
 #include "com_tightdb_util.h"
+#include <assert.h>
 
 
-void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr) 
+void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr)
 {
     std::string message;
     jclass jExceptionClass = NULL;
 
-    TR_ERR("\njni: ThrowingException %d, %s, %s.\n", exception, classStr.c_str(), itemStr.c_str());
+    TR_ERR((env, "\njni: ThrowingException %d, %s, %s.\n", exception, classStr.c_str(), itemStr.c_str()));
 
     switch (exception) {
         case ClassNotFound:
@@ -33,7 +31,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             jExceptionClass = env->FindClass("java/lang/IllegalArgumentException");
             message = "Illegal Argument: " + classStr;
             break;
-        
+
         case IOFailed:
             jExceptionClass = env->FindClass("java/lang/IOException");
             message = "Failed to open " + classStr;
@@ -44,6 +42,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             message = classStr;
             break;
 
+        case UnsupportedOperation:
+            jExceptionClass = env->FindClass("java/lang/UnsupportedOperationException");
+            message = classStr;
+            break;
+
         default:
             assert(0);
             return;
@@ -51,15 +54,15 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     if (jExceptionClass != NULL)
         env->ThrowNew(jExceptionClass, message.c_str());
     else {
-        TR_ERR("\nERROR: Couldn't throw exception.\n");
+        TR_ERR((env, "\nERROR: Couldn't throw exception.\n"));
     }
 
     env->DeleteLocalRef(jExceptionClass);
 }
 
-jclass GetClass(JNIEnv* env, char *classStr) 
+jclass GetClass(JNIEnv* env, const char* classStr)
 {
-    jclass localRefClass = env->FindClass(classStr);	
+    jclass localRefClass = env->FindClass(classStr);
     if (localRefClass == NULL) {
 		ThrowException(env, ClassNotFound, classStr);
 		return NULL;
@@ -73,6 +76,7 @@ jclass GetClass(JNIEnv* env, char *classStr)
 void jprint(JNIEnv *env, char *txt)
 {
 #if 1
+    static_cast<void>(env);
     fprintf(stderr, " -- JNI: %s", txt);  fflush(stderr);
 #else
     static jclass myClass = GetClass(env, "com/tightdb/util");
@@ -87,7 +91,7 @@ void jprintf(JNIEnv *env, const char *format, ...) {
     char buf[200];
     va_start(argptr, format);
     //vfprintf(stderr, format, argptr);
-    vsnprintf_s(buf, 200, format, argptr);
+    vsnprintf(buf, 200, format, argptr);
     jprint(env, buf);
     va_end(argptr);
 }
@@ -100,9 +104,12 @@ bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data)
         return false;
     }
     data.len = S(env->GetDirectBufferCapacity(jByteBuffer));
+    // FIXME: Whoops - data.len is unsigned, so it can never be negative. Should it have been a check for size_t(-1)? Commented out to silence a compiler warning.
+/*
     if (data.len < 0) {
         ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
         return false;
     }
+*/
     return true;
 }

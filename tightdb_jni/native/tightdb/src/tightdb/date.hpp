@@ -31,6 +31,9 @@ public:
     Date(std::time_t d): m_date(d) {}
     std::time_t get_date() const { return m_date; }
 
+    bool operator==(const Date& d) const { return m_date == d.m_date; }
+    bool operator!=(const Date& d) const { return m_date != d.m_date; }
+
     template<class Ch, class Tr>
     friend std::basic_ostream<Ch, Tr>& operator<<(std::basic_ostream<Ch, Tr>& out, const Date& d)
     {
