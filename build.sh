@@ -67,7 +67,7 @@ case "$MODE" in
             echo "Unspecified or bad target directory '$TARGET_DIR'" 1>&2
             exit 1
         fi
-        TEMP_DIR="$(mktemp -d /tmp/temp.XXXX)" || exit 1
+        TEMP_DIR="$(mktemp -d /tmp/tightdb.java.copy.XXXX)" || exit 1
         git ls-files -z >"$TEMP_DIR/files" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
@@ -89,7 +89,7 @@ case "$MODE" in
         SOURCES="$(find java/ -type f -name '*.java' | fgrep -v /doc/ | fgrep -v /example/)" || exit 1
         $JAVAC $SOURCES || exit 1
         CLASSES="$(cd java && find * -type f -name '*.class')" || exit 1
-        TEMP_DIR="$(mktemp -d /tmp/temp.XXXX)" || exit 1
+        TEMP_DIR="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
         MANIFEST="$TEMP_DIR/MANIFEST.MF"
         echo "Class-Path: $DEPENDENCIES" >>"$MANIFEST"
         jar cfm tightdb.jar "$MANIFEST" -C resources META-INF || exit 1
@@ -103,7 +103,7 @@ case "$MODE" in
         find java/ -type f -name '*.class' -delete || exit 1
         SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
         CLASSES="$(echo "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
-        TEMP_DIR="$(mktemp -d /tmp/temp.XXXX)" || exit 1
+        TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test.XXXX)" || exit 1
         export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:."
         (cd java && $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" $SOURCES) || exit 1
         (cd "$TEMP_DIR" && $JAVA -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $CLASSES) || exit 1
@@ -133,7 +133,7 @@ case "$MODE" in
         fi
         cd "$TIGHTDB_JAVA_HOME/test-installed" || exit 1
         find java/ -type f -name '*.class' -delete || exit 1
-        TEMP_DIR="$(mktemp -d /tmp/temp.XXXX)" || exit 1
+        TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test-installed.XXXX)" || exit 1
         export CLASSPATH="$PREFIX/share/java/tightdb.jar:."
         $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" java/my/app/Test.java || exit 1
         (cd "$TEMP_DIR" && $JAVA my.app.Test) || exit 1
