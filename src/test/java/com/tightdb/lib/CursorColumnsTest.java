@@ -12,7 +12,7 @@ import com.tightdb.example.generated.Employee;
 import com.tightdb.example.generated.PhoneTable;
 import com.tightdb.test.EmployeesFixture;
 
-public class CursorColumnsTest extends AbstractTableTest {
+public class CursorColumnsTest extends AbstractTest {
 
 	@Test
 	public void shouldGetCorrectColumnValues() throws IllegalAccessException {

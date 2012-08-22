@@ -10,7 +10,7 @@ import com.tightdb.example.generated.Employee;
 import com.tightdb.example.generated.Phone;
 import com.tightdb.test.EmployeesFixture;
 
-public class TableCursorColumnTest extends AbstractTableTest {
+public class TableCursorColumnTest extends AbstractTest {
 
 	@Test
 	public void shouldProvideConvenienceMethods() {

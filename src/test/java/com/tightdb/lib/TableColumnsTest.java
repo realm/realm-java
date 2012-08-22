@@ -16,7 +16,7 @@ import com.tightdb.example.generated.PhoneTable;
 import com.tightdb.test.EmployeesFixture;
 import com.tightdb.test.PhoneData;
 
-public class TableColumnsTest extends AbstractTableTest {
+public class TableColumnsTest extends AbstractTest {
 
 	@Test
 	public void shouldFindFirstRecordByColumnValue() throws IllegalAccessException {

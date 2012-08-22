@@ -11,7 +11,7 @@ import com.tightdb.example.generated.PhoneTable;
 import com.tightdb.example.generated.PhoneView;
 import com.tightdb.test.EmployeesFixture;
 
-public class SubtableTest extends AbstractTableTest {
+public class SubtableTest extends AbstractTest {
 
 	@Test
 	public void shouldSaveSubtableChanges() {

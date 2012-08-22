@@ -8,7 +8,7 @@ import com.tightdb.example.generated.Employee;
 import com.tightdb.example.generated.EmployeeTable;
 import com.tightdb.example.generated.PhoneTable;
 
-public class MixedSubtableTest extends AbstractTableTest {
+public class MixedSubtableTest extends AbstractTest {
 
 	@Test
 	public void shouldStoreSubtableInMixedTypeColumn() {
