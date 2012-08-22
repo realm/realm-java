@@ -60,29 +60,21 @@ fi
 
 case "$MODE" in
 
-    "copy")
-        # Copy to distribution package
-        TARGET_DIR="$1"
-        if ! [ "$TARGET_DIR" -a -d "$TARGET_DIR" ]; then
-            echo "Unspecified or bad target directory '$TARGET_DIR'" 1>&2
-            exit 1
-        fi
-        TEMP_DIR="$(mktemp -d /tmp/tightdb.java.copy.XXXX)" || exit 1
-        git ls-files -z >"$TEMP_DIR/files" || exit 1
-        tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
-        (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
+    "clean")
+        cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
+        $MAKE clean || exit 1
+        cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
+        find java/ -type f -name '*.class' -delete || exit 1
+        rm -f tightdb.jar || exit 1
         ;;
 
     "build")
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
-        $MAKE clean || exit 1
         $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC" || exit 1
 
         # Build tightdb.jar
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
-        find java/ -type f -name '*.class' -delete || exit 1
-        rm tightdb.jar
         DEPENDENCIES="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/share/java/freemarker.jar"
         export CLASSPATH="$(echo "$DEPENDENCIES" | sed -r 's/[[:space:]]+/:/g'):java"
         # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
@@ -100,7 +92,6 @@ case "$MODE" in
     "test")
         # Build and run test suite
         cd "$TIGHTDB_JAVA_HOME/src/test" || exit 1
-        find java/ -type f -name '*.class' -delete || exit 1
         SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
         CLASSES="$(echo "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test.XXXX)" || exit 1
@@ -132,15 +123,29 @@ case "$MODE" in
             PREFIX="/usr/local"
         fi
         cd "$TIGHTDB_JAVA_HOME/test-installed" || exit 1
-        find java/ -type f -name '*.class' -delete || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test-installed.XXXX)" || exit 1
         export CLASSPATH="$PREFIX/share/java/tightdb.jar:."
         $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" java/my/app/Test.java || exit 1
         (cd "$TEMP_DIR" && $JAVA my.app.Test) || exit 1
         ;;
 
+    "dist-copy")
+        # Copy to distribution package
+        TARGET_DIR="$1"
+        if ! [ "$TARGET_DIR" -a -d "$TARGET_DIR" ]; then
+            echo "Unspecified or bad target directory '$TARGET_DIR'" 1>&2
+            exit 1
+        fi
+        TEMP_DIR="$(mktemp -d /tmp/tightdb.java.copy.XXXX)" || exit 1
+        git ls-files -z >"$TEMP_DIR/files" || exit 1
+        tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
+        (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
+        ;;
+
     *)
         echo "Unspecified or bad mode '$MODE'" 1>&2
+        echo "Available modes are: clean build test install test-installed" 1>&2
+        echo "As well as: dist-copy" 1>&2
         exit 1
         ;;
 
