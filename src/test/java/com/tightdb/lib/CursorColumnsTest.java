@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
@@ -9,7 +10,8 @@ import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
 import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.PhoneTable;
+import com.tightdb.example.generated.EmployeeQuery;
+import com.tightdb.example.generated.EmployeeView;
 import com.tightdb.test.EmployeesFixture;
 
 public class CursorColumnsTest extends AbstractTest {
@@ -28,24 +30,31 @@ public class CursorColumnsTest extends AbstractTest {
 
 	@Test
 	public void shouldSetAndGetCorrectColumnValues() {
-		Employee employee0 = employees.first();
+		checkSetAndGetCorrectColumnValues(employees);
+		checkSetAndGetCorrectColumnValues(employeesView);
+	}
+
+	private void checkSetAndGetCorrectColumnValues(
+			AbstractRowset<Employee, EmployeeView, EmployeeQuery> empls) {
+		Employee employee0 = empls.first();
 		checkCursor(EmployeesFixture.EMPLOYEES[0], employee0);
 
-		// FIXME: Fails with exception. You can't currently use
-		// ByteBuffer.wrap(byte[]) for binary data - it creates a
-		// "HeapByteBuffer"
 		updateEmployee(employee0, EmployeesFixture.EMPLOYEES[2]);
-
 		checkCursor(EmployeesFixture.EMPLOYEES[2], employee0);
 
 		updateEmployee(employee0, EmployeesFixture.EMPLOYEES[1]);
 		checkCursor(EmployeesFixture.EMPLOYEES[1], employee0);
-		checkCursor(EmployeesFixture.EMPLOYEES[1], employees.first());
+		checkCursor(EmployeesFixture.EMPLOYEES[1], empls.first());
 	}
 
 	@Test
 	public void shouldSetAndGetMixedValues() throws Exception {
-		Employee employee = employees.first();
+		checkSetAndGetMixedValues(employees);
+		checkSetAndGetMixedValues(employeesView);
+	}
+	
+	private void checkSetAndGetMixedValues(AbstractRowset<Employee, EmployeeView, EmployeeQuery> empls) throws Exception {
+		Employee employee = empls.first();
 
 		employee.extra.set(true);
 		assertEquals(true, employee.extra.get().getBooleanValue());
@@ -53,15 +62,19 @@ public class CursorColumnsTest extends AbstractTest {
 		byte[] arr = { 1, 3, 5 };
 		employee.extra.set(arr);
 		// FIXME: shouldn't be BINARY_TYPE_BYTE_ARRAY an expected type here?
-		assertEquals(Mixed.BINARY_TYPE_BYTE_BUFFER, employee.extra.get().getBinaryType());
-		assertEquals(ByteBuffer.wrap(arr), employee.extra.get().getBinaryValue());
+		assertEquals(Mixed.BINARY_TYPE_BYTE_BUFFER, employee.extra.get()
+				.getBinaryType());
+		assertEquals(ByteBuffer.wrap(arr), employee.extra.get()
+				.getBinaryValue());
 
 		ByteBuffer buf = ByteBuffer.allocateDirect(3);
 		byte[] arr2 = { 10, 20, 30 };
 		buf.put(arr2);
 		employee.extra.set(buf);
-		assertEquals(Mixed.BINARY_TYPE_BYTE_BUFFER, employee.extra.get().getBinaryType());
-		assertEquals(ByteBuffer.wrap(arr2), employee.extra.get().getBinaryValue());
+		assertEquals(Mixed.BINARY_TYPE_BYTE_BUFFER, employee.extra.get()
+				.getBinaryType());
+		assertEquals(ByteBuffer.wrap(arr2), employee.extra.get()
+				.getBinaryValue());
 
 		Date date = new Date(6547);
 		employee.extra.set(date);
@@ -87,7 +100,7 @@ public class CursorColumnsTest extends AbstractTest {
 
 	public void shouldProvideReadableValue() {
 		Employee employee = employees.first();
-		
+
 		assertNotNull(employee.firstName.getReadableValue());
 		assertNotNull(employee.lastName.getReadableValue());
 		assertNotNull(employee.salary.getReadableValue());
@@ -97,5 +110,5 @@ public class CursorColumnsTest extends AbstractTest {
 		assertNotNull(employee.extra.getReadableValue());
 		assertNotNull(employee.phones.getReadableValue());
 	}
-	
+
 }
