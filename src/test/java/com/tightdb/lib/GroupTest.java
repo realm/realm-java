@@ -62,6 +62,15 @@ public class GroupTest {
 		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
 
 		byte[] data = group.writeToMem();
+
+		// check table info retrieval
+		assertEquals(1, group.getTableCount());
+		assertEquals(EmployeeTable.class.getCanonicalName(), group.getTableName(0));
+		assertTrue(group.hasTable(EmployeeTable.class.getCanonicalName()));
+		assertFalse(group.hasTable("xxxxxx"));
+		
+		// check table retrieval
+		assertEquals(employees.size(), group.getTable(EmployeeTable.class.getCanonicalName()).size());
 		
 		employees.clear();
 		group.close();
