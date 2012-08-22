@@ -25,128 +25,130 @@ public class TutorialExample {
     
 public static void main(String[] args) {
     PeopleTable peopletable = new PeopleTable();
-    // ...
 // @@EndExample@@
 		        
-/****************************** BASIC OPERATIONS *************************/
+    /****************************** BASIC OPERATIONS *************************/
 		
-// @@Example: insert_rows @@
-        peopletable.add("John", 20, true);
-	peopletable.add("Mary", 21, false);
-	peopletable.add("Lars", 32, true);
-	peopletable.add("Phil", 43, false);
-	peopletable.add("Anni", 53, true);
-// @@EndExample@@
+    // @@Example: insert_rows @@
+    peopletable.add("John", 20, true);
+    peopletable.add("Mary", 21, false);
+    peopletable.add("Lars", 21, true);
+    peopletable.add("Phil", 43, false);
+    peopletable.add("Anni", 54, true);
+    // @@EndExample@@
 		
-// @@Example: insert_at_index @@
-	peopletable.insert(2, "Frank", 34, true);
-// @@EndExample@@
+    / @@Example: insert_at_index @@
+    peopletable.insert(2, "Frank", 34, true);
+    // @@EndExample@@
+
+    // @@Example: number_of_rows @@
+    if (!peopletable.isEmpty()) {
+        long s = peopletable.size(); // s => 6
+    }
+    // @@EndExample@@
 		
-/****************************** GETTERS AND SETTERS **********************/
+    System.out.println("Size = " + peopletable.size() + "\n");
+				
+    /****************************** GETTERS AND SETTERS **********************/
 		
-// @@Example: accessing_rows @@
-// 2 ways to get the value
-String name = peopletable.at(2).getName(); // name => "Mary"
-// or
-String name2 = peopletable.at(2).name.get();
+    // @@Example: accessing_rows @@
+    // 2 ways to get the value
+    String name = peopletable.at(2).getName(); // name => "Mary"
+    // or
+    String name2 = peopletable.at(2).name.get();
 		
-// 2 ways to set the value
-peopletable.at(2).name.set("NewName");
-// or
-peopletable.at(2).setName("NewName"); 
-// @@EndExample@@
+    // 2 ways to set the value
+    peopletable.at(2).name.set("NewName");
+    // or
+    peopletable.at(2).setName("NewName"); 
+    // @@EndExample@@
 		
-System.out.println("at(2).getName -> " + name + " or " + name2);
-System.out.println("at(2).setName('NewName') -> " + peopletable.at(2).getName());
+    System.out.println("at(2).getName -> " + name + " or " + name2);
+    System.out.println("at(2).setName('NewName') -> " + peopletable.at(2).getName());
 
-// @@Example: number_of_rows @@
-if (!peopletable.isEmpty()) {
-    long s = peopletable.size(); // s => 6
-}
-// @@EndExample@@
+    /****************************** DATA REMOVAL *****************************/
+    // @@Example: deleting_row @@
+    peopletable.remove(2);
+    // @@EndExample@@
+
+    System.out.println("\nRemoved row 2. Down to " + peopletable.size() + " rows.\n");
+
+    /****************************** ITERATION OF ALL RECORDS *****************/
+
+    // lazy iteration over the table
 		
-System.out.println("Size = " + peopletable.size() + "\n");
+    // @@Example: iteration @@
+    for (People person : peopletable) {
+        System.out.println(person.getName() + " is " + person.getAge() + " years old.");
+    }
+    // @@EndExample@@
 		
-/****************************** ITERATION OF ALL RECORDS *****************/
+    /****************************** SIMPLE QUERY *****************************/
 
-// lazy iteration over the table
-		
-// @@Example: iteration @@
-for (People person : peopletable) {
-    System.out.println(person.getName() + " is " + person.getAge() + " years old.");
-}
-// @@EndExample@@
-		
-/****************************** SIMPLE QUERY *****************************/
+    // @@Example: simple_seach @@
+    People p = peopletable.name.equal("John").findFirst();
+    // @@EndExample@@
 
-// @@Example: simple_seach @@
-People p = peopletable.name.equal("John").findFirst();
-// @@EndExample@@
+    System.out.println("\nFind 'John': " + p + "\n");
 
-System.out.println("\nFind 'John': " + p + "\n");
+    /****************************** COMPLEX QUERY ****************************/
 
-/****************************** COMPLEX QUERY ****************************/
+    // @@Example: advanced_search @@
+    // Define the query
+    PeopleQuery query = peopletable.name.contains("a")
+        age.between(20, 30)
+        .group()
+            .hired.equal(false)
+            .or()
+            .name.endsWith("y")
+        .endGroup();
+    // Count matches
+    System.out.println(query.count() + " person match query.");
 
-// @@Example: advanced_search @@
-// Define the query
-PeopleQuery query = peopletable.name.contains("a")
-    .group()
-        .hired.equal(false)
-        .or()
-        .name.endsWith("y")
-    .endGroup()
-    .age.between(20, 30);
-// Count matches
-System.out.println(query.count() + " person match query.");
+    // Take the average age of the matches    
+    System.out.println(query.average(??) + " years is the average.");
 
-// Perform query and use the result
-for (People person : query.findAll()) {
-    // ... do something with matching 'person'
-}        
-// @@EndExample
+    // Perform query and use the result
+    for (People person : query.findAll()) {
+        // ... do something with matching 'person'
+    }        
+    // @@EndExample
 
-/****************************** DATA REMOVAL *****************************/
-// @@Example: deleting_row @@
-peopletable.remove(2);
-// @@EndExample@@
+    /****************************** SERIALIZE ********************************/
 
-System.out.println("\nRemoved row 2. Down to " + peopletable.size() + " rows.\n");
+    // @@Example: serialisation @@
+    // Create Table in Group
+    Group group = new Group();
+    PeopleTable people1 = new PeopleTable(group);
 
-/****************************** SERIALIZE ********************************/
+    people1.add("John", 20, true);
+    people1.add("Mary", 21, false);
 
-// @@Example: serialisation @@
-// Create Table in Group
-Group group = new Group();
-PeopleTable people1 = new PeopleTable(group);
+    // Write to disk
+    try {
+        group.writeToFile("people.tightdb");
+    } catch (IOException e) {
+        e.printStackTrace();
+    }  
 
-people1.add("John", 20, true);
-people1.add("Mary", 21, false);
+    // Load a group from disk (and print contents)
+    Group fromDisk = new Group("people.tightdb");
+    PeopleTable people2 = new PeopleTable(fromDisk);
 
-// Write to disk
-try {
-    group.writeToFile("people.tightdb");
-} catch (IOException e) {
-    e.printStackTrace();
-}  
+    for (People person : people2) {
+        System.out.println(person.getName() + " is " + person.getAge() + " years old");
+    }
 
-// Load a group from disk (and print contents)
-Group fromDisk = new Group("people.tightdb");
-PeopleTable people2 = new PeopleTable(fromDisk);
+    // Write same group to memory buffer
+    byte[] buffer = group.writeToMem();
 
-for (People person : people2) {
-    System.out.println(person.getName() + " is " + person.getAge() + " years old");
-}
+    // Load a group from memory (and print contents)
+    Group fromMem = new Group(buffer);
+    PeopleTable people3 = new PeopleTable(fromMem);
 
-// Write same group to memory buffer
-byte[] buffer = group.writeToMem();
-
-// Load a group from memory (and print contents)
-Group fromMem = new Group(buffer);
-PeopleTable people3 = new PeopleTable(fromMem);
-
-for (People person : people3) {
-    System.out.println(person.getName() + " is " + person.getAge() + " years old");
-}
-// @@EndExample@@
+    for (People person : people3) {
+        System.out.println(person.getName() + " is " + person.getAge() + " years old");
+    }
+    // @@EndExample@@
 }
 }
