@@ -16,7 +16,7 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 		return query(getQuery().equal(columnIndex, value));
 	}
 
-	public Query notQqual(long value) {
+	public Query notEqual(long value) {
 		return query(getQuery().notEqual(columnIndex, value));
 	}
 

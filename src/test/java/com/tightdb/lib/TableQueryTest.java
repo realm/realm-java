@@ -7,14 +7,14 @@ import org.testng.annotations.Test;
 import com.tightdb.example.generated.EmployeeQuery;
 import com.tightdb.example.generated.EmployeeView;
 
-public class TableQueryTest extends AbstractTableTest {
+public class TableQueryTest extends AbstractTest {
 
 	@Test
 	public void shouldMatchOnSimpleNumberCriteria() {
 		assertEquals(1, employees.salary.equal(30000).findAll().size());
 		assertEquals(1, employees.salary.eq(30000).findAll().size());
 
-		assertEquals(2, employees.salary.notQqual(30000).findAll().size());
+		assertEquals(2, employees.salary.notEqual(30000).findAll().size());
 		assertEquals(2, employees.salary.neq(30000).findAll().size());
 		
 		assertEquals(2, employees.salary.lessThan(30000).findAll().size());

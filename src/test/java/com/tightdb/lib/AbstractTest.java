@@ -1,35 +1,74 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
+import static com.tightdb.test.EmployeesFixture.EMPLOYEES;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 
 import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
 import com.tightdb.example.generated.Employee;
 import com.tightdb.example.generated.EmployeeTable;
+import com.tightdb.example.generated.EmployeeView;
 import com.tightdb.example.generated.Phone;
 import com.tightdb.test.EmployeeData;
 import com.tightdb.test.PhoneData;
 
 public abstract class AbstractTest {
 
-	protected static final String[] EXPECTED_COLUMNS = { "firstName", "lastName", "salary", "driver", 
-														 "photo", "birthdate", "extra", "phones" };
-	protected static final ColumnType[] EXPECTED_COLUMN_TYPE = { 
-			ColumnType.ColumnTypeString, ColumnType.ColumnTypeString, 
+	protected static final String[] EXPECTED_COLUMNS = { "firstName",
+			"lastName", "salary", "driver", "photo", "birthdate", "extra",
+			"phones" };
+
+	protected static final ColumnType[] EXPECTED_COLUMN_TYPE = {
+			ColumnType.ColumnTypeString, ColumnType.ColumnTypeString,
 			ColumnType.ColumnTypeInt, ColumnType.ColumnTypeBool,
-			ColumnType.ColumnTypeBinary, ColumnType.ColumnTypeDate, 
-			ColumnType.ColumnTypeMixed, ColumnType.ColumnTypeTable};
+			ColumnType.ColumnTypeBinary, ColumnType.ColumnTypeDate,
+			ColumnType.ColumnTypeMixed, ColumnType.ColumnTypeTable };
+
+	protected EmployeeTable employees;
+
+	protected EmployeeView employeesView;
 	
+	@BeforeMethod
+	public void init() {
+		employees = new EmployeeTable();
+
+		addEmployee(employees, EMPLOYEES[0]);
+		addEmployee(employees, EMPLOYEES[2]);
+		insertEmployee(employees, 1, EMPLOYEES[1]);
+		assertEquals(3, employees.size());
+		
+		EmployeeTable employeesTbl = new EmployeeTable();
+		addEmployee(employeesTbl, EMPLOYEES[0]);
+		addEmployee(employeesTbl, EMPLOYEES[2]);
+		insertEmployee(employeesTbl, 1, EMPLOYEES[1]);
+		employeesView = employeesTbl.where().findAll();
+	}
+
+	@AfterMethod
+	public void clear() {
+		employees.clear();
+		assertEquals(0, employees.size());
+		employeesView.clear();
+	}
+
 	protected void addEmployee(EmployeeTable employees, EmployeeData emp) {
-		Employee e = employees.add(emp.firstName, emp.lastName, emp.salary, emp.driver, emp.photo, emp.birthdate, emp.extra);
+		Employee e = employees.add(emp.firstName, emp.lastName, emp.salary,
+				emp.driver, emp.photo, emp.birthdate, emp.extra);
 		addPhones(emp, e);
 	}
 
-	protected void insertEmployee(EmployeeTable employees, long pos, EmployeeData emp) {
-		Employee e = employees.insert(pos, emp.firstName, emp.lastName, emp.salary, emp.driver, emp.photo, emp.birthdate, emp.extra);
+	protected void insertEmployee(EmployeeTable employees, long pos,
+			EmployeeData emp) {
+		Employee e = employees.insert(pos, emp.firstName, emp.lastName,
+				emp.salary, emp.driver, emp.photo, emp.birthdate, emp.extra);
 		addPhones(emp, e);
 	}
 
@@ -93,7 +132,8 @@ public abstract class AbstractTest {
 		checkCursorColumns(employee);
 	}
 
-	protected void checkIterator(Iterator<Employee> it, EmployeeData[] employeeData) {
+	protected void checkIterator(Iterator<Employee> it,
+			EmployeeData[] employeeData) {
 		for (int i = 0; i < employeeData.length; i++) {
 			checkIteratorOnRemove(it);
 			assertTrue(it.hasNext());
@@ -101,7 +141,7 @@ public abstract class AbstractTest {
 		}
 		checkIteratorOnRemove(it);
 	}
-	
+
 	private void checkIteratorOnRemove(Iterator<?> it) {
 		try {
 			it.remove();

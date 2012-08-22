@@ -18,20 +18,20 @@ public class StringQueryColumn<Cursor, View, Query> extends AbstractColumn<Strin
 		return query(getQuery().equal(columnIndex, value, caseSensitive));
 	}
 	public Query eq(String value, boolean caseSensitive) {
-		return query(getQuery().equal(columnIndex, value, caseSensitive));
+		return query(getQuery().eq(columnIndex, value, caseSensitive));
 	}
 
 	public Query notEqual(String value) {
 		return query(getQuery().notEqual(columnIndex, value));
 	}
 	public Query neq(String value) {
-		return query(getQuery().notEqual(columnIndex, value));
+		return query(getQuery().neq(columnIndex, value));
 	}
 	public Query notEqual(String value, boolean caseSensitive) {
 		return query(getQuery().notEqual(columnIndex, value, caseSensitive));
 	}
 	public Query neq(String value, boolean caseSensitive) {
-		return query(getQuery().notEqual(columnIndex, value, caseSensitive));
+		return query(getQuery().neq(columnIndex, value, caseSensitive));
 	}
 
 	public Query startsWith(String value) {
