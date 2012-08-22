@@ -17,7 +17,46 @@ import com.tightdb.test.MixedData;
 public class JNIMixedTypeTest {
 
 	@Test(dataProvider = "mixedValuesProvider")
-	public void shouldStoreValuesOfMixedType(MixedData value1, MixedData value2, MixedData value3) throws Exception {
+	public void shouldMatchMixedValues(MixedData value1, MixedData value2,
+			MixedData value3) throws Exception {
+		Mixed mixed1 = Mixed.mixedValue(value1.value);
+		Mixed mixed2 = Mixed.mixedValue(value2.value);
+
+		if (value1.value.equals(value2.value)) {
+			assertEquals(mixed1, mixed2);
+		} else {
+			assertNotSame(mixed1, mixed2);
+		}
+	}
+
+	@Test(expectedExceptions = IllegalAccessException.class, dataProvider = "columnTypesProvider")
+	public void shouldFailOnWrongTypeRetrieval(ColumnType columnType)
+			throws Exception {
+		Object value = columnType != ColumnType.ColumnTypeString ? "abc" : 123;
+		Mixed mixed = Mixed.mixedValue(value);
+
+		switch (columnType) {
+		case ColumnTypeBinary:
+			mixed.getBinaryByteArray();
+			break;
+		case ColumnTypeDate:
+			mixed.getDateValue();
+			break;
+		case ColumnTypeBool:
+			mixed.getBooleanValue();
+			break;
+		case ColumnTypeInt:
+			mixed.getLongValue();
+			break;
+		case ColumnTypeString:
+			mixed.getStringValue();
+			break;
+		}
+	}
+
+	@Test(dataProvider = "mixedValuesProvider")
+	public void shouldStoreValuesOfMixedType(MixedData value1,
+			MixedData value2, MixedData value3) throws Exception {
 		TableBase table = new TableBase();
 
 		TableSpec tableSpec = new TableSpec();
@@ -38,41 +77,55 @@ public class JNIMixedTypeTest {
 		checkMixedCell(table, 0, 0, value3.type, value3.value);
 		table.close();
 	}
-	
-	private void checkMixedCell(TableBase table, long col, long row, ColumnType columnType, Object value) throws IllegalAccessException {
+
+	private void checkMixedCell(TableBase table, long col, long row,
+			ColumnType columnType, Object value) throws IllegalAccessException {
 		ColumnType mixedType = table.getMixedType(col, row);
 		assertEquals(columnType, mixedType);
-	
+
 		Mixed mixed = table.getMixed(col, row);
 		if (columnType == ColumnType.ColumnTypeBinary) {
 			if (mixed.getBinaryType() == Mixed.BINARY_TYPE_BYTE_ARRAY) {
 				// NOTE: We never get here because we always "get" a ByteBuffer.
 				byte[] bin = mixed.getBinaryByteArray();
 				assertEquals(Mixed.mixedValue(value), bin);
-			} else {	
+			} else {
 				ByteBuffer binBuf = mixed.getBinaryValue();
-				// TODO: Below is sort of hack to compare the content of the buffers, since you always will get a ByteBuffer from a Mixed.
+				// TODO: Below is sort of hack to compare the content of the
+				// buffers, since you always will get a ByteBuffer from a Mixed.
 				ByteBuffer valueBuf = ByteBuffer.wrap((byte[]) value);
 				if (!binBuf.equals(valueBuf))
 					System.out.println("***failed");
-				assertEquals(Mixed.mixedValue(valueBuf), Mixed.mixedValue(binBuf));
+				assertEquals(Mixed.mixedValue(valueBuf),
+						Mixed.mixedValue(binBuf));
 			}
-		} else {		
+		} else {
 			assertEquals(value, mixed.getValue());
-		}	
+		}
 	}
 
 	@DataProvider(name = "mixedValuesProvider")
 	public Iterator<Object[]> mixedValuesProvider() {
-		Object[] values = { 
-				new MixedData(ColumnType.ColumnTypeBool, true), 
+		Object[] values = {
+				new MixedData(ColumnType.ColumnTypeBool, true),
 				new MixedData(ColumnType.ColumnTypeString, "abc"),
-				new MixedData(ColumnType.ColumnTypeInt, 123L), 
-				new MixedData(ColumnType.ColumnTypeDate, new Date(645342)), 
-				new MixedData(ColumnType.ColumnTypeBinary, new byte[] { 1, 2, 3, 4, 5 }) 
-		};
-		
+				new MixedData(ColumnType.ColumnTypeInt, 123L),
+				new MixedData(ColumnType.ColumnTypeDate, new Date(645342)),
+				new MixedData(ColumnType.ColumnTypeBinary, new byte[] { 1, 2,
+						3, 4, 5 }) };
+
 		List<?> mixedValues = Arrays.asList(values);
-		return DataProviderUtil.allCombinations(mixedValues, mixedValues, mixedValues);
+		return DataProviderUtil.allCombinations(mixedValues, mixedValues,
+				mixedValues);
 	}
+
+	@DataProvider(name = "columnTypesProvider")
+	public Object[][] columnTypesProvider() {
+		Object[][] values = { {ColumnType.ColumnTypeBool},
+				{ColumnType.ColumnTypeString}, {ColumnType.ColumnTypeInt},
+				{ColumnType.ColumnTypeDate}, {ColumnType.ColumnTypeBinary} };
+
+		return values;
+	}
+
 }
