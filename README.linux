@@ -8,7 +8,10 @@ sudo apt-get install openjdk-7-jre openjdk-7-jdk
 # and
 #   sudo update-alternatives --config javac
 
-# Java dependencies (Ununtu 12.04):
+# Dependencies for building the JNI library (Ubuntu 12.04):
+sudo apt-get install libproc-dev
+
+# Dependencies for building the java library (Ununtu 12.04):
 sudo apt-get install libcommons-io-java
 sudo apt-get install libcommons-lang-java
 sudo apt-get install libfreemarker-java
