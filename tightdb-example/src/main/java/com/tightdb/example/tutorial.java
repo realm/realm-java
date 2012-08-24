@@ -89,7 +89,7 @@ public class tutorial {
 	
 	 System.out.println("\nFound: ");
 	 // @@Example: simple_seach @@
-	 People p = peopletable.name. //.equal("John").findFirst();
+	 People p = peopletable.name.equal("John").findFirst();
 	 System.out.println( p );	
 	 // prints: "People {name=John, age=20, hired=true}"
 	 //	 @@EndExample@@
