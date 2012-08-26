@@ -107,7 +107,6 @@ DWORD CalculateWSPrivate(DWORD processID)
 }
 
 
-/*
 #elif defined (__APPLE__) // Mac / Darwin
 
 
@@ -125,7 +124,6 @@ size_t GetMemUsage()
     // virtual size is in t_info.virtual_size;
     return t_info.resident_size;
 }
-*/
 
 
 #else // POSIX

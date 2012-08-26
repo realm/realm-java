@@ -13,48 +13,56 @@ JAVA_BIN=bin
 OS="$(uname -s)" || exit 1
 if [ "$OS" = "Darwin" ]; then
     MAKE="$MAKE CC=clang"
+    # FIXME: Should use /usr/libexec/java_home to set JAVA_HOME on Darwin
     JAVA_INC=Headers
     JAVA_BIN=Commands
 fi
 
 
+
+readlink_f()
+{
+    local l="$(readlink "$1")"
+    if [ -z "$l" -o "$l" = "$1" ]; then
+        echo "$1"
+        return
+    fi
+    readlink_f "$l"
+}
+
+
+
 # Find 'jni.h', 'java' and 'javac'
-if [ -z "$JAVA_HOME" ]; then
-    if ! which javac >/dev/null; then
-        echo "No JAVA_HOME and no Java compiler in PATH" 1>&2
-        exit 1
-    fi
-    readlink_f()
-    {
-        local l="$(readlink "$1")"
-        if [ -z "$l" -o "$l" = "$1" ]; then
-            echo "$1"
-            return
+find_java()
+{
+    if [ -z "$JAVA_HOME" ]; then
+        if ! which javac >/dev/null; then
+            echo "No JAVA_HOME and no Java compiler in PATH" 1>&2
+            return 1
         fi
-        readlink_f "$l"
-    }
-    JAVAC=$(readlink_f "$(which javac)")
-    if ! echo "$JAVAC" | grep "/$JAVA_BIN/javac"'$' >/dev/null 2>&1; then
-        echo "Could not determine JAVA_HOME from path of 'javac' command" 1>&2
-        exit 1
+        JAVAC=$(readlink_f "$(which javac)")
+        if ! echo "$JAVAC" | grep "/$JAVA_BIN/javac"'$' >/dev/null 2>&1; then
+            echo "Could not determine JAVA_HOME from path of 'javac' command" 1>&2
+            return 1
+        fi
+        JAVA_HOME="$(echo "$JAVAC" | sed "s|/$JAVA_BIN/javac$||")"
     fi
-    JAVA_HOME="$(echo "$JAVAC" | sed "s|/$JAVA_BIN/javac$||")"
-fi
-for x in "$JAVA_INC/jni.h" "$JAVA_BIN/java" "$JAVA_BIN/javac"; do
-    if ! [ -f "$JAVA_HOME/$x" ]; then
-        echo "No '$x' in '$JAVA_HOME'" 1>&2
-        exit 1
+    for x in "$JAVA_INC/jni.h" "$JAVA_BIN/java" "$JAVA_BIN/javac"; do
+        if ! [ -f "$JAVA_HOME/$x" ]; then
+            echo "No '$x' in '$JAVA_HOME'" 1>&2
+            return 1
+        fi
+    done
+    JAVA="$JAVA_HOME/$JAVA_BIN/java"
+    JAVAC="$JAVA_HOME/$JAVA_BIN/javac"
+    JAVA_VERSION="$(java -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\).*"/\1/')"
+    JAVA_MAJOR="$(echo "$JAVA_VERSION" | cut -d. -f1)"
+    JAVA_MINOR="$(echo "$JAVA_VERSION" | cut -d. -f2)"
+    if ! [ "$JAVA_MAJOR" -gt 1 -o "$JAVA_MAJOR" -eq 1 -a "$JAVA_MINOR" -ge 6 ] 2>/dev/null; then
+        echo "Need Java version 1.6 or newer (is '$JAVA_VERSION')" 1>&2
+        return 1
     fi
-done
-JAVA="$JAVA_HOME/$JAVA_BIN/java"
-JAVAC="$JAVA_HOME/$JAVA_BIN/javac"
-JAVA_VERSION="$(java -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\).*"/\1/')"
-JAVA_MAJOR="$(echo "$JAVA_VERSION" | cut -d. -f1)"
-JAVA_MINOR="$(echo "$JAVA_VERSION" | cut -d. -f2)"
-if [ "$JAVA_MAJOR" -lt 1 -o \( "$JAVA_MAJOR" -eq 1 -a "$JAVA_MINOR" -lt 6 \) ]; then
-    echo "Need Java version 1.6 or newer (is '$JAVA_VERSION')" 1>&2
-    exit 1
-fi
+}
 
 
 
@@ -69,6 +77,8 @@ case "$MODE" in
         ;;
 
     "build")
+        find_java || exit 1
+
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC" || exit 1
@@ -76,7 +86,7 @@ case "$MODE" in
         # Build tightdb.jar
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
         DEPENDENCIES="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/share/java/freemarker.jar"
-        export CLASSPATH="$(echo "$DEPENDENCIES" | sed -r 's/[[:space:]]+/:/g'):java"
+        export CLASSPATH="$(echo "$DEPENDENCIES" | sed 's/ \+/:/g'):java"
         # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
         SOURCES="$(find java/ -type f -name '*.java' | fgrep -v /doc/ | fgrep -v /example/)" || exit 1
         $JAVAC $SOURCES || exit 1
@@ -90,6 +100,8 @@ case "$MODE" in
         ;;
 
     "test")
+        find_java || exit 1
+
         # Build and run test suite
         cd "$TIGHTDB_JAVA_HOME/src/test" || exit 1
         SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
@@ -116,6 +128,7 @@ case "$MODE" in
 
     "test-installed")
         PREFIX="$1"
+        find_java || exit 1
         if [ "$PREFIX" ]; then
             JAVA="$JAVA -Djava.library.path=$PREFIX/lib/jni"
         fi
