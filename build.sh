@@ -13,7 +13,6 @@ JAVA_BIN=bin
 OS="$(uname -s)" || exit 1
 if [ "$OS" = "Darwin" ]; then
     MAKE="$MAKE CC=clang"
-    # FIXME: Should use /usr/libexec/java_home to set JAVA_HOME on Darwin
     JAVA_INC=Headers
     JAVA_BIN=Commands
 fi
@@ -22,12 +21,30 @@ fi
 
 readlink_f()
 {
-    local l="$(readlink "$1")"
-    if [ -z "$l" -o "$l" = "$1" ]; then
-        echo "$1"
-        return
+    local LINK TARGET
+    LINK="$1"
+    if ! TARGET="$(readlink "$LINK")"; then
+        printf "%s\n" "$LINK"
+        return 0
     fi
-    readlink_f "$l"
+    readlink_f "$TARGET"
+}
+
+
+
+remove_suffix()
+{
+    local string suffix match_x
+    string="$1"
+    suffix="$2"
+    match_x="$(printf "%s" "$string" | tail -c "${#suffix}" && echo x)" || return 1
+    if [ "$match_x" != "${suffix}x" ]; then
+        printf "%s\n" "$string"
+        return 0
+    fi
+    printf "%s" "$string" | sed "s/.\{${#suffix}\}\$//" || return 1
+    echo
+    return 0
 }
 
 
@@ -36,16 +53,16 @@ readlink_f()
 find_java()
 {
     if [ -z "$JAVA_HOME" ]; then
-        if ! which javac >/dev/null; then
+        if ! JAVAC="$(which javac)"; then
             echo "No JAVA_HOME and no Java compiler in PATH" 1>&2
             return 1
         fi
-        JAVAC=$(readlink_f "$(which javac)")
-        if ! echo "$JAVAC" | grep "/$JAVA_BIN/javac"'$' >/dev/null 2>&1; then
+        JAVAC="$(readlink_f "$JAVAC")" || return 1
+        JAVA_HOME="$(remove_suffix "$JAVAC" "/$JAVA_BIN/javac")" || return 1
+        if [ "$JAVA_HOME" = "$JAVAC" ]; then
             echo "Could not determine JAVA_HOME from path of 'javac' command" 1>&2
             return 1
         fi
-        JAVA_HOME="$(echo "$JAVAC" | sed "s|/$JAVA_BIN/javac$||")"
     fi
     for x in "$JAVA_INC/jni.h" "$JAVA_BIN/java" "$JAVA_BIN/javac"; do
         if ! [ -f "$JAVA_HOME/$x" ]; then
@@ -56,8 +73,8 @@ find_java()
     JAVA="$JAVA_HOME/$JAVA_BIN/java"
     JAVAC="$JAVA_HOME/$JAVA_BIN/javac"
     JAVA_VERSION="$(java -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\).*"/\1/')"
-    JAVA_MAJOR="$(echo "$JAVA_VERSION" | cut -d. -f1)"
-    JAVA_MINOR="$(echo "$JAVA_VERSION" | cut -d. -f2)"
+    JAVA_MAJOR="$(printf "%s\n" "$JAVA_VERSION" | cut -d. -f1)" || return 1
+    JAVA_MINOR="$(printf "%s\n" "$JAVA_VERSION" | cut -d. -f2)" || return 1
     if ! [ "$JAVA_MAJOR" -gt 1 -o "$JAVA_MAJOR" -eq 1 -a "$JAVA_MINOR" -ge 6 ] 2>/dev/null; then
         echo "Need Java version 1.6 or newer (is '$JAVA_VERSION')" 1>&2
         return 1
@@ -74,6 +91,7 @@ case "$MODE" in
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
         find java/ -type f -name '*.class' -delete || exit 1
         rm -f tightdb.jar || exit 1
+        exit 0
         ;;
 
     "build")
@@ -86,7 +104,8 @@ case "$MODE" in
         # Build tightdb.jar
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
         DEPENDENCIES="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/share/java/freemarker.jar"
-        export CLASSPATH="$(echo "$DEPENDENCIES" | sed 's/ \+/:/g'):java"
+        CLASSPATH="$(printf "%s\n" "$DEPENDENCIES" | sed 's/ \+/:/g'):java" || exit 1
+        export CLASSPATH
         # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
         SOURCES="$(find java/ -type f -name '*.java' | fgrep -v /doc/ | fgrep -v /example/)" || exit 1
         $JAVAC $SOURCES || exit 1
@@ -97,6 +116,7 @@ case "$MODE" in
         jar cfm tightdb.jar "$MANIFEST" -C resources META-INF || exit 1
         (cd java && jar uf ../tightdb.jar $CLASSES) || exit 1
         jar i tightdb.jar || exit 1
+        exit 0
         ;;
 
     "test")
@@ -105,11 +125,12 @@ case "$MODE" in
         # Build and run test suite
         cd "$TIGHTDB_JAVA_HOME/src/test" || exit 1
         SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
-        CLASSES="$(echo "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
+        CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test.XXXX)" || exit 1
         export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:."
         (cd java && $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" $SOURCES) || exit 1
         (cd "$TEMP_DIR" && $JAVA -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $CLASSES) || exit 1
+        exit 0
         ;;
 
     "install")
@@ -122,8 +143,10 @@ case "$MODE" in
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
         fi
-        install -d $PREFIX/share/java
-        install -m 644 src/main/tightdb.jar $PREFIX/share/java
+        install -d "$PREFIX/share/java" || exit 1
+        install -m 644 "src/main/tightdb.jar" "$PREFIX/share/java" || exit 1
+        # FIXME: See http://developer.apple.com/library/mac/#qa/qa1170/_index.html
+        exit 0
         ;;
 
     "test-installed")
@@ -140,6 +163,7 @@ case "$MODE" in
         export CLASSPATH="$PREFIX/share/java/tightdb.jar:."
         $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" java/my/app/Test.java || exit 1
         (cd "$TEMP_DIR" && $JAVA my.app.Test) || exit 1
+        exit 0
         ;;
 
     "dist-copy")
@@ -153,6 +177,7 @@ case "$MODE" in
         git ls-files -z >"$TEMP_DIR/files" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
+        exit 0
         ;;
 
     *)

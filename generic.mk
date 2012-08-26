@@ -426,9 +426,6 @@ UNINSTALL_RECIPE_PROG = $(RM) $(call GET_PROG_INSTALL_DIR,$(1))/$(2)
 GET_INST_LIB_TARGETS  = $(foreach x,$($(1)_LIBRARIES),$(foreach y,$(SUFFIX_LIB_SHARED) $(SUFFIX_LIB_STATIC) $(SUFFIX_LIB_DEBUG),$(call GET_LIBRARY_NAME,$(x),$(y))))
 GET_INST_PROG_TARGETS = $($(1)_PROGRAMS)
 
-HAVE_INST_LIBS = $(foreach x,lib $(EXTRA_INSTALL_PREFIXES),$(call GET_INST_LIB_TARGETS,$(x)))
-RUN_LDCONFIG = $(and $(HAVE_INST_LIBS),$(call EQUALS,$(USER),root))
-
 define INSTALL_RULES
 
 ifneq ($(HEADER_INSTALL_DIR),)
@@ -441,9 +438,6 @@ endif
 install/libs: install/lib/dirs
 	$(foreach x,lib $(EXTRA_INSTALL_PREFIXES),$(call INSTALL_RECIPE_LIB,$(x),$(call GET_INST_LIB_TARGETS,$(x)))
 	)
-ifneq ($(RUN_LDCONFIG),)
-	ldconfig
-endif
 
 install/progs: install/prog/dirs
 	$(foreach x,bin $(EXTRA_INSTALL_PREFIXES),$(call INSTALL_RECIPE_PROG,$(x),$(call GET_INST_PROG_TARGETS,$(x)))
@@ -452,9 +446,6 @@ install/progs: install/prog/dirs
 uninstall/libs:
 	$(foreach x,lib $(EXTRA_INSTALL_PREFIXES),$(foreach y,$(call GET_INST_LIB_TARGETS,$(x)),$(call UNINSTALL_RECIPE_LIB,$(x),$(y))
 	))
-ifneq ($(RUN_LDCONFIG),)
-	ldconfig
-endif
 
 uninstall/progs:
 	$(foreach x,bin $(EXTRA_INSTALL_PREFIXES),$(foreach y,$(call GET_INST_PROG_TARGETS,$(x)),$(call UNINSTALL_RECIPE_PROG,$(x),$(y))
