@@ -12,6 +12,7 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
@@ -77,6 +78,11 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 	public Set<String> getSupportedAnnotationTypes() {
 		logger.info("Specifying supported annotations...");
 		return new HashSet<String>(Arrays.asList(SUPPORTED_ANNOTATIONS));
+	}
+
+	@Override
+	public SourceVersion getSupportedSourceVersion() {
+		return SourceVersion.latestSupported();
 	}
 
 	protected abstract void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env) throws Exception;

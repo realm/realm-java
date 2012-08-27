@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
@@ -27,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 
 import com.tightdb.lib.Table;
 
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 	private static final String MSG_INCORRECT_TYPE = "Incorrect data type was specified! Expected primitive or wrapper type, byte[], java.lang.Object, java.util.Date or java.nio.ByteBuffer!";
