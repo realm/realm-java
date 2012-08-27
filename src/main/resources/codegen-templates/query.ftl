@@ -1,5 +1,7 @@
 ${java_header}
+<#if packageName?has_content>
 package ${packageName};
+</#if>
 
 import com.tightdb.*;
 import com.tightdb.lib.*;
