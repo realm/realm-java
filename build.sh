@@ -148,11 +148,12 @@ case "$MODE" in
     "test-installed")
         PREFIX="$1"
         find_java || exit 1
-        if [ "$PREFIX" ]; then
-            JAVA="$JAVA -Djava.library.path=$PREFIX/lib/jni"
-        fi
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
+        fi
+        # FIXME: For which PREFIX, if any, is $PREFIX/lib/jni automatically in java.library.path? (Ubuntu, other Linuxes, Darwin, ...)
+        if [ "$PREFIX" != "/usr/local" ]; then
+            JAVA="$JAVA -Djava.library.path=$PREFIX/lib/jni"
         fi
         cd "$TIGHTDB_JAVA_HOME/test-installed" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test-installed.XXXX)" || exit 1
