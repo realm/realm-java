@@ -67,6 +67,10 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		logger.info("Processing " + elements.size() + " elements...");
 
 		URI uri = filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "foo").toUri();
+		if (uri.toString().equals("foo")) {
+			throw new RuntimeException("The path of the Java source and generated files must be configured as source output! (see -s option of javac)");
+		}
+		
 		File file = new File(uri);
 		File sourcesPath = file.getParentFile();
 
