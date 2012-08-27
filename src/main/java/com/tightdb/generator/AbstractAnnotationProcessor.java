@@ -90,7 +90,7 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 	protected void writeToSourceFile(String pkg, String filename, String content, Element... originatingElements) {
 		Writer writer = null;
 		try {
-			String name = pkg + "/" + filename;
+			String name = !pkg.isEmpty() ? pkg + "." + filename : filename;
 			logger.info("Writing source file: " + name);
 			FileObject fileRes = filer.createSourceFile(name, originatingElements);
 			writer = fileRes.openWriter();
