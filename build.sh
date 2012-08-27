@@ -30,8 +30,6 @@ readlink_f()
     readlink_f "$TARGET"
 }
 
-
-
 remove_suffix()
 {
     local string suffix match_x
@@ -46,8 +44,6 @@ remove_suffix()
     echo
     return 0
 }
-
-
 
 # Find 'jni.h', 'java' and 'javac'
 find_java()
