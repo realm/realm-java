@@ -9,27 +9,27 @@ import com.tightdb.lib.*;
 /**
  * This class represents a TightDB table and was automatically generated.
  */
-<#if isNested>public class ${entity}Table extends AbstractSubtable<${entity}, ${entity}View, ${entity}Query> {
-<#else>public class ${entity}Table extends AbstractTable<${entity}, ${entity}View, ${entity}Query> {
+<#if isNested>public class ${tableName} extends AbstractSubtable<${cursorName}, ${viewName}, ${queryName}> {
+<#else>public class ${tableName} extends AbstractTable<${cursorName}, ${viewName}, ${queryName}> {
 </#if>
-	public static final EntityTypes<${entity}Table, ${entity}View, ${entity}, ${entity}Query> TYPES = new EntityTypes<${entity}Table, ${entity}View, ${entity}, ${entity}Query>(${entity}Table.class, ${entity}View.class, ${entity}.class, ${entity}Query.class);
+	public static final EntityTypes<${tableName}, ${viewName}, ${cursorName}, ${queryName}> TYPES = new EntityTypes<${tableName}, ${viewName}, ${cursorName}, ${queryName}>(${tableName}.class, ${viewName}.class, ${cursorName}.class, ${queryName}.class);
 
-<#foreach f in columns><#if f.isSubtable>	public final ${f.type}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.subtype}Table> ${f.name} = new ${f.type}RowsetColumn<${entity}, ${entity}View, ${entity}Query, ${f.subtype}Table>(TYPES, table, ${f.index}, "${f.name}", ${f.subtype}Table.class);
-<#else>	public final ${f.type}RowsetColumn<${entity}, ${entity}View, ${entity}Query> ${f.name} = new ${f.type}RowsetColumn<${entity}, ${entity}View, ${entity}Query>(TYPES, table, ${f.index}, "${f.name}");
+<#foreach f in columns><#if f.isSubtable>	public final ${f.type}RowsetColumn<${cursorName}, ${viewName}, ${queryName}, ${f.subTableName}> ${f.name} = new ${f.type}RowsetColumn<${cursorName}, ${viewName}, ${queryName}, ${f.subTableName}>(TYPES, table, ${f.index}, "${f.name}", ${f.subTableName}.class);
+<#else>	public final ${f.type}RowsetColumn<${cursorName}, ${viewName}, ${queryName}> ${f.name} = new ${f.type}RowsetColumn<${cursorName}, ${viewName}, ${queryName}>(TYPES, table, ${f.index}, "${f.name}");
 </#if></#foreach>
-<#if isNested>	public ${entity}Table(TableBase subtableBase) {
+<#if isNested>	public ${tableName}(TableBase subtableBase) {
 		super(TYPES, subtableBase);
 	}
-<#else>	public ${entity}Table() {
+<#else>	public ${tableName}() {
 		super(TYPES);
 	}
 
-	public ${entity}Table(Group group) {
+	public ${tableName}(Group group) {
 		super(TYPES, group);
 	}
 </#if>
 	public static void specifyStructure(TableSpec spec) {
-<#foreach f in columns><#if f.isSubtable>        add${f.type}Column(spec, "${f.name}", new ${f.subtype}Table(null));
+<#foreach f in columns><#if f.isSubtable>        add${f.type}Column(spec, "${f.name}", new ${f.subTableName}(null));
 <#else>        add${f.type}Column(spec, "${f.name}");
 </#if></#foreach>    }
 

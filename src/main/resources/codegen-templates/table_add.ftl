@@ -1,4 +1,4 @@
-    public ${entity} add(<#foreach f in columns><#if !f.isSubtable><#if (f_index > 0)>, </#if>${f.originalType} ${f.name}</#if></#foreach>) {
+    public ${cursorName} add(<#foreach f in columns><#if !f.isSubtable><#if (f_index > 0)>, </#if>${f.originalType} ${f.name}</#if></#foreach>) {
         try {
             long position = size();
 

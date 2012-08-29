@@ -8,8 +8,8 @@ package com.tightdb.example;
 import java.io.IOException;
 
 import com.tightdb.Group;
-import com.tightdb.example.generated.People;
 import com.tightdb.example.generated.PeopleQuery;
+import com.tightdb.example.generated.PeopleRow;
 import com.tightdb.example.generated.PeopleTable;
 import com.tightdb.lib.Table;
 
@@ -72,7 +72,7 @@ public class TutorialExample {
 		// lazy iteration over the table
 		
 		// @@Example: iteration @@
-		for (People person : people) {
+		for (PeopleRow person : people) {
 			System.out.println(person.getName() + " is " + person.getAge() + " years old.");
 		}
 		// @@EndExample@@
@@ -80,7 +80,7 @@ public class TutorialExample {
 		/****************************** SIMPLE QUERY *****************************/
 		
 		// @@Example: simple_seach @@
-		People p = people.name.equal("John").findFirst();
+		PeopleRow p = people.name.equal("John").findFirst();
 		// @@EndExample@@
 		
 		System.out.println("\nFind 'John': " + p + "\n");
@@ -100,7 +100,7 @@ public class TutorialExample {
 		System.out.println(query.count() + " person match query.");
 		
 		// Perform query and use the result
-		for (People person : query.findAll()) {
+		for (PeopleRow person : query.findAll()) {
 		    // ... do something with matching 'person'
 		}        
 		// @@EndExample
@@ -133,7 +133,7 @@ public class TutorialExample {
 		Group fromDisk = new Group("people.tightdb");
 		PeopleTable people2 = new PeopleTable(fromDisk);
 		       
-		for (People person : people2) {
+		for (PeopleRow person : people2) {
 		    System.out.println(person.getName() + " is " + person.getAge() + " years old");
 		}
 		
@@ -144,7 +144,7 @@ public class TutorialExample {
 		Group fromMem = new Group(buffer);
 		PeopleTable people3 = new PeopleTable(fromMem);
 		
-		for (People person : people3) {
+		for (PeopleRow person : people3) {
 		    System.out.println(person.getName() + " is " + person.getAge() + " years old");
 		}
 		// @@EndExample@@

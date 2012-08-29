@@ -9,11 +9,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -40,22 +44,26 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	private final CodeRenderer renderer = new CodeRenderer();
 
 	static {
-		NUM_TYPES = new HashSet<String>(Arrays.asList("long", "int", "byte", "short", "java.lang.Long", "java.lang.Integer", "java.lang.Byte",
-				"java.lang.Short"));
+		NUM_TYPES = new HashSet<String>(Arrays.asList("long", "int", "byte",
+				"short", "java.lang.Long", "java.lang.Integer",
+				"java.lang.Byte", "java.lang.Short"));
 	}
 
 	private Map<String, TypeElement> tables = new HashMap<String, TypeElement>();
 	private Map<String, TypeElement> subtables = new HashMap<String, TypeElement>();
+	private Map<String, ModelInfo> modelsInfo = new HashMap<String, ModelInfo>();
 	private FieldSorter fieldSorter;
 
 	@Override
-	public void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env) throws Exception {
+	public void processAnnotations(Set<? extends TypeElement> annotations,
+			RoundEnvironment env) throws Exception {
 		fieldSorter = new FieldSorter(logger);
 
 		for (TypeElement annotation : annotations) {
 			String annotationName = annotation.getQualifiedName().toString();
 			if (annotationName.equals(Table.class.getCanonicalName())) {
-				Set<? extends Element> elements = env.getElementsAnnotatedWith(annotation);
+				Set<? extends Element> elements = env
+						.getElementsAnnotatedWith(annotation);
 				processAnnotatedElements(elements);
 			} else {
 				logger.warn("Unexpected annotation: " + annotationName);
@@ -63,14 +71,17 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		}
 	}
 
-	private void processAnnotatedElements(Set<? extends Element> elements) throws IOException {
+	private void processAnnotatedElements(Set<? extends Element> elements)
+			throws IOException {
 		logger.info("Processing " + elements.size() + " elements...");
 
-		URI uri = filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "foo").toUri();
+		URI uri = filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "foo")
+				.toUri();
 		if (uri.toString().equals("foo")) {
-			throw new RuntimeException("The path of the Java source and generated files must be configured as source output! (see -s option of javac)");
+			throw new RuntimeException(
+					"The path of the Java source and generated files must be configured as source output! (see -s option of javac)");
 		}
-		
+
 		File file = new File(uri);
 		File sourcesPath = file.getParentFile();
 
@@ -79,121 +90,193 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		for (Element element : elements) {
 			if (element instanceof TypeElement) {
 				TypeElement model = (TypeElement) element;
-				String modelType = model.getQualifiedName().toString();
-
-				List<VariableElement> fields = getFields(element);
-
-				// sort the fields, due to unresolved bug in Eclipse APT
-				fieldSorter.sortFields(fields, model, sourcesPath);
-
-				// get the capitalized model name
-				String entity = StringUtils.capitalize(model.getSimpleName().toString());
-
-				logger.info("Generating code for entity '" + entity + "' with " + fields.size() + " columns...");
-
-				/*********** Prepare the attributes for the templates ****************/
-
-				/* Construct the list of columns */
-
-				int index = 0;
-				final List<Model> columns = new ArrayList<Model>();
-				for (VariableElement field : fields) {
-					String columnType = getColumnType(field);
-					if (columnType != null) {
-						String originalType = fieldType(field);
-						String fieldType = getAdjustedFieldType(field);
-						String paramType = getParamType(field);
-						String fieldName = field.getSimpleName().toString();
-
-						boolean isSubtable = isSubtable(fieldType);
-						String subtype = isSubtable ? getSubtableType(field) : null;
-
-						Model column = new Model();
-						column.put("name", fieldName);
-						column.put("type", columnType);
-						column.put("originalType", originalType);
-						column.put("fieldType", fieldType);
-						column.put("paramType", paramType);
-						column.put("index", index++);
-						column.put("isSubtable", isSubtable);
-						column.put("subtype", subtype);
-
-						columns.add(column);
-					} else {
-						logger.error(MSG_INCORRECT_TYPE, field);
-					}
-				}
-
-				if (columns.isEmpty()) {
-					logger.warn(MSG_NO_COLUMNS, model);
-				}
-
-				/* Set the attributes */
-
-				String packageName = calculatePackageName(model);
-
-				boolean isNested = isSubtable(modelType);
-
-				Map<String, Object> commonAttr = new HashMap<String, Object>();
-				commonAttr.put("entity", entity);
-				commonAttr.put("columns", columns);
-				commonAttr.put("isNested", isNested);
-				commonAttr.put("packageName", packageName);
-				commonAttr.put("java_header", INFO_GENERATED);
-
-				/*********** Generate the table class ****************/
-
-				Model table = new Model();
-				table.put("name", entity + "Table");
-				table.putAll(commonAttr);
-
-				/* Generate the "add" method in the table class */
-
-				Model methodAdd = new Model();
-				methodAdd.put("columns", columns);
-				methodAdd.put("entity", entity);
-				table.put("add", renderer.render("table_add.ftl", methodAdd));
-
-				/* Generate the "insert" method in the table class */
-
-				Model methodInsert = new Model();
-				methodInsert.put("columns", columns);
-				methodInsert.put("entity", entity);
-				table.put("insert", renderer.render("table_insert.ftl", methodInsert));
-
-				/* Generate the table class */
-
-				String tableContent = renderer.render("table.ftl", table);
-				writeToSourceFile(packageName, entity + "Table", tableContent, model);
-
-				/*********** Generate the cursor class ****************/
-
-				Model cursor = new Model();
-				cursor.put("name", entity);
-				cursor.putAll(commonAttr);
-
-				String cursorContent = renderer.render("cursor.ftl", cursor);
-				writeToSourceFile(packageName, entity, cursorContent, model);
-
-				/*********** Generate the view class ****************/
-
-				Model view = new Model();
-				view.put("name", entity + "View");
-				view.putAll(commonAttr);
-
-				String viewContent = renderer.render("view.ftl", view);
-				writeToSourceFile(packageName, entity + "View", viewContent, model);
-
-				/*********** Generate the query class ****************/
-
-				Model query = new Model();
-				query.put("name", entity + "Query");
-				query.putAll(commonAttr);
-
-				String queryContent = renderer.render("query.ftl", query);
-				writeToSourceFile(packageName, entity + "Query", queryContent, model);
+				setupModelInfo(model);
 			}
 		}
+		
+		for (Element element : elements) {
+			if (element instanceof TypeElement) {
+				TypeElement model = (TypeElement) element;
+				processModel(sourcesPath, model);
+			}
+		}
+		
+	}
+
+	private void setupModelInfo(TypeElement model) {
+		AnnotationMirror annotationMirror = getAnnotationInfo(model,
+				Table.class);
+		String tableName = getAttribute(annotationMirror, "table");
+		String cursorName = getAttribute(annotationMirror, "row");
+		String viewName = getAttribute(annotationMirror, "view");
+		String queryName = getAttribute(annotationMirror, "query");
+
+		String entity = StringUtils
+				.capitalize(model.getSimpleName().toString());
+
+		tableName = tableName == null ? calculateTableName(entity) : tableName;
+		cursorName = cursorName == null ? calculateCursorName(entity)
+				: cursorName;
+		viewName = viewName == null ? calculateViewName(entity) : viewName;
+		queryName = queryName == null ? calculateQueryName(entity) : queryName;
+
+		modelsInfo.put(entity, new ModelInfo(tableName, cursorName, viewName,
+				queryName));
+	}
+
+	private void processModel(File sourcesPath, TypeElement model) {
+		String modelType = model.getQualifiedName().toString();
+
+		List<VariableElement> fields = getFields(model);
+
+		// sort the fields, due to unresolved bug in Eclipse APT
+		fieldSorter.sortFields(fields, model, sourcesPath);
+
+		// get the capitalized model name
+		String entity = StringUtils
+				.capitalize(model.getSimpleName().toString());
+
+		logger.info("Generating code for entity '" + entity + "' with "
+				+ fields.size() + " columns...");
+
+		/*********** Prepare the attributes for the templates ****************/
+
+		/* Construct the list of columns */
+
+		final List<Model> columns = getColumns(fields);
+		if (columns.isEmpty()) {
+			logger.warn(MSG_NO_COLUMNS, model);
+		}
+
+		/* Set the attributes */
+
+		String packageName = calculatePackageName(model);
+		boolean isNested = isSubtable(modelType);
+
+		ModelInfo modelInfo = modelsInfo.get(entity);
+
+		Map<String, Object> commonAttr = new HashMap<String, Object>();
+		commonAttr.put("columns", columns);
+		commonAttr.put("isNested", isNested);
+		commonAttr.put("packageName", packageName);
+		commonAttr.put("tableName", modelInfo.getTableName());
+		commonAttr.put("viewName", modelInfo.getViewName());
+		commonAttr.put("cursorName", modelInfo.getCursorName());
+		commonAttr.put("queryName", modelInfo.getQueryName());
+		commonAttr.put("java_header", INFO_GENERATED);
+
+		generateSources(model, modelInfo.getTableName(),
+				modelInfo.getCursorName(), modelInfo.getViewName(),
+				modelInfo.getQueryName(), packageName, commonAttr);
+	}
+
+	private List<Model> getColumns(List<VariableElement> fields) {
+		int index = 0;
+		final List<Model> columns = new ArrayList<Model>();
+		for (VariableElement field : fields) {
+			String columnType = getColumnType(field);
+			if (columnType != null) {
+				String originalType = fieldType(field);
+				String fieldType = getAdjustedFieldType(field);
+				String paramType = getParamType(field);
+				String fieldName = field.getSimpleName().toString();
+
+				boolean isSubtable = isSubtable(fieldType);
+				String subtype = isSubtable ? getSubtableType(field) : null;
+
+				Model column = new Model();
+				column.put("name", fieldName);
+				column.put("type", columnType);
+				column.put("originalType", originalType);
+				column.put("fieldType", fieldType);
+				column.put("paramType", paramType);
+				column.put("index", index++);
+				column.put("isSubtable", isSubtable);
+				
+				if (isSubtable) {
+					ModelInfo subModelInfo = modelsInfo.get(subtype);
+					column.put("subTableName", subModelInfo.getTableName());
+					column.put("subCursorName", subModelInfo.getCursorName());
+					column.put("subViewName", subModelInfo.getViewName());
+					column.put("subQueryName", subModelInfo.getQueryName());
+				}
+
+				columns.add(column);
+			} else {
+				logger.error(MSG_INCORRECT_TYPE, field);
+			}
+		}
+		return columns;
+	}
+
+	private void generateSources(TypeElement model, String tableName,
+			String cursorName, String viewName, String queryName,
+			String packageName, Map<String, Object> commonAttr) {
+		/*********** Generate the table class ****************/
+
+		Model table = new Model();
+		table.put("name", tableName);
+		table.putAll(commonAttr);
+
+		/* Generate the "add" method in the table class */
+
+		Model methodAdd = new Model();
+		methodAdd.putAll(commonAttr);
+		table.put("add", renderer.render("table_add.ftl", methodAdd));
+
+		/* Generate the "insert" method in the table class */
+
+		Model methodInsert = new Model();
+		methodInsert.putAll(commonAttr);
+		table.put("insert", renderer.render("table_insert.ftl", methodInsert));
+
+		/* Generate the table class */
+
+		String tableContent = renderer.render("table.ftl", table);
+		writeToSourceFile(packageName, tableName, tableContent, model);
+
+		/*********** Generate the cursor class ****************/
+
+		Model cursor = new Model();
+		cursor.put("name", cursorName);
+		cursor.putAll(commonAttr);
+
+		String cursorContent = renderer.render("cursor.ftl", cursor);
+		writeToSourceFile(packageName, cursorName, cursorContent, model);
+
+		/*********** Generate the view class ****************/
+
+		Model view = new Model();
+		view.put("name", viewName);
+		view.putAll(commonAttr);
+
+		String viewContent = renderer.render("view.ftl", view);
+		writeToSourceFile(packageName, viewName, viewContent, model);
+
+		/*********** Generate the query class ****************/
+
+		Model query = new Model();
+		query.put("name", queryName);
+		query.putAll(commonAttr);
+
+		String queryContent = renderer.render("query.ftl", query);
+		writeToSourceFile(packageName, queryName, queryContent, model);
+	}
+
+	private String calculateTableName(String entity) {
+		return entity + "Table";
+	}
+
+	private String calculateViewName(String entity) {
+		return entity + "View";
+	}
+
+	private String calculateQueryName(String entity) {
+		return entity + "Query";
+	}
+
+	private String calculateCursorName(String entity) {
+		return entity + "Row";
 	}
 
 	private String calculatePackageName(TypeElement model) {
@@ -205,9 +288,10 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		if (parent instanceof PackageElement) {
 			PackageElement pkg = (PackageElement) parent;
 			String pkgName = pkg.getQualifiedName().toString();
-			return pkgName.isEmpty() ? "": pkgName + ".generated";
+			return pkgName.isEmpty() ? "" : pkgName + ".generated";
 		} else {
-			logger.error("Couldn't calculate the target package! Using default: " + DEFAULT_PACKAGE);
+			logger.error("Couldn't calculate the target package! Using default: "
+					+ DEFAULT_PACKAGE);
 			return DEFAULT_PACKAGE;
 		}
 	}
@@ -243,7 +327,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		}
 	}
 
-	private boolean isReferencedBy(TypeElement model, Set<? extends Element> elements) {
+	private boolean isReferencedBy(TypeElement model,
+			Set<? extends Element> elements) {
 		String modelType = model.getQualifiedName().toString();
 
 		for (Element element : elements) {
@@ -253,10 +338,12 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 						VariableElement field = (VariableElement) enclosedElement;
 						TypeMirror fieldType = field.asType();
 						if (fieldType.getKind().equals(TypeKind.DECLARED)) {
-							Element typeAsElement = typeUtils.asElement(fieldType);
+							Element typeAsElement = typeUtils
+									.asElement(fieldType);
 							if (typeAsElement instanceof TypeElement) {
 								TypeElement typeElement = (TypeElement) typeAsElement;
-								if (typeElement.getQualifiedName().toString().equals(modelType)) {
+								if (typeElement.getQualifiedName().toString()
+										.equals(modelType)) {
 									return true;
 								}
 							}
@@ -303,7 +390,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	}
 
 	private String fieldSimpleType(VariableElement field) {
-		return fieldType(field).replaceFirst("<.*>", "").replaceFirst(".*\\.", "");
+		return fieldType(field).replaceFirst("<.*>", "").replaceFirst(".*\\.",
+				"");
 	}
 
 	private String getSubtableType(VariableElement field) {
@@ -336,4 +424,25 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		return type;
 	}
 
+	private static AnnotationMirror getAnnotationInfo(TypeElement typeElement,
+			Class<?> clazz) {
+		String clazzName = clazz.getName();
+		for (AnnotationMirror m : typeElement.getAnnotationMirrors()) {
+			if (m.getAnnotationType().toString().equals(clazzName)) {
+				return m;
+			}
+		}
+		return null;
+	}
+
+	private static String getAttribute(AnnotationMirror annotationMirror,
+			String name) {
+		for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror
+				.getElementValues().entrySet()) {
+			if (entry.getKey().getSimpleName().toString().equals(name)) {
+				return String.valueOf(entry.getValue().getValue());
+			}
+		}
+		return null;
+	}
 }

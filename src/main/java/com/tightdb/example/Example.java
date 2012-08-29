@@ -33,7 +33,7 @@ public class Example {
 	 * generating. And Refresh (F5) tightdb-example to see generated classes.
 	 */
 
-	@Table
+	@Table(row = "Employee")
 	class employee {
 		String firstName;
 		String lastName;
@@ -45,7 +45,7 @@ public class Example {
 		phone phones;
 	}
 
-	@Table
+	@Table(row = "Phone")
 	class phone {
 		String type;
 		String number;

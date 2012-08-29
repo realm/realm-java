@@ -22,7 +22,7 @@ public class SmallExample {
 	}
 
 
-	@Table
+	@Table(row = "Employee")
 	class employee {
 		String firstName;
 		String lastName;
@@ -34,7 +34,7 @@ public class SmallExample {
 		phone phones;
 	}
 
-	@Table
+	@Table(row = "Phone")
 	class phone {
 		String type;
 		String number;
