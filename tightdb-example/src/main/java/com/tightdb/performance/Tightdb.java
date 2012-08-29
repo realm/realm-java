@@ -7,7 +7,7 @@ import com.tightdb.performance.generated.TestTable;
 
 public class Tightdb extends PerformanceBase implements IPerformance {
 
-    @Table
+    @Table(row="Test")
 	class test
 	{
 		int 	indexInt;

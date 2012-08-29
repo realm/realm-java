@@ -30,7 +30,7 @@ public class Example {
 	 * rows in the EmployeeTable, which will also be generated.
 	 */
 	
-	@Table
+	@Table(row="Employee")
 	class employee {
 		String firstName;
 		String lastName;
@@ -42,7 +42,7 @@ public class Example {
 		phone phones;
 	}
 
-	@Table
+	@Table(row="Phone")
 	class phone {
 		String type;
 		String number;

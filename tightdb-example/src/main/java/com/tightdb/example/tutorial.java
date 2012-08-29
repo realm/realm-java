@@ -8,12 +8,11 @@ package com.tightdb.example;
 import java.io.IOException;
 
 import com.tightdb.Group;
-import com.tightdb.example.generated.People;
 import com.tightdb.example.generated.PeopleQuery;
+import com.tightdb.example.generated.PeopleRow;
 import com.tightdb.example.generated.PeopleTable;
 import com.tightdb.example.generated.PeopleView;
 import com.tightdb.lib.Table;
-import com.tightdb.lib.TightDB;
 
 //@@Example: create_table @@
 public class tutorial {
@@ -80,7 +79,7 @@ public class tutorial {
 	 // lazy iteration over the table
 			
 	 // @@Example: iteration @@
-	 for (People person : peopletable) {
+	 for (PeopleRow person : peopletable) {
 	     System.out.println(person.getName() + " is " + person.getAge() + " years old.");
 	 }
 	 // @@EndExample@@
@@ -89,7 +88,7 @@ public class tutorial {
 	
 	 System.out.println("\nFound: ");
 	 // @@Example: simple_seach @@
-	 People p = peopletable.name.equal("John").findFirst();
+	 PeopleRow p = peopletable.name.equal("John").findFirst();
 	 System.out.println( p );	
 	 // prints: "People {name=John, age=20, hired=true}"
 	 //	 @@EndExample@@
@@ -114,7 +113,7 @@ public class tutorial {
 	 System.out.println(match.age.sum() + " years is the summed age.");
 	
 	 // Perform query and use the result
-	 for (People person : match) {
+	 for (PeopleRow person : match) {
 	     // ... do something with matching 'person'
 	 }        
 	 // @@EndExample
@@ -142,7 +141,7 @@ public class tutorial {
 	 Group fromDisk = new Group("people.tightdb");
 	 PeopleTable people2 = new PeopleTable(fromDisk);
 	
-	 for (People person : people2) {
+	 for (PeopleRow person : people2) {
 	     System.out.println(person.getName() + " is " + person.getAge() + " years old");
 	 }
 	
@@ -153,7 +152,7 @@ public class tutorial {
 	 Group fromMem = new Group(buffer);
 	 PeopleTable people3 = new PeopleTable(fromMem);
 	
-	 for (People person : people3) {
+	 for (PeopleRow person : people3) {
 	     System.out.println(person.getName() + " is " + person.getAge() + " years old");
 	 }
 	 // @@EndExample@@

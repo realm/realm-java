@@ -34,7 +34,7 @@ import org.stockchart.series.StockSeries;
 
 public class TightdbAndroidActivity extends Activity {
 
-	@Table
+	@Table(row = "Stocka")
 	class stocka{
 		String Date;
 		int Open;

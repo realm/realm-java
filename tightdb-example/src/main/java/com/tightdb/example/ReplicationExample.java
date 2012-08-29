@@ -8,7 +8,7 @@ import com.tightdb.example.generated.EmployeeTable;
 
 public class ReplicationExample {
 
-    @Table
+    @Table(row="Employee")
     class employee {
         String firstName;
         String lastName;
@@ -20,7 +20,7 @@ public class ReplicationExample {
         phone phones;
     }
 
-    @Table
+    @Table(row="Phone")
     class phone {
         String type;
         String number;
@@ -69,7 +69,7 @@ public class ReplicationExample {
             }
             catch (Throwable e) {
                 transact.rollback();
-                throw e;
+                throw new RuntimeException(e);
             }
         }
         finally {
