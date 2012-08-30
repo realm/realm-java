@@ -7,6 +7,8 @@ This is the Java interface to TightDB.
 Dependencies
 ------------
 
+The TightDB core library must have been installed.
+
 ### Ubuntu 12.04
 
 #### Build essentials:
@@ -33,7 +35,7 @@ Dependencies
 ### OS X 10.8
 
     Install Java
-    Install install libcommons-io-java
+    Install libcommons-io-java
     Install libcommons-lang-java
     Install libfreemarker-java
 
