@@ -12,21 +12,6 @@ public abstract class AbstractView<Cursor, View, Query> extends AbstractRowset<C
 	}
 
 	@Override
-	public long size() {
-		return viewBase.size();
-	}
-
-	@Override
-	public void clear() {
-		viewBase.clear();
-	}
-
-	@Override
-	public void remove(long rowIndex) {
-		viewBase.remove(rowIndex);
-	}
-
-	@Override
 	public String getName() {
 		return getClass().getSimpleName();
 	}

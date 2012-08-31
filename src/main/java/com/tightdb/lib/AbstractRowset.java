@@ -12,16 +12,22 @@ public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cu
 		this.rowset = rowset;
 	}
 
-	public abstract long size();
-
-	public boolean isEmpty() {
-		return size() == 0;
+	public long size() {
+		return rowset.size();
 	}
 
-	public abstract void clear();
+	public boolean isEmpty() {
+		return rowset.isEmpty();
+	}
 
-	public abstract void remove(long rowIndex);
-	
+	public void clear() {
+		rowset.clear();
+	}
+
+	public void remove(long rowIndex) {
+		rowset.remove(rowIndex);
+	}
+
 /*	TODO:
  * public View range(long from, long to) {
 		throw new UnsupportedOperationException();

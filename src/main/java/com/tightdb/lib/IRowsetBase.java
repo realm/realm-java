@@ -19,6 +19,13 @@ public interface IRowsetBase {
 	long size();
 
 	/**
+	 * Checks whether the table/view is empty or not.
+	 * 
+	 * @return true if empty, otherwise false.
+	 */
+	boolean isEmpty();
+	
+	/**
 	 * Removes a particular row identified by the index from the table/view.
 	 * [citation needed] The corresponding row of the table also get deleted for
 	 * which the table/view is part of.

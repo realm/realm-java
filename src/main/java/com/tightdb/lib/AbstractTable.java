@@ -47,11 +47,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		return getClass().getSimpleName();
 	}
 
-	@Override
-	public long size() {
-		return table.size();
-	}
-
 	/**
 	 * Returns the number of columns in the table.
 	 * 
@@ -162,21 +157,12 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		table.insertDone();
 	}
 
-	public void remove(long rowIndex) {
-		table.remove(rowIndex);
-	}
-
 	public void setIndex(long columnIndex) {
 		table.setIndex(columnIndex);
 	}
 
 	public boolean hasIndex(long columnIndex) {
 		return table.hasIndex(columnIndex);
-	}
-
-	@Override
-	public void clear() {
-		table.clear();
 	}
 
 	public void optimize() {
