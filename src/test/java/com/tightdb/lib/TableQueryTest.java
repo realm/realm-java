@@ -33,6 +33,32 @@ public class TableQueryTest extends AbstractTest {
 	}
 
 	@Test
+	public void shouldCalculateStatistics() {
+		EmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
+		assertEquals(2, results.count());
+		
+		assertEquals(20000.0, results.salary.average());
+		assertEquals(10000.0, results.salary.average(0, 100, 1)); // first
+		assertEquals(30000.0, results.salary.average(1, 2, 100)); // second
+		assertEquals(20000.0, results.salary.average(0, 2, 100)); // both
+		
+		assertEquals(10000, results.salary.minimum());
+		assertEquals(10000, results.salary.minimum(0, 100, 1)); // first
+		assertEquals(30000, results.salary.minimum(1, 2, 100)); // second
+		assertEquals(10000, results.salary.minimum(0, 2, 100)); // both
+		
+		assertEquals(30000, results.salary.maximum());
+		assertEquals(10000, results.salary.maximum(0, 100, 1)); // first
+		assertEquals(30000, results.salary.maximum(1, 2, 100)); // second
+		assertEquals(30000, results.salary.maximum(0, 2, 100)); // both
+		
+		assertEquals(40000, results.salary.sum());
+		assertEquals(10000, results.salary.sum(0, 100, 1)); // first
+		assertEquals(30000, results.salary.sum(1, 2, 100)); // second
+		assertEquals(40000, results.salary.sum(0, 2, 100)); // both
+	}
+
+	@Test
 	public void shouldMatchOnSimpleStringCriteria() {
 		assertEquals(1, employees.firstName.eq("John").findAll().size());
 		assertEquals(1, employees.firstName.equal("John").findAll().size());

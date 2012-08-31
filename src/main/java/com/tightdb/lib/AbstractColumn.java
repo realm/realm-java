@@ -60,7 +60,7 @@ public abstract class AbstractColumn<Type, Cursor, View, Query> {
 		}
 	}
 
-	private TableBase tableOrNull() {
+	protected TableBase tableOrNull() {
 		if (rowset instanceof TableBase) {
 			return (TableBase) rowset;
 		} else {

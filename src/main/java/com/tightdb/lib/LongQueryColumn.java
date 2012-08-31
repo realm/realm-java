@@ -2,9 +2,11 @@ package com.tightdb.lib;
 
 import com.tightdb.TableQuery;
 
-public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, Cursor, View, Query> {
+public class LongQueryColumn<Cursor, View, Query> extends
+		AbstractColumn<Long, Cursor, View, Query> {
 
-	public LongQueryColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
+	public LongQueryColumn(EntityTypes<?, View, Cursor, Query> types,
+			IRowsetBase rowset, TableQuery query, int index, String name) {
 		super(types, rowset, query, index, name);
 	}
 
@@ -58,6 +60,34 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 
 	public Query between(long from, long to) {
 		return query(getQuery().between(columnIndex, from, to));
+	}
+
+	public double average() {
+		return getQuery().average(tableOrNull(), columnIndex);
+	}
+	public double average(long start, long end, long limit) {
+		return getQuery().average(tableOrNull(), columnIndex, start, end, limit);
+	}
+
+	public long sum() {
+		return getQuery().sum(tableOrNull(), columnIndex);
+	}
+	public long sum(long start, long end, long limit) {
+		return getQuery().sum(tableOrNull(), columnIndex, start, end, limit);
+	}
+
+	public long maximum() {
+		return getQuery().maximum(tableOrNull(), columnIndex);
+	}
+	public long maximum(long start, long end, long limit) {
+		return getQuery().maximum(tableOrNull(), columnIndex, start, end, limit);
+	}
+
+	public long minimum() {
+		return getQuery().minimum(tableOrNull(), columnIndex);
+	}
+	public long minimum(long start, long end, long limit) {
+		return getQuery().minimum(tableOrNull(), columnIndex, start, end, limit);
 	}
 
 }
