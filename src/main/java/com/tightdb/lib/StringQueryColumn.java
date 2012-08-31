@@ -12,7 +12,7 @@ public class StringQueryColumn<Cursor, View, Query> extends AbstractColumn<Strin
 		return query(getQuery().equal(columnIndex, value));
 	}
 	public Query eq(String value) {
-		return query(getQuery().equal(columnIndex, value));
+		return query(getQuery().eq(columnIndex, value));
 	}
 	public Query equal(String value, boolean caseSensitive) {
 		return query(getQuery().equal(columnIndex, value, caseSensitive));

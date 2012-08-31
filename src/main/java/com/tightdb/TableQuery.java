@@ -89,6 +89,10 @@ public class TableQuery {
 		nativeLess(nativePtr, columnIndex, value);
 		return this;
 	}
+	public TableQuery lt(long columnIndex, long value){
+		nativeLess(nativePtr, columnIndex, value);
+		return this;
+	}
 	protected native void nativeLess(long nativeQueryPtr, long columnIndex, long value);
 	
 	public TableQuery lessThanOrEqual(long columnIndex, long value){

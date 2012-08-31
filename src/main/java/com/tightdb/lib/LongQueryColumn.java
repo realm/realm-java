@@ -13,7 +13,7 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 	}
 
 	public Query eq(long value) {
-		return query(getQuery().equal(columnIndex, value));
+		return query(getQuery().eq(columnIndex, value));
 	}
 
 	public Query notEqual(long value) {
@@ -21,7 +21,7 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 	}
 
 	public Query neq(long value) {
-		return query(getQuery().notEqual(columnIndex, value));
+		return query(getQuery().neq(columnIndex, value));
 	}
 
 	public Query greaterThan(long value) {
@@ -29,7 +29,7 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 	}
 
 	public Query gt(long value) {
-		return query(getQuery().greaterThan(columnIndex, value));
+		return query(getQuery().gt(columnIndex, value));
 	}
 
 	public Query greaterThanOrEqual(long value) {
@@ -37,7 +37,7 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 	}
 
 	public Query gte(long value) {
-		return query(getQuery().greaterThanOrEqual(columnIndex, value));
+		return query(getQuery().gte(columnIndex, value));
 	}
 
 	public Query lessThan(long value) {
@@ -45,7 +45,7 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 	}
 
 	public Query lt(long value) {
-		return query(getQuery().lessThan(columnIndex, value));
+		return query(getQuery().lt(columnIndex, value));
 	}
 
 	public Query lessThanOrEqual(long value) {
@@ -53,7 +53,7 @@ public class LongQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, C
 	}
 
 	public Query lte(long value) {
-		return query(getQuery().lessThanOrEqual(columnIndex, value));
+		return query(getQuery().lte(columnIndex, value));
 	}
 
 	public Query between(long from, long to) {
