@@ -31,7 +31,7 @@ public class TableQuery {
 	}
 	protected native void nativeSubTable(long nativeQueryPtr, long columnIndex);
 
-	public TableQuery parent(){
+	public TableQuery endSubTable(){
 		nativeParent(nativePtr);
 		return this;
 	}
