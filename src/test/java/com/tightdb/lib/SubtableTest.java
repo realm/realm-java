@@ -6,27 +6,27 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.example.Employee;
-import com.tightdb.example.Phone;
-import com.tightdb.example.PhoneQuery;
-import com.tightdb.example.PhoneTable;
-import com.tightdb.example.PhoneView;
 import com.tightdb.test.EmployeesFixture;
+import com.tightdb.test.TestEmployeeRow;
+import com.tightdb.test.TestPhoneQuery;
+import com.tightdb.test.TestPhoneRow;
+import com.tightdb.test.TestPhoneTable;
+import com.tightdb.test.TestPhoneView;
 
 public class SubtableTest extends AbstractTest {
 
 	@Test
 	public void shouldSaveSubtableChanges() {
-		Employee employee = employees.at(0);
-		
+		TestEmployeeRow employee = employees.at(0);
+
 		// check the basic operations
-		PhoneTable phones1 = employee.getPhones();
+		TestPhoneTable phones1 = employee.getPhones();
 		assertEquals(1, phones1.size());
-		
+
 		phones1.add("mobile", "111");
 		assertEquals(2, phones1.size());
 
-		PhoneTable phones2 = employee.getPhones();
+		TestPhoneTable phones2 = employee.getPhones();
 		assertEquals(2, phones2.size());
 
 		phones2.add("mobile", "222");
@@ -35,7 +35,7 @@ public class SubtableTest extends AbstractTest {
 		phones2.insert(1, "home", "333");
 		assertEquals(4, phones2.size());
 
-		PhoneTable phones3 = employee.getPhones();
+		TestPhoneTable phones3 = employee.getPhones();
 		assertEquals(2, phones3.type.eq("mobile").count());
 		assertEquals(2, phones3.type.eq("home").count());
 
@@ -44,10 +44,11 @@ public class SubtableTest extends AbstractTest {
 		assertEquals(0, phones3.number.eq("xxx").count());
 
 		// check the search operations
-		PhoneQuery phoneQuery = phones3.where().number.eq("111").number.neq("wrong").type.eq("mobile").type.neq("wrong");
+		TestPhoneQuery phoneQuery = phones3.where().number.eq("111").number
+				.neq("wrong").type.eq("mobile").type.neq("wrong");
 		assertEquals(1, phoneQuery.count());
 
-		PhoneView all = phoneQuery.findAll();
+		TestPhoneView all = phoneQuery.findAll();
 		assertEquals(1, all.size());
 		checkPhone(all.at(0), "mobile", "111");
 
@@ -57,13 +58,15 @@ public class SubtableTest extends AbstractTest {
 		assertEquals(null, phoneQuery.findNext());
 
 		// make sure the other sub-tables and independent and were not changed
-		assertEquals(EmployeesFixture.PHONES[1].length, employees.at(1).getPhones().size());
-		assertEquals(EmployeesFixture.PHONES[2].length, employees.at(2).getPhones().size());
-		
+		assertEquals(EmployeesFixture.PHONES[1].length, employees.at(1)
+				.getPhones().size());
+		assertEquals(EmployeesFixture.PHONES[2].length, employees.at(2)
+				.getPhones().size());
+
 		// check the clear operation on the query
 		phoneQuery.clear();
 		assertEquals(3, phones1.size());
-		
+
 		// check the clear operation
 		phones3.clear();
 		assertEquals(0, phones1.size());
@@ -73,7 +76,7 @@ public class SubtableTest extends AbstractTest {
 		employees.clear();
 	}
 
-	private void checkPhone(Phone phone, String type, String number) {
+	private void checkPhone(TestPhoneRow phone, String type, String number) {
 		assertEquals(type, phone.getType());
 		assertEquals(number, phone.getNumber());
 		assertEquals(type, phone.type.get());
@@ -82,22 +85,22 @@ public class SubtableTest extends AbstractTest {
 
 	@Test
 	public void shouldInvalidateWhenParentTableIsCleared() {
-		Employee employee = employees.at(0);
-		PhoneTable phones = employee.getPhones();
+		TestEmployeeRow employee = employees.at(0);
+		TestPhoneTable phones = employee.getPhones();
 		assertTrue(phones.isValid());
-		
+
 		employees.clear();
 		assertFalse(phones.isValid());
 	}
-	
+
 	@Test
 	public void shouldInvalidateOnRemovedRecordParentTable() {
-		Employee employee = employees.at(0);
-		PhoneTable phones = employee.getPhones();
+		TestEmployeeRow employee = employees.at(0);
+		TestPhoneTable phones = employee.getPhones();
 		assertTrue(phones.isValid());
-		
+
 		employees.remove(2);
 		assertFalse(phones.isValid());
 	}
-	
+
 }

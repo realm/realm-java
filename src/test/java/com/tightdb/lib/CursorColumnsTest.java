@@ -9,22 +9,22 @@ import java.util.Date;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
-import com.tightdb.example.Employee;
-import com.tightdb.example.EmployeeQuery;
-import com.tightdb.example.EmployeeView;
 import com.tightdb.test.EmployeesFixture;
+import com.tightdb.test.TestEmployeeQuery;
+import com.tightdb.test.TestEmployeeRow;
+import com.tightdb.test.TestEmployeeView;
 
 public class CursorColumnsTest extends AbstractTest {
 
 	@Test
 	public void shouldGetCorrectColumnValues() throws IllegalAccessException {
-		Employee employee0 = employees.first();
+		TestEmployeeRow employee0 = employees.first();
 		checkCursor(EmployeesFixture.EMPLOYEES[0], employee0);
 
-		Employee employee1 = employees.at(1);
+		TestEmployeeRow employee1 = employees.at(1);
 		checkCursor(EmployeesFixture.EMPLOYEES[1], employee1);
 
-		Employee employee2 = employee1.next();
+		TestEmployeeRow employee2 = employee1.next();
 		checkCursor(EmployeesFixture.EMPLOYEES[2], employee2);
 	}
 
@@ -35,8 +35,8 @@ public class CursorColumnsTest extends AbstractTest {
 	}
 
 	private void checkSetAndGetCorrectColumnValues(
-			AbstractRowset<Employee, EmployeeView, EmployeeQuery> empls) {
-		Employee employee0 = empls.first();
+			AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> empls) {
+		TestEmployeeRow employee0 = empls.first();
 		checkCursor(EmployeesFixture.EMPLOYEES[0], employee0);
 
 		updateEmployee(employee0, EmployeesFixture.EMPLOYEES[2]);
@@ -52,9 +52,11 @@ public class CursorColumnsTest extends AbstractTest {
 		checkSetAndGetMixedValues(employees);
 		checkSetAndGetMixedValues(employeesView);
 	}
-	
-	private void checkSetAndGetMixedValues(AbstractRowset<Employee, EmployeeView, EmployeeQuery> empls) throws Exception {
-		Employee employee = empls.first();
+
+	private void checkSetAndGetMixedValues(
+			AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> empls)
+			throws Exception {
+		TestEmployeeRow employee = empls.first();
 
 		employee.extra.set(true);
 		assertEquals(true, employee.extra.get().getBooleanValue());
@@ -99,7 +101,7 @@ public class CursorColumnsTest extends AbstractTest {
 	}
 
 	public void shouldProvideReadableValue() {
-		Employee employee = employees.first();
+		TestEmployeeRow employee = employees.first();
 
 		assertNotNull(employee.firstName.getReadableValue());
 		assertNotNull(employee.lastName.getReadableValue());
