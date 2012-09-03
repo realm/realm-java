@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.ViewGroup.LayoutParams;
 
 // import com.stocks.generate;
-import com.tightdb.example.generated.*;
 
 import com.tightdb.lib.AbstractColumn;
 import com.tightdb.lib.Table;

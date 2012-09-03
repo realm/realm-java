@@ -1,12 +1,13 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.EmployeeQuery;
-import com.tightdb.example.generated.EmployeeView;
+import com.tightdb.example.Employee;
+import com.tightdb.example.EmployeeQuery;
+import com.tightdb.example.EmployeeView;
 
 public abstract class AbstractNavigationTest {
 

@@ -288,7 +288,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		if (parent instanceof PackageElement) {
 			PackageElement pkg = (PackageElement) parent;
 			String pkgName = pkg.getQualifiedName().toString();
-			return pkgName.isEmpty() ? "" : pkgName + ".generated";
+			return pkgName.isEmpty() ? "" : pkgName;
 		} else {
 			logger.error("Couldn't calculate the target package! Using default: "
 					+ DEFAULT_PACKAGE);

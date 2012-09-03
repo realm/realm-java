@@ -10,9 +10,9 @@ import java.util.Date;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.EmployeeView;
-import com.tightdb.example.generated.PhoneTable;
+import com.tightdb.example.Employee;
+import com.tightdb.example.EmployeeView;
+import com.tightdb.example.PhoneTable;
 import com.tightdb.test.EmployeesFixture;
 import com.tightdb.test.PhoneData;
 

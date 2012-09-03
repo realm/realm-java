@@ -1,6 +1,8 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,7 +11,7 @@ import java.util.Date;
 import org.testng.annotations.Test;
 
 import com.tightdb.Group;
-import com.tightdb.example.generated.EmployeeTable;
+import com.tightdb.example.EmployeeTable;
 
 public class GroupTest {
 

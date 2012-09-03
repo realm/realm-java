@@ -8,11 +8,6 @@ import com.tightdb.Group;
 import com.tightdb.lib.AbstractColumn;
 import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.EmployeeQuery;
-import com.tightdb.example.generated.EmployeeTable;
-import com.tightdb.example.generated.Phone;
-import com.tightdb.example.generated.PhoneTable;
 
 public class Example {
 

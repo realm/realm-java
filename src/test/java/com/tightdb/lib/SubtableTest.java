@@ -1,14 +1,16 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.Phone;
-import com.tightdb.example.generated.PhoneQuery;
-import com.tightdb.example.generated.PhoneTable;
-import com.tightdb.example.generated.PhoneView;
+import com.tightdb.example.Employee;
+import com.tightdb.example.Phone;
+import com.tightdb.example.PhoneQuery;
+import com.tightdb.example.PhoneTable;
+import com.tightdb.example.PhoneView;
 import com.tightdb.test.EmployeesFixture;
 
 public class SubtableTest extends AbstractTest {

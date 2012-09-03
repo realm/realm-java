@@ -1,15 +1,16 @@
 package com.tightdb.lib;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 import java.util.Date;
 
-import static org.testng.AssertJUnit.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.EmployeeQuery;
-import com.tightdb.example.generated.EmployeeTable;
-import com.tightdb.example.generated.EmployeeView;
+import com.tightdb.example.Employee;
+import com.tightdb.example.EmployeeQuery;
+import com.tightdb.example.EmployeeTable;
+import com.tightdb.example.EmployeeView;
 
 @Test
 public class TableDataOperationsTest extends AbstractDataOperationsTest {

@@ -13,10 +13,10 @@ import org.testng.annotations.BeforeMethod;
 
 import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.EmployeeTable;
-import com.tightdb.example.generated.EmployeeView;
-import com.tightdb.example.generated.Phone;
+import com.tightdb.example.Employee;
+import com.tightdb.example.EmployeeTable;
+import com.tightdb.example.EmployeeView;
+import com.tightdb.example.Phone;
 import com.tightdb.test.EmployeeData;
 import com.tightdb.test.PhoneData;
 

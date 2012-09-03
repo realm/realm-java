@@ -9,9 +9,9 @@ import java.util.Date;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.EmployeeQuery;
-import com.tightdb.example.generated.EmployeeView;
+import com.tightdb.example.Employee;
+import com.tightdb.example.EmployeeQuery;
+import com.tightdb.example.EmployeeView;
 import com.tightdb.test.EmployeesFixture;
 
 public class CursorColumnsTest extends AbstractTest {

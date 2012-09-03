@@ -4,7 +4,6 @@ import java.util.*;
 
 import com.tightdb.*;
 import com.tightdb.lib.Table;
-import com.tightdb.example.generated.EmployeeTable;
 
 public class ReplicationExample {
 

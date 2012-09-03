@@ -1,12 +1,12 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.EmployeeTable;
-import com.tightdb.example.generated.PhoneTable;
+import com.tightdb.example.Employee;
+import com.tightdb.example.EmployeeTable;
+import com.tightdb.example.PhoneTable;
 
 public class MixedSubtableTest extends AbstractTest {
 

@@ -2,9 +2,6 @@ package com.tightdb.example;
 
 import java.util.Date;
 
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.EmployeeTable;
-import com.tightdb.example.generated.PhoneTable;
 import com.tightdb.lib.TightDB;
 
 public class NestedTablesExample {

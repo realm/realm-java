@@ -1,6 +1,6 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.Date;
 
@@ -9,7 +9,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
-import com.tightdb.example.generated.EmployeeTable;
+import com.tightdb.example.EmployeeTable;
 
 public class TableTest {
 

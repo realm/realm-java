@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import com.tightdb.Group;
-import com.tightdb.example.generated.EmployeeTable;
+import com.tightdb.example.EmployeeTable;
 
 public class FailureExample {
 

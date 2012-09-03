@@ -1,13 +1,15 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.Iterator;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.Phone;
+import com.tightdb.example.Employee;
+import com.tightdb.example.Phone;
 import com.tightdb.test.EmployeesFixture;
 
 public class TableCursorColumnTest extends AbstractTest {

@@ -1,13 +1,14 @@
 package com.tightdb.lib;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.util.Date;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.example.generated.Employee;
-import com.tightdb.example.generated.EmployeeView;
+import com.tightdb.example.Employee;
+import com.tightdb.example.EmployeeView;
 import com.tightdb.test.EmployeesFixture;
 
 public class ViewColumnsTest extends AbstractTest {

@@ -8,10 +8,6 @@ package com.tightdb.example;
 import java.io.IOException;
 
 import com.tightdb.Group;
-import com.tightdb.example.generated.PeopleQuery;
-import com.tightdb.example.generated.PeopleRow;
-import com.tightdb.example.generated.PeopleTable;
-import com.tightdb.example.generated.PeopleView;
 import com.tightdb.lib.Table;
 
 //@@Example: create_table @@
