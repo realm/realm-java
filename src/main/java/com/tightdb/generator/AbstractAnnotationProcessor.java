@@ -98,13 +98,13 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 			writer = fileRes.openWriter();
 			writer.write(content);
 		} catch (IOException e) {
-			logger.error("Couldn't write to file: " + filename);
+			logger.warn("Couldn't write to file: " + filename);
 		} finally {
 			if (writer != null) {
 				try {
 					writer.close();
 				} catch (IOException e) {
-					logger.error("Couldn't write to file: " + filename);
+					logger.warn("Couldn't write to file: " + filename);
 				}
 			}
 		}

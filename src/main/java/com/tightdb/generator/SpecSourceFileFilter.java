@@ -28,7 +28,7 @@ public class SpecSourceFileFilter implements IOFileFilter {
 			try {
 				source = FileUtils.readFileToString(file);
 			} catch (IOException e) {
-				logger.error("Couldn't read file: " + file);
+				logger.warn("Couldn't read file: " + file);
 				return false;
 			}
 

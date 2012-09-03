@@ -27,7 +27,7 @@ public class FieldSorter {
 	public void sortFields(List<VariableElement> fields, TypeElement model, File sourcePath) {
 		String specSource = specReader.getSpecFields(model, sourcePath);
 		if (specSource == null) {
-			logger.error("Field sorting failed, couldn't find table spec: " + model.getSimpleName());
+			logger.warn("Field sorting failed, couldn't find table spec: " + model.getSimpleName());
 			return;
 		}
 
@@ -60,7 +60,7 @@ public class FieldSorter {
 			});
 			logger.info("Successfully sorted fields: " + fields);
 		} else {
-			logger.error("Field sorting failed!");
+			logger.warn("Field sorting failed!");
 		}
 	}
 

@@ -290,7 +290,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 			String pkgName = pkg.getQualifiedName().toString();
 			return pkgName.isEmpty() ? "" : pkgName;
 		} else {
-			logger.error("Couldn't calculate the target package! Using default: "
+			logger.warn("Couldn't calculate the target package! Using default: "
 					+ DEFAULT_PACKAGE);
 			return DEFAULT_PACKAGE;
 		}
