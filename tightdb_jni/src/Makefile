@@ -5,6 +5,6 @@ jni_DIR       = $(jnidir)
 
 libtightdb_jni_a_SOURCES       = $(wildcard *.cpp)
 libtightdb_jni_a_LDFLAGS       = -ltightdb -lproc
-libtightdb_jni_a_LDFLAGS_DEBUG = -ltightdb_d -lproc
+libtightdb_jni_a_LDFLAGS_DEBUG = -ltightdb-dbg -lproc
 
 include ../../generic.mk
