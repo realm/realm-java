@@ -4,34 +4,34 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.example.EmployeeTable;
-import com.tightdb.example.PhoneTable;
 import com.tightdb.test.TestEmployeeRow;
+import com.tightdb.test.TestEmployeeTable;
+import com.tightdb.test.TestPhoneTable;
 
 public class MixedSubtableTest extends AbstractTest {
 
 	@Test
 	public void shouldStoreSubtableInMixedTypeColumn() {
 		TestEmployeeRow employee = employees.at(0);
-		PhoneTable phones = employee.extra.createSubtable(PhoneTable.class);
+		TestPhoneTable phones = employee.extra.createSubtable(TestPhoneTable.class);
 
 		phones.add("mobile", "123");
 		assertEquals(1, phones.size());
 
-		PhoneTable phones2 = employee.extra.getSubtable(PhoneTable.class);
+		TestPhoneTable phones2 = employee.extra.getSubtable(TestPhoneTable.class);
 		assertEquals(1, phones2.size());
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void shouldFailOnOnWrongSubtableRetrievalFromMixedTypeColumn() {
 		TestEmployeeRow employee = employees.at(0);
-		PhoneTable phones = employee.extra.createSubtable(PhoneTable.class);
+		TestPhoneTable phones = employee.extra.createSubtable(TestPhoneTable.class);
 
 		phones.add("mobile", "123");
 		assertEquals(1, phones.size());
 
 		// should fail - since we try to get the wrong subtable class
-		employee.extra.getSubtable(EmployeeTable.class);
+		employee.extra.getSubtable(TestEmployeeTable.class);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -40,7 +40,7 @@ public class MixedSubtableTest extends AbstractTest {
 		employee.extra.set(123);
 
 		// should fail
-		employee.extra.getSubtable(PhoneTable.class);
+		employee.extra.getSubtable(TestPhoneTable.class);
 	}
 
 }

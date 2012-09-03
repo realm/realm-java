@@ -7,9 +7,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
-import com.tightdb.example.Employee;
-import com.tightdb.example.EmployeeQuery;
-import com.tightdb.example.EmployeeView;
+import com.tightdb.test.TestEmployeeQuery;
+import com.tightdb.test.TestEmployeeRow;
+import com.tightdb.test.TestEmployeeView;
 
 public abstract class AbstractDataOperationsTest {
 
@@ -17,7 +17,7 @@ public abstract class AbstractDataOperationsTest {
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
 
-	protected abstract AbstractRowset<Employee, EmployeeView, EmployeeQuery> getEmployees();
+	protected abstract AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getEmployees();
 
 	@AfterMethod
 	public void clear() {
@@ -59,7 +59,8 @@ public abstract class AbstractDataOperationsTest {
 
 		getEmployees().at(1).setExtra(Mixed.mixedValue("new_value"));
 		assertEquals("new_value", getEmployees().at(1).getExtra().getValue());
-		assertEquals("new_value", getEmployees().at(1).getExtra().getStringValue());
+		assertEquals("new_value", getEmployees().at(1).getExtra()
+				.getStringValue());
 	}
 
 	@Test
@@ -94,12 +95,12 @@ public abstract class AbstractDataOperationsTest {
 		assertNotNull(getEmployees().toString());
 		TightDB.print(getEmployees());
 		TightDB.print("Employees", getEmployees());
-		
+
 		assertNotNull(getEmployees().first().toString());
 		TightDB.print("First employee", getEmployees().first());
-		
+
 		assertNotNull(getEmployees().first().birthdate.toString());
 		assertNotNull(getEmployees().first().phones.toString());
 	}
-	
+
 }

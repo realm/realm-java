@@ -4,15 +4,16 @@ import java.io.IOException;
 import java.util.Date;
 
 import com.tightdb.Group;
-import com.tightdb.example.EmployeeTable;
+import com.tightdb.test.TestEmployeeTable;
 
 public class FailureExample {
 
 	public static void main(String[] args) {
 		Group group = new Group();
-		EmployeeTable employees = new EmployeeTable(group);
+		TestEmployeeTable employees = new TestEmployeeTable(group);
 
-		employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
+		employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 },
+				new Date(), "extra");
 
 		employees.at(0).phones.get();
 

@@ -5,52 +5,52 @@ import static org.testng.AssertJUnit.assertNull;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.example.Employee;
-import com.tightdb.example.EmployeeQuery;
-import com.tightdb.example.EmployeeView;
+import com.tightdb.test.TestEmployeeQuery;
+import com.tightdb.test.TestEmployeeRow;
+import com.tightdb.test.TestEmployeeView;
 
 public abstract class AbstractNavigationTest {
 
-	protected abstract AbstractRowset<Employee, EmployeeView, EmployeeQuery> getTableOrView();
+	protected abstract AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getTableOrView();
 
 	@Test
 	public void shouldNavigateToFirstRecord() {
-		Employee first = getTableOrView().first();
+		TestEmployeeRow first = getTableOrView().first();
 
 		assertEquals(0, first.getPosition());
 	}
 
 	@Test
 	public void shouldNavigateToLastRecord() {
-		Employee last = getTableOrView().last();
+		TestEmployeeRow last = getTableOrView().last();
 
 		assertEquals(getTableOrView().size() - 1, last.getPosition());
 	}
 
 	@Test
 	public void shouldNavigateToNextRecord() {
-		Employee e = getTableOrView().at(0).next();
+		TestEmployeeRow e = getTableOrView().at(0).next();
 
 		assertEquals(1, e.getPosition());
 	}
 
 	@Test
 	public void shouldNavigateToPreviousRecord() {
-		Employee e = getTableOrView().at(1).previous();
+		TestEmployeeRow e = getTableOrView().at(1).previous();
 
 		assertEquals(0, e.getPosition());
 	}
 
 	@Test
 	public void shouldNavigateAfterSpecifiedRecords() {
-		Employee e = getTableOrView().at(0).after(2);
+		TestEmployeeRow e = getTableOrView().at(0).after(2);
 
 		assertEquals(2, e.getPosition());
 	}
 
 	@Test
 	public void shouldNavigateBeforeSpecifiedRecords() {
-		Employee e = getTableOrView().at(2).before(2);
+		TestEmployeeRow e = getTableOrView().at(2).before(2);
 
 		assertEquals(0, e.getPosition());
 	}

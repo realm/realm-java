@@ -9,7 +9,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
-import com.tightdb.example.EmployeeTable;
+import com.tightdb.test.TestEmployeeTable;
 
 public class TableTest {
 
@@ -17,15 +17,18 @@ public class TableTest {
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
 
-	protected EmployeeTable employees;
+	protected TestEmployeeTable employees;
 
 	@BeforeMethod
 	public void init() {
-		employees = new EmployeeTable();
+		employees = new TestEmployeeTable();
 
-		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
-		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
+		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 },
+				new Date(), "extra");
+		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 },
+				new Date(), true);
+		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4,
+				5 }, new Date(), 1234);
 	}
 
 	@AfterMethod
@@ -74,8 +77,9 @@ public class TableTest {
 
 	@Test
 	public void shouldOptimizeStrings() {
-		// TODO: Add a lot of identical strings and test the size of the database get's smaller
-		
+		// TODO: Add a lot of identical strings and test the size of the
+		// database get's smaller
+
 		employees.optimize();
 	}
 
