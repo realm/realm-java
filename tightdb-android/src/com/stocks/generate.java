@@ -9,7 +9,7 @@ import android.util.Log;
 
 import com.csvreader.CsvReader;
 import com.tightdb.Group;
-import com.tightdb.example.generated.StockaTable;
+import com.tightdb.example.StockaTable;
 
 public class generate {
 	public void stocks() {
