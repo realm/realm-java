@@ -3,7 +3,6 @@ package com.tightdb.example;
 import java.util.*;
 
 import com.tightdb.*;
-import com.tightdb.lib.Table;
 
 public class ReplicationExample {
 

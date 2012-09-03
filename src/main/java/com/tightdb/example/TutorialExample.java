@@ -8,7 +8,7 @@ package com.tightdb.example;
 import java.io.IOException;
 
 import com.tightdb.Group;
-import com.tightdb.lib.Table;
+import com.tightdb.Table;
 
 // @@Example: create_table @@
 public class TutorialExample {

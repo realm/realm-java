@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.Date;
 
 import com.tightdb.Group;
+import com.tightdb.Table;
 import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
 
 public class Example {

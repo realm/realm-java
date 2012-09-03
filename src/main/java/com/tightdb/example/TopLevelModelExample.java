@@ -1,6 +1,6 @@
 package com.tightdb.example;
 
-import com.tightdb.lib.Table;
+import com.tightdb.Table;
 
 @Table
 class foo {

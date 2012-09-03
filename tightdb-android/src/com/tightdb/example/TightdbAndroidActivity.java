@@ -12,10 +12,10 @@ import android.view.ViewGroup.LayoutParams;
 // import com.stocks.generate;
 
 import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.Table;
 import com.tightdb.lib.TightDB;
 
 import com.tightdb.Group;
+import com.tightdb.Table;
 import com.tightdb.TableBase;
 
 import org.stockchart.StockChartView;
@@ -34,7 +34,7 @@ import org.stockchart.series.StockSeries;
 public class TightdbAndroidActivity extends Activity {
 
 	@Table(row = "Stocka")
-	class stocka{
+	class stocka {
 		String Date;
 		int Open;
 		int High;

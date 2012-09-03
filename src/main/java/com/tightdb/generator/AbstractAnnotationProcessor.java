@@ -21,9 +21,11 @@ import javax.tools.FileObject;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.tightdb.Table;
+
 public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 
-	private static final String[] SUPPORTED_ANNOTATIONS = { "com.tightdb.lib.Table" };
+	private static final String[] SUPPORTED_ANNOTATIONS = { Table.class.getCanonicalName() };
 
 	protected Elements elementUtils;
 	protected Types typeUtils;

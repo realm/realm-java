@@ -1,7 +1,7 @@
 package com.tightdb.performance;
 
+import com.tightdb.Table;
 import com.tightdb.util;
-import com.tightdb.lib.Table;
 
 public class Tightdb extends PerformanceBase implements IPerformance {
 

@@ -27,7 +27,7 @@ import javax.tools.StandardLocation;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.tightdb.lib.Table;
+import com.tightdb.Table;
 
 public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
