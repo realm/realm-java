@@ -1,7 +1,6 @@
 package my.app;
 
 import com.tightdb.*;
-import com.tightdb.lib.Table;
 
 public class Test {
 
