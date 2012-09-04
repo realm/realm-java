@@ -100,10 +100,10 @@ case "$MODE" in
         # Build tightdb.jar
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
         DEPENDENCIES="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/share/java/freemarker.jar"
-        CLASSPATH="$(printf "%s\n" "$DEPENDENCIES" | sed 's/ \+/:/g'):java" || exit 1
+        CLASSPATH="$(printf "%s\n" "$DEPENDENCIES" | sed 's/  */:/g'):java" || exit 1
         export CLASSPATH
         # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
-        SOURCES="$(find java/ -type f -name '*.java' | fgrep -v /doc/ | fgrep -v /example/)" || exit 1
+        SOURCES="$(find java/ -type f -name '*.java' | grep -v /doc/ | grep -v /example/ | grep -v /test/)" || exit 1
         $JAVAC $SOURCES || exit 1
         CLASSES="$(cd java && find * -type f -name '*.class')" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
