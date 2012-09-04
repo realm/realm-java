@@ -6,6 +6,6 @@
 
             return cursor(position);
         } catch (Exception e) {
-            throw insertRowException(e);
+            throw new RuntimeException("Error occured while adding/inserting a new row!", e);
         }
     }

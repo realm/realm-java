@@ -169,14 +169,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 		table.optimize();
 	}
 	
-	protected RuntimeException addRowException(Exception e) throws RuntimeException {
-		return new RuntimeException("Error occured while adding a new row!", e);
-	}
-
-	protected RuntimeException insertRowException(Exception e) throws RuntimeException {
-		return new RuntimeException("Error occured while inserting a new row!", e);
-	}
-
 	public Query where() {
 		return AbstractQuery.createQuery(types.getQueryClass(), table, new TableQuery());
 	}
