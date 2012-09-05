@@ -1,0 +1,24 @@
+Instructions for setting up TightDB for a new or existing project using Eclipse
+=============================================================================
+
+1. Create a new or open an existing project in Eclipse.
+ 
+2. Copy the native TightDB library to the project's "lib" folder (<project>/lib).
+- Note: create the "lib" folder if it doesn't exist in the project root.
+
+3. Copy tightdb.jar and tightdb.jar to the project's "lib" folder (<project>/lib/tightdb.jar).
+
+4. Add tightdb.jar to the build path (right-click on it -> Add to build path).
+
+5. Make sure a Java compiler is configured with 1.6 or 1.7 version. 
+- Right-click on the project -> Properties -> Java compiler.
+- Make sure a the configured compiler version is at least 1.6.
+
+6. Configure tightdb-devkit.jar as annotation processor (to be used for automatic code generation).
+- Right-click on the project -> Properties
+- Go to Java Compiler -> Annotation processing and enable annotation processing (check all the 3 check-boxes).  
+- In Java Compiler -> Annotation processing the "Generated source directory" should be configured to be the same as the original sources directory (e.g. "src" or "src/main/java").
+- Note: later versions of TightDB will support placing the generated sources in arbitrary folder.  
+- Go to Java Compiler -> Annotation processing -> Factory Path, add tightdb-devkit.jar (click on Add JARs) and make sure it is checked.  
+
+7. If the previous step was done properly, Eclipse will start generating Java source code as soon as you annotate your schema specification classes with the @Table annotation.
