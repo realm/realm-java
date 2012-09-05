@@ -5,12 +5,12 @@ import com.tightdb.*;
 public class Test {
 
     @Table
-    class hilbert {
+    public class Hilbert {
         String fido;
     }
 
     @Table
-    class banach {
+    public class Banach {
         String type;
         String number;
     }

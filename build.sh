@@ -122,7 +122,7 @@ case "$MODE" in
 
         # Build and run test suite
         cd "$TIGHTDB_JAVA_HOME/src/test" || exit 1
-        SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
+        SOURCES="$(cd java && find * -type f -name '*.java')" || exit 1
         CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test.XXXX)" || exit 1
         export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:."
