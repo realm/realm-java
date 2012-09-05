@@ -1,3 +1,5 @@
+# NOTE: THIS SCRIPT IS SUPPOSED TO RUN IN A POSIX SHELL
+
 cd "$(dirname "$0")"
 TIGHTDB_JAVA_HOME="$(pwd)"
 
