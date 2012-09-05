@@ -3,6 +3,7 @@ package com.tightdb.generator;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 
@@ -18,15 +19,16 @@ public class TableSpecReader {
 
 	private SpecMatcher specMatcher;
 
-	public TableSpecReader(AnnotationProcessingLogger logger) {
+	public TableSpecReader(AnnotationProcessingLogger logger,
+			String[] sourceFolders) {
 		this.logger = logger;
 		this.specMatcher = new SpecMatcher(logger);
 	}
 
-	public String getSpecFields(TypeElement model, File sourcePath) {
+	public String getSpecFields(TypeElement model, List<File> sourcesPath) {
 		String modelName = model.toString();
 
-		File sourceFile = findSourceFile(sourcePath, modelName);
+		File sourceFile = findSourceFile(sourcesPath, modelName);
 		if (sourceFile == null) {
 			logger.warn("Table spec retrieval failed!");
 			return null;
@@ -37,32 +39,41 @@ public class TableSpecReader {
 		try {
 			source = FileUtils.readFileToString(sourceFile);
 		} catch (IOException e) {
-			logger.warn("Table spec retrieval failed, couldn't read file: " + sourceFile);
+			logger.warn("Table spec retrieval failed, couldn't read file: "
+					+ sourceFile);
 			return null;
 		}
 
-		String spec = specMatcher.matchSpec(model.getSimpleName().toString(), source);
+		String spec = specMatcher.matchSpec(model.getSimpleName().toString(),
+				source);
 		if (spec == null) {
-			logger.warn("Table spec retrieval failed, couldn't find table spec: " + modelName);
+			logger.warn("Table spec retrieval failed, couldn't find table spec: "
+					+ modelName);
 		}
 		return spec;
 
 	}
 
-	private File findSourceFile(File sourcePath, String modelName) {
+	private File findSourceFile(List<File> sourceFolders, String modelName) {
 		String[] modelNameParts = modelName.split("\\.");
 
-		for (String part : modelNameParts) {
-			File path = new File(sourcePath.getAbsolutePath() + File.separator + part);
-			if (path.isDirectory()) {
-				sourcePath = path;
-			} else {
-				File sourceFile = new File(path.getAbsolutePath() + ".java");
-				if (sourceFile.exists() && sourceFile.isFile()) {
-					return sourceFile;
+		for (File sourceFolder : sourceFolders) {
+			File folder = sourceFolder;
+			for (String part : modelNameParts) {
+				File path = new File(folder, part);
+				if (path.isDirectory()) {
+					folder = path;
 				} else {
-					logger.warn("The file doesn't exist: " + sourceFile);
-					return scanSourcePath(sourcePath, modelNameParts[modelNameParts.length - 1]);
+					File sourceFile = new File(path.getAbsolutePath() + ".java");
+					if (sourceFile.exists() && sourceFile.isFile()) {
+						return sourceFile;
+					} else {
+						File sf = scanSourcePath(folder,
+								modelNameParts[modelNameParts.length - 1]);
+						if (sf != null) {
+							return sf;
+						}
+					}
 				}
 			}
 		}
@@ -72,10 +83,14 @@ public class TableSpecReader {
 	}
 
 	private File scanSourcePath(File sourcePath, String modelName) {
-		logger.debug("Scanning source path '" + sourcePath + "' for table spec '" + modelName + "'");
-		IOFileFilter fileFilter = new AndFileFilter(new SuffixFileFilter(".java"), new SpecSourceFileFilter(specMatcher, modelName, logger));
+		logger.debug("Scanning source path '" + sourcePath
+				+ "' for table spec '" + modelName + "'");
+		IOFileFilter fileFilter = new AndFileFilter(new SuffixFileFilter(
+				".java"), new SpecSourceFileFilter(specMatcher, modelName,
+				logger));
 		IOFileFilter dirFilter = FalseFileFilter.FALSE;
-		Collection<File> files = FileUtils.listFiles(sourcePath, fileFilter, dirFilter);
+		Collection<File> files = FileUtils.listFiles(sourcePath, fileFilter,
+				dirFilter);
 
 		switch (files.size()) {
 		case 0:

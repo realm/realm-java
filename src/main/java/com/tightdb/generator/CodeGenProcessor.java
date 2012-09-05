@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,6 +31,8 @@ import org.apache.commons.lang.StringUtils;
 import com.tightdb.Table;
 
 public class CodeGenProcessor extends AbstractAnnotationProcessor {
+
+	private static final String SOURCE_FOLDERS = "source_folders";
 
 	private static final String MSG_INCORRECT_TYPE = "Incorrect data type was specified! Expected primitive or wrapper type, byte[], java.lang.Object, java.util.Date or java.nio.ByteBuffer!";
 
@@ -57,7 +60,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	@Override
 	public void processAnnotations(Set<? extends TypeElement> annotations,
 			RoundEnvironment env) throws Exception {
-		fieldSorter = new FieldSorter(logger);
+		fieldSorter = new FieldSorter(logger, getSourceFolders());
 
 		for (TypeElement annotation : annotations) {
 			String annotationName = annotation.getQualifiedName().toString();
@@ -82,8 +85,23 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 					"The path of the Java source and generated files must be configured as source output! (see -s option of javac)");
 		}
 
+		List<File> sourcesPath = new LinkedList<File>();
+
 		File file = new File(uri);
-		File sourcesPath = file.getParentFile();
+		File generatedSourcesPath = file.getParentFile();
+		sourcesPath.add(generatedSourcesPath);
+
+		String[] sourceFolders = getSourceFolders();
+		while (generatedSourcesPath != null) {
+			for (String sourceFolder : sourceFolders) {
+				File potentialPath = new File(generatedSourcesPath, sourceFolder);
+				if (potentialPath.exists()) {
+					sourcesPath.add(potentialPath);
+					logger.info("Configured source folder: " + potentialPath);
+				}
+			}
+			generatedSourcesPath = generatedSourcesPath.getParentFile();
+		}
 
 		prepareTables(elements);
 
@@ -93,14 +111,13 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				setupModelInfo(model);
 			}
 		}
-		
+
 		for (Element element : elements) {
 			if (element instanceof TypeElement) {
 				TypeElement model = (TypeElement) element;
 				processModel(sourcesPath, model);
 			}
 		}
-		
 	}
 
 	private void setupModelInfo(TypeElement model) {
@@ -124,13 +141,13 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				queryName));
 	}
 
-	private void processModel(File sourcesPath, TypeElement model) {
+	private void processModel(List<File> sourceFolders, TypeElement model) {
 		String modelType = model.getQualifiedName().toString();
 
 		List<VariableElement> fields = getFields(model);
 
 		// sort the fields, due to unresolved bug in Eclipse APT
-		fieldSorter.sortFields(fields, model, sourcesPath);
+		fieldSorter.sortFields(fields, model, sourceFolders);
 
 		// get the capitalized model name
 		String entity = StringUtils
@@ -192,7 +209,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				column.put("paramType", paramType);
 				column.put("index", index++);
 				column.put("isSubtable", isSubtable);
-				
+
 				if (isSubtable) {
 					ModelInfo subModelInfo = modelsInfo.get(subtype);
 					column.put("subTableName", subModelInfo.getTableName());
@@ -444,5 +461,14 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 			}
 		}
 		return null;
+	}
+
+	private String[] getSourceFolders() {
+		String sourceFolders = options.get(SOURCE_FOLDERS);
+		if (sourceFolders != null) {
+			return sourceFolders.split("[\\:\\,\\;]");
+		} else {
+			return new String[] { "src", "src/main/java", "src/test/java" };
+		}
 	}
 }

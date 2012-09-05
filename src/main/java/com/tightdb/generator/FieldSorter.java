@@ -19,13 +19,13 @@ public class FieldSorter {
 	private AnnotationProcessingLogger logger;
 	private TableSpecReader specReader;
 
-	public FieldSorter(AnnotationProcessingLogger logger) {
+	public FieldSorter(AnnotationProcessingLogger logger, String[] sourceFolders) {
 		this.logger = logger;
-		this.specReader = new TableSpecReader(logger);
+		this.specReader = new TableSpecReader(logger, sourceFolders);
 	}
 
-	public void sortFields(List<VariableElement> fields, TypeElement model, File sourcePath) {
-		String specSource = specReader.getSpecFields(model, sourcePath);
+	public void sortFields(List<VariableElement> fields, TypeElement model, List<File> sourcesPath) {
+		String specSource = specReader.getSpecFields(model, sourcesPath);
 		if (specSource == null) {
 			logger.warn("Field sorting failed, couldn't find table spec: " + model.getSimpleName());
 			return;
