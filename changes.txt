@@ -1,0 +1,14 @@
+6-9-2012:
+=========
+Table:
++	void removeLast()
++	ColumnType getMixedType(long columnIndex, long rowIndex);
++	void clearSubTable(long columnIndex, long rowIndex);
++	long getSubTableSize(long columnIndex, long rowIndex);
++	double average(long columnIndex);
++	String toJson();
+LongRowSet:
++	public double average() 		!!! FIX in NAtive to return double!
+
+TableView:
+FIX implement nativeAverage()
