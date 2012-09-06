@@ -207,14 +207,12 @@ public class TableViewBase implements IRowsetBase {
 	
 	protected native long nativeGetSubTable(long nativeViewPtr, long columnIndex, long rowIndex);
 	
-	//TODO: NEW!!!
 	public long getSubTableSize(long columnIndex, long rowIndex) {
 		return nativeGetSubTableSize(nativePtr, columnIndex, rowIndex);
 	}
 
 	protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);	
 	
-	//TODO: NEW!!!
 	public void clearSubTable(long columnIndex, long rowIndex) {
 		nativeClearSubTable(nativePtr, columnIndex, rowIndex);
 	}
@@ -340,12 +338,11 @@ public class TableViewBase implements IRowsetBase {
 	
 	protected native void nativeRemoveRow(long nativeViewPtr, long rowIndex);
 	
-	public void removeLast(){
-		if(!isEmpty()){
+	public void removeLast() {
+		if (!isEmpty()) {
 			nativeRemoveRow(nativePtr, size() - 1);
 		}
-	}
-	
+	}	
 	
 	// Search for first match
 
@@ -450,13 +447,20 @@ public class TableViewBase implements IRowsetBase {
 	
 	protected native long nativeMinimum(long nativeViewPtr, long columnIndex);
 	
+	public double average(long columnIndex) {
+		return nativeAverage(nativePtr, columnIndex);
+	}
+
+	// FIXME: implement this!
+	protected native double nativeAverage(long nativePtr, long columnIndex);
+	
 	enum Order { ascending, descending };
 	
-	public void sort(long columnIndex, Order order){
-		nativeSort(nativePtr, columnIndex, (order == Order.ascending) );
+	public void sort(long columnIndex, Order order) {
+		nativeSort(nativePtr, columnIndex, (order == Order.ascending));
 	}
-	
-	public void sort(long columnIndex){
+
+	public void sort(long columnIndex) {
 		sort(columnIndex, Order.ascending);
 	}
 	
@@ -478,6 +482,13 @@ public class TableViewBase implements IRowsetBase {
 	
 	protected native void nativeClose(long nativeViewPtr);
 
+	public String toJson() {
+		return nativeToJson(nativePtr);
+	}
+
+	// TODO: implement this!
+	protected native String nativeToJson(long nativeViewPtr);
+	
 	
 	protected long nativePtr;
 	protected TableBase table;

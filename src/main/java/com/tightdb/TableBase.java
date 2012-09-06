@@ -484,7 +484,6 @@ public class TableBase implements IRowsetBase {
 
 	protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);
 
-
 	public void clearSubTable(long columnIndex, long rowIndex) {
 		nativeClearSubTable(nativePtr, columnIndex, rowIndex);
 	}
@@ -637,11 +636,12 @@ public class TableBase implements IRowsetBase {
 
 	protected native long nativeMinimum(long nativePtr, long columnnIndex);
 
-	public long average(long columnIndex) {
+	public double average(long columnIndex) {
 		return nativeAverage(nativePtr, columnIndex);
 	}
 
-	protected native long nativeAverage(long nativePtr, long columnIndex);
+	// FIXME: change native method result type to "double"
+	protected native double nativeAverage(long nativePtr, long columnIndex);
 
 	// Searching methods.
 	public long findFirstLong(long columnIndex, long value) {
@@ -699,11 +699,11 @@ public class TableBase implements IRowsetBase {
 
 	protected native void nativeOptimize(long nativeTablePtr);
 
-	public void toJson() {
-		// TODO: implement!
-		nativeToJson(nativePtr);
+	public String toJson() {
+		return nativeToJson(nativePtr);
 	}
 
-	protected native void nativeToJson(long nativeTablePtr);
+	// TODO: implement this!
+	protected native String nativeToJson(long nativeTablePtr);
 
 }
