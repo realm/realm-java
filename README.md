@@ -44,7 +44,7 @@ Building and installing
 -----------------------
 
     sh build.sh clean
-    sh build.sh
+    sh build.sh build
     sudo sh build.sh install
 
 
