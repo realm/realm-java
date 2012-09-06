@@ -151,7 +151,7 @@ LDFLAGS_SHARED   = -shared $(CFLAGS_SHARED)
 LDFLAGS_DEBUG    =
 endif
 
-# Workaround for CLANG < v3.1 ignoring LIBRARY_PATH
+# Workaround for CLANG < v3.2 ignoring LIBRARY_PATH
 ifneq ($(or $(call FILTER_CLANG,$(CC)),$(call FILTER_CLANG,$(CXX))),)
 CLANG_VERSION = $(shell clang --version | grep -i 'clang version' | sed 's/.*clang version \([^ ][^ ]*\).*/\1/' | sed 's/[._-]/ /g')
 CLANG_MAJOR = $(word 1,$(CLANG_VERSION))
