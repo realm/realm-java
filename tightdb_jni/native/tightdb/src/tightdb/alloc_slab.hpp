@@ -30,6 +30,10 @@
 
 namespace tightdb {
 
+// Constants
+const char* const default_header = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0T-DB\0\0\0\0";
+const size_t header_len = 24;
+
 // Pre-declarations
 class Group;
 class GroupWriter;

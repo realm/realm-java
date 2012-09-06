@@ -20,9 +20,6 @@
 #ifndef TIGHTDB_BINARY_DATA_HPP
 #define TIGHTDB_BINARY_DATA_HPP
 
-
-
-
 #include <cstddef>
 #include <ostream>
 
@@ -45,13 +42,6 @@ struct BinaryData {
 
 // Implementation:
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning (disable : 4996)
-#endif
-
-#define _SCL_SECURE_NO_WARNINGS 
-
 inline bool BinaryData::operator==(const BinaryData& d) const
 {
     return len == d.len && std::equal(pointer, pointer+len, d.pointer);
@@ -61,11 +51,6 @@ inline bool BinaryData::operator!=(const BinaryData& d) const
 {
     return len != d.len || !std::equal(pointer, pointer+len, d.pointer);
 }
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 
 template<class Ch, class Tr>
 inline std::basic_ostream<Ch, Tr>& operator<<(std::basic_ostream<Ch, Tr>& out, const BinaryData& d)

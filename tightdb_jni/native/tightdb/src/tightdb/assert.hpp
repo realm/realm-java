@@ -37,7 +37,9 @@
 #else
 #  define TIGHTDB_STATIC_ASSERT(condition, message) typedef \
     tightdb::static_assert_dummy<sizeof(tightdb::STATIC_ASSERTION_FAILURE<bool(condition)>)> \
-    _tightdb_static_assert_##__LINE__
+    TIGHTDB_JOIN(_tightdb_static_assert_, __LINE__)
+#  define TIGHTDB_JOIN(x,y) TIGHTDB_JOIN2(x,y)
+#  define TIGHTDB_JOIN2(x,y) x ## y
 namespace tightdb {
     template<bool> struct STATIC_ASSERTION_FAILURE;
     template<> struct STATIC_ASSERTION_FAILURE<true> {};

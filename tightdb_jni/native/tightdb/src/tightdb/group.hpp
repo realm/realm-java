@@ -202,6 +202,7 @@ inline Table* Group::get_table_ptr(const char* name)
         // Get table from cache
         return get_table_ptr(ndx);
     }
+
     return create_new_table(name);
 }
 
@@ -257,8 +258,8 @@ template<class T> inline typename T::ConstRef Group::get_table(const char* name)
 template<class S>
 size_t Group::write(S& out)
 {
-    // Space for ref to top array
-    out.write("\0\0\0\0\0\0\0\0", 8);
+    // Space for file header
+    out.write(default_header, header_len);
 
     // When serializing to disk we dont want
     // to include free space tracking as serialized
@@ -271,7 +272,9 @@ size_t Group::write(S& out)
     const uint64_t topPos = top.Write(out);
     const size_t byte_size = out.getpos();
 
-    // top ref
+    // Write top ref
+    // (since we initially set the last bit in the file header to
+    //  zero, it is the first ref block that is valid)
     out.seek(0);
     out.write((const char*)&topPos, 8);
 

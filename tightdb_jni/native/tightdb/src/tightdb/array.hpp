@@ -194,7 +194,10 @@ public:
     int64_t ColumnGet(size_t ndx) const;
     const char* ColumnStringGet(size_t ndx) const;
     size_t ColumnFind(int64_t target, size_t ref, Array& cache) const;
-    size_t IndexStringFindFirst(const char* value, const AdaptiveStringColumn& column) const;
+    typedef const char*(*StringGetter)(void*, size_t); // Pre-declare getter function from string index
+    size_t IndexStringFindFirst(const char* value, void* column, StringGetter get_func) const;
+    void   IndexStringFindAll(Array& result, const char* value, void* column, StringGetter get_func) const;
+    size_t IndexStringCount(const char* value, void* column, StringGetter get_func) const;
 
     void SetAllToZero();
     bool Increment(int64_t value, size_t start=0, size_t end=(size_t)-1);
@@ -393,7 +396,7 @@ inline Array::Array(Allocator& alloc):
 // Note that this array now own the ref. Should only be used when
 // the source array goes away right after (like return values from functions)
 inline Array::Array(const Array& src):
-    m_parent(src.m_parent), m_parentNdx(src.m_parentNdx), m_alloc(src.m_alloc)
+    ArrayParent(), m_parent(src.m_parent), m_parentNdx(src.m_parentNdx), m_alloc(src.m_alloc)
 {
     const size_t ref = src.GetRef();
     init_from_ref(ref);
