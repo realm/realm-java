@@ -58,6 +58,7 @@ public class TableSpecReader {
 		String[] modelNameParts = modelName.split("\\.");
 
 		for (File sourceFolder : sourceFolders) {
+			logger.debug("Searching sources in the folder: " + sourceFolder);
 			File folder = sourceFolder;
 			for (String part : modelNameParts) {
 				File path = new File(folder, part);
@@ -67,14 +68,15 @@ public class TableSpecReader {
 					File sourceFile = new File(path.getAbsolutePath() + ".java");
 					if (sourceFile.exists() && sourceFile.isFile()) {
 						return sourceFile;
-					} else {
-						File sf = scanSourcePath(folder,
-								modelNameParts[modelNameParts.length - 1]);
-						if (sf != null) {
-							return sf;
-						}
 					}
 				}
+			}
+
+			// if the expected file wasn't found, search all of them
+			File sf = scanSourcePath(folder,
+					modelNameParts[modelNameParts.length - 1]);
+			if (sf != null) {
+				return sf;
 			}
 		}
 
