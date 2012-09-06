@@ -28,10 +28,10 @@
     <ClCompile Include="src\util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\mem_usage\win32\mem.cpp">
+    <ClCompile Include="src\com_tightdb_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\com_tightdb_util.cpp">
+    <ClCompile Include="src\mem_usage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -60,13 +60,13 @@
     <ClInclude Include="src\tablespecutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\mem_usage\mem.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\com_tightdb_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tablebase_tpl.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mem_usage.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

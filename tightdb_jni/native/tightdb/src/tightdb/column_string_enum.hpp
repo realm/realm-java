@@ -24,6 +24,8 @@
 
 namespace tightdb {
 
+// Pre-declarations
+class StringIndex;
 
 class ColumnStringEnum : public Column {
 public:
@@ -42,14 +44,24 @@ public:
     void Delete(size_t ndx);
     void Clear();
 
+    size_t count(const char* value) const;
     size_t find_first(const char* value, size_t start=0, size_t end=-1) const;
     void find_all(Array& res, const char* value, size_t start=0, size_t end=-1) const;
 
+    size_t count(size_t key_index) const;
     size_t find_first(size_t key_index, size_t start=0, size_t end=-1) const;
     void find_all(Array& res, size_t key_index, size_t start=0, size_t end=-1) const;
 
     void UpdateParentNdx(int diff);
-    void  UpdateFromParent();
+    void UpdateFromParent();
+
+    // Index
+    bool HasIndex() const {return m_index != NULL;}
+    const StringIndex& GetIndex() const {return *m_index;}
+    StringIndex& CreateIndex();
+    void SetIndexRef(size_t ref, ArrayParent* parent, size_t pndx);
+    void ReuseIndex(StringIndex& index);
+    void RemoveIndex() {m_index = NULL;}
 
     /// Compare two string enumeration columns for equality
     bool Compare(const ColumnStringEnum&) const;
@@ -66,6 +78,7 @@ private:
 
     // Member variables
     AdaptiveStringColumn m_keys;
+    StringIndex* m_index;
 };
 
 

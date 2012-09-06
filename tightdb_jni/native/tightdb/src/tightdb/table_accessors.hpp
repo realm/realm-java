@@ -822,6 +822,11 @@ private:
 public:
     explicit ColumnAccessor(Taboid* t): Base(t) {}
 
+    size_t count(const char* target) const
+    {
+        return Base::m_table->get_impl()->count_string(col_idx, target);
+    }
+
     std::size_t find_first(const char* value) const
     {
         return Base::m_table->get_impl()->find_first_string(col_idx, value);

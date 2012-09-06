@@ -33,7 +33,7 @@
     <ClInclude Include="src\com_tightdb_tablequery.h" />
     <ClInclude Include="src\com_tightdb_tableviewbase.h" />
     <ClInclude Include="src\com_tightdb_util.h" />
-    <ClInclude Include="src\mem_usage\mem.hpp" />
+    <ClInclude Include="src\mem_usage.hpp" />
     <ClInclude Include="src\tablebase_tpl.hpp" />
     <ClInclude Include="src\tablespecutil.h" />
     <ClInclude Include="src\util.h" />
@@ -47,7 +47,7 @@
     <ClCompile Include="src\com_tightdb_tableviewbase.cpp" />
     <ClCompile Include="src\com_tightdb_util.cpp" />
     <ClCompile Include="src\java_lang_list_util.cpp" />
-    <ClCompile Include="src\mem_usage\win32\mem.cpp" />
+    <ClCompile Include="src\mem_usage.cpp" />
     <ClCompile Include="src\util.cpp" />
     <ClCompile Include="src\mixedutil.cpp" />
     <ClCompile Include="src\tablespecutil.cpp" />
