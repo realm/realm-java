@@ -23,6 +23,11 @@ public class LongRowsetColumn<Cursor, View, Query> extends LongQueryColumn<Curso
 	public long minimum() {
 		return rowset.minimum(columnIndex);
 	}
+	
+	public double average() {
+		return rowset.average(columnIndex);
+	}
+	
 /*
 	public void setIndex() {
 		rowset.setIndex(columnIndex);
