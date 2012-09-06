@@ -15,6 +15,7 @@ tightdb-example/test-output/*
 /bin
 /.classpath
 /.project
+/.factorypath
 AutoCodeWorkspace/.metadata/*
 
 #ignore thumbnails created by windows
@@ -46,6 +47,6 @@ obj/
 _ReSharper*/
 [Tt]est[Rr]esult*
 /target
-/.settings
+/.settings/*
 *.tdb
 /test-output
