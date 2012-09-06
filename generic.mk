@@ -156,7 +156,7 @@ ifneq ($(or $(call FILTER_CLANG,$(CC)),$(call FILTER_CLANG,$(CXX))),)
 CLANG_VERSION = $(shell clang --version | grep -i 'clang version' | sed 's/.*clang version \([^ ][^ ]*\).*/\1/' | sed 's/[._-]/ /g')
 CLANG_MAJOR = $(word 1,$(CLANG_VERSION))
 CLANG_MINOR = $(word 2,$(CLANG_VERSION))
-ifeq ($(shell echo $$(($(CLANG_MAJOR) < 3 || ($(CLANG_MAJOR) == 3 && $(CLANG_MINOR) < 1)))),1)
+ifeq ($(shell echo $$(($(CLANG_MAJOR) < 3 || ($(CLANG_MAJOR) == 3 && $(CLANG_MINOR) < 2)))),1)
 LDFLAGS_DEFAULT += $(foreach x,$(subst :, ,$(LIBRARY_PATH)),-L$(x))
 endif
 endif

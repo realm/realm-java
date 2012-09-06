@@ -7,16 +7,18 @@ MODE="$1"
 [ $# -gt 0 ] && shift
 
 MAKE="make -j8"
-JAVA_INC=include
-JAVA_BIN=bin
+JAVA_INC="include"
+JAVA_BIN="bin"
+JNI_LIB_SUFFIX=""
 
 
 # Setup OS specific stuff
 OS="$(uname -s)" || exit 1
 if [ "$OS" = "Darwin" ]; then
     MAKE="$MAKE CC=clang"
-    JAVA_INC=Headers
-    JAVA_BIN=Commands
+    JAVA_INC="Headers"
+    JAVA_BIN="Commands"
+    JNI_LIB_SUFFIX=".jnilib"
 fi
 
 
@@ -98,6 +100,9 @@ case "$MODE" in
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC" || exit 1
+        if [ "$JNI_LIB_SUFFIX" ]; then
+            ln -s "libtightdb-jni.so" "libtightdb-jni$JNI_LIB_SUFFIX"
+        fi
 
         # Build tightdb.jar
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
@@ -122,24 +127,26 @@ case "$MODE" in
 
         # Build and run test suite
         cd "$TIGHTDB_JAVA_HOME/src/test" || exit 1
-        SOURCES="$(cd java && find * -type f -name '*.java')" || exit 1
-        CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test.XXXX)" || exit 1
-        export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:."
-        (cd java && $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" $SOURCES) || exit 1
-        (cd "$TEMP_DIR" && $JAVA -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $CLASSES) || exit 1
+        mkdir "$TEMP_DIR/out" || exit 1
+        mkdir "$TEMP_DIR/gen" || exit 1
+        export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:$TEMP_DIR/gen:."
+        (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" com/tightdb/test/TestModel.java) || exit 1
+        SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
+        CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
+        (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" $SOURCES) || exit 1
+        (cd "$TEMP_DIR/out" && $JAVA -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $CLASSES) || exit 1
         exit 0
         ;;
 
     "install")
         PREFIX="$1"
-        INSTALL=install
-        if [ "$PREFIX" ]; then
-            INSTALL="prefix=$PREFIX $INSTALL"
-        fi
-        (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && $MAKE $INSTALL) || exit 1
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
+        fi
+        (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && $MAKE prefix="$PREFIX" install) || exit 1
+        if [ "$JNI_LIB_SUFFIX" ]; then
+            (cd "$PREFIX/lib/jni" && ln -s "libtightdb-jni.so" "libtightdb-jni$JNI_LIB_SUFFIX") || exit 1
         fi
         install -d "$PREFIX/share/java" || exit 1
         install -m 644 "src/main/tightdb.jar" "$PREFIX/share/java" || exit 1

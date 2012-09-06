@@ -3,6 +3,7 @@ package com.tightdb.lib;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
 import com.tightdb.TableBase;
 import com.tightdb.TableViewBase;
@@ -33,6 +34,8 @@ public interface IRowsetBase {
 	 * @param index
 	 */
 	void remove(long index);
+	
+	void removeLast();
 
 	/**
 	 * Get the long value of a cell of the table/view identified by the
@@ -87,9 +90,15 @@ public interface IRowsetBase {
 	byte[] getBinaryByteArray(long columnIndex, long rowIndex);
 
 	Mixed getMixed(long columnIndex, long rowIndex);
+	
+	ColumnType getMixedType(long columnIndex, long rowIndex);
 
 	TableBase getSubTable(long columnIndex, long rowIndex);
 
+	void clearSubTable(long columnIndex, long rowIndex);
+	
+	long getSubTableSize(long columnIndex, long rowIndex);
+	
 	/**
 	 * Sets the long value for a particular cell identified by columnIndex and
 	 * rowIndex of that cell.
@@ -144,6 +153,8 @@ public interface IRowsetBase {
 	
 	long minimum(long columnIndex);
 
+	double average(long columnIndex);
+
 	long findFirstLong(long columnIndex, long value);
 	
 	long findFirstBoolean(long columnIndex, boolean value);
@@ -159,5 +170,7 @@ public interface IRowsetBase {
 	TableViewBase findAllDate(long columnIndex, Date value);
 	
 	TableViewBase findAllString(long columnIndex, String value);
+
+	String toJson();
 	
 }
