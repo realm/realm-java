@@ -28,6 +28,10 @@ public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cu
 		rowset.remove(rowIndex);
 	}
 
+	public void removeLast() {
+		rowset.removeLast();
+	}
+
 /*	TODO:
  * public View range(long from, long to) {
 		throw new UnsupportedOperationException();

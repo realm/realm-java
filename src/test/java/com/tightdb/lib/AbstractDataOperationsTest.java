@@ -85,9 +85,14 @@ public abstract class AbstractDataOperationsTest {
 	public void shouldRemoveLastRow() throws IllegalAccessException {
 		// Remove last row
 		getEmployees().remove(2);
+		assertEquals(2, getEmployees().size());
 		assertEquals(NAME0, getEmployees().at(0).getFirstName());
 		assertEquals(NAME1, getEmployees().at(1).getFirstName());
-		assertEquals(2, getEmployees().size());
+		
+		// Remove last row
+		getEmployees().removeLast();
+		assertEquals(1, getEmployees().size());
+		assertEquals(NAME0, getEmployees().at(0).getFirstName());
 	}
 
 	@Test
