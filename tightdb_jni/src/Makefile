@@ -1,7 +1,4 @@
-EXTRA_INSTALL_PREFIXES = jni
-
-jni_LIBRARIES = libtightdb-jni.a
-jni_DIR       = $(jnidir)
+lib_LIBRARIES = libtightdb-jni.a
 
 libtightdb_jni_a_SOURCES       = $(wildcard *.cpp)
 libtightdb_jni_a_LDFLAGS       = -ltightdb -lproc
