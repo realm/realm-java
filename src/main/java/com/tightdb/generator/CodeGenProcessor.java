@@ -96,7 +96,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		}
 
 		File file = new File(uri);
-		File generatedSourcesPath = file.getParentFile();
+		File outputFolder = file.getParentFile();
+		File generatedSourcesPath = outputFolder;
 
 		String[] sourceFolders = getSourceFolders();
 		while (generatedSourcesPath != null) {
@@ -111,7 +112,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		}
 
 		// add the sources output folder as the last option to search sources
-		sourcesPath.add(generatedSourcesPath);
+		sourcesPath.add(outputFolder);
+		logger.info("Configured destination folder: " + outputFolder);
 
 		prepareTables(elements);
 
