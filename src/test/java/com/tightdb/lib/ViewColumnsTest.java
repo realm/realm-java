@@ -87,12 +87,16 @@ public class ViewColumnsTest extends AbstractTest {
 	public void shouldAggregateColumnValue() {
 		assertEquals(EmployeesFixture.EMPLOYEES[0].salary,
 				employeesView.salary.minimum());
+		
 		assertEquals(EmployeesFixture.EMPLOYEES[1].salary,
 				employeesView.salary.maximum());
+		
 		long sum = EmployeesFixture.EMPLOYEES[0].salary
 				+ EmployeesFixture.EMPLOYEES[1].salary
 				+ EmployeesFixture.EMPLOYEES[2].salary;
 		assertEquals(sum, employeesView.salary.sum());
+		
+		assertEquals(sum / 3.0, employees.salary.average(), 0.00001);
 	}
 
 	@Test
