@@ -1,10 +1,13 @@
 package com.tightdb;
 
+// Make sure numbers match with <tightdb/column_type.hpp>
+
 public enum ColumnType {
 	ColumnTypeInt(0),
 	ColumnTypeBool(1),
 	ColumnTypeString(2),
-	ColumnTypeStringEnum(3),	// This is NOT a user selectable datatype - You can not create a table containing this type
+        // FIXME: Try to get rid of this one!
+        ColumnTypeStringEnum(3),        // This is NOT a user selectable datatype - You can not create a table containing this type
 	ColumnTypeBinary(4),
 	ColumnTypeTable(5),
 	ColumnTypeMixed(6),
