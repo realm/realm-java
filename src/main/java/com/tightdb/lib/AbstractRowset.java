@@ -56,4 +56,8 @@ public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cu
 
 	public abstract String getName();
 
+	public String toJson() {
+		return rowset.toJson();
+	}
+	
 }
