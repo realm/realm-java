@@ -10,6 +10,7 @@ MAKE="make -j8"
 JAVA_INC="include"
 JAVA_BIN="bin"
 JNI_LIB_SUFFIX=""
+JNI_LIB_INST_DIR="lib/jni" # Absolute or relative to installation prefix
 
 
 # Setup OS specific stuff
@@ -19,6 +20,7 @@ if [ "$OS" = "Darwin" ]; then
     JAVA_INC="Headers"
     JAVA_BIN="Commands"
     JNI_LIB_SUFFIX=".jnilib"
+    JNI_LIB_INST_DIR="/System/Library/Java/Extensions"
 fi
 
 
@@ -141,12 +143,27 @@ case "$MODE" in
 
     "install")
         PREFIX="$1"
+        PREFIX_WAS_SPECIFIED="$PREFIX"
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
         fi
         (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && $MAKE prefix="$PREFIX" install) || exit 1
-        if [ "$JNI_LIB_SUFFIX" ]; then
-            (cd "$PREFIX/lib/jni" && ln -s "libtightdb-jni.so" "libtightdb-jni$JNI_LIB_SUFFIX") || exit 1
+        if [ "$JNI_LIB_SUFFIX" -a "$JNI_LIB_SUFFIX" != ".so" -o "$JNI_LIB_INST_DIR" -a "$JNI_LIB_INST_DIR" != "lib" ]; then
+            SUFFIX="${JNI_LIB_SUFFIX:-.so}"
+            INST_DIR="${JNI_LIB_INST_DIR:-lib}"
+            if [ "$PREFIX_WAS_SPECIFIED" ]; then
+                if printf "%s\n" "$INST_DIR" |grep '^/' >/dev/null; then
+                    INST_DIR="lib"
+                fi
+            fi
+            if ! printf "%s\n" "$INST_DIR" |grep '^/' >/dev/null; then
+                INST_DIR="$PREFIX/$INST_DIR"
+            fi
+            if [ "$INST_DIR" == "$PREFIX/lib" ]; then
+                (cd "$INST_DIR" && ln -f -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
+            else
+                (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
+            fi
         fi
         install -d "$PREFIX/share/java" || exit 1
         install -m 644 "src/main/tightdb.jar" "$PREFIX/share/java" || exit 1
@@ -157,12 +174,10 @@ case "$MODE" in
     "test-installed")
         PREFIX="$1"
         find_java || exit 1
-        if [ -z "$PREFIX" ]; then
+        if [ "$PREFIX" ]; then
+            JAVA="$JAVA -Djava.library.path=$PREFIX/lib"
+        else
             PREFIX="/usr/local"
-        fi
-        # FIXME: For which PREFIX, if any, is $PREFIX/lib/jni automatically in java.library.path? (Ubuntu, other Linuxes, Darwin, ...)
-        if [ "$PREFIX" != "/usr/local" ]; then
-            JAVA="$JAVA -Djava.library.path=$PREFIX/lib/jni"
         fi
         cd "$TIGHTDB_JAVA_HOME/test-installed" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test-installed.XXXX)" || exit 1
