@@ -4,18 +4,17 @@ public enum ColumnType {
 	ColumnTypeInt(0),
 	ColumnTypeBool(1),
 	ColumnTypeString(2),
-	ColumnTypeDate(3),
+	ColumnTypeStringEnum(3);	// This is NOT a user selectable datatype - You can not create a table containing this type
 	ColumnTypeBinary(4),
 	ColumnTypeTable(5),
 	ColumnTypeMixed(6),
-	// Internal types
-	ColumnTypeStringEnum(7);	// This is NOT a user selectable datatype - You can not create a table containing this type
-	
+	ColumnTypeDate(7),
+
 	private ColumnType(int index){
 		this.index = index;
 	}
 	private int index;
-	
+
 	public static ColumnType getColumnTypeForIndex(int index){
 		ColumnType[] columnTypes = values();
 		for(int i=0; i<columnTypes.length; i++){
