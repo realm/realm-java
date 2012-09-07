@@ -1,9 +1,13 @@
 *~
 /test_output
 *.bat
+*.class
 *.orig
 tightdb_jni??d*.dll
 tightdb_jni*.exp
+
+tightdb-android/generated-sources/*
+tightdb-example/generated-sources/*
 tightdb-example/target/*
 tightdb-example/test-output/*
 *.tightdb

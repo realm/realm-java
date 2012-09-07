@@ -1,4 +1,5 @@
+#Sat Sep 08 00:14:25 CEST 2012
 eclipse.preferences.version=1
 org.eclipse.jdt.apt.aptEnabled=true
-org.eclipse.jdt.apt.genSrcDir=src
+org.eclipse.jdt.apt.genSrcDir=generated-sources
 org.eclipse.jdt.apt.reconcileEnabled=true
