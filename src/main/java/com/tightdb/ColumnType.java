@@ -4,11 +4,11 @@ public enum ColumnType {
 	ColumnTypeInt(0),
 	ColumnTypeBool(1),
 	ColumnTypeString(2),
-	ColumnTypeStringEnum(3);	// This is NOT a user selectable datatype - You can not create a table containing this type
+	ColumnTypeStringEnum(3),	// This is NOT a user selectable datatype - You can not create a table containing this type
 	ColumnTypeBinary(4),
 	ColumnTypeTable(5),
 	ColumnTypeMixed(6),
-	ColumnTypeDate(7),
+	ColumnTypeDate(7);
 
 	private ColumnType(int index){
 		this.index = index;
