@@ -159,9 +159,10 @@ case "$MODE" in
             if ! printf "%s\n" "$INST_DIR" |grep '^/' >/dev/null; then
                 INST_DIR="$PREFIX/$INST_DIR"
             fi
-            if [ "$INST_DIR" == "$PREFIX/lib" ]; then
+            if [ "$INST_DIR" = "$PREFIX/lib" ]; then
                 (cd "$INST_DIR" && ln -f -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
             else
+                install -d "$INST_DIR" || exit 1
                 (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
             fi
         fi
