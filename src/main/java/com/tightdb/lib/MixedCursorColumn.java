@@ -19,6 +19,10 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 		return cursor.rowset.getMixed(columnIndex, cursor.getPosition());
 	}
 
+	public ColumnType getType() {
+		return cursor.rowset.getMixedType(columnIndex, cursor.getPosition());
+	}
+	
 	@Override
 	public void set(Mixed value) {
 		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), value);

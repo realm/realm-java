@@ -61,7 +61,7 @@ public class TableQueryTest extends AbstractTest {
 		assertEquals(40000, results.salary.sum(0, 2, 100)); // both
 	}
 
-	@Test
+	@Test(enabled=false)
 	public void shouldMatchOnSimpleStringCriteria() {
 		assertEquals(1, employees.firstName.eq("John").findAll().size());
 		assertEquals(1, employees.firstName.equal("John").findAll().size());

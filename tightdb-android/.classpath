@@ -9,4 +9,9 @@
 	<classpathentry kind="lib" path="libs/javacsv.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin/classes"/>
+	<classpathentry kind="src" path="generated-sources">
+		<attributes>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
 </classpath>

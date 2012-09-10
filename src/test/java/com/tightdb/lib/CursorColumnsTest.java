@@ -8,6 +8,7 @@ import java.util.Date;
 
 import org.testng.annotations.Test;
 
+import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
 import com.tightdb.test.EmployeesFixture;
 import com.tightdb.test.TestEmployeeQuery;
@@ -60,6 +61,7 @@ public class CursorColumnsTest extends AbstractTest {
 
 		employee.extra.set(true);
 		assertEquals(true, employee.extra.get().getBooleanValue());
+		assertEquals(ColumnType.ColumnTypeBool, employee.extra.getType());
 
 		byte[] arr = { 1, 3, 5 };
 		employee.extra.set(arr);
@@ -68,6 +70,7 @@ public class CursorColumnsTest extends AbstractTest {
 				.getBinaryType());
 		assertEquals(ByteBuffer.wrap(arr), employee.extra.get()
 				.getBinaryValue());
+		assertEquals(ColumnType.ColumnTypeBinary, employee.extra.getType());
 
 		ByteBuffer buf = ByteBuffer.allocateDirect(3);
 		byte[] arr2 = { 10, 20, 30 };
@@ -77,21 +80,26 @@ public class CursorColumnsTest extends AbstractTest {
 				.getBinaryType());
 		assertEquals(ByteBuffer.wrap(arr2), employee.extra.get()
 				.getBinaryValue());
+		assertEquals(ColumnType.ColumnTypeBinary, employee.extra.getType());
 
 		Date date = new Date(6547);
 		employee.extra.set(date);
 		assertEquals(date, employee.extra.get().getDateValue());
+		assertEquals(ColumnType.ColumnTypeDate, employee.extra.getType());
 
 		long num = 135L;
 		employee.extra.set(num);
 		assertEquals(num, employee.extra.get().getLongValue());
+		assertEquals(ColumnType.ColumnTypeInt, employee.extra.getType());
 
 		Mixed mixed = Mixed.mixedValue("mixed");
 		employee.extra.set(mixed);
 		assertEquals(mixed, employee.extra.get());
+		assertEquals(ColumnType.ColumnTypeString, employee.extra.getType());
 
 		employee.extra.set("abc");
 		assertEquals("abc", employee.extra.get().getStringValue());
+		assertEquals(ColumnType.ColumnTypeString, employee.extra.getType());
 	}
 
 	@Test(expectedExceptions = UnsupportedOperationException.class)

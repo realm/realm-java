@@ -32,18 +32,16 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 		return "subtable";
 	}
 
-	/********************** CONVENIENCE METHODS FOR THE SUBTABLES ********************/
-
 	public long size() {
-		return get().size();
+		return cursor.rowset.getSubTableSize(columnIndex, cursor.getPosition());
 	}
 
 	public boolean isEmpty() {
-		return get().isEmpty();
+		return size() == 0;
 	}
 
 	public void clear() {
-		get().clear();
+		cursor.rowset.clearSubTable(columnIndex, cursor.getPosition());
 	}
 
 	public Subcursor at(long position) {
