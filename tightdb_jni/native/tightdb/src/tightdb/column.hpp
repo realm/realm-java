@@ -67,6 +67,8 @@ public:
     virtual void UpdateParentNdx(int diff) {m_array->UpdateParentNdx(diff);}
     virtual void UpdateFromParent() {m_array->UpdateFromParent();}
 
+    virtual void invalidate_subtables_virtual() {}
+
 #ifdef TIGHTDB_DEBUG
     virtual void Verify() const = 0; // Must be upper case to avoid conflict with macro in ObjC
     virtual void ToDot(std::ostream& out, const char* title=NULL) const;

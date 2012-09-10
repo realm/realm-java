@@ -6,7 +6,7 @@ import com.tightdb.lib.TightDB;
 
 public class util {
 	
-	public static final long REQUIRED_JNI_VERSION = 9;
+	public static final long REQUIRED_JNI_VERSION = 10;
 
 	static {
 		TightDB.loadLibrary();

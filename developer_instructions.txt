@@ -1,0 +1,30 @@
+How to build tightdb-jni (on Windows):
+======================================
+
+1. Build tightdb
+	- Build tightdb as lib (currently with "#define MULTITHREAD 0" in Query.cpp)
+	- Use "Batch Build" which builds all 4 versions, a debug and a release version for x32 and x64.
+	
+2. Build JNI dll's
+	- Copy above tightdbXXX.lib to tightdb_jni/native/libs/
+	- Update any .hpp files in /tightdb_jni/native/src to be identical to the ones in tightdb above
+	- If any changes are made in the JNI interface, bump up the TIGHTDB_JNI_VERSION in com_tightdb_util.cpp
+	- Use "Batch Build" to build all 4 dll versions. The dll's will be located in the base directory
+	
+
+copy target/{"tightdb_jni32.dll", "tightdb_jni64.dll", "libtightdb-jni.so", "libtightdb.jnilib"} to example/lib
+
+
+How to update Java tightdb-jars:
+================================
+
+1. Update REQUIRED_JNI_VERSION version to match TIGHTDB_JNI_VERSION (if any interface changes)
+
+2. Build jar:
+	- Run as, Maven Build..., Goal: package
+	(generated jar files are placed under Target)
+	
+3. copy target/tightdb*.jar to example/lib
+
+
+
