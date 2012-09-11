@@ -20,7 +20,13 @@
 #ifndef TIGHTDB_ERROR_HPP
 #define TIGHTDB_ERROR_HPP
 
-#include <stdexcept>
+#include <tightdb/config.h>
+
+#ifdef TIGHTDB_HAVE_EXCEPTIONS
+#  include <stdexcept>
+#else
+#  include <tightdb/terminate.hpp>
+#endif
 
 namespace tightdb {
 
@@ -73,9 +79,12 @@ const char* get_message(error_code);
 
 inline void throw_error(error_code err)
 {
-    // FIXME: Do we allow exceptions?
+#ifdef TIGHTDB_HAVE_EXCEPTIONS
     // FIXME: Should throw TightdbException(err, get_message(err)) or maybe one type of exception per error type.
     throw std::runtime_error(get_message(err));
+#else
+    TIGHTDB_TERMINATE(get_message(err));
+#endif
 }
 
 

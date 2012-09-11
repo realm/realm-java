@@ -105,7 +105,7 @@ public class Example {
 		System.out.println("max salary: " + employees.salary.maximum());
 		System.out.println("min salary: " + employees.salary.minimum());
 		System.out.println("salary sum: " + employees.salary.sum());
-		System.out.println("averate sum: " + employees.salary.average());
+		System.out.println("average sum: " + employees.salary.average());
 
 		/****************************** COMPLEX QUERY *****************************/
 

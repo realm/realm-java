@@ -33,10 +33,6 @@ Buiding Tightdb example using Eclipse
    Select "File->Import". 
    Choose "Maven->Existing Maven Project". Root directory: Browse for "tightdb-example"
 
-   Note: Errors may occur at this point about missing Maven plugins. 
-   Those will be resolved after generating and installing additional plugins later on 
-   (see 4. Generating tightdb classes)
-
 
 3. Running the application
 --------------------------
@@ -52,21 +48,9 @@ and output from the application will be shown in the Console window.
 You can now change the example and as you wish. If you change or add Tightdb Tables, 
 you need to regenerate the typesafe classes that Tightdb provides based on the Table specifications.
 
+1. All you have to do is save your files, and the generated files will be updated.
 
-1. Save files
-   - Save all edited source files containing @Table definitions
-
-2. Right-click tightdb-example -> Run As -> Maven generate-sources.
-   This will generate custom classes for your tables in "com.tightdb.generated".
-   The first time this is done, Eclipse will installadditional plugins if not already present.
-
-   Note: You may notice "[INFO]" messages like this:
-   "[INFO] diagnostic ...\tightdb-example\src\main\java\com\tightdb\example\Example.java:8: 
-    error: package     com.tightdb.generated does not exist"
-   These can safely be ignored.
-
-
-3. Refresh the project (F5) and the generated classes are available with full autocompletion etc.
+2. Refresh the project (F5) and the generated classes are available with full autocompletion etc.
 
 You can now run your application again.
 

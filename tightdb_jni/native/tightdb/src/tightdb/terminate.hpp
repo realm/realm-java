@@ -26,7 +26,7 @@
 #ifdef TIGHTDB_DEBUG
 #  define TIGHTDB_TERMINATE(msg) tightdb::terminate((msg), __FILE__, __LINE__)
 #else
-#  define TIGHTDB_TERMINATE(msg) std::abort()
+#  define TIGHTDB_TERMINATE(msg) (static_cast<void>(msg), std::abort())
 #endif
 
 namespace tightdb {

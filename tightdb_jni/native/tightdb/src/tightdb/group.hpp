@@ -72,6 +72,7 @@ public:
 
     // Conversion
     template<class S> void to_json(S& out) const;
+    void to_string(std::ostream& out) const;
 
     /// Compare two groups for equality. Two groups are equal if, and
     /// only if, they contain the same tables in the same order, that

@@ -30,7 +30,7 @@ class Table;
 
 class Spec {
 public:
-    void add_column(ColumnType type, const char* name);
+    void add_column(ColumnType type, const char* name, ColumnType attr=COLUMN_ATTR_NONE);
     Spec add_subtable_column(const char* name);
 
     // FIXME: It seems that the application must make sure that the
