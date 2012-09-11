@@ -96,7 +96,7 @@ public class TableViewBase implements IRowsetBase {
 	 * @return true if empty, otherwise false.
 	 */
 	public boolean isEmpty(){
-		return nativeSize(nativePtr) != 0;
+		return size() == 0;
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class TableViewBase implements IRowsetBase {
 	 * 
 	 * @return The number of rows.
 	 */
-	public long size(){
+	public long size() {
 		return nativeSize(nativePtr);
 	}
 
