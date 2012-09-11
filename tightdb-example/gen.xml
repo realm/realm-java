@@ -3,6 +3,7 @@
 <project name="tightdb-example-gen" basedir="." default="generate-sources">
 	
 	<property name="srcdir" value="src/main/java" />
+	<property name="destdir" value="target/generated" />
 	<property name="version" value="1.6" />
 
 	<target name="generate-sources">
@@ -11,13 +12,12 @@
 			<compilerarg value="-classpath" />
 			<compilerarg value="lib/tightdb.jar;lib-sqlite/sqlite4java.jar" />
 			<compilerarg value="-processor" />
-			<compilerarg value="org.jannocessor.processor.JannocessorProcessor" />
+			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
 			<compilerarg value="-processorpath" />
 			<compilerarg value="lib/tightdb-devkit.jar" />
 			<compilerarg value="-s" />
-			<compilerarg value="${srcdir}" />
+			<compilerarg value="${destdir}" />
 			<compilerarg value="-proc:only" />
-			<compilerarg value="-Aprofile=${srcdir}" />
 		</javac>
 	</target>
 	

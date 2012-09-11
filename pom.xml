@@ -56,9 +56,6 @@
 					<includes>
 						<include>com/tightdb/*.class</include>
 						<include>com/tightdb/lib/*.class</include>
-						<include>com/tightdb/cleaner/*.class</include>
-						<include>com/tightdb/generator/*.class</include>
-						<include>*.ftl</include>
 					</includes>
 				</configuration>
 			</plugin>

@@ -10,26 +10,52 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
-        <build>
-                <plugins>
-                        <plugin>
-                                <groupId>org.apache.maven.plugins</groupId>
-                                <artifactId>maven-compiler-plugin</artifactId>
-                                <configuration>
-                                        <source>1.6</source>
-                                        <target>1.6</target>
-                                </configuration>
-                        </plugin>
-                </plugins>
-                <finalName>javaactivedirectory</finalName>
-        </build>
+
+    <build>
+        <plugins>
+        	<plugin>
+            	<groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+                <configuration>
+                	<source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            
+			<plugin>
+				<groupId>org.bsc.maven</groupId>
+				<artifactId>maven-processor-plugin</artifactId>
+				<version>2.0.5</version>
+				<executions>
+ 					<execution>
+   					<goals>
+     					<goal>process</goal>
+   					</goals>
+   					<configuration>
+   					    <processors>
+    					    <processor>com.tightdb.generator.CodeGenProcessor</processor>
+   					    </processors>
+   					    <outputDirectory>${project.build.directory}/generated</outputDirectory>
+   					</configuration>
+ 					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>com.tightdb</groupId>
+						<artifactId>tightdb-devkit</artifactId>
+						<version>1.1.0</version>
+					</dependency>
+   				</dependencies>
+         	</plugin>
+		</plugins>
+	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.tightdb</groupId>
 			<artifactId>tightdb</artifactId>
 			<version>1.1.0</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/lib/tightdb.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>com.almworks.sqlite4java</groupId>
