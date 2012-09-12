@@ -41,12 +41,13 @@ Buiding TightDB example using Eclipse
 2.2. Open eclipse and select the workspace directory, e.g. "./my-workspace".
 
 2.3. Import Example:
-   Select "File -> Import". 
-   Choose "Maven -> Existing Maven Project". Root directory: Browse for "tightdb-example"
+- Select "File -> Import". 
+- Choose "Maven -> Existing Maven Project" (or "General -> Existing Projects into Workspace" if you don't have Maven installed).
+- Select root directory: Browse for the "tightdb-example" folder and select it.
 
 
-3. Installation of the TightDB JARs
-----------------------------------
+3. Installation of the TightDB JARs (required only if you use Maven)
+-------------------------------------------------------------------------------
 - Navigate to the "tightdb-example" folder:
 cd <path-to-the-example>/tightdb-example
 

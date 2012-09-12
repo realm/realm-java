@@ -9,5 +9,7 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/tightdb.jar"/>
+	<classpathentry kind="lib" path="lib-sqlite/sqlite4java.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
