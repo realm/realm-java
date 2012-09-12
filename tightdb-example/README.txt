@@ -45,23 +45,33 @@ Buiding TightDB example using Eclipse
    Choose "Maven -> Existing Maven Project". Root directory: Browse for "tightdb-example"
 
 
-3. Running the application
+3. Installation of the TightDB JARs
+----------------------------------
+- Navigate to the "tightdb-example" folder:
+cd <path-to-the-example>/tightdb-example
+
+- Install the tightdb-devkit.jar and tightdb-devkit.jar libraries into the local Maven repository:
+mvn install:install-file -Dfile=lib/tightdb.jar -DgroupId=com.tightdb -DartifactId=tightdb -Dversion=1.1.0 -Dpackaging=JAR
+mvn install:install-file -Dfile=lib/tightdb-devkit.jar -DgroupId=com.tightdb -DartifactId=tightdb-devkit -Dversion=1.1.0 -Dpackaging=JAR
+
+
+4. Running the application
 --------------------------
 
-3.1. Run the application
+4.1. Run the application
    - Select "Run -> Run"
 
 and output from the application will be shown in the Console window.
 
 
-4. Generating TightDB classes
+5. Generating TightDB classes
 -----------------------------
 You can now change the example as you wish. If you change or add TightDB tables, 
 you need to regenerate the type-safe classes that TightDB provides based on the @Table specifications.
 
-4.1. All you have to do is save your files, and the generated files will be updated.
+5.1. All you have to do is save your files, and the generated files will be updated.
 
-4.2. Sometimes you might need to refresh the project (F5) if the most recent changes aren't reflected.
+5.2. Sometimes you might need to refresh the project (F5) if the most recent changes aren't reflected.
 The generated classes will be available with full auto-completion etc.
 
 You can now run your application again.
