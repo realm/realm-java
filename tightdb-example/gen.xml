@@ -6,11 +6,15 @@
 	<property name="destdir" value="target/generated" />
 	<property name="version" value="1.6" />
 
+    <path id="code-gen-classpath">
+        <pathelement location="lib/tightdb.jar"/>
+        <pathelement location="lib-sqlite/sqlite4java.jar"/>
+    </path>
+		
 	<target name="generate-sources">
 		<echo message="${ant.project.name}: ${ant.file}" />
 		<javac source="${version}" target="${version}" srcdir="${srcdir}">
-			<compilerarg value="-classpath" />
-			<compilerarg value="lib/tightdb.jar;lib-sqlite/sqlite4java.jar" />
+			<classpath refid="code-gen-classpath"/>
 			<compilerarg value="-processor" />
 			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
 			<compilerarg value="-processorpath" />
