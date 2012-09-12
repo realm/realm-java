@@ -11,59 +11,41 @@ Instructions for setting up TightDB for a new or existing project using Ant
 4. Add the tightdb.jar to the classpath (in Eclipse right-click it -> Build Path -> Add to build path).
 - Note: tightdb-devkit.jar is not required at runtime, it's only used by the Ant build target "generate-sources".
 
-5. Copy the following Ant configuration in the build.xml Ant file. Modify "srcdir" according to your preference or existing project:
+5. Add the following Ant configuration in the build.xml Ant file. Modify "srcdir" and "destdir" according to your preference or existing project layout:
 
-<?xml version="1.0"?>
+	<property name="srcdir" value="src" />
+	<property name="destdir" value="generated" />
+	<property name="version" value="1.6" />
 
-<project name="test" basedir="." default="generate-sources">
+	<target name="generate-sources">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac source="${version}" target="${version}" srcdir="${srcdir}">
+			<compilerarg value="-classpath" />
+			<compilerarg value="lib/tightdb.jar" />
+			<compilerarg value="-processor" />
+			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
+			<compilerarg value="-processorpath" />
+			<compilerarg value="lib/tightdb-devkit.jar" />
+			<compilerarg value="-s" />
+			<compilerarg value="${destdir}" />
+			<compilerarg value="-proc:only" />
+		</javac>
+	</target>
 
-        <property name="srcdir" value="src" />
-        <property name="version" value="1.6" />
+6. Create the "srcdir" directory, i.e. "src" dir.
 
-        <target name="generate-sources">
-                <echo message="${ant.project.name}: ${ant.file}" />
-                <javac source="${version}" target="${version}" srcdir="${srcdir}">
-                        <compilerarg value="-classpath" />
-                        <compilerarg value="lib/tightdb.jar" />
-                        <compilerarg value="-processor" />
-                        <compilerarg value="org.jannocessor.processor.JannocessorProcessor" />
-                        <compilerarg value="-processorpath" />
-                        <compilerarg value="lib/tightdb-devkit.jar" />
-                        <compilerarg value="-s" />
-                        <compilerarg value="${srcdir}" />
-                        <compilerarg value="-proc:only" />
-						<compilerarg value="-Aprofile=${srcdir}" />
-                </javac>
-        </target>
-
-</project>
-
-6. Create the "srcdir" directory, i.e. src/main/java dir
-
-7. Create java example code... 
-
-For example:
+7. Write Java example code, for example:
 ------
-package main.java;
+package tightdb.example;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
+import com.tightdb.*;
+import com.tightdb.lib.*;
 
-import com.tightdb.Group;
-import com.tightdb.generated.*;
-import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.Table;
-import com.tightdb.lib.TightDB;
-
-public class test {
-
-	public static void main(String[] args) {
-		runTest();
-	}
+public class Test {
 
 	@Table
-	class employee {
+	class Employee {
 		String firstName;
 		String lastName;
 		int salary;
@@ -71,12 +53,14 @@ public class test {
 		byte[] photo;
 		Date birthdate;
 		Object extra;
-		phone phones;
 	}
 
 
-	public static void runTest() {
-...
+	public static void main(String[] args) {
+		EmployeeTable employees = new EmployeeTable();
+		... 
+	}
+}
 ------
 
 8. Executing the "ant generate-sources" Ant build target will generate the source files (overwriting the previously generated files).
