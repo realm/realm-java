@@ -1,4 +1,4 @@
-package com.tightdb.performance;
+package com.tightdb.examples.performance;
 
 import com.tightdb.util;
 import com.tightdb.lib.TightDB;

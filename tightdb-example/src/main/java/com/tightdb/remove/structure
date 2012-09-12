@@ -1,0 +1,14 @@
+
+Eclipse, cmdline:
+
+
+tightdb.samples (1 project) + Eclipse, 
+	.Tutorial
+	.Example (Showcase)
+	.Replication
+	.Performance-test
+	
+tightdb-templates
+	Maven (HelloWorld.java with pom.xml)
+	Ant
+	

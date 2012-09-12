@@ -196,7 +196,7 @@ public class TableBase implements IRowsetBase {
 	protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
 
 	/**
-	 * Returns the index of a column based on the name.
+	 * Returns the 0-based index of a column based on the name.
 	 * 
 	 * @param name
 	 *            column name

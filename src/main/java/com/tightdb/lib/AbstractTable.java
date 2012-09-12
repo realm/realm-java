@@ -69,6 +69,17 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 	
 	/**
+	 * Returns the 0-based index of a column based on the name.
+	 * 
+	 * @param columnName
+	 *            the column name
+	 * @return the index, -1 if not found
+	 */
+	public long getColumnIndex(String columnName) {
+		return table.getColumnIndex(columnName);
+	}
+	
+	/**
 	 * Get the type of a column identified by the columnIdex.
 	 * 
 	 * @param columnIndex
