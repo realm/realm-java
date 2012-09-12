@@ -1,4 +1,4 @@
-package com.tightdb.performance;
+package com.tightdb.examples.performance;
 
 public abstract interface IPerformance {
 

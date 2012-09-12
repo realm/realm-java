@@ -1,4 +1,4 @@
-package com.tightdb.performance;
+package com.tightdb.examples.performance;
 
 import com.almworks.sqlite4java.SQLite;
 import com.almworks.sqlite4java.SQLiteConnection;
