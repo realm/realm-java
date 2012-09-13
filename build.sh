@@ -126,18 +126,21 @@ case "$MODE" in
 
         # Build tightdb.jar
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
-        CLASSPATH="$(printf "%s\n" "$DEP_JARS" | sed 's/  */:/g'):java" || exit 1
+        (cd java && $JAVAC                com/tightdb/*.java  com/tightdb/lib/*.java)  || exit 1
+        (cd java && jar cf ../tightdb.jar com/tightdb/*.class com/tightdb/lib/*.class) || exit 1
+        jar i tightdb.jar || exit 1
+
+        # Build tightdb-devkit.jar
+        CLASSPATH="$(printf "%s\n" "$DEP_JARS" | sed 's/  */:/g'):../tightdb.jar" || exit 1
         export CLASSPATH
         # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
-        SOURCES="$(find java/ -type f -name '*.java' | grep -v /doc/ | grep -v /example/ | grep -v /test/)" || exit 1
-        $JAVAC $SOURCES || exit 1
-        CLASSES="$(cd java && find * -type f -name '*.class')" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
         MANIFEST="$TEMP_DIR/MANIFEST.MF"
-        echo "Class-Path: $DEP_JARS" >>"$MANIFEST"
-        jar cfm tightdb.jar "$MANIFEST" -C resources META-INF || exit 1
-        (cd java && jar uf ../tightdb.jar $CLASSES) || exit 1
-        jar i tightdb.jar || exit 1
+        echo "Class-Path: tightdb.jar $DEP_JARS" >>"$MANIFEST"
+        jar cfm tightdb-devkit.jar "$MANIFEST" -C resources META-INF || exit 1
+        (cd java && $JAVAC                       com/tightdb/generator/*.java  com/tightdb/cleaner/*.java)  || exit 1
+        (cd java && jar uf ../tightdb-devkit.jar com/tightdb/generator/*.class com/tightdb/cleaner/*.class) || exit 1
+        jar i tightdb-devkit.jar || exit 1
         exit 0
         ;;
 
@@ -149,7 +152,7 @@ case "$MODE" in
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test.XXXX)" || exit 1
         mkdir "$TEMP_DIR/out" || exit 1
         mkdir "$TEMP_DIR/gen" || exit 1
-        export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:$TEMP_DIR/gen:."
+        export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb-devkit.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:$TEMP_DIR/gen:."
         (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" com/tightdb/test/TestModel.java) || exit 1
         SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
         CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
@@ -182,7 +185,7 @@ case "$MODE" in
             (cd "$INST_DIR" && ln -f -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
         fi
         install -d "$PREFIX/share/java" || exit 1
-        install -m 644 "src/main/tightdb.jar" "$PREFIX/share/java" || exit 1
+        install -m 644 "src/main/tightdb.jar" "src/main/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
         # FIXME: See http://developer.apple.com/library/mac/#qa/qa1170/_index.html
         exit 0
         ;;
@@ -197,7 +200,7 @@ case "$MODE" in
         fi
         cd "$TIGHTDB_JAVA_HOME/test-installed" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test-installed.XXXX)" || exit 1
-        export CLASSPATH="$PREFIX/share/java/tightdb.jar:."
+        export CLASSPATH="$PREFIX/share/java/tightdb-devkit.jar:."
         $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" java/my/app/Test.java || exit 1
         (cd "$TEMP_DIR" && $JAVA my.app.Test) || exit 1
         exit 0
