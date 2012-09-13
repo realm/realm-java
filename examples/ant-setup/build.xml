@@ -40,12 +40,14 @@
     <target name="clean">
         <delete dir="${gendir}"/>
         <delete dir="${bindir}"/>
-        </target>
+    </target>
     
     <target depends="clean,generate-sources,build-project" name="build"/>
 
-	<target depends="init" name="generate-sources">
+	<target name="generate-sources">
 		<echo message="${ant.project.name}: ${ant.file}" />
+		<delete dir="${gendir}"/>
+		<mkdir dir="${gendir}"/>
 		<javac source="${source}" target="${target}" srcdir="${srcdir}">
 			<classpath refid="build-classpath"/>
 			<compilerarg value="-processor" />
@@ -58,8 +60,8 @@
 		</javac>
 	</target>
     
-    <target name="run">
-        <java classname="com.tightdb.examples.HelloWorld" failonerror="true" fork="yes">
+    <target depends="build" name="run">
+        <java classname="com.tightdb.example.HelloWorld" failonerror="true" fork="yes">
             <classpath refid="samples-classpath"/>
         </java>
     </target>

@@ -2,6 +2,9 @@ package com.tightdb.example;
 
 import java.util.Date;
 
+import com.tightdb.Table;
+import com.tightdb.lib.TightDB;
+
 public class HelloWorld {
 
 	@Table(row = "Employee")
@@ -23,13 +26,12 @@ public class HelloWorld {
 	}
 
 	public static void main(String[] args) {
-		EmployeeTable employees = new EmployeeTable(group);
+		EmployeeTable employees = new EmployeeTable();
 
-		Employee john = employees.add("John", "Doe", 10000, true, new byte[] {
-				1, 2, 3 }, new Date(), "extra");
+		employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 },
+				new Date(), "extra");
 
 		TightDB.print("Employees", employees);
-		TightDB.print("Johny", johny);
 	}
 
 }
