@@ -21,6 +21,7 @@
     </path>
 
     <target name="init">
+        <mkdir dir="${gendir}"/>
         <mkdir dir="${bindir}"/>
         <copy includeemptydirs="false" todir="${bindir}">
             <fileset dir="src">
@@ -39,6 +40,7 @@
     </target>
     
     <target name="clean">
+        <delete dir="${gendir}"/>
         <delete dir="${bindir}"/>
     </target>
     
@@ -46,6 +48,8 @@
 
 	<target name="generate-sources">
 		<echo message="${ant.project.name}: ${ant.file}" />
+		<delete dir="${gendir}"/>
+		<mkdir dir="${gendir}"/>
 		<javac source="${source}" target="${target}" srcdir="${srcdir}">
 			<classpath refid="build-classpath"/>
 			<compilerarg value="-processor" />
