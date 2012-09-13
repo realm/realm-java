@@ -230,7 +230,7 @@ case "$MODE" in
         echo "If you do not have them already, you may want to copy them from"
         echo "tightdb_java2/dep_jars/."
         echo
-        echo "A simple example is provided in tightdb_java2/tightdb-example/"
+        echo "A simple example is provided in tightdb_java2/examples/intro-example"
         echo "to help you get started."
         exit 0
         ;;

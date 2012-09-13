@@ -60,7 +60,7 @@ mvn install:install-file -Dfile=lib/tightdb-devkit.jar -DgroupId=com.tightdb -Da
 --------------------------
 
 4.1. Run the application
-   - Select "Run -> Run"
+   - Select "Run -> Run", "Run as Java Application" and select "tutorial".
 
 and output from the application will be shown in the Console window.
 
