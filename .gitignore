@@ -6,7 +6,7 @@
 tightdb_jni??d*.dll
 tightdb_jni*.exp
 
-*/target/generated/*
+*/generated/*
 *.tightdb
 
 *.sdf
