@@ -6,10 +6,7 @@
 tightdb_jni??d*.dll
 tightdb_jni*.exp
 
-tightdb-android/generated-sources/*
-tightdb-example/generated-sources/*
-tightdb-example/target/*
-tightdb-example/test-output/*
+*/target/generated/*
 *.tightdb
 
 *.sdf
@@ -19,7 +16,6 @@ tightdb-example/test-output/*
 /.classpath
 /.project
 /.factorypath
-AutoCodeWorkspace/.metadata/*
 
 #ignore thumbnails created by windows
 Thumbs.db
