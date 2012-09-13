@@ -7,7 +7,7 @@ import com.tightdb.util;
 
 public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cursor, View, ?>> {
 
-	private long currPos = -1;
+	private Long currPos = null;
 
 	private final TableQuery query;
 	private final TableBase table;
@@ -41,15 +41,23 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	public Cursor findNext() {
-		if (currPos < Long.MAX_VALUE) {
-			currPos = query.findNext(table, currPos);
-			if (currPos >= 0 && currPos < table.size()) {
-				return cursor(table, currPos);
+		if (currPos == null) {
+			// first time
+			currPos = query.findNext(table);
+		} else {
+			// next times
+			if (currPos < Long.MAX_VALUE) {
+				currPos = query.findNext(table, currPos);
 			} else {
-				currPos = Long.MAX_VALUE;
 				return null;
 			}
+		}
+
+		// if there is a result - return it, or return null otherwise
+		if (currPos >= 0 && currPos < table.size()) {
+			return cursor(table, currPos);
 		} else {
+			currPos = Long.MAX_VALUE;
 			return null;
 		}
 	}
@@ -96,6 +104,17 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 
 	public Query endGroup() {
 		query.endGroup();
+		return newQuery(query);
+	}
+
+	// FIXME: columnIndex is low-level
+	public Query subTable(long columnIndex) {
+		query.subTable(columnIndex);
+		return newQuery(query);
+	}
+
+	public Query endSubTable() {
+		query.endSubTable();
 		return newQuery(query);
 	}
 
