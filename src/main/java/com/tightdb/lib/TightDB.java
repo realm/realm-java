@@ -15,8 +15,8 @@ public class TightDB {
 
 	private static final String PATH_SEP = System.getProperty("path.separator");
 	private static final String JAVA_LIBRARY_PATH = "java.library.path";
-	private static final String BINARIES_PATH = "lib" + PATH_SEP
-			+ "tightdb-example/lib";
+	private static final String BINARIES_PATH = "lib" + PATH_SEP + "../lib"
+			+ PATH_SEP + "tightdb-example/lib";
 
 	private static boolean loadedLibrary;
 
