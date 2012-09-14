@@ -12,14 +12,26 @@ import java.nio.ByteBuffer;
 import com.tightdb.util;
 
 public class TightDB {
-
+	
 	private static final String PATH_SEP = System.getProperty("path.separator");
 	private static final String JAVA_LIBRARY_PATH = "java.library.path";
 	private static final String BINARIES_PATH = "lib" + PATH_SEP
-			+ "tightdb-example/lib";
-
+			+ "examples/lib";
+			
 	private static boolean loadedLibrary;
 
+	private static String getJniFileName()
+	{
+		String os = System.getProperty("os.name").toLowerCase(); 
+		if (os.indexOf("win") >= 0)
+			return "tightdb_jni??.dll";	
+		if (os.indexOf("mac") >= 0)
+			return "libtightdb-jni.jnilib";
+		if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 || os.indexOf("sunos") >= 0)
+			return "libtightdb-jni.so";
+		return "tightdb-jni";
+	}
+	
 	public static byte[] serialize(Serializable value) {
 		try {
 			ByteArrayOutputStream mem = new ByteArrayOutputStream();
@@ -116,18 +128,19 @@ public class TightDB {
 				// Above can't be used on Android.
 			}
 			// Load debug library first - if available
-			loadedLibrary = loadCorrectLibrary("tightdb_jni32d", "tightdb_jni64d", "tightdb-jnid");
+			loadedLibrary = loadCorrectLibrary("tightdb-jnid", "tightdb_jni32d", "tightdb_jni64d");
 			if (loadedLibrary) {
 				System.out.println("!!! TightDB debug version loaded. !!!\n");
 			} else {
-				loadedLibrary = loadCorrectLibrary("tightdb_jni32", "tightdb_jni64", "tightdb-jni");
+				loadedLibrary = loadCorrectLibrary("tightdb-jni", "tightdb_jni32", "tightdb_jni64");
 			}
 			if (!loadedLibrary) {
-				throw new RuntimeException("Couldn't load the TightDB library. Please add 'lib/tightdb_jni??' as external jar.");
+				throw new RuntimeException("Couldn't load the TightDB library. Please add '" + getJniFileName() + 
+						"' as external jar in your project.");
 			}
 		}
 		if (!util.versionCompatible()) {
-			throw new RuntimeException("Tightdb java jar and Tightdb dll are incompatible.");
+			throw new RuntimeException("Tightdb jar and Tightdb lib are incompatible. Please check your installation.");
 		}
 	}
 
