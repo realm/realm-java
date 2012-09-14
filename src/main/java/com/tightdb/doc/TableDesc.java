@@ -16,6 +16,7 @@ public class TableDesc extends AbstractDesc {
 		method("long", 		"getColumnCount", "Get number of columns in the table");
 		method("String", 	"getColumnName", "Get the name of the column");
 		method("ColumnType","getColumnType", "Get the type of the column");
+		method("long",      "getColumnIndex", "Get the 0-based index of a column with the specified name", "String", "columnName");
 		method("String",	"getName", "Get the table name for tables named in a Group");
 		//TODO: hasIndex
 		method("Row", 		"insert", "Insert a new row at the index in the table", "long", "rowIndex", "RowDataTypes...", "rowData...");
@@ -25,8 +26,11 @@ public class TableDesc extends AbstractDesc {
 		// method("View", "range", "");
 		method("void", 		"optimize", "Optimize the database size. (Currently pack strings)");
 		method("void", 		"remove", "Remove a specific row from the table", "long", "rowIndex");
+		method("void", 		"removeLast", "Remove the last row from the table");
 		//TODO: setIndex
 		method("long", 		"size", "Get the number of rows in the table");
+		
+		method("String", 	"toJson", "Retrieve JSON representaion of the data");
 		method("Query", 	"where", "Create a query for the table");
 
 		// EmployeeTable t = new EmployeeTable();

@@ -174,13 +174,20 @@ var App = {};
 									<li><a href="#Table-at">at</a></li>
 									<li><a href="#Table-clear">clear</a></li>
 									<li><a href="#Table-first">first</a></li>
+									<li><a href="#Table-getColumnCount">getColumnCount</a></li>
+									<li><a href="#Table-getColumnName">getColumnName</a></li>
+									<li><a href="#Table-getColumnType">getColumnType</a></li>
+									<li><a href="#Table-getColumnIndex">getColumnIndex</a></li>
 									<li><a href="#Table-getName">getName</a></li>
 									<li><a href="#Table-insert">insert</a></li>
 									<li><a href="#Table-isEmpty">isEmpty</a></li>
 									<li><a href="#Table-iterator">iterator</a></li>
 									<li><a href="#Table-last">last</a></li>
+									<li><a href="#Table-optimize">optimize</a></li>
 									<li><a href="#Table-remove">remove</a></li>
+									<li><a href="#Table-removeLast">removeLast</a></li>
 									<li><a href="#Table-size">size</a></li>
+									<li><a href="#Table-toJson">toJson</a></li>
 									<li><a href="#Table-where">where</a></li>
 
 								</ul>
@@ -213,6 +220,8 @@ var App = {};
 									<li><a href="#Query-findNext">findNext</a></li>
 									<li><a href="#Query-group">group</a></li>
 									<li><a href="#Query-or">or</a></li>
+									<li><a href="#Query-remove">remove</a></li>
+									<li><a href="#Query-remove">remove</a></li>
 
 								</ul>
                             </li>
@@ -226,7 +235,10 @@ var App = {};
 									<li><a href="#View-isEmpty">isEmpty</a></li>
 									<li><a href="#View-iterator">iterator</a></li>
 									<li><a href="#View-last">last</a></li>
+									<li><a href="#View-remove">remove</a></li>
+									<li><a href="#View-removeLast">removeLast</a></li>
 									<li><a href="#View-size">size</a></li>
+									<li><a href="#View-toJson">toJson</a></li>
 
 								</ul>
                             </li>
@@ -333,10 +345,10 @@ public class Example {
                               <th>Method</th><th>Description</th></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Boolean[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Boolean value)</tt></td><td>Set all values for the represented column</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal </b>(boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>eq </b>(boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual </b>(boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>ne </b>(boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(Boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(Boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(Boolean value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(Boolean value)</tt></td><td>Find all rows having the specified column value</td></tr>
                             </tbody>
                           </table>
                         </p>
@@ -348,6 +360,8 @@ public class Example {
                               <th>Method</th><th>Description</th></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Date[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Date value)</tt></td><td>Set all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(Date value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(Date value)</tt></td><td>Find all rows having the specified column value</td></tr>
                             </tbody>
                           </table>
                         </p>
@@ -359,23 +373,18 @@ public class Example {
                               <th>Method</th><th>Description</th></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Long[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Long value)</tt></td><td>Set all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>addLong </b>(long value)</tt></td><td>Add the value to all cells in the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>long <b>sum </b>()</tt></td><td>Calculate the sum of all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>long <b>minimum </b>()</tt></td><td>Calculate the minimal value for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>long <b>maximum </b>()</tt></td><td>Calculate the maximal value for the represented column</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(String value)</tt></td><td>Find first row having the specified column value</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(String value)</tt></td><td>Find all rows having the specified column value</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>eq </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>ne </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThan </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>gt </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThanOrEqual </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>gte </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThan </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lt </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThanOrEqual </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lte </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(long value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(long value)</tt></td><td>Find all rows having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThan/gt </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThanOrEqual/gte </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThan/lt </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThanOrEqual/lte </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>between </b>(long value_1)</tt></td><td>Represents <b>'long value_2'</b> criterium</td></tr>
                             </tbody>
                           </table>
@@ -401,10 +410,8 @@ public class Example {
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(String value)</tt></td><td>Set all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(String value)</tt></td><td>Find first row having the specified column value</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(String value)</tt></td><td>Find all rows having the specified column value</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>eq </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>ne </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>beginsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the begining of the text'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>endsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the end of the text'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>contains </b>(String value)</tt></td><td>Represents <b>'substring search'</b> criterium</td></tr>
@@ -484,7 +491,7 @@ PeopleView hiredYoung = people.hired.equals(true).age.between(20, 30).findAll();
 					<td><code><b><a href="#Table-at">at</a></b>(<i>long</i> rowIndex)
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get a row as an object</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get a specific row as an object (rowIndex starts at 0)</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -507,20 +514,56 @@ PeopleView hiredYoung = people.hired.equals(true).age.between(20, 30).findAll();
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="#Table-getColumnCount">getColumnCount</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get number of columns in the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;String</code></font></td>
+					<td><code><b><a href="#Table-getColumnName">getColumnName</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the name of the column</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;ColumnType</code></font></td>
+					<td><code><b><a href="#Table-getColumnType">getColumnType</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the type of the column</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="#Table-getColumnIndex">getColumnIndex</a></b>(<i>String</i> columnName)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the 0-based index of a column with the specified name</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
 					&nbsp;String</code></font></td>
 					<td><code><b><a href="#Table-getName">getName</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the table name</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the table name for tables named in a Group</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;Row</code></font></td>
-					<td><code><b><a href="#Table-insert">insert</a></b>(<i>long</i> position, <i>RowDataTypes...</i> rowData...)
+					<td><code><b><a href="#Table-insert">insert</a></b>(<i>long</i> rowIndex, <i>RowDataTypes...</i> rowData...)
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Insert a new row at the end of the table</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Insert a new row at the index in the table</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -529,7 +572,7 @@ PeopleView hiredYoung = people.hired.equals(true).age.between(20, 30).findAll();
 					<td><code><b><a href="#Table-isEmpty">isEmpty</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if a table is empty</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if a table has no rows</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -553,10 +596,28 @@ PeopleView hiredYoung = people.hired.equals(true).age.between(20, 30).findAll();
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;void</code></font></td>
+					<td><code><b><a href="#Table-optimize">optimize</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Optimize the database size. (Currently pack strings)</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
 					<td><code><b><a href="#Table-remove">remove</a></b>(<i>long</i> rowIndex)
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove a row from a table</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove a specific row from the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#Table-removeLast">removeLast</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the last row from the table</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -565,7 +626,16 @@ PeopleView hiredYoung = people.hired.equals(true).age.between(20, 30).findAll();
 					<td><code><b><a href="#Table-size">size</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a table</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;String</code></font></td>
+					<td><code><b><a href="#Table-toJson">toJson</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Retrieve JSON representaion of the data</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -705,7 +775,7 @@ people.add("Lars", 24, true);
                 </p>
                 <dl><dd>
                 	<p>
-                	Get a row as an object. 
+                	Get a specific row as an object (rowIndex starts at 0). 
                 	</p>
 
                 	<dl>
@@ -780,6 +850,116 @@ Person firstPerson = people.first();
                 	</dl>
                 </dd></dl>
 
+                <a href="#" name="Table-getColumnCount" id="Table-getColumnCount"></a>
+				<a href="#" class="section section_major" name="Table-getColumnCount_anchor" id="Table-getColumnCount_anchor"></a>
+				<h4>getColumnCount</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>long</i> <b>getColumnCount</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get number of columns in the table. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>long</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Table-getColumnName" id="Table-getColumnName"></a>
+				<a href="#" class="section section_major" name="Table-getColumnName_anchor" id="Table-getColumnName_anchor"></a>
+				<h4>getColumnName</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>String</i> <b>getColumnName</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get the name of the column. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>String</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Table-getColumnType" id="Table-getColumnType"></a>
+				<a href="#" class="section section_major" name="Table-getColumnType_anchor" id="Table-getColumnType_anchor"></a>
+				<h4>getColumnType</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>ColumnType</i> <b>getColumnType</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get the type of the column. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>ColumnType</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Table-getColumnIndex" id="Table-getColumnIndex"></a>
+				<a href="#" class="section section_major" name="Table-getColumnIndex_anchor" id="Table-getColumnIndex_anchor"></a>
+				<h4>getColumnIndex</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>long</i> <b>getColumnIndex</b>(<i>String</i> columnName)</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Get the 0-based index of a column with the specified name. 
+                	</p>
+
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>columnName : String</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>long</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
                 <a href="#" name="Table-getName" id="Table-getName"></a>
 				<a href="#" class="section section_major" name="Table-getName_anchor" id="Table-getName_anchor"></a>
 				<h4>getName</h4>
@@ -789,7 +969,7 @@ Person firstPerson = people.first();
                 </p>
                 <dl><dd>
                 	<p>
-                	Get the table name. 
+                	Get the table name for tables named in a Group. 
                 	</p>
 
                     <dl>
@@ -810,18 +990,18 @@ String tableName = people.getName();
 				<a href="#" class="section section_major" name="Table-insert_anchor" id="Table-insert_anchor"></a>
 				<h4>insert</h4>
                 <p><div class="eks">
-                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>insert</b>(<i>long</i> position, <i>RowDataTypes...</i> rowData...)</pre>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>Row</i> <b>insert</b>(<i>long</i> rowIndex, <i>RowDataTypes...</i> rowData...)</pre>
                 </div>
                 </p>
                 <dl><dd>
                 	<p>
-                	Insert a new row at the end of the table. 
+                	Insert a new row at the index in the table. 
                 	</p>
 
                 	<dl>
                 		<dt><b>Parameters:</b></dt>
                 		<dd><p>
-	                    <code>position : long</code>
+	                    <code>rowIndex : long</code>
 	                    </p></dd>
                 		<dd><p>
 	                    <code>rowData... : RowDataTypes...</code>
@@ -851,7 +1031,7 @@ people.insert(0, "Lars", 21, true);
                 </p>
                 <dl><dd>
                 	<p>
-                	Check if a table is empty. 
+                	Check if a table has no rows. 
                 	</p>
 
                     <dl>
@@ -920,6 +1100,32 @@ Person lastPerson = people.last();
                 	</dl>
                 </dd></dl>
 
+                <a href="#" name="Table-optimize" id="Table-optimize"></a>
+				<a href="#" class="section section_major" name="Table-optimize_anchor" id="Table-optimize_anchor"></a>
+				<h4>optimize</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>optimize</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Optimize the database size. (Currently pack strings). 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>void</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+people.optimize();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
                 <a href="#" name="Table-remove" id="Table-remove"></a>
 				<a href="#" class="section section_major" name="Table-remove_anchor" id="Table-remove_anchor"></a>
 				<h4>remove</h4>
@@ -929,7 +1135,7 @@ Person lastPerson = people.last();
                 </p>
                 <dl><dd>
                 	<p>
-                	Remove a row from a table. 
+                	Remove a specific row from the table. 
                 	</p>
 
                 	<dl>
@@ -952,6 +1158,32 @@ people.remove(0);
                 	</dl>
                 </dd></dl>
 
+                <a href="#" name="Table-removeLast" id="Table-removeLast"></a>
+				<a href="#" class="section section_major" name="Table-removeLast_anchor" id="Table-removeLast_anchor"></a>
+				<h4>removeLast</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>removeLast</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Remove the last row from the table. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>void</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
                 <a href="#" name="Table-size" id="Table-size"></a>
 				<a href="#" class="section section_major" name="Table-size_anchor" id="Table-size_anchor"></a>
 				<h4>size</h4>
@@ -961,7 +1193,7 @@ people.remove(0);
                 </p>
                 <dl><dd>
                 	<p>
-                	Get the number of rows in a table. 
+                	Get the number of rows in the table. 
                 	</p>
 
                     <dl>
@@ -973,6 +1205,32 @@ people.remove(0);
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
 long size = people.size();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Table-toJson" id="Table-toJson"></a>
+				<a href="#" class="section section_major" name="Table-toJson_anchor" id="Table-toJson_anchor"></a>
+				<h4>toJson</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>String</i> <b>toJson</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Retrieve JSON representaion of the data. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>String</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
 							</pre>
                         </p></dd>
                 	</dl>
@@ -1084,7 +1342,7 @@ people.at(3).age.set(33);
 					<td><code><b><a href="#Row-next">next</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the next row as an object</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the next row</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -1093,7 +1351,7 @@ people.at(3).age.set(33);
 					<td><code><b><a href="#Row-previous">previous</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the previous row as an object</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the previous row</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -1219,7 +1477,7 @@ System.out.println(column.getName() + "=" + column.getReadableValue());
                 </p>
                 <dl><dd>
                 	<p>
-                	Get the next row as an object. 
+                	Get the next row. 
                 	</p>
 
                     <dl>
@@ -1245,7 +1503,7 @@ Person fifth = people.at(3).next();
                 </p>
                 <dl><dd>
                 	<p>
-                	Get the previous row as an object. 
+                	Get the previous row. 
                 	</p>
 
                     <dl>
@@ -1316,7 +1574,7 @@ int age = people.last().getAge();
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
 people.last().setName("John");
-people.first().getAge(30);
+people.first().setAge(30);
 							</pre>
                         </p></dd>
                 	</dl>
@@ -1335,7 +1593,8 @@ people.first().getAge(30);
                 <code>Query</code> objects are used to build-up queries. The query classes are generated by
                 the <code>@Table</code> annotation.
                 </p>
-                <p>Query is build using a <a href="http://en.wikipedia.org/wiki/Fluent_interface">fluent interface</a> (method invocations can be daisy chained). Conditions are by default folded using logical-and. Query objects can be reused, and queries can be repeatly executed by the <tt>find_all()</tt> method (resembles the prepare/execute pattern in SQL clients).</p>
+                <p>Query is build using a <a href="http://en.wikipedia.org/wiki/Fluent_interface">fluent interface</a> 
+                (method invocations can be daisy chained). Conditions are by default folded using logical-and. Query objects can be reused, and queries can be repeatly executed by the <tt>find_all()</tt> method (resembles the prepare/execute pattern in SQL clients).</p>
 
                 <h3>Query column fields</h3>
 				
@@ -1346,10 +1605,8 @@ people.first().getAge(30);
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                         	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal </b>(boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>eq </b>(boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual </b>(boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>ne </b>(boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(Boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(Boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
                             </tbody>
                           </table>
                         </p>
@@ -1359,18 +1616,12 @@ people.first().getAge(30);
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                         	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>eq </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>ne </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThan </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>gt </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThanOrEqual </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>gte </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThan </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lt </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThanOrEqual </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lte </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThan/gt </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThanOrEqual/gte </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThan/lt </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThanOrEqual/lte </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>between </b>(long value_1)</tt></td><td>Represents <b>'long value_2'</b> criterium</td></tr>
                             </tbody>
                           </table>
@@ -1381,10 +1632,8 @@ people.first().getAge(30);
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
                         	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>eq </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>ne </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>beginsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the begining of the text'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>endsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the end of the text'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>contains </b>(String value)</tt></td><td>Represents <b>'substring search'</b> criterium</td></tr>
@@ -1502,6 +1751,24 @@ PeopleView v = people.hired.equals(true).age.between(20, 30).findAll();
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logical OR</td>
 				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="#Query-remove">remove</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the matching rows from the table, return the number of removed rows</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="#Query-remove">remove</a></b>(<i>long</i> start, <i>long</i> end, <i>long</i> limit)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the matching rows from the table for the specified range and limit, return the number of removed rows</td>
+				</tr>
 
 
 				</tbody></table>
@@ -1618,7 +1885,12 @@ long count = people.name.equal("John").count();
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-people.name.eq("John").group().age.eq(10).or().age.eq(20).endGroup().findAll());
+people.name.eq("John").group()
+.age.eq(10)
+.or()
+.age.eq(20)
+.endGroup()
+.findAll());
 							</pre>
                         </p></dd>
                 	</dl>
@@ -1722,7 +1994,7 @@ Person lastJohn = people.name.equal("John").findLast();
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-EmployeeQuery johns = people.name.equal("John");
+PersonQuery johns = people.name.equal("John");
 Person p;
 while ((p = johns.findNext()) != null) System.out.println(p);
 							</pre>
@@ -1750,7 +2022,12 @@ while ((p = johns.findNext()) != null) System.out.println(p);
                 		<dt><b>Example:</b></dt>
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
-PersonView view = people.name.eq("John").group().age.eq(10).or().age.eq(20).endGroup().findAll();
+PersonView view = people.name.eq("John").group()
+.age.eq(10)
+.or()
+.age.eq(20)
+.endGroup()
+.findAll();
 							</pre>
                         </p></dd>
                 	</dl>
@@ -1777,6 +2054,70 @@ PersonView view = people.name.eq("John").group().age.eq(10).or().age.eq(20).endG
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
 PersonView view = people.age.eq(10).or().age.eq(20).findAll();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Query-remove" id="Query-remove"></a>
+				<a href="#" class="section section_major" name="Query-remove_anchor" id="Query-remove_anchor"></a>
+				<h4>remove</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>long</i> <b>remove</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Remove the matching rows from the table, return the number of removed rows. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>long</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="Query-remove" id="Query-remove"></a>
+				<a href="#" class="section section_major" name="Query-remove_anchor" id="Query-remove_anchor"></a>
+				<h4>remove</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>long</i> <b>remove</b>(<i>long</i> start, <i>long</i> end, <i>long</i> limit)</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Remove the matching rows from the table for the specified range and limit, return the number of removed rows. 
+                	</p>
+
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>start : long</code>
+	                    </p></dd>
+                		<dd><p>
+	                    <code>end : long</code>
+	                    </p></dd>
+                		<dd><p>
+	                    <code>limit : long</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>long</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
 							</pre>
                         </p></dd>
                 	</dl>
@@ -1818,10 +2159,10 @@ PersonView view = people.age.eq(10).or().age.eq(20).findAll();
                               <th>Method</th><th>Description</th></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Boolean[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Boolean value)</tt></td><td>Set all values for the represented column</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal </b>(boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>eq </b>(boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual </b>(boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>ne </b>(boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(Boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(Boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(Boolean value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(Boolean value)</tt></td><td>Find all rows having the specified column value</td></tr>
                             </tbody>
                           </table>
                         </p>
@@ -1833,6 +2174,8 @@ PersonView view = people.age.eq(10).or().age.eq(20).findAll();
                               <th>Method</th><th>Description</th></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Date[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Date value)</tt></td><td>Set all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(Date value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(Date value)</tt></td><td>Find all rows having the specified column value</td></tr>
                             </tbody>
                           </table>
                         </p>
@@ -1844,23 +2187,18 @@ PersonView view = people.age.eq(10).or().age.eq(20).findAll();
                               <th>Method</th><th>Description</th></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Long[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Long value)</tt></td><td>Set all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>addLong </b>(long value)</tt></td><td>Add the value to all cells in the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>long <b>sum </b>()</tt></td><td>Calculate the sum of all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>long <b>minimum </b>()</tt></td><td>Calculate the minimal value for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>long <b>maximum </b>()</tt></td><td>Calculate the maximal value for the represented column</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(String value)</tt></td><td>Find first row having the specified column value</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(String value)</tt></td><td>Find all rows having the specified column value</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>eq </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>ne </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThan </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>gt </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThanOrEqual </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>gte </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThan </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lt </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThanOrEqual </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lte </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(long value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(long value)</tt></td><td>Find all rows having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThan/gt </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThanOrEqual/gte </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThan/lt </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThanOrEqual/lte </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>between </b>(long value_1)</tt></td><td>Represents <b>'long value_2'</b> criterium</td></tr>
                             </tbody>
                           </table>
@@ -1886,10 +2224,8 @@ PersonView view = people.age.eq(10).or().age.eq(20).findAll();
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(String value)</tt></td><td>Set all values for the represented column</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(String value)</tt></td><td>Find first row having the specified column value</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(String value)</tt></td><td>Find all rows having the specified column value</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>eq </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>ne </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>beginsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the begining of the text'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>endsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the end of the text'</b> criterium</td></tr>
 							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>contains </b>(String value)</tt></td><td>Represents <b>'substring search'</b> criterium</td></tr>
@@ -1937,7 +2273,7 @@ PeopleView hiredAdults = adults.hired.equals(true).findAll();
 					<td><code><b><a href="#View-at">at</a></b>(<i>long</i> rowIndex)
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get a row as an object</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get a specific row</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -1955,7 +2291,7 @@ PeopleView hiredAdults = adults.hired.equals(true).findAll();
 					<td><code><b><a href="#View-first">first</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the first row as an object</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the first row</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -1964,7 +2300,7 @@ PeopleView hiredAdults = adults.hired.equals(true).findAll();
 					<td><code><b><a href="#View-isEmpty">isEmpty</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if a view is empty</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if the view has no rows</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -1982,7 +2318,25 @@ PeopleView hiredAdults = adults.hired.equals(true).findAll();
 					<td><code><b><a href="#View-last">last</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the last row as an object</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the last row</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#View-remove">remove</a></b>(<i>long</i> rowIndex)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove a specific row from the view</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="#View-removeLast">removeLast</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the last row from the view</td>
 				</tr>
 				<tr bgcolor="white" class="TableRowColor">
 				<td align="right" valign="top" width="1%"><font size="-1">
@@ -1991,7 +2345,16 @@ PeopleView hiredAdults = adults.hired.equals(true).findAll();
 					<td><code><b><a href="#View-size">size</a></b>()
 				</code>
 				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a view</td>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in the view</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;String</code></font></td>
+					<td><code><b><a href="#View-toJson">toJson</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Retrieve JSON representaion of the data</td>
 				</tr>
 
 
@@ -2007,7 +2370,7 @@ PeopleView hiredAdults = adults.hired.equals(true).findAll();
                 </p>
                 <dl><dd>
                 	<p>
-                	Get a row as an object. 
+                	Get a specific row. 
                 	</p>
 
                 	<dl>
@@ -2065,7 +2428,7 @@ people.age.equals(19).findAll().clear();
                 </p>
                 <dl><dd>
                 	<p>
-                	Get the first row as an object. 
+                	Get the first row. 
                 	</p>
 
                     <dl>
@@ -2091,7 +2454,7 @@ Person firstPerson = people.age.equals(19).findAll().first();
                 </p>
                 <dl><dd>
                 	<p>
-                	Check if a view is empty. 
+                	Check if the view has no rows. 
                 	</p>
 
                     <dl>
@@ -2143,7 +2506,7 @@ for (Person p : people.age.equals(19).findAll()) System.out.println(p);
                 </p>
                 <dl><dd>
                 	<p>
-                	Get the last row as an object. 
+                	Get the last row. 
                 	</p>
 
                     <dl>
@@ -2160,6 +2523,64 @@ Person lastPerson = people.age.equals(19).findAll().last();
                 	</dl>
                 </dd></dl>
 
+                <a href="#" name="View-remove" id="View-remove"></a>
+				<a href="#" class="section section_major" name="View-remove_anchor" id="View-remove_anchor"></a>
+				<h4>remove</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>remove</b>(<i>long</i> rowIndex)</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Remove a specific row from the view. 
+                	</p>
+
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>rowIndex : long</code>
+	                    </p></dd>
+                	</dl>
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>void</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="View-removeLast" id="View-removeLast"></a>
+				<a href="#" class="section section_major" name="View-removeLast_anchor" id="View-removeLast_anchor"></a>
+				<h4>removeLast</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>void</i> <b>removeLast</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Remove the last row from the view. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>void</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
                 <a href="#" name="View-size" id="View-size"></a>
 				<a href="#" class="section section_major" name="View-size_anchor" id="View-size_anchor"></a>
 				<h4>size</h4>
@@ -2169,7 +2590,7 @@ Person lastPerson = people.age.equals(19).findAll().last();
                 </p>
                 <dl><dd>
                 	<p>
-                	Get the number of rows in a view. 
+                	Get the number of rows in the view. 
                 	</p>
 
                     <dl>
@@ -2181,6 +2602,32 @@ Person lastPerson = people.age.equals(19).findAll().last();
                 		<dd><p>
 							<pre class="prettyprint" lang-java>
 long size = people.age.equals(19).findAll().size();
+							</pre>
+                        </p></dd>
+                	</dl>
+                </dd></dl>
+
+                <a href="#" name="View-toJson" id="View-toJson"></a>
+				<a href="#" class="section section_major" name="View-toJson_anchor" id="View-toJson_anchor"></a>
+				<h4>toJson</h4>
+                <p><div class="eks">
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>String</i> <b>toJson</b>()</pre>
+                </div>
+                </p>
+                <dl><dd>
+                	<p>
+                	Retrieve JSON representaion of the data. 
+                	</p>
+
+                    <dl>
+                		<dt><b>Returns:</b></dt>
+                		<dd><p><code><i>String</i></code></p></dd>
+                	</dl>
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd><p>
+							<pre class="prettyprint" lang-java>
+
 							</pre>
                         </p></dd>
                 	</dl>
@@ -2263,7 +2710,7 @@ long size = people.age.equals(19).findAll().size();
 				<td align="right" valign="top" width="1%"><font size="-1">
 				<code>
 					&nbsp;TableBase</code></font></td>
-					<td><code><b><a href="#Group-getTable">getTable</a></b>()
+					<td><code><b><a href="#Group-getTable">getTable</a></b>(<i>String</i> name)
 				</code>
 				<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Low-level) Create and get a table with the specified name</td>
@@ -2566,7 +3013,7 @@ group.close();
 				<a href="#" class="section section_major" name="Group-getTable_anchor" id="Group-getTable_anchor"></a>
 				<h4>getTable</h4>
                 <p><div class="eks">
-                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>TableBase</i> <b>getTable</b>()</pre>
+                <pre class="prettyprint" lang-cpp style="font-size: 16px"><i>TableBase</i> <b>getTable</b>(<i>String</i> name)</pre>
                 </div>
                 </p>
                 <dl><dd>
@@ -2574,6 +3021,12 @@ group.close();
                 	(Low-level) Create and get a table with the specified name. 
                 	</p>
 
+                	<dl>
+                		<dt><b>Parameters:</b></dt>
+                		<dd><p>
+	                    <code>name : String</code>
+	                    </p></dd>
+                	</dl>
                     <dl>
                 		<dt><b>Returns:</b></dt>
                 		<dd><p><code><i>TableBase</i></code></p></dd>
