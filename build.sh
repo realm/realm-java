@@ -120,8 +120,9 @@ case "$MODE" in
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC" || exit 1
-        if [ "$JNI_LIB_SUFFIX" ]; then
-            ln -s "libtightdb-jni.so" "libtightdb-jni$JNI_LIB_SUFFIX"
+        SUFFIX="${JNI_LIB_SUFFIX:-.so}"
+        if [ "$SUFFIX" != ".so" ]; then
+            ln -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX"
         fi
 
         # Build tightdb.jar
@@ -141,6 +142,13 @@ case "$MODE" in
         (cd java && $JAVAC                       com/tightdb/generator/*.java  com/tightdb/cleaner/*.java)  || exit 1
         (cd java && jar uf ../tightdb-devkit.jar com/tightdb/generator/*.class com/tightdb/cleaner/*.class) || exit 1
         jar i tightdb-devkit.jar || exit 1
+
+        # Setup links to libraries and JARs to make the examples work
+        mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
+        cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
+        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$SUFFIX"; do
+            ln -s -f "$x" || exit 1
+        done
         exit 0
         ;;
 
@@ -217,7 +225,9 @@ case "$MODE" in
         git ls-files -z >"$TEMP_DIR/files" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
-        mkdir "$TARGET_DIR/dep_jars" || exit 1
+
+        # Copy dependecy JARs
+        mkdir -p "$TARGET_DIR/dep_jars" || exit 1
         cp $DEP_JARS "$TARGET_DIR/dep_jars/" || exit 1
         exit 0
         ;;
