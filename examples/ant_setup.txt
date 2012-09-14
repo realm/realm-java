@@ -1,6 +1,11 @@
 Instructions for setting up TightDB for a new or existing project using Ant
 ===========================================================================
 
+== IMPORTANT: ==
+Please check the "ant-setup" example as a complete and running Ant-based project.
+You might also want to check eclipse_setup.txt for instructions for setting up TightDB using Eclipse.
+
+
 1. Create a new Ant project (or skip this step if you have an existing project).
 
 2. Copy the native TightDB library (libraries) to the project's "lib" folder (<project>/lib).
@@ -11,41 +16,49 @@ Instructions for setting up TightDB for a new or existing project using Ant
 4. Add the tightdb.jar to the classpath (in Eclipse right-click it -> Build Path -> Add to build path).
 - Note: tightdb-devkit.jar is not required at runtime, it's only used by the Ant build target "generate-sources".
 
-5. Add the following Ant configuration in the build.xml Ant file. Modify "srcdir" and "destdir" according to your preference or existing project layout:
+5. Add the following Ant configuration in the build.xml Ant file. Modify "srcdir" and "gendir" as you wish:
 
+	<property name="source" value="1.6" />
+	<property name="target" value="1.6" />
 	<property name="srcdir" value="src" />
-	<property name="destdir" value="generated" />
-	<property name="version" value="1.6" />
+	<property name="gendir" value="generated" />
+	<property name="bindir" value="bin" />
+
+    <path id="build-classpath">
+        <pathelement location="lib/tightdb.jar"/>
+    </path>
 
 	<target name="generate-sources">
 		<echo message="${ant.project.name}: ${ant.file}" />
-		<javac source="${version}" target="${version}" srcdir="${srcdir}">
-			<compilerarg value="-classpath" />
-			<compilerarg value="lib/tightdb.jar" />
+		<delete dir="${gendir}"/>
+		<mkdir dir="${gendir}"/>
+		<javac source="${source}" target="${target}" srcdir="${srcdir}">
+			<classpath refid="build-classpath"/>
 			<compilerarg value="-processor" />
 			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
 			<compilerarg value="-processorpath" />
 			<compilerarg value="lib/tightdb-devkit.jar" />
 			<compilerarg value="-s" />
-			<compilerarg value="${destdir}" />
+			<compilerarg value="${gendir}" />
 			<compilerarg value="-proc:only" />
 		</javac>
 	</target>
 
-6. Create the "srcdir" directory, i.e. "src" dir.
+6. Create the "srcdir" folder (i.e. "src").
 
-7. Write Java example code, for example:
+7. Write Java example code (in the appropriate package), for example:
+
 ------
-package tightdb.example;
+package com.tightdb.example;
 
 import java.util.Date;
-import com.tightdb.*;
-import com.tightdb.lib.*;
+import com.tightdb.Table;
+import com.tightdb.lib.TightDB;
 
-public class Test {
+public class HelloWorld {
 
-	@Table
-	class Employee {
+	@Table(row = "Employee")
+	class employee {
 		String firstName;
 		String lastName;
 		int salary;
@@ -53,14 +66,36 @@ public class Test {
 		byte[] photo;
 		Date birthdate;
 		Object extra;
+		phone phones;
 	}
 
+	@Table(row = "Phone")
+	class phone {
+		String type;
+		String number;
+	}
 
 	public static void main(String[] args) {
 		EmployeeTable employees = new EmployeeTable();
-		... 
+		employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
+		TightDB.print("Employees", employees);
 	}
+
 }
 ------
 
-8. Executing the "ant generate-sources" Ant build target will generate the source files (overwriting the previously generated files).
+- Note: It's normal to see compilation errors at this step, since the EmployeeTable class isn't generated yet. 
+
+8. Running the "ant generate-sources" Ant build target will generate the source files (deleting the previously generated files).
+- Note: Running the "ant build" command will build the project from scratch, also generating the sources as part of the process. 
+
+9. You can execute the HelloWorld application from the command line (in the <project> folder):
+java -cp lib\tightdb.jar:bin com.tightdb.example.HelloWorld
+
+- Note: if you are using Windows, you need to run slightly different command:
+java -cp lib\tightdb.jar;bin com.tightdb.example.HelloWorld
+
+10. If you use an IDE, you need to add the "generated" folder as a source folder, so the 
+    generated files (e.g. EmployeeTable.java) can be found and the IDE can compile the
+    code without errors. 
+- Note: if you are using Eclipse, following the additional instructions in eclipse_setup.txt is recommended.

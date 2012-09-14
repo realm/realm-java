@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 
-<project basedir="." default="build" name="tightdb-example">
+<project basedir="." default="build" name="ant-setup">
     
     <property name="debuglevel" value="source,lines,vars"/>
 	<property name="source" value="1.6" />
@@ -11,13 +11,11 @@
 			
     <path id="build-classpath">
         <pathelement location="lib/tightdb.jar"/>
-        <pathelement location="lib-sqlite/sqlite4java.jar"/>
     </path>
 
     <path id="samples-classpath">
         <pathelement location="${bindir}"/>
         <pathelement location="lib/tightdb.jar"/>
-        <pathelement location="lib-sqlite/sqlite4java.jar"/>
     </path>
 
     <target name="init">
@@ -62,14 +60,8 @@
 		</javac>
 	</target>
     
-    <target name="showcase">
-        <java classname="com.tightdb.examples.showcase.Showcase" failonerror="true" fork="yes">
-            <classpath refid="samples-classpath"/>
-        </java>
-    </target>
-    
-    <target name="performance">
-        <java classname="com.tightdb.examples.performance.Performance" failonerror="true" fork="yes">
+    <target depends="build" name="run">
+        <java classname="com.tightdb.example.HelloWorld" failonerror="true" fork="yes">
             <classpath refid="samples-classpath"/>
         </java>
     </target>
