@@ -8,14 +8,15 @@
 	<property name="srcdir" value="src" />
 	<property name="gendir" value="generated" />
 	<property name="bindir" value="bin" />
-			
+	<property name="libpath" value=".." />
+				
     <path id="build-classpath">
-        <pathelement location="lib/tightdb.jar"/>
+        <pathelement location="${libpath}/lib/tightdb.jar"/>
     </path>
 
     <path id="samples-classpath">
         <pathelement location="${bindir}"/>
-        <pathelement location="lib/tightdb.jar"/>
+        <pathelement location="${libpath}/lib/tightdb.jar"/>
     </path>
 
     <target name="init">
@@ -53,7 +54,7 @@
 			<compilerarg value="-processor" />
 			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
 			<compilerarg value="-processorpath" />
-			<compilerarg value="lib/tightdb-devkit.jar" />
+			<compilerarg value="${libpath}/lib/tightdb-devkit.jar" />
 			<compilerarg value="-s" />
 			<compilerarg value="${gendir}" />
 			<compilerarg value="-proc:only" />

@@ -4,7 +4,7 @@
               To include a user specific buildfile here, simply create one in the same
               directory with the processing instruction <?eclipse.ant.import?>
               as the first entry and export the buildfile again. -->
-<project basedir="." default="build" name="TightdbAndroid">
+<project basedir="." default="build" name="tightdb-android">
     <property environment="env"/>
     <property name="ECLIPSE_HOME" value="../../Downloads/eclipse"/>
     <property name="debuglevel" value="source,lines,vars"/>
@@ -17,14 +17,14 @@
     <path id="Android Dependencies.libraryclasspath">
         <pathelement location="../../android-sdks/tools/support/annotations.jar"/>
         <pathelement location="libs/achartengine-1.0.0.jar"/>
-        <pathelement location="libs/tightdb.jar"/>
+        <pathelement location="lib/tightdb.jar"/>
         <pathelement location="libs/stockchart.jar"/>
     </path>
-    <path id="TightdbAndroid.classpath">
+    <path id="tightdb-android.classpath">
         <pathelement location="bin/classes"/>
         <path refid="Android 1.5.libraryclasspath"/>
         <path refid="Android Dependencies.libraryclasspath"/>
-        <pathelement location="libs/tightdb.jar"/>
+        <pathelement location="lib/tightdb.jar"/>
         <pathelement location="libs/stockchart.jar"/>
     </path>
     <target name="init">
@@ -50,11 +50,11 @@
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin/classes" source="${source}" target="${target}">
             <src path="src"/>
-            <classpath refid="TightdbAndroid.classpath"/>
+            <classpath refid="tightdb-android.classpath"/>
         </javac>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin/classes" source="${source}" target="${target}">
             <src path="gen"/>
-            <classpath refid="TightdbAndroid.classpath"/>
+            <classpath refid="tightdb-android.classpath"/>
         </javac>
     </target>
     <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
