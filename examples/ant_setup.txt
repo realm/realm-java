@@ -8,12 +8,12 @@ You might also want to check eclipse_setup.txt for instructions for setting up T
 
 1. Create a new Ant project (or skip this step if you have an existing project).
 
-2. Copy the native TightDB library (libraries) to the project's "lib" folder (<project>/lib).
+2. Copy (or link) the native TightDB library (libraries) into the project's "lib" folder (<project>/lib).
 - Note: create the "lib" folder if it doesn't exist in the project root.
 
-3. Copy tightdb.jar (the runtime) and tightdb-devkit.jar (the code generation kit) in the project's "lib" sub-folder (<project>/lib/tightdb.jar, <project>/lib/tightdb-devkit.jar).
+3. Copy (or link) tightdb.jar (the runtime) and tightdb-devkit.jar (the code generation kit) in the project's "lib" sub-folder (<project>/lib/tightdb.jar, <project>/lib/tightdb-devkit.jar).
 
-4. Add the tightdb.jar to the classpath (in Eclipse right-click it -> Build Path -> Add to build path).
+4. Add the tightdb.jar to the classpath in your IDE (in Eclipse right-click it -> Build Path -> Add to build path).
 - Note: tightdb-devkit.jar is not required at runtime, it's only used by the Ant build target "generate-sources".
 
 5. Add the following Ant configuration in the build.xml Ant file. Modify "srcdir" and "gendir" as you wish:

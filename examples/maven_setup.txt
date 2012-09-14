@@ -8,17 +8,15 @@ You might also want to check eclipse_setup.txt for instructions for setting up T
 
 1. Create a new Maven project (or skip this step if you have an existing project).
  
-2. Copy the native TightDB library to the project's "lib" folder (<project>/lib).
+2. Copy (or link) the native TightDB library into the project's "lib" folder (<project>/lib).
 - Note: create the "lib" folder if it doesn't exist in the project root.
 
-3. Copy tightdb.jar (the runtime) and tightdb-devkit.jar (the code generation kit) in the project's "lib" sub-folder (<project>/lib/tightdb.jar, <project>/lib/tightdb-devkit.jar).
+3. Install the tightdb.jar and tightdb-devkit.jar libraries into the local Maven repository:
 
-4. Install the tightdb.jar and tightdb-devkit.jar libraries into the local Maven repository:
+mvn install:install-file -Dfile=<path-to-the-jar>/tightdb.jar -DgroupId=com.tightdb -DartifactId=tightdb -Dversion=1.1.0 -Dpackaging=JAR
+mvn install:install-file -Dfile=<path-to-the-jar>/tightdb-devkit.jar -DgroupId=com.tightdb -DartifactId=tightdb-devkit -Dversion=1.1.0 -Dpackaging=JAR
 
-mvn install:install-file -Dfile=tightdb.jar -DgroupId=com.tightdb -DartifactId=tightdb -Dversion=1.1.0 -Dpackaging=JAR
-mvn install:install-file -Dfile=tightdb-devkit.jar -DgroupId=com.tightdb -DartifactId=tightdb-devkit -Dversion=1.1.0 -Dpackaging=JAR
-
-5. Add the TightDB JAR as a Maven dependency (in <dependencies> ... </dependencies>) in pom.xml:
+4. Add the TightDB JAR as a Maven dependency (in <dependencies> ... </dependencies>) in pom.xml:
 
 <dependency>
 	<groupId>com.tightdb</groupId>
@@ -26,7 +24,7 @@ mvn install:install-file -Dfile=tightdb-devkit.jar -DgroupId=com.tightdb -Dartif
 	<version>1.1.0</version>
 </dependency>
 
-6. Configure Java compiler (to version 1.6 or 1.7) in pom.xml (in <build> <plugins> ... </plugins> </build> file zone):
+5. Configure Java compiler (to version 1.6 or 1.7) in pom.xml (in <build> <plugins> ... </plugins> </build> file zone):
 
 <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
@@ -38,7 +36,7 @@ mvn install:install-file -Dfile=tightdb-devkit.jar -DgroupId=com.tightdb -Dartif
     </configuration>
 </plugin>
 
-7. Configure the annotation processing in pom.xml (in <build> <plugins> ... </plugins> </build> file zone):
+6. Configure the annotation processing in pom.xml (in <build> <plugins> ... </plugins> </build> file zone):
 
 <plugin>
 	<groupId>org.bsc.maven</groupId>
@@ -66,7 +64,7 @@ mvn install:install-file -Dfile=tightdb-devkit.jar -DgroupId=com.tightdb -Dartif
 	</dependencies>
 </plugin>
 
-8. Write Java example code (in the appropriate package), for example:
+7. Write Java example code (in the appropriate package), for example:
 
 ------
 package com.tightdb.example;
@@ -106,17 +104,13 @@ public class HelloWorld {
 
 - Note: It's normal to see compilation errors at this step, since the EmployeeTable class isn't generated yet. 
 
-9. Executing "mvn clean compile" will generate the source files (deleting the previously generated files).
+8. Executing "mvn clean compile" will generate the source files (deleting the previously generated files).
 
 - Note: This step configures the annotation-driven code generator (that's part of TightDB) to execute as annotation processor.
         The output folder for the generated sources is configured as "${project.build.directory}/generated", which translates
         to "target/generated" for a typical Maven layout. The tightdb-devkit library does the code generation at compile-time, 
         and it's not required at run-time, so it's added only as plug-in dependency. 
         
-10. You can execute the HelloWorld application from the command line (in the <project> folder):
-java -cp lib\tightdb.jar:target\classes com.tightdb.example.HelloWorld
-
-11. If you use an IDE, you need to add the "target/generated" folder as a source folder, 
-    so the generated files (e.g. EmployeeTable.java) can be found and the IDE can compile 
-    the code without errors.
+9. If you use an IDE, you need to add the "target/generated" folder as a source folder, so the generated files
+   (e.g. EmployeeTable.java) can be found and the IDE can compile the code without errors.
 - Note: if you are using Eclipse, following the additional instructions in eclipse.setup is recommended.
