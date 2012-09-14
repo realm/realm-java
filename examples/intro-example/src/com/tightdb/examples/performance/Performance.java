@@ -69,6 +69,7 @@ public class Performance {
 			 
 			System.out.println();
 		}
+		/*
 		long tightTotal  = tightdb.javaDBMemUsed + tightdb.nativeDBMemUsed;
 		long javaTotal   = javaArray.javaDBMemUsed + javaArray.nativeDBMemUsed;
 		long sqliteTotal = sqlite.javaDBMemUsed + sqlite.nativeDBMemUsed;
@@ -76,7 +77,7 @@ public class Performance {
 				toKB(tightTotal),
 				toKB(javaTotal), javaTotal/tightTotal,
 				toKB(sqliteTotal), sqliteTotal/tightTotal);
-		
+		*/
 		System.out.println("\nDONE.");
 		if (pause) util.waitForEnter();
 	}

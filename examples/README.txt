@@ -1,9 +1,11 @@
+
 TightDB example instructions
 ============================
 
-Below are instructions for testing the TightDB intro-example application in Java using Eclipse or 
-further down using a command-line.
+Below are instructions for testing the TightDB example applications in Java using Ant or Eclipse.
 
+Integrating Tightdb in existing or new applications
+---------------------------------------------------
 If you wish to integrate TightDB in a _new_ application using Maven or Ant (and any IDE):
   - for Maven-based projects please read "maven_setup.txt",
   - for Ant-based projects please read "ant_setup.txt".
@@ -11,84 +13,66 @@ If you wish to integrate TightDB in a _new_ application using Maven or Ant (and 
 If you wish to configure Eclipse for optimal TightDB experience in an _existing_ application, please read "eclipse_setup.txt".
 
 
-
+Installing TightDB
 ==================
-Short introduction
-==================
+1. Install JDK6 or JDK7
 
-TightDB for Java comes packaged into several files:
-- a native, binary library (.dll, .so, etc.),
+2. Download TightDB
+
+3. Build TightDB
+See the README.md file in the unpacked package.
+
+Building TightDB for Java results in 3 files: 
+- a native, binary library (.dll, .so, .libni),
 - tightdb.jar - the TightDB run-time that uses the native library,
 - tightdb-devkit.jar - TightDB's APT-based tool for annotation-driven code generation at compile-time (NOT needed at run-time).
 
-        
+Below instructions for running the examples works whether you have only built TightDB or if you have also installed it.
+
+
+TightDB example applications
+============================
+
+The TightDB installation will provide a folder for Java examples:
+- cd tightdb_java2/examples/intro-example
+
+It contains 3 examples:
+1. "tutorial", which is the exact code you see in the tutorial documentation.
+2. "Showcase", which shows a a little more of TightDB's features.
+3. "Performance", which tests TightDB, native Java Arrays and SQLite in a simple performance test.
+
+
+Running TightDB example using Ant
+=================================
+
+1. Build
+- ant build
+
+2. Run
+- ant tutorial
+- ant showcase
+- ant performance
+
+3. Generating TightDB classes
+- ant generate-sources
+
+
+Running TightDB example using Eclipse
 =====================================
-Buiding TightDB example using Eclipse
-=====================================
 
-1. Prerequisites:
------------------
-1.1. Installation of Eclipse
-   - Download and install Eclipse from www.eclipse.org
+1. Build
+- Open eclipse and select an existing or new workspace directory.
+- Import example
+    - Select "File -> Import". 
+    - Choose "General -> Existing Projects into Workspace".
+    - Select root directory: Browse for the "intro-example" folder and select it.
 
-1.2. Installation of JDK7 (or JDK6)
-   - Download and install JDK7 from oracle.com
+2. Run
+- Select "Run -> Run", "Run as Java Application" and select "tutorial" (or another example)
 
-
-2. Installation of TightDB example
-----------------------------------
-2.1. Download and install the TightDB project.
-
-2.2. Open eclipse and select some workspace directory.
-
-2.3. Import the example:
-- Select "File -> Import". 
-- Choose "General -> Existing Projects into Workspace".
-- Select root directory: Browse for the "intro-example" folder and select it.
-
-
-3. Running the application
---------------------------
-
-3.1. Run the application:
-   - Select "Run -> Run", "Run as Java Application" and select "tutorial" (or Showcase and Performance),
-     and the output from the application will be shown in the Console window.
-
-
-4. Generating TightDB classes
------------------------------
-You can now change the example as you wish. If you change or add TightDB tables, 
-you need to regenerate the classes for the type-safe DSL that TightDB provides based on the @Table specifications.
-
-4.1. All you have to do is save your files, and the generated files will be updated.
-
-4.2. Sometimes you might need to refresh the project (F5) if the most recent changes aren't reflected.
+3. Generating TightDB classes
+You can now change the example as you wish. If you change or add TightDB tables with the @Table annotation, classes are automatically generated for you when you save a file.
 The generated classes will be available with full auto-completion etc.
-
-Now you can run your application again.
-
-
-   ---- OO ----
-
-
-===========================================================================
-Buiding and running TightDB's intro-example from the command line using Ant
-===========================================================================
-
-- Navigate to the "intro-example" folder:
-cd <path-to-the-examples>/intro-example
-
-- Build & run:
-ant build
-ant showcase
-ant performance
-
-
-FAQ:
-====
-Q1: I get the following error when generating the TightDB classes:
-"[ERROR] JVM is not suitable for processing annotation! ToolProvider.getSystemJavaCompiler() is null."
-A1: Install and Configure the project to use JDK6 or JDK7.
 
 
 

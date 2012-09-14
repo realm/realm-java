@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 
-<project basedir="." default="build" name="tightdb-example">
+<project basedir="." default="build" name="examples">
     
     <property name="debuglevel" value="source,lines,vars"/>
 	<property name="source" value="1.6" />
@@ -33,7 +33,7 @@
     
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="${bindir}" source="${source}" target="${target}">
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${bindir}" source="${source}" target="${target}" includeantruntime="false">
             <src path="${srcdir}"/>
             <src path="${gendir}"/>
             <classpath refid="build-classpath"/>
@@ -51,7 +51,7 @@
 		<echo message="${ant.project.name}: ${ant.file}" />
 		<delete dir="${gendir}"/>
 		<mkdir dir="${gendir}"/>
-		<javac source="${source}" target="${target}" srcdir="${srcdir}">
+		<javac source="${source}" target="${target}" srcdir="${srcdir}" includeantruntime="false">
 			<classpath refid="build-classpath"/>
 			<compilerarg value="-processor" />
 			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
@@ -62,6 +62,12 @@
 			<compilerarg value="-proc:only" />
 		</javac>
 	</target>
+
+    <target name="tutorial">
+        <java classname="com.tightdb.examples.tutorial.tutorial" failonerror="true" fork="yes">
+            <classpath refid="samples-classpath"/>
+        </java>
+    </target>
     
     <target name="showcase">
         <java classname="com.tightdb.examples.showcase.Showcase" failonerror="true" fork="yes">
