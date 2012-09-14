@@ -17,7 +17,7 @@ Short introduction
 ==================
 
 TightDB for Java comes packaged into several files:
-- a native, binary library (.dll, .so, etc.), that needs to be copied into the "lib" folder,
+- a native, binary library (.dll, .so, etc.),
 - tightdb.jar - the TightDB run-time that uses the native library,
 - tightdb-devkit.jar - TightDB's APT-based tool for annotation-driven code generation at compile-time (NOT needed at run-time).
 
@@ -37,13 +37,13 @@ Buiding TightDB example using Eclipse
 
 2. Installation of TightDB example
 ----------------------------------
-2.1. Download and extract TightDB example project into a workspace directory, e.g. "./my-workspace/intro-example".
+2.1. Download and install the TightDB project.
 
-2.2. Open eclipse and select the workspace directory, e.g. "./my-workspace".
+2.2. Open eclipse and select some workspace directory.
 
-2.3. Import Example:
+2.3. Import the example:
 - Select "File -> Import". 
-- Choose "Maven -> Existing Maven Project" (or "General -> Existing Projects into Workspace" if you don't have Maven installed).
+- Choose "General -> Existing Projects into Workspace".
 - Select root directory: Browse for the "intro-example" folder and select it.
 
 
@@ -76,7 +76,7 @@ Buiding and running TightDB's intro-example from the command line using Ant
 ===========================================================================
 
 - Navigate to the "intro-example" folder:
-cd <path-to-the-example>/intro-example
+cd <path-to-the-examples>/intro-example
 
 - Build & run:
 ant build
