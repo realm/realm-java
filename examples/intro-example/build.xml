@@ -33,7 +33,7 @@
     
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="${bindir}" source="${source}" target="${target}">
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${bindir}" source="${source}" target="${target}" includeantruntime="false">
             <src path="${srcdir}"/>
             <src path="${gendir}"/>
             <classpath refid="build-classpath"/>
@@ -51,7 +51,7 @@
 		<echo message="${ant.project.name}: ${ant.file}" />
 		<delete dir="${gendir}"/>
 		<mkdir dir="${gendir}"/>
-		<javac source="${source}" target="${target}" srcdir="${srcdir}">
+		<javac source="${source}" target="${target}" srcdir="${srcdir}" includeantruntime="false">
 			<classpath refid="build-classpath"/>
 			<compilerarg value="-processor" />
 			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
