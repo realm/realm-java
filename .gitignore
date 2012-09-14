@@ -6,8 +6,10 @@
 tightdb_jni??d*.dll
 tightdb_jni*.exp
 
-examples/*/target/generated/*
+examples/*/*/generated/*
+examples/*/generated/*
 *.tightdb
+.metadata/*
 
 *.sdf
 *.opensdf
