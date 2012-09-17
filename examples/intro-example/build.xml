@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 
 <project basedir="." default="build" name="examples">
-    
+
     <property name="debuglevel" value="source,lines,vars"/>
 	<property name="source" value="1.6" />
 	<property name="target" value="1.6" />
@@ -9,7 +9,7 @@
 	<property name="gendir" value="generated" />
 	<property name="bindir" value="bin" />
 	<property name="libpath" value=".." />
-				
+
     <path id="build-classpath">
         <pathelement location="${libpath}/lib/tightdb.jar"/>
         <pathelement location="${libpath}/lib-sqlite/sqlite4java.jar"/>
@@ -30,7 +30,7 @@
             </fileset>
         </copy>
     </target>
-    
+
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac debug="true" debuglevel="${debuglevel}" destdir="${bindir}" source="${source}" target="${target}" includeantruntime="false">
@@ -39,12 +39,12 @@
             <classpath refid="build-classpath"/>
         </javac>
     </target>
-    
+
     <target name="clean">
         <delete dir="${gendir}"/>
         <delete dir="${bindir}"/>
     </target>
-    
+
     <target depends="clean,generate-sources,build-project" name="build"/>
 
 	<target name="generate-sources">
@@ -66,25 +66,28 @@
     <target name="tutorial">
         <java classname="com.tightdb.examples.tutorial.tutorial" failonerror="true" fork="yes">
             <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
+            <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
             <sysproperty key="java.library.path" path="${libpath}/lib"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
-    
+
     <target name="showcase">
         <java classname="com.tightdb.examples.showcase.Showcase" failonerror="true" fork="yes">
             <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
+            <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
             <sysproperty key="java.library.path" path="${libpath}/lib"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
-    
+
     <target name="performance">
         <java classname="com.tightdb.examples.performance.Performance" failonerror="true" fork="yes">
             <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
+            <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
             <sysproperty key="java.library.path" path="${libpath}/lib"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
-    
+
 </project>
