@@ -146,7 +146,7 @@ case "$MODE" in
         # Setup links to libraries and JARs to make the examples work
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
-        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$SUFFIX"; do
+        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$SUFFIX" "../../../tightdb/src/tightdb/libtightdb.so"; do
             ln -s -f "$x" || exit 1
         done
         exit 0

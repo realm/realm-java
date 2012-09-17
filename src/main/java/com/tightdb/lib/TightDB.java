@@ -156,7 +156,6 @@ public class TightDB {
 
 	public static void addNativeLibraryPath(String path) {
 		try {
-			//System.out.println("JAVA_LIBRARY_PATH=" + System.getProperty(JAVA_LIBRARY_PATH));
 			String libraryPath = System.getProperty(JAVA_LIBRARY_PATH) + PATH_SEP + path + PATH_SEP;
 			System.setProperty(JAVA_LIBRARY_PATH, libraryPath);
 		} catch (Exception e) {
