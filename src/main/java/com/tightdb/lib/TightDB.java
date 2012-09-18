@@ -134,12 +134,13 @@ public class TightDB {
 				loadedLibrary = loadCorrectLibrary("tightdb-jni", "tightdb_jni32", "tightdb_jni64");
 			}
 			if (!loadedLibrary) {
-				throw new RuntimeException("Couldn't load the TightDB library. Please add '" + getJniFileName() + 
-						"' as external jar in your project.");
+				System.err.println("Searched JAVA_LIBRARY_PATH=" + System.getProperty(JAVA_LIBRARY_PATH));
+				throw new RuntimeException("Couldn't load the TightDB JNI library '" + getJniFileName() + 
+						"'. Please include the directory to the library in java.library.path.");
 			}
 		}
 		if (!util.versionCompatible()) {
-			throw new RuntimeException("Tightdb jar and Tightdb lib are incompatible. Please check your installation.");
+			throw new RuntimeException("tightdb-jni jar and tightdb-jni lib are incompatible. Please check your installation.");
 		}
 	}
 
