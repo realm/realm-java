@@ -23,7 +23,7 @@ Installing TightDB
 See the README.md file in the unpacked package.
 
 Building TightDB for Java results in 3 files: 
-- a native, binary library (.dll, .so, .libni),
+- a native, binary library (.dll, .so, .libjni),
 - tightdb.jar - the TightDB run-time that uses the native library,
 - tightdb-devkit.jar - TightDB's APT-based tool for annotation-driven code generation at compile-time (NOT needed at run-time).
 

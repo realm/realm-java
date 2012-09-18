@@ -87,13 +87,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 		List<File> sourcesPath = new LinkedList<File>();
 
-		// FIXME: Workaround for OS X 
-		try {
-			if (uri.getScheme() == null) uri = new URI("file", uri.getSchemeSpecificPart(), uri.getFragment());
-		}
-		catch (URISyntaxException e) {
-			logger.error("Failed to add 'file:' schema to schema-less URI '"+uri+"'");
-		}
+		// FIXME: Workaround for OS X - resolve relative URIs against current working directory
+		uri = new File(".").getAbsoluteFile().toURI().resolve(uri);
 
 		File file = new File(uri);
 		File outputFolder = file.getParentFile();
