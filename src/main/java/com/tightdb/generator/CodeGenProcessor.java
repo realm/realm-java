@@ -59,7 +59,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 	@Override
 	public void processAnnotations(Set<? extends TypeElement> annotations,
-			RoundEnvironment env) throws Exception {
+			RoundEnvironment env, boolean insideEclipse) throws Exception {
 		fieldSorter = new FieldSorter(logger, getSourceFolders());
 
 		for (TypeElement annotation : annotations) {
@@ -67,14 +67,14 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 			if (annotationName.equals(Table.class.getCanonicalName())) {
 				Set<? extends Element> elements = env
 						.getElementsAnnotatedWith(annotation);
-				processAnnotatedElements(elements);
+				processAnnotatedElements(elements, insideEclipse);
 			} else {
 				logger.warn("Unexpected annotation: " + annotationName);
 			}
 		}
 	}
 
-	private void processAnnotatedElements(Set<? extends Element> elements)
+	private void processAnnotatedElements(Set<? extends Element> elements, boolean insideEclipse)
 			throws IOException {
 		logger.info("Processing " + elements.size() + " elements...");
 
@@ -122,7 +122,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		for (Element element : elements) {
 			if (element instanceof TypeElement) {
 				TypeElement model = (TypeElement) element;
-				processModel(sourcesPath, model);
+				processModel(sourcesPath, model, insideEclipse);
 			}
 		}
 	}
@@ -148,13 +148,16 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 				queryName));
 	}
 
-	private void processModel(List<File> sourceFolders, TypeElement model) {
+	private void processModel(List<File> sourceFolders, TypeElement model, boolean insideEclipse) {
 		String modelType = model.getQualifiedName().toString();
 
 		List<VariableElement> fields = getFields(model);
 
-		// sort the fields, due to unresolved bug in Eclipse APT
-		fieldSorter.sortFields(fields, model, sourceFolders);
+		// work-around for Eclipse
+		if (insideEclipse) {
+			// sort the fields, due to unresolved bug in Eclipse APT
+			fieldSorter.sortFields(fields, model, sourceFolders);
+		}
 
 		// get the capitalized model name
 		String entity = StringUtils

@@ -36,10 +36,18 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
 		logger.info("Entering annotation processor...");
+
+		// this is a hack that detects if the annotation processing runs inside Eclipse APT
+		boolean insideEclipse = env.getClass().getCanonicalName()
+				.startsWith("org.eclipse.jdt.");
+		if (insideEclipse) {
+			logger.debug("Detected Eclipse, the appropriate work-arounds will be activated...");
+		}
+		
 		if (!env.processingOver()) {
-			logger.info("Processing resources...");
+			logger.info("Processing annotations...");
 			try {
-				processAnnotations(annotations, env);
+				processAnnotations(annotations, env, insideEclipse);
 				logger.info("Successfully finished processing.");
 			} catch (Exception e) {
 				String info = e.getMessage() != null ? "(" + e.getMessage() + ")" : "";
@@ -87,7 +95,7 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 		return SourceVersion.latestSupported();
 	}
 
-	protected abstract void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env) throws Exception;
+	protected abstract void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env, boolean insideEclipse) throws Exception;
 
 	protected void writeToSourceFile(String pkg, String filename, String content, Element... originatingElements) {
 		Writer writer = null;
