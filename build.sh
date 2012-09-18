@@ -119,7 +119,7 @@ case "$MODE" in
 
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
-        $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC" || exit 1
+        $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
         SUFFIX="${JNI_LIB_SUFFIX:-.so}"
         if [ "$SUFFIX" != ".so" ]; then
             ln -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX"
