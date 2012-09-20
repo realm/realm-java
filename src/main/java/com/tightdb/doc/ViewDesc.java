@@ -4,8 +4,8 @@ import java.util.List;
 
 public class ViewDesc extends AbstractDesc {
 
-	public ViewDesc(List<Method> methods) {
-		super(methods);
+	public ViewDesc(List<Constructor> constructors, List<Method> methods) {
+		super("view", constructors, methods);
 	}
 
 	public void describe() {

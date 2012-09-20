@@ -1,1 +1,1 @@
-									<li><a href="#${class}-${name}">${name}</a></li>
+									<li><a href="#${id}">${name}</a></li>

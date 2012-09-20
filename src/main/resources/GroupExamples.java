@@ -13,6 +13,32 @@ public class GroupExamples {
 
 		Group group = new Group();
 		
+		/* EXAMPLE: constructor-1 */
+
+		Group group = new Group();
+		
+		/* EXAMPLE: constructor-2 */
+
+		Group group = new Group(new File("data.tdb"));
+		
+		/* EXAMPLE: constructor-3 */
+
+		Group group = new Group("data.tdb", true);
+		
+		/* EXAMPLE: constructor-4 */
+
+		Group group = new Group("data.tdb");
+		
+		/* EXAMPLE: constructor-5 */
+
+		byte[] data = loadData();
+		Group group = new Group(data);
+		
+		/* EXAMPLE: constructor-6 */
+
+		ByteBuffer buffer = loadBuffer();
+		Group group = new Group(buffer);
+		
 		/* EXAMPLE: close */
 
 		group.close();

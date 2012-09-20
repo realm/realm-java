@@ -4,8 +4,8 @@ import java.util.List;
 
 public class QueryDesc extends AbstractDesc {
 
-	public QueryDesc(List<Method> methods) {
-		super(methods);
+	public QueryDesc(List<Constructor> constructors, List<Method> methods) {
+		super("query", constructors, methods);
 	}
 
 	public void describe() {

@@ -4,11 +4,14 @@ import java.util.List;
 
 public class TableDesc extends AbstractDesc {
 
-	public TableDesc(List<Method> methods) {
-		super(methods);
+	public TableDesc(List<Constructor> constructors, List<Method> methods) {
+		super("table", constructors, methods);
 	}
 
 	public void describe() {
+		constructor("Allocates and instantiates a TightDB table. <br/> Note: Only tables which are part of a Group can be serialized to memory or disk");
+		constructor("Allocates and instantiates a TightDB table, as part of the specified group", "Group", "group");
+		
 		method("Row", 		"add", "Insert a new row at the end of the table", "RowDataTypes...", "rowData...");
 		method("Row", 		"at", "Get a specific row as an object (rowIndex starts at 0)", "long", "rowIndex");
 		method("void", 		"clear", "Delete all rows in the table");
@@ -35,4 +38,5 @@ public class TableDesc extends AbstractDesc {
 
 		// EmployeeTable t = new EmployeeTable();
 	}
+	
 }

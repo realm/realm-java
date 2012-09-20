@@ -1,0 +1,32 @@
+                	<a href="#" name="${id}" id="${id}"></a>
+					<a href="#" class="section section_minor" name="${id}_anchor" id="${id}_anchor"></a>
+					<h3>constructor</h3>
+                	<p><div class="eks">
+	                	<pre class="prettyprint lang-java" style="font-size: 16px"><b>${name}</b>(#foreach($p in $params)<i>${p.type}</i> ${p.name}#if($foreach.hasNext), #end#end)</pre>
+	            	</div></p>
+	                <dl><dd>
+	                	<p>
+	                		${doc}.
+	                	</p>
+	                	
+	                	
+#if($params.size() > 0)
+	                	<dl>
+	                		<dt><b>Parameters:</b></dt>
+#foreach($p in $params)
+	                		<dd><p><code>${p.type} ${p.name}</code>#if($p.desc): ${p.desc}#end</p></dd>
+#end						
+	                	</dl>
+#end
+	                	
+	                	<dl>
+	                		<dt><b>Example:</b></dt>
+	                		<dd>
+								<pre class="prettyprint lang-java">
+
+${example}
+
+								</pre>
+	                         </dd>
+	                	</dl>
+	                </dd></dl>

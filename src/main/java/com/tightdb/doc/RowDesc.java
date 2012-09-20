@@ -4,8 +4,8 @@ import java.util.List;
 
 public class RowDesc extends AbstractDesc {
 
-	public RowDesc(List<Method> methods) {
-		super(methods);
+	public RowDesc(List<Constructor> constructors, List<Method> methods) {
+		super("row", constructors, methods);
 	}
 
 	public void describe() {

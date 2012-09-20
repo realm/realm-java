@@ -6,6 +6,15 @@ public class TableExamples {
 
 	public static void main(String[] args) {
 
+		/* EXAMPLE: constructor-1 */
+
+		PersonTable people = new PersonTable();
+		
+		/* EXAMPLE: constructor-2 */
+
+		Group group = new Group();								
+		PersonTable people = new PersonTable(group);
+		
 		/* EXAMPLE: add */
 
 		people.add("Mary", 21, false);

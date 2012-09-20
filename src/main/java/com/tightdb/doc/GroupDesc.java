@@ -6,11 +6,17 @@ import com.tightdb.Group;
 
 public class GroupDesc extends AbstractDesc {
 
-	public GroupDesc(List<Method> methods) {
-		super(methods);
+	public GroupDesc(List<Constructor> constructors, List<Method> methods) {
+		super("group", constructors, methods);
 	}
 
 	public void describe() {
+		constructor("Instantiates a TightDB table group");
+		constructor("Instantiates a TightDB table group with file (de)serialization", "File", "file");
+		constructor("Instantiates a TightDB table group with file (de)serialization", "File", "file", "boolean", "readOnly");
+		constructor("Instantiates a TightDB table group with file (de)serialization", "String", "fileName");
+		constructor("Instantiates a TightDB table group with byte array (de)serialization", "byte[]", "data");
+		constructor("Instantiates a TightDB table group with ByteBuffer (de)serialization", "ByteBuffer", "buffer");
 
 		method("void", "close", "Close the group and release resources");
 		method("TableBase", "getTable", "(Low-level) Create and get a table with the specified name", "String", "name");
