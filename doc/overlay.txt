@@ -2,10 +2,6 @@
 the <tt>at</tt> method which returns a cursor to the row:
 @@EndOverlay
 
-@@Overlay: query @@
-column object
-@@EndOverlay
-
 @@Overlay: generated_classes @@
 Using Java annotations a number of classes will be generated. For the <tt>people</tt> class you will have <tt>PeopleTable</tt> (the actual table), <tt>People</tt> (representing rows), <tt>PeopleQuery</tt> (query objects), and <tt>PeopleView</tt> (query results).
 @@EndOverlay

@@ -9,8 +9,10 @@ MODE="$1"
 MAKE="make -j8"
 JAVA_INC="include"
 JAVA_BIN="bin"
-JNI_LIB_SUFFIX=""
-JNI_LIB_INST_DIR="lib/jni" # Absolute or relative to installation prefix
+JNI_LIB_SUFFIX="" # Defaults to ".so"
+JNI_LIB_INST_DIR="/usr/lib/jni" # Absolute or relative to installation prefix, defaults to "lib"
+STAT_FORMAT_SWITCH="-c"
+DEP_JARS="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/share/java/freemarker.jar"
 
 
 # Setup OS specific stuff
@@ -21,6 +23,7 @@ if [ "$OS" = "Darwin" ]; then
     JAVA_BIN="Commands"
     JNI_LIB_SUFFIX=".jnilib"
     JNI_LIB_INST_DIR="/System/Library/Java/Extensions"
+    STAT_FORMAT_SWITCH="-f"
 fi
 
 
@@ -34,6 +37,21 @@ readlink_f()
         return 0
     fi
     readlink_f "$TARGET"
+}
+
+same_path_target()
+{
+    local A B A_ID B_ID
+    A="$1"
+    B="$2"
+    if [ -e "$A" -a -e "$B" ]; then
+        A_ID="$(stat -L "$STAT_FORMAT_SWITCH%d:%i" "$A")" || exit 1
+        B_ID="$(stat -L "$STAT_FORMAT_SWITCH%d:%i" "$B")" || exit 1
+        if [ "$A_ID" = "$B_ID" ]; then
+            return 0
+        fi
+    fi
+    return 1
 }
 
 remove_suffix()
@@ -101,26 +119,36 @@ case "$MODE" in
 
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
-        $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC" || exit 1
-        if [ "$JNI_LIB_SUFFIX" ]; then
-            ln -s "libtightdb-jni.so" "libtightdb-jni$JNI_LIB_SUFFIX"
+        $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
+        SUFFIX="${JNI_LIB_SUFFIX:-.so}"
+        if [ "$SUFFIX" != ".so" ]; then
+            ln -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX"
         fi
 
         # Build tightdb.jar
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
-        DEPENDENCIES="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/share/java/freemarker.jar"
-        CLASSPATH="$(printf "%s\n" "$DEPENDENCIES" | sed 's/  */:/g'):java" || exit 1
+        (cd java && $JAVAC                com/tightdb/*.java  com/tightdb/lib/*.java)  || exit 1
+        (cd java && jar cf ../tightdb.jar com/tightdb/*.class com/tightdb/lib/*.class) || exit 1
+        jar i tightdb.jar || exit 1
+
+        # Build tightdb-devkit.jar
+        CLASSPATH="$(printf "%s\n" "$DEP_JARS" | sed 's/  */:/g'):../tightdb.jar" || exit 1
         export CLASSPATH
         # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
-        SOURCES="$(find java/ -type f -name '*.java' | grep -v /doc/ | grep -v /example/ | grep -v /test/)" || exit 1
-        $JAVAC $SOURCES || exit 1
-        CLASSES="$(cd java && find * -type f -name '*.class')" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
         MANIFEST="$TEMP_DIR/MANIFEST.MF"
-        echo "Class-Path: $DEPENDENCIES" >>"$MANIFEST"
-        jar cfm tightdb.jar "$MANIFEST" -C resources META-INF || exit 1
-        (cd java && jar uf ../tightdb.jar $CLASSES) || exit 1
-        jar i tightdb.jar || exit 1
+        echo "Class-Path: tightdb.jar $DEP_JARS" >>"$MANIFEST"
+        jar cfm tightdb-devkit.jar "$MANIFEST" -C resources META-INF || exit 1
+        (cd java && $JAVAC                       com/tightdb/generator/*.java  com/tightdb/cleaner/*.java)  || exit 1
+        (cd java && jar uf ../tightdb-devkit.jar com/tightdb/generator/*.class com/tightdb/cleaner/*.class) || exit 1
+        jar i tightdb-devkit.jar || exit 1
+
+        # Setup links to libraries and JARs to make the examples work
+        mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
+        cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
+        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$SUFFIX" "../../../tightdb/src/tightdb/libtightdb.so"; do
+            ln -s -f "$x" || exit 1
+        done
         exit 0
         ;;
 
@@ -132,7 +160,7 @@ case "$MODE" in
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test.XXXX)" || exit 1
         mkdir "$TEMP_DIR/out" || exit 1
         mkdir "$TEMP_DIR/gen" || exit 1
-        export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:$TEMP_DIR/gen:."
+        export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb-devkit.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:$TEMP_DIR/gen:."
         (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" com/tightdb/test/TestModel.java) || exit 1
         SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
         CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
@@ -148,26 +176,24 @@ case "$MODE" in
             PREFIX="/usr/local"
         fi
         (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && $MAKE prefix="$PREFIX" install) || exit 1
-        if [ "$JNI_LIB_SUFFIX" -a "$JNI_LIB_SUFFIX" != ".so" -o "$JNI_LIB_INST_DIR" -a "$JNI_LIB_INST_DIR" != "lib" ]; then
-            SUFFIX="${JNI_LIB_SUFFIX:-.so}"
-            INST_DIR="${JNI_LIB_INST_DIR:-lib}"
-            if [ "$PREFIX_WAS_SPECIFIED" ]; then
-                if printf "%s\n" "$INST_DIR" |grep '^/' >/dev/null; then
-                    INST_DIR="lib"
-                fi
-            fi
-            if ! printf "%s\n" "$INST_DIR" |grep '^/' >/dev/null; then
-                INST_DIR="$PREFIX/$INST_DIR"
-            fi
-            if [ "$INST_DIR" = "$PREFIX/lib" ]; then
-                (cd "$INST_DIR" && ln -f -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
-            else
-                install -d "$INST_DIR" || exit 1
-                (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
+        INST_DIR="${JNI_LIB_INST_DIR:-lib}"
+        if [ "$PREFIX_WAS_SPECIFIED" ]; then
+            if printf "%s\n" "$INST_DIR" | grep '^/' >/dev/null; then
+                INST_DIR="lib"
             fi
         fi
+        if ! printf "%s\n" "$INST_DIR" | grep '^/' >/dev/null; then
+            INST_DIR="$PREFIX/$INST_DIR"
+        fi
+        SUFFIX="${JNI_LIB_SUFFIX:-.so}"
+        if ! same_path_target "$INST_DIR" "$PREFIX/lib"; then
+            install -d "$INST_DIR" || exit 1
+            (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
+        elif [ "$SUFFIX" != ".so" ]; then
+            (cd "$INST_DIR" && ln -f -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
+        fi
         install -d "$PREFIX/share/java" || exit 1
-        install -m 644 "src/main/tightdb.jar" "$PREFIX/share/java" || exit 1
+        install -m 644 "src/main/tightdb.jar" "src/main/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
         # FIXME: See http://developer.apple.com/library/mac/#qa/qa1170/_index.html
         exit 0
         ;;
@@ -182,7 +208,7 @@ case "$MODE" in
         fi
         cd "$TIGHTDB_JAVA_HOME/test-installed" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test-installed.XXXX)" || exit 1
-        export CLASSPATH="$PREFIX/share/java/tightdb.jar:."
+        export CLASSPATH="$PREFIX/share/java/tightdb-devkit.jar:."
         $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" java/my/app/Test.java || exit 1
         (cd "$TEMP_DIR" && $JAVA my.app.Test) || exit 1
         exit 0
@@ -199,13 +225,33 @@ case "$MODE" in
         git ls-files -z >"$TEMP_DIR/files" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
+
+        # Copy dependecy JARs
+        mkdir -p "$TARGET_DIR/dep_jars" || exit 1
+        cp $DEP_JARS "$TARGET_DIR/dep_jars/" || exit 1
+        exit 0
+        ;;
+
+    "dist-remarks")
+        echo "To build the java language binding, the following JAR files must have"
+        echo "been installed on you system:"
+        echo
+        for x in $DEP_JARS; do
+            echo "  $x"
+        done
+        echo
+        echo "If you do not have them already, you may want to copy them from"
+        echo "tightdb_java2/dep_jars/."
+        echo
+        echo "A simple example is provided in tightdb_java2/examples/intro-example"
+        echo "to help you get started."
         exit 0
         ;;
 
     *)
         echo "Unspecified or bad mode '$MODE'" 1>&2
         echo "Available modes are: clean build test install test-installed" 1>&2
-        echo "As well as: dist-copy" 1>&2
+        echo "As well as: dist-copy dist-remarks" 1>&2
         exit 1
         ;;
 

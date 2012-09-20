@@ -12,14 +12,25 @@ import java.nio.ByteBuffer;
 import com.tightdb.util;
 
 public class TightDB {
-
+	
 	private static final String PATH_SEP = System.getProperty("path.separator");
 	private static final String JAVA_LIBRARY_PATH = "java.library.path";
-	private static final String BINARIES_PATH = "lib" + PATH_SEP
-			+ "tightdb-example/lib";
-
+	private static final String BINARIES_PATH = "lib" + PATH_SEP + "../lib";
+			
 	private static boolean loadedLibrary;
 
+	private static String getJniFileName()
+	{
+		String os = System.getProperty("os.name").toLowerCase(); 
+		if (os.indexOf("win") >= 0)
+			return "tightdb_jni32.dll or tightdb_jni64.dll";	
+		if (os.indexOf("mac") >= 0)
+			return "libtightdb-jni.jnilib";
+		if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 || os.indexOf("sunos") >= 0)
+			return "libtightdb-jni.so";
+		return "tightdb-jni";
+	}
+	
 	public static byte[] serialize(Serializable value) {
 		try {
 			ByteArrayOutputStream mem = new ByteArrayOutputStream();
@@ -116,18 +127,20 @@ public class TightDB {
 				// Above can't be used on Android.
 			}
 			// Load debug library first - if available
-			loadedLibrary = loadCorrectLibrary("tightdb_jni32d", "tightdb_jni64d", "tightdb-jnid");
+			loadedLibrary = loadCorrectLibrary("tightdb-jnid", "tightdb_jni32d", "tightdb_jni64d");
 			if (loadedLibrary) {
 				System.out.println("!!! TightDB debug version loaded. !!!\n");
 			} else {
-				loadedLibrary = loadCorrectLibrary("tightdb_jni32", "tightdb_jni64", "tightdb-jni");
+				loadedLibrary = loadCorrectLibrary("tightdb-jni", "tightdb_jni32", "tightdb_jni64");
 			}
 			if (!loadedLibrary) {
-				throw new RuntimeException("Couldn't load the TightDB library. Please add 'lib/tightdb_jni??' as external jar.");
+				System.err.println("Searched JAVA_LIBRARY_PATH=" + System.getProperty(JAVA_LIBRARY_PATH));
+				throw new RuntimeException("Couldn't load the TightDB JNI library '" + getJniFileName() + 
+						"'. Please include the directory to the library in java.library.path.");
 			}
 		}
 		if (!util.versionCompatible()) {
-			throw new RuntimeException("Tightdb java jar and Tightdb dll are incompatible.");
+			throw new RuntimeException("tightdb-jni jar and tightdb-jni lib are incompatible. Please check your installation.");
 		}
 	}
 
@@ -144,13 +157,18 @@ public class TightDB {
 
 	public static void addNativeLibraryPath(String path) {
 		try {
-			//System.out.println("JAVA_LIBRARY_PATH=" + System.getProperty(JAVA_LIBRARY_PATH));
 			String libraryPath = System.getProperty(JAVA_LIBRARY_PATH) + PATH_SEP + path + PATH_SEP;
 			System.setProperty(JAVA_LIBRARY_PATH, libraryPath);
 		} catch (Exception e) {
 			throw new RuntimeException("Cannot set the library path!", e);
 		}
 	}
+
+	// Hack for having a cross platform location for the lib:
+	// The Classloader has a static field (sys_paths) that contains the paths. 
+	// If that field is set to null, it is initialized automatically. 
+	// Therefore forcing that field to null will result into the reevaluation of the library path
+	// as soon as loadLibrary() is called…
 
 	private static void resetLibraryPath() {
 		try {

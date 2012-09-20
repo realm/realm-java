@@ -144,8 +144,7 @@ public class TableQueryTest extends AbstractTest {
 		assertEquals(1, niko2.size());
 	}
 
-	@Test(enabled = false)
-	// FIXME: enable the test (fix the bug)
+	@Test
 	public void shouldRemoveAllMatchingRows() {
 		// Remove all
 		TestEmployeeQuery q = employees.where().salary.lessThan(100000000);
@@ -158,7 +157,7 @@ public class TableQueryTest extends AbstractTest {
 		assertEquals(0, employees.size());
 	}
 
-	@Test(enabled = true)
+	@Test
 	public void shouldRemoveSomeMatchingRows() {
 		// Remove some
 		TestEmployeeQuery q = employees.where().salary.lessThan(100000000);
@@ -170,7 +169,7 @@ public class TableQueryTest extends AbstractTest {
 		assertEquals(2, employees.size());
 	}
 
-	@Test(enabled = true)
+	@Test
 	public void shouldntRemoveNonMatchingRows() {
 		// Remove some
 		TestEmployeeQuery q = employees.salary.lessThan(10000);

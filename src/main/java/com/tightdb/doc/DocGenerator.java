@@ -27,7 +27,7 @@ public class DocGenerator {
 		
 		String docs = renderer.render("reference.vm", context);
 		// FIXME: hard-coded path (temporary)
-		FileUtils.writeStringToFile(new File("E:/docs/reference/reference.html"), docs);
+		FileUtils.writeStringToFile(new File("x:/tightdb/tightdb_java2/doc/reference/reference.html"), docs);
 		System.out.println("Documentation updated.");
 	}
 
