@@ -1,6 +1,7 @@
 package com.tightdb.doc;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,11 +29,9 @@ public class DocGenerator {
 
 		context.put("table_or_view_columns", generateTableOrViewColumns());
 		context.put("query_columns", generateQueryColumns());
-		
+
 		String docs = renderer.render("reference.vm", context);
-		// FIXME: hard-coded path (temporary)
-		FileUtils.writeStringToFile(new File("doc/reference/reference.html"),
-				docs);
+		writeFile("reference", docs);
 		System.out.println("Documentation updated.");
 	}
 
@@ -47,9 +46,9 @@ public class DocGenerator {
 		context.put(cls.toLowerCase() + "_method_overview",
 				generateMethodOverview(cls));
 		context.put(cls.toLowerCase() + "_constructor_details",
-				generateConstructorDetails(cls));
+				generateConstructorsDetails(cls));
 		context.put(cls.toLowerCase() + "_method_details",
-				generateMethodDetails(cls));
+				generateMethodsDetails(cls));
 	}
 
 	private static String generateMethodList(String cls) throws Exception {
@@ -102,43 +101,60 @@ public class DocGenerator {
 		return sb.toString();
 	}
 
-	private static String generateConstructorDetails(String cls)
+	private static String generateConstructorsDetails(String cls)
 			throws Exception {
 		StringBuilder sb = new StringBuilder();
 		ExampleReader exampleReader = new ExampleReader(cls + "Examples.java");
 
 		for (Constructor constructor : constructors) {
-			Context context = new VelocityContext();
-			context.put("class", cls);
-			context.put("id", constructor.getId());
-			context.put("order", constructor.order);
-			context.put("name", constructor.getName());
-			context.put("doc", constructor.doc);
-			context.put("params", constructor.params);
-			context.put("example", exampleReader.getExample("constructor-"
-					+ constructor.order));
-			sb.append(renderer.render("constructor-ref.vm", context));
+			String doc = generateConstructorDetails(cls, exampleReader,
+					constructor);
+			writeFile("method-ref/" + constructor.getId(), doc);
+			sb.append(doc);
 		}
 
 		return sb.toString();
 	}
 
-	private static String generateMethodDetails(String cls) throws Exception {
+	private static String generateConstructorDetails(String cls,
+			ExampleReader exampleReader, Constructor constructor)
+			throws IOException {
+		Context context = new VelocityContext();
+		context.put("class", cls);
+		context.put("id", constructor.getId());
+		context.put("order", constructor.order);
+		context.put("name", constructor.getName());
+		context.put("doc", constructor.doc);
+		context.put("params", constructor.params);
+		context.put("example",
+				exampleReader.getExample("constructor-" + constructor.order));
+		String doc = renderer.render("constructor-ref.vm", context);
+		return doc;
+	}
+
+	private static String generateMethodsDetails(String cls) throws Exception {
 		StringBuilder sb = new StringBuilder();
 		ExampleReader exampleReader = new ExampleReader(cls + "Examples.java");
 
 		for (Method method : methods) {
-			Context context = new VelocityContext();
-			context.put("class", cls);
-			context.put("ret", method.ret);
-			context.put("name", method.name);
-			context.put("doc", method.doc);
-			context.put("params", method.params);
-			context.put("example", exampleReader.getExample(method.name));
-			sb.append(renderer.render("method-ref.vm", context));
+			String doc = generateMethodDetails(cls, exampleReader, method);
+			writeFile("method-ref/" + method.getId(), doc);
+			sb.append(doc);
 		}
 
 		return sb.toString();
+	}
+
+	private static String generateMethodDetails(String cls,
+			ExampleReader exampleReader, Method method) throws IOException {
+		Context context = new VelocityContext();
+		context.put("class", cls);
+		context.put("ret", method.ret);
+		context.put("name", method.name);
+		context.put("doc", method.doc);
+		context.put("params", method.params);
+		context.put("example", exampleReader.getExample(method.name));
+		return renderer.render("method-ref.vm", context);
 	}
 
 	private static String generateTableOrViewColumns() throws Exception {
@@ -159,6 +175,12 @@ public class DocGenerator {
 		sb.append(renderer.render("columns.vm", context));
 
 		return sb.toString();
+	}
+
+	private static void writeFile(String fileName, String content)
+			throws Exception {
+		FileUtils.writeStringToFile(new File("doc/reference/" + fileName
+				+ ".html"), content);
 	}
 
 }
