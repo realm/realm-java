@@ -27,11 +27,8 @@ public class DocGenerator {
 		describeAndGen(new ViewDesc(constructors, methods), "View", context);
 		describeAndGen(new GroupDesc(constructors, methods), "Group", context);
 
-		context.put("table_or_view_columns", generateTableOrViewColumns());
-		context.put("query_columns", generateQueryColumns());
-
-		String docs = renderer.render("reference.vm", context);
-		writeFile("reference", docs);
+		// String docs = renderer.render("reference.vm", context);
+		// writeFile("reference", docs);
 		System.out.println("Documentation updated.");
 	}
 
@@ -40,15 +37,22 @@ public class DocGenerator {
 		constructors.clear();
 		methods.clear();
 		desc.describe();
-		context.put(cls.toLowerCase() + "_method_list", generateMethodList(cls));
-		context.put(cls.toLowerCase() + "_constructor_overview",
-				generateConstructorOverview(cls));
-		context.put(cls.toLowerCase() + "_method_overview",
-				generateMethodOverview(cls));
-		context.put(cls.toLowerCase() + "_constructor_details",
-				generateConstructorsDetails(cls));
-		context.put(cls.toLowerCase() + "_method_details",
-				generateMethodsDetails(cls));
+
+		context.put("class", cls);
+		context.put("method_list", generateMethodList(cls));
+		context.put("constructor_overview", generateConstructorOverview(cls));
+		context.put("method_overview", generateMethodOverview(cls));
+		context.put("constructor_details", generateConstructorsDetails(cls));
+		context.put("method_details", generateMethodsDetails(cls));
+
+		if (cls.equalsIgnoreCase("table") || cls.equalsIgnoreCase("view")) {
+			context.put("columns", generateTableOrViewColumns());
+		} else if (cls.equalsIgnoreCase("query")) {
+			context.put("columns", generateQueryColumns());
+		}
+
+		String doc = renderer.render(cls.toLowerCase() + "-ref.vm", context);
+		writeFile("method-ref/" + cls.toLowerCase(), doc);
 	}
 
 	private static String generateMethodList(String cls) throws Exception {

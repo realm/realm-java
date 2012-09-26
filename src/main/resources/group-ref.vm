@@ -1,0 +1,26 @@
+                <h2>Group Class</h2>
+                <p>
+                The <code>Group</code> is a container for <a href="#table">tables</a> and it allows the tables to be serialized to disk and memory.
+                </p>
+				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<th align="left" colspan="2"><font size="+2">
+				<b>Constructor Summary</b></font></th>
+				</tr>
+
+${constructor_overview}
+
+				</tbody></table>
+
+				</p>
+				</p>
+
+                <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                <th align="left" colspan="2"><font size="+2">
+                <b>Method Summary</b></font></th>
+                </tr>
+
+${method_overview}
+				
+                </tbody></table>

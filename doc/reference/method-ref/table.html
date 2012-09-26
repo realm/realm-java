@@ -1,0 +1,380 @@
+                <h2>Table Class</h2>
+                <p>
+                The Table class allows you to efficiently work with data in terms of rows and columns.
+                </p>
+
+                <p>
+                  <i>Note</i>: Tables should be generated using the <code>@Table</code> annotation. 
+                  The annotation for a Java class with name <code>foo</code> will 
+                  generate a number of classes representing rows (<code>Foo</code>), queries (<code>FooQuery</code>),
+                  result sets (<code>FooView</code>), and the table (<code>FooTable</code>). 
+                </p>
+				
+                	<dl>
+                		<dt><b>Example:</b></dt>
+                		<dd>
+							<p>
+							<pre class="prettyprint" lang-java>
+public class Example {
+
+    // PersonTable, Person, PersonQuery, and PersonView are generated:
+
+    @Table
+    class person {
+        String name;
+        int age;
+        boolean hired;
+    }
+
+}
+							</pre>
+                            </p>
+                         </dd>
+                	</dl>
+                </dd></dl>
+
+                <h3>Table column fields</h3>
+				
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <dl>
+                      <dd><p> The tables show the declared methods for various types of column fields for a table:</p></dd>
+					  
+
+
+                      <dd><p><b>For binary columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>ByteBuffer[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(ByteBuffer value)</tt></td><td>Set all values for the represented column</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+
+                      <dd><p><b>For boolean columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Boolean[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Boolean value)</tt></td><td>Set all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(Boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(Boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(Boolean value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(Boolean value)</tt></td><td>Find all rows having the specified column value</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+
+                      <dd><p><b>For date columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Date[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Date value)</tt></td><td>Set all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(Date value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(Date value)</tt></td><td>Find all rows having the specified column value</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+
+                      <dd><p><b>For long columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Long[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Long value)</tt></td><td>Set all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>addLong </b>(long value)</tt></td><td>Add the value to all cells in the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>long <b>sum </b>()</tt></td><td>Calculate the sum of all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>long <b>minimum </b>()</tt></td><td>Calculate the minimal value for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>long <b>maximum </b>()</tt></td><td>Calculate the maximal value for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(long value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(long value)</tt></td><td>Find all rows having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThan/gt </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThanOrEqual/gte </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThan/lt </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThanOrEqual/lte </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>between </b>(long value_1)</tt></td><td>Represents <b>'long value_2'</b> criterium</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+
+                      <dd><p><b>For mixed columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Mixed[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(Mixed value)</tt></td><td>Set all values for the represented column</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+
+                      <dd><p><b>For String columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>String[] <b>getAll </b>()</tt></td><td>Get all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>void <b>setAll </b>(String value)</tt></td><td>Set all values for the represented column</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Row <b>findFirst </b>(String value)</tt></td><td>Find first row having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>View <b>findAll </b>(String value)</tt></td><td>Find all rows having the specified column value</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>beginsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the begining of the text'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>endsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the end of the text'</b> criterium</td></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>contains </b>(String value)</tt></td><td>Represents <b>'substring search'</b> criterium</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+
+                      <dd><p><b>For table columns:</b></p></dd>
+                      <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                              <th>Method</th><th>Description</th></tr>
+							  <tr bgcolor="white" class="TableRowColor"><td><tt>Table[] <b>getAll </b>()</tt></td><td>Get all subtables for the represented column</td></tr>
+                            </tbody>
+                          </table>
+                        </p>
+                      </dd>
+
+                    <dl>
+                      <dt><b>Examples:</b></dt>
+                      <dd>
+						<p>
+                        <pre class="prettyprint lang-java">
+String[] names = people.name.getAll();
+Person firstJohn = people.name.findFirst("John");
+PeopleView hiredYoung = people.hired.equals(true).age.between(20, 30).findAll();
+                        </pre>
+						</p>
+                      </dd>
+                    </dl>
+                </dd></dl>
+                
+
+				
+                <p>
+				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<th align="left" colspan="2"><font size="+2">
+				<b>Constructor Summary</b></font></th>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="table-constructor-1.html"><i>Table</i></a></b>()</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Allocates and instantiates a TightDB table. <br/> Note: Only tables which are part of a Group can be serialized to memory or disk</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td><code><b><a href="table-constructor-2.html"><i>Table</i></a></b>(<i>Group</i> group)</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Allocates and instantiates a TightDB table, as part of the specified group</td>
+				</tr>
+
+				
+				</tbody></table>
+
+				</p>
+				</p>
+
+				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+				<th align="left" colspan="2"><font size="+2">
+				<b>Method Summary</b></font></th>
+				</tr>
+
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="table-add.html">add</a></b>(<i>RowDataTypes...</i> rowData...)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Insert a new row at the end of the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="table-at.html">at</a></b>(<i>long</i> rowIndex)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get a specific row as an object (rowIndex starts at 0)</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="table-clear.html">clear</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Delete all rows in the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="table-first.html">first</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the first row as an object</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="table-getColumnCount.html">getColumnCount</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get number of columns in the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;String</code></font></td>
+					<td><code><b><a href="table-getColumnName.html">getColumnName</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the name of the column</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;ColumnType</code></font></td>
+					<td><code><b><a href="table-getColumnType.html">getColumnType</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the type of the column</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="table-getColumnIndex.html">getColumnIndex</a></b>(<i>String</i> columnName)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the 0-based index of a column with the specified name</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;String</code></font></td>
+					<td><code><b><a href="table-getName.html">getName</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the table name for tables named in a Group</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="table-insert.html">insert</a></b>(<i>long</i> rowIndex, <i>RowDataTypes...</i> rowData...)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Insert a new row at the index in the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;boolean</code></font></td>
+					<td><code><b><a href="table-isEmpty.html">isEmpty</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Check if a table has no rows</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Iterator</code></font></td>
+					<td><code><b><a href="table-iterator.html">iterator</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get an iterator for the table rows</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Row</code></font></td>
+					<td><code><b><a href="table-last.html">last</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the last row as an object</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="table-optimize.html">optimize</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Optimize the database size. (Currently pack strings)</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="table-remove.html">remove</a></b>(<i>long</i> rowIndex)
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove a specific row from the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;void</code></font></td>
+					<td><code><b><a href="table-removeLast.html">removeLast</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the last row from the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;long</code></font></td>
+					<td><code><b><a href="table-size.html">size</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in the table</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;String</code></font></td>
+					<td><code><b><a href="table-toJson.html">toJson</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Retrieve JSON representaion of the data</td>
+				</tr>
+				<tr bgcolor="white" class="TableRowColor">
+				<td align="right" valign="top" width="1%"><font size="-1">
+				<code>
+					&nbsp;Query</code></font></td>
+					<td><code><b><a href="table-where.html">where</a></b>()
+				</code>
+				<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Create a query for the table</td>
+				</tr>
+
+
+				</tbody></table>
