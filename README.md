@@ -1,9 +1,10 @@
 Java
 ====
 
-This is the Java interface to TightDB.
+This is the Java language binding for TightDB.
 
-After you have installed below dependencies, you can proceed to build and install TightDB, as described below.
+After you have installed the dependencies listed below, you can
+proceed to build and install the language binding.
 
 
 Dependencies
@@ -53,7 +54,7 @@ Building and installing
 
 Examples
 --------
-    
-    You can try the TightDB with Java in the examples provided in:
-    ./examples. Please consult the README file in that directory.
-    
+
+You can try the TightDB with Java in the examples provided in:
+./examples. Please consult the README file in that directory.
+
