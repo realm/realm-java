@@ -90,70 +90,107 @@ NO_BUILD_ON_INSTALL =
 
 
 
+# UTILITY FUNCTIONS
+
+EMPTY =
+EQUALS = $(if $(word 2,$(sort $(1) $(2))),,$(1))
+COND_PREPEND = $(if $(2),$(1)$(2),)
+COND_APPEND = $(if $(1),$(1)$(2),)
+FIND = $(if $(1),$(call FIND_HELP,$(2),$(word 1,$(1)),$(1)),)
+FIND_HELP = $(if $(call $(1),$(2)),$(2),$(call FIND,$(wordlist 2,$(words $(3)),$(3)),$(1)))
+PATH_DIFF = $(call PATH_DIFF_HELP,$(subst /, ,$(abspath $(1))),$(subst /, ,$(abspath $(2))))
+PATH_DIFF_HELP = $(if $(and $(1),$(2),$(call EQUALS,$(word 1,$(1)),$(word 1,$(2)))),$(call PATH_DIFF_HELP,$(wordlist 2,$(words $(1)),$(1)),$(wordlist 2,$(words $(2)),$(2))),$(subst $(EMPTY) ,/,$(strip $(patsubst %,..,$(2)) $(1))))
+HAVE_CMD = $(shell which $(1))
+MATCH_CMD = $(filter $(1) $(1)-%,$(notdir $(2)))
+MAP_CMD = $(if $(call MATCH_CMD,$(1),$(3)),$(if $(findstring /,$(3)),$(dir $(3)),)$(patsubst $(1)%,$(2)%,$(notdir $(3))),)
+
+
+
 # SETUP A GCC-LIKE DEFAULT COMPILER IF POSSIBLE
 
+# The general idea is as follows: If neither CC nor CXX is specified,
+# then check for available C compilers, and set CC and CXX
+# accordingly. Otherwise, if CC is specified, but CXX is not, then set
+# CXX to the C++ version of CC.
+
+# Note: No correspondence is required between the compilers
+# mentioned in GCC_LIKE_COMPILERS, and those mentioned in
+# MAP_CC_TO_CXX
+GCC_LIKE_COMPILERS = gcc llvm-gcc clang
+MAP_CC_TO_CXX = $(or $(call MAP_CMD,gcc,g++,$(1)),$(call MAP_CMD,llvm-gcc,llvm-g++,$(1)),$(call MAP_CMD,clang,clang++,$(1)))
+
+GXX_LIKE_COMPILERS = $(foreach x,$(GCC_LIKE_COMPILERS),$(call MAP_CC_TO_CXX,$(x)))
+IS_GCC_LIKE = $(foreach x,$(GCC_LIKE_COMPILERS),$(call MATCH_CMD,$(x),$(1)))
+IS_GXX_LIKE = $(foreach x,$(GXX_LIKE_COMPILERS),$(call MATCH_CMD,$(x),$(1)))
+
+# C and C++
 CC_SPECIFIED        = $(filter-out undefined default,$(origin CC))
 CXX_SPECIFIED       = $(filter-out undefined default,$(origin CXX))
-LD_SPECIFIED        = $(filter-out undefined default,$(origin LD))
 CC_OR_CXX_SPECIFIED = $(or $(CC_SPECIFIED),$(CXX_SPECIFIED))
-FILTER_GCC          = $(filter gcc gcc-% g++ g++-%,$(1))
-FILTER_LLVM_GCC     = $(filter llvm-gcc llvm-gcc-% llvm-g++ llvm-g++-%,$(1))
-FILTER_CLANG        = $(filter clang clang-% clang++ clang++-%,$(1))
 ifeq ($(CC_OR_CXX_SPECIFIED),)
 # Neither CC nor CXX is specified
-HAVE_GCC      = $(and $(shell which gcc), $(shell which g++))
-HAVE_LLVM_GCC = $(and $(shell which llvm-gcc), $(shell which llvm-g++))
-HAVE_CLANG    = $(and $(shell which clang), $(shell which clang++))
-ifneq ($(HAVE_GCC),)
-CC  = gcc
-CXX = g++
-else ifneq ($(HAVE_LLVM_GCC),)
-CC  = llvm-gcc
-CXX = llvm-g++
-else ifneq ($(HAVE_CLANG),)
-CC  = clang
-CXX = clang++
+X := $(call FIND,$(GCC_LIKE_COMPILERS),HAVE_CMD)
+ifneq ($(X),)
+CC = $(X)
+X := $(call MAP_CC_TO_CXX,$(CC))
+ifneq ($(X),)
+CXX = $(X)
 endif
-else ifeq ($(CC_SPECIFIED),)
-# CC is not specified, but CXX is
-ifneq ($(call FILTER_GCC,$(CXX)),)
-CC = $(patsubst g++%,gcc%,$(CXX))
-else ifneq ($(call FILTER_LLVM_GCC,$(CXX)),)
-CC = $(patsubst llvm-g++%,llvm-gcc%,$(CXX))
-else ifneq ($(call FILTER_CLANG,$(CXX)),)
-CC = $(patsubst clang++%,clang%,$(CXX))
 endif
 else ifeq ($(CXX_SPECIFIED),)
 # CXX is not specified, but CC is
-ifneq ($(call FILTER_GCC,$(CC)),)
-CXX = $(patsubst gcc%,g++%,$(CC))
-else ifneq ($(call FILTER_LLVM_GCC,$(CC)),)
-CXX = $(patsubst llvm-gcc%,llvm-g++%,$(CC))
-else ifneq ($(call FILTER_CLANG,$(CC)),)
-CXX = $(patsubst clang%,clang++%,$(CC))
+X := $(call MAP_CC_TO_CXX,$(CC))
+ifneq ($(X),)
+CXX = $(X)
 endif
 endif
-FILTER_GCC_LIKE = $(or $(call FILTER_GCC,$(1)),$(call FILTER_LLVM_GCC,$(1)),$(call FILTER_CLANG,$(1)))
-CC_AND_CXX_ARE_GCC_LIKE = $(and $(call FILTER_GCC_LIKE,$(CC)),$(call FILTER_GCC_LIKE,$(CXX)))
+CC_AND_CXX_ARE_GCC_LIKE = $(and $(call IS_GCC_LIKE,$(CC)),$(call IS_GXX_LIKE,$(CXX)))
 ifneq ($(CC_AND_CXX_ARE_GCC_LIKE),)
-# Linker - use the C++ compiler by default
-ifeq ($(LD_SPECIFIED),)
-LD = $(CXX)
-endif
 CFLAGS_DEFAULT   = -Wall
 CFLAGS_OPTIMIZE  = -O3
 CFLAGS_DEBUG     = -ggdb3
 CFLAGS_COVERAGE  = --coverage
 CFLAGS_SHARED    = -fPIC -DPIC
 CFLAGS_AUTODEP   = -MMD -MP
+endif
+
+# Objective-C and Objective-C++
+OCC_SPECIFIED         = $(filter-out undefined default,$(origin OCC))
+OCXX_SPECIFIED        = $(filter-out undefined default,$(origin OCXX))
+OCC_OR_OCXX_SPECIFIED = $(or $(OCC_SPECIFIED),$(OCXX_SPECIFIED))
+ifeq ($(OCC_OR_OCXX_SPECIFIED),)
+# Neither OCC nor OCXX is specified
+OCC  = $(CC)
+OCXX = $(CXX)
+else ifeq ($(OCXX_SPECIFIED),)
+# OCXX is not specified, but OCC is
+X := $(call MAP_CC_TO_CXX,$(OCC))
+ifneq ($(X),)
+OCXX = $(X)
+endif
+endif
+OCC_AND_OCXX_ARE_GCC_LIKE = $(and $(call IS_GCC_LIKE,$(OCC)),$(call IS_GXX_LIKE,$(OCXX)))
+
+
+
+# SETUP A GCC-LIKE DEFAULT LINKER IF POSSIBLE
+
+ifneq ($(CC_AND_CXX_ARE_GCC_LIKE),)
+ifeq ($(LD_SPECIFIED),)
+LD = $(CXX)
+endif
+endif
+LD_IS_GCC_LIKE = $(or $(call IS_GCC_LIKE,$(LD)),$(call IS_GXX_LIKE,$(LD)))
+ifneq ($(LD_IS_GCC_LIKE),)
 LDFLAGS_OPTIMIZE =
-LDFLAGS_SHARED   = -shared $(CFLAGS_SHARED)
+LDFLAGS_SHARED   = -shared
 LDFLAGS_DEBUG    =
 endif
 
 # Workaround for CLANG < v3.2 ignoring LIBRARY_PATH
-ifneq ($(or $(call FILTER_CLANG,$(CC)),$(call FILTER_CLANG,$(CXX))),)
-CLANG_VERSION = $(shell clang --version | grep -i 'clang version' | sed 's/.*clang version \([^ ][^ ]*\).*/\1/' | sed 's/[._-]/ /g')
+LD_IS_CLANG = $(or $(call MATCH_CMD,clang,$(LD)),$(call MATCH_CMD,clang++,$(LD)))
+ifneq ($(LD_IS_CLANG),)
+CLANG_VERSION = $(shell $(LD) --version | grep -i 'clang version' | sed 's/.*clang version \([^ ][^ ]*\).*/\1/' | sed 's/[._-]/ /g')
 CLANG_MAJOR = $(word 1,$(CLANG_VERSION))
 CLANG_MINOR = $(word 2,$(CLANG_VERSION))
 ifeq ($(shell echo $$(($(CLANG_MAJOR) < 3 || ($(CLANG_MAJOR) == 3 && $(CLANG_MINOR) < 2)))),1)
@@ -231,14 +268,6 @@ SUFFIX_PROG_COVER = $(COVERAGE_PROG_DENOM)
 
 
 
-# Functions:
-
-EMPTY =
-COND_PREPEND = $(if $(2),$(1)$(2),)
-COND_APPEND = $(if $(1),$(1)$(2),)
-EQUALS = $(if $(word 2,$(sort $(1) $(2))),,$(1))
-PATH_DIFF_HELP = $(if $(and $(1),$(2),$(call EQUALS,$(word 1,$(1)),$(word 1,$(2)))),$(call PATH_DIFF_HELP,$(wordlist 2,$(words $(1)),$(1)),$(wordlist 2,$(words $(2)),$(2))),$(subst $(EMPTY) ,/,$(strip $(patsubst %,..,$(2)) $(1))))
-PATH_DIFF = $(call PATH_DIFF_HELP,$(subst /, ,$(abspath $(1))),$(subst /, ,$(abspath $(2))))
 FOLD_TARGET = $(subst .,_,$(subst -,_,$(1)))
 GET_LIBRARY_NAME = $(patsubst %.a,%,$(1))$(2)
 GET_OBJECTS_FROM_SOURCES = $(patsubst %.c,%$(2),$(patsubst %.cpp,%$(2),$(1)))
@@ -250,7 +279,6 @@ GET_FLAGS_HELPER = $($(if $(filter undefined,$(origin $(1)$(2))),$(1),$(1)$(2)))
 GET_CFLAGS_FOR_OBJECT = $(call GET_FLAGS_HELPER,$(call FOLD_TARGET,$(1))_CFLAGS,$(2))
 GET_LDFLAGS_FOR_TARGET = $(call GET_FLAGS_HELPER,$(call FOLD_TARGET,$(1))_LDFLAGS,$(2))
 GET_DEPS_FOR_TARGET = $($(call FOLD_TARGET,$(1))_DEPS)
-GET_DEPS_FOR_TARGET2 = $(warning GET_DEPS_FOR_TARGET GET_DEPS_FOR_TARGET GET_DEPS_FOR_TARGET xx$(1)xx)
 
 INC_FLAGS         = $(CFLAGS_INCLUDE)
 INC_FLAGS_ABS     = $(CFLAGS_INCLUDE)
