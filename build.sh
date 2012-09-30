@@ -6,7 +6,8 @@ TIGHTDB_JAVA_HOME="$(pwd)"
 MODE="$1"
 [ $# -gt 0 ] && shift
 
-MAKE="make -j8"
+NUM_PROCESSORS=""
+MAKE="make"
 JAVA_INC="include"
 JAVA_BIN="bin"
 JNI_LIB_SUFFIX="" # Defaults to ".so"
@@ -24,6 +25,15 @@ if [ "$OS" = "Darwin" ]; then
     JNI_LIB_SUFFIX=".jnilib"
     JNI_LIB_INST_DIR="/System/Library/Java/Extensions"
     STAT_FORMAT_SWITCH="-f"
+    NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
+else
+    if [ -r /proc/cpuinfo ]; then
+        NUM_PROCESSORS="$(cat /proc/cpuinfo | egrep 'processor[[:space:]]*:' | wc -l)" || exit 1
+    fi
+fi
+
+if [ "$NUM_PROCESSORS" ]; then
+    MAKE="$MAKE -j$NUM_PROCESSORS"
 fi
 
 
