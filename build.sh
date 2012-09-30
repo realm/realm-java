@@ -16,7 +16,7 @@ DEP_JARS="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/s
 
 
 # Setup OS specific stuff
-OS="$(uname -s)" || exit 1
+OS="$(uname)" || exit 1
 if [ "$OS" = "Darwin" ]; then
     MAKE="$MAKE CC=clang"
     JAVA_INC="Headers"
@@ -161,6 +161,10 @@ case "$MODE" in
         mkdir "$TEMP_DIR/out" || exit 1
         mkdir "$TEMP_DIR/gen" || exit 1
         export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb-devkit.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:$TEMP_DIR/gen:."
+        # Newer versions of testng.jar (probably >= 6) require beust-jcommander.jar
+        if [ -e "/usr/share/java/beust-jcommander.jar" ]; then
+            CLASSPATH="$CLASSPATH:/usr/share/java/beust-jcommander.jar"
+        fi
         (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" com/tightdb/test/TestModel.java) || exit 1
         SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
         CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
