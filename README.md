@@ -1,7 +1,7 @@
 Java
 ====
 
-This is the Java language binding for TightDB.
+This is the TightDB language binding for Java.
 
 After you have installed the dependencies listed below, you can
 proceed to build and install the language binding.
@@ -61,6 +61,24 @@ Building and installing
     sh build.sh build
     sudo sh build.sh install
     sh build.sh test-intalled
+
+
+Configuration
+-------------
+
+To use a nondefault compiler, or a compiler in a nondefault location,
+set the environment variable `CC` before calling `sh build.sh build`,
+as in the following example:
+
+    CC=clang sh build.sh dist
+
+There are also a number of environment variables that serve to enable
+or disable special features during building:
+
+Set `TIGHTDB_DISABLE_SSE` to a nonempty value to disable SSE.
+
+Set `TIGHTDB_ENABLE_REPLICATION` to a nonempty value to enable
+replication.
 
 
 Examples
