@@ -7,7 +7,6 @@ MODE="$1"
 [ $# -gt 0 ] && shift
 
 NUM_PROCESSORS=""
-MAKE="make"
 JAVA_INC="include"
 JAVA_BIN="bin"
 JNI_LIB_SUFFIX="" # Defaults to ".so"
@@ -19,7 +18,9 @@ DEP_JARS="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/s
 # Setup OS specific stuff
 OS="$(uname)" || exit 1
 if [ "$OS" = "Darwin" ]; then
-    MAKE="$MAKE CC=clang"
+    if [ "$CC" = "" ] && which clang >/dev/null; then
+        export CC=clang
+    fi
     JAVA_INC="Headers"
     JAVA_BIN="Commands"
     JNI_LIB_SUFFIX=".jnilib"
@@ -32,8 +33,9 @@ else
     fi
 fi
 
+
 if [ "$NUM_PROCESSORS" ]; then
-    MAKE="$MAKE -j$NUM_PROCESSORS"
+    export MAKEFLAGS="-j$NUM_PROCESSORS"
 fi
 
 
@@ -117,7 +119,7 @@ case "$MODE" in
 
     "clean")
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
-        $MAKE clean || exit 1
+        make clean || exit 1
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
         find java/ -type f -name '*.class' -delete || exit 1
         rm -f tightdb.jar || exit 1
@@ -129,7 +131,7 @@ case "$MODE" in
 
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
-        $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
+        TIGHTDB_ENABLE_FAT_BINARIES=1 make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
         SUFFIX="${JNI_LIB_SUFFIX:-.so}"
         if [ "$SUFFIX" != ".so" ]; then
             ln -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX"
@@ -189,7 +191,7 @@ case "$MODE" in
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
         fi
-        (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && $MAKE prefix="$PREFIX" install) || exit 1
+        (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make prefix="$PREFIX" install) || exit 1
         INST_DIR="${JNI_LIB_INST_DIR:-lib}"
         if [ "$PREFIX_WAS_SPECIFIED" ]; then
             if printf "%s\n" "$INST_DIR" | grep '^/' >/dev/null; then

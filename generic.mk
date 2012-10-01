@@ -29,9 +29,21 @@
 # next, you should always start with a 'make clean'. MAKE does this
 # automatically when you change config.mk.
 #
-# In config.mk you may check the value of CC_AND_CXX_ARE_GCC_LIKE. If
-# it has a nonempty value, then both the C and the C++ compiler is
-# mostly command line compatible with GCC (gcc, llvm-gcc, clang).
+# A function CC_CXX_AND_LD_ARE is made available to check for a
+# specific compiler in config.mk. For example:
+#
+#   ifneq ($(call CC_CXX_AND_LD_ARE,clang),)
+#   # Clang specific stuff
+#   endif
+#
+# Likewise, a variable CC_CXX_AND_LD_ARE_GCC_LIKE is made available to
+# check for any GCC like compiler in config.mk (gcc, llvm-gcc,
+# clang). For example:
+#
+#   ifneq ($(CC_CXX_AND_LD_ARE_GCC_LIKE),)
+#   # GCC specific stuff
+#   endif
+
 
 
 # CONFIG VARIABLES
@@ -119,9 +131,9 @@ MAP_CMD = $(if $(call MATCH_CMD,$(1),$(3)),$(if $(findstring /,$(3)),$(dir $(3))
 GCC_LIKE_COMPILERS = gcc llvm-gcc clang
 MAP_CC_TO_CXX = $(or $(call MAP_CMD,gcc,g++,$(1)),$(call MAP_CMD,llvm-gcc,llvm-g++,$(1)),$(call MAP_CMD,clang,clang++,$(1)))
 
-GXX_LIKE_COMPILERS = $(foreach x,$(GCC_LIKE_COMPILERS),$(call MAP_CC_TO_CXX,$(x)))
-IS_GCC_LIKE = $(foreach x,$(GCC_LIKE_COMPILERS),$(call MATCH_CMD,$(x),$(1)))
-IS_GXX_LIKE = $(foreach x,$(GXX_LIKE_COMPILERS),$(call MATCH_CMD,$(x),$(1)))
+GXX_LIKE_COMPILERS = $(strip $(foreach x,$(GCC_LIKE_COMPILERS),$(call MAP_CC_TO_CXX,$(x))))
+IS_GCC_LIKE = $(strip $(foreach x,$(GCC_LIKE_COMPILERS),$(call MATCH_CMD,$(x),$(1))))
+IS_GXX_LIKE = $(strip $(foreach x,$(GXX_LIKE_COMPILERS),$(call MATCH_CMD,$(x),$(1))))
 
 # C and C++
 CC_SPECIFIED        = $(filter-out undefined default,$(origin CC))
@@ -131,20 +143,20 @@ ifeq ($(CC_OR_CXX_SPECIFIED),)
 # Neither CC nor CXX is specified
 X := $(call FIND,$(GCC_LIKE_COMPILERS),HAVE_CMD)
 ifneq ($(X),)
-CC = $(X)
+CC := $(X)
 X := $(call MAP_CC_TO_CXX,$(CC))
 ifneq ($(X),)
-CXX = $(X)
+CXX := $(X)
 endif
 endif
 else ifeq ($(CXX_SPECIFIED),)
 # CXX is not specified, but CC is
 X := $(call MAP_CC_TO_CXX,$(CC))
 ifneq ($(X),)
-CXX = $(X)
+CXX := $(X)
 endif
 endif
-CC_AND_CXX_ARE_GCC_LIKE = $(and $(call IS_GCC_LIKE,$(CC)),$(call IS_GXX_LIKE,$(CXX)))
+CC_AND_CXX_ARE_GCC_LIKE = $(and $(call IS_GCC_LIKE,$(CC)),$(or $(call IS_GCC_LIKE,$(CXX)),$(call IS_GXX_LIKE,$(CXX))))
 ifneq ($(CC_AND_CXX_ARE_GCC_LIKE),)
 CFLAGS_DEFAULT   = -Wall
 CFLAGS_OPTIMIZE  = -O3
@@ -160,16 +172,16 @@ OCXX_SPECIFIED        = $(filter-out undefined default,$(origin OCXX))
 OCC_OR_OCXX_SPECIFIED = $(or $(OCC_SPECIFIED),$(OCXX_SPECIFIED))
 ifeq ($(OCC_OR_OCXX_SPECIFIED),)
 # Neither OCC nor OCXX is specified
-OCC  = $(CC)
-OCXX = $(CXX)
+OCC  := $(CC)
+OCXX := $(CXX)
 else ifeq ($(OCXX_SPECIFIED),)
 # OCXX is not specified, but OCC is
 X := $(call MAP_CC_TO_CXX,$(OCC))
 ifneq ($(X),)
-OCXX = $(X)
+OCXX := $(X)
 endif
 endif
-OCC_AND_OCXX_ARE_GCC_LIKE = $(and $(call IS_GCC_LIKE,$(OCC)),$(call IS_GXX_LIKE,$(OCXX)))
+OCC_AND_OCXX_ARE_GCC_LIKE = $(and $(call IS_GCC_LIKE,$(OCC)),$(or $(call IS_GCC_LIKE,$(OCXX)),$(call IS_GXX_LIKE,$(OCXX))))
 
 
 
@@ -177,7 +189,7 @@ OCC_AND_OCXX_ARE_GCC_LIKE = $(and $(call IS_GCC_LIKE,$(OCC)),$(call IS_GXX_LIKE,
 
 ifneq ($(CC_AND_CXX_ARE_GCC_LIKE),)
 ifeq ($(LD_SPECIFIED),)
-LD = $(CXX)
+LD := $(CXX)
 endif
 endif
 LD_IS_GCC_LIKE = $(or $(call IS_GCC_LIKE,$(LD)),$(call IS_GXX_LIKE,$(LD)))
@@ -201,6 +213,10 @@ endif
 
 
 # LOAD PROJECT SPECIFIC CONFIGURATION
+
+CC_CXX_AND_LD_ARE = $(call CC_CXX_AND_LD_ARE_HELP,$(1),$(call MAP_CC_TO_CXX,$(1)))
+CC_CXX_AND_LD_ARE_HELP = $(and $(call MATCH_CMD,$(1),$(CC)),$(strip $(foreach x,$(1) $(2),$(call MATCH_CMD,$(x),$(CXX)))),$(strip $(foreach x,$(1) $(2),$(call MATCH_CMD,$(x),$(LD)))))
+CC_CXX_AND_LD_ARE_GCC_LIKE = $(strip $(foreach x,$(GCC_LIKE_COMPILERS),$(call CC_CXX_AND_LD_ARE,$(x))))
 
 THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 ROOT = $(patsubst %/,%,$(dir $(THIS_MAKEFILE)))
