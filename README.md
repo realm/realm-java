@@ -70,7 +70,7 @@ To use a nondefault compiler, or a compiler in a nondefault location,
 set the environment variable `CC` before calling `sh build.sh build`,
 as in the following example:
 
-    CC=clang sh build.sh dist
+    CC=clang sh build.sh build
 
 There are also a number of environment variables that serve to enable
 or disable special features during building:
