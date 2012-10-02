@@ -72,14 +72,6 @@ as in the following example:
 
     CC=clang sh build.sh build
 
-There are also a number of environment variables that serve to enable
-or disable special features during building:
-
-Set `TIGHTDB_DISABLE_SSE` to a nonempty value to disable SSE.
-
-Set `TIGHTDB_ENABLE_REPLICATION` to a nonempty value to enable
-replication.
-
 
 Examples
 --------

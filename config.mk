@@ -8,20 +8,11 @@ endif
 endif
 endif
 
-ifneq ($(CC_CXX_AND_LD_ARE_GCC_LIKE),)
 CFLAGS_DEFAULT   += -Wextra -ansi -pedantic -Wno-long-long
 # FIXME: '-fno-elide-constructors' currently causes TightDB to fail
 #CFLAGS_DEBUG     += -fno-elide-constructors
 CFLAGS_PTHREAD   += -pthread
-ifeq ($(TIGHTDB_DISABLE_SSE),)
-CFLAGS_DEFAULT   += -msse4.2
-endif
-endif
 
-
-ifeq ($(TIGHTDB_DISABLE_SSE),)
-CFLAGS_DEFAULT   += -DUSE_SSE42
-endif
-
-CFLAGS_DEBUG     += -DTIGHTDB_DEBUG -DMAX_LIST_SIZE=4
-CFLAGS_COVERAGE  += -DTIGHTDB_DEBUG -DMAX_LIST_SIZE=4
+CFLAGS_OPTIMIZE  += $(shell tightdb-config     --cflags)
+CFLAGS_DEBUG     += $(shell tightdb-config-dbg --cflags)
+CFLAGS_COVERAGE  += $(shell tightdb-config-dbg --cflags)
