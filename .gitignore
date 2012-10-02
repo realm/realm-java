@@ -6,8 +6,13 @@
 tightdb_jni??d*.dll
 tightdb_jni*.exp
 
-examples/*/*/generated/*
-examples/*/generated/*
+/examples/*/*/generated/*
+/examples/*/generated/*
+/examples/lib/libtightdb-jni.so
+/examples/lib/libtightdb.so
+/examples/lib/tightdb-devkit.jar
+/examples/lib/tightdb.jar
+
 *.tightdb
 .metadata/*
 
