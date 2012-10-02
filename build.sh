@@ -84,7 +84,7 @@ remove_suffix()
 # Find 'jni.h', 'java' and 'javac'
 find_java()
 {
-    if [ -z "$JAVA_HOME" ]; then
+    if [ -z "$JAVA_HOME" -o \! -e "$JAVA_HOME/$JAVA_BIN/javac" ]; then
         if ! JAVAC="$(which javac)"; then
             echo "No JAVA_HOME and no Java compiler in PATH" 1>&2
             return 1
