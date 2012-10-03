@@ -219,8 +219,8 @@ public class TableQuery {
 	
 	// Aggregation methods
 	
-	public long sum(TableBase table, long columnIndex, long start, long end, long limit){
-		return nativeSum(nativePtr, table, table.nativePtr, columnIndex, start, end, limit);
+	public long sum(TableBase table, long columnIndex, long start, long end){
+		return nativeSum(nativePtr, table, table.nativePtr, columnIndex, start, end, util.INFINITE);
 	}
 
 	public long sum(TableBase table, long columnIndex){
@@ -229,8 +229,8 @@ public class TableQuery {
 	
 	protected native long nativeSum(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);	
 
-	public long maximum(TableBase table, long columnIndex, long start, long end, long limit){
-		return nativeMaximum(nativePtr, table, table.nativePtr, columnIndex, start, end, limit);
+	public long maximum(TableBase table, long columnIndex, long start, long end){
+		return nativeMaximum(nativePtr, table, table.nativePtr, columnIndex, start, end,  util.INFINITE);
 	}
 	
 	public long maximum(TableBase table, long columnIndex){
@@ -239,8 +239,8 @@ public class TableQuery {
 	
 	protected native long nativeMaximum(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 	
-	public long minimum(TableBase table, long columnIndex, long start, long end, long limit){
-		return nativeMinimum(nativePtr, table, table.nativePtr, columnIndex, start, end, limit);
+	public long minimum(TableBase table, long columnIndex, long start, long end){
+		return nativeMinimum(nativePtr, table, table.nativePtr, columnIndex, start, end, util.INFINITE);
 	}
 	
 	public long minimum(TableBase table, long columnIndex){
@@ -250,8 +250,8 @@ public class TableQuery {
 	protected native long nativeMinimum(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 	
 	
-	public double average(TableBase table, long columnIndex, long start, long end, long limit){
-		return nativeAverage(nativePtr, table, table.nativePtr, columnIndex, start, end, limit);
+	public double average(TableBase table, long columnIndex, long start, long end){
+		return nativeAverage(nativePtr, table, table.nativePtr, columnIndex, start, end, util.INFINITE);
 	}
 	
 	public double average(TableBase table, long columnIndex){
@@ -261,8 +261,8 @@ public class TableQuery {
 	protected native double nativeAverage(long nativeQueryPtr, TableBase table, long tableNativePtr, long columnIndex, long start, long end, long limit);
 
 	
-	public long count(TableBase table, long start, long end, long limit){
-		return nativeCount(nativePtr, table, table.nativePtr, start, end, limit);
+	public long count(TableBase table, long start, long end){
+		return nativeCount(nativePtr, table, table.nativePtr, start, end, util.INFINITE);
 	}
 	
 	public long count(TableBase table){
@@ -273,8 +273,8 @@ public class TableQuery {
 
 	
 	// Deletion.
-	public long remove(TableBase table, long start, long end, long limit){
-		return nativeRemove(nativePtr, table, table.nativePtr, start, end, limit);
+	public long remove(TableBase table, long start, long end){
+		return nativeRemove(nativePtr, table, table.nativePtr, start, end, util.INFINITE);
 	}
 	
 	public long remove(TableBase table){

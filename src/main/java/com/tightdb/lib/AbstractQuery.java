@@ -23,12 +23,12 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		return query.count(table);
 	}
 	
-	public long count(long start, long end, long limit) {
-		return query.count(table, start, end, limit);
+	public long count(long start, long end) {
+		return query.count(table, start, end);
 	}
 	
-	public long remove(long start, long end, long limit) {
-		return query.remove(table, start, end, limit);
+	public long remove(long start, long end) {
+		return query.remove(table, start, end);
 	}
 
 	public long remove() {

@@ -7,6 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef com_tightdb_util_REQUIRED_JNI_VERSION
+#define com_tightdb_util_REQUIRED_JNI_VERSION 10i64
 /*
  * Class:     com_tightdb_util
  * Method:    nativeGetInfiniteValue

@@ -65,29 +65,29 @@ public class LongQueryColumn<Cursor, View, Query> extends
 	public double average() {
 		return getQuery().average(tableOrNull(), columnIndex);
 	}
-	public double average(long start, long end, long limit) {
-		return getQuery().average(tableOrNull(), columnIndex, start, end, limit);
+	public double average(long start, long end) {
+		return getQuery().average(tableOrNull(), columnIndex, start, end);
 	}
 
 	public long sum() {
 		return getQuery().sum(tableOrNull(), columnIndex);
 	}
-	public long sum(long start, long end, long limit) {
-		return getQuery().sum(tableOrNull(), columnIndex, start, end, limit);
+	public long sum(long start, long end) {
+		return getQuery().sum(tableOrNull(), columnIndex, start, end);
 	}
 
 	public long maximum() {
 		return getQuery().maximum(tableOrNull(), columnIndex);
 	}
-	public long maximum(long start, long end, long limit) {
-		return getQuery().maximum(tableOrNull(), columnIndex, start, end, limit);
+	public long maximum(long start, long end) {
+		return getQuery().maximum(tableOrNull(), columnIndex, start, end);
 	}
 
 	public long minimum() {
 		return getQuery().minimum(tableOrNull(), columnIndex);
 	}
-	public long minimum(long start, long end, long limit) {
-		return getQuery().minimum(tableOrNull(), columnIndex, start, end, limit);
+	public long minimum(long start, long end) {
+		return getQuery().minimum(tableOrNull(), columnIndex, start, end);
 	}
 
 }

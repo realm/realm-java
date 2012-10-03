@@ -4,6 +4,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import org.testng.annotations.Test;
 
+import com.tightdb.util;
 import com.tightdb.test.TestEmployeeQuery;
 import com.tightdb.test.TestEmployeeView;
 
@@ -36,32 +37,39 @@ public class TableQueryTest extends AbstractTest {
 
 	@Test
 	public void shouldCalculateStatistics() {
-		TestEmployeeQuery results = employees.firstName.eq("John").or().firstName
-				.eq("Nikolche");
+		TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
 		assertEquals(2, results.count());
 
-		assertEquals(20000.0, results.salary.average());
-		assertEquals(10000.0, results.salary.average(0, 100, 1)); // first
-		assertEquals(30000.0, results.salary.average(1, 2, 100)); // second
-		assertEquals(20000.0, results.salary.average(0, 2, 100)); // both
-
 		assertEquals(10000, results.salary.minimum());
-		assertEquals(10000, results.salary.minimum(0, 100, 1)); // first
-		assertEquals(30000, results.salary.minimum(1, 2, 100)); // second
-		assertEquals(10000, results.salary.minimum(0, 2, 100)); // both
-
+		assertEquals(10000, results.salary.minimum(0, 1)); // first
+		assertEquals(30000, results.salary.minimum(1, 2)); // second
+		assertEquals(10000, results.salary.minimum(0, util.INFINITE)); // both
+		// TODO: Check invalid parameters
+		
 		assertEquals(30000, results.salary.maximum());
-		assertEquals(10000, results.salary.maximum(0, 100, 1)); // first
-		assertEquals(30000, results.salary.maximum(1, 2, 100)); // second
-		assertEquals(30000, results.salary.maximum(0, 2, 100)); // both
+		assertEquals(10000, results.salary.maximum(0, 1)); // first
+		assertEquals(30000, results.salary.maximum(1, 2)); // second
+		assertEquals(30000, results.salary.maximum(0, util.INFINITE)); // both
 
 		assertEquals(40000, results.salary.sum());
-		assertEquals(10000, results.salary.sum(0, 100, 1)); // first
-		assertEquals(30000, results.salary.sum(1, 2, 100)); // second
-		assertEquals(40000, results.salary.sum(0, 2, 100)); // both
+		assertEquals(10000, results.salary.sum(0, 1)); // first
+		assertEquals(30000, results.salary.sum(1, 2)); // second
+		assertEquals(40000, results.salary.sum(0, util.INFINITE)); // both
+
+		assertEquals(20000.0, results.salary.average());
+		assertEquals(10000.0, results.salary.average(0, 1)); // first
+		assertEquals(15000.0, results.salary.average(1, 2)); // second
+		assertEquals(20000.0, results.salary.average(0, util.INFINITE)); // both
 	}
 
-	@Test(enabled=false)
+	@Test( expectedExceptions = ArrayIndexOutOfBoundsException.class)
+	public void shouldCheckWrongParameters() {
+		TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
+	//	assertEquals(2, results.count());
+		assertEquals(10000, results.salary.minimum(0, 5)); // first		
+	}
+	
+	@Test
 	public void shouldMatchOnSimpleStringCriteria() {
 		assertEquals(1, employees.firstName.eq("John").findAll().size());
 		assertEquals(1, employees.firstName.equal("John").findAll().size());
@@ -162,9 +170,9 @@ public class TableQueryTest extends AbstractTest {
 		// Remove some
 		TestEmployeeQuery q = employees.where().salary.lessThan(100000000);
 
-		assertEquals(1, q.count(1, 2, 1));
+		assertEquals(1, q.count(1, 2));
 
-		long n = q.remove(1, 2, 1);
+		long n = q.remove(1, 2);
 		assertEquals(1, n);
 		assertEquals(2, employees.size());
 	}

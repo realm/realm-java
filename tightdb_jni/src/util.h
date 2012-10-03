@@ -78,6 +78,7 @@ extern void jprint(JNIEnv *env, char *txt);
 
 #if CHECK_PARAMETERS
 
+#define ROW_INDEXES_VALID(env,ptr,start,end, range) RowIndexesValid(env, ptr, start, end, range)
 #define ROW_INDEX_VALID(env,ptr,row)                RowIndexValid(env, ptr, row)
 #define COL_INDEX_VALID(env,ptr,col)                ColIndexValid(env, ptr, col)
 #define INDEX_VALID(env,ptr,col,row)                IndexValid(env, ptr, col, row)
@@ -86,6 +87,7 @@ extern void jprint(JNIEnv *env, char *txt);
 
 #else
 
+#define ROW_INDEXES_VALID(env,ptr,row) (true)
 #define ROW_INDEX_VALID(env,ptr,row) (true)
 #define COL_INDEX_VALID(env,ptr,col) (true)
 #define INDEX_VALID(env,ptr,col,row) (true)
@@ -104,6 +106,48 @@ inline bool TableIsValid(JNIEnv* env, Table* pTable)
         ThrowException(env, IllegalArgument, "Table is invalid.");
     }
     return valid;
+}
+
+template <class T>
+inline bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range) 
+{
+    // Check if Table is valid - but only if T is a 'Table' type
+    if (tightdb::SameType<Table*, T>::value)    
+        if (!TableIsValid(env, TBL(pTable)))
+            return false;
+
+    size_t maxIndex = pTable->size();
+    if (endIndex == size_t(-1))
+        endIndex = maxIndex;
+    if (S(startIndex) < 0) {
+        TR_ERR((env, "startIndex %lld < 0 - invalid!", S(startIndex), 0)); 
+        ThrowException(env, IndexOutOfBounds, "startIndex < 0.");    
+        return false;
+    }
+    if (S(startIndex) > maxIndex) {
+        TR_ERR((env, "startIndex %lld > %lld - invalid!", S(startIndex), maxIndex)); 
+        ThrowException(env, IndexOutOfBounds, "startIndex > available rows.");
+        return false;
+    }
+
+    if (S(endIndex) > maxIndex) {
+        TR_ERR((env, "endIndex %lld > %lld - invalid!", S(endIndex), maxIndex)); 
+        ThrowException(env, IndexOutOfBounds, "endIndex > available rows.");
+        return false;
+    }
+    if (S(startIndex) > S(endIndex)) {
+        TR_ERR((env, "startIndex %lld > endIndex %lld- invalid!", S(startIndex), S(endIndex))); 
+        ThrowException(env, IndexOutOfBounds, "startIndex > endIndex.");
+        return false;
+    }
+    
+    if (S(range) < 0) {
+        TR_ERR((env, "range %lld < 0 - invalid!", range)); 
+        ThrowException(env, IndexOutOfBounds, "range < 0.");
+        return false;
+    }
+
+    return true;
 }
 
 template <class T>

@@ -273,6 +273,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeMinimum
 
 /*
  * Class:     com_tightdb_TableViewBase
+ * Method:    nativeAverage
+ * Signature: (JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableViewBase_nativeAverage
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableViewBase
  * Method:    nativeSort
  * Signature: (JJZ)V
  */
@@ -293,6 +301,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_createNativeTableView
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeClose
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableViewBase
+ * Method:    nativeToJson
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableViewBase_nativeToJson
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus

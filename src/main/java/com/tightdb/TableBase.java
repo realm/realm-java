@@ -640,7 +640,6 @@ public class TableBase implements IRowsetBase {
 		return nativeAverage(nativePtr, columnIndex);
 	}
 
-	// FIXME: change native method result type to "double"
 	protected native double nativeAverage(long nativePtr, long columnIndex);
 
 	// Searching methods.

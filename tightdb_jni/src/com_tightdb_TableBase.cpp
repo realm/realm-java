@@ -47,7 +47,6 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetColumnName(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return NULL;
-
 	return env->NewStringUTF( TBL(nativeTablePtr)->get_column_name( S(columnIndex)) );
 }
 
@@ -393,13 +392,11 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMinimum(
     return TBL(nativeTablePtr)->minimum( S(columnIndex));
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeAverage(
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableBase_nativeAverage(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
    	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
-
-    //return TBL(nativePtr)->average( S(columnIndex));
-	return 0;
+    return TBL(nativeTablePtr)->average( S(columnIndex));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstInt(

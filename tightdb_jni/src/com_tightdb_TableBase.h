@@ -378,9 +378,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMinimum
 /*
  * Class:     com_tightdb_TableBase
  * Method:    nativeAverage
- * Signature: (JJ)J
+ * Signature: (JJ)D
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeAverage
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableBase_nativeAverage
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -453,6 +453,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllString
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeOptimize
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableBase
+ * Method:    nativeToJson
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeToJson
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
