@@ -6,7 +6,7 @@ TIGHTDB_JAVA_HOME="$(pwd)"
 MODE="$1"
 [ $# -gt 0 ] && shift
 
-MAKE="make -j8"
+NUM_PROCESSORS=""
 JAVA_INC="include"
 JAVA_BIN="bin"
 JNI_LIB_SUFFIX="" # Defaults to ".so"
@@ -16,14 +16,26 @@ DEP_JARS="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/s
 
 
 # Setup OS specific stuff
-OS="$(uname -s)" || exit 1
+OS="$(uname)" || exit 1
 if [ "$OS" = "Darwin" ]; then
-    MAKE="$MAKE CC=clang"
+    if [ "$CC" = "" ] && which clang >/dev/null; then
+        export CC=clang
+    fi
     JAVA_INC="Headers"
     JAVA_BIN="Commands"
     JNI_LIB_SUFFIX=".jnilib"
     JNI_LIB_INST_DIR="/System/Library/Java/Extensions"
     STAT_FORMAT_SWITCH="-f"
+    NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
+else
+    if [ -r /proc/cpuinfo ]; then
+        NUM_PROCESSORS="$(cat /proc/cpuinfo | egrep 'processor[[:space:]]*:' | wc -l)" || exit 1
+    fi
+fi
+
+
+if [ "$NUM_PROCESSORS" ]; then
+    export MAKEFLAGS="-j$NUM_PROCESSORS"
 fi
 
 
@@ -72,7 +84,7 @@ remove_suffix()
 # Find 'jni.h', 'java' and 'javac'
 find_java()
 {
-    if [ -z "$JAVA_HOME" ]; then
+    if [ -z "$JAVA_HOME" -o \! -e "$JAVA_HOME/$JAVA_BIN/javac" ]; then
         if ! JAVAC="$(which javac)"; then
             echo "No JAVA_HOME and no Java compiler in PATH" 1>&2
             return 1
@@ -107,7 +119,7 @@ case "$MODE" in
 
     "clean")
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
-        $MAKE clean || exit 1
+        make clean || exit 1
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
         find java/ -type f -name '*.class' -delete || exit 1
         rm -f tightdb.jar || exit 1
@@ -119,7 +131,7 @@ case "$MODE" in
 
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
-        $MAKE EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
+        TIGHTDB_ENABLE_FAT_BINARIES=1 make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
         SUFFIX="${JNI_LIB_SUFFIX:-.so}"
         if [ "$SUFFIX" != ".so" ]; then
             ln -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX"
@@ -161,6 +173,10 @@ case "$MODE" in
         mkdir "$TEMP_DIR/out" || exit 1
         mkdir "$TEMP_DIR/gen" || exit 1
         export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb-devkit.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:$TEMP_DIR/gen:."
+        # Newer versions of testng.jar (probably >= 6) require beust-jcommander.jar
+        if [ -e "/usr/share/java/beust-jcommander.jar" ]; then
+            CLASSPATH="$CLASSPATH:/usr/share/java/beust-jcommander.jar"
+        fi
         (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" com/tightdb/test/TestModel.java) || exit 1
         SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
         CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
@@ -175,7 +191,7 @@ case "$MODE" in
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
         fi
-        (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && $MAKE prefix="$PREFIX" install) || exit 1
+        (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make prefix="$PREFIX" install) || exit 1
         INST_DIR="${JNI_LIB_INST_DIR:-lib}"
         if [ "$PREFIX_WAS_SPECIFIED" ]; then
             if printf "%s\n" "$INST_DIR" | grep '^/' >/dev/null; then
