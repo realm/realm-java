@@ -603,8 +603,7 @@ public class TableBase implements IRowsetBase {
 	
 	protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
-	
-	// Indexing
+	// Indexing - currently only supported on String columns
 	public void setIndex(long columnIndex) {
 		nativeSetIndex(nativePtr, columnIndex);
 	}
@@ -691,6 +690,12 @@ public class TableBase implements IRowsetBase {
 
 	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
+	public TableViewBase distinct(long columnIndex) {
+		return new TableViewBase(this, nativeDistinct(nativePtr, columnIndex));
+	}
+	
+	protected native long nativeDistinct(long nativePtr, long columnIndex);
+		
 	// Optimize
 	public void optimize() {
 		nativeOptimize(nativePtr);

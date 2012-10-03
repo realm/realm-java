@@ -449,6 +449,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllString
 
 /*
  * Class:     com_tightdb_TableBase
+ * Method:    nativeDistinct
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeDistinct
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableBase
  * Method:    nativeOptimize
  * Signature: (J)V
  */

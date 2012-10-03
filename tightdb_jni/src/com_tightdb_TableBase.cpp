@@ -353,9 +353,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClearSubTable(
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetIndex(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
-   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return;
-
-    TBL(nativeTablePtr)->set_index( S(columnIndex));
+    Table* pTable = TBL(nativeTablePtr);
+   	if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
+        return;
+    if (pTable->get_column_type(columnIndex) != COLUMN_TYPE_STRING) {
+        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported.");
+        return;
+    }
+    pTable->set_index( S(columnIndex));
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeHasIndex(
@@ -477,6 +482,24 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllString(
         return 0;
 
 	TableView* pTableView = new TableView( pTable->find_all_string( S(columnIndex), valueCharPtr) );
+	return reinterpret_cast<jlong>(pTableView);
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeDistinct(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table* pTable = TBL(nativeTablePtr);
+    if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
+        return 0;
+    if (!pTable->has_index(columnIndex)) {
+        ThrowException(env, UnsupportedOperation, "The column must be indexed before distinct() can be used.");
+        return 0;
+    }
+    if (pTable->get_column_type(columnIndex) != COLUMN_TYPE_STRING) {
+        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported.");
+        return 0;
+    }
+	TableView* pTableView = new TableView( pTable->distinct(S(columnIndex)) );
 	return reinterpret_cast<jlong>(pTableView);
 }
 

@@ -35,5 +35,4 @@ public class StringRowsetColumn<Cursor, View, Query> extends StringQueryColumn<C
 	public View findAll(String value) {
 		return view(rowset.findAllString(columnIndex, value));
 	}
-
 }

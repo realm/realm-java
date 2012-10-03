@@ -3,7 +3,7 @@
 
 jint java_lang_List_size(JNIEnv* env, jobject jList) 
 {
-	// WARNING: donot cache these methods, list class may be different based on the object jlist
+	// WARNING: do not cache these methods, list class may be different based on the object jlist
 	jclass jListClass = env->GetObjectClass(jList);
 	if (jListClass == NULL)
         return 0;
@@ -17,7 +17,7 @@ jint java_lang_List_size(JNIEnv* env, jobject jList)
 
 jobject java_lang_List_get(JNIEnv* env, jobject jList, jint index) 
 {
-	// WARNING: donot cache these methods/classes, list class may be different based on the object jlist
+	// WARNING: do not cache these methods/classes, list class may be different based on the object jlist
 	jclass jListClass = env->GetObjectClass(jList);
 	 if (jListClass == NULL)
         return NULL;
