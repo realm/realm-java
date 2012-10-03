@@ -6,25 +6,19 @@ TIGHTDB_JAVA_HOME="$(pwd)"
 MODE="$1"
 [ $# -gt 0 ] && shift
 
-NUM_PROCESSORS=""
-JAVA_INC="include"
-JAVA_BIN="bin"
-JNI_LIB_SUFFIX="" # Defaults to ".so"
-JNI_LIB_INST_DIR="/usr/lib/jni" # Absolute or relative to installation prefix, defaults to "lib"
-STAT_FORMAT_SWITCH="-c"
+
 DEP_JARS="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/share/java/freemarker.jar"
 
 
 # Setup OS specific stuff
 OS="$(uname)" || exit 1
+ARCH="$(uname -m)" || exit 1
+STAT_FORMAT_SWITCH="-c"
+NUM_PROCESSORS=""
 if [ "$OS" = "Darwin" ]; then
     if [ "$CC" = "" ] && which clang >/dev/null; then
         export CC=clang
     fi
-    JAVA_INC="Headers"
-    JAVA_BIN="Commands"
-    JNI_LIB_SUFFIX=".jnilib"
-    JNI_LIB_INST_DIR="/System/Library/Java/Extensions"
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
 else
@@ -32,10 +26,32 @@ else
         NUM_PROCESSORS="$(cat /proc/cpuinfo | egrep 'processor[[:space:]]*:' | wc -l)" || exit 1
     fi
 fi
-
-
 if [ "$NUM_PROCESSORS" ]; then
     export MAKEFLAGS="-j$NUM_PROCESSORS"
+fi
+USE_LIB64=""
+IS_REDHAT_DERIVATIVE=""
+if [ -e /etc/redhat-release ] || grep "Amazon" /etc/system-release >/dev/null 2>&1; then
+    IS_REDHAT_DERIVATIVE="1"
+fi
+if [ "$IS_REDHAT_DERIVATIVE" -o -e /etc/SuSE-release ]; then
+    if [ "$ARCH" = "x86_64" -o "$ARCH" = "ia64" ]; then
+        USE_LIB64="1"
+    fi
+fi
+JNI_SUFFIX=".so"
+JNI_LIBDIR="lib" # Absolute, or relative to installation prefix
+JAVA_INC="include"
+JAVA_BIN="bin"
+if [ "$OS" = "Darwin" ]; then
+    JNI_LIBDIR="/System/Library/Java/Extensions"
+    JNI_SUFFIX=".jnilib"
+    JAVA_INC="Headers"
+    JAVA_BIN="Commands"
+elif [ "$USE_LIB64" ]; then
+    JNI_LIBDIR="/usr/lib64/jni"
+else
+    JNI_LIBDIR="/usr/lib/jni"
 fi
 
 
@@ -132,9 +148,8 @@ case "$MODE" in
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         TIGHTDB_ENABLE_FAT_BINARIES=1 make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
-        SUFFIX="${JNI_LIB_SUFFIX:-.so}"
-        if [ "$SUFFIX" != ".so" ]; then
-            ln -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX"
+        if [ "$JNI_SUFFIX" != ".so" ]; then
+            ln -s "libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX"
         fi
 
         # Build tightdb.jar
@@ -158,7 +173,7 @@ case "$MODE" in
         # Setup links to libraries and JARs to make the examples work
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
-        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$SUFFIX" "../../../tightdb/src/tightdb/libtightdb.so"; do
+        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb.so"; do
             ln -s -f "$x" || exit 1
         done
         exit 0
@@ -192,7 +207,7 @@ case "$MODE" in
             PREFIX="/usr/local"
         fi
         (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make prefix="$PREFIX" install) || exit 1
-        INST_DIR="${JNI_LIB_INST_DIR:-lib}"
+        INST_DIR="$JNI_LIBDIR"
         if [ "$PREFIX_WAS_SPECIFIED" ]; then
             if printf "%s\n" "$INST_DIR" | grep '^/' >/dev/null; then
                 INST_DIR="lib"
@@ -201,12 +216,11 @@ case "$MODE" in
         if ! printf "%s\n" "$INST_DIR" | grep '^/' >/dev/null; then
             INST_DIR="$PREFIX/$INST_DIR"
         fi
-        SUFFIX="${JNI_LIB_SUFFIX:-.so}"
         if ! same_path_target "$INST_DIR" "$PREFIX/lib"; then
             install -d "$INST_DIR" || exit 1
-            (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
-        elif [ "$SUFFIX" != ".so" ]; then
-            (cd "$INST_DIR" && ln -f -s "libtightdb-jni.so" "libtightdb-jni$SUFFIX") || exit 1
+            (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX") || exit 1
+        elif [ "$JNI_SUFFIX" != ".so" ]; then
+            (cd "$INST_DIR" && ln -f -s "libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX") || exit 1
         fi
         install -d "$PREFIX/share/java" || exit 1
         install -m 644 "src/main/tightdb.jar" "src/main/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
@@ -218,7 +232,12 @@ case "$MODE" in
         PREFIX="$1"
         find_java || exit 1
         if [ "$PREFIX" ]; then
-            JAVA="$JAVA -Djava.library.path=$PREFIX/lib"
+            if [ "$USE_LIB64" ]; then
+                LIBDIR="$PREFIX/lib64"
+            else
+                LIBDIR="$PREFIX/lib"
+            fi
+            JAVA="$JAVA -Djava.library.path=$LIBDIR"
         else
             PREFIX="/usr/local"
         fi
