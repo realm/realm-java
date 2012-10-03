@@ -147,7 +147,7 @@ case "$MODE" in
 
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
-        TIGHTDB_ENABLE_FAT_BINARIES=1 make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
+        TIGHTDB_ENABLE_FAT_BINARIES="1" make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
         if [ "$JNI_SUFFIX" != ".so" ]; then
             ln -s "libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX"
         fi
@@ -206,7 +206,7 @@ case "$MODE" in
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
         fi
-        (cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make prefix="$PREFIX" install) || exit 1
+        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" install || exit 1
         INST_DIR="$JNI_LIBDIR"
         if [ "$PREFIX_WAS_SPECIFIED" ]; then
             if printf "%s\n" "$INST_DIR" | grep '^/' >/dev/null; then
