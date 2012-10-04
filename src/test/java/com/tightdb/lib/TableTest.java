@@ -9,6 +9,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
+import com.tightdb.util;
 import com.tightdb.test.TestEmployeeTable;
 
 public class TableTest {
@@ -81,6 +82,16 @@ public class TableTest {
 		// database get's smaller
 
 		employees.optimize();
+	}
+	
+	@Test(enabled=false)
+	public void shouldConvertToJson() {
+		// util.setDebugLevel(2);
+		String s = employees.toJson();
+		System.out.println("JSON format: " + s);
+		System.out.println("0: " + employees.at(0).getBirthdate());
+		System.out.println("1: " + employees.at(1).getBirthdate());	
+		System.out.println("2: " + employees.at(2).getBirthdate());
 	}
 
 }

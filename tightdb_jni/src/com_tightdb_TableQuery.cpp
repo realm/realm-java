@@ -211,7 +211,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage(
     if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
 
-    return Q(nativeQueryPtr)->average(*pTable, S(columnIndex), NULL, S(start), S(end), S(limit));
+    size_t resultcount;
+    double avg = Q(nativeQueryPtr)->average(*pTable, S(columnIndex), &resultcount, S(start), S(end), S(limit));
+    //fprintf(stderr, "!!!Average(%d, %d) = %f (%d results)\n", start, end, avg, resultcount); fflush(stderr);
+    return avg;
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(

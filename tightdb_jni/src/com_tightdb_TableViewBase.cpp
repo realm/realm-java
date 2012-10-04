@@ -3,6 +3,8 @@
 #include "mixedutil.h"
 #include "tablebase_tpl.hpp"
 
+#include <sstream>
+
 using namespace tightdb;
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeSize(
@@ -294,6 +296,20 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSort(
 
 	TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
 }
+#if 0
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableViewBase_nativeToJson(
+    JNIEnv *env, jobject, jlong nativeViewPtr)
+{
+   TableView* tv = TV(nativeViewPtr);
+
+   // Write table to string in JSON format
+   std::stringstream ss;
+   ss.sync_with_stdio(false); // for performance
+   tv->to_json(ss);
+   const std::string str = ss.str();
+   return env->NewStringUTF(str.c_str());
+}
+#endif
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_createNativeTableView(
 	JNIEnv*, jobject, jobject, jlong)

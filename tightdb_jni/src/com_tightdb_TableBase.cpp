@@ -7,6 +7,8 @@
 #include "mixedutil.h"
 #include "tablebase_tpl.hpp"
 
+#include <sstream>
+
 using namespace tightdb;
 
 
@@ -510,7 +512,21 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeOptimize(
     
     TBL(nativeTablePtr)->optimize();
 }
+#if 0
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeToJson(
+    JNIEnv *env, jobject, jlong nativeTablePtr)
+{
+   Table* table = TBL(nativeTablePtr);
+   if (!TABLE_VALID(env, table)) return NULL;
 
+   // Write table to string in JSON format
+   std::ostringstream ss;
+   ss.sync_with_stdio(false); // for performance
+   table->to_json(ss);
+   const std::string str = ss.str();
+   return env->NewStringUTF(str.c_str());
+}
+#endif
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
