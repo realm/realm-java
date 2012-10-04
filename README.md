@@ -18,7 +18,7 @@ The TightDB core library must have been installed.
     sudo apt-get install build-essential
     #   Java:
     sudo apt-get install openjdk-7-jre openjdk-7-jdk
-    #   Dependencies for building the JNI library:
+    #   For building the JNI library if TIGHTDB_ENABLE_MEM_USAGE is specified:
     sudo apt-get install libproc-dev
     #   Dependencies for building the java library:
     sudo apt-get install libcommons-io-java
@@ -35,7 +35,7 @@ The TightDB core library must have been installed.
     sudo yum install gcc gcc-c++
     #   Java:
     sudo yum install java-1.7.0-openjdk-devel
-    #   Dependencies for building the JNI library:
+    #   For building the JNI library if TIGHTDB_ENABLE_MEM_USAGE is specified:
     sudo yum install procps-devel
     #   Dependencies for building the java library:
     sudo yum install apache-commons-io
@@ -49,9 +49,14 @@ The TightDB core library must have been installed.
 ### OS X 10.8
 
     Install Java
-    Install libcommons-io-java
-    Install libcommons-lang-java
-    Install libfreemarker-java
+    #   Dependencies for building the java library:
+    Install /usr/share/java/commons-io.jar (from Apache)
+    Install /usr/share/java/commons-lang.jar (from Apache)
+    Install /usr/share/java/freemarker.jar
+    #   Dependencies for test suite:
+    Install /usr/share/java/testng.jar
+    Install /usr/share/java/qdox.jar
+    Install /usr/share/java/bsh.jar
 
 
 Building and installing
@@ -71,6 +76,12 @@ set the environment variable `CC` before calling `sh build.sh build`,
 as in the following example:
 
     CC=clang sh build.sh build
+
+There are also a number of environment variables that serve to enable
+or disable special features during building:
+
+Set `TIGHTDB_ENABLE_MEM_USAGE` to a nonempty value to enable
+reporting of memory usage.
 
 
 Examples

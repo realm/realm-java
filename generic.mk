@@ -106,6 +106,8 @@ INSTALL_DATA    = $(INSTALL) -m 644
 INSTALL_LIBRARY = $(INSTALL)
 INSTALL_PROGRAM = $(INSTALL)
 
+# Alternative filesystem root for installation
+DESTDIR =
 
 
 # PLATFORM SPECIFICS
@@ -116,7 +118,7 @@ USE_LIB64 =
 ifeq ($(OS),Linux)
 IS_64BIT = $(filter x86_64 ia64,$(ARCH))
 ifneq ($(IS_64BIT),)
-ifeq ($(shell [ -e /etc/redhat-release -o -e /etc/SuSE-release -o -e /etc/fedora-release ] && echo yes),yes)
+ifeq ($(shell [ -e /etc/redhat-release -o -e /etc/SuSE-release ] && echo yes),yes)
 USE_LIB64 = 1
 else ifneq ($(shell [ -e /etc/system-release ] && grep Amazon /etc/system-release),)
 USE_LIB64 = 1

@@ -1,18 +1,22 @@
 #include "mem_usage.hpp"
 
-#if defined(_MSC_VER) // Microsoft Windows
+#ifndef TIGHTDB_ENABLE_MEM_USAGE
+
+size_t GetMemUsage()
+{
+  return 0;
+}
+
+#elif defined(_MSC_VER) // Microsoft Windows
 
 
 #include <windows.h>
 #include <psapi.h>
 
+namespace {
+
 // Pre-declarations
 DWORD CalculateWSPrivate(DWORD processID);
-
-size_t GetMemUsage()
-{
-    return CalculateWSPrivate(GetCurrentProcessId());
-}
 
 // Calculate Private Working Set
 // Source: http://www.codeproject.com/KB/cpp/XPWSPrivate.aspx
@@ -104,6 +108,13 @@ DWORD CalculateWSPrivate(DWORD processID)
         CloseHandle( hProcess );
     }
     return -1;
+}
+
+} // anonymous namespace
+
+size_t GetMemUsage()
+{
+    return CalculateWSPrivate(GetCurrentProcessId());
 }
 
 
