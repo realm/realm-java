@@ -23,7 +23,7 @@ if [ "$OS" = "Darwin" ]; then
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
 else
     if [ -r /proc/cpuinfo ]; then
-        NUM_PROCESSORS="$(cat /proc/cpuinfo | egrep 'processor[[:space:]]*:' | wc -l)" || exit 1
+        NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
     fi
 fi
 if [ "$NUM_PROCESSORS" ]; then
@@ -31,7 +31,7 @@ if [ "$NUM_PROCESSORS" ]; then
 fi
 USE_LIB64=""
 IS_REDHAT_DERIVATIVE=""
-if [ -e /etc/redhat-release ] || grep "Amazon" /etc/system-release >/dev/null 2>&1; then
+if [ -e /etc/redhat-release ] || grep -q "Amazon" /etc/system-release 2>/dev/null; then
     IS_REDHAT_DERIVATIVE="1"
 fi
 if [ "$IS_REDHAT_DERIVATIVE" -o -e /etc/SuSE-release ]; then
@@ -206,14 +206,19 @@ case "$MODE" in
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
         fi
-        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" install || exit 1
+        if [ "$USE_LIB64" ]; then
+            LIBDIR="$PREFIX/lib64"
+        else
+            LIBDIR="$PREFIX/lib"
+        fi
+        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" libdir="$LIBDIR" install || exit 1
         INST_DIR="$JNI_LIBDIR"
         if [ "$PREFIX_WAS_SPECIFIED" ]; then
-            if printf "%s\n" "$INST_DIR" | grep '^/' >/dev/null; then
+            if printf "%s\n" "$INST_DIR" | grep -q '^/'; then
                 INST_DIR="lib"
             fi
         fi
-        if ! printf "%s\n" "$INST_DIR" | grep '^/' >/dev/null; then
+        if ! printf "%s\n" "$INST_DIR" | grep -q '^/'; then
             INST_DIR="$PREFIX/$INST_DIR"
         fi
         if ! same_path_target "$INST_DIR" "$PREFIX/lib"; then
