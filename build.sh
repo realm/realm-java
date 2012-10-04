@@ -166,8 +166,8 @@ case "$MODE" in
         MANIFEST="$TEMP_DIR/MANIFEST.MF"
         echo "Class-Path: tightdb.jar $DEP_JARS" >>"$MANIFEST"
         jar cfm tightdb-devkit.jar "$MANIFEST" -C resources META-INF || exit 1
-        (cd java && $JAVAC                       com/tightdb/generator/*.java  com/tightdb/cleaner/*.java)  || exit 1
-        (cd java && jar uf ../tightdb-devkit.jar com/tightdb/generator/*.class com/tightdb/cleaner/*.class) || exit 1
+        (cd java && $JAVAC                       com/tightdb/generator/*.java)  || exit 1
+        (cd java && jar uf ../tightdb-devkit.jar com/tightdb/generator/*.class) || exit 1
         jar i tightdb-devkit.jar || exit 1
 
         # Setup links to libraries and JARs to make the examples work
