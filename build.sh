@@ -22,6 +22,7 @@ if [ "$OS" = "Darwin" ]; then
     fi
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
+    # Absorbing standard JAR files into tightdb-devkit.jar is a fantasticly bad idea, we must back out of this approach as soon as possible!!!
     ABSORB_DEP_JARS="1"
 else
     if [ -r /proc/cpuinfo ]; then
