@@ -7,7 +7,7 @@ MODE="$1"
 [ $# -gt 0 ] && shift
 
 
-DEP_JARS="/usr/share/java/commons-io.jar /usr/share/java/commons-lang.jar /usr/share/java/freemarker.jar"
+DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
 
 # Setup OS specific stuff
@@ -23,9 +23,6 @@ if [ "$OS" = "Darwin" ]; then
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
     ABSORB_DEP_JARS="1"
-    if [ -d "dep_jars" ]; then
-        DEP_JARS="$TIGHTDB_JAVA_HOME/commons-io.jar $TIGHTDB_JAVA_HOME/commons-lang.jar $TIGHTDB_JAVA_HOME/freemarker.jar"
-    fi
 else
     if [ -r /proc/cpuinfo ]; then
         NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
@@ -60,6 +57,20 @@ else
 fi
 
 
+
+word_list_append()
+{
+    local list_name new_word list
+    list_name="$1"
+    new_word="$2"
+    list="$(eval "printf \"%s\\n\" \"\${$list_name}\"")" || return 1
+    if [ "$list" ]; then
+        eval "$list_name=\"\$list \$new_word\""
+    else
+        eval "$list_name=\"\$new_word\""
+    fi
+    return 0
+}
 
 readlink_f()
 {
@@ -136,6 +147,17 @@ find_java()
 
 
 
+DEP_JAR_PATHS=""
+for x in $DEP_JARS; do
+    if [ "$ABSORB_DEP_JARS" -a -d "dep_jars" ]; then
+        word_list_append DEP_JAR_PATHS "$TIGHTDB_JAVA_HOME/dep_jars/java/$x"
+    else
+        word_list_append DEP_JAR_PATHS "/usr/share/java/$x"
+    fi
+done
+
+
+
 case "$MODE" in
 
     "clean")
@@ -165,7 +187,7 @@ case "$MODE" in
         jar i tightdb.jar || exit 1
 
         # Build tightdb-devkit.jar
-        CLASSPATH="$(printf "%s\n" "$DEP_JARS" | sed 's/  */:/g'):../tightdb.jar" || exit 1
+        CLASSPATH="$(printf "%s\n" "$DEP_JAR_PATHS" | sed 's/  */:/g'):../tightdb.jar" || exit 1
         export CLASSPATH
         # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
@@ -174,7 +196,7 @@ case "$MODE" in
         if [ "$ABSORB_DEP_JARS" ]; then
             echo "Class-Path: tightdb.jar" >>"$MANIFEST"
         else
-            echo "Class-Path: tightdb.jar $DEP_JARS" >>"$MANIFEST"
+            echo "Class-Path: tightdb.jar $DEP_JAR_PATHS" >>"$MANIFEST"
         fi
         jar cfm tightdb-devkit.jar "$MANIFEST" -C resources META-INF || exit 1
         (cd java && $JAVAC                                com/tightdb/generator/*.java)  || exit 1
@@ -185,7 +207,7 @@ case "$MODE" in
         if [ "$ABSORB_DEP_JARS" ]; then
             JAR_DIR="$TEMP_DIR/jar"
             mkdir "$JAR_DIR" || exit 1
-            for x in $DEP_JARS; do
+            for x in $DEP_JAR_PATHS; do
                 (cd "$JAR_DIR" && jar xf "$x") || exit 1
             done
             # Manifest files from the dependency JARs cannot be
@@ -293,7 +315,7 @@ case "$MODE" in
 
         # Copy dependecy JARs
         mkdir -p "$TARGET_DIR/dep_jars" || exit 1
-        cp $DEP_JARS "$TARGET_DIR/dep_jars/" || exit 1
+        cp $DEP_JAR_PATHS "$TARGET_DIR/dep_jars/" || exit 1
         exit 0
         ;;
 
@@ -301,7 +323,7 @@ case "$MODE" in
 #        echo "To build the java language binding, the following JAR files must have"
 #        echo "been installed on you system:"
 #        echo
-#        for x in $DEP_JARS; do
+#        for x in $DEP_JAR_PATHS; do
 #            echo "  $x"
 #        done
 #        echo
