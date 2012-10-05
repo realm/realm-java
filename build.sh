@@ -23,6 +23,9 @@ if [ "$OS" = "Darwin" ]; then
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
     ABSORB_DEP_JARS="1"
+    if [ -d "dep_jars" ]; then
+        DEP_JARS="$TIGHTDB_JAVA_HOME/commons-io.jar $TIGHTDB_JAVA_HOME/commons-lang.jar $TIGHTDB_JAVA_HOME/freemarker.jar"
+    fi
 else
     if [ -r /proc/cpuinfo ]; then
         NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
@@ -287,10 +290,10 @@ case "$MODE" in
         git ls-files -z >"$TEMP_DIR/files" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
-#
-#        # Copy dependecy JARs
-#        mkdir -p "$TARGET_DIR/dep_jars" || exit 1
-#        cp $DEP_JARS "$TARGET_DIR/dep_jars/" || exit 1
+
+        # Copy dependecy JARs
+        mkdir -p "$TARGET_DIR/dep_jars" || exit 1
+        cp $DEP_JARS "$TARGET_DIR/dep_jars/" || exit 1
         exit 0
         ;;
 
