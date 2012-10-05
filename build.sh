@@ -150,7 +150,7 @@ find_java()
 DEP_JAR_PATHS=""
 for x in $DEP_JARS; do
     if [ "$ABSORB_DEP_JARS" -a -d "dep_jars" ]; then
-        word_list_append DEP_JAR_PATHS "$TIGHTDB_JAVA_HOME/dep_jars/java/$x"
+        word_list_append DEP_JAR_PATHS "$TIGHTDB_JAVA_HOME/dep_jars/$x"
     else
         word_list_append DEP_JAR_PATHS "/usr/share/java/$x"
     fi
