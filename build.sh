@@ -174,7 +174,7 @@ case "$MODE" in
             echo "Class-Path: tightdb.jar $DEP_JARS" >>"$MANIFEST"
         fi
         jar cfm tightdb-devkit.jar "$MANIFEST" -C resources META-INF || exit 1
-        (cd java && $JAVAC                       com/tightdb/generator/*.java)  || exit 1
+        (cd java && $JAVAC                                com/tightdb/generator/*.java)  || exit 1
         (cd java && jar uf "$THIS_DIR/tightdb-devkit.jar" com/tightdb/generator/*.class) || exit 1
         jar i tightdb-devkit.jar || exit 1
 
@@ -185,6 +185,10 @@ case "$MODE" in
             for x in $DEP_JARS; do
                 (cd "$JAR_DIR" && jar xf "$x") || exit 1
             done
+            # Manifest files from the dependency JARs cannot be
+            # retained, becuase they would clobber our own
+            # MANIFEST.MF.
+            rm -f "$JAR_DIR/META-INF/MANIFEST.MF" || exit 1
             (cd "$JAR_DIR" && jar uf "$THIS_DIR/tightdb-devkit.jar" *) || exit 1
         fi
 
