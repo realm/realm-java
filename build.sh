@@ -15,12 +15,14 @@ OS="$(uname)" || exit 1
 ARCH="$(uname -m)" || exit 1
 STAT_FORMAT_SWITCH="-c"
 NUM_PROCESSORS=""
+ABSORB_DEP_JARS=""
 if [ "$OS" = "Darwin" ]; then
     if [ "$CC" = "" ] && which clang >/dev/null; then
         export CC=clang
     fi
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
+    ABSORB_DEP_JARS="1"
 else
     if [ -r /proc/cpuinfo ]; then
         NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
@@ -154,8 +156,9 @@ case "$MODE" in
 
         # Build tightdb.jar
         cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
+        THIS_DIR="$(pwd)" || exit 1
         (cd java && $JAVAC                com/tightdb/*.java  com/tightdb/lib/*.java)  || exit 1
-        (cd java && jar cf ../tightdb.jar com/tightdb/*.class com/tightdb/lib/*.class) || exit 1
+        (cd java && jar cf "$THIS_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/lib/*.class) || exit 1
         jar i tightdb.jar || exit 1
 
         # Build tightdb-devkit.jar
@@ -164,11 +167,26 @@ case "$MODE" in
         # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
         MANIFEST="$TEMP_DIR/MANIFEST.MF"
-        echo "Class-Path: tightdb.jar $DEP_JARS" >>"$MANIFEST"
+        touch "$MANIFEST" || exit 1
+        if [ "$ABSORB_DEP_JARS" ]; then
+            echo "Class-Path: tightdb.jar" >>"$MANIFEST"
+        else
+            echo "Class-Path: tightdb.jar $DEP_JARS" >>"$MANIFEST"
+        fi
         jar cfm tightdb-devkit.jar "$MANIFEST" -C resources META-INF || exit 1
         (cd java && $JAVAC                       com/tightdb/generator/*.java)  || exit 1
-        (cd java && jar uf ../tightdb-devkit.jar com/tightdb/generator/*.class) || exit 1
+        (cd java && jar uf "$THIS_DIR/tightdb-devkit.jar" com/tightdb/generator/*.class) || exit 1
         jar i tightdb-devkit.jar || exit 1
+
+        # Absorb dependency JARs if we have to - generally a bag thing!!!
+        if [ "$ABSORB_DEP_JARS" ]; then
+            JAR_DIR="$TEMP_DIR/jar"
+            mkdir "$JAR_DIR" || exit 1
+            for x in $DEP_JARS; do
+                (cd "$JAR_DIR" && jar xf "$x") || exit 1
+            done
+            (cd "$JAR_DIR" && jar uf "$THIS_DIR/tightdb-devkit.jar" *) || exit 1
+        fi
 
         # Setup links to libraries and JARs to make the examples work
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
@@ -265,24 +283,24 @@ case "$MODE" in
         git ls-files -z >"$TEMP_DIR/files" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
-
-        # Copy dependecy JARs
-        mkdir -p "$TARGET_DIR/dep_jars" || exit 1
-        cp $DEP_JARS "$TARGET_DIR/dep_jars/" || exit 1
+#
+#        # Copy dependecy JARs
+#        mkdir -p "$TARGET_DIR/dep_jars" || exit 1
+#        cp $DEP_JARS "$TARGET_DIR/dep_jars/" || exit 1
         exit 0
         ;;
 
     "dist-remarks")
-        echo "To build the java language binding, the following JAR files must have"
-        echo "been installed on you system:"
-        echo
-        for x in $DEP_JARS; do
-            echo "  $x"
-        done
-        echo
-        echo "If you do not have them already, you may want to copy them from"
-        echo "tightdb_java2/dep_jars/."
-        echo
+#        echo "To build the java language binding, the following JAR files must have"
+#        echo "been installed on you system:"
+#        echo
+#        for x in $DEP_JARS; do
+#            echo "  $x"
+#        done
+#        echo
+#        echo "If you do not have them already, you may want to copy them from"
+#        echo "tightdb_java2/dep_jars/."
+#        echo
         echo "A simple example is provided in tightdb_java2/examples/intro-example"
         echo "to help you get started."
         exit 0
