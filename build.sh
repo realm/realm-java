@@ -177,7 +177,7 @@ case "$MODE" in
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         TIGHTDB_ENABLE_FAT_BINARIES="1" make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
         if [ "$JNI_SUFFIX" != ".so" ]; then
-            ln -s "libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX"
+            ln "libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX"
         fi
 
         # Build tightdb.jar
@@ -222,7 +222,7 @@ case "$MODE" in
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb.so"; do
-            ln -s -f "$x" || exit 1
+            ln -f "$x" || exit 1
         done
         exit 0
         ;;
@@ -310,8 +310,37 @@ case "$MODE" in
             exit 1
         fi
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.copy.XXXX)" || exit 1
-        git ls-files -z >"$TEMP_DIR/files" || exit 1
-        tar czf "$TEMP_DIR/archive.tar.gz" --null -T "$TEMP_DIR/files" || exit 1
+        cat >"$TEMP_DIR/include" <<EOF
+/README.md
+/build.sh
+/*.mk
+/tightdb_jni/src
+/src/main
+/src/test
+/test-installed
+/examples
+/doc
+EOF
+        cat >"$TEMP_DIR/exclude" <<EOF
+.gitignore
+/src/main/java/com/tightdb/example
+/src/main/java/com/tightdb/doc
+/src/test/*.bat
+
+# FIXME: Why are these even in the repository???
+/src/main/resources/*.vm
+/src/main/resources/*.java
+/src/test/resources/all_tests.xml
+*.dll
+EOF
+        grep -E -v '^(#.*)?$' "$TEMP_DIR/include" >"$TEMP_DIR/include2" || exit 1
+        grep -E -v '^(#.*)?$' "$TEMP_DIR/exclude" >"$TEMP_DIR/exclude2" || exit 1
+        sed -e 's/\([.\[^$]\)/\\\1/g' -e 's|\*|[^/]*|g' -e 's|^\([^/]\)|^\\(.*/\\)\\{0,1\\}\1|' -e 's|^/|^|' -e 's|$|\\(/.*\\)\\{0,1\\}$|' "$TEMP_DIR/include2" >"$TEMP_DIR/include.bre" || exit 1
+        sed -e 's/\([.\[^$]\)/\\\1/g' -e 's|\*|[^/]*|g' -e 's|^\([^/]\)|^\\(.*/\\)\\{0,1\\}\1|' -e 's|^/|^|' -e 's|$|\\(/.*\\)\\{0,1\\}$|' "$TEMP_DIR/exclude2" >"$TEMP_DIR/exclude.bre" || exit 1
+        git ls-files >"$TEMP_DIR/files1" || exit 1
+        grep -f "$TEMP_DIR/include.bre" "$TEMP_DIR/files1" >"$TEMP_DIR/files2" || exit 1
+        grep -v -f "$TEMP_DIR/exclude.bre" "$TEMP_DIR/files2" >"$TEMP_DIR/files3" || exit 1
+        tar czf "$TEMP_DIR/archive.tar.gz" -T "$TEMP_DIR/files3" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
 
         # Copy dependecy JARs
@@ -321,16 +350,6 @@ case "$MODE" in
         ;;
 
     "dist-remarks")
-#        echo "To build the java language binding, the following JAR files must have"
-#        echo "been installed on you system:"
-#        echo
-#        for x in $DEP_JAR_PATHS; do
-#            echo "  $x"
-#        done
-#        echo
-#        echo "If you do not have them already, you may want to copy them from"
-#        echo "tightdb_java2/dep_jars/."
-#        echo
         echo "A simple example is provided in tightdb_java2/examples/intro-example"
         echo "to help you get started."
         exit 0
