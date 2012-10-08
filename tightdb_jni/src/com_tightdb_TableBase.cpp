@@ -512,7 +512,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeOptimize(
     
     TBL(nativeTablePtr)->optimize();
 }
-#if 0
+
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeToJson(
     JNIEnv *env, jobject, jlong nativeTablePtr)
 {
@@ -526,7 +526,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeToJson(
    const std::string str = ss.str();
    return env->NewStringUTF(str.c_str());
 }
-#endif
+
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose(
 	JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {

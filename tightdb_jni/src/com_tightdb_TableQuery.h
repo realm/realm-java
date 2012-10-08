@@ -17,6 +17,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_createNativePtr
 
 /*
  * Class:     com_tightdb_TableQuery
+ * Method:    nativeTableview
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeTableview
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
  * Method:    nativeGroup
  * Signature: (J)V
  */

@@ -1,5 +1,7 @@
 package com.tightdb.example;
 
+import java.util.Date;
+
 import com.tightdb.ColumnType;
 import com.tightdb.TableBase;
 import com.tightdb.TableSpec;
@@ -20,12 +22,15 @@ public class TableTest {
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "salary");
+		tableSpec.addColumn(ColumnType.ColumnTypeDate, "date");
 		base.updateFromSpec(tableSpec);
 
-		System.out.println("specified structure");
+		System.out.println("specified schema");
 
 		base.insertString(0, 0, "John");
 		base.insertLong(1, 0, 24000);
+		Date dat = new Date(); 
+		base.insertDate(2, 0, dat);
 		base.insertDone();
 
 		System.out.println("inserted data");
@@ -36,6 +41,7 @@ public class TableTest {
 		System.out.println(base.size());
 		System.out.println(base.getString(0, 0));
 		System.out.println(base.getLong(1, 0));
+		System.out.println(base.getDate(2, 0));
 
 		TableViewBase results = base.findAllLong(1, 24000);
 		System.out.println("Results size: " + results.size());

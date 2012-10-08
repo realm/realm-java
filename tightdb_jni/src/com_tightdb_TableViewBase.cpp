@@ -296,7 +296,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeSort(
 
 	TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
 }
-#if 0
+
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableViewBase_nativeToJson(
     JNIEnv *env, jobject, jlong nativeViewPtr)
 {
@@ -307,9 +307,9 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableViewBase_nativeToJson(
    ss.sync_with_stdio(false); // for performance
    tv->to_json(ss);
    const std::string str = ss.str();
+
    return env->NewStringUTF(str.c_str());
 }
-#endif
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_createNativeTableView(
 	JNIEnv*, jobject, jobject, jlong)

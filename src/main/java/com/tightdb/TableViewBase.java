@@ -483,10 +483,9 @@ public class TableViewBase implements IRowsetBase {
 	protected native void nativeClose(long nativeViewPtr);
 
 	public String toJson() {
-		return ""; // TODO: return nativeToJson(nativePtr);
+		return nativeToJson(nativePtr);
 	}
 
-	// TODO: implement this!
 	protected native String nativeToJson(long nativeViewPtr);
 	
 	

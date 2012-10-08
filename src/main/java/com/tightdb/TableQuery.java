@@ -11,6 +11,13 @@ public class TableQuery {
 
 	protected native long createNativePtr();
 	
+	// Query TableView
+	public TableQuery tableview(TableViewBase tv){
+		nativeTableview(nativePtr, tv.nativePtr);
+		return this;
+	}
+	protected native void nativeTableview(long nativeQueryPtr, long nativeTableViewPtr);
+	
 	// Grouping
 	
 	public TableQuery group(){

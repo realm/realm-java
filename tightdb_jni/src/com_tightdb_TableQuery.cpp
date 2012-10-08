@@ -112,6 +112,12 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
 	env->ReleaseStringUTFChars(value, valueCharPtr);
 }
 
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeTableview(
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong nativeTableViewPtr)
+{
+	Q(nativeQueryPtr)->tableview(*TV(nativeTableViewPtr));
+}
+
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup(
 	JNIEnv*, jobject, jlong nativeQueryPtr)
 {

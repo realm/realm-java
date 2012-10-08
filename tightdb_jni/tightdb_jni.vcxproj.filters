@@ -78,4 +78,7 @@
       <UniqueIdentifier>{06c42ab9-add0-4943-8e4f-0e738e7a96cc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\doc\changes.txt" />
+  </ItemGroup>
 </Project>
