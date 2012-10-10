@@ -319,15 +319,12 @@ case "$MODE" in
 /src/test
 /test-installed
 /examples
-/doc
 EOF
         cat >"$TEMP_DIR/exclude" <<EOF
 .gitignore
 /src/main/java/com/tightdb/example
 /src/main/java/com/tightdb/doc
 /src/test/*.bat
-
-# FIXME: Why are these even in the repository???
 /src/main/resources/*.vm
 /src/main/resources/*.java
 /src/test/resources/all_tests.xml
