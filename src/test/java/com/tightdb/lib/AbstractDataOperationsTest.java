@@ -108,7 +108,7 @@ public abstract class AbstractDataOperationsTest {
 		assertNotNull(getEmployees().first().phones.toString());
 	}
 
-	@Test(enabled = false)
+	@Test(enabled = false)	// FAILS with dates
 	public void shouldExportToJSON() {
 		String json = getEmployees().toJson();
 		assertNotNull(json);

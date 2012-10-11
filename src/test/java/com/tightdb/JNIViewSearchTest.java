@@ -27,7 +27,7 @@ public class JNIViewSearchTest {
 		view.findAllString(0, "Foo");
 	}
 	
-	@Test(enabled = true)
+	@Test()
 	public void shouldQueryInView() {
 		TableBase table = new TableBase();
 

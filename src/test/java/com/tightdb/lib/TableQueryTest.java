@@ -35,7 +35,7 @@ public class TableQueryTest extends AbstractTest {
 		assertEquals(2, employees.salary.between(5000, 15000).findAll().size());
 	}
 
-	@Test(enabled=false)
+	@Test()
 	public void shouldCalculateStatistics() {
 		TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
 		assertEquals(2, results.count());
@@ -57,12 +57,9 @@ public class TableQueryTest extends AbstractTest {
 		assertEquals(40000, results.salary.sum(0, util.INFINITE)); // both
 
 		assertEquals(20000.0, results.salary.average());
-
 		assertEquals(30000.0, results.salary.average(1, 2)); // second
 		assertEquals(20000.0, results.salary.average(0, util.INFINITE)); // both
-
-		// TODO: FAILS!!!	
-	//	assertEquals(10000.0, results.salary.average(0, 1)); // first
+		assertEquals(10000.0, results.salary.average(0, 1)); // first
 	}
 
 	@Test( expectedExceptions = ArrayIndexOutOfBoundsException.class)
