@@ -1,5 +1,6 @@
 /*.d
 /*.o
+/*.libdeps
 
 # Coverage data
 /*.gcno
@@ -7,5 +8,5 @@
 
 /libtightdb-jni.so
 /libtightdb-jni.a
-/libtightdb-jni-dbg.a
-/libtightdb-jni-cov.a
+/libtightdb-jni-dbg.so
+/libtightdb-jni-cov.so
