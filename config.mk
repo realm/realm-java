@@ -2,13 +2,12 @@
 ifneq ($(TIGHTDB_ENABLE_FAT_BINARIES),)
 ifneq ($(call CC_CXX_AND_LD_ARE,clang),)
 ifeq ($(shell uname),Darwin)
-CFLAGS_DEFAULT  += -arch i386 -arch x86_64
-LDFLAGS_DEFAULT += -arch i386 -arch x86_64
+CFLAGS_ARCH  += -arch i386 -arch x86_64
 endif
 endif
 endif
 
-CFLAGS_DEFAULT += -Wextra -ansi -pedantic -Wno-long-long
 # FIXME: '-fno-elide-constructors' currently causes TightDB to fail
 #CFLAGS_DEBUG   += -fno-elide-constructors
 CFLAGS_PTHREAD += -pthread
+CFLAGS_GENERAL += -Wextra -ansi -pedantic -Wno-long-long
