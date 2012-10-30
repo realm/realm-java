@@ -13,10 +13,12 @@ DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 # Setup OS specific stuff
 OS="$(uname)" || exit 1
 ARCH="$(uname -m)" || exit 1
+LIB_SUFFIX_SHARED=".so"
 STAT_FORMAT_SWITCH="-c"
 NUM_PROCESSORS=""
 ABSORB_DEP_JARS=""
 if [ "$OS" = "Darwin" ]; then
+    LIB_SUFFIX_SHARED=".dylib"
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
     # Absorbing standard JAR files into tightdb-devkit.jar is a fantasticly bad idea, we must back out of this approach as soon as possible!!!
@@ -39,7 +41,7 @@ if [ "$IS_REDHAT_DERIVATIVE" -o -e /etc/SuSE-release ]; then
         USE_LIB64="1"
     fi
 fi
-JNI_SUFFIX=".so"
+JNI_SUFFIX="$LIB_SUFFIX_SHARED"
 JNI_LIBDIR="lib" # Absolute, or relative to installation prefix
 JAVA_INC="include"
 JAVA_BIN="bin"
@@ -173,8 +175,8 @@ case "$MODE" in
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         TIGHTDB_ENABLE_FAT_BINARIES="1" make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
-        if [ "$JNI_SUFFIX" != ".so" ]; then
-            ln "libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX"
+        if [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
+            ln "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX"
         fi
 
         # Build tightdb.jar
@@ -218,7 +220,7 @@ case "$MODE" in
         # Setup links to libraries and JARs to make the examples work
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
-        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb.so"; do
+        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb$LIB_SUFFIX_SHARED"; do
             ln -f "$x" || exit 1
         done
         exit 0
@@ -268,9 +270,9 @@ case "$MODE" in
         fi
         if ! same_path_target "$INST_DIR" "$PREFIX/lib"; then
             install -d "$INST_DIR" || exit 1
-            (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX") || exit 1
-        elif [ "$JNI_SUFFIX" != ".so" ]; then
-            (cd "$INST_DIR" && ln -f -s "libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX") || exit 1
+            (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
+        elif [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
+            (cd "$INST_DIR" && ln -f -s "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
         fi
         install -d "$PREFIX/share/java" || exit 1
         install -m 644 "src/main/tightdb.jar" "src/main/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
