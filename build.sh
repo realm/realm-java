@@ -10,6 +10,52 @@ MODE="$1"
 DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
 
+
+word_list_append()
+{
+    local list_name new_word list
+    list_name="$1"
+    new_word="$2"
+    list="$(eval "printf \"%s\\n\" \"\${$list_name}\"")" || return 1
+    if [ "$list" ]; then
+        eval "$list_name=\"\$list \$new_word\""
+    else
+        eval "$list_name=\"\$new_word\""
+    fi
+    return 0
+}
+
+word_list_prepend()
+{
+    local list_name new_word list
+    list_name="$1"
+    new_word="$2"
+    list="$(eval "printf \"%s\\n\" \"\${$list_name}\"")" || return 1
+    if [ "$list" ]; then
+        eval "$list_name=\"\$new_word \$list\""
+    else
+        eval "$list_name=\"\$new_word\""
+    fi
+    return 0
+}
+
+remove_suffix()
+{
+    local string suffix match_x
+    string="$1"
+    suffix="$2"
+    match_x="$(printf "%s" "$string" | tail -c "${#suffix}" && echo x)" || return 1
+    if [ "$match_x" != "${suffix}x" ]; then
+        printf "%s\n" "$string"
+        return 0
+    fi
+    printf "%s" "$string" | sed "s/.\{${#suffix}\}\$//" || return 1
+    echo
+    return 0
+}
+
+
+
 # Setup OS specific stuff
 OS="$(uname)" || exit 1
 ARCH="$(uname -m)" || exit 1
@@ -21,6 +67,7 @@ if [ "$OS" = "Darwin" ]; then
     LIB_SUFFIX_SHARED=".dylib"
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
+    word_list_prepend MAKEFLAGS "-w" || exit 1
     # Absorbing standard JAR files into tightdb-devkit.jar is a fantasticly bad idea, we must back out of this approach as soon as possible!!!
     ABSORB_DEP_JARS="1"
 else
@@ -29,8 +76,9 @@ else
     fi
 fi
 if [ "$NUM_PROCESSORS" ]; then
-    export MAKEFLAGS="-j$NUM_PROCESSORS"
+    word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
 fi
+export MAKEFLAGS
 USE_LIB64=""
 IS_REDHAT_DERIVATIVE=""
 if [ -e /etc/redhat-release ] || grep -q "Amazon" /etc/system-release 2>/dev/null; then
@@ -58,20 +106,6 @@ fi
 
 
 
-word_list_append()
-{
-    local list_name new_word list
-    list_name="$1"
-    new_word="$2"
-    list="$(eval "printf \"%s\\n\" \"\${$list_name}\"")" || return 1
-    if [ "$list" ]; then
-        eval "$list_name=\"\$list \$new_word\""
-    else
-        eval "$list_name=\"\$new_word\""
-    fi
-    return 0
-}
-
 readlink_f()
 {
     local LINK TARGET
@@ -96,21 +130,6 @@ same_path_target()
         fi
     fi
     return 1
-}
-
-remove_suffix()
-{
-    local string suffix match_x
-    string="$1"
-    suffix="$2"
-    match_x="$(printf "%s" "$string" | tail -c "${#suffix}" && echo x)" || return 1
-    if [ "$match_x" != "${suffix}x" ]; then
-        printf "%s\n" "$string"
-        return 0
-    fi
-    printf "%s" "$string" | sed "s/.\{${#suffix}\}\$//" || return 1
-    echo
-    return 0
 }
 
 # Find 'jni.h', 'java' and 'javac'
