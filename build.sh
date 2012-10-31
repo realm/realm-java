@@ -99,9 +99,9 @@ if [ "$OS" = "Darwin" ]; then
     JAVA_INC="Headers"
     JAVA_BIN="Commands"
 elif [ "$USE_LIB64" ]; then
-    JNI_LIBDIR="/usr/lib64/jni"
+    JNI_LIBDIR="/usr/lib64"
 else
-    JNI_LIBDIR="/usr/lib/jni"
+    JNI_LIBDIR="/usr/lib"
 fi
 
 
@@ -278,24 +278,21 @@ case "$MODE" in
             LIBDIR="$PREFIX/lib"
         fi
         make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" libdir="$LIBDIR" install || exit 1
-        INST_DIR="$JNI_LIBDIR"
-        if [ "$PREFIX_WAS_SPECIFIED" ]; then
-            if printf "%s\n" "$INST_DIR" | grep -q '^/'; then
-                INST_DIR="lib"
+        # When prefix is not specified, attempt to "hook" into the default search path for JNI.
+        if [ -z "$PREFIX_WAS_SPECIFIED" ]; then
+            HOOK_INST_DIR="$JNI_LIBDIR"
+            if ! printf "%s\n" "$HOOK_INST_DIR" | grep -q '^/'; then
+                HOOK_INST_DIR="$PREFIX/$HOOK_INST_DIR"
             fi
-        fi
-        if ! printf "%s\n" "$INST_DIR" | grep -q '^/'; then
-            INST_DIR="$PREFIX/$INST_DIR"
-        fi
-        if ! same_path_target "$INST_DIR" "$PREFIX/lib"; then
-            install -d "$INST_DIR" || exit 1
-            (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
-        elif [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
-            (cd "$INST_DIR" && ln -f -s "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
+            if ! same_path_target "$HOOK_INST_DIR" "$LIBDIR"; then
+                install -d "$HOOK_INST_DIR" || exit 1
+                (cd "$HOOK_INST_DIR" && ln -f -s "$LIBDIR/libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
+            elif [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
+                (cd "$HOOK_INST_DIR" && ln -f -s "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
+            fi
         fi
         install -d "$PREFIX/share/java" || exit 1
         install -m 644 "src/main/tightdb.jar" "src/main/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
-        # FIXME: See http://developer.apple.com/library/mac/#qa/qa1170/_index.html
         exit 0
         ;;
 
