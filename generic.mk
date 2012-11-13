@@ -482,7 +482,7 @@ DEP_MAKEFILES = Makefile $(THIS_MAKEFILE)
 ifneq ($(wildcard $(CONFIG_MK)),)
 DEP_MAKEFILES += $(CONFIG_MK)
 endif
-$(OBJECTS) $(TARGETS): $(DEP_MAKEFILES)
+$(GENERATED_SOURCES) $(OBJECTS) $(TARGETS): $(DEP_MAKEFILES)
 $(OBJECTS): $(GENERATED_SOURCES)
 
 # Disable all suffix rules and some interfering implicit pattern rules
@@ -820,6 +820,7 @@ $(foreach x,$(INST_PROGRAMS),$(eval $(call INST_PROG_RULES,$(x),$(call EXPAND_LI
 # ARGS: target, objects, deps
 define STATIC_LIBRARY_RULE
 $(1): $(2) $(3)
+	$(RM) $(1)
 	$(strip $(AR) $(ARFLAGS_GENERAL)) $(1) $(2)
 endef
 
