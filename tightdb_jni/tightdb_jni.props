@@ -2,8 +2,8 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <tightdb_path>../../../../tightdb/</tightdb_path>
-    <outputdir>../lib/</outputdir>
+    <tightdb_path>..\..\..\..\tightdb\</tightdb_path>
+    <outputdir>..\lib\</outputdir>
   </PropertyGroup>
   <PropertyGroup>
     <OutDir>$(outputdir)</OutDir>
@@ -11,7 +11,17 @@
   <ItemDefinitionGroup>
     <Link>
       <AdditionalLibraryDirectories>$(tightdb_path)lib</AdditionalLibraryDirectories>
+      <ManifestFile>$(IntDir)$(TargetName)$(TargetExt).intermediate.manifest</ManifestFile>
     </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(tightdb_path)src\</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AssemblerListingLocation>$(IntDir)\</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <XMLDocumentationFileName>$(IntDir)\</XMLDocumentationFileName>
+      <BrowseInformationFile>$(IntDir)\</BrowseInformationFile>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <BuildMacro Include="tightdb_path">

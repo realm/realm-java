@@ -3,10 +3,9 @@
 
 using namespace tightdb;
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_createNativePtr(
-	JNIEnv*, jobject)
+inline Table* Ref2Ptr(TableRef tableref)
 {
-	return reinterpret_cast<jlong>(new Query());
+    return &*tableref;
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJJ(
@@ -149,101 +148,103 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindNext(
-	JNIEnv*, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, jlong lastMatch)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong lastMatch)
 {
-	Table* pTable = TBL(nativeTablePtr);
-	return Q(nativeQueryPtr)->find_next(*pTable, S(lastMatch));
+	return Q(nativeQueryPtr)->find_next(S(lastMatch));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
-    jlong start, jlong end, jlong limit)
+	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
-	Table* pTable = TBL(nativeTablePtr);
     Query* pQuery = Q(nativeQueryPtr);
-   // if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
+   // TODO?  if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
    //     return 0;
         
-    TableView* pResultView = new TableView(	pQuery->find_all(*pTable, S(start), S(end), S(limit)) );
+    TableView* pResultView = new TableView(	pQuery->find_all(S(start), S(end), S(limit)) );
     return reinterpret_cast<jlong>(pResultView);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSum(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
+	JNIEnv* env, jobject, jlong nativeQueryPtr, 
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {	
-	Table* pTable = TBL(nativeTablePtr);
+    Query* pQuery = Q(nativeQueryPtr);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
         return 0;
     if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
 
-    return Q(nativeQueryPtr)->sum(*pTable, S(columnIndex), NULL, S(start), S(end), S(limit));
+    return pQuery->sum(S(columnIndex), NULL, S(start), S(end), S(limit));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximum(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
+	JNIEnv* env, jobject, jlong nativeQueryPtr, 
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
-	Table* pTable = TBL(nativeTablePtr);
+    Query* pQuery = Q(nativeQueryPtr);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
         return 0;
     if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
 
-	return Q(nativeQueryPtr)->maximum(*pTable, S(columnIndex), NULL, S(start), S(end), S(limit));
+	return pQuery->maximum(S(columnIndex), NULL, S(start), S(end), S(limit));
 }
 
+// TODO: Check columnTypes in many methods..
+
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimum(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
+	JNIEnv* env, jobject, jlong nativeQueryPtr,  
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {	
-    Table* pTable = TBL(nativeTablePtr);
+    Query* pQuery = Q(nativeQueryPtr);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
         return 0;
     if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return Q(nativeQueryPtr)->minimum(*pTable, S(columnIndex), NULL, S(start), S(end), S(limit));
+    
+    return pQuery->minimum(S(columnIndex), NULL, S(start), S(end), S(limit));
 }
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
+	JNIEnv* env, jobject, jlong nativeQueryPtr, 
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {	
-    Table* pTable = TBL(nativeTablePtr);
+    Query* pQuery = Q(nativeQueryPtr);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
         return 0;
     if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
 
     size_t resultcount;
-    double avg = Q(nativeQueryPtr)->average(*pTable, S(columnIndex), &resultcount, S(start), S(end), S(limit));
+    double avg = pQuery->average(S(columnIndex), &resultcount, S(start), S(end), S(limit));
     //fprintf(stderr, "!!!Average(%d, %d) = %f (%d results)\n", start, end, avg, resultcount); fflush(stderr);
     return avg;
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
-    jlong start, jlong end, jlong limit)
+	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
-	Table* pTable = TBL(nativeTablePtr);
+    Query* pQuery = Q(nativeQueryPtr);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
 
-    return Q(nativeQueryPtr)->count(*pTable, S(start), S(end), S(limit));
+    return pQuery->count(S(start), S(end), S(limit));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAllMulti(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
-    jlong start, jlong end)
+	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end)
 {
-	Table* pTable = TBL(nativeTablePtr);
-	Query* pQuery = Q(nativeQueryPtr); 
+    Query* pQuery = Q(nativeQueryPtr);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!ROW_INDEXES_VALID(env, pTable, start, end, 0))
         return 0;
 
-    TableView* pResultView = new TableView( pQuery->find_all_multi(*pTable, S(start), S(end)) );
+    TableView* pResultView = new TableView( pQuery->find_all_multi(S(start), S(end)) );
 	return reinterpret_cast<jlong>(pResultView);
 }
 
@@ -260,12 +261,12 @@ JNIEXPORT jint JNICALL Java_com_tightdb_TableQuery_nativeSetThreads(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jobject, jlong nativeTablePtr, 
-    jlong start, jlong end, jlong limit)
+	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
-	Table* pTable = TBL(nativeTablePtr);
+    Query* pQuery = Q(nativeQueryPtr);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
 
-	return Q(nativeQueryPtr)->remove(*pTable, S(start), S(end), S(limit));
+	return pQuery->remove(S(start), S(end), S(limit));
 }

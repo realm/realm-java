@@ -406,6 +406,20 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableBase_nativeAverage(
     return TBL(nativeTablePtr)->average( S(columnIndex));
 }
 
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeWhere(
+    JNIEnv *env, jobject, jlong nativeTablePtr)
+{
+#if 1
+    Query query = TBL(nativeTablePtr)->where();
+    Query* queryPtr = new Query(query);
+#else
+    Table& tbl = *TBL(nativeTablePtr);
+    Query* queryPtr = new Query(tbl);
+#endif
+    return reinterpret_cast<jlong>(queryPtr);
+}
+
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstInt(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value)
 {

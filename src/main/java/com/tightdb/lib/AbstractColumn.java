@@ -69,7 +69,8 @@ public abstract class AbstractColumn<Type, Cursor, View, Query> {
 	}
 
 	protected TableQuery getQuery() {
-		return query != null ? query : new TableQuery();
+		TableBase table = tableOrNull();
+		return query != null ? query : table.where();
 	}
 
 	protected Query query(TableQuery tableQuery) {

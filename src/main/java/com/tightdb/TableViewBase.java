@@ -47,21 +47,7 @@ import com.tightdb.lib.IRowsetBase;
  * 
  */
 public class TableViewBase implements IRowsetBase {
-	/**
-	 * Creates a TableViewBase for the TableBase table. The constructor
-	 * implicitly create the native object tableview which is the backbone
-	 * of this class.
-	 * 
-	 * @param table The table.
-	 */
-	public TableViewBase(TableBase table){
-		this.table = table;
-		this.tableView = null;
-		this.nativePtr = createNativeTableView(table, table.nativePtr);
-		if (this.nativePtr == 0) 
-			throw new OutOfMemoryError("Out of native memory.");
-	}
-
+	
 	/**
 	 * Creates a TableViewBase with a Java Object Table and a already created
 	 * native reference to a TableView. This method is not supposed to be 
@@ -70,8 +56,7 @@ public class TableViewBase implements IRowsetBase {
 	 * @param table The table.
 	 * @param nativePtr pointer to table.
 	 */
-	protected TableViewBase(TableBase table, long nativePtr){
-		this.table = table;
+	protected TableViewBase(long nativePtr){
 		this.tableView = null;
 		this.nativePtr = nativePtr;
 	}
@@ -80,12 +65,11 @@ public class TableViewBase implements IRowsetBase {
 	 * Creates a TableView with already created Java TableView Object and a 
 	 * native native TableView object reference. The method is not supposed to
 	 * be called by the user of the db. The method is for internal use only.
-	 * 
+     *
 	 * @param tableView A table view.
 	 * @param nativePtr pointer to table.
 	 */
-	public TableViewBase(TableViewBase tableView, long nativePtr){
-		this.table = null;
+	protected TableViewBase(TableViewBase tableView, long nativePtr){
 		this.tableView = tableView;
 		this.nativePtr = nativePtr;
 	}
@@ -490,7 +474,6 @@ public class TableViewBase implements IRowsetBase {
 	
 	
 	protected long nativePtr;
-	protected TableBase table;
 	protected TableViewBase tableView;
 	
 }

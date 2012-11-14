@@ -385,6 +385,14 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableBase_nativeAverage
 
 /*
  * Class:     com_tightdb_TableBase
+ * Method:    nativeWhere
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeWhere
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableBase
  * Method:    nativeFindFirstInt
  * Signature: (JJJ)J
  */

@@ -9,14 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     com_tightdb_TableQuery
- * Method:    createNativePtr
- * Signature: ()J
- */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_createNativePtr
-  (JNIEnv *, jobject);
-
-/*
- * Class:     com_tightdb_TableQuery
  * Method:    nativeTableview
  * Signature: (JJ)V
  */
@@ -170,66 +162,66 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeFindNext
- * Signature: (JLcom/tightdb/TableBase;JJ)J
+ * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindNext
-  (JNIEnv *, jobject, jlong, jobject, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeFindAll
- * Signature: (JLcom/tightdb/TableBase;JJJJ)J
+ * Signature: (JJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll
-  (JNIEnv *, jobject, jlong, jobject, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeSum
- * Signature: (JLcom/tightdb/TableBase;JJJJJ)J
+ * Signature: (JJJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSum
-  (JNIEnv *, jobject, jlong, jobject, jlong, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeMaximum
- * Signature: (JLcom/tightdb/TableBase;JJJJJ)J
+ * Signature: (JJJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximum
-  (JNIEnv *, jobject, jlong, jobject, jlong, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeMinimum
- * Signature: (JLcom/tightdb/TableBase;JJJJJ)J
+ * Signature: (JJJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimum
-  (JNIEnv *, jobject, jlong, jobject, jlong, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeAverage
- * Signature: (JLcom/tightdb/TableBase;JJJJJ)D
+ * Signature: (JJJJJ)D
  */
 JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage
-  (JNIEnv *, jobject, jlong, jobject, jlong, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeCount
- * Signature: (JLcom/tightdb/TableBase;JJJJ)J
+ * Signature: (JJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount
-  (JNIEnv *, jobject, jlong, jobject, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeRemove
- * Signature: (JLcom/tightdb/TableBase;JJJJ)J
+ * Signature: (JJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove
-  (JNIEnv *, jobject, jlong, jobject, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
@@ -242,10 +234,10 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableQuery_nativeGetErrorCode
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeFindAllMulti
- * Signature: (JLcom/tightdb/TableBase;JJJ)J
+ * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAllMulti
-  (JNIEnv *, jobject, jlong, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery

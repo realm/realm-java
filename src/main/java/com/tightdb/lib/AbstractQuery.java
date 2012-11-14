@@ -10,7 +10,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	private Long currPos = null;
 
 	private final TableQuery query;
-	private final TableBase table;
+	private final TableBase table; // TODO ??? needed?
 	private final EntityTypes<?, View, Cursor, Query> types;
 
 	public AbstractQuery(EntityTypes<?, View, Cursor, Query> types, TableBase table, TableQuery query) {
@@ -20,34 +20,34 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	public long count() {
-		return query.count(table);
+		return query.count();
 	}
 	
 	public long count(long start, long end) {
-		return query.count(table, start, end);
+		return query.count(start, end);
 	}
 	
 	public long remove(long start, long end) {
-		return query.remove(table, start, end);
+		return query.remove(start, end);
 	}
 
 	public long remove() {
-		return query.remove(table);
+		return query.remove();
 	}
 
 	public View findAll() {
-		TableViewBase viewBase = query.findAll(table);
-		return view(viewBase);
+		return view(query.findAll());
 	}
 
 	public Cursor findNext() {
+		// TODO: needed?
 		if (currPos == null) {
 			// first time
-			currPos = query.findNext(table);
+			currPos = query.findNext();
 		} else {
 			// next times
 			if (currPos < Long.MAX_VALUE) {
-				currPos = query.findNext(table, currPos);
+				currPos = query.findNext(currPos);
 			} else {
 				return null;
 			}
@@ -63,7 +63,8 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 	}
 
 	public Cursor findFirst() {
-		TableViewBase viewBase = query.findAll(table, 0, util.INFINITE, 1);
+		// TODO: needed
+		TableViewBase viewBase = query.findAll(0, util.INFINITE, 1);
 		if (viewBase.size() > 0) {
 			return cursor(viewBase, 0);
 		} else {
@@ -73,7 +74,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 
 	public Cursor findLast() {
 		// TODO: find more efficient way to search
-		TableViewBase viewBase = query.findAll(table);
+		TableViewBase viewBase = query.findAll();
 		long count = viewBase.size();
 		if (count > 0) {
 			return cursor(viewBase, count - 1);

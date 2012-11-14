@@ -20,8 +20,8 @@ public class JNIViewSearchTest {
 		table.insertString(0, 1, "Bar");
 		table.insertDone();
 
-		TableQuery query = new TableQuery();
-		TableViewBase view = query.findAll(table, 0, table.size(), Integer.MAX_VALUE);
+		TableQuery query = table.where();
+		TableViewBase view = query.findAll(0, table.size(), Integer.MAX_VALUE);
 		assertEquals(2, view.size());
 
 		view.findAllString(0, "Foo");
@@ -44,12 +44,12 @@ public class JNIViewSearchTest {
 		table.insertString(0, i++, "B"); table.insertDone();
 		table.insertString(0, i++, "A3"); table.insertDone();
 
-		TableQuery query = new TableQuery();
-		TableViewBase view = query.beginsWith(0, "A").findAll(table, 0, table.size(), util.INFINITE);
+		TableQuery query = table.where();
+		TableViewBase view = query.beginsWith(0, "A").findAll(0, table.size(), util.INFINITE);
 		assertEquals(4, view.size());
 
-		TableQuery query2 = new TableQuery();
-		TableViewBase view2 = query2.tableview(view).contains(0, "3").findAll(table);
+		TableQuery query2 = table.where();
+		TableViewBase view2 = query2.tableview(view).contains(0, "3").findAll();
 		assertEquals(2, view2.size());
 	}
 

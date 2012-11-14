@@ -642,6 +642,12 @@ public class TableBase implements IRowsetBase {
 	protected native double nativeAverage(long nativePtr, long columnIndex);
 
 	// Searching methods.
+	public TableQuery where() {
+		return new TableQuery(nativeWhere(nativePtr));
+	}
+	
+	protected native long nativeWhere(long nativeTablePtr);
+	
 	public long findFirstLong(long columnIndex, long value) {
 		return nativeFindFirstInt(nativePtr, columnIndex, value);
 	}
@@ -667,31 +673,31 @@ public class TableBase implements IRowsetBase {
 	protected native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
 
 	public TableViewBase findAllLong(long columnIndex, long value) {
-		return new TableViewBase(this, nativeFindAllInt(nativePtr, columnIndex, value));
+		return new TableViewBase(nativeFindAllInt(nativePtr, columnIndex, value));
 	}
 
 	protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
 	public TableViewBase findAllBoolean(long columnIndex, boolean value) {
-		return new TableViewBase(this, nativeFindAllBool(nativePtr, columnIndex, value));
+		return new TableViewBase(nativeFindAllBool(nativePtr, columnIndex, value));
 	}
 
 	protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
 	public TableViewBase findAllDate(long columnIndex, Date date) {
-		return new TableViewBase(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()));
+		return new TableViewBase(nativeFindAllDate(nativePtr, columnIndex, date.getTime()));
 	}
 
 	protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
 
 	public TableViewBase findAllString(long columnIndex, String value) {
-		return new TableViewBase(this, nativeFindAllString(nativePtr, columnIndex, value));
+		return new TableViewBase(nativeFindAllString(nativePtr, columnIndex, value));
 	}
 
 	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
 	public TableViewBase distinct(long columnIndex) {
-		return new TableViewBase(this, nativeDistinct(nativePtr, columnIndex));
+		return new TableViewBase(nativeDistinct(nativePtr, columnIndex));
 	}
 	
 	protected native long nativeDistinct(long nativePtr, long columnIndex);

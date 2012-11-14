@@ -181,7 +181,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<
 	}
 	
 	public Query where() {
-		return AbstractQuery.createQuery(types.getQueryClass(), table, new TableQuery());
+		return AbstractQuery.createQuery(types.getQueryClass(), table, table.where());
 	}
 
 }

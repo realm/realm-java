@@ -37,6 +37,7 @@ public class TableQueryTest extends AbstractTest {
 
 	@Test()
 	public void shouldCalculateStatistics() {
+		
 		TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
 		assertEquals(2, results.count());
 
