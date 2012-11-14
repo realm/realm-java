@@ -1,4 +1,9 @@
 
+15-11-2012:
+===========
++  Changed multiple methods in QueryBase to not use TableBase as parameter.
++  Added TableBase where() method.
+
 8-10-2012:
 ==========
 +	Added 'TableQuery: tableview(TableViewBase tv)' for querying TableViews
