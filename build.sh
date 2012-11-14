@@ -10,54 +10,6 @@ MODE="$1"
 DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
 
-# Setup OS specific stuff
-OS="$(uname)" || exit 1
-ARCH="$(uname -m)" || exit 1
-STAT_FORMAT_SWITCH="-c"
-NUM_PROCESSORS=""
-ABSORB_DEP_JARS=""
-if [ "$OS" = "Darwin" ]; then
-    if [ "$CC" = "" ] && which clang >/dev/null; then
-        export CC=clang
-    fi
-    STAT_FORMAT_SWITCH="-f"
-    NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
-    # Absorbing standard JAR files into tightdb-devkit.jar is a fantasticly bad idea, we must back out of this approach as soon as possible!!!
-    ABSORB_DEP_JARS="1"
-else
-    if [ -r /proc/cpuinfo ]; then
-        NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
-    fi
-fi
-if [ "$NUM_PROCESSORS" ]; then
-    export MAKEFLAGS="-j$NUM_PROCESSORS"
-fi
-USE_LIB64=""
-IS_REDHAT_DERIVATIVE=""
-if [ -e /etc/redhat-release ] || grep -q "Amazon" /etc/system-release 2>/dev/null; then
-    IS_REDHAT_DERIVATIVE="1"
-fi
-if [ "$IS_REDHAT_DERIVATIVE" -o -e /etc/SuSE-release ]; then
-    if [ "$ARCH" = "x86_64" -o "$ARCH" = "ia64" ]; then
-        USE_LIB64="1"
-    fi
-fi
-JNI_SUFFIX=".so"
-JNI_LIBDIR="lib" # Absolute, or relative to installation prefix
-JAVA_INC="include"
-JAVA_BIN="bin"
-if [ "$OS" = "Darwin" ]; then
-    JNI_LIBDIR="/Library/Java/Extensions"
-    JNI_SUFFIX=".jnilib"
-    JAVA_INC="Headers"
-    JAVA_BIN="Commands"
-elif [ "$USE_LIB64" ]; then
-    JNI_LIBDIR="/usr/lib64/jni"
-else
-    JNI_LIBDIR="/usr/lib/jni"
-fi
-
-
 
 word_list_append()
 {
@@ -72,6 +24,87 @@ word_list_append()
     fi
     return 0
 }
+
+word_list_prepend()
+{
+    local list_name new_word list
+    list_name="$1"
+    new_word="$2"
+    list="$(eval "printf \"%s\\n\" \"\${$list_name}\"")" || return 1
+    if [ "$list" ]; then
+        eval "$list_name=\"\$new_word \$list\""
+    else
+        eval "$list_name=\"\$new_word\""
+    fi
+    return 0
+}
+
+remove_suffix()
+{
+    local string suffix match_x
+    string="$1"
+    suffix="$2"
+    match_x="$(printf "%s" "$string" | tail -c "${#suffix}" && echo x)" || return 1
+    if [ "$match_x" != "${suffix}x" ]; then
+        printf "%s\n" "$string"
+        return 0
+    fi
+    printf "%s" "$string" | sed "s/.\{${#suffix}\}\$//" || return 1
+    echo
+    return 0
+}
+
+
+
+# Setup OS specific stuff
+OS="$(uname)" || exit 1
+ARCH="$(uname -m)" || exit 1
+LIB_SUFFIX_SHARED=".so"
+STAT_FORMAT_SWITCH="-c"
+NUM_PROCESSORS=""
+ABSORB_DEP_JARS=""
+if [ "$OS" = "Darwin" ]; then
+    LIB_SUFFIX_SHARED=".dylib"
+    STAT_FORMAT_SWITCH="-f"
+    NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
+    word_list_prepend MAKEFLAGS "-w" || exit 1
+    # Absorbing standard JAR files into tightdb-devkit.jar is a fantasticly bad idea, we must back out of this approach as soon as possible!!!
+    ABSORB_DEP_JARS="1"
+else
+    if [ -r /proc/cpuinfo ]; then
+        NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
+    fi
+fi
+if [ "$NUM_PROCESSORS" ]; then
+    word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
+fi
+export MAKEFLAGS
+USE_LIB64=""
+IS_REDHAT_DERIVATIVE=""
+if [ -e /etc/redhat-release ] || grep -q "Amazon" /etc/system-release 2>/dev/null; then
+    IS_REDHAT_DERIVATIVE="1"
+fi
+if [ "$IS_REDHAT_DERIVATIVE" -o -e /etc/SuSE-release ]; then
+    if [ "$ARCH" = "x86_64" -o "$ARCH" = "ia64" ]; then
+        USE_LIB64="1"
+    fi
+fi
+JNI_SUFFIX="$LIB_SUFFIX_SHARED"
+JNI_LIBDIR="lib" # Absolute, or relative to installation prefix
+JAVA_INC="include"
+JAVA_BIN="bin"
+if [ "$OS" = "Darwin" ]; then
+    JNI_LIBDIR="/Library/Java/Extensions"
+    JNI_SUFFIX=".jnilib"
+    JAVA_INC="Headers"
+    JAVA_BIN="Commands"
+elif [ "$USE_LIB64" ]; then
+    JNI_LIBDIR="/usr/lib64"
+else
+    JNI_LIBDIR="/usr/lib"
+fi
+
+
 
 readlink_f()
 {
@@ -97,21 +130,6 @@ same_path_target()
         fi
     fi
     return 1
-}
-
-remove_suffix()
-{
-    local string suffix match_x
-    string="$1"
-    suffix="$2"
-    match_x="$(printf "%s" "$string" | tail -c "${#suffix}" && echo x)" || return 1
-    if [ "$match_x" != "${suffix}x" ]; then
-        printf "%s\n" "$string"
-        return 0
-    fi
-    printf "%s" "$string" | sed "s/.\{${#suffix}\}\$//" || return 1
-    echo
-    return 0
 }
 
 # Find 'jni.h', 'java' and 'javac'
@@ -176,8 +194,8 @@ case "$MODE" in
         # Build libtightdb-jni.so
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         TIGHTDB_ENABLE_FAT_BINARIES="1" make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
-        if [ "$JNI_SUFFIX" != ".so" ]; then
-            ln "libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX"
+        if [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
+            ln "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX"
         fi
 
         # Build tightdb.jar
@@ -221,7 +239,7 @@ case "$MODE" in
         # Setup links to libraries and JARs to make the examples work
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
-        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb.so"; do
+        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb$LIB_SUFFIX_SHARED"; do
             ln -f "$x" || exit 1
         done
         exit 0
@@ -260,24 +278,21 @@ case "$MODE" in
             LIBDIR="$PREFIX/lib"
         fi
         make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" libdir="$LIBDIR" install || exit 1
-        INST_DIR="$JNI_LIBDIR"
-        if [ "$PREFIX_WAS_SPECIFIED" ]; then
-            if printf "%s\n" "$INST_DIR" | grep -q '^/'; then
-                INST_DIR="lib"
+        # When prefix is not specified, attempt to "hook" into the default search path for JNI.
+        if [ -z "$PREFIX_WAS_SPECIFIED" ]; then
+            HOOK_INST_DIR="$JNI_LIBDIR"
+            if ! printf "%s\n" "$HOOK_INST_DIR" | grep -q '^/'; then
+                HOOK_INST_DIR="$PREFIX/$HOOK_INST_DIR"
             fi
-        fi
-        if ! printf "%s\n" "$INST_DIR" | grep -q '^/'; then
-            INST_DIR="$PREFIX/$INST_DIR"
-        fi
-        if ! same_path_target "$INST_DIR" "$PREFIX/lib"; then
-            install -d "$INST_DIR" || exit 1
-            (cd "$INST_DIR" && ln -f -s "$PREFIX/lib/libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX") || exit 1
-        elif [ "$JNI_SUFFIX" != ".so" ]; then
-            (cd "$INST_DIR" && ln -f -s "libtightdb-jni.so" "libtightdb-jni$JNI_SUFFIX") || exit 1
+            if ! same_path_target "$HOOK_INST_DIR" "$LIBDIR"; then
+                install -d "$HOOK_INST_DIR" || exit 1
+                (cd "$HOOK_INST_DIR" && ln -f -s "$LIBDIR/libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
+            elif [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
+                (cd "$HOOK_INST_DIR" && ln -f -s "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
+            fi
         fi
         install -d "$PREFIX/share/java" || exit 1
         install -m 644 "src/main/tightdb.jar" "src/main/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
-        # FIXME: See http://developer.apple.com/library/mac/#qa/qa1170/_index.html
         exit 0
         ;;
 

@@ -168,7 +168,7 @@ public class TightDB {
 	// The Classloader has a static field (sys_paths) that contains the paths. 
 	// If that field is set to null, it is initialized automatically. 
 	// Therefore forcing that field to null will result into the reevaluation of the library path
-	// as soon as loadLibrary() is called…
+	// as soon as loadLibrary() is called
 
 	private static void resetLibraryPath() {
 		try {
