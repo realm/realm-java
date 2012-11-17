@@ -22,9 +22,10 @@ tightdb_jni*.exp
 *.opensdf
 *.ipch
 /bin
-/.classpath
-/.project
-/.factorypath
+
+*/.classpath
+*/.project
+*/.factorypath
 
 #ignore thumbnails created by windows
 Thumbs.db
@@ -54,7 +55,8 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
-/target
-/.settings/*
+*/target
+.settings/*
+*/.settings/*
 *.tdb
 /test-output

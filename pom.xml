@@ -3,9 +3,10 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>tightdb_java2</groupId>
-	<artifactId>tightdb_java2</artifactId>
+	<groupId>com.tightdb</groupId>
+	<artifactId>tightdb-parent</artifactId>
 	<version>1.1.0</version>
+	<packaging>pom</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,25 +15,10 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.apache.velocity</groupId>
-			<artifactId>velocity</artifactId>
-			<version>1.7</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.3</version>
-		</dependency>
-		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>6.1.1</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.freemarker</groupId>
-			<artifactId>freemarker</artifactId>
-			<version>2.3.19</version>
 		</dependency>
 	</dependencies>
 
@@ -83,4 +69,11 @@
 		</plugins>
 	</build>
 
+	<modules>
+		<module>tightdb-java-core</module>
+		<module>tightdb-java-generator</module>
+		<module>tightdb-java-example</module>
+		<module>tightdb-java-doc</module>
+		<module>tightdb-java-test</module>
+	</modules>
 </project>
