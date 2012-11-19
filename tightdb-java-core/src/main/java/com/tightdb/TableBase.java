@@ -3,7 +3,7 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import com.tightdb.lib.IRowsetBase;
+import com.tightdb.lib.TableOrViewBase;
 import com.tightdb.lib.TightDB;
 
 
@@ -43,7 +43,7 @@ import com.tightdb.lib.TightDB;
  * 
  */
 
-public class TableBase implements IRowsetBase {
+public class TableBase implements TableOrViewBase {
 	protected long nativePtr;
 	
 	// test:

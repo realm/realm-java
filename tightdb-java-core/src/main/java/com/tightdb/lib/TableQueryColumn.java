@@ -7,9 +7,9 @@ public class TableQueryColumn<Cursor, View, Query, Subtable> extends AbstractCol
 	protected Subtable subtable;
 	protected final Class<Subtable> subtableClass;
 
-	public TableQueryColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name,
+	public TableQueryColumn(EntityTypes<?, View, Cursor, Query> types, TableOrViewBase tableOrView, TableQuery query, int index, String name,
 			Class<Subtable> subtableClass) {
-		super(types, rowset, query, index, name);
+		super(types, tableOrView, query, index, name);
 		this.subtableClass = subtableClass;
 	}
 

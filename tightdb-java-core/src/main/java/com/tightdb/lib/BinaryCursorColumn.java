@@ -10,12 +10,12 @@ public class BinaryCursorColumn<Cursor, View, Query> extends AbstractColumn<Byte
 
 	@Override
 	public ByteBuffer get() {
-		return cursor.rowset.getBinaryByteBuffer(columnIndex, cursor.getPosition());
+		return cursor.tableOrView.getBinaryByteBuffer(columnIndex, cursor.getPosition());
 	}
 
 	@Override
 	public void set(ByteBuffer value) {
-		cursor.rowset.setBinaryByteBuffer(columnIndex, cursor.getPosition(), value);
+		cursor.tableOrView.setBinaryByteBuffer(columnIndex, cursor.getPosition(), value);
 	}
 
 	@Override

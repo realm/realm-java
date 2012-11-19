@@ -10,7 +10,7 @@ import com.tightdb.TableBase;
 import com.tightdb.TableQuery;
 import com.tightdb.TableSpec;
 
-public abstract class AbstractTable<Cursor, View, Query> extends AbstractRowset<Cursor, View, Query> {
+public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOrView<Cursor, View, Query> {
 
 	static {
 		TightDB.loadLibrary();

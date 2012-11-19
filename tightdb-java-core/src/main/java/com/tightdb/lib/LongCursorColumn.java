@@ -8,12 +8,12 @@ public class LongCursorColumn<Cursor, View, Query> extends AbstractColumn<Long, 
 
 	@Override
 	public Long get() {
-		return cursor.rowset.getLong(columnIndex, cursor.getPosition());
+		return cursor.tableOrView.getLong(columnIndex, cursor.getPosition());
 	}
 
 	@Override
 	public void set(Long value) {
-		cursor.rowset.setLong(columnIndex, cursor.getPosition(), value);
+		cursor.tableOrView.setLong(columnIndex, cursor.getPosition(), value);
 	}
 
 	public void set(long value) {

@@ -3,7 +3,7 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import com.tightdb.lib.IRowsetBase;
+import com.tightdb.lib.TableOrViewBase;
 
 /**
  * This class represents a view of a particular table. We can think of
@@ -46,7 +46,7 @@ import com.tightdb.lib.IRowsetBase;
  * The generated class will have more specialized method to do operations on TableView.
  * 
  */
-public class TableViewBase implements IRowsetBase {
+public class TableViewBase implements TableOrViewBase {
 	
 	/**
 	 * Creates a TableViewBase with a Java Object Table and a already created

@@ -1,6 +1,6 @@
 package com.tightdb.lib;
 
-public interface RowsetColumn<Type> {
+public interface TableOrViewColumn<Type> {
 
 	Type[] getAll();
 

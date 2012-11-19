@@ -59,4 +59,4 @@ _ReSharper*/
 .settings/*
 */.settings/*
 *.tdb
-/test-output
+*/test-output

@@ -6,8 +6,8 @@ import com.tightdb.TableQuery;
 
 public class DateQueryColumn<Cursor, View, Query> extends AbstractColumn<Date, Cursor, View, Query> {
 
-	public DateQueryColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
-		super(types, rowset, query, index, name);
+	public DateQueryColumn(EntityTypes<?, View, Cursor, Query> types, TableOrViewBase tableOrView, TableQuery query, int index, String name) {
+		super(types, tableOrView, query, index, name);
 	}
 // FIXME: Add methods
 	

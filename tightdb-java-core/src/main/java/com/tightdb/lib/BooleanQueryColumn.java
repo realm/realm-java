@@ -4,8 +4,8 @@ import com.tightdb.TableQuery;
 
 public class BooleanQueryColumn<Cursor, View, Query> extends AbstractColumn<Boolean, Cursor, View, Query> {
 
-	public BooleanQueryColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
-		super(types, rowset, query, index, name);
+	public BooleanQueryColumn(EntityTypes<?, View, Cursor, Query> types, TableOrViewBase tableOrView, TableQuery query, int index, String name) {
+		super(types, tableOrView, query, index, name);
 	}
 
 	public Query equal(boolean value) {

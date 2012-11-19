@@ -13,12 +13,12 @@ public class DateCursorColumn<Cursor, View, Query> extends AbstractColumn<Date, 
 
 	@Override
 	public Date get() {
-		return cursor.rowset.getDate(columnIndex, cursor.getPosition());
+		return cursor.tableOrView.getDate(columnIndex, cursor.getPosition());
 	}
 
 	@Override
 	public void set(Date value) {
-		cursor.rowset.setDate(columnIndex, cursor.getPosition(), value);
+		cursor.tableOrView.setDate(columnIndex, cursor.getPosition(), value);
 	}
 
 	@Override

@@ -3,15 +3,15 @@ package com.tightdb.lib;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class RowsetIterator<T> implements Iterator<T> {
+public class TableOrViewIterator<T> implements Iterator<T> {
 
-	private final AbstractRowset<?, ?, ?> rowset;
+	private final AbstractTableOrView<?, ?, ?> tableOrView;
 	private long endIndex = 0;
 	private long index = 0;
 
-	public RowsetIterator(final AbstractRowset<T, ?, ?> rowset) {
-		this.rowset = rowset;
-		this.endIndex = rowset.size();
+	public TableOrViewIterator(final AbstractTableOrView<T, ?, ?> tableOrView) {
+		this.tableOrView = tableOrView;
+		this.endIndex = tableOrView.size();
 		this.index = 0;
 	}
 
@@ -23,7 +23,7 @@ public class RowsetIterator<T> implements Iterator<T> {
 		if (hasNext() == false) {
 			throw new NoSuchElementException();
 		}
-		return (T) rowset.at(index++);
+		return (T) tableOrView.at(index++);
 	}
 
 	public void remove() {

@@ -36,7 +36,7 @@ public class CursorColumnsTest extends AbstractTest {
 	}
 
 	private void checkSetAndGetCorrectColumnValues(
-			AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> empls) {
+			AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> empls) {
 		TestEmployeeRow employee0 = empls.first();
 		checkCursor(EmployeesFixture.EMPLOYEES[0], employee0);
 
@@ -55,7 +55,7 @@ public class CursorColumnsTest extends AbstractTest {
 	}
 
 	private void checkSetAndGetMixedValues(
-			AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> empls)
+			AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> empls)
 			throws Exception {
 		TestEmployeeRow employee = empls.first();
 

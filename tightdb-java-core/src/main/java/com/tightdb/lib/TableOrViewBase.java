@@ -8,7 +8,7 @@ import com.tightdb.Mixed;
 import com.tightdb.TableBase;
 import com.tightdb.TableViewBase;
 
-public interface IRowsetBase {
+public interface TableOrViewBase {
 
 	void clear();
 

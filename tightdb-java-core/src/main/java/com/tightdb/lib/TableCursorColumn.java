@@ -17,7 +17,7 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 
 	@Override
 	public Subtable get() {
-		TableBase subTableBase = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
+		TableBase subTableBase = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
 		return AbstractSubtable.createSubtable(subtableClass, subTableBase);
 	}
 
@@ -33,7 +33,7 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 	}
 
 	public long size() {
-		return cursor.rowset.getSubTableSize(columnIndex, cursor.getPosition());
+		return cursor.tableOrView.getSubTableSize(columnIndex, cursor.getPosition());
 	}
 
 	public boolean isEmpty() {
@@ -41,7 +41,7 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 	}
 
 	public void clear() {
-		cursor.rowset.clearSubTable(columnIndex, cursor.getPosition());
+		cursor.tableOrView.clearSubTable(columnIndex, cursor.getPosition());
 	}
 
 	public Subcursor at(long position) {
@@ -58,12 +58,12 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 
 	protected Subcursor subcursor(long position) {
 		Subtable subtable = get();
-		return AbstractCursor.createCursor(subtable.types.getCursorClass(), subtable.rowset, position);
+		return AbstractCursor.createCursor(subtable.types.getCursorClass(), subtable.tableOrView, position);
 	}
 
 	@Override
 	public Iterator<Subcursor> iterator() {
-		return new RowsetIterator<Subcursor>(get());
+		return new TableOrViewIterator<Subcursor>(get());
 	}
 
 }

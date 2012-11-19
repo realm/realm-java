@@ -4,8 +4,8 @@ import com.tightdb.TableQuery;
 
 public class StringQueryColumn<Cursor, View, Query> extends AbstractColumn<String, Cursor, View, Query> {
 
-	public StringQueryColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
-		super(types, rowset, query, index, name);
+	public StringQueryColumn(EntityTypes<?, View, Cursor, Query> types, TableOrViewBase tableOrView, TableQuery query, int index, String name) {
+		super(types, tableOrView, query, index, name);
 	}
 
 	public Query equal(String value) {

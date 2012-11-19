@@ -2,34 +2,34 @@ package com.tightdb.lib;
 
 import java.util.Iterator;
 
-public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cursor> {
+public abstract class AbstractTableOrView<Cursor, View, Query> implements Iterable<Cursor> {
 
 	protected final EntityTypes<?, View, Cursor, Query> types;
-	protected final IRowsetBase rowset;
+	protected final TableOrViewBase tableOrView;
 
-	public AbstractRowset(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset) {
+	public AbstractTableOrView(EntityTypes<?, View, Cursor, Query> types, TableOrViewBase tableOrView) {
 		this.types = types;
-		this.rowset = rowset;
+		this.tableOrView = tableOrView;
 	}
 
 	public long size() {
-		return rowset.size();
+		return tableOrView.size();
 	}
 
 	public boolean isEmpty() {
-		return rowset.isEmpty();
+		return tableOrView.isEmpty();
 	}
 
 	public void clear() {
-		rowset.clear();
+		tableOrView.clear();
 	}
 
 	public void remove(long rowIndex) {
-		rowset.remove(rowIndex);
+		tableOrView.remove(rowIndex);
 	}
 
 	public void removeLast() {
-		rowset.removeLast();
+		tableOrView.removeLast();
 	}
 
 /*	TODO:
@@ -50,18 +50,18 @@ public abstract class AbstractRowset<Cursor, View, Query> implements Iterable<Cu
 	}
 
 	protected Cursor cursor(long position) {
-		return AbstractCursor.createCursor(types.getCursorClass(), rowset, position);
+		return AbstractCursor.createCursor(types.getCursorClass(), tableOrView, position);
 	}
 
 	@Override
 	public Iterator<Cursor> iterator() {
-		return new RowsetIterator<Cursor>(this);
+		return new TableOrViewIterator<Cursor>(this);
 	}
 
 	public abstract String getName();
 
 	public String toJson() {
-		return rowset.toJson();
+		return tableOrView.toJson();
 	}
 	
 }

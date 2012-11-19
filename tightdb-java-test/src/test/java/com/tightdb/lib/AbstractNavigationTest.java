@@ -11,7 +11,7 @@ import com.tightdb.test.TestEmployeeView;
 
 public abstract class AbstractNavigationTest {
 
-	protected abstract AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getTableOrView();
+	protected abstract AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getTableOrView();
 
 	@Test
 	public void shouldNavigateToFirstRecord() {

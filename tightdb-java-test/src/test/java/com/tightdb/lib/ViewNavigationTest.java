@@ -28,7 +28,7 @@ public class ViewNavigationTest extends AbstractNavigationTest {
 	}
 
 	@Override
-	protected AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getTableOrView() {
+	protected AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getTableOrView() {
 		return view;
 	}
 

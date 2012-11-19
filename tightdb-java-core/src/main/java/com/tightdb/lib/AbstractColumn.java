@@ -11,24 +11,24 @@ public abstract class AbstractColumn<Type, Cursor, View, Query> {
 	protected final String name;
 	protected final int columnIndex;
 	protected final TableQuery query;
-	protected final IRowsetBase rowset;
+	protected final TableOrViewBase tableOrView;
 
 	public AbstractColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {
-		this(types, cursor.rowset, cursor, index, name);
+		this(types, cursor.tableOrView, cursor, index, name);
 	}
 
-	public AbstractColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, AbstractCursor<Cursor> cursor, int index, String name) {
+	public AbstractColumn(EntityTypes<?, View, Cursor, Query> types, TableOrViewBase tableOrView, AbstractCursor<Cursor> cursor, int index, String name) {
 		this.types = types;
-		this.rowset = rowset;
+		this.tableOrView = tableOrView;
 		this.query = null;
 		this.cursor = cursor;
 		this.columnIndex = index;
 		this.name = name;
 	}
 
-	public AbstractColumn(EntityTypes<?, View, Cursor, Query> types, IRowsetBase rowset, TableQuery query, int index, String name) {
+	public AbstractColumn(EntityTypes<?, View, Cursor, Query> types, TableOrViewBase tableOrView, TableQuery query, int index, String name) {
 		this.types = types;
-		this.rowset = rowset;
+		this.tableOrView = tableOrView;
 		this.query = query;
 		this.cursor = null;
 		this.columnIndex = index;
@@ -61,8 +61,8 @@ public abstract class AbstractColumn<Type, Cursor, View, Query> {
 	}
 
 	protected TableBase tableOrNull() {
-		if (rowset instanceof TableBase) {
-			return (TableBase) rowset;
+		if (tableOrView instanceof TableBase) {
+			return (TableBase) tableOrView;
 		} else {
 			throw new IllegalStateException("Cannot construct a query from a view!");
 		}
@@ -82,7 +82,7 @@ public abstract class AbstractColumn<Type, Cursor, View, Query> {
 	}
 
 	protected Cursor cursor(long position) {
-		return (position >= 0 && position < rowset.size()) ? AbstractCursor.createCursor(types.getCursorClass(), rowset, position) : null;
+		return (position >= 0 && position < tableOrView.size()) ? AbstractCursor.createCursor(types.getCursorClass(), tableOrView, position) : null;
 	}
 
 	protected View view(TableViewBase viewBase) {

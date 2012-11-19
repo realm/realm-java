@@ -140,8 +140,8 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 		return AbstractView.createView(types.getViewClass(), viewBase);
 	}
 
-	protected Cursor cursor(IRowsetBase rowset, long position) {
-		return AbstractCursor.createCursor(types.getCursorClass(), rowset, position);
+	protected Cursor cursor(TableOrViewBase tableOrView, long position) {
+		return AbstractCursor.createCursor(types.getCursorClass(), tableOrView, position);
 	}
 
 	protected static <Q> Q createQuery(Class<Q> queryClass, TableBase tableBase, TableQuery tableQuery) {

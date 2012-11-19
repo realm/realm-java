@@ -16,45 +16,45 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 
 	@Override
 	public Mixed get() {
-		return cursor.rowset.getMixed(columnIndex, cursor.getPosition());
+		return cursor.tableOrView.getMixed(columnIndex, cursor.getPosition());
 	}
 
 	public ColumnType getType() {
-		return cursor.rowset.getMixedType(columnIndex, cursor.getPosition());
+		return cursor.tableOrView.getMixedType(columnIndex, cursor.getPosition());
 	}
 	
 	@Override
 	public void set(Mixed value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), value);
+		cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), value);
 	}
 
 	public void set(String value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
+		cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(boolean value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
+		cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(long value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
+		cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(Date value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
+		cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(ByteBuffer value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
+		cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public void set(byte[] value) {
-		cursor.rowset.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
+		cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
 	}
 
 	public <Tbl> Tbl createSubtable(Class<Tbl> tableClass) {
 		set(new Mixed(ColumnType.ColumnTypeTable));
-		TableBase subtable = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
+		TableBase subtable = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
 		return AbstractSubtable.createSubtable(tableClass, subtable);
 	}
 
@@ -63,7 +63,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 			throw new IllegalArgumentException("Wrong subtable type!");
 		}
 
-		TableBase subtableBase = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
+		TableBase subtableBase = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
 		return AbstractSubtable.createSubtable(tableClass, subtableBase);
 	}
 
@@ -75,7 +75,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 			throw new IllegalArgumentException("The mixed value doesn't contain a sub-table!");
 		}
 
-		TableBase subtableBase = cursor.rowset.getSubTable(columnIndex, cursor.getPosition());
+		TableBase subtableBase = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
 		TableSpec spec = subtableBase.getTableSpec();
 		
 		// Build table schema

@@ -2,7 +2,7 @@ package com.tightdb.lib;
 
 import com.tightdb.TableViewBase;
 
-public abstract class AbstractView<Cursor, View, Query> extends AbstractRowset<Cursor, View, Query> {
+public abstract class AbstractView<Cursor, View, Query> extends AbstractTableOrView<Cursor, View, Query> {
 
 	protected final TableViewBase viewBase;
 

@@ -6,8 +6,8 @@ public class LongQueryColumn<Cursor, View, Query> extends
 		AbstractColumn<Long, Cursor, View, Query> {
 
 	public LongQueryColumn(EntityTypes<?, View, Cursor, Query> types,
-			IRowsetBase rowset, TableQuery query, int index, String name) {
-		super(types, rowset, query, index, name);
+			TableOrViewBase tableOrView, TableQuery query, int index, String name) {
+		super(types, tableOrView, query, index, name);
 	}
 
 	public Query equal(long value) {

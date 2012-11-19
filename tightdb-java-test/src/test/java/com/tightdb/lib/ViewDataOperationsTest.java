@@ -16,7 +16,7 @@ public class ViewDataOperationsTest extends AbstractDataOperationsTest {
 	TestEmployeeView employees;
 
 	@Override
-	protected AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getEmployees() {
+	protected AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getEmployees() {
 		return employees;
 	}
 

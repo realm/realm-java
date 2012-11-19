@@ -17,7 +17,7 @@ public abstract class AbstractDataOperationsTest {
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
 
-	protected abstract AbstractRowset<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getEmployees();
+	protected abstract AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getEmployees();
 
 	@AfterMethod
 	public void clear() {

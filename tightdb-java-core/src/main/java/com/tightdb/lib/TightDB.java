@@ -59,17 +59,17 @@ public class TightDB {
 		}
 	}
 
-	public static void print(String caption, AbstractRowset<? extends AbstractCursor<?>, ?, ?> rowset) {
+	public static void print(String caption, AbstractTableOrView<? extends AbstractCursor<?>, ?, ?> tableOrView) {
 		String format = "%-15s| ";
 		System.out.println(String.format("================== %s ====================", caption));
-		if (!rowset.isEmpty()) {
-			for (AbstractColumn<?, ?, ?, ?> column : rowset.at(0).columns()) {
+		if (!tableOrView.isEmpty()) {
+			for (AbstractColumn<?, ?, ?, ?> column : tableOrView.at(0).columns()) {
 				System.out.print(String.format(format, column.getName()));
 			}
 			System.out.println();
 
-			for (int i = 0; i < rowset.size(); i++) {
-				AbstractCursor<?> p = rowset.at(i);
+			for (int i = 0; i < tableOrView.size(); i++) {
+				AbstractCursor<?> p = tableOrView.at(i);
 				for (AbstractColumn<?, ?, ?, ?> column : p.columns()) {
 					System.out.print(String.format(format, column.getReadableValue()));
 				}
@@ -81,8 +81,8 @@ public class TightDB {
 		}
 	}
 
-	public static void print(AbstractRowset<? extends AbstractCursor<?>, ?, ?> rowset) {
-		print(rowset.getName(), rowset);
+	public static void print(AbstractTableOrView<? extends AbstractCursor<?>, ?, ?> tableOrView) {
+		print(tableOrView.getName(), tableOrView);
 	}
 
 	public static void print(String caption, AbstractCursor<?> cursor) {
