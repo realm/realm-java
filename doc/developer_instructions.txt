@@ -30,24 +30,26 @@ How to setup Eclipse:
    a) In Eclipse click on File -> Import
    b) Select "Existing Maven projects" as an import source
    c) Select the "tightdb_java2" folder as root directory
-   d) You should see 1 item in the projects list (e.g. /pom.xml - tightdb_java2...), make sure it is checked
+   d) You should see 1 item in the projects list (e.g. /pom.xml - tightdb_java2...) with several sub-items, make sure they are all checked
 
 5. Make sure the JDK6 (or JDK7) is installed and configured.
    a) Make sure you have JDK6 installed
    b) Make sure JDK6 is displayed on the list in Window -> Preferences -> Java -> Installed JREs.
       If it's not there, use the "Search" command on the same screen and navigate Eclipse to the folder where it was installed in
-   c) Make sure the project is configured to use the JDK6 by right-clicking it -> Properties -> (both Java Compiler and Java Build Path)
+   c) Make sure the projects are configured to use the JDK6 by right-clicking them -> Properties -> (both Java Compiler and Java Build Path)
 
-6. Build jar
-    - Run as, Maven Build..., Goal: package (click "Skip Tests")
-   (generated jar files are placed under Target)
+6. Build the jars (to produce tightdb.jar and tightdb-devkit.jar)
+    - Right-click on tightdb_java2 -> Run as -> Maven install
+   (the produced tightdb.jar file should be placed under tightdb-java-core/target)
+   (the produced tightdb-devkit.jar file should be placed under tightdb-java-generator/target)
 
-7. Configure tightdb-devkit.jar as annotation processor (to be used for automatic code generation).
+7. Configure tightdb-java-generator/target/tightdb-devkit.jar as annotation processor (to be used for automatic code generation).
+   (do the following steps for the tightdb-java-example and tightdb-java-test projects:) 
 	- Right-click on the project -> Properties
 	- Go to Java Compiler -> Annotation processing and enable annotation processing (check all the 3 check-boxes).  
 	- In Java Compiler -> Annotation processing the "Generated source directory" should be configured to be the same as the original sources directory (e.g. "src" or "src/main/java").
 	- Note: later versions of TightDB will support placing the generated sources in arbitrary folder.  
-	- Go to Java Compiler -> Annotation processing -> Factory Path, add tightdb-devkit.jar (click on Add JARs) and make sure it is checked.  
+	- Go to Java Compiler -> Annotation processing -> Factory Path, add tightdb-java-generator/target/tightdb-devkit.jar (click on Add JARs) and make sure it is checked.
 
 8. If the previous step was done properly, Eclipse will start generating Java source code as soon as you annotate your schema specification classes with the @Table annotation.     
 
