@@ -110,6 +110,7 @@ public class TableBase implements TableOrViewBase {
 	 * You can no longer perform any actions on the table, and if done anyway, an exception is thrown.
 	 * The only method you can call is 'isValid()'.
 	 */
+	
 	public boolean isValid(){
 		return nativeIsValid(nativePtr);
 	}

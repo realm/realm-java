@@ -16,20 +16,36 @@ public class SharedGroup {
 
     public WriteTransaction beginWrite()
     {
-        // FIXME: Can we throw from a native method? If not, we need to have a different way of reporting an error.
+        if (activeTransaction) 
+        	throw new IllegalStateException("Active transaction");
+        // FIXME: throw from nativeMethod in case of error
         WriteTransaction t = new WriteTransaction(this, nativeBeginWrite(nativePtr));
         activeTransaction = true;
         return t;
     }
 
+    public ReadTransaction beginRead()
+    {
+        if (activeTransaction) 
+        	throw new IllegalStateException("Active transaction");
+        // FIXME: throw from nativeMethod in case of error
+        ReadTransaction t = new ReadTransaction(this, nativeBeginRead(nativePtr));
+        activeTransaction = true;
+        return t;
+    }
+    
+    public void endRead()
+    {
+    	nativeEndRead(nativePtr);
+    }
+    
     public void close()
     {
-        if (activeTransaction) throw new IllegalStateException("Active transaction");
+        if (activeTransaction) 
+        	throw new IllegalStateException("Active transaction");
         // Ensure synchronized close
         CloseHandler.getInstance().close(this);
     }
-
-
 
     SharedGroup(String databaseFile, boolean enableReplication)
     {
@@ -52,7 +68,8 @@ public class SharedGroup {
     // Must only be called from CloseHandler
     void doClose()
     {
-        if (nativePtr == 0) return;
+        if (nativePtr == 0) 
+        	return;
         nativeClose(nativePtr);
         nativePtr = 0;
     }
@@ -60,16 +77,17 @@ public class SharedGroup {
     static native String nativeGetDefaultReplicationDatabaseFileName();
 
 
-
     protected void finalize()
     {
         CloseHandler.getInstance().close(this);
     }
 
-
-
     private long nativePtr;
     private boolean activeTransaction;
+
+    private native long nativeBeginRead(long nativePtr);
+
+    private native void nativeEndRead(long nativePtr);
 
     private native long nativeBeginWrite(long nativePtr);
 
