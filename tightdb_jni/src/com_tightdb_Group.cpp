@@ -179,9 +179,3 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
         return NULL;
     }
 }
-
-JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeCommit(
-	JNIEnv*, jobject, jlong nativeGroupPtr)
-{
-	return G(nativeGroupPtr)->commit();
-}

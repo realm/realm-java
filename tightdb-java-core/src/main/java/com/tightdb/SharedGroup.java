@@ -37,6 +37,7 @@ public class SharedGroup {
     public void endRead()
     {
     	nativeEndRead(nativePtr);
+        activeTransaction = false;
     }
     
     public void close()

@@ -6,8 +6,13 @@ public class ReadTransaction extends Group {
 
     ReadTransaction(SharedGroup db, long nativePtr)
     {
-        super(nativePtr);
+        super(nativePtr, true); // make Group immutable
         this.db = db;
+    }
+
+    public void endRead()
+    {
+        db.endRead();
     }
 
     public void close()

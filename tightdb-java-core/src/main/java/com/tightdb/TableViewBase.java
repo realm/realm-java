@@ -56,7 +56,8 @@ public class TableViewBase implements TableOrViewBase {
 	 * @param table The table.
 	 * @param nativePtr pointer to table.
 	 */
-	protected TableViewBase(long nativePtr){
+	protected TableViewBase(long nativePtr, boolean immutable){
+		this.immutable = immutable;
 		this.tableView = null;
 		this.nativePtr = nativePtr;
 	}
@@ -69,7 +70,8 @@ public class TableViewBase implements TableOrViewBase {
 	 * @param tableView A table view.
 	 * @param nativePtr pointer to table.
 	 */
-	protected TableViewBase(TableViewBase tableView, long nativePtr){
+	protected TableViewBase(TableViewBase tableView, long nativePtr, boolean immutable){
+		this.immutable = immutable;
 		this.tableView = tableView;
 		this.nativePtr = nativePtr;
 	}
@@ -186,7 +188,7 @@ public class TableViewBase implements TableOrViewBase {
 	protected native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
 	
 	public TableBase getSubTable(long columnIndex, long rowIndex){
-		return new TableBase(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex));
+		return new TableBase(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex), immutable);
 	}
 	
 	protected native long nativeGetSubTable(long nativeViewPtr, long columnIndex, long rowIndex);
@@ -198,6 +200,7 @@ public class TableViewBase implements TableOrViewBase {
 	protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);	
 	
 	public void clearSubTable(long columnIndex, long rowIndex) {
+		if (immutable) throwImmutable();
 		nativeClearSubTable(nativePtr, columnIndex, rowIndex);
 	}
 
@@ -214,6 +217,7 @@ public class TableViewBase implements TableOrViewBase {
 	 * @param value
 	 */
 	public void setLong(long columnIndex, long rowIndex, long value){
+		if (immutable) throwImmutable();
 		nativeSetLong(nativePtr, columnIndex, rowIndex, value);
 	}
 	
@@ -227,6 +231,7 @@ public class TableViewBase implements TableOrViewBase {
 	 * @param value
 	 */
 	public void setBoolean(long columnIndex, long rowIndex, boolean value){
+		if (immutable) throwImmutable();
 		nativeSetBoolean(nativePtr, columnIndex, rowIndex, value);
 	}
 	
@@ -240,6 +245,7 @@ public class TableViewBase implements TableOrViewBase {
 	 * @param value
 	 */	
 	public void setDate(long columnIndex, long rowIndex, Date value){
+		if (immutable) throwImmutable();
 		nativeSetDateTimeValue(nativePtr, columnIndex, rowIndex, value.getTime());
 	}
 	
@@ -253,6 +259,7 @@ public class TableViewBase implements TableOrViewBase {
 	 * @param value
 	 */
 	public void setString(long columnIndex, long rowIndex, String value){
+		if (immutable) throwImmutable();
 		nativeSetString(nativePtr, columnIndex, rowIndex, value);
 	}
 	
@@ -266,12 +273,14 @@ public class TableViewBase implements TableOrViewBase {
 	 * @param data
 	 */
 	public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data){
+		if (immutable) throwImmutable();
 		nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
 	}
 	
 	protected native void nativeSetBinary(long nativeViewPtr, long columnIndex, long rowIndex, ByteBuffer data);
 
 	public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
+		if (immutable) throwImmutable();
 		nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
 	}
 	
@@ -285,6 +294,7 @@ public class TableViewBase implements TableOrViewBase {
 	 * @param data
 	 */
 	public void setMixed(long columnIndex, long rowIndex, Mixed data){
+		if (immutable) throwImmutable();
 		nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
 	}
 	
@@ -298,6 +308,7 @@ public class TableViewBase implements TableOrViewBase {
 	 */
 	//!!!TODO: New
 	public void addLong(long columnIndex, long value) {
+		if (immutable) throwImmutable();
 		nativeAddInt(nativePtr, columnIndex, value);
 	}
 
@@ -305,6 +316,7 @@ public class TableViewBase implements TableOrViewBase {
 	
 	// Methods for deleting.
 	public void clear(){
+		if (immutable) throwImmutable();
 		nativeClear(nativePtr);
 	}
 	
@@ -317,12 +329,14 @@ public class TableViewBase implements TableOrViewBase {
 	 * @param rowIndex the row index 
 	 */
 	public void remove(long rowIndex){
+		if (immutable) throwImmutable();
 		nativeRemoveRow(nativePtr, rowIndex);
 	}
 	
 	protected native void nativeRemoveRow(long nativeViewPtr, long rowIndex);
 	
 	public void removeLast() {
+		if (immutable) throwImmutable();
 		if (!isEmpty()) {
 			nativeRemoveRow(nativePtr, size() - 1);
 		}
@@ -360,27 +374,27 @@ public class TableViewBase implements TableOrViewBase {
 	// Search for all matches
 	
 	public TableViewBase findAllLong(long columnIndex, long value){
-		return new TableViewBase(this,  nativeFindAllInt(nativePtr, columnIndex, value));
+		return new TableViewBase(this,  nativeFindAllInt(nativePtr, columnIndex, value), immutable);
 	}
 	
 	protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 	
  	//!!!TODO: New
 	public TableViewBase findAllBoolean(long columnIndex, boolean value) {
-		return new TableViewBase(this, nativeFindAllBool(nativePtr, columnIndex, value));
+		return new TableViewBase(this, nativeFindAllBool(nativePtr, columnIndex, value), immutable);
 	}
 
 	protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
  	//!!!TODO: New
 	public TableViewBase findAllDate(long columnIndex, Date date) {
-		return new TableViewBase(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()));
+		return new TableViewBase(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()), immutable);
 	}
 
 	protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
 
 	public TableViewBase findAllString(long columnIndex, String value){
-		return new TableViewBase(this, nativeFindAllString(nativePtr, columnIndex, value));
+		return new TableViewBase(this, nativeFindAllString(nativePtr, columnIndex, value), immutable);
 	}
 	
 	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
@@ -441,10 +455,12 @@ public class TableViewBase implements TableOrViewBase {
 	enum Order { ascending, descending };
 	
 	public void sort(long columnIndex, Order order) {
+		if (immutable) throwImmutable();
 		nativeSort(nativePtr, columnIndex, (order == Order.ascending));
 	}
 
 	public void sort(long columnIndex) {
+		if (immutable) throwImmutable();
 		sort(columnIndex, Order.ascending);
 	}
 	
@@ -472,8 +488,12 @@ public class TableViewBase implements TableOrViewBase {
 
 	protected native String nativeToJson(long nativeViewPtr);
 	
-	
+	private void throwImmutable()
+	{
+    	throw new IllegalStateException("Mutable method call during read transaction.");
+	}
+
 	protected long nativePtr;
-	protected TableViewBase tableView;
-	
+	protected boolean immutable = false;
+	protected TableViewBase tableView;	
 }

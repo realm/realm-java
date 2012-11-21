@@ -48,7 +48,7 @@ public class GroupTest {
 		Group group2 = new Group(data);
 		group2.close();
 
-		// data is deleted by group()!
+		// data is deleted by group.close()!
 		// FIXME:
 		System.out.println("Data len:" + data.length);
 	}
@@ -81,6 +81,7 @@ public class GroupTest {
 
 		employees.clear();
 		group.close();
+		// data is deleted by group.close()!
 
 		Group group2 = new Group(data);
 

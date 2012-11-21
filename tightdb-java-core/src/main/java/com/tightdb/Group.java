@@ -23,6 +23,7 @@ public class Group {
     }
 
     public Group() {
+        this.immutable = false;
         this.nativePtr = createNative();
         checkNativePtr();
     }
@@ -59,8 +60,9 @@ public class Group {
 
     protected native long createNative(ByteBuffer buffer);
 
-    protected Group(long nativePtr) {
-        this.nativePtr = nativePtr;
+    protected Group(long nativePtr, boolean immutable) {
+        this.immutable = true;
+    	this.nativePtr = nativePtr;
         checkNativePtr();
     }
 
@@ -131,7 +133,7 @@ public class Group {
      * @return The table if it exists, otherwise create it.
      */
     public TableBase getTable(String name){
-        return new TableBase(this, nativeGetTableNativePtr(nativePtr, name));
+        return new TableBase(this, nativeGetTableNativePtr(nativePtr, name), immutable);
     }
 
     protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
@@ -187,15 +189,6 @@ public class Group {
 
     protected native ByteBuffer nativeWriteToByteBuffer(long nativeGroupPtr);
 
-    public void commit()
-    {
-        // FIXME: Currently this call returns a boolean which is
-        // ignored. Can we throw from a native method? If not, we need
-        // to check the return value and throw an exception.
-        nativeCommit(nativePtr);
-    }
-
-    protected native boolean nativeCommit(long nativePtr);
-
     protected long nativePtr;
+    protected boolean immutable = false;
 }
