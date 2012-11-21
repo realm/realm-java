@@ -9,6 +9,7 @@ MODE="$1"
 
 DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
+JAR_DIR="$TIGHTDB_JAVA_HOME/lib"
 
 
 word_list_append()
@@ -182,9 +183,14 @@ case "$MODE" in
     "clean")
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         make clean || exit 1
-        cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
-        find java/ -type f -name '*.class' -delete || exit 1
-        rm -f tightdb.jar || exit 1
+        cd "$TIGHTDB_JAVA_HOME/tightdb-java-core" || exit 1
+        find src/ -type f -name '*.class' -delete || exit 1
+        cd "$TIGHTDB_JAVA_HOME/tightdb-java-generator" || exit 1
+        find src/ -type f -name '*.class' -delete || exit 1
+        cd "$TIGHTDB_JAVA_HOME/tightdb-java-test" || exit 1
+        find src/ -type f -name '*.class' -delete || exit 1
+        rm -f "$JAR_DIR/tightdb.jar" || exit 1
+        rm -f "$JAR_DIR/tightdb-devkit.jar" || exit 1
         exit 0
         ;;
 
@@ -199,14 +205,14 @@ case "$MODE" in
         fi
 
         # Build tightdb.jar
-        cd "$TIGHTDB_JAVA_HOME/src/main" || exit 1
-        THIS_DIR="$(pwd)" || exit 1
-        (cd java && $JAVAC                com/tightdb/*.java  com/tightdb/lib/*.java)  || exit 1
-        (cd java && jar cf "$THIS_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/lib/*.class) || exit 1
-        jar i tightdb.jar || exit 1
+        cd "$TIGHTDB_JAVA_HOME/tightdb-java-core/src/main" || exit 1
+        (cd java && $JAVAC                        com/tightdb/*.java  com/tightdb/lib/*.java)  || exit 1
+        (cd java && jar cf "$JAR_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/lib/*.class) || exit 1
+        jar i "$JAR_DIR/tightdb.jar" || exit 1
 
         # Build tightdb-devkit.jar
-        CLASSPATH="$(printf "%s\n" "$DEP_JAR_PATHS" | sed 's/  */:/g'):../tightdb.jar" || exit 1
+        cd "$TIGHTDB_JAVA_HOME/tightdb-java-generator/src/main" || exit 1
+        CLASSPATH="$(printf "%s\n" "$DEP_JAR_PATHS" | sed 's/  */:/g'):$JAR_DIR/tightdb.jar" || exit 1
         export CLASSPATH
         # FIXME: Must run ResourceGenerator to produce java/com/tightdb/generator/Templates.java
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
@@ -217,29 +223,29 @@ case "$MODE" in
         else
             echo "Class-Path: tightdb.jar $DEP_JAR_PATHS" >>"$MANIFEST"
         fi
-        jar cfm tightdb-devkit.jar "$MANIFEST" -C resources META-INF || exit 1
-        (cd java && $JAVAC                                com/tightdb/generator/*.java)  || exit 1
-        (cd java && jar uf "$THIS_DIR/tightdb-devkit.jar" com/tightdb/generator/*.class) || exit 1
-        jar i tightdb-devkit.jar || exit 1
+        jar cfm "$JAR_DIR/tightdb-devkit.jar" "$MANIFEST" -C resources META-INF || exit 1
+        (cd java && $JAVAC                               com/tightdb/generator/*.java)  || exit 1
+        (cd java && jar uf "$JAR_DIR/tightdb-devkit.jar" com/tightdb/generator/*.class) || exit 1
+        (cd "$JAR_DIR" && jar i "tightdb-devkit.jar") || exit 1
 
         # Absorb dependency JARs if we have to - generally a bag thing!!!
         if [ "$ABSORB_DEP_JARS" ]; then
-            JAR_DIR="$TEMP_DIR/jar"
-            mkdir "$JAR_DIR" || exit 1
+            TEMP_JAR_DIR="$TEMP_DIR/jar"
+            mkdir "$TEMP_JAR_DIR" || exit 1
             for x in $DEP_JAR_PATHS; do
-                (cd "$JAR_DIR" && jar xf "$x") || exit 1
+                (cd "$TEMP_JAR_DIR" && jar xf "$x") || exit 1
             done
             # Manifest files from the dependency JARs cannot be
             # retained, becuase they would clobber our own
             # MANIFEST.MF.
-            rm -f "$JAR_DIR/META-INF/MANIFEST.MF" || exit 1
-            (cd "$JAR_DIR" && jar uf "$THIS_DIR/tightdb-devkit.jar" *) || exit 1
+            rm -f "$TEMP_JAR_DIR/META-INF/MANIFEST.MF" || exit 1
+            (cd "$TEMP_JAR_DIR" && jar uf "$JAR_DIR/tightdb-devkit.jar" *) || exit 1
         fi
 
         # Setup links to libraries and JARs to make the examples work
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
-        for x in "../../src/main/tightdb.jar" "../../src/main/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb$LIB_SUFFIX_SHARED"; do
+        for x in "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb$LIB_SUFFIX_SHARED"; do
             ln -f "$x" || exit 1
         done
         exit 0
@@ -249,16 +255,19 @@ case "$MODE" in
         find_java || exit 1
 
         # Build and run test suite
-        cd "$TIGHTDB_JAVA_HOME/src/test" || exit 1
+        cd "$TIGHTDB_JAVA_HOME/tightdb-java-test/src/main" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test.XXXX)" || exit 1
-        mkdir "$TEMP_DIR/out" || exit 1
-        mkdir "$TEMP_DIR/gen" || exit 1
-        export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/tightdb-devkit.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:$TEMP_DIR/gen:."
+        mkdir "$TEMP_DIR/out" || exit 1
+        mkdir "$TEMP_DIR/gen" || exit 1
+        export CLASSPATH="$JAR_DIR/tightdb-devkit.jar:$TEMP_DIR/gen:."
+        (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" com/tightdb/test/TestModel.java) || exit 1
+
+        cd "$TIGHTDB_JAVA_HOME/tightdb-java-test/src/test" || exit 1
+        export CLASSPATH="$JAR_DIR/tightdb-devkit.jar:/usr/share/java/testng.jar:/usr/share/java/qdox.jar:/usr/share/java/bsh.jar:$TEMP_DIR/gen:../main:."
         # Newer versions of testng.jar (probably >= 6) require beust-jcommander.jar
         if [ -e "/usr/share/java/beust-jcommander.jar" ]; then
             CLASSPATH="$CLASSPATH:/usr/share/java/beust-jcommander.jar"
         fi
-        (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" com/tightdb/test/TestModel.java) || exit 1
         SOURCES="$(cd java && find * -type f -name '*Test.java')" || exit 1
         CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
         (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" $SOURCES) || exit 1
@@ -292,7 +301,7 @@ case "$MODE" in
             fi
         fi
         install -d "$PREFIX/share/java" || exit 1
-        install -m 644 "src/main/tightdb.jar" "src/main/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
+        install -m 644 "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
         exit 0
         ;;
 
@@ -330,19 +339,17 @@ case "$MODE" in
 /build.sh
 /*.mk
 /tightdb_jni/src
-/src/main
-/src/test
+/tightdb-java-core
+/tightdb-java-generator
+/tightdb-java-test
 /test-installed
 /examples
 EOF
         cat >"$TEMP_DIR/exclude" <<EOF
 .gitignore
-/src/main/java/com/tightdb/example
-/src/main/java/com/tightdb/doc
-/src/test/*.bat
-/src/main/resources/*.vm
-/src/main/resources/*.java
-/src/test/resources/all_tests.xml
+/tightdb-java-generator/pom.xml
+/tightdb-java-test/pom.xml
+/tightdb-java-test/src/test/resources
 *.dll
 EOF
         grep -E -v '^(#.*)?$' "$TEMP_DIR/include" >"$TEMP_DIR/include2" || exit 1
