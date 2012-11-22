@@ -23,6 +23,11 @@ tightdb_jni*.exp
 *.ipch
 /bin
 
+.classpath
+.project
+.factorypath
+target
+
 */.classpath
 */.project
 */.factorypath
