@@ -4,8 +4,11 @@ package com.tightdb;
 public class TableQuery {
 	
 	protected long nativePtr;
+	protected boolean immutable = false;
 
-	public TableQuery(long nativeQueryPtr){
+
+	public TableQuery(long nativeQueryPtr, boolean immutable){
+		this.immutable = immutable;
 		this.nativePtr = nativeQueryPtr;
 	}
 
@@ -212,11 +215,11 @@ public class TableQuery {
 	protected native long nativeFindNext(long nativeQueryPtr, long lastMatch);
 	
 	public TableViewBase findAll(long start, long end, long limit){
-		return new TableViewBase(nativeFindAll(nativePtr, start, end, limit));
+		return new TableViewBase(nativeFindAll(nativePtr, start, end, limit), immutable);
 	}
 	
 	public TableViewBase findAll(){
-		return new TableViewBase(nativeFindAll(nativePtr, 0, util.INFINITE, util.INFINITE));
+		return new TableViewBase(nativeFindAll(nativePtr, 0, util.INFINITE, util.INFINITE), immutable);
 	}
 
 	protected native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
@@ -279,10 +282,12 @@ public class TableQuery {
 	
 	// Deletion.
 	public long remove(long start, long end){
+		if (immutable) throwImmutable();
 		return nativeRemove(nativePtr, start, end, util.INFINITE);
 	}
 	
 	public long remove(){
+		if (immutable) throwImmutable();
 		return nativeRemove(nativePtr, 0, util.INFINITE, util.INFINITE);
 	}
 	
@@ -295,11 +300,11 @@ public class TableQuery {
 	protected native String nativeGetErrorCode(long nativePtr);
 
 	public TableViewBase findAllMulti(long start, long end){
-		return new TableViewBase(nativeFindAllMulti(nativePtr, start, end));
+		return new TableViewBase(nativeFindAllMulti(nativePtr, start, end), immutable);
 	}
 	
 	public TableViewBase findAllMulti(){
-		return new TableViewBase(nativeFindAllMulti(nativePtr, 0, util.INFINITE));
+		return new TableViewBase(nativeFindAllMulti(nativePtr, 0, util.INFINITE), immutable);
 	}
 	
 	protected native long nativeFindAllMulti(long nativeQueryPtr, long start, long end);
@@ -309,4 +314,9 @@ public class TableQuery {
 	}
 	
 	protected native int nativeSetThreads(long nativeQueryPtr, int threadCount);
+
+	private void throwImmutable()
+	{
+    	throw new IllegalStateException("Mutable method call during read transaction.");
+	}
 }

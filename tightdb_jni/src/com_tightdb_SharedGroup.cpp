@@ -21,7 +21,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
         db = new SharedGroup(SharedGroup::replication_tag(), *file_name_ptr ? file_name_ptr : 0);
 #else
         ThrowException(env, UnsupportedOperation,
-                       "Replication was disable in the native library at compile time");
+                       "Replication was disabled in the native library at compile time.");
         return 0;
 #endif
     }
@@ -30,7 +30,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
     }
     if (!db->is_valid()) {
         delete db;
-        ThrowException(env, IllegalArgument, "Failed to instantiate database"); // FIXME: More details must be made available.
+        ThrowException(env, IllegalArgument, "Failed to instantiate database."); // FIXME: More details must be made available.
         return 0;
     }
     return reinterpret_cast<jlong>(db);
@@ -41,6 +41,21 @@ JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeClose(
 {
     SharedGroup* db = reinterpret_cast<SharedGroup*>(native_ptr);
     delete db;
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_nativeBeginRead(
+    JNIEnv*, jobject, jlong native_ptr)
+{
+    SharedGroup* db = reinterpret_cast<SharedGroup*>(native_ptr);
+    const Group& group = db->begin_read();
+    return reinterpret_cast<jlong>(&group);
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeEndRead(
+    JNIEnv *, jobject, jlong native_ptr)
+{
+    SharedGroup* db = reinterpret_cast<SharedGroup*>(native_ptr);
+    db->end_read();
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_nativeBeginWrite(
@@ -66,7 +81,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeRollback(
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_SharedGroup_nativeGetDefaultReplicationDatabaseFileName(
-    JNIEnv* env)
+    JNIEnv* env, jclass)
 {
 #ifdef TIGHTDB_ENABLE_REPLICATION
     return env->NewStringUTF(Replication::get_path_to_database_file());

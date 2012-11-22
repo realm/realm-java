@@ -48,7 +48,7 @@ public class GroupTest {
 		Group group2 = new Group(data);
 		group2.close();
 
-		// data is deleted by group()!
+		// data is deleted by group.close()!
 		// FIXME:
 		System.out.println("Data len:" + data.length);
 	}
@@ -76,11 +76,11 @@ public class GroupTest {
 
 		// check table retrieval
 		assertEquals(employees.size(),
-				group.getTable(TestEmployeeTable.class.getCanonicalName())
-						.size());
+				group.getTable(TestEmployeeTable.class.getCanonicalName()).size());
 
 		employees.clear();
 		group.close();
+		// data is deleted by group.close()!
 
 		Group group2 = new Group(data);
 

@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 #undef com_tightdb_util_REQUIRED_JNI_VERSION
-#define com_tightdb_util_REQUIRED_JNI_VERSION 12i64
+#define com_tightdb_util_REQUIRED_JNI_VERSION 13i64
 /*
  * Class:     com_tightdb_util
  * Method:    nativeGetInfiniteValue
