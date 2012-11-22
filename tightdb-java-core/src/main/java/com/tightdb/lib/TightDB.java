@@ -31,6 +31,12 @@ public class TightDB {
 		return "tightdb-jni";
 	}
 	
+	public static boolean osIsWindows()
+	{
+		String os = System.getProperty("os.name").toLowerCase(); 
+		return (os.indexOf("win") >= 0);
+	}
+
 	public static byte[] serialize(Serializable value) {
 		try {
 			ByteArrayOutputStream mem = new ByteArrayOutputStream();

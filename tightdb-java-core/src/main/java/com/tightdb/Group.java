@@ -23,7 +23,6 @@ public class Group {
     }
 
     public Group() {
-        this.immutable = false;
         this.nativePtr = createNative();
         checkNativePtr();
     }
@@ -61,7 +60,7 @@ public class Group {
     protected native long createNative(ByteBuffer buffer);
 
     protected Group(long nativePtr, boolean immutable) {
-        this.immutable = true;
+        this.immutable = immutable;
     	this.nativePtr = nativePtr;
         checkNativePtr();
     }

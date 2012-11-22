@@ -7,7 +7,11 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/tightdb.jar"/>
+	<classpathentry kind="lib" path="lib/tightdb.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="../lib"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="lib-sqlite/sqlite4java.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
