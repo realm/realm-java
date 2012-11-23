@@ -1,9 +1,16 @@
 package com.tightdb;
 
+//public class ReadTransaction extends Group  implements AutoCloseable {
 public class ReadTransaction extends Group {
 
     private SharedGroup db;
 
+    ReadTransaction(SharedGroup db)
+    {
+    	super(db.beginReadGroup(), true);
+    	this.db = db;
+    }
+    
     ReadTransaction(SharedGroup db, long nativePtr)
     {
         super(nativePtr, true); // make Group immutable
@@ -15,8 +22,11 @@ public class ReadTransaction extends Group {
         db.endRead();
     }
 
-    public void close()
+//    @Override
+	public void close()
     {
+    	System.out.println("read-close");
+    	//TODO: can close fail? make exception
         db.endRead();
     }
 

@@ -108,17 +108,18 @@ public class Group {
      * @param name The name of the table.
      * @return true if the table exists, otherwise false.
      */
-    public boolean hasTable(String name){
-        if(name == null)
+    public boolean hasTable(String name) {
+        if (name == null)
             return false;
         return nativeHasTable(nativePtr, name);
     }
 
     protected native boolean nativeHasTable(long nativeGroupPtr, String name);
 
-    public String getTableName(int index){
-        if(index < 0 || index >= getTableCount()){
-            throw new IndexOutOfBoundsException("Table index argument is out of range. possible range is [0, tableCount - 1]");
+    public String getTableName(int index) {
+    	long cnt = getTableCount();
+        if (index < 0 || index >= cnt) {
+            throw new IndexOutOfBoundsException("Table index argument is out of range. possible range is [0, " + (cnt - 1) + "]");
         }
         return nativeGetTableName(nativePtr, index);
     }
@@ -131,8 +132,11 @@ public class Group {
      * @param name The name of the table.
      * @return The table if it exists, otherwise create it.
      */
-    public TableBase getTable(String name){
-        return new TableBase(this, nativeGetTableNativePtr(nativePtr, name), immutable);
+    public TableBase getTable(String name) {
+    	if (immutable)
+    		if (!hasTable(name))
+    			throwImmutable();
+    	return new TableBase(this, nativeGetTableNativePtr(nativePtr, name), immutable);
     }
 
     protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
@@ -187,6 +191,11 @@ public class Group {
     }
 
     protected native ByteBuffer nativeWriteToByteBuffer(long nativeGroupPtr);
+
+	private void throwImmutable()
+	{
+    	throw new IllegalStateException("Mutable method call during read transaction.");
+	}
 
     protected long nativePtr;
     protected boolean immutable = false;

@@ -17,17 +17,25 @@ public class SharedGroup {
     public WriteTransaction beginWrite()
     {
         if (activeTransaction) 
-        	throw new IllegalStateException("Active transaction");
+        	throw new IllegalStateException("Can't beginWrite() during another active transaction");
         // FIXME: throw from nativeMethod in case of error
         WriteTransaction t = new WriteTransaction(this, nativeBeginWrite(nativePtr));
         activeTransaction = true;
         return t;
     }
 
+    long beginReadGroup()
+    {
+        if (activeTransaction) 
+        	throw new IllegalStateException("Can't beginReadGroup() during another active transaction");
+        activeTransaction = true;
+    	return nativeBeginRead(nativePtr);
+    }
+    
     public ReadTransaction beginRead()
     {
         if (activeTransaction) 
-        	throw new IllegalStateException("Active transaction");
+        	throw new IllegalStateException("Can't beginRead() during another active transaction");
         // FIXME: throw from nativeMethod in case of error
         ReadTransaction t = new ReadTransaction(this, nativeBeginRead(nativePtr));
         activeTransaction = true;
@@ -43,7 +51,7 @@ public class SharedGroup {
     public void close()
     {
         if (activeTransaction) 
-        	throw new IllegalStateException("Active transaction");
+        	throw new IllegalStateException("Can't close() SharedGroup during an active transaction");
         // Ensure synchronized close
         CloseHandler.getInstance().close(this);
     }
