@@ -629,7 +629,7 @@ public class TableBase implements TableOrViewBase {
 	
 	protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
-	// Indexing - currently only supported on String columns
+	// TODO: check columnstype. Indexing - currently only supported on String columns
 	public void setIndex(long columnIndex) {
 		if (immutable) throwImmutable();
 		nativeSetIndex(nativePtr, columnIndex);
