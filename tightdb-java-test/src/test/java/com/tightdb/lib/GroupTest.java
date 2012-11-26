@@ -77,7 +77,7 @@ public class GroupTest {
 
 		// check table retrieval
 		assertEquals(employees.size(),
-				group.getTable(TestEmployeeTable.class.getCanonicalName()).size());
+				group.getTable(TestEmployeeTable.class.getSimpleName()).size());
 		employees.clear();
 
 		// Make new group based on same data.
