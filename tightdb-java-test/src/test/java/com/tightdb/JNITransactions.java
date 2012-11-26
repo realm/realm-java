@@ -92,7 +92,7 @@ public class JNITransactions {
  		long cnt = t.getTableCount();
  		for (int i=0; i< cnt; ++i)
  			System.out.println(i  + ":" + t.getTableName(i));
- 		TableBase table = t.getTable("com.tightdb.EmployeeTable");
+ 		TableBase table = t.getTable("EmployeeTable");
 
  		ByteBuffer buf = ByteBuffer.allocate(1);
 		try { table.insertBoolean(0, 0, false); assert(false);} catch (IllegalStateException e) {}		

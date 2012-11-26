@@ -23,7 +23,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 	}
 
 	public AbstractTable(EntityTypes<?, View, Cursor, Query> types, Group group) {
-		this(types, group.getTable(types.getTableClass().getCanonicalName()));
+		this(types, group.getTable(types.getTableClass().getSimpleName()));
 	}
 
 	@SuppressWarnings("unchecked")
