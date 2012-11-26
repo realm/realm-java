@@ -53,7 +53,7 @@ public class GroupTest {
 		System.out.println("Data len:" + data.length);
 	}
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void shouldCreateTablesInGroup() {
 		Group group = new Group();
 
@@ -66,7 +66,8 @@ public class GroupTest {
 				5 }, new Date(), 1234);
 
 		byte[] data = group.writeToMem();
-
+		// data is currently disposed after group.close() !
+		
 		// check table info retrieval
 		assertEquals(1, group.getTableCount());
 		assertEquals(TestEmployeeTable.class.getCanonicalName(),
@@ -77,38 +78,26 @@ public class GroupTest {
 		// check table retrieval
 		assertEquals(employees.size(),
 				group.getTable(TestEmployeeTable.class.getCanonicalName()).size());
-
 		employees.clear();
-		group.close();
-		// data is deleted by group.close()!
 
+		// Make new group based on same data.
 		Group group2 = new Group(data);
-
 		TestEmployeeTable employees2 = new TestEmployeeTable(group2);
-		group2.close();
-
 		assertEquals(3, employees2.size());
 		assertEquals(NAME0, employees2.at(0).getFirstName());
 		assertEquals(NAME1, employees2.at(1).getFirstName());
 		assertEquals(NAME2, employees2.at(2).getFirstName());
 		employees2.clear();
+		group2.close();
 
+		// Make new empty group
 		Group group3 = new Group();
 		TestEmployeeTable employees3 = new TestEmployeeTable(group3);
-
 		assertEquals(0, employees3.size());
-
 		employees3.clear();
-
-		System.out.println("Closing group 1...");
-		group.close();
-
-		System.out.println("Closing group 2...");
-		group2.close(); // FIXME: crashes here!
-
-		System.out.println("Closing group 3...");
 		group3.close();
 
+		group.close();
 		System.out.println("Done");
 	}
 }

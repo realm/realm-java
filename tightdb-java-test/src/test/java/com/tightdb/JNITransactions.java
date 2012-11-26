@@ -4,20 +4,13 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.util.Date;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.tightdb.test.TestEmployeeTable;
-
 public class JNITransactions {
 
-    @Table(row="Employee")
+    @Table(table="EmployeeTable")
     class employee {
         String firstName;
         String lastName;
@@ -48,34 +41,66 @@ public class JNITransactions {
 		deleteFile(testFile);
 	}
 
-	protected void checkRead(int rows)
+    protected void writeOneTransaction(long rows)
 	{
-		// Read from table
-		ReadTransaction t = db.beginRead();
-    	EmployeeTable employees = new EmployeeTable(t);
-    	assertEquals(true, employees.isValid());
-    	assertEquals(rows, employees.size());
-    	t.endRead();
+        WriteTransaction trans = db.beginWrite();
+        TableBase tbl = trans.getTable("EmployeeTable");
+		TableSpec tableSpec = new TableSpec();
+		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+		tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
+		tbl.updateFromSpec(tableSpec);	
+
+		for (long row=0; row < rows; row++) {
+			tbl.addEmptyRow(); tbl.setString(0, row, "Hi"); tbl.setLong(1, 0, 1);
+		}
+		assertEquals(rows, tbl.size());
+        trans.commit();
+        
+        // must throw exception as table is invalid now.
+        try {
+        	assertEquals(1, tbl.size());
+        	assert(false);
+        } catch (IllegalArgumentException e) {
+        }
+        
 	}
 
-	protected void writeOneTransaction()
+	protected void checkRead(int rows)
 	{
-		{	
-	        WriteTransaction t = db.beginWrite();
-	        EmployeeTable employees = new EmployeeTable(t);
-	        employees.add("John", "Doe", 10000, true);
-	        System.out.println("Table name:" + employees.getName() );
-			assertEquals(1, employees.size());
-	        t.commit();
-			// assertEquals(1, employees.size()); must set exception as employees is invalid now.
-		}
+		// Read transaction
+		ReadTransaction trans = db.beginRead();
+    	TableBase tbl = trans.getTable("EmployeeTable");
+    	assertEquals(true, tbl.isValid());
+    	assertEquals(rows, tbl.size());
+    	trans.endRead();
 	}
-	
+
+	@Test
+	public void mustWriteAndReadEmpty() {
+		writeOneTransaction(0);
+		checkRead(0);
+		clear();
+	}
+
 	@Test
 	public void mustWriteCommit() {
-		writeOneTransaction();
+		writeOneTransaction(10);
+		checkRead(10);
+		clear();
+	}
+
+	@Test
+	public void mustRollback() {
+		writeOneTransaction(1);
 		
-		checkRead(1);
+        WriteTransaction trans = db.beginWrite();
+        TableBase tbl = trans.getTable("EmployeeTable");
+
+        tbl.addEmptyRow(); tbl.setString(0, 0, "Hello"); tbl.setLong(1, 0, 1);
+		assertEquals(2, tbl.size());
+		trans.rollback();
+		
+		checkRead(1); // Only 1 row now.
 		
 		clear();
 	}
@@ -84,66 +109,74 @@ public class JNITransactions {
 	// Test: above in custom Typed Tables
 	// TableQuery.... in ReadTransactions
 	
-	@Test(enabled=true)
+	@Test
 	public void mustFailOnWriteInReadTransactions() {
-		writeOneTransaction();
+		writeOneTransaction(1);
 
  		ReadTransaction t = db.beginRead(); 
- 		long cnt = t.getTableCount();
- 		for (int i=0; i< cnt; ++i)
- 			System.out.println(i  + ":" + t.getTableName(i));
- 		TableBase table = t.getTable("com.tightdb.EmployeeTable");
+ 		TableBase table = t.getTable("EmployeeTable");
 
  		ByteBuffer buf = ByteBuffer.allocate(1);
-		try { table.insertBoolean(0, 0, false); assert(false);} catch (IllegalStateException e) {}		
-		try { table.addEmptyRow(); assert(false);} catch (IllegalStateException e) {}
-		try { table.addEmptyRows(1); assert(false);} catch (IllegalStateException e) {}
-		try { table.addLong(0,0);	assert(false);} catch (IllegalStateException e) {}
-		try { table.clear();	assert(false);} catch (IllegalStateException e) {}
-		try { table.clearSubTable(0,0);	assert(false);} catch (IllegalStateException e) {}
+		try { table.insertBoolean(0, 0, false); 	assert(false);} catch (IllegalStateException e) {}		
+		try { table.addEmptyRow(); 					assert(false);} catch (IllegalStateException e) {}
+		try { table.addEmptyRows(1); 				assert(false);} catch (IllegalStateException e) {}
+		try { table.addLong(0,0);					assert(false);} catch (IllegalStateException e) {}
+		try { table.clear();						assert(false);} catch (IllegalStateException e) {}
+		try { table.clearSubTable(0,0);				assert(false);} catch (IllegalStateException e) {}
 		try { table.insertBinary(0,0,new byte[0]);	assert(false);} catch (IllegalStateException e) {}
-		try { table.insertBinary(0,0,buf);	assert(false);} catch (IllegalStateException e) {}
-		try { table.insertBoolean(0,0,true);	assert(false);} catch (IllegalStateException e) {}
+		try { table.insertBinary(0,0,buf);			assert(false);} catch (IllegalStateException e) {}
+		try { table.insertBoolean(0,0,true);		assert(false);} catch (IllegalStateException e) {}
 		try { table.insertDate(0,0,new Date(0));	assert(false);} catch (IllegalStateException e) {}
-		try { table.insertDone();	assert(false);} catch (IllegalStateException e) {}
-		try { table.insertLong(0,0,0);	assert(false);} catch (IllegalStateException e) {}
-		try { table.insertMixed(0,0,null);	assert(false);} catch (IllegalStateException e) {}
-		try { table.insertString(0,0,"");	assert(false);} catch (IllegalStateException e) {}
-		try { table.insertSubTable(0,0);	assert(false);} catch (IllegalStateException e) {}
-		try { table.optimize();	assert(false);} catch (IllegalStateException e) {}
-		try { table.remove(0);	assert(false);} catch (IllegalStateException e) {}
-		try { table.removeLast();	assert(false);} catch (IllegalStateException e) {}
-		try { table.setBinaryByteArray(0,0,new byte[0]);	assert(false);} catch (IllegalStateException e) {}
-		try { table.setBinaryByteBuffer(0,0,buf);	assert(false);} catch (IllegalStateException e) {}
-		try { table.setBoolean(0,0,false);	assert(false);} catch (IllegalStateException e) {}
-		try { table.setDate(0,0,new Date(0));	assert(false);} catch (IllegalStateException e) {}
-		try { table.setIndex(0);	assert(false);} catch (IllegalStateException e) {}
-		try { table.setLong(0,0,0);	assert(false);} catch (IllegalStateException e) {}
-		try { table.setMixed(0,0,null);	assert(false);} catch (IllegalStateException e) {}
-		try { table.setString(0,0,"");	assert(false);} catch (IllegalStateException e) {}
-		try { table.updateFromSpec(null);	assert(false);} catch (IllegalStateException e) {}
-//		try { table.();	assert(false);} catch (IllegalStateException e) {}
+		try { table.insertDone();					assert(false);} catch (IllegalStateException e) {}
+		try { table.insertLong(0,0,0);				assert(false);} catch (IllegalStateException e) {}
+		try { table.insertMixed(0,0,null);			assert(false);} catch (IllegalStateException e) {}
+		try { table.insertString(0,0,"");			assert(false);} catch (IllegalStateException e) {}
+		try { table.insertSubTable(0,0);			assert(false);} catch (IllegalStateException e) {}
+		try { table.optimize();						assert(false);} catch (IllegalStateException e) {}
+		try { table.remove(0);						assert(false);} catch (IllegalStateException e) {}
+		try { table.removeLast();					assert(false);} catch (IllegalStateException e) {}
+		try { table.setBinaryByteArray(0,0,null);	assert(false);} catch (IllegalStateException e) {}
+		try { table.setBinaryByteBuffer(0,0,null);	assert(false);} catch (IllegalStateException e) {}
+		try { table.setBoolean(0,0,false);			assert(false);} catch (IllegalStateException e) {}
+		try { table.setDate(0,0,new Date(0));		assert(false);} catch (IllegalStateException e) {}
+		try { table.setIndex(0);					assert(false);} catch (IllegalStateException e) {}
+		try { table.setLong(0,0,0);					assert(false);} catch (IllegalStateException e) {}
+		try { table.setMixed(0,0,null);				assert(false);} catch (IllegalStateException e) {}
+		try { table.setString(0,0,"");				assert(false);} catch (IllegalStateException e) {}
+		try { table.updateFromSpec(null);			assert(false);} catch (IllegalStateException e) {}
 		
+		TableQuery q = table.where();
+		try { q.remove();		assert(false);} catch (IllegalStateException e) {}
+		try { q.remove(0,0);	assert(false);} catch (IllegalStateException e) {}
+
+		TableViewBase v = q.findAll();
+		try { v.addLong(0, 0);						assert(false);} catch (IllegalStateException e) {}
+		try { v.clear();							assert(false);} catch (IllegalStateException e) {}
+		try { v.clearSubTable(0, 0);				assert(false);} catch (IllegalStateException e) {}
+		try { v.remove(0);							assert(false);} catch (IllegalStateException e) {}
+		try { v.removeLast();						assert(false);} catch (IllegalStateException e) {}
+		try { v.setBinaryByteArray(0, 0, null);		assert(false);} catch (IllegalStateException e) {}
+		try { v.setBinaryByteBuffer(0, 0, null);	assert(false);} catch (IllegalStateException e) {}
+		try { v.setBoolean(0, 0, false);			assert(false);} catch (IllegalStateException e) {}
+		try { v.setDate(0, 0, new Date());			assert(false);} catch (IllegalStateException e) {}
+		try { v.setLong(0, 0, 0);					assert(false);} catch (IllegalStateException e) {}
+		try { v.setString(0,0,"");					assert(false);} catch (IllegalStateException e) {}
+		try { v.setMixed(0, 0, null);				assert(false);} catch (IllegalStateException e) {}
+//		try { v.;	assert(false);} catch (IllegalStateException e) {}
+
 		t.endRead();
 		clear();
 	}
 
 
-/* 
+/* 	ARM Only works for Java 1.7 - NOT available in Android.
+ 
 	@Test(enabled=true)
 	public void mustReadARM() {
-		// Write to DB
-		{	
-	        WriteTransaction t = db.beginWrite();
-	        EmployeeTable employees = new EmployeeTable(t);
-	        employees.add("John", "Doe", 10000, true);
-			assertEquals(1, employees.size());
-	        t.commit();
-			// assertEquals(1, employees.size()); must set exception as employees is invalid now.
-		}
+		writeOneTransaction(1);
 	
 		// Read from table
-		System.out.println("mustReadARM.");
+		// System.out.println("mustReadARM.");
 		try (ReadTransaction t = new ReadTransaction(db)) {
 	    	EmployeeTable employees = new EmployeeTable(t);
 	    	assertEquals(true, employees.isValid());
@@ -154,11 +187,6 @@ public class JNITransactions {
 		}
 	}
 */
-	
-	// Test: Read fails if nothing has been written!!!
-	// Test: exception at all mutable methods in TableBase, TableView, TableQuery.... in ReadTransactions
-	// Test: rollback()
-	// Test: error-handling, exceptions
 
 	
 	@Test
