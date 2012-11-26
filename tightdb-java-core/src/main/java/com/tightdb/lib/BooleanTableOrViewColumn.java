@@ -1,5 +1,6 @@
 package com.tightdb.lib;
 
+import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 
 public class BooleanTableOrViewColumn<Cursor, View, Query> extends BooleanQueryColumn<Cursor, View, Query> implements TableOrViewColumn<Boolean> {

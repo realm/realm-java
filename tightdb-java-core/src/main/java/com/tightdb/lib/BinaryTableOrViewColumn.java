@@ -2,6 +2,7 @@ package com.tightdb.lib;
 
 import java.nio.ByteBuffer;
 
+import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 
 public class BinaryTableOrViewColumn<Cursor, View, Query> extends BinaryQueryColumn<Cursor, View, Query> implements TableOrViewColumn<ByteBuffer> {

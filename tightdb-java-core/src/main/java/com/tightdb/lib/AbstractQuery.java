@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
 import com.tightdb.TableBase;
+import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 import com.tightdb.TableViewBase;
 import com.tightdb.util;

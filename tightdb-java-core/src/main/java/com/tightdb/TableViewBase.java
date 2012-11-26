@@ -3,7 +3,6 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import com.tightdb.lib.TableOrViewBase;
 
 /**
  * This class represents a view of a particular table. We can think of

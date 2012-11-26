@@ -1,5 +1,7 @@
 package com.tightdb.lib;
 
+import com.tightdb.TableOrViewBase;
+
 public abstract class AbstractCursor<Cursor> {
 
 	protected final long position;

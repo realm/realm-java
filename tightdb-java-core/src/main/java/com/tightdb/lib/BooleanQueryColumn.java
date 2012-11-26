@@ -1,5 +1,6 @@
 package com.tightdb.lib;
 
+import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 
 public class BooleanQueryColumn<Cursor, View, Query> extends AbstractColumn<Boolean, Cursor, View, Query> {

@@ -2,6 +2,7 @@ package com.tightdb.lib;
 
 import java.util.Date;
 
+import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 
 public class DateQueryColumn<Cursor, View, Query> extends AbstractColumn<Date, Cursor, View, Query> {
