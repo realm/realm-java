@@ -70,9 +70,9 @@ public class GroupTest {
 		
 		// check table info retrieval
 		assertEquals(1, group.getTableCount());
-		assertEquals(TestEmployeeTable.class.getCanonicalName(),
+		assertEquals(TestEmployeeTable.class.getSimpleName(),
 				group.getTableName(0));
-		assertTrue(group.hasTable(TestEmployeeTable.class.getCanonicalName()));
+		assertTrue(group.hasTable(TestEmployeeTable.class.getSimpleName()));
 		assertFalse(group.hasTable("xxxxxx"));
 
 		// check table retrieval
