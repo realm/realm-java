@@ -273,6 +273,15 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeSum(
 	return TV(nativeViewPtr)->sum( S(columnIndex));
 }
 
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableViewBase_nativeAverage(
+	JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
+{	
+    if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
+
+    // FIXME: Add support for native Average
+	return static_cast<jdouble>( TV(nativeViewPtr)->sum( S(columnIndex)) ) / TV(nativeViewPtr)->size();
+}
+
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableViewBase_nativeMaximum(
 	JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {	
@@ -322,5 +331,3 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableViewBase_nativeClose(
 {
 	delete TV(nativeTableViewPtr);
 }
-
-// FIXME: Add support for Count, Average, Remove

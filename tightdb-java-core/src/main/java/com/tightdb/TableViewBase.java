@@ -448,7 +448,6 @@ public class TableViewBase implements TableOrViewBase {
 		return nativeAverage(nativePtr, columnIndex);
 	}
 
-	// FIXME: implement this!
 	protected native double nativeAverage(long nativePtr, long columnIndex);
 	
 	enum Order { ascending, descending };

@@ -1,3 +1,7 @@
+27-11-2012:
+===========
++ Added ReadTransactions class and testcases for WriteTransactions
++ Added TableViewBase:Average support
 
 15-11-2012:
 ===========
