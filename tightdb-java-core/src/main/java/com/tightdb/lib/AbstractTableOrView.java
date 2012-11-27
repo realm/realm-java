@@ -2,6 +2,8 @@ package com.tightdb.lib;
 
 import java.util.Iterator;
 
+import com.tightdb.TableOrViewBase;
+
 public abstract class AbstractTableOrView<Cursor, View, Query> implements Iterable<Cursor> {
 
 	protected final EntityTypes<?, View, Cursor, Query> types;

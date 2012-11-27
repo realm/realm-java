@@ -1,6 +1,7 @@
 package com.tightdb.lib;
 
 import com.tightdb.Mixed;
+import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 
 public class MixedTableOrViewColumn<Cursor, View, Query> extends MixedQueryColumn<Cursor, View, Query> implements TableOrViewColumn<Mixed> {

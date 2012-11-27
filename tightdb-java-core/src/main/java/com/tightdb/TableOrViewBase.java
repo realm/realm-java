@@ -1,12 +1,8 @@
-package com.tightdb.lib;
+package com.tightdb;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import com.tightdb.ColumnType;
-import com.tightdb.Mixed;
-import com.tightdb.TableBase;
-import com.tightdb.TableViewBase;
 
 public interface TableOrViewBase {
 

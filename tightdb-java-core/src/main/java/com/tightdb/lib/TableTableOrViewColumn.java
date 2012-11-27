@@ -3,6 +3,7 @@ package com.tightdb.lib;
 import java.lang.reflect.Array;
 
 import com.tightdb.TableBase;
+import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 
 public class TableTableOrViewColumn<Cursor, View, Query, Subtable> extends TableQueryColumn<Cursor, View, Query, Subtable> {

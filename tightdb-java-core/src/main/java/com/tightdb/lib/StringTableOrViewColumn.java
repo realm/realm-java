@@ -1,5 +1,6 @@
 package com.tightdb.lib;
 
+import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 
 public class StringTableOrViewColumn<Cursor, View, Query> extends StringQueryColumn<Cursor, View, Query> {
