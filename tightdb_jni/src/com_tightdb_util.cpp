@@ -28,5 +28,5 @@ JNIEXPORT jint JNICALL Java_com_tightdb_util_nativeGetVersion(JNIEnv*, jclass)
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_util_nativeGetInfiniteValue(JNIEnv*, jclass)
 {
-    return size_t(-1);
+    return -1;
 }

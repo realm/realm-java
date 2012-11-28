@@ -272,6 +272,17 @@ case "$MODE" in
         CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
         (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" $SOURCES) || exit 1
         (cd "$TEMP_DIR/out" && $JAVA -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $CLASSES) || exit 1
+        
+        cd "$TIGHTDB_JAVA_HOME/examples/intro-example" || exit 1
+        unset CLASSPATH
+        echo "ant build:"
+        ant build || exit 1
+        echo "ant tutorial:"
+        ant tutorial || exit 1
+        echo "ant showcase:"
+        ant showcase || exit 1
+        #echo "ant performance:"
+        #ant performance || exit 1
         exit 0
         ;;
 

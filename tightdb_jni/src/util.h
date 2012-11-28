@@ -142,7 +142,7 @@ inline bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endI
         return false;
     }
     
-    if (range < 0) {
+    if (range != -1 && range < 0) {
         TR_ERR((env, "range %lld < 0 - invalid!", range)); 
         ThrowException(env, IndexOutOfBounds, "range < 0.");
         return false;

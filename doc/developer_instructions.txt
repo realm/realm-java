@@ -1,7 +1,16 @@
+How to build tightdb-jni (on Linux):
+======================================
+1. Build and install tighdb
+    - Follow README.md
+2. Build java
+    - sh build.sh build
+    - sh build.sh test
+3. Install java
+    - sh build.sh install
+
 
 How to build tightdb-jni (on Windows):
 ======================================
-
 1. Build tightdb
 	- Build tightdb as lib (currently with "#define MULTITHREAD 0" in Query.cpp)
 	- Use "Batch Build" which builds all 4 versions, a debug and a release version for x32 and x64.
@@ -52,11 +61,20 @@ How to setup Eclipse:
 
 How to run Java tests:
 ======================
-1. Execute unit tests.
-   a) Execute the unit tests in the project "tightdb-java-test", by right-clicking it -> Run As -> Maven test
+1. Execute unit test (from shell):
+    sh build.sh test
+
+2. Execute examples (from shell):
+    ant build
+    ant tutorial
+    ant showcase
+    ant performance
+     
+2. Execute unit tests (from Eclipse):
+    a) Execute the unit tests in the project "tightdb-java-test", by right-clicking it -> Run As -> Maven test
    
-2. Execute the examples.
-   a) Execute the any of the examples in the tightdb-java-example project, by right-clicking the java file 
+3. Execute the examples(from Eclipse):
+    a) Execute the any of the examples in the tightdb-java-example project, by right-clicking the java file 
       (under "src/main/java" -> "com.tightdb.example") and -> Run As -> Java Application
 
 
@@ -74,7 +92,6 @@ How to update Java bindings:
 
 How to update Java tightdb-jars:
 ================================
-
 1. Update REQUIRED_JNI_VERSION version to match TIGHTDB_JNI_VERSION (if any interface changes)
 
 2. Build jar:
