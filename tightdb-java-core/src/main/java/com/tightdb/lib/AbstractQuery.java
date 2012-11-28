@@ -4,7 +4,7 @@ import com.tightdb.TableBase;
 import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 import com.tightdb.TableViewBase;
-import com.tightdb.util;
+import com.tightdb.internal.util;
 
 public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cursor, View, ?>> {
 
