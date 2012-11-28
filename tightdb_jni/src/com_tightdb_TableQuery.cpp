@@ -130,7 +130,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex)
 {	
 	Q(nativeQueryPtr)->subtable(S(columnIndex));
 }
@@ -154,7 +154,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindNext(
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
+	JNIEnv*, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
     Query* pQuery = Q(nativeQueryPtr);
    // TODO?  if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))

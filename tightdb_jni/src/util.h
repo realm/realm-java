@@ -4,13 +4,14 @@
 #include <tightdb.hpp>
 #include <tightdb/meta.hpp>
 #include <tightdb/lang_bind_helper.hpp>
+#include <tightdb/safe_int_ops.hpp>
 
 #include <jni.h>
 #include <string>
 
 #include "com_tightdb_util.h"
 
-using tightdb::Table;
+using namespace tightdb;
 
 #define TRACE               1       // disable for performance
 #define CHECK_PARAMETERS    1       // Check all parameters in API and throw exceptions in java if invalid
@@ -117,31 +118,31 @@ inline bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endI
             return false;
 
     size_t maxIndex = pTable->size();
-    if (endIndex == size_t(-1))
+    if (endIndex == -1)
         endIndex = maxIndex;
-    if (S(startIndex) < 0) {
+    if (startIndex < 0) {
         TR_ERR((env, "startIndex %lld < 0 - invalid!", S(startIndex), 0)); 
         ThrowException(env, IndexOutOfBounds, "startIndex < 0.");    
         return false;
     }
-    if (S(startIndex) > maxIndex) {
+    if (int_greater_than(startIndex, maxIndex)) {
         TR_ERR((env, "startIndex %lld > %lld - invalid!", S(startIndex), maxIndex)); 
         ThrowException(env, IndexOutOfBounds, "startIndex > available rows.");
         return false;
     }
 
-    if (S(endIndex) > maxIndex) {
+    if (int_greater_than(endIndex, maxIndex)) {
         TR_ERR((env, "endIndex %lld > %lld - invalid!", S(endIndex), maxIndex)); 
         ThrowException(env, IndexOutOfBounds, "endIndex > available rows.");
         return false;
     }
-    if (S(startIndex) > S(endIndex)) {
+    if (startIndex > endIndex) {
         TR_ERR((env, "startIndex %lld > endIndex %lld- invalid!", S(startIndex), S(endIndex))); 
         ThrowException(env, IndexOutOfBounds, "startIndex > endIndex.");
         return false;
     }
     
-    if (S(range) < 0) {
+    if (range < 0) {
         TR_ERR((env, "range %lld < 0 - invalid!", range)); 
         ThrowException(env, IndexOutOfBounds, "range < 0.");
         return false;
@@ -158,7 +159,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex)
         if (!TableIsValid(env, TBL(pTable)))
             return false;
 
-    bool rowErr = (rowIndex < 0) || (S(rowIndex) >= pTable->size());
+    bool rowErr = int_greater_than_or_equal(rowIndex, pTable->size());
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), pTable->size())); 
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
@@ -174,7 +175,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
         if (!TableIsValid(env, TBL(pTable)))
             return false;
 
-    bool colErr = (S(columnIndex) >= pTable->get_column_count()) || (columnIndex < 0);
+    bool colErr = int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
         TR_ERR((env, "columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()));
         ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
@@ -193,7 +194,7 @@ inline bool IndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong ro
 {
     if (!ColIndexValid(env, pTable, columnIndex))
         return false;
-    bool rowErr = (rowIndex < 0) || (S(rowIndex) > pTable->size()+1) ;
+    bool rowErr = int_greater_than(rowIndex, pTable->size()+1) ;
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", rowIndex, pTable->size())); 
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");

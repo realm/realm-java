@@ -109,7 +109,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
 	    return result;
     }
     // (exception is thrown by GetStringUTFChars if it fails.)
-    return NULL;
+    return false;
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeGetTableName(

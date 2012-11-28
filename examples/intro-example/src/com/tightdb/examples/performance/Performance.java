@@ -43,14 +43,14 @@ public class Performance {
 	
 		System.out.println("\n\nRESULTS:");
 		String[] testText = {
-				"Search for small integer:\t",
+				"Search for small integer:\t\t",
 				"Search for byte sized integer:\t",
 				"Search for long sized integer:\t",
-				"Search for string:\t\t",
+				"Search for string:\t\t\t",
 				"Add Index:\t\t\t",
 				"Search for byte (indexed):\t"
 		};
-		System.out.println("\t\t\t\t   Tightdb\tArrayList\tSQLite");
+		System.out.println("\t\t\t\t\t   Tightdb\tArrayList\tSQLite");
 		for (int test = 0; test < TESTS; ++test) {
 			System.out.print( testText[test] );
 			printTime(tightdb.testTime[test], " ms (x1)", "\t");

@@ -408,7 +408,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableBase_nativeAverage(
 
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeWhere(
-    JNIEnv *env, jobject, jlong nativeTablePtr)
+    JNIEnv *, jobject, jlong nativeTablePtr)
 {
 #if 1
     Query query = TBL(nativeTablePtr)->where();
