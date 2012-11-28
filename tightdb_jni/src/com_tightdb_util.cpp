@@ -4,7 +4,7 @@
 
 int trace_level = 0;
 
-static int TIGHTDB_JNI_VERSION = 13;
+static int TIGHTDB_JNI_VERSION = 14;
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM*, void*) 
 {

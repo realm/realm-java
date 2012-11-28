@@ -10,14 +10,6 @@ import org.testng.annotations.Test;
 
 public class JNITransactions {
 
-    @Table(table="EmployeeTable")
-    class employee {
-        String firstName;
-        String lastName;
-        int salary;
-        boolean driver;
-    }
-
     protected SharedGroup db;
 
     protected String testFile = "transact.tightdb";
@@ -48,7 +40,7 @@ public class JNITransactions {
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-		tbl.updateFromSpec(tableSpec);	
+		tbl.updateFromSpec(tableSpec);
 
 		for (long row=0; row < rows; row++) {
 			tbl.addEmptyRow(); tbl.setString(0, row, "Hi"); tbl.setLong(1, 0, 1);
@@ -187,41 +179,4 @@ public class JNITransactions {
 		}
 	}
 */
-
-	
-	@Test
-	public void mustWriteCommit2() {
-	    try {
-	    	// Write to DB
-	        WriteTransaction wt = db.beginWrite();
-	        try {
-	            EmployeeTable employees = new EmployeeTable(wt);
-	            employees.clear();
-	            employees.add("John", "Doe", 10000, true);
-	    		assertEquals(1, employees.size());
-	            wt.commit();
-	    		// assertEquals(1, employees.size()); must set exception as employees is invalid now.
-	        }
-	        catch (Throwable e) {
-	            wt.rollback();
-	            throw new RuntimeException(e);
-	        }
-
-	        // Read from DB
-	        ReadTransaction rt = db.beginRead();
-		    try {
-		    	EmployeeTable employees = new EmployeeTable(rt);
-		    	assertEquals(1, employees.size());
-		    	rt.endRead();
-		    }
-		    catch (Throwable e) {
-	            rt.endRead();
-	            throw new RuntimeException(e);
-	        }
-
-	    }
-	    finally {
-			clear();
-	    }	    
-	}
 }
