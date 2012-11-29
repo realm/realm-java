@@ -1,5 +1,3 @@
 <factorypath>
-    <factorypathentry kind="PLUGIN" id="com.amazonaws.eclipse.simpleworkflow" enabled="false" runInBatchMode="false"/>
-    <factorypathentry kind="PLUGIN" id="org.eclipse.jst.ws.annotations.core" enabled="false" runInBatchMode="false"/>
     <factorypathentry kind="WKSPJAR" id="/intro-example/lib/tightdb-devkit.jar" enabled="true" runInBatchMode="false"/>
 </factorypath>
