@@ -1,5 +1,5 @@
 #include "util.h"
-#include "com_tightdb_util.h"
+#include "com_tightdb_internal_util.h"
 #include <assert.h>
 
 

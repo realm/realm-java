@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.tightdb.lib.TightDB;
+
 public class JNITransactions {
 
     protected SharedGroup db;
@@ -23,12 +25,16 @@ public class JNITransactions {
     
 	@BeforeMethod
 	public void init() {
+		if (TightDB.osIsWindows())
+			return;
 		deleteFile(testFile);
 		db = new SharedGroup(testFile);
 	}
 
 	//@AfterMethod
 	public void clear() {
+		if (TightDB.osIsWindows())
+			return;
 		db.close();
 		deleteFile(testFile);
 	}
@@ -69,6 +75,9 @@ public class JNITransactions {
 
 	@Test
 	public void mustWriteAndReadEmpty() {
+		if (TightDB.osIsWindows())
+			return;
+
 		writeOneTransaction(0);
 		checkRead(0);
 		clear();
@@ -76,6 +85,9 @@ public class JNITransactions {
 
 	@Test
 	public void mustWriteCommit() {
+		if (TightDB.osIsWindows())
+			return;
+
 		writeOneTransaction(10);
 		checkRead(10);
 		clear();
@@ -83,6 +95,9 @@ public class JNITransactions {
 
 	@Test
 	public void mustRollback() {
+		if (TightDB.osIsWindows())
+			return;
+
 		writeOneTransaction(1);
 		
         WriteTransaction trans = db.beginWrite();
@@ -103,6 +118,9 @@ public class JNITransactions {
 	
 	@Test
 	public void mustFailOnWriteInReadTransactions() {
+		if (TightDB.osIsWindows())
+			return;
+
 		writeOneTransaction(1);
 
  		ReadTransaction t = db.beginRead(); 

@@ -9,7 +9,7 @@
 #include <jni.h>
 #include <string>
 
-#include "com_tightdb_util.h"
+#include "com_tightdb_internal_util.h"
 
 using namespace tightdb;
 

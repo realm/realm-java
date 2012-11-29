@@ -119,14 +119,6 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem
 JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer
   (JNIEnv *, jobject, jlong);
 
-/*
- * Class:     com_tightdb_Group
- * Method:    nativeCommit
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeCommit
-  (JNIEnv *, jobject, jlong);
-
 #ifdef __cplusplus
 }
 #endif
