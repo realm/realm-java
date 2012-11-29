@@ -2,7 +2,7 @@ package com.tightdb.generator;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.*;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,8 +25,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.StandardLocation;
-
-import org.apache.commons.lang.StringUtils;
 
 import com.tightdb.Table;
 
