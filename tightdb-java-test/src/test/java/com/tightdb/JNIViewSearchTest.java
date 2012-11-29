@@ -4,6 +4,8 @@ import static org.testng.AssertJUnit.*;
 
 import org.testng.annotations.Test;
 
+import com.tightdb.internal.util;
+
 public class JNIViewSearchTest {
 
 	@Test(enabled = true)

@@ -19,8 +19,6 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.FileObject;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.tightdb.Table;
 
 public abstract class AbstractAnnotationProcessor extends AbstractProcessor {

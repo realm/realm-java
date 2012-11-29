@@ -1,5 +1,7 @@
 package com.tightdb;
 
+import com.tightdb.internal.util;
+
 
 public class TableQuery {
 	

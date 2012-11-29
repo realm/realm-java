@@ -1,4 +1,4 @@
-package com.tightdb;
+package com.tightdb.internal;
 
 import java.util.Scanner;
 

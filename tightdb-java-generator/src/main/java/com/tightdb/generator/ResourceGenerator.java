@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 
 public class ResourceGenerator {
 
@@ -27,7 +26,7 @@ public class ResourceGenerator {
 			File file = new File("src/main/resources/codegen-templates/" + name + ".ftl");
 			if (file.exists()) {
 				String content = FileUtils.readFileToString(file);
-				content = StringEscapeUtils.escapeJava(content);
+				content = StringUtils.escapeJava(content);
 				content = content.replaceAll("\\\\/", "/");
 				String line = String.format(frm, name.toUpperCase(), content);
 				lines.add(line);

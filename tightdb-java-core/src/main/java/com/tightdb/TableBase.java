@@ -3,6 +3,7 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.tightdb.internal.CloseMutex;
 import com.tightdb.lib.TightDB;
 
 
@@ -91,18 +92,16 @@ public class TableBase implements TableOrViewBase {
 	}
 
 	public void close() {
-		CloseHandler.getInstance().close(this);
+		synchronized (CloseMutex.getInstance()) {
+			if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+			if (nativePtr == 0)
+				return;
+			if (DEBUG) TableCount--;
+			nativeClose(nativePtr);
+			nativePtr = 0;
+		}
 	}
 	
-	protected void doClose() {
-		if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
-		if (nativePtr == 0)
-			return;
-		if (DEBUG) TableCount--;
-		nativeClose(nativePtr);
-		nativePtr = 0;
-	}
-
 	protected native void nativeClose(long nativeTablePtr);
 
 	/*

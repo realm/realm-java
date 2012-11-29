@@ -9,7 +9,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 
-import com.tightdb.util;
+import com.tightdb.internal.util;
 
 public class TightDB {
 	

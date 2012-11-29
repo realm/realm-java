@@ -4,7 +4,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.util;
+import com.tightdb.internal.util;
 import com.tightdb.test.TestEmployeeQuery;
 import com.tightdb.test.TestEmployeeView;
 

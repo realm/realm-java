@@ -9,7 +9,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
-import com.tightdb.util;
+import com.tightdb.internal.util;
 import com.tightdb.test.TestEmployeeTable;
 
 public class TableTest {
