@@ -1,9 +1,5 @@
 package com.tightdb.example;
 
-import static org.testng.AssertJUnit.*;
-
-import org.testng.annotations.Test;
-
 import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
 import com.tightdb.TableBase;
@@ -11,8 +7,7 @@ import com.tightdb.TableSpec;
 
 public class MixedTest {
 
-	@Test
-	public void should() {
+	public static void main(String[] args) {
 		TableBase table = new TableBase();
 
 		TableSpec tableSpec = new TableSpec();
@@ -27,9 +22,8 @@ public class MixedTest {
 			// Shouldn't work: no Mixed stored yet
 			Mixed m = table.getMixed(1, 0);
 		} catch (ArrayIndexOutOfBoundsException e) {
-			gotException = true;
+			System.out.println( "Got exception - as expected!");
 		}
-		assertEquals(true, gotException);
 		
 		table.addEmptyRow();
 		table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));

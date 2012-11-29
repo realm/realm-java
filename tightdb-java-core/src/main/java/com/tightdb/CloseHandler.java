@@ -32,9 +32,9 @@ public class CloseHandler {
         group.doClose();
     }
 
-    synchronized public void close(SharedGroup db) {
-        //System.out.println("CLOSING Group");
-        db.doClose();
+    synchronized public void close(SharedGroup group) {
+        //System.out.println("CLOSING SharedGroup");
+        group.doClose();
     }
 }
 
