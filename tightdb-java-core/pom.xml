@@ -10,4 +10,17 @@
 
 	<artifactId>tightdb-java-core</artifactId>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<outputDirectory>${project.parent.basedir}/lib</outputDirectory>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>
