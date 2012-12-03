@@ -5,6 +5,6 @@
 </listAttribute>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LAUNCH_CONFIGURATION_BUILD_SCOPE" value="${none}"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="C:\Program Files\Java\jdk1.7.0\bin\javah.exe"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="-d ${workspace_loc}\..\tightdb_java2\tightdb-java-core\target\classes\jni com.tightdb.Group com.tightdb.TableBase com.tightdb.TableViewBase com.tightdb.TableQuery com.tightdb.util com.tightdb.SharedGroup"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc}\..\tightdb_java2\tightdb-java-core\target\classes"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="-d ${workspace_loc}/../tightdb_java2/tightdb-java-core/target/classes/jni com.tightdb.Group com.tightdb.TableBase com.tightdb.TableViewBase com.tightdb.TableQuery com.tightdb.internal.util com.tightdb.SharedGroup"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc}/../tightdb_java2/tightdb-java-core/target/classes"/>
 </launchConfiguration>

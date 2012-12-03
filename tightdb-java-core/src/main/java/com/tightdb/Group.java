@@ -54,8 +54,12 @@ public class Group {
 	protected native long createNative(byte[] data);
 
 	public Group(ByteBuffer buffer) {
-		this.nativePtr = createNative(buffer);
-		checkNativePtr();
+		if (buffer != null) {
+			this.nativePtr = createNative(buffer);
+			checkNativePtr();
+		} else {
+			throw new IllegalArgumentException();
+		}
 	}
 
 	protected native long createNative(ByteBuffer buffer);
@@ -185,7 +189,7 @@ public class Group {
 	protected static native long nativeLoadFromMem(byte[] buffer);
 
 	/**
-	 * Serialize the group to a memory buffer.
+	 * Serialize the group to a memory buffer. The byte[] is owned by the JVM.
 	 * 
 	 * @return Binary array of the serialized group.
 	 */

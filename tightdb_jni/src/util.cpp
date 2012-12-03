@@ -103,13 +103,11 @@ bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data)
         ThrowException(env, IllegalArgument, "ByteBuffer is invalid");
         return false;
     }
-    data.len = S(env->GetDirectBufferCapacity(jByteBuffer));
-    // FIXME: Whoops - data.len is unsigned, so it can never be negative. Should it have been a check for size_t(-1)? Commented out to silence a compiler warning.
-/*
-    if (data.len < 0) {
+    jlong len = env->GetDirectBufferCapacity(jByteBuffer);
+    if (len < 1) {
         ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
         return false;
     }
-*/
+    data.len = S(len);
     return true;
 }

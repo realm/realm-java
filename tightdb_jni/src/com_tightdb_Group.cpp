@@ -26,7 +26,7 @@ enum GroupMode {
 inline bool groupIsValid(JNIEnv* env, Group* pGroup) {
     if (!pGroup->is_valid()) {
 		delete pGroup;
-		ThrowException(env, IllegalArgument, "Group(): Not a valid tightdb database");
+		ThrowException(env, IllegalArgument, "Group(): Invalid tightdb database format.");
 		return false;
 	}
     return true;
@@ -51,14 +51,16 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
 	JNIEnv* env, jobject, jbyteArray jData)
 {	
     TR((env, "Group::createNative(byteArray): "));
-	jbyte* jbytePtr = env->GetByteArrayElements(jData, NULL);
-	if (jbytePtr == NULL) {
-		ThrowException(env, IllegalArgument, "Unable to fetch the buffer");
-		return 0;
-	}
-	jlong byteArrayLength = env->GetArrayLength(jData);     // CHECK, FIXME: Does this return a long?
-    TR((env, " %d bytes. ", byteArrayLength));
-    Group* pGroup = new Group((const char*)jbytePtr, S(byteArrayLength));
+	jsize byteArrayLength = env->GetArrayLength(jData);
+    if (byteArrayLength == 0)
+        return 0;
+    jbyte* buf = (jbyte*)malloc(S(byteArrayLength)*sizeof(jbyte));
+    if (!buf)
+        return 0;
+    env->GetByteArrayRegion(jData, 0, byteArrayLength, buf);
+
+    TR((env, " %d bytes.", byteArrayLength));
+    Group* pGroup = new Group((const char*)buf, S(byteArrayLength), true);
 	if (!groupIsValid(env, pGroup))
         return 0;
     TR((env, "%x\n", pGroup));
@@ -84,7 +86,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose(
 	JNIEnv* env, jobject, jlong nativeGroupPtr)
 {	
     TR((env, "Group::nativeClose(%x)\n", nativeGroupPtr));
-	delete G(nativeGroupPtr);
+    Group* grp = G(nativeGroupPtr);
+    delete grp;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeIsValid(
@@ -156,6 +159,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
         jsize jlen = static_cast<jsize>(len);
         jArray = env->NewByteArray(jlen);
         if (jArray)
+            // Copy data to Byte[]
 	        env->SetByteArrayRegion(jArray, 0, jlen, (const jbyte*)memBuf);
     } 
     if (!jArray) {

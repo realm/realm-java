@@ -8,9 +8,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import org.testng.annotations.ExpectedExceptions;
 import org.testng.annotations.Test;
 
 import com.tightdb.Group;
+import com.tightdb.internal.util;
 import com.tightdb.test.TestEmployeeTable;
 
 public class GroupTest {
@@ -39,7 +41,7 @@ public class GroupTest {
 		group2.close();
 	}
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void groupMemCanClose() {
 		Group group = new Group();
 		byte[] data = group.writeToMem();
@@ -47,14 +49,11 @@ public class GroupTest {
 
 		Group group2 = new Group(data);
 		group2.close();
-
-		// data is deleted by group.close()!
-		// FIXME:
-		System.out.println("Data len:" + data.length);
 	}
 
 	@Test(enabled = true)
 	public void shouldCreateTablesInGroup() {
+		//util.setDebugLevel(2);
 		Group group = new Group();
 
 		TestEmployeeTable employees = new TestEmployeeTable(group);
@@ -66,7 +65,6 @@ public class GroupTest {
 				5 }, new Date(), 1234);
 
 		byte[] data = group.writeToMem();
-		// data is currently disposed after group.close() !
 		
 		// check table info retrieval
 		assertEquals(1, group.getTableCount());
@@ -79,6 +77,7 @@ public class GroupTest {
 		assertEquals(employees.size(),
 				group.getTable(TestEmployeeTable.class.getSimpleName()).size());
 		employees.clear();
+		group.close();
 
 		// Make new group based on same data.
 		Group group2 = new Group(data);
@@ -97,7 +96,30 @@ public class GroupTest {
 		employees3.clear();
 		group3.close();
 
-		group.close();
-		System.out.println("Done");
+	}
+
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	public void groupByteBufferChecksForNull() {
+		ByteBuffer data = null;
+		@SuppressWarnings("unused")
+		Group group = new Group(data);	
+		// Expect to throw exception
+	}
+
+	// FIXME: Enable when correct Group() sanity check is done in C++ core
+	@Test(enabled = false, expectedExceptions = IllegalArgumentException.class)
+	public void groupByteBufferChecksForDatabaseFormat() {
+		ByteBuffer data = ByteBuffer.allocateDirect(5);
+		@SuppressWarnings("unused")
+		Group group = new Group(data);	
+		// Expect to throw exception
+	}
+
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	public void groupByteArrayChecksForDatabaseFormat() {
+		byte[] data = {1,2,3,4,5};
+		@SuppressWarnings("unused")
+		Group group = new Group(data);	
+		// Expect to throw exception
 	}
 }
