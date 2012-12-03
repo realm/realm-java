@@ -205,6 +205,7 @@ case "$MODE" in
         fi
 
         # Build tightdb.jar
+        mkdir -p "$JAR_DIR" || exit 1
         cd "$TIGHTDB_JAVA_HOME/tightdb-java-core/src/main" || exit 1
         (cd java && $JAVAC                        com/tightdb/*.java  com/tightdb/lib/*.java)  || exit 1
         (cd java && jar cf "$JAR_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/lib/*.class) || exit 1
