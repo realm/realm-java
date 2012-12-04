@@ -11,14 +11,6 @@ extern "C" {
 #define com_tightdb_internal_util_REQUIRED_JNI_VERSION 14i64
 /*
  * Class:     com_tightdb_internal_util
- * Method:    nativeGetInfiniteValue
- * Signature: ()J
- */
-JNIEXPORT jlong JNICALL Java_com_tightdb_internal_util_nativeGetInfiniteValue
-  (JNIEnv *, jclass);
-
-/*
- * Class:     com_tightdb_internal_util
  * Method:    nativeGetMemUsage
  * Signature: ()J
  */

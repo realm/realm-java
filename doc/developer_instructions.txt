@@ -46,15 +46,15 @@ How to setup Eclipse:
 
 6. Build the jars (to produce tightdb.jar and tightdb-devkit.jar)
     - Right-click on tightdb_java2 -> Run as -> Maven install
-   (the produced tightdb.jar file should be placed under tightdb-java-core/target)
-   (the produced tightdb-devkit.jar file should be placed under tightdb-java-generator/target)
+   (the produced tightdb.jar file will be placed under tightdb_java2/lib)
+   (the produced tightdb-devkit.jar file will be placed under tightdb_java2/lib)
 
-7. Configure tightdb-java-generator/target/tightdb-devkit.jar as annotation processor (to be used for automatic code generation).
+7. Configure tightdb_java2/lib/tightdb-devkit.jar as annotation processor (to be used for automatic code generation).
    (do the following steps for the tightdb-java-example and tightdb-java-test projects:) 
 	- Right-click on the project -> Properties
 	- Go to Java Compiler -> Annotation processing and enable annotation processing (check all the 3 check-boxes).  
 	- In Java Compiler -> Annotation processing the "Generated source directory" can be configured as anything (e.g. "target/generated").
-	- Go to Java Compiler -> Annotation processing -> Factory Path, add tightdb-java-generator/target/tightdb-devkit.jar (click on Add JARs) and make sure it is checked.
+	- Go to Java Compiler -> Annotation processing -> Factory Path, add tightdb_java2/lib/tightdb-devkit.jar (click on Add JARs) and make sure it is checked.
 
 8. If the previous step was done properly, Eclipse will start generating Java source code as soon as you annotate your schema specification classes with the @Table annotation.     
 

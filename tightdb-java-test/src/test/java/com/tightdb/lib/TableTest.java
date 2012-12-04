@@ -1,15 +1,13 @@
 package com.tightdb.lib;
 
 import static org.testng.AssertJUnit.assertEquals;
-
-import java.util.Date;
-
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.Date;
+
 import com.tightdb.Mixed;
-import com.tightdb.internal.util;
 import com.tightdb.test.TestEmployeeTable;
 
 public class TableTest {

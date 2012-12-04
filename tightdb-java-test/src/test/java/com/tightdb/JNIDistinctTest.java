@@ -3,6 +3,7 @@ package com.tightdb;
 import static org.testng.AssertJUnit.*;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("unused")
 public class JNIDistinctTest {
 	TableBase table;
 	

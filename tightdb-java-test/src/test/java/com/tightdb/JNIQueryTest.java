@@ -3,9 +3,6 @@ package com.tightdb;
 import static org.testng.AssertJUnit.*;
 import org.testng.annotations.Test;
 
-import com.tightdb.lib.TightDB;
-
-
 public class JNIQueryTest {
 
 	TableBase table;

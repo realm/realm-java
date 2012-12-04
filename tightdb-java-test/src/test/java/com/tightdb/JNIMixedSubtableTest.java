@@ -70,6 +70,7 @@ public class JNIMixedSubtableTest {
 		assertEquals(273, subtable.getLong(0, ROW+1));
 	}
 
+	@SuppressWarnings("unused")
 	@Test
 	public void shouldCreateSubtableInMixedTypeColumn2() {
 		TableBase table = new TableBase();

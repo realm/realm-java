@@ -1,10 +1,7 @@
 package com.tightdb;
 
 import static org.testng.AssertJUnit.*;
-
 import org.testng.annotations.Test;
-
-import com.tightdb.internal.util;
 
 public class JNIViewSearchTest {
 
@@ -47,7 +44,7 @@ public class JNIViewSearchTest {
 		table.insertString(0, i++, "A3"); table.insertDone();
 
 		TableQuery query = table.where();
-		TableViewBase view = query.beginsWith(0, "A").findAll(0, table.size(), util.INFINITE);
+		TableViewBase view = query.beginsWith(0, "A").findAll(0, table.size(), TableBase.INFINITE);
 		assertEquals(4, view.size());
 
 		TableQuery query2 = table.where();

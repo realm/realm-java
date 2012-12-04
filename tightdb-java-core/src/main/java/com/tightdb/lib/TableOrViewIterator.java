@@ -5,7 +5,7 @@ import java.util.NoSuchElementException;
 
 public class TableOrViewIterator<T> implements Iterator<T> {
 
-	private final AbstractTableOrView<?, ?, ?> tableOrView;
+	private final AbstractTableOrView<T, ?, ?> tableOrView;
 	private long endIndex = 0;
 	private long index = 0;
 
@@ -23,7 +23,7 @@ public class TableOrViewIterator<T> implements Iterator<T> {
 		if (hasNext() == false) {
 			throw new NoSuchElementException();
 		}
-		return (T) tableOrView.at(index++);
+		return tableOrView.at(index++);
 	}
 
 	public void remove() {

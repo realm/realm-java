@@ -25,8 +25,3 @@ JNIEXPORT jint JNICALL Java_com_tightdb_internal_util_nativeGetVersion(JNIEnv*, 
 {
     return TIGHTDB_JNI_VERSION;
 }
-
-JNIEXPORT jlong JNICALL Java_com_tightdb_internal_util_nativeGetInfiniteValue(JNIEnv*, jclass)
-{
-    return -1;
-}

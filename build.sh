@@ -183,6 +183,9 @@ case "$MODE" in
     "clean")
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         make clean || exit 1
+        if [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
+            rm -f "libtightdb-jni$JNI_SUFFIX" || exit 1
+        fi
         cd "$TIGHTDB_JAVA_HOME/tightdb-java-core" || exit 1
         find src/ -type f -name '*.class' -delete || exit 1
         cd "$TIGHTDB_JAVA_HOME/tightdb-java-generator" || exit 1
@@ -201,13 +204,14 @@ case "$MODE" in
         cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
         TIGHTDB_ENABLE_FAT_BINARIES="1" make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
         if [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
-            ln "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX"
+            ln -f "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX" || exit 1
         fi
 
         # Build tightdb.jar
+        mkdir -p "$JAR_DIR" || exit 1
         cd "$TIGHTDB_JAVA_HOME/tightdb-java-core/src/main" || exit 1
-        (cd java && $JAVAC                        com/tightdb/*.java  com/tightdb/lib/*.java)  || exit 1
-        (cd java && jar cf "$JAR_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/lib/*.class) || exit 1
+        (cd java && $JAVAC                        com/tightdb/*.java com/tightdb/internal/*.java  com/tightdb/lib/*.java)  || exit 1
+        (cd java && jar cf "$JAR_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/internal/*.class com/tightdb/lib/*.class) || exit 1
         jar i "$JAR_DIR/tightdb.jar" || exit 1
 
         # Build tightdb-devkit.jar
@@ -272,7 +276,7 @@ case "$MODE" in
         CLASSES="$(printf "%s\n" "$SOURCES" | sed 's/\.java$/.class/')" || exit 1
         (cd java && $JAVAC -d "$TEMP_DIR/out" -s "$TEMP_DIR/gen" $SOURCES) || exit 1
         (cd "$TEMP_DIR/out" && $JAVA -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $CLASSES) || exit 1
-        
+
         cd "$TIGHTDB_JAVA_HOME/examples/intro-example" || exit 1
         unset CLASSPATH
         echo "ant build:"

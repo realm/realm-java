@@ -4,13 +4,13 @@ import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.Group;
-import com.tightdb.internal.util;
 import com.tightdb.test.TestEmployeeTable;
 
 @SuppressWarnings("unused")

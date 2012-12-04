@@ -44,6 +44,7 @@ public class Util {
 		System.out.println("Press Enter to continue...");
 		Scanner sc = new Scanner(System.in);
 	       while(!sc.nextLine().equals(""));
+	    sc.close();
 	}
 	
 	// Measuring memory usage in Java is highly unreliable... 

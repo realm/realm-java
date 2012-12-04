@@ -44,6 +44,9 @@ import com.tightdb.lib.TightDB;
  */
 
 public class TableBase implements TableOrViewBase {
+	
+	public static final long INFINITE = -1;
+
 	protected long nativePtr;
     protected boolean immutable = false;
 

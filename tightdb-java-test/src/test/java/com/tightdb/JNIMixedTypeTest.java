@@ -51,6 +51,10 @@ public class JNIMixedTypeTest {
 		case ColumnTypeString:
 			mixed.getStringValue();
 			break;
+			
+		default:
+			assertTrue(false);
+			break;
 		}
 	}
 

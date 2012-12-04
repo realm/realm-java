@@ -7,7 +7,6 @@ import com.tightdb.ColumnType;
 import com.tightdb.Group;
 import com.tightdb.Mixed;
 import com.tightdb.TableBase;
-import com.tightdb.TableQuery;
 import com.tightdb.TableSpec;
 
 public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOrView<Cursor, View, Query> {
@@ -41,7 +40,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 	public boolean isValid() {
 		return table.isValid();
 	}
-	
+
 	@Override
 	public String getName() {
 		return getClass().getSimpleName();
@@ -55,7 +54,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 	public long getColumnCount() {
 		return table.getColumnCount();
 	}
-	
+
 	/**
 	 * Returns the name of a column identified by columnIndex. Notice that the
 	 * index is zero based.
@@ -67,7 +66,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 	public String getColumnName(long columnIndex) {
 		return table.getColumnName(columnIndex);
 	}
-	
+
 	/**
 	 * Returns the 0-based index of a column based on the name.
 	 * 
@@ -78,7 +77,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 	public long getColumnIndex(String columnName) {
 		return table.getColumnIndex(columnName);
 	}
-	
+
 	/**
 	 * Get the type of a column identified by the columnIdex.
 	 * 
@@ -89,7 +88,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 	public ColumnType getColumnType(long columnIndex) {
 		return table.getColumnType(columnIndex);
 	}
-	
+
 	protected static void addLongColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeInt, name);
 	}
@@ -179,7 +178,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 	public void optimize() {
 		table.optimize();
 	}
-	
+
 	public Query where() {
 		return AbstractQuery.createQuery(types.getQueryClass(), table, table.where());
 	}

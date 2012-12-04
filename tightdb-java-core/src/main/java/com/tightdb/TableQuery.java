@@ -1,8 +1,5 @@
 package com.tightdb;
 
-import com.tightdb.internal.util;
-
-
 public class TableQuery {
 	
 	protected long nativePtr;
@@ -211,7 +208,7 @@ public class TableQuery {
 	}
 	
 	public long findNext(){
-		return nativeFindNext(nativePtr, util.INFINITE);
+		return nativeFindNext(nativePtr, TableBase.INFINITE);
 	}
 	
 	protected native long nativeFindNext(long nativeQueryPtr, long lastMatch);
@@ -221,7 +218,7 @@ public class TableQuery {
 	}
 	
 	public TableViewBase findAll(){
-		return new TableViewBase(nativeFindAll(nativePtr, 0, util.INFINITE, util.INFINITE), immutable);
+		return new TableViewBase(nativeFindAll(nativePtr, 0, TableBase.INFINITE, TableBase.INFINITE), immutable);
 	}
 
 	protected native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
@@ -230,53 +227,53 @@ public class TableQuery {
 	// Aggregation methods
 	
 	public long sum(long columnIndex, long start, long end){
-		return nativeSum(nativePtr, columnIndex, start, end, util.INFINITE);
+		return nativeSum(nativePtr, columnIndex, start, end, TableBase.INFINITE);
 	}
 
 	public long sum(long columnIndex){
-		return nativeSum(nativePtr, columnIndex, 0, util.INFINITE, util.INFINITE);
+		return nativeSum(nativePtr, columnIndex, 0, TableBase.INFINITE, TableBase.INFINITE);
 	}
 	
 	protected native long nativeSum(long nativeQueryPtr, long columnIndex, long start, long end, long limit);	
 
 	public long maximum(long columnIndex, long start, long end){
-		return nativeMaximum(nativePtr, columnIndex, start, end,  util.INFINITE);
+		return nativeMaximum(nativePtr, columnIndex, start, end,  TableBase.INFINITE);
 	}
 	
 	public long maximum(long columnIndex){
-		return nativeMaximum(nativePtr, columnIndex, 0, util.INFINITE, util.INFINITE);
+		return nativeMaximum(nativePtr, columnIndex, 0, TableBase.INFINITE, TableBase.INFINITE);
 	}
 	
 	protected native long nativeMaximum(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 	
 	public long minimum(long columnIndex, long start, long end){
-		return nativeMinimum(nativePtr, columnIndex, start, end, util.INFINITE);
+		return nativeMinimum(nativePtr, columnIndex, start, end, TableBase.INFINITE);
 	}
 	
 	public long minimum(long columnIndex){
-		return nativeMinimum(nativePtr, columnIndex, 0, util.INFINITE, util.INFINITE);
+		return nativeMinimum(nativePtr, columnIndex, 0, TableBase.INFINITE, TableBase.INFINITE);
 	}
 	
 	protected native long nativeMinimum(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 	
 	
 	public double average(long columnIndex, long start, long end){
-		return nativeAverage(nativePtr, columnIndex, start, end, util.INFINITE);
+		return nativeAverage(nativePtr, columnIndex, start, end, TableBase.INFINITE);
 	}
 	
 	public double average(long columnIndex){
-		return nativeAverage(nativePtr, columnIndex, 0, util.INFINITE, util.INFINITE);
+		return nativeAverage(nativePtr, columnIndex, 0, TableBase.INFINITE, TableBase.INFINITE);
 	}
 	
 	protected native double nativeAverage(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 	
 	public long count(long start, long end){
-		return nativeCount(nativePtr, start, end, util.INFINITE);
+		return nativeCount(nativePtr, start, end, TableBase.INFINITE);
 	}
 	
 	public long count(){
-		return nativeCount(nativePtr, 0, util.INFINITE, util.INFINITE);
+		return nativeCount(nativePtr, 0, TableBase.INFINITE, TableBase.INFINITE);
 	}
 	
 	protected native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
@@ -285,12 +282,12 @@ public class TableQuery {
 	// Deletion.
 	public long remove(long start, long end){
 		if (immutable) throwImmutable();
-		return nativeRemove(nativePtr, start, end, util.INFINITE);
+		return nativeRemove(nativePtr, start, end, TableBase.INFINITE);
 	}
 	
 	public long remove(){
 		if (immutable) throwImmutable();
-		return nativeRemove(nativePtr, 0, util.INFINITE, util.INFINITE);
+		return nativeRemove(nativePtr, 0, TableBase.INFINITE, TableBase.INFINITE);
 	}
 	
 	protected native long nativeRemove(long nativeQueryPtr, long start, long end, long limit);
@@ -306,7 +303,7 @@ public class TableQuery {
 	}
 	
 	public TableViewBase findAllMulti(){
-		return new TableViewBase(nativeFindAllMulti(nativePtr, 0, util.INFINITE), immutable);
+		return new TableViewBase(nativeFindAllMulti(nativePtr, 0, TableBase.INFINITE), immutable);
 	}
 	
 	protected native long nativeFindAllMulti(long nativeQueryPtr, long start, long end);

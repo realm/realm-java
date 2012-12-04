@@ -20,6 +20,7 @@ public class tutorial {
 	 	boolean hired;
 	}
 	 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 	 PeopleTable peopletable = new PeopleTable();
 	//@@EndExample@@

@@ -1,10 +1,6 @@
 package com.tightdb;
 
-import static org.testng.AssertJUnit.*;
-import java.nio.ByteBuffer;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import com.tightdb.lib.TightDB;
 
 public class JNICloseTest {
 	
