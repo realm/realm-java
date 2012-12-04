@@ -104,8 +104,7 @@ public class GroupTest {
 		// Expect to throw exception
 	}
 
-	// FIXME: Enable when correct Group() sanity check is done in C++ core
-	@Test(enabled = false, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void groupByteBufferChecksForDatabaseFormat() {
 		ByteBuffer data = ByteBuffer.allocateDirect(5);
 		Group group = new Group(data);	
