@@ -1,5 +1,6 @@
 package com.tightdb.lib;
 
+import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -8,13 +9,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import org.testng.annotations.ExpectedExceptions;
-import org.testng.annotations.Test;
-
 import com.tightdb.Group;
 import com.tightdb.internal.util;
 import com.tightdb.test.TestEmployeeTable;
 
+@SuppressWarnings("unused")
 public class GroupTest {
 
 	protected static final String NAME0 = "John";
@@ -101,7 +100,6 @@ public class GroupTest {
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void groupByteBufferChecksForNull() {
 		ByteBuffer data = null;
-		@SuppressWarnings("unused")
 		Group group = new Group(data);	
 		// Expect to throw exception
 	}
@@ -110,7 +108,6 @@ public class GroupTest {
 	@Test(enabled = false, expectedExceptions = IllegalArgumentException.class)
 	public void groupByteBufferChecksForDatabaseFormat() {
 		ByteBuffer data = ByteBuffer.allocateDirect(5);
-		@SuppressWarnings("unused")
 		Group group = new Group(data);	
 		// Expect to throw exception
 	}
@@ -118,7 +115,6 @@ public class GroupTest {
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void groupByteArrayChecksForDatabaseFormat() {
 		byte[] data = {1,2,3,4,5};
-		@SuppressWarnings("unused")
 		Group group = new Group(data);	
 		// Expect to throw exception
 	}
