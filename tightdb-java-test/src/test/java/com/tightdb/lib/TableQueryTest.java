@@ -4,7 +4,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.tightdb.internal.util;
+import com.tightdb.TableBase;
 import com.tightdb.test.TestEmployeeQuery;
 import com.tightdb.test.TestEmployeeView;
 
@@ -44,22 +44,22 @@ public class TableQueryTest extends AbstractTest {
 		assertEquals(10000, results.salary.minimum());
 		assertEquals(10000, results.salary.minimum(0, 1)); // first
 		assertEquals(30000, results.salary.minimum(1, 2)); // second
-		assertEquals(10000, results.salary.minimum(0, util.INFINITE)); // both
+		assertEquals(10000, results.salary.minimum(0, TableBase.INFINITE)); // both
 		// TODO: Check invalid parameters
 		
 		assertEquals(30000, results.salary.maximum());
 		assertEquals(10000, results.salary.maximum(0, 1)); // first
 		assertEquals(30000, results.salary.maximum(1, 2)); // second
-		assertEquals(30000, results.salary.maximum(0, util.INFINITE)); // both
+		assertEquals(30000, results.salary.maximum(0, TableBase.INFINITE)); // both
 
 		assertEquals(40000, results.salary.sum());
 		assertEquals(10000, results.salary.sum(0, 1)); // first
 		assertEquals(30000, results.salary.sum(1, 2)); // second
-		assertEquals(40000, results.salary.sum(0, util.INFINITE)); // both
+		assertEquals(40000, results.salary.sum(0, TableBase.INFINITE)); // both
 
 		assertEquals(20000.0, results.salary.average());
 		assertEquals(30000.0, results.salary.average(1, 2)); // second
-		assertEquals(20000.0, results.salary.average(0, util.INFINITE)); // both
+		assertEquals(20000.0, results.salary.average(0, TableBase.INFINITE)); // both
 		assertEquals(10000.0, results.salary.average(0, 1)); // first
 	}
 

@@ -43,6 +43,7 @@ public class Showcase {
 		String number;
 	}
 
+	@SuppressWarnings("unused")
 	public static void showLongExample() {
 		Group group = new Group();
 		EmployeeTable employees = new EmployeeTable(group);

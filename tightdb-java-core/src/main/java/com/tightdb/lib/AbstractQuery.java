@@ -4,7 +4,6 @@ import com.tightdb.TableBase;
 import com.tightdb.TableOrViewBase;
 import com.tightdb.TableQuery;
 import com.tightdb.TableViewBase;
-import com.tightdb.internal.util;
 
 public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cursor, View, ?>> {
 
@@ -65,7 +64,7 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
 
 	public Cursor findFirst() {
 		// TODO: needed
-		TableViewBase viewBase = query.findAll(0, util.INFINITE, 1);
+		TableViewBase viewBase = query.findAll(0, TableBase.INFINITE, 1);
 		if (viewBase.size() > 0) {
 			return cursor(viewBase, 0);
 		} else {

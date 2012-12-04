@@ -7,6 +7,7 @@ import com.tightdb.lib.TightDB;
 
 public class SearchExample {
 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		EmployeeTable Employees = new EmployeeTable();
 

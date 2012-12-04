@@ -12,10 +12,6 @@ public class util {
 		TightDB.loadLibrary();
 	}
 	
-	public static final long INFINITE = nativeGetInfiniteValue();
-	
-	static native long nativeGetInfiniteValue();
-	
 	public static long getNativeMemUsage() {
 		return nativeGetMemUsage();
 	}
@@ -41,5 +37,6 @@ public class util {
 		System.out.println("Press Enter to continue...");
 		Scanner sc = new Scanner(System.in);
 	       while(!sc.nextLine().equals(""));
+	    sc.close();
 	}
 }

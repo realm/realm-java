@@ -17,9 +17,9 @@ public class MixedTest {
 		subspec.addColumn(ColumnType.ColumnTypeInt, "num");
 		table.updateFromSpec(tableSpec);
 		
-		boolean gotException = false;
 		try {
 			// Shouldn't work: no Mixed stored yet
+			@SuppressWarnings("unused")
 			Mixed m = table.getMixed(1, 0);
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println( "Got exception - as expected!");

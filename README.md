@@ -26,6 +26,7 @@ The TightDB core library must have been installed.
     sudo apt-get install libfreemarker-java
     #   Dependencies for test suite:
     sudo apt-get install testng
+    sudo apt-get install ant
     sudo apt-get install libqdox-java
     sudo apt-get install bsh
 
@@ -43,6 +44,7 @@ The TightDB core library must have been installed.
     sudo yum install freemarker
     #   Dependencies for test suite:
     sudo yum install testng
+    sudo yum install ant
     sudo yum install qdox
     sudo yum install bsh
 
