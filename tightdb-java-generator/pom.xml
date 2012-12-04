@@ -42,6 +42,7 @@
 						</goals>
 						<configuration>
 							<finalName>tightdb-devkit</finalName>
+							<outputDirectory>${project.parent.basedir}/lib</outputDirectory>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
