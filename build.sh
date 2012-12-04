@@ -206,8 +206,8 @@ case "$MODE" in
 
         # Build tightdb.jar
         cd "$TIGHTDB_JAVA_HOME/tightdb-java-core/src/main" || exit 1
-        (cd java && $JAVAC                        com/tightdb/*.java  com/tightdb/lib/*.java)  || exit 1
-        (cd java && jar cf "$JAR_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/lib/*.class) || exit 1
+        (cd java && $JAVAC                        com/tightdb/*.java com/tightdb/internal/*.java  com/tightdb/lib/*.java)  || exit 1
+        (cd java && jar cf "$JAR_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/internal/*.class com/tightdb/lib/*.class) || exit 1
         jar i "$JAR_DIR/tightdb.jar" || exit 1
 
         # Build tightdb-devkit.jar
