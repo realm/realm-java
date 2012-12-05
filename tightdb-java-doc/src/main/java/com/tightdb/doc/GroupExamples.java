@@ -17,10 +17,6 @@ public class GroupExamples {
 
 		group.close();
 		
-		/* EXAMPLE: commit */
-
-		group.commit();
-		
 		/* EXAMPLE: getTable */
 
 		TableBase a = group.getTable("PersonTable");

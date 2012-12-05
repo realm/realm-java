@@ -1,5 +1,6 @@
 package com.tightdb.lib;
 
+import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -12,6 +13,7 @@ import java.util.Date;
 import com.tightdb.Group;
 import com.tightdb.test.TestEmployeeTable;
 
+@SuppressWarnings("unused")
 public class GroupTest {
 
 	protected static final String NAME0 = "John";
@@ -98,16 +100,13 @@ public class GroupTest {
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void groupByteBufferChecksForNull() {
 		ByteBuffer data = null;
-		@SuppressWarnings("unused")
 		Group group = new Group(data);	
 		// Expect to throw exception
 	}
 
-	// FIXME: Enable when correct Group() sanity check is done in C++ core
-	@Test(enabled = false, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void groupByteBufferChecksForDatabaseFormat() {
 		ByteBuffer data = ByteBuffer.allocateDirect(5);
-		@SuppressWarnings("unused")
 		Group group = new Group(data);	
 		// Expect to throw exception
 	}
@@ -115,7 +114,6 @@ public class GroupTest {
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void groupByteArrayChecksForDatabaseFormat() {
 		byte[] data = {1,2,3,4,5};
-		@SuppressWarnings("unused")
 		Group group = new Group(data);	
 		// Expect to throw exception
 	}
