@@ -232,7 +232,7 @@ case "$MODE" in
         (cd java && jar uf "$JAR_DIR/tightdb-devkit.jar" com/tightdb/generator/*.class) || exit 1
         (cd "$JAR_DIR" && jar i "tightdb-devkit.jar") || exit 1
 
-        # Absorb dependency JARs if we have to - generally a bag thing!!!
+        # Absorb dependency JARs if we have to - generally a bad thing!!!
         if [ "$ABSORB_DEP_JARS" ]; then
             TEMP_JAR_DIR="$TEMP_DIR/jar"
             mkdir "$TEMP_JAR_DIR" || exit 1
