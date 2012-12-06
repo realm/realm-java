@@ -1,6 +1,7 @@
 package com.tightdb;
 
 // Make sure numbers match with <tightdb/column_type.hpp>
+// FIXME: Add a unit test that verifies the correct correspondance.
 
 public enum ColumnType {
 	ColumnTypeInt(0),
