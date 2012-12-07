@@ -224,12 +224,10 @@ public class TableBase implements TableOrViewBase {
 	 *            index of the column.
 	 * @return Type of the particular column.
 	 */
-	public ColumnType getColumnType(long columnIndex) {
-		int columnType;
-		columnType = nativeGetColumnType(nativePtr, columnIndex);
-		ColumnType[] columnTypes = ColumnType.values();
-		return columnTypes[columnType];
-	}
+    public ColumnType getColumnType(long columnIndex)
+    {
+        return ColumnType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
+    }
 
 	protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
 
@@ -466,15 +464,10 @@ public class TableBase implements TableOrViewBase {
 		return nativeGetMixed(nativePtr, columnIndex, rowIndex);
 	}
 
-	public ColumnType getMixedType(long columnIndex, long rowIndex) {
-		int mixedColumnType = nativeGetMixedType(nativePtr, columnIndex, rowIndex);
-		ColumnType[] columnTypes = ColumnType.values();
-		if (mixedColumnType < 0 || mixedColumnType >= columnTypes.length) {
-			//TODO ?? Throw exception
-			return null;
-		}
-		return columnTypes[mixedColumnType];
-	}
+    public ColumnType getMixedType(long columnIndex, long rowIndex)
+    {
+        return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
+    }
 
 	protected native int nativeGetMixedType(long nativePtr, long columnIndex, long rowIndex);
 

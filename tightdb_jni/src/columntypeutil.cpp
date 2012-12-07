@@ -18,12 +18,12 @@ static jfieldID GetFieldIDColumnType(JNIEnv* env, const char* methodStr, const c
 
 ColumnType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType)
 {
-	static jfieldID jIndexFieldId = GetFieldIDColumnType(env, "index", "I");
-	if (jIndexFieldId == NULL)
+    static jfieldID jValueFieldId = GetFieldIDColumnType(env, "nativeValue", "I");
+    if (jValueFieldId == NULL)
         return static_cast<ColumnType>(0);
 
-    jint columnType = env->GetIntField(jColumnType, jIndexFieldId);
-	return static_cast<ColumnType>(columnType);
+    jint columnType = env->GetIntField(jColumnType, jValueFieldId);
+    return static_cast<ColumnType>(columnType);
 }
 
 jobject GetJColumnTypeFromColumnType(JNIEnv* env, ColumnType columnType)
