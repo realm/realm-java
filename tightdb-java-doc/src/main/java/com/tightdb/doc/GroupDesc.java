@@ -10,6 +10,7 @@ public class GroupDesc extends AbstractDesc {
 		super("group", constructors, methods);
 	}
 
+	@SuppressWarnings("unused")
 	public void describe() {
 		constructor("Instantiates a TightDB table group");
 		constructor("Instantiates a TightDB table group with file (de)serialization", "File", "file");

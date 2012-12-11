@@ -38,8 +38,7 @@ public class SharedGroup {
 			throw new IllegalStateException(
 					"Can't beginRead() during another active transaction");
 		// FIXME: throw from nativeMethod in case of error
-		ReadTransaction t = new ReadTransaction(this,
-				nativeBeginRead(nativePtr));
+		ReadTransaction t = new ReadTransaction(this, nativeBeginRead(nativePtr));
 		activeTransaction = true;
 		return t;
 	}

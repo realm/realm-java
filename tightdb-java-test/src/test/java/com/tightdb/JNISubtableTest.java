@@ -37,5 +37,35 @@ public class JNISubtableTest {
 		table.clear();
 	}
 	
+	@Test(enabled = true)
+	public void shouldInsertNestedTablesNested() {
+		Group group = new Group();
+		TableBase table = group.getTable("emp");
+
+		// Define table
+		TableSpec tableSpec = new TableSpec();
+		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+		
+		TableSpec subspec = tableSpec.addSubtableColumn("sub");
+		subspec.addColumn(ColumnType.ColumnTypeInt, "num");
+		
+		tableSpec.addColumn(ColumnType.ColumnTypeInt, "Int");
+		
+		table.updateFromSpec(tableSpec);
+
+		// Insert values
+		table.insertString(0, 0, "Foo");
+		table.insertSubTable(1, 0);
+
+		TableBase subtable1 = table.getSubTable(1, 0);
+		subtable1.insertLong(0, 0, 123);
+		subtable1.insertDone();
+		assertEquals(1, subtable1.size());
+
+		table.insertLong(2, 0, 123456);
+		table.insertDone();
+		assertEquals(1, table.size());
+	}
+	
 
 }

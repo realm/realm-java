@@ -9,6 +9,7 @@ import com.tightdb.TableBase;
 
 public class GroupExamples {
 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 
 		Group group = new Group();

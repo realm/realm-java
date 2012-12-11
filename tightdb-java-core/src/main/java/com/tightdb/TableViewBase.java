@@ -129,7 +129,7 @@ public class TableViewBase implements TableOrViewBase {
 	 * @return value of the particular cell.
 	 */
 	public Date getDate(long columnIndex, long rowIndex){
-		return new Date(nativeGetDateTimeValue(nativePtr, columnIndex, rowIndex));
+		return new Date(nativeGetDateTimeValue(nativePtr, columnIndex, rowIndex)*1000);
 	}
 	
 	protected native long nativeGetDateTimeValue(long nativeViewPtr, long columnIndex, long rowIndex);
@@ -245,7 +245,7 @@ public class TableViewBase implements TableOrViewBase {
 	 */	
 	public void setDate(long columnIndex, long rowIndex, Date value){
 		if (immutable) throwImmutable();
-		nativeSetDateTimeValue(nativePtr, columnIndex, rowIndex, value.getTime());
+		nativeSetDateTimeValue(nativePtr, columnIndex, rowIndex, value.getTime()/1000);
 	}
 	
 	protected native void nativeSetDateTimeValue(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
@@ -358,7 +358,7 @@ public class TableViewBase implements TableOrViewBase {
 
  	//!!!TODO: New
 	public long findFirstDate(long columnIndex, Date date) {
-		return nativeFindFirstDate(nativePtr, columnIndex, date.getTime());
+		return nativeFindFirstDate(nativePtr, columnIndex, date.getTime()/1000);
 	}
 
 	protected native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
@@ -387,7 +387,7 @@ public class TableViewBase implements TableOrViewBase {
 
  	//!!!TODO: New
 	public TableViewBase findAllDate(long columnIndex, Date date) {
-		return new TableViewBase(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()), immutable);
+		return new TableViewBase(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
 	}
 
 	protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);

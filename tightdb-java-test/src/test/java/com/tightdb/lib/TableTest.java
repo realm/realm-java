@@ -20,14 +20,15 @@ public class TableTest {
 
 	@BeforeMethod
 	public void init() {
+		// !!! Note: If any of the valueas are changed, update shouldConvertToJson() 'expected' text
+		Date date = new Date(1234567890);
 		employees = new TestEmployeeTable();
 
-		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 },
-				new Date(), "extra");
-		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 },
-				new Date(), true);
-		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4,
-				5 }, new Date(), 1234);
+		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, date, "extra");
+		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, date, true);
+		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 1 }, date, 1234);
+		employees.add("NoName", "Test Mixed Date", 1, true, new byte[] { 1}, date, new Date(123456789));
+		employees.add("NoName", "Test Mixed Binary", 1, true, new byte[] { 1, 2, 3 }, date, new byte[] {3,2,1});
 	}
 
 	@AfterMethod
@@ -82,14 +83,12 @@ public class TableTest {
 		employees.optimize();
 	}
 	
-	@Test(enabled=false)
+	@Test()
 	public void shouldConvertToJson() {
-		// util.setDebugLevel(2);
-		String s = employees.toJson();
-		System.out.println("JSON format: " + s);
-		System.out.println("0: " + employees.at(0).getBirthdate());
-		System.out.println("1: " + employees.at(1).getBirthdate());	
-		System.out.println("2: " + employees.at(2).getBirthdate());
+		String json = employees.toJson();
+		System.out.println("JSON format: " + json);
+		String expect = "[{\"firstName\":\"John\",\"lastName\":\"Doe\",\"salary\":10000,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":\"extra\",\"phones\":[]},{\"firstName\":\"Nikolche\",\"lastName\":\"Mihajlovski\",\"salary\":30000,\"driver\":false,\"photo\":\"01\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":1234,\"phones\":[]},{\"firstName\":\"Johny\",\"lastName\":\"B. Good\",\"salary\":10000,\"driver\":true,\"photo\":\"01\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":true,\"phones\":[]},{\"firstName\":\"NoName\",\"lastName\":\"Test Mixed Date\",\"salary\":1,\"driver\":true,\"photo\":\"01\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":\"1973-11-29 21:33:09\",\"phones\":[]},{\"firstName\":\"NoName\",\"lastName\":\"Test Mixed Binary\",\"salary\":1,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":\"030201\",\"phones\":[]}]";
+		assertEquals(json, expect);
 	}
 
 }

@@ -109,6 +109,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertLong(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong value)
 {
 	if (!INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
+//???
 
     TBL(nativeTablePtr)->insert_int( S(columnIndex), S(rowIndex), value);
 }
@@ -247,7 +248,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetMixed(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTable(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, COLUMN_TYPE_TABLE)) return 0;
+// FIXME - REENABLE    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, COLUMN_TYPE_TABLE)) return 0;
 
 	Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr), 
         S(columnIndex), S(rowIndex)));
@@ -268,7 +269,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableSize(
 JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetString(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jstring value)
 {
-    if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
+    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, COLUMN_TYPE_STRING)) return;
 
     const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (valueCharPtr) {

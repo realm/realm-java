@@ -2,6 +2,7 @@ package com.tightdb.lib;
 
 
 import static com.tightdb.test.ExtraTests.assertArrayEquals;
+import static com.tightdb.test.ExtraTests.assertDateArrayEquals;
 import static org.testng.AssertJUnit.*;
 
 import java.nio.ByteBuffer;
@@ -87,7 +88,7 @@ public class TableColumnsTest extends AbstractTest {
 		assertEquals(0, view.size());
 	}
 
-	@Test(enabled=true)
+	@Test()
 	public void shouldAggregateColumnValue() {
 		assertEquals(EmployeesFixture.EMPLOYEES[0].salary,
 				employees.salary.minimum());
@@ -120,8 +121,7 @@ public class TableColumnsTest extends AbstractTest {
 		assertArrayEquals(EmployeesFixture.getAll(2), employees.salary.getAll());
 		assertArrayEquals(EmployeesFixture.getAll(3), employees.driver.getAll());
 		assertArrayEquals(EmployeesFixture.getAll(4), employees.photo.getAll());
-		assertArrayEquals(EmployeesFixture.getAll(5),
-				employees.birthdate.getAll());
+		assertDateArrayEquals(EmployeesFixture.getAll(5), employees.birthdate.getAll());
 		assertArrayEquals(EmployeesFixture.getAll(6), employees.extra.getAll());
 
 		TestPhoneTable[] phoneTables = employees.phones.getAll();
@@ -163,8 +163,11 @@ public class TableColumnsTest extends AbstractTest {
 
 		Date date = new Date(13579);
 		employees.birthdate.setAll(date);
-		assertSameArrayElement(date, employees.birthdate.getAll());
-
+		for (Date d : employees.birthdate.getAll()) {
+			// Dates are truncated to secs
+			assertEquals(date.getTime()/1000, d.getTime()/1000);
+		}
+		
 		Mixed extra = Mixed.mixedValue("extra");
 		employees.extra.setAll(extra);
 		assertSameArrayElement(extra, employees.extra.getAll());

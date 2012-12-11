@@ -10,6 +10,16 @@ public class ExtraTests {
         new ExactComparisonCriteria().arrayEquals(null, expecteds, actuals);
     }
 
+    public static void assertDateArrayEquals(Object[] expecteds, Date[] actuals)
+    {
+    	int i=0;
+    	for (Date date : actuals) {
+    		Date expect = (Date)expecteds[i];
+    		AssertJUnit.assertEquals(expect.getTime()/1000, date.getTime()/1000);
+    		i++;
+    	}
+    }
+    
     private static class ExactComparisonCriteria extends ComparisonCriteria {
         protected void assertElementsEqual(Object expected, Object actual)
         {

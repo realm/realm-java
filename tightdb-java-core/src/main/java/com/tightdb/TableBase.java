@@ -270,6 +270,68 @@ public class TableBase implements TableOrViewBase {
 
 	protected native void nativeRemoveLast(long nativeTablePtr);
 
+	public void insertRow(long rowIndex, Object... values) {
+		if (immutable) throwImmutable();
+		
+		// Check values types
+		int columns = (int)getColumnCount();
+		ColumnType colTypes[] = new ColumnType[columns]; 
+		if (columns != values.length) {
+			throw new IllegalArgumentException("The number of parameters does not match the number of columns in the table.");
+		}
+		for (int columnIndex = 0; columnIndex < columns; columnIndex++) {  
+		    Object value = values[columnIndex];
+			ColumnType colType = getColumnType(columnIndex);
+			colTypes[columnIndex] = colType;
+			if (!colType.matchObject(value)) {
+				throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) + 
+						". Expected " + colType + ", but got " + value.getClass() + ".");
+			}
+		}
+
+		// Insert values
+		for (long columnIndex = 0; columnIndex < columns; columnIndex++) {  
+			Object value = values[(int)columnIndex];
+			System.out.println("Class "  + value.getClass());
+			switch (colTypes[(int)columnIndex]) { 
+			case ColumnTypeBool:	
+				nativeInsertBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
+				break;
+			case ColumnTypeInt:	
+				nativeInsertLong(nativePtr, columnIndex, rowIndex, ((Number)value).longValue());
+				break;
+			case ColumnTypeString:
+				nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
+				break;
+			case ColumnTypeDate:
+				nativeInsertDate(nativePtr, columnIndex, rowIndex, ((Date)value).getTime()/1000);
+				break;
+			case ColumnTypeMixed:	
+				nativeInsertMixed(nativePtr, columnIndex, rowIndex, (Mixed)value);
+				break;
+			case ColumnTypeBinary:
+				if (value instanceof byte[])
+					nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
+				else if (value instanceof ByteBuffer)
+					nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, (ByteBuffer)value);
+				break;
+			case ColumnTypeTable:
+				nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
+				if (value != null) {
+					// insert subtable(s) recursively
+					TableBase subtable = getSubTable(columnIndex, rowIndex);
+					long size = value.
+					//for 
+						//insertRow();
+				}
+				break;
+			default:
+				throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int)columnIndex]));
+			}
+		}
+		insertDone();
+	}
+	
 	// Insert Row
 	/**
 	 * Inserts long value on the specific cell. Note that the insertion will
@@ -309,7 +371,7 @@ public class TableBase implements TableOrViewBase {
 
 	public void insertDate(long columnIndex, long rowIndex, Date date) {
 		if (immutable) throwImmutable();
-		nativeInsertDate(nativePtr, columnIndex, rowIndex, date.getTime());
+		nativeInsertDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
 	}
 
 	protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
@@ -421,7 +483,7 @@ public class TableBase implements TableOrViewBase {
 	protected native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
 
 	public Date getDate(long columnIndex, long rowIndex) {
-		return new Date(nativeGetDateTime(nativePtr, columnIndex, rowIndex));
+		return new Date(nativeGetDateTime(nativePtr, columnIndex, rowIndex)*1000);
 	}
 
 	protected native long nativeGetDateTime(long nativeTablePtr, long columnIndex, long rowIndex);
@@ -562,7 +624,7 @@ public class TableBase implements TableOrViewBase {
 
 	public void setDate(long columnIndex, long rowIndex, Date date) {
 		if (immutable) throwImmutable();
-		nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime());
+		nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
 	}
 
 	protected native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
@@ -689,7 +751,7 @@ public class TableBase implements TableOrViewBase {
 	protected native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
 
 	public long findFirstDate(long columnIndex, Date date) {
-		return nativeFindFirstDate(nativePtr, columnIndex, date.getTime());
+		return nativeFindFirstDate(nativePtr, columnIndex, date.getTime()/1000);
 	}
 
 	protected native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
@@ -713,7 +775,7 @@ public class TableBase implements TableOrViewBase {
 	protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
 	public TableViewBase findAllDate(long columnIndex, Date date) {
-		return new TableViewBase(nativeFindAllDate(nativePtr, columnIndex, date.getTime()), immutable);
+		return new TableViewBase(nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
 	}
 
 	protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);

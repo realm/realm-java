@@ -194,7 +194,8 @@ inline bool IndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong ro
 {
     if (!ColIndexValid(env, pTable, columnIndex))
         return false;
-    bool rowErr = int_greater_than(rowIndex, pTable->size()+1) ;
+    // FIXME: REMOVE const size_t colSize = pTable->GetColumn(columnIndex).Size();
+    bool rowErr = int_greater_than(rowIndex, pTable->size()+1);
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", rowIndex, pTable->size())); 
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");

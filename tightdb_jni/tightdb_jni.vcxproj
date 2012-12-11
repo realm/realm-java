@@ -25,7 +25,6 @@
     <ClInclude Include="src\com_tightdb_tablebase.h" />
     <ClInclude Include="src\com_tightdb_tablequery.h" />
     <ClInclude Include="src\com_tightdb_tableviewbase.h" />
-    <ClInclude Include="src\com_tightdb_util.h" />
     <ClInclude Include="src\mem_usage.hpp" />
     <ClInclude Include="src\tablebase_tpl.hpp" />
     <ClInclude Include="src\tablespecutil.h" />

@@ -19,12 +19,16 @@ public class JNICloseTest {
 	// Verify that methods make exceptions when Tables are invalidated.
 	// Verify subtables are invalidated when table is changed/updated in any way.
 	// Check that Group.close works
-	
+		
 	@Test (enabled=false)
 	public void shouldCloseGroup() {
 		//Group group = new Group();
 
 		//	EmployeeTable employees = new EmployeeTable(group);
+		
+		
 	}
+	
+	
 	
 }

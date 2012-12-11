@@ -102,7 +102,7 @@ public abstract class AbstractTest {
 			assertEquals(expected.salary, employee.salary.get().longValue());
 			assertEquals(expected.driver, employee.driver.get().booleanValue());
 			assertEquals(ByteBuffer.wrap(expected.photo), employee.photo.get());
-			assertEquals(expected.birthdate, employee.birthdate.get());
+			assertEquals(expected.birthdate.getTime()/1000, employee.birthdate.get().getTime()/1000);
 			assertEquals(Mixed.mixedValue(expected.extra), employee.extra.get());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
