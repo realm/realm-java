@@ -9,6 +9,8 @@ public class Experiment {
 		Object[] subtable = new Object[] {1, "str1", sub2, 11};
 		insert("hmm", subtable, 1);
 		
+		Object[][] arrOfArr = new Object[][] { {1}, {0} };
+		insert("lll", arrOfArr );
 	}
 	
 	public static void insert(Object... objects) {
@@ -18,7 +20,7 @@ public class Experiment {
 			System.out.print(obj + ", ");
 			if (obj instanceof Object[]) {
 				System.out.print("...");
-				insert(obj);
+				insert((Object[])obj);
 			}
 		}
 	}

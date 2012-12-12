@@ -246,6 +246,9 @@ public class TableBase implements TableOrViewBase {
 
 	protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
 
+	public void addRow(Object... values) {
+		insertRow(size(), values);
+	}
 	/**
 	 * Removes a row from the specific index. As of now the entry is simply
 	 * removed from the table. No Cascading delete for other table is not taken
@@ -255,7 +258,6 @@ public class TableBase implements TableOrViewBase {
 	 *            the row index
 	 * 
 	 */
-	
 	public void remove(long rowIndex) {
 		if (immutable) throwImmutable();
 		nativeRemove(nativePtr, rowIndex);
@@ -277,7 +279,10 @@ public class TableBase implements TableOrViewBase {
 		int columns = (int)getColumnCount();
 		ColumnType colTypes[] = new ColumnType[columns]; 
 		if (columns != values.length) {
-			throw new IllegalArgumentException("The number of parameters does not match the number of columns in the table.");
+			throw new IllegalArgumentException("The number of value parameters (" + 
+					String.valueOf(values.length) + 
+					") does not match the number of columns in the table (" + 
+					String.valueOf(columns) + ").");
 		}
 		for (int columnIndex = 0; columnIndex < columns; columnIndex++) {  
 		    Object value = values[columnIndex];
@@ -285,14 +290,13 @@ public class TableBase implements TableOrViewBase {
 			colTypes[columnIndex] = colType;
 			if (!colType.matchObject(value)) {
 				throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) + 
-						". Expected " + colType + ", but got " + value.getClass() + ".");
+						". Expected a value compatible with column type " + colType + ", but got " + value.getClass() + ".");
 			}
 		}
 
 		// Insert values
 		for (long columnIndex = 0; columnIndex < columns; columnIndex++) {  
 			Object value = values[(int)columnIndex];
-			System.out.println("Class "  + value.getClass());
 			switch (colTypes[(int)columnIndex]) { 
 			case ColumnTypeBool:	
 				nativeInsertBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
@@ -320,9 +324,11 @@ public class TableBase implements TableOrViewBase {
 				if (value != null) {
 					// insert subtable(s) recursively
 					TableBase subtable = getSubTable(columnIndex, rowIndex);
-					long size = value.
-					//for 
-						//insertRow();
+					int len = ((Object[])value).length;
+					for (int i=0; i<len; ++i) {
+						Object rowArr = ((Object[])value)[i];
+						subtable.insertRow(i, (Object[])rowArr);
+					}
 				}
 				break;
 			default:
