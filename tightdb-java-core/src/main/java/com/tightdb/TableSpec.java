@@ -63,7 +63,6 @@ public class TableSpec {
 	}
 
 	protected void addColumn(int colTypeIndex, String name) {
-		ColumnType[] colTypes = ColumnType.values();
 		addColumn(ColumnType.fromNativeValue(colTypeIndex), name);
 	}
 

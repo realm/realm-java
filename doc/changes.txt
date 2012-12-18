@@ -1,3 +1,8 @@
+18-12-2012:
+===========
++ Added TableBase: insert(), add(), set() which can insert/add/set all values for a row.
+- Deprecated use of field based insert*() methods.
+
 27-11-2012:
 ===========
 + Added ReadTransactions class and testcases for WriteTransactions

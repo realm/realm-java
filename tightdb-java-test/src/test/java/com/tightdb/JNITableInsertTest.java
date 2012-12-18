@@ -34,7 +34,7 @@ public class JNITableInsertTest {
 	}
 	
 	@Test()
-	public void ShouldInsertAndAddRows() {
+	public void ShouldInsertAddAndSetRows() {
 		TableBase table = new TableBase();
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeBool, "bool");
@@ -64,7 +64,7 @@ public class JNITableInsertTest {
 		Object[] rowData1 = new Object[] {false, 7, "hi1", new byte[] {0,2,3}, date, "mix1", null};
 		Object[] rowData2 = new Object[] {true, 12345567789L, "hello", new byte[] {0}, date, buf, null};
 		Object[] rowData3 = new Object[] {false, (byte)17, "hi3", buf, date, mixedSubTable, null};
-// TODO support insert of mixed subtable
+// TODO: support insert of mixed subtable
 		
 		table.insert(1, rowData1);
 		table.add(rowData2);
@@ -80,6 +80,17 @@ public class JNITableInsertTest {
 			 						 													 {345, "row1"},
 			 						 													 {456, "row2"} }});
 		verifyRow(table, 4, rowData0);
+		
+		// Test set()
+		Date date2 = new Date(123);
+		Object[] newRowData = new Object[] {true, 321, "new", new byte[] {5}, date2, "hey", 
+											new Object[][] {{432, "new"}} };
+		table.set(2, newRowData);
+		verifyRow(table, 0, rowData3);	
+		verifyRow(table, 1, rowData0);
+		verifyRow(table, 2, newRowData);
+		verifyRow(table, 3, rowData2);
+		
 	}
 	
 	@Test()

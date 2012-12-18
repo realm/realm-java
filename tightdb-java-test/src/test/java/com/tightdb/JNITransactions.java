@@ -4,7 +4,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.util.Date;
-import java.nio.ByteBuffer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -125,7 +124,6 @@ public class JNITransactions {
  		ReadTransaction t = db.beginRead(); 
  		TableBase table = t.getTable("EmployeeTable");
 
- 		ByteBuffer buf = ByteBuffer.allocate(1);
 		try { table.insert(0, 0, false);   		assert(false);} catch (IllegalStateException e) {}		
 		try { table.add(0, false);		  		assert(false);} catch (IllegalStateException e) {}		
 		try { table.addEmptyRow(); 					assert(false);} catch (IllegalStateException e) {}

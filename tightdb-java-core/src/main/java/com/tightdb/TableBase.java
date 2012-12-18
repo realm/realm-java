@@ -231,22 +231,6 @@ public class TableBase implements TableOrViewBase {
 
 	protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
 
-	// Row Handling methods.
-	public long addEmptyRow() {
-		if (immutable) throwImmutable();
-		return nativeAddEmptyRow(nativePtr, 1);
-	}
-
-	public long addEmptyRows(long rows) {
-		if (immutable) throwImmutable();
-		return nativeAddEmptyRow(nativePtr, rows);
-	}
-
-	protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
-
-	public void add(Object... values) {
-		insert(size(), values);
-	}
 	/**
 	 * Removes a row from the specific index. As of now the entry is simply
 	 * removed from the table. No Cascading delete for other table is not taken
@@ -270,6 +254,25 @@ public class TableBase implements TableOrViewBase {
 
 	protected native void nativeRemoveLast(long nativeTablePtr);
 
+	
+	// Row Handling methods.
+	public long addEmptyRow() {
+		if (immutable) throwImmutable();
+		return nativeAddEmptyRow(nativePtr, 1);
+	}
+
+	public long addEmptyRows(long rows) {
+		if (immutable) throwImmutable();
+		return nativeAddEmptyRow(nativePtr, rows);
+	}
+
+	protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
+
+	public void add(Object... values) {
+		insert(size(), values);
+	}
+
+	
 	public void insert(long rowIndex, Object... values) {
 		if (immutable) throwImmutable();
 		
@@ -282,13 +285,13 @@ public class TableBase implements TableOrViewBase {
 		
 		// Check values types
 		int columns = (int)getColumnCount();
-		ColumnType colTypes[] = new ColumnType[columns]; 
 		if (columns != values.length) {
 			throw new IllegalArgumentException("The number of value parameters (" + 
 					String.valueOf(values.length) + 
 					") does not match the number of columns in the table (" + 
 					String.valueOf(columns) + ").");
-		}
+		}		
+		ColumnType colTypes[] = new ColumnType[columns];
 		for (int columnIndex = 0; columnIndex < columns; columnIndex++) {  
 		    Object value = values[columnIndex];
 			ColumnType colType = getColumnType(columnIndex);
@@ -297,8 +300,8 @@ public class TableBase implements TableOrViewBase {
 				throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) + 
 						". Expected a value compatible with column type " + colType + ", but got " + value.getClass() + ".");
 			}
-		}
-
+		}		
+		
 		// Insert values
 		for (long columnIndex = 0; columnIndex < columns; columnIndex++) {  
 			Object value = values[(int)columnIndex];
@@ -342,19 +345,44 @@ public class TableBase implements TableOrViewBase {
 		}
 		insertDone();
 	}
-	
-	// Insert Row
-	/**
-	 * Inserts long value on the specific cell. Note that the insertion will
-	 * replace old values.
-	 * 
-	 * @param columnIndex
-	 *            0 based column index of the cell
-	 * @param rowIndex
-	 *            0 based row index of the cell.
-	 * @param value
-	 *            new value for the cell to be inserted.
-	 */
+
+	public void set(long rowIndex, Object... values) {
+		if (immutable) throwImmutable();
+		
+		// Check index
+		long size = size();
+		if (rowIndex >= size) {
+			throw new IllegalArgumentException("rowIndex " + String.valueOf(rowIndex) + 
+					" must be < table.size() " + String.valueOf(size) + ".");
+		}
+		
+		// Verify number of 'values'
+		int columns = (int)getColumnCount();
+		if (columns != values.length) {
+			throw new IllegalArgumentException("The number of value parameters (" + 
+					String.valueOf(values.length) + 
+					") does not match the number of columns in the table (" + 
+					String.valueOf(columns) + ").");
+		}		
+		// Verify type of 'values'
+		ColumnType colTypes[] = new ColumnType[columns];
+		for (int columnIndex = 0; columnIndex < columns; columnIndex++) {  
+		    Object value = values[columnIndex];
+			ColumnType colType = getColumnType(columnIndex);
+			colTypes[columnIndex] = colType;
+			if (!colType.matchObject(value)) {
+				throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) + 
+						". Expected a value compatible with column type " + colType + ", but got " + value.getClass() + ".");
+			}
+		}		
+
+		// Now that all values are verified, we can remove the row and insert it again.
+		// TODO: Can be optimized to only set the values (but clear any subtables)
+		remove(rowIndex);
+		insert(rowIndex, values);
+	}
+
+
 	public void insertLong(long columnIndex, long rowIndex, long value) {
 		if (immutable) throwImmutable();
 		nativeInsertLong(nativePtr, columnIndex, rowIndex, value);
@@ -362,17 +390,6 @@ public class TableBase implements TableOrViewBase {
 
 	protected native void nativeInsertLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
-	/**
-	 * Inserts a boolean value into the cell identified by the columnIndex and rowIndex
-	 * Note that the insertion will replace old values.
-	 * 
-	 * @param columnIndex
-	 *            0 based columnIndex of the cell
-	 * @param rowIndex
-	 *            0 based rowIndex of the cell
-	 * @param value
-	 *            value to be inserted.
-	 */
 	public void insertBoolean(long columnIndex, long rowIndex, boolean value) {
 		if (immutable) throwImmutable();
 		nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
@@ -387,16 +404,6 @@ public class TableBase implements TableOrViewBase {
 
 	protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
 
-	/**
-	 * Inserts a string in a cell. Note that the insertion will replace old values.
-	 * 
-	 * @param columnIndex
-	 *            0 based columnIndex of the cell
-	 * @param rowIndex
-	 *            0 based rowIndex of the cell
-	 * @param value
-	 *            value to be inserted.
-	 */
 	public void insertString(long columnIndex, long rowIndex, String value) {
 		if (immutable) throwImmutable();
 		nativeInsertString(nativePtr, columnIndex, rowIndex, value);
@@ -411,17 +418,6 @@ public class TableBase implements TableOrViewBase {
 
 	protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
-	/**
-	 * Inserts a binary byte[] data into the cell.
-	 * Note that the insertion will replace old values.
-	 * 
-	 * @param columnIndex
-	 *            0 based column index of the cell
-	 * @param rowIndex
-	 *            0 based row index of the cell
-	 * @param data
-	 *            data to be inserted.
-	 */
 	public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
 		if (immutable) throwImmutable();
 		//System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
@@ -448,14 +444,6 @@ public class TableBase implements TableOrViewBase {
 
 	protected native void nativeInsertSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
 
-	/**
-	 * Once insertions are done "say for a particular row" or before switching
-	 * to a new row user must call this method to keep the stability of the
-	 * system, allowing TightDB to perform internal works and make it ready for
-	 * a new insertion. This is similar to a "commit" in transactional systems
-	 * (note that TightDB is currently not a transactional system).
-	 * 
-	 */
 	public void insertDone() {
 		if (immutable) throwImmutable();
 		nativeInsertDone(nativePtr);
@@ -706,9 +694,10 @@ public class TableBase implements TableOrViewBase {
 	
 	protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
-	// TODO: check columnstype. Indexing - currently only supported on String columns
 	public void setIndex(long columnIndex) {
 		if (immutable) throwImmutable();
+		if (getColumnType(columnIndex) != ColumnType.ColumnTypeString)
+			throw new IllegalArgumentException("Index is only supported on string columns.");
 		nativeSetIndex(nativePtr, columnIndex);
 	}
 

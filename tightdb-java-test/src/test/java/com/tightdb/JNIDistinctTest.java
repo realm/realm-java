@@ -55,9 +55,21 @@ public class JNIDistinctTest {
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void shouldTestDistinctErrorWhenWrongColumnType() {
+	public void shouldTestIndexOnWrongColumnType() {
 		init();
 		table.setIndex(0);
+	}
+
+	@Test()
+	public void shouldCheckIndexIsOkOnColumn() {
+		init();
+		table.setIndex(1);
+	}
+
+	@Test(expectedExceptions = UnsupportedOperationException.class)
+	public void shouldTestDistinctErrorWhenWrongColumnType() {
+		init();
+		table.setIndex(1);
 		TableViewBase view = table.distinct(0);	
 	}
 
