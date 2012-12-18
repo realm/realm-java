@@ -7,6 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef com_tightdb_TableBase_INFINITE
+#define com_tightdb_TableBase_INFINITE -1i64
 /*
  * Class:     com_tightdb_TableBase
  * Method:    createNative
@@ -253,6 +255,14 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetMixed
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTable
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableBase
+ * Method:    nativeGetSubTableDuringInsert
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableDuringInsert
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*

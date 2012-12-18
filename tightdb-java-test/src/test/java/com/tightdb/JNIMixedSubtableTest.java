@@ -38,18 +38,9 @@ public class JNIMixedSubtableTest {
 		}
 		
 		long ROW = 0;
-		boolean simple = true;
 		// Add empty row - the simple way
-		if (simple) {
-			table.addEmptyRow();
-			table.setMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable));
-		} else {
-			// OR Add "empty" row - the "manual" way
-			table.insertLong(0, ROW, 0);
-			table.insertMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable)); 	// Mixed subtable
-			table.insertSubTable(2, ROW);										// Normal subtable
-			table.insertDone();
-		}
+		table.addEmptyRow();
+		table.setMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable));
 		assertEquals(1, table.size());
 		assertEquals(0, table.getSubTableSize(1, 0));
 		
@@ -60,10 +51,8 @@ public class JNIMixedSubtableTest {
 		subtable.updateFromSpec(subspecMixed);
 
 		// Insert value in the Mixed subtable
-		subtable.insertLong(0, 0, 27);
-		subtable.insertDone();
-		subtable.insertLong(0, 1, 273);
-		subtable.insertDone();
+		subtable.add(27);
+		subtable.add(273);
 		assertEquals(2, subtable.size());
 		assertEquals(2, table.getSubTableSize(1, ROW));
 		assertEquals(27, subtable.getLong(0, ROW));

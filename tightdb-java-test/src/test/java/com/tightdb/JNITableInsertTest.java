@@ -19,9 +19,9 @@ public class JNITableInsertTest {
 			assertEquals((ByteBuffer)values[3], tbl.getBinaryByteBuffer(3, rowIndex));
 		assertEquals(((Date)values[4]).getTime()/1000, tbl.getDate(4, rowIndex).getTime()/1000);
 
-		Mixed mix1 = (Mixed)values[5];
-		Mixed mix2 =  tbl.getMixed(5, rowIndex);
-		assertTrue(mix1.equals(mix2));
+//		Mixed mix1 = Mixed.mixedValue(values[5]);
+//		Mixed mix2 =  tbl.getMixed(5, rowIndex);
+// TODO:		assertTrue(mix1.equals(mix2));
 		
 		TableBase subTable = tbl.getSubTable(6,  rowIndex);
 		Object[] subValues = (Object[])values[6];
@@ -51,26 +51,35 @@ public class JNITableInsertTest {
 		ByteBuffer buf = ByteBuffer.allocateDirect(23);
 		Mixed mixedSubTable = new Mixed(ColumnType.ColumnTypeTable);
 		Date date = new Date();
-		Mixed mixed = new Mixed(123);
+		long mixed = 123;
 
 		// Check subtable
 		Object[][] subTblData = new Object[][] {{234, "row0"},
 					 						 	{345, "row1"},
 					 						 	{456, "row2"} };
 		Object[] rowData0 = new Object[] {false, (short)2, "hi", buf, date, mixed, subTblData};
-		table.addRow(rowData0);
+		table.add(rowData0);
 		verifyRow(table, 0, rowData0);
 
-		Object[] rowData1 = new Object[] {false, 7, "hi1", new byte[] {0,2,3}, date, new Mixed("mix1"), null};
-		Object[] rowData2 = new Object[] {true, 12345567789L, "hello", new byte[] {0}, date, new Mixed(buf), null};
+		Object[] rowData1 = new Object[] {false, 7, "hi1", new byte[] {0,2,3}, date, "mix1", null};
+		Object[] rowData2 = new Object[] {true, 12345567789L, "hello", new byte[] {0}, date, buf, null};
 		Object[] rowData3 = new Object[] {false, (byte)17, "hi3", buf, date, mixedSubTable, null};
-		table.insertRow(1, rowData1);
-		table.addRow(rowData2);
-		table.insertRow(3, rowData3);
+// TODO support insert of mixed subtable
 		
-		verifyRow(table, 1, rowData1);
-		verifyRow(table, 2, rowData2);
-		verifyRow(table, 3, rowData3);	
+		table.insert(1, rowData1);
+		table.add(rowData2);
+		table.insert(0, rowData3);
+
+		verifyRow(table, 0, rowData3);	
+		verifyRow(table, 1, rowData0);
+		verifyRow(table, 2, rowData1);
+		verifyRow(table, 3, rowData2);
+		
+		// Same test - but a one-liner...
+		table.add(new Object[] {false, (short)2, "hi", buf, date, mixed, new Object[][] {{234, "row0"},
+			 						 													 {345, "row1"},
+			 						 													 {456, "row2"} }});
+		verifyRow(table, 4, rowData0);
 	}
 	
 	@Test()
@@ -90,61 +99,70 @@ public class JNITableInsertTest {
 		// Wrong number of parameters
 		ByteBuffer buf = ByteBuffer.allocateDirect(23);
 		try {
-			table.insertRow(0, false);
+			table.insert(0, false);
 			assertTrue(false);
 		} catch (IllegalArgumentException e) {}
-		
+
+		// wrong row index
+		long mix = 123;
+		try {
+			table.insert(1, false, 1, "hi", buf, new Date(), mix, null);
+			assertTrue(false);
+		} catch (IllegalArgumentException e) {}
+
+		// wrong row index
+		table.insert(0, false, 1, "hi", buf, new Date(), 123, null);
+		table.insert(1, false, 1, "hi", buf, new Date(), 123, null);
+		try {
+			table.insert(3, false, 1, "hi", buf, new Date(), mix, null);
+			assertTrue(false);
+		} catch (IllegalArgumentException e) {}
+
 		// Wrong type of parameter (999 instead of bool)
 		try {
-			table.insertRow(0, 999, 1, "hi", buf, new Date(), new Mixed(123), null);
+			table.insert(0, 999, 1, "hi", buf, new Date(), mix, null);
 			assertTrue(false);
 		} catch (IllegalArgumentException e) {}
 
 		// Wrong type of parameter (bool instead of 1)
 		try {
-			table.insertRow(0, true, false, "hi", buf, new Date(), new Mixed(123), null);
+			table.insert(0, true, false, "hi", buf, new Date(), mix, null);
 			assertTrue(false);
 		} catch (IllegalArgumentException e) {}
 
 		// Wrong type of parameter (999 instead of string)
 		try {
-			table.insertRow(0, false, 1, 999, buf, new Date(), new Mixed(123), null);
+			table.insert(0, false, 1, 999, buf, new Date(), mix, null);
 			assertTrue(false);
 		} catch (IllegalArgumentException e) {}
 
 		// Wrong type of parameter (999 instead of Binary)
 		try {
-			table.insertRow(0, false, 1, "hi", 999, new Date(), new Mixed(123), null);
+			table.insert(0, false, 1, "hi", 999, new Date(), mix, null);
 			assertTrue(false);
 		} catch (IllegalArgumentException e) {}
 
 		// Wrong type of parameter (999 instead of Date)
 		try {
-			table.insertRow(0, false, 1, "hi", buf, 999, new Mixed(123), null);
-			assertTrue(false);
-		} catch (IllegalArgumentException e) {}
-
-		// Wrong type of parameter (999 instead of Mixed)
-		try {
-			table.insertRow(0, false, 1, "hi", buf, new Date(), 999, null);
+			table.insert(0, false, 1, "hi", buf, 999, mix, null);
 			assertTrue(false);
 		} catch (IllegalArgumentException e) {}
 
 		// Wrong type of parameter (999 instead of subtable)
 		try {
-			table.insertRow(0, false, 1, "hi", buf, new Date(), new Mixed(123), 999);
+			table.insert(0, false, 1, "hi", buf, new Date(), mix, 999);
 			assertTrue(false);
 		} catch (IllegalArgumentException e) {}		
 
 		// Wrong type of parameter (String instead of subtable-Int)
 		try {
-			table.insertRow(0, false, 1, "hi", buf, new Date(), new Mixed(123), new Object[][] { {"err",2,3}} );
+			table.insert(0, false, 1, "hi", buf, new Date(), mix, new Object[][] { {"err",2,3}} );
 			assertTrue(false);
 		} catch (IllegalArgumentException e) {}		
 
 		// Wrong type of parameter (String instead of subtable-Int)
 		try {
-			table.insertRow(0, false, 1, "hi", buf, new Date(), new Mixed(123), new Object[] {1,2,3} );
+			table.insert(0, false, 1, "hi", buf, new Date(), mix, new Object[] {1,2,3} );
 			assertTrue(false);
 		} catch (IllegalArgumentException e) {}		
 	}

@@ -48,9 +48,8 @@ public class JNITransactions {
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
 		tbl.updateFromSpec(tableSpec);
 
-		for (long row=0; row < rows; row++) {
-			tbl.addEmptyRow(); tbl.setString(0, row, "Hi"); tbl.setLong(1, 0, 1);
-		}
+		for (long row=0; row < rows; row++)
+			tbl.add("Hi", 1);
 		assertEquals(rows, tbl.size());
         trans.commit();
         
@@ -103,7 +102,7 @@ public class JNITransactions {
         WriteTransaction trans = db.beginWrite();
         TableBase tbl = trans.getTable("EmployeeTable");
 
-        tbl.addEmptyRow(); tbl.setString(0, 0, "Hello"); tbl.setLong(1, 0, 1);
+        tbl.add("Hello", 1);
 		assertEquals(2, tbl.size());
 		trans.rollback();
 		
@@ -127,21 +126,13 @@ public class JNITransactions {
  		TableBase table = t.getTable("EmployeeTable");
 
  		ByteBuffer buf = ByteBuffer.allocate(1);
-		try { table.insertBoolean(0, 0, false); 	assert(false);} catch (IllegalStateException e) {}		
+		try { table.insert(0, 0, false);   		assert(false);} catch (IllegalStateException e) {}		
+		try { table.add(0, false);		  		assert(false);} catch (IllegalStateException e) {}		
 		try { table.addEmptyRow(); 					assert(false);} catch (IllegalStateException e) {}
 		try { table.addEmptyRows(1); 				assert(false);} catch (IllegalStateException e) {}
 		try { table.addLong(0,0);					assert(false);} catch (IllegalStateException e) {}
 		try { table.clear();						assert(false);} catch (IllegalStateException e) {}
 		try { table.clearSubTable(0,0);				assert(false);} catch (IllegalStateException e) {}
-		try { table.insertBinary(0,0,new byte[0]);	assert(false);} catch (IllegalStateException e) {}
-		try { table.insertBinary(0,0,buf);			assert(false);} catch (IllegalStateException e) {}
-		try { table.insertBoolean(0,0,true);		assert(false);} catch (IllegalStateException e) {}
-		try { table.insertDate(0,0,new Date(0));	assert(false);} catch (IllegalStateException e) {}
-		try { table.insertDone();					assert(false);} catch (IllegalStateException e) {}
-		try { table.insertLong(0,0,0);				assert(false);} catch (IllegalStateException e) {}
-		try { table.insertMixed(0,0,null);			assert(false);} catch (IllegalStateException e) {}
-		try { table.insertString(0,0,"");			assert(false);} catch (IllegalStateException e) {}
-		try { table.insertSubTable(0,0);			assert(false);} catch (IllegalStateException e) {}
 		try { table.optimize();						assert(false);} catch (IllegalStateException e) {}
 		try { table.remove(0);						assert(false);} catch (IllegalStateException e) {}
 		try { table.removeLast();					assert(false);} catch (IllegalStateException e) {}
@@ -172,7 +163,6 @@ public class JNITransactions {
 		try { v.setLong(0, 0, 0);					assert(false);} catch (IllegalStateException e) {}
 		try { v.setString(0,0,"");					assert(false);} catch (IllegalStateException e) {}
 		try { v.setMixed(0, 0, null);				assert(false);} catch (IllegalStateException e) {}
-//		try { v.;	assert(false);} catch (IllegalStateException e) {}
 
 		t.endRead();
 		clear();

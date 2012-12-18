@@ -13,11 +13,8 @@ public class JNIViewSearchTest {
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
 		table.updateFromSpec(tableSpec);
 
-		table.insertString(0, 0, "Foo");
-		table.insertDone();
-
-		table.insertString(0, 1, "Bar");
-		table.insertDone();
+		table.add("Foo");
+		table.add("Bar");
 
 		TableQuery query = table.where();
 		TableViewBase view = query.findAll(0, table.size(), Integer.MAX_VALUE);
@@ -34,14 +31,13 @@ public class JNIViewSearchTest {
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
 		table.updateFromSpec(tableSpec);
 
-		long i = 0;
-		table.insertString(0, i++, "A1"); table.insertDone();
-		table.insertString(0, i++, "B"); table.insertDone();
-		table.insertString(0, i++, "A2"); table.insertDone();
-		table.insertString(0, i++, "B"); table.insertDone();
-		table.insertString(0, i++, "A3"); table.insertDone();
-		table.insertString(0, i++, "B"); table.insertDone();
-		table.insertString(0, i++, "A3"); table.insertDone();
+		table.add("A1");
+		table.add("B");
+		table.add("A2");
+		table.add("B");
+		table.add("A3");
+		table.add("B");
+		table.add("A3");
 
 		TableQuery query = table.where();
 		TableViewBase view = query.beginsWith(0, "A").findAll(0, table.size(), TableBase.INFINITE);

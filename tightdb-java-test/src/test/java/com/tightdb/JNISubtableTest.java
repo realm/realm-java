@@ -6,7 +6,7 @@ import org.testng.annotations.Test;
 
 public class JNISubtableTest {
 	
-	@Test(enabled = true)
+	@Test()
 	public void shouldSynchronizeNestedTables() {
 		Group group = new Group();
 		TableBase table = group.getTable("emp");
@@ -19,14 +19,11 @@ public class JNISubtableTest {
 
 		table.updateFromSpec(tableSpec);
 
-		table.insertString(0, 0, "Foo");
-		table.insertSubTable(1, 0);
-		table.insertDone();
+		table.add("Foo", null);
 		assertEquals(1, table.size());
 
 		TableBase subtable1 = table.getSubTable(1, 0);
-		subtable1.insertLong(0, 0, 123);
-		subtable1.insertDone();
+		subtable1.add(123);
 		assertEquals(1, subtable1.size());
 		subtable1.close();
 		
@@ -37,7 +34,7 @@ public class JNISubtableTest {
 		table.clear();
 	}
 	
-	@Test(enabled = true)
+	@Test()
 	public void shouldInsertNestedTablesNested() {
 		Group group = new Group();
 		TableBase table = group.getTable("emp");
@@ -50,20 +47,14 @@ public class JNISubtableTest {
 		subspec.addColumn(ColumnType.ColumnTypeInt, "num");
 		
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "Int");
-		
 		table.updateFromSpec(tableSpec);
 
 		// Insert values
-		table.insertString(0, 0, "Foo");
-		table.insertSubTable(1, 0);
+		table.add("Foo", null, 123456);
+		table.getSubTable(1, 0).add(123);
+		assertEquals(1, table.getSubTable(1, 0).size());
+		assertEquals(123, table.getSubTable(1, 0).getLong(0,0));
 
-		TableBase subtable1 = table.getSubTable(1, 0);
-		subtable1.insertLong(0, 0, 123);
-		subtable1.insertDone();
-		assertEquals(1, subtable1.size());
-
-		table.insertLong(2, 0, 123456);
-		table.insertDone();
 		assertEquals(1, table.size());
 	}
 	

@@ -109,7 +109,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertLong(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong value)
 {
 	if (!INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
-//???
+//TODO??? check type. Also in set*()
 
     TBL(nativeTablePtr)->insert_int( S(columnIndex), S(rowIndex), value);
 }
@@ -248,11 +248,24 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetMixed(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTable(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-// FIXME - REENABLE    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, COLUMN_TYPE_TABLE)) return 0;
+    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, COLUMN_TYPE_TABLE)) return 0;
 
 	Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr), 
         S(columnIndex), S(rowIndex)));
     TR((env, "nativeGetSubTable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
+        jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubTable));
+    return (jlong)pSubTable;
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableDuringInsert(
+	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
+{
+    if (!INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, 
+         rowIndex, COLUMN_TYPE_TABLE)) return 0;
+
+	Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr_during_insert(
+        TBL(nativeTablePtr), S(columnIndex), S(rowIndex)));
+    TR((env, "nativeGetSubTableDuringInsert(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
         jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubTable));
     return (jlong)pSubTable;
 }
@@ -411,13 +424,8 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableBase_nativeAverage(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeWhere(
     JNIEnv *, jobject, jlong nativeTablePtr)
 {
-#if 1
     Query query = TBL(nativeTablePtr)->where();
     Query* queryPtr = new Query(query);
-#else
-    Table& tbl = *TBL(nativeTablePtr);
-    Query* queryPtr = new Query(tbl);
-#endif
     return reinterpret_cast<jlong>(queryPtr);
 }
 

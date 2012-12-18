@@ -15,13 +15,13 @@ public class JNIDistinctTest {
 		table.updateFromSpec(tableSpec);
 
 		long i = 0;
-		table.insertLong(0, i, i); table.insertString(1, i++, "A"); table.insertDone();
-		table.insertLong(0, i, i); table.insertString(1, i++, "B"); table.insertDone();
-		table.insertLong(0, i, i); table.insertString(1, i++, "C"); table.insertDone();
-		table.insertLong(0, i, i); table.insertString(1, i++, "B"); table.insertDone();
-		table.insertLong(0, i, i); table.insertString(1, i++, "D"); table.insertDone();
-		table.insertLong(0, i, i); table.insertString(1, i++, "D"); table.insertDone();
-		table.insertLong(0, i, i); table.insertString(1, i++, "D"); table.insertDone();
+		table.add(0, "A");
+		table.add(1, "B");
+		table.add(2, "C");
+		table.add(3, "B");
+		table.add(4, "D");
+		table.add(5, "D");
+		table.add(6, "D");
 		assertEquals(7, table.size());
 	}
 

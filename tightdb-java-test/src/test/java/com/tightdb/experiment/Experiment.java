@@ -1,4 +1,4 @@
-package com.tightdb.experiemnt;
+package com.tightdb.experiment;
 
 public class Experiment {
 	public static void main(String[] args) {

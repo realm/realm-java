@@ -28,8 +28,7 @@ public class JNIBinaryTypeTest {
 	
 	@Test
 	public void shouldStoreValuesOfBinaryType_ByteArray() throws Exception {
-		table.insertBinary(0, 0, testArray);
-		table.insertDone();
+		table.add(testArray);
 		checkBinaryCell(table, 0, 0, ColumnType.ColumnTypeBinary, testArray);
 	}
 	
@@ -37,9 +36,7 @@ public class JNIBinaryTypeTest {
 	public void shouldStoreValuesOfBinaryType_ByteBuffer_Direct() throws Exception {
 		ByteBuffer bufDirect = ByteBuffer.allocateDirect(testArray.length);
 		bufDirect.put(testArray);
-		table.insertBinary(0,  0, bufDirect);
-		table.insertDone();
-		
+		table.add(bufDirect);		
 		checkBinaryCell(table, 0, 0, ColumnType.ColumnTypeBinary, testArray);
 	}
 	
@@ -48,8 +45,7 @@ public class JNIBinaryTypeTest {
 	public void shouldStoreValuesOfBinaryType_ByteBuffer_wrap() throws Exception {
 		// This way of using ByteBuffer fails. It's not a "DirectBuffer"
 		ByteBuffer bufWrap = ByteBuffer.wrap(testArray);
-		table.insertBinary(0,  0, bufWrap);
-		table.insertDone();
+		table.add(bufWrap);
 
 		checkBinaryCell(table, 0, 0, ColumnType.ColumnTypeBinary, testArray);
 	}

@@ -246,8 +246,8 @@ public class TableBase implements TableOrViewBase {
 
 	protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
 
-	public void addRow(Object... values) {
-		insertRow(size(), values);
+	public void add(Object... values) {
+		insert(size(), values);
 	}
 	/**
 	 * Removes a row from the specific index. As of now the entry is simply
@@ -272,8 +272,15 @@ public class TableBase implements TableOrViewBase {
 
 	protected native void nativeRemoveLast(long nativeTablePtr);
 
-	public void insertRow(long rowIndex, Object... values) {
+	public void insert(long rowIndex, Object... values) {
 		if (immutable) throwImmutable();
+		
+		// Check index
+		long size = size();
+		if (rowIndex > size) {
+			throw new IllegalArgumentException("rowIndex " + String.valueOf(rowIndex) + 
+					" must be <= table.size() " + String.valueOf(size) + ".");
+		}
 		
 		// Check values types
 		int columns = (int)getColumnCount();
@@ -310,8 +317,8 @@ public class TableBase implements TableOrViewBase {
 			case ColumnTypeDate:
 				nativeInsertDate(nativePtr, columnIndex, rowIndex, ((Date)value).getTime()/1000);
 				break;
-			case ColumnTypeMixed:	
-				nativeInsertMixed(nativePtr, columnIndex, rowIndex, (Mixed)value);
+			case ColumnTypeMixed:
+				nativeInsertMixed(nativePtr, columnIndex, rowIndex, Mixed.mixedValue(value));
 				break;
 			case ColumnTypeBinary:
 				if (value instanceof byte[])
@@ -322,12 +329,12 @@ public class TableBase implements TableOrViewBase {
 			case ColumnTypeTable:
 				nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
 				if (value != null) {
-					// insert subtable(s) recursively
-					TableBase subtable = getSubTable(columnIndex, rowIndex);
-					int len = ((Object[])value).length;
-					for (int i=0; i<len; ++i) {
+					// insert rows in subtable recursively
+					TableBase subtable = getSubTableDuringInsert(columnIndex, rowIndex);
+					int rows = ((Object[])value).length;
+					for (int i=0; i<rows; ++i) {
 						Object rowArr = ((Object[])value)[i];
-						subtable.insertRow(i, (Object[])rowArr);
+						subtable.insert(i, (Object[])rowArr);
 					}
 				}
 				break;
@@ -563,6 +570,14 @@ public class TableBase implements TableOrViewBase {
 	}
 
 	protected native long nativeGetSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+	
+	// Below version will allow to getSubTable when number of available rows are not updated yet - 
+	// which happens before an insertDone(). 
+	private TableBase getSubTableDuringInsert(long columnIndex, long rowIndex) {
+		return new TableBase(this, nativeGetSubTableDuringInsert(nativePtr, columnIndex, rowIndex), immutable);
+	}
+	private native long nativeGetSubTableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
+	
 
 	public long getSubTableSize(long columnIndex, long rowIndex) {
 		return nativeGetSubTableSize(nativePtr, columnIndex, rowIndex);

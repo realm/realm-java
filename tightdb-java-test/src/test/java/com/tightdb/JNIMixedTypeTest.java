@@ -67,8 +67,7 @@ public class JNIMixedTypeTest {
 		tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
 		table.updateFromSpec(tableSpec);
 
-		table.insertMixed(0, 0, Mixed.mixedValue(value1.value));
-		table.insertDone();
+		table.add(Mixed.mixedValue(value1.value));
 
 		checkMixedCell(table, 0, 0, value1.type, value1.value);
 

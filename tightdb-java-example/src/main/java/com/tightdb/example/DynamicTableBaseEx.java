@@ -1,9 +1,6 @@
 package com.tightdb.example;
 
-import com.tightdb.ColumnType;
-import com.tightdb.TableBase;
-import com.tightdb.TableSpec;
-import com.tightdb.TableViewBase;
+import com.tightdb.*;
 import com.tightdb.internal.util;
 import com.tightdb.lib.TightDB;
 
@@ -14,24 +11,19 @@ public class DynamicTableBaseEx {
 	//	util.waitForEnter();
 	
 		TightDB.loadLibrary();
-
 		System.out.println("--Memusage: " + util.getNativeMemUsage());
 		
 		TableBase base = new TableBase();
-
 		System.out.println("created table");
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "salary");
+		tableSpec.addColumn(ColumnType.ColumnTypeMixed, "Whatever");
 		base.updateFromSpec(tableSpec);
-
 		System.out.println("specified structure");
 
-		base.insertString(0, 0, "John");
-		base.insertLong(1, 0, 24000);
-		base.insertDone();
-
+		base.add("John", 24000, new Mixed(1));
 		System.out.println("inserted data");
 
 		System.out.println(base.getColumnName(0));
