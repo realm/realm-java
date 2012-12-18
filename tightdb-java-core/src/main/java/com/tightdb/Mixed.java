@@ -115,7 +115,7 @@ public class Mixed {
 		} else if (value instanceof Long) {
 			return new Mixed((Long) value);
 		} else if (value instanceof Integer) {
-			return new Mixed(((Number)value).longValue());
+			return new Mixed(((Integer)value).longValue());
 		} else if (value instanceof Boolean) {
 			return new Mixed((Boolean) value);
 		} else if (value instanceof Date) {
@@ -124,6 +124,8 @@ public class Mixed {
 			return new Mixed((ByteBuffer) value);
 		} else if (value instanceof byte[]) {
 			return new Mixed((byte[]) value);
+		} else if (value instanceof Mixed) {
+			return ((Mixed)(value));
 		} else {
 			throw new IllegalArgumentException("The value is of unsupported type: " + value.getClass());
 		}
@@ -133,7 +135,7 @@ public class Mixed {
 		if (!(value instanceof Long)) {
 			throw new IllegalAccessException("Tryng to access an different type from mixed");
 		}
-		return ((Number) value).longValue();
+		return ((Long)value).longValue();
 	}
 
 	public boolean getBooleanValue() throws IllegalAccessException {

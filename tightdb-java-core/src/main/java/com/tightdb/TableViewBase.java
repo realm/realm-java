@@ -168,15 +168,9 @@ public class TableViewBase implements TableOrViewBase {
 	protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
 	
 	//TODO: NEW!!!
-	public ColumnType getMixedType(long columnIndex, long rowIndex) {
-		int mixedColumnType = nativeGetMixedType(nativePtr, columnIndex, rowIndex);
-		ColumnType[] columnTypes = ColumnType.values();
-		if (mixedColumnType < 0 || mixedColumnType >= columnTypes.length) {
-			//TODO ?? Throw exception
-			return null;
-		}
-		return columnTypes[mixedColumnType];
-	}
+    public ColumnType getMixedType(long columnIndex, long rowIndex) {
+        return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
+    }
 	
 	protected native int nativeGetMixedType(long nativeViewPtr, long columnIndex, long rowIndex);
 	

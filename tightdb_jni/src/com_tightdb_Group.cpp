@@ -60,7 +60,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
     env->GetByteArrayRegion(jData, 0, byteArrayLength, buf);
 
     TR((env, " %d bytes.", byteArrayLength));
-    Group* pGroup = new Group((const char*)buf, S(byteArrayLength), true);
+    Group* pGroup = new Group(Group::from_mem_tag(), reinterpret_cast<char*>(buf), S(byteArrayLength), true);
 	if (!groupIsValid(env, pGroup))
         return 0;
     TR((env, "%x\n", pGroup));
@@ -75,7 +75,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
     if (!GetBinaryData(env, jByteBuffer, data))
         return 0;
     TR((env, " %d bytes. ", data.len));
-	Group* pGroup = new Group(data.pointer, data.len);
+    // FIXME: I added the const_cast<> because it had to be added after a const error was fixed in the core library. The necessity of the const_cast<> leads me to suspect that this function has something wrong about it. Maybe it should simply not use a BinaryData instance. Somebody should investigate. Consider also whether it is correct that ownership of the memory is transferred.
+    Group* pGroup = new Group(Group::from_mem_tag(), const_cast<char*>(data.pointer), data.len);
     if (!groupIsValid(env, pGroup))
         return 0;
     TR((env, "%x\n", pGroup));
