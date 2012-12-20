@@ -16,6 +16,7 @@ public abstract class AbstractDataOperationsTest {
 	protected static final String NAME0 = "John";
 	protected static final String NAME1 = "Nikolche";
 	protected static final String NAME2 = "Johny";
+	protected static final String NAME3 = "James";
 
 	protected abstract AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getEmployees();
 
@@ -69,7 +70,8 @@ public abstract class AbstractDataOperationsTest {
 		getEmployees().remove(0);
 		assertEquals(NAME1, getEmployees().at(0).getFirstName());
 		assertEquals(NAME2, getEmployees().at(1).getFirstName());
-		assertEquals(2, getEmployees().size());
+		assertEquals(NAME3, getEmployees().at(2).getFirstName());
+		assertEquals(3, getEmployees().size());
 	}
 
 	@Test
@@ -78,21 +80,24 @@ public abstract class AbstractDataOperationsTest {
 		getEmployees().remove(1);
 		assertEquals(NAME0, getEmployees().at(0).getFirstName());
 		assertEquals(NAME2, getEmployees().at(1).getFirstName());
-		assertEquals(2, getEmployees().size());
+		assertEquals(NAME3, getEmployees().at(2).getFirstName());
+		assertEquals(3, getEmployees().size());
 	}
 
 	@Test
 	public void shouldRemoveLastRow() throws IllegalAccessException {
 		// Remove last row
-		getEmployees().remove(2);
-		assertEquals(2, getEmployees().size());
+		getEmployees().remove(3);
+		assertEquals(3, getEmployees().size());
 		assertEquals(NAME0, getEmployees().at(0).getFirstName());
 		assertEquals(NAME1, getEmployees().at(1).getFirstName());
+		assertEquals(NAME2, getEmployees().at(2).getFirstName());
 		
 		// Remove last row
 		getEmployees().removeLast();
-		assertEquals(1, getEmployees().size());
+		assertEquals(2, getEmployees().size());
 		assertEquals(NAME0, getEmployees().at(0).getFirstName());
+		assertEquals(NAME1, getEmployees().at(1).getFirstName());
 	}
 
 	@Test
