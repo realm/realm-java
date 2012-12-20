@@ -8,7 +8,7 @@ public abstract class AbstractSubtable<Cursor, View, Query> extends AbstractTabl
 		super(types, subtable);
 	}
 
-	public static <S> S createSubtable(Class<S> subtableClass, TableBase subtableBase) {
+	protected static <S> S createSubtable(Class<S> subtableClass, TableBase subtableBase) {
 		try {
 			S subtable = subtableClass.getConstructor(TableBase.class).newInstance(subtableBase);
 			return subtable;
