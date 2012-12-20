@@ -13,9 +13,9 @@ public class SmallExample {
 
 		/****************************** BASIC OPERATIONS *****************************/
 
-		Employee john = employees.add("John", "Doe", 10000, true,  new byte[] {1,2,3}, new Date(), "extra");
-		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] {2,3,4}, new Date(), true);
-		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
+		Employee john = employees.add("John", "Doe", 10000, true,  new byte[] {1,2,3}, new Date(), "extra", null);
+		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] {2,3,4}, new Date(), true, null);
+		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
 
 		TightDB.print("Employees", employees);
 	}

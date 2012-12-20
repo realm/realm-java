@@ -24,11 +24,11 @@ public class TableTest {
 		Date date = new Date(1234567890);
 		employees = new TestEmployeeTable();
 
-		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, date, "extra");
-		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, date, true);
-		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 1 }, date, 1234);
-		employees.add("NoName", "Test Mixed Date", 1, true, new byte[] { 1}, date, new Date(123456789));
-		employees.add("NoName", "Test Mixed Binary", 1, true, new byte[] { 1, 2, 3 }, date, new byte[] {3,2,1});
+		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, date, "extra", null);
+		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, date, true, null);
+		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 1 }, date, 1234, null);
+		employees.add("NoName", "Test Mixed Date", 1, true, new byte[] { 1}, date, new Date(123456789), null);
+		employees.add("NoName", "Test Mixed Binary", 1, true, new byte[] { 1, 2, 3 }, date, new byte[] {3,2,1}, null);
 	}
 
 	@AfterMethod

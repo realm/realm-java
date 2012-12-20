@@ -61,14 +61,14 @@ public abstract class AbstractTest {
 
 	protected void addEmployee(TestEmployeeTable employees, EmployeeData emp) {
 		TestEmployeeRow e = employees.add(emp.firstName, emp.lastName,
-				emp.salary, emp.driver, emp.photo, emp.birthdate, emp.extra);
+				emp.salary, emp.driver, emp.photo, emp.birthdate, emp.extra, null);
 		addPhones(emp, e);
 	}
 
 	protected void insertEmployee(TestEmployeeTable employees, long pos,
 			EmployeeData emp) {
 		TestEmployeeRow e = employees.insert(pos, emp.firstName, emp.lastName,
-				emp.salary, emp.driver, emp.photo, emp.birthdate, emp.extra);
+				emp.salary, emp.driver, emp.photo, emp.birthdate, emp.extra, null);
 		addPhones(emp, e);
 	}
 

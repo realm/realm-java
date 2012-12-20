@@ -18,11 +18,11 @@ public class TableNavigationTest extends AbstractNavigationTest {
 		employees = new TestEmployeeTable();
 
 		employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 },
-				new Date(), "extra");
+				new Date(), "extra", null);
 		employees.add("Johny", "B. Good", 20000, true, new byte[] { 1, 2, 3 },
-				new Date(), true);
+				new Date(), true, null);
 		employees.insert(1, "Nikolche", "Mihajlovski", 30000, false,
-				new byte[] { 4, 5 }, new Date(), 1234);
+				new byte[] { 4, 5 }, new Date(), 1234, null);
 	}
 
 	@Override

@@ -62,7 +62,7 @@ public class ReplicationExample {
             try {
                 EmployeeTable employees = new EmployeeTable(transact);
                 employees.add("John", "Doe", 10000, true,
-                              new byte[] { 1, 2, 3 }, new Date(), "extra");
+                              new byte[] { 1, 2, 3 }, new Date(), "extra", null);
                 System.out.println(employees.size());
                 transact.commit();
             } catch (Throwable e) {

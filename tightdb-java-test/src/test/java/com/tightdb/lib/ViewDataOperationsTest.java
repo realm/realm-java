@@ -25,11 +25,11 @@ public class ViewDataOperationsTest extends AbstractDataOperationsTest {
 		TestEmployeeTable employeesTable = new TestEmployeeTable();
 
 		employeesTable.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 },
-				new Date(), "extra");
+				new Date(), "extra", null);
 		employeesTable.add(NAME2, "B. Good", 10000, true,
-				new byte[] { 1, 2, 3 }, new Date(), true);
+				new byte[] { 1, 2, 3 }, new Date(), true, null);
 		employeesTable.insert(1, NAME1, "Mihajlovski", 30000, false,
-				new byte[] { 4, 5 }, new Date(), 1234);
+				new byte[] { 4, 5 }, new Date(), 1234, null);
 
 		employees = employeesTable.where().findAll();
 	}
