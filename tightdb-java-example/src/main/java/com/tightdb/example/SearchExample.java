@@ -3,7 +3,7 @@ package com.tightdb.example;
 import java.util.Arrays;
 import java.util.Date;
 
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 public class SearchExample {
 

@@ -2,7 +2,7 @@ package com.tightdb.internal;
 
 import java.util.Scanner;
 
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 public class util {
 	

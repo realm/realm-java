@@ -9,7 +9,7 @@ import static org.testng.AssertJUnit.*;
 
 public class JNITableInsertTest {
 
-	public void verifyRow(TableBase tbl, long rowIndex, Object[] values) {
+	public void verifyRow(Table tbl, long rowIndex, Object[] values) {
 		assertTrue((Boolean)(values[0]) == tbl.getBoolean(0, rowIndex));
 		assertEquals(((Number)values[1]).longValue(), tbl.getLong(1, rowIndex));
 		assertEquals((String)values[2], tbl.getString(2, rowIndex));
@@ -23,7 +23,7 @@ public class JNITableInsertTest {
 //		Mixed mix2 =  tbl.getMixed(5, rowIndex);
 // TODO:		assertTrue(mix1.equals(mix2));
 		
-		TableBase subTable = tbl.getSubTable(6,  rowIndex);
+		Table subTable = tbl.getSubTable(6,  rowIndex);
 		Object[] subValues = (Object[])values[6];
 		for (long i=0; i<subTable.size(); i++) {
 			Object[] val = (Object[])subValues[(int) i];
@@ -35,7 +35,7 @@ public class JNITableInsertTest {
 	
 	@Test()
 	public void ShouldInsertAddAndSetRows() {
-		TableBase table = new TableBase();
+		Table table = new Table();
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeBool, "bool");
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
@@ -95,7 +95,7 @@ public class JNITableInsertTest {
 	
 	@Test()
 	public void ShouldFailInsert() {
-		TableBase table = new TableBase();
+		Table table = new Table();
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeBool, "bool");
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");

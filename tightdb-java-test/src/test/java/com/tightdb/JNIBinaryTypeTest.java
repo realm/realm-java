@@ -7,11 +7,11 @@ import java.nio.ByteBuffer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 public class JNIBinaryTypeTest {
 
-	protected TableBase table;
+	protected Table table;
 	protected byte [] testArray = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 	
 	@BeforeMethod
@@ -19,7 +19,7 @@ public class JNIBinaryTypeTest {
 		TightDB.loadLibrary();
 		//util.setDebugLevel(0); //Set to 1 to see more JNI debug messages
 		
-		table = new TableBase();
+		table = new Table();
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeBinary, "bin");
@@ -50,7 +50,7 @@ public class JNIBinaryTypeTest {
 		checkBinaryCell(table, 0, 0, ColumnType.ColumnTypeBinary, testArray);
 	}
 
-	private void checkBinaryCell(TableBase table, long col, long row, ColumnType columnType, byte[] value) throws IllegalAccessException {
+	private void checkBinaryCell(Table table, long col, long row, ColumnType columnType, byte[] value) throws IllegalAccessException {
 		byte[] bin = table.getBinaryByteArray(col, row);
 		assertEquals(value, bin);
 		

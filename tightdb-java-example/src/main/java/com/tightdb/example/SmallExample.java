@@ -2,8 +2,8 @@ package com.tightdb.example;
 
 import java.util.Date;
 
-import com.tightdb.Table;
-import com.tightdb.lib.TightDB;
+import com.tightdb.DefineTable;
+import com.tightdb.typed.TightDB;
 
 public class SmallExample {
 
@@ -21,7 +21,7 @@ public class SmallExample {
 	}
 
 
-	@Table(row = "Employee")
+	@DefineTable(row = "Employee")
 	class employee {
 		String firstName;
 		String lastName;
@@ -33,7 +33,7 @@ public class SmallExample {
 		phone phones;
 	}
 
-	@Table(row = "Phone")
+	@DefineTable(row = "Phone")
 	class phone {
 		String type;
 		String number;

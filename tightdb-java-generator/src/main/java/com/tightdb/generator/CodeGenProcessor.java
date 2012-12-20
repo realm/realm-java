@@ -26,7 +26,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.StandardLocation;
 
-import com.tightdb.Table;
+import com.tightdb.DefineTable;
 
 public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
@@ -61,7 +61,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 		for (TypeElement annotation : annotations) {
 			String annotationName = annotation.getQualifiedName().toString();
-			if (annotationName.equals(Table.class.getCanonicalName())) {
+			if (annotationName.equals(DefineTable.class.getCanonicalName())) {
 				Set<? extends Element> elements = env.getElementsAnnotatedWith(annotation);
 				processAnnotatedElements(elements, insideEclipse);
 			} else {
@@ -123,7 +123,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	}
 
 	private void setupModelInfo(TypeElement model) {
-		AnnotationMirror annotationMirror = getAnnotationInfo(model, Table.class);
+		AnnotationMirror annotationMirror = getAnnotationInfo(model, DefineTable.class);
 		String tableName = getAttribute(annotationMirror, "table");
 		String cursorName = getAttribute(annotationMirror, "row");
 		String viewName = getAttribute(annotationMirror, "view");

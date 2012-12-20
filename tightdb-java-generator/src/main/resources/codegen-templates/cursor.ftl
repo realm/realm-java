@@ -4,7 +4,7 @@ package ${packageName};
 </#if>
 
 import com.tightdb.*;
-import com.tightdb.lib.*;
+import com.tightdb.typed.*;
 
 /**
  * This class represents a TightDB cursor and was automatically generated.
@@ -14,7 +14,7 @@ public class ${name} extends AbstractCursor<${name}> {
 <#foreach f in columns><#if f.isSubtable>    public final ${f.type}CursorColumn<${name}, ${viewName}, ${queryName}, ${f.subCursorName}, ${f.subTableName}> ${f.name};
 <#else>    public final ${f.type}CursorColumn<${cursorName}, ${viewName}, ${queryName}> ${f.name};
 </#if></#foreach>
-	public ${cursorName}(TableOrViewBase tableOrView, long position) {
+	public ${cursorName}(TableOrView tableOrView, long position) {
 		super(${tableName}.TYPES, tableOrView, position);
 
 <#foreach f in columns><#if f.isSubtable>        ${f.name} = new ${f.type}CursorColumn<${cursorName}, ${viewName}, ${queryName}, ${f.subCursorName}, ${f.subTableName}>(${tableName}.TYPES, this, ${f.index}, "${f.name}", ${f.subTableName}.class);

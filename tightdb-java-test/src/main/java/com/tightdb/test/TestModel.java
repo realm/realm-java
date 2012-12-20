@@ -2,14 +2,14 @@ package com.tightdb.test;
 
 import java.util.Date;
 
-import com.tightdb.Table;
+import com.tightdb.DefineTable;
 
 /**
  * This model is used to generate classes that are used only for the tests.
  */
 public class TestModel {
 
-	@Table
+	@DefineTable
 	class TestEmployee {
 		String firstName;
 		String lastName;
@@ -21,7 +21,7 @@ public class TestModel {
 		TestPhone phones;
 	}
 
-	@Table
+	@DefineTable
 	class TestPhone {
 		String type;
 		String number;
