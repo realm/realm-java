@@ -7,14 +7,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef com_tightdb_TableBase_INFINITE
-#define com_tightdb_TableBase_INFINITE -1i64
+#undef com_tightdb_Table_INFINITE
+#define com_tightdb_Table_INFINITE -1i64
 /*
  * Class:     com_tightdb_TableBase
  * Method:    createNative
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_createNative
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_createNative
   (JNIEnv *, jobject);
 
 /*
@@ -22,7 +22,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_createNative
  * Method:    nativeClose
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClose
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -30,7 +30,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose
  * Method:    nativeIsValid
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeIsValid
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -38,7 +38,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeIsValid
  * Method:    nativeUpdateFromSpec
  * Signature: (JLcom/tightdb/TableSpec;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeUpdateFromSpec
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec
   (JNIEnv *, jobject, jlong, jobject);
 
 /*
@@ -46,7 +46,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeUpdateFromSpec
  * Method:    nativeSize
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeSize
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSize
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -54,7 +54,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeSize
  * Method:    nativeClear
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClear
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClear
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -62,7 +62,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClear
  * Method:    nativeGetColumnCount
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetColumnCount
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetColumnCount
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -70,7 +70,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetColumnCount
  * Method:    nativeGetTableSpec
  * Signature: (J)Lcom/tightdb/TableSpec;
  */
-JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetTableSpec
+JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetTableSpec
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -78,7 +78,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetTableSpec
  * Method:    nativeGetColumnName
  * Signature: (JJ)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetColumnName
+JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetColumnName
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -86,7 +86,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetColumnName
  * Method:    nativeGetColumnType
  * Signature: (JJ)I
  */
-JNIEXPORT jint JNICALL Java_com_tightdb_TableBase_nativeGetColumnType
+JNIEXPORT jint JNICALL Java_com_tightdb_Table_nativeGetColumnType
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -94,7 +94,7 @@ JNIEXPORT jint JNICALL Java_com_tightdb_TableBase_nativeGetColumnType
  * Method:    nativeAddEmptyRow
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeAddEmptyRow
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddEmptyRow
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -102,7 +102,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeAddEmptyRow
  * Method:    nativeRemove
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeRemove
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemove
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -110,7 +110,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeRemove
  * Method:    nativeRemoveLast
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeRemoveLast
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveLast
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -118,7 +118,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeRemoveLast
  * Method:    nativeInsertLong
  * Signature: (JJJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertLong
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertLong
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
@@ -126,7 +126,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertLong
  * Method:    nativeInsertBoolean
  * Signature: (JJJZ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertBoolean
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertBoolean
   (JNIEnv *, jobject, jlong, jlong, jlong, jboolean);
 
 /*
@@ -134,7 +134,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertBoolean
  * Method:    nativeInsertDate
  * Signature: (JJJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertDate
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertDate
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
@@ -142,7 +142,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertDate
  * Method:    nativeInsertString
  * Signature: (JJJLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertString
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertString
   (JNIEnv *, jobject, jlong, jlong, jlong, jstring);
 
 /*
@@ -150,7 +150,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertString
  * Method:    nativeInsertMixed
  * Signature: (JJJLcom/tightdb/Mixed;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertMixed
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
@@ -158,7 +158,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertMixed
  * Method:    nativeInsertByteBuffer
  * Signature: (JJJLjava/nio/ByteBuffer;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertByteBuffer
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteBuffer
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
@@ -166,7 +166,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertByteBuffer
  * Method:    nativeInsertByteArray
  * Signature: (JJJ[B)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertByteArray
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteArray
   (JNIEnv *, jobject, jlong, jlong, jlong, jbyteArray);
 
 /*
@@ -174,7 +174,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertByteArray
  * Method:    nativeInsertSubTable
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertSubTable
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertSubTable
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -182,7 +182,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertSubTable
  * Method:    nativeInsertDone
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertDone
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertDone
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -190,7 +190,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeInsertDone
  * Method:    nativeGetLong
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetLong
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetLong
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -198,7 +198,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetLong
  * Method:    nativeGetBoolean
  * Signature: (JJJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeGetBoolean
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeGetBoolean
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -206,7 +206,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeGetBoolean
  * Method:    nativeGetDateTime
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetDateTime
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetDateTime
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -214,7 +214,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetDateTime
  * Method:    nativeGetString
  * Signature: (JJJ)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetString
+JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetString
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -222,7 +222,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeGetString
  * Method:    nativeGetByteBuffer
  * Signature: (JJJ)Ljava/nio/ByteBuffer;
  */
-JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetByteBuffer
+JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetByteBuffer
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -230,7 +230,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetByteBuffer
  * Method:    nativeGetByteArray
  * Signature: (JJJ)[B
  */
-JNIEXPORT jbyteArray JNICALL Java_com_tightdb_TableBase_nativeGetByteArray
+JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Table_nativeGetByteArray
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -238,7 +238,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_TableBase_nativeGetByteArray
  * Method:    nativeGetMixedType
  * Signature: (JJJ)I
  */
-JNIEXPORT jint JNICALL Java_com_tightdb_TableBase_nativeGetMixedType
+JNIEXPORT jint JNICALL Java_com_tightdb_Table_nativeGetMixedType
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -246,7 +246,7 @@ JNIEXPORT jint JNICALL Java_com_tightdb_TableBase_nativeGetMixedType
  * Method:    nativeGetMixed
  * Signature: (JJJ)Lcom/tightdb/Mixed;
  */
-JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetMixed
+JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetMixed
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -254,7 +254,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableBase_nativeGetMixed
  * Method:    nativeGetSubTable
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTable
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTable
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -262,7 +262,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTable
  * Method:    nativeGetSubTableDuringInsert
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableDuringInsert
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableDuringInsert
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -270,7 +270,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableDuringInsert
  * Method:    nativeGetSubTableSize
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableSize
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableSize
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -278,7 +278,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeGetSubTableSize
  * Method:    nativeClearSubTable
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClearSubTable
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClearSubTable
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -286,7 +286,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClearSubTable
  * Method:    nativeSetString
  * Signature: (JJJLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetString
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetString
   (JNIEnv *, jobject, jlong, jlong, jlong, jstring);
 
 /*
@@ -294,7 +294,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetString
  * Method:    nativeSetLong
  * Signature: (JJJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetLong
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetLong
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
@@ -302,7 +302,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetLong
  * Method:    nativeSetBoolean
  * Signature: (JJJZ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetBoolean
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetBoolean
   (JNIEnv *, jobject, jlong, jlong, jlong, jboolean);
 
 /*
@@ -310,7 +310,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetBoolean
  * Method:    nativeSetDate
  * Signature: (JJJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetDate
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetDate
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
@@ -318,7 +318,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetDate
  * Method:    nativeSetByteBuffer
  * Signature: (JJJLjava/nio/ByteBuffer;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetByteBuffer
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetByteBuffer
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
@@ -326,7 +326,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetByteBuffer
  * Method:    nativeSetByteArray
  * Signature: (JJJ[B)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetByteArray
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetByteArray
   (JNIEnv *, jobject, jlong, jlong, jlong, jbyteArray);
 
 /*
@@ -334,7 +334,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetByteArray
  * Method:    nativeSetMixed
  * Signature: (JJJLcom/tightdb/Mixed;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetMixed
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetMixed
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
@@ -342,7 +342,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetMixed
  * Method:    nativeAddInt
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeAddInt
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeAddInt
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -350,7 +350,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeAddInt
  * Method:    nativeSetIndex
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetIndex
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetIndex
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -358,7 +358,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeSetIndex
  * Method:    nativeHasIndex
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeHasIndex
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeHasIndex
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -366,7 +366,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeHasIndex
  * Method:    nativeSum
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeSum
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSum
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -374,7 +374,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeSum
  * Method:    nativeMaximum
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMaximum
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximum
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -382,7 +382,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMaximum
  * Method:    nativeMinimum
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMinimum
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimum
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -390,7 +390,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeMinimum
  * Method:    nativeAverage
  * Signature: (JJ)D
  */
-JNIEXPORT jdouble JNICALL Java_com_tightdb_TableBase_nativeAverage
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverage
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -398,7 +398,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableBase_nativeAverage
  * Method:    nativeWhere
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeWhere
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeWhere
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -406,7 +406,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeWhere
  * Method:    nativeFindFirstInt
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstInt
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstInt
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -414,7 +414,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstInt
  * Method:    nativeFindFirstBool
  * Signature: (JJZ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstBool
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstBool
   (JNIEnv *, jobject, jlong, jlong, jboolean);
 
 /*
@@ -422,7 +422,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstBool
  * Method:    nativeFindFirstDate
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstDate
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstDate
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -430,7 +430,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstDate
  * Method:    nativeFindFirstString
  * Signature: (JJLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstString
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstString
   (JNIEnv *, jobject, jlong, jlong, jstring);
 
 /*
@@ -438,7 +438,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindFirstString
  * Method:    nativeFindAllInt
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllInt
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllInt
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -446,7 +446,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllInt
  * Method:    nativeFindAllBool
  * Signature: (JJZ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllBool
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllBool
   (JNIEnv *, jobject, jlong, jlong, jboolean);
 
 /*
@@ -454,7 +454,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllBool
  * Method:    nativeFindAllDate
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllDate
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllDate
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -462,7 +462,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllDate
  * Method:    nativeFindAllString
  * Signature: (JJLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllString
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString
   (JNIEnv *, jobject, jlong, jlong, jstring);
 
 /*
@@ -470,7 +470,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeFindAllString
  * Method:    nativeDistinct
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeDistinct
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeDistinct
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -478,7 +478,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_nativeDistinct
  * Method:    nativeOptimize
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeOptimize
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeOptimize
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -486,7 +486,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeOptimize
  * Method:    nativeToJson
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_tightdb_TableBase_nativeToJson
+JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToJson
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
