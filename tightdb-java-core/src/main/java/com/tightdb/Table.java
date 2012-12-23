@@ -329,21 +329,25 @@ public class Table implements TableOrView {
 				break;
 			case ColumnTypeTable:
 				nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
-				if (value != null) {
-					// insert rows in subtable recursively
-					Table subtable = getSubTableDuringInsert(columnIndex, rowIndex);
-					int rows = ((Object[])value).length;
-					for (int i=0; i<rows; ++i) {
-						Object rowArr = ((Object[])value)[i];
-						subtable.insert(i, (Object[])rowArr);
-					}
-				}
+				insertSubtableValues(rowIndex, columnIndex, value);
 				break;
 			default:
 				throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int)columnIndex]));
 			}
 		}
 		insertDone();
+	}
+
+	private void insertSubtableValues(long rowIndex, long columnIndex, Object value) {
+		if (value != null) {
+			// insert rows in subtable recursively
+			Table subtable = getSubTableDuringInsert(columnIndex, rowIndex);
+			int rows = ((Object[])value).length;
+			for (int i=0; i<rows; ++i) {
+				Object rowArr = ((Object[])value)[i];
+				subtable.insert(i, (Object[])rowArr);
+			}
+		}
 	}
 
 	public void set(long rowIndex, Object... values) {
@@ -437,9 +441,10 @@ public class Table implements TableOrView {
 
 	protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
 
-	public void insertSubTable(long columnIndex, long rowIndex) {
+	public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
 		if (immutable) throwImmutable();
 		nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
+		insertSubtableValues(rowIndex, columnIndex, values);
 	}
 
 	protected native void nativeInsertSubTable(long nativeTablePtr, long columnIndex, long rowIndex);

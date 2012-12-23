@@ -159,8 +159,8 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 		table.insertMixed(columnIndex, rowIndex, mixed);
 	}
 
-	protected void insertTable(long columnIndex, long rowIndex) {
-		table.insertSubTable(columnIndex, rowIndex);
+	protected void insertTable(long columnIndex, long rowIndex, Object[][] values) {
+		table.insertSubTable(columnIndex, rowIndex, values);
 	}
 
 	protected void insertDone() {
