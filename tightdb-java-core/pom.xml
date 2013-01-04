@@ -17,6 +17,7 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
+				    <finalName>tightdb</finalName>
 					<outputDirectory>${project.parent.basedir}/lib</outputDirectory>
 				</configuration>
 			</plugin>
