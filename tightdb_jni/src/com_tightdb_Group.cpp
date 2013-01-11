@@ -11,40 +11,28 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__(
     return reinterpret_cast<jlong>(ptr);
 }
 
-/* !!! TODO:
-    Update interface :
-
-enum GroupMode {
-    GROUP_DEFAULT  =  0,
-    GROUP_READONLY =  1,
-    GROUP_SHARED   =  2,
-    GROUP_APPEND   =  4,
-    GROUP_ASYNC    =  8,
-    GROUP_SWAPONLY = 16
-};
-*/
-inline bool groupIsValid(JNIEnv* env, Group* pGroup) {
-    if (!pGroup->is_valid()) {
-		delete pGroup;
-		ThrowException(env, IllegalArgument, "Group(): Invalid tightdb database format.");
-		return false;
-	}
-    return true;
-}
-
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2Z(
 	JNIEnv* env, jobject, jstring jFileName, jboolean readOnly)
 {	
     TR((env, "Group::createNative(file): "));
-	const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
-	if (fileNameCharPtr == NULL)
-		return 0;        // Exception is thrown by GetStringUTFChars()
+    const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
+    if (fileNameCharPtr == NULL)
+        return 0;        // Exception is thrown by GetStringUTFChars()
 
-	Group* pGroup = new Group(fileNameCharPtr, readOnly != 0 ? GROUP_READONLY : GROUP_DEFAULT);
-	if (!groupIsValid(env, pGroup))
+    Group* pGroup;
+    try {
+        pGroup = new Group(fileNameCharPtr, readOnly != 0 ? Group::mode_ReadOnly : Group::mode_Normal);
+    }
+    catch (FileOpenError&) {
+        ThrowException(env, IllegalArgument, "Group(): Invalid database file name.");
         return 0;
+    }
+    catch (...) {
+        // FIXME: Should throw a Java exception.
+        return 0;
+    }
     TR((env, "%x\n", pGroup));
-	return reinterpret_cast<jlong>(pGroup);
+    return reinterpret_cast<jlong>(pGroup);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
@@ -60,11 +48,21 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
     env->GetByteArrayRegion(jData, 0, byteArrayLength, buf);
 
     TR((env, " %d bytes.", byteArrayLength));
-    Group* pGroup = new Group(Group::from_mem_tag(), reinterpret_cast<char*>(buf), S(byteArrayLength), true);
-	if (!groupIsValid(env, pGroup))
+    Group* pGroup;
+    try {
+        pGroup = new Group(Group::BufferSpec(reinterpret_cast<char*>(buf), S(byteArrayLength)), true);
+    }
+    catch (InvalidDatabase&) {
+        ThrowException(env, IllegalArgument, "Group(): Invalid tightdb database format.");
+        // FIXME: Memory leak: 'buf' must be freed. Consider using a scoped dealloc guard.
         return 0;
+    }
+    catch (...) {
+        // FIXME: Should throw a Java exception.
+        return 0;
+    }
     TR((env, "%x\n", pGroup));
-	return reinterpret_cast<jlong>(pGroup);
+    return reinterpret_cast<jlong>(pGroup);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffer_2(
@@ -76,11 +74,20 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
         return 0;
     TR((env, " %d bytes. ", data.len));
     // FIXME: I added the const_cast<> because it had to be added after a const error was fixed in the core library. The necessity of the const_cast<> leads me to suspect that this function has something wrong about it. Maybe it should simply not use a BinaryData instance. Somebody should investigate. Consider also whether it is correct that ownership of the memory is transferred.
-    Group* pGroup = new Group(Group::from_mem_tag(), const_cast<char*>(data.pointer), data.len);
-    if (!groupIsValid(env, pGroup))
+    Group* pGroup;
+    try {
+        pGroup = new Group(Group::BufferSpec(const_cast<char*>(data.pointer), data.len));
+    }
+    catch (InvalidDatabase&) {
+        ThrowException(env, IllegalArgument, "Group(): Invalid tightdb database format.");
         return 0;
+    }
+    catch (...) {
+        // FIXME: Should throw a Java exception.
+        return 0;
+    }
     TR((env, "%x\n", pGroup));
-	return reinterpret_cast<jlong>(pGroup);
+    return reinterpret_cast<jlong>(pGroup);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose(
@@ -89,12 +96,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose(
     TR((env, "Group::nativeClose(%x)\n", nativeGroupPtr));
     Group* grp = G(nativeGroupPtr);
     delete grp;
-}
-
-JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeIsValid(
-	JNIEnv*, jobject, jlong nativeGroupPtr)
-{	
-	return G(nativeGroupPtr)->is_valid();
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableCount(
@@ -139,12 +140,16 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableNativePtr(
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
 	JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName)
 {	
-	const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
-	if (fileNameCharPtr) {	
-	    bool success = G(nativeGroupPtr)->write(fileNameCharPtr);
-        if (!success)
+    const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
+    if (fileNameCharPtr) {
+        try {
+            G(nativeGroupPtr)->write(fileNameCharPtr);
+        }
+        catch (...) {
+            // FIXME: Thrown Java exception should probably contain information from the catched C++ exception
             ThrowException(env, IOFailed, fileNameCharPtr);
 	    env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
+        }
     }
     // (exception is thrown by GetStringUTFChars if it fails.)
 }
@@ -153,33 +158,33 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
 	JNIEnv* env, jobject, jlong nativeGroupPtr)
 {	
     TR((env, "nativeWriteToMem(%x)\n", nativeGroupPtr));
-	size_t len;
-	char* memBuf = G(nativeGroupPtr)->write_to_mem(len);
+    Group::BufferSpec buffer = G(nativeGroupPtr)->write_to_mem(); // FIXME: May throw
     jbyteArray jArray = NULL;
-    if (len <= MAX_JSIZE) {
-        jsize jlen = static_cast<jsize>(len);
+    if (buffer.m_size <= MAX_JSIZE) {
+        jsize jlen = static_cast<jsize>(buffer.m_size);
         jArray = env->NewByteArray(jlen);
         if (jArray)
             // Copy data to Byte[]
-	        env->SetByteArrayRegion(jArray, 0, jlen, (const jbyte*)memBuf);
+	        env->SetByteArrayRegion(jArray, 0, jlen, (const jbyte*)buffer.m_data);
     } 
     if (!jArray) {
         ThrowException(env, IndexOutOfBounds, "Group too big to write.");
     }
-    free(memBuf); // free native data.
-	return jArray;
+    // FIXME: Deallocation must happen even if somthing fails above
+    free(buffer.m_data); // free native data.
+    return jArray;
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
 	JNIEnv* env, jobject, jlong nativeGroupPtr)
 {	
     TR((env, "nativeWriteToByteBuffer(%x)\n", nativeGroupPtr));
-	size_t len;
-	char* memValue = G(nativeGroupPtr)->write_to_mem(len);
-	if (len <= MAX_JLONG) {
-        return env->NewDirectByteBuffer(static_cast<void*>(memValue), static_cast<jlong>(len));
+    Group::BufferSpec buffer = G(nativeGroupPtr)->write_to_mem(); // FIXME: May throw
+    if (buffer.m_size <= MAX_JLONG) {
+        return env->NewDirectByteBuffer(static_cast<void*>(buffer.m_data), static_cast<jlong>(buffer.m_size));
         // Data is NOT copied in DirectByteBuffer - so we can't free it.
-    } else {
+    }
+    else {
         ThrowException(env, IndexOutOfBounds, "Group too big to write.");
         return NULL;
     }
