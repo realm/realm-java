@@ -1,7 +1,11 @@
 package com.tightdb.typed;
 
+import java.nio.ByteBuffer;
+import java.util.Date;
+
 import com.tightdb.ColumnType;
 import com.tightdb.Group;
+import com.tightdb.Mixed;
 import com.tightdb.Table;
 import com.tightdb.TableSpec;
 
@@ -123,8 +127,44 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 		}
 	}
 
-	protected void doInsert(long rowIndex, Object... values) {
-		table.insert(rowIndex, values);
+	protected void insertLong(long columnIndex, long rowIndex, long value) {
+		table.insertLong(columnIndex, rowIndex, value);
+	}
+
+	protected void insertString(long columnIndex, long rowIndex, String value) {
+		table.insertString(columnIndex, rowIndex, value);
+	}
+
+	protected void insertBoolean(long columnIndex, long rowIndex, boolean value) {
+		table.insertBoolean(columnIndex, rowIndex, value);
+	}
+
+	protected void insertBinary(long columnIndex, long rowIndex, byte[] value) {
+		ByteBuffer buffer = ByteBuffer.allocateDirect(value.length);
+		buffer.put(value);
+
+		table.insertBinary(columnIndex, rowIndex, buffer);
+	}
+
+	protected void insertBinary(long columnIndex, long rowIndex, ByteBuffer value) {
+		table.insertBinary(columnIndex, rowIndex, value);
+	}
+
+	protected void insertDate(long columnIndex, long rowIndex, Date value) {
+		table.insertDate(columnIndex, rowIndex, value);
+	}
+
+	protected void insertMixed(long columnIndex, long rowIndex, Object value) {
+		Mixed mixed = Mixed.mixedValue(value);
+		table.insertMixed(columnIndex, rowIndex, mixed);
+	}
+
+	protected void insertTable(long columnIndex, long rowIndex, Object[][] values) {
+		table.insertSubTable(columnIndex, rowIndex, values);
+	}
+
+	protected void insertDone() {
+		table.insertDone();
 	}
 
 	public void setIndex(long columnIndex) {
