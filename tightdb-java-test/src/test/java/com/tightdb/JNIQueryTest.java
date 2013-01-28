@@ -5,22 +5,21 @@ import org.testng.annotations.Test;
 
 public class JNIQueryTest {
 
-	TableBase table;
+	Table table;
 	
 	void init() {
-		table = new TableBase();
+		table = new Table();
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
 		table.updateFromSpec(tableSpec);
 
-		long i = 0;
-		table.insertLong(0, i, 10); table.insertString(1, i++, "A"); table.insertDone();
-		table.insertLong(0, i, 11); table.insertString(1, i++, "B"); table.insertDone();
-		table.insertLong(0, i, 12); table.insertString(1, i++, "C"); table.insertDone();
-		table.insertLong(0, i, 13); table.insertString(1, i++, "B"); table.insertDone();
-		table.insertLong(0, i, 14); table.insertString(1, i++, "D"); table.insertDone();
-		table.insertLong(0, i, 16); table.insertString(1, i++, "D"); table.insertDone();
+		table.add(10, "A");
+		table.add(11, "B");
+		table.add(12, "C");
+		table.add(13, "B");
+		table.add(14, "D");
+		table.add(16, "D");
 		assertEquals(6, table.size());
 	}
 

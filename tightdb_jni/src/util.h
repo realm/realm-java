@@ -85,6 +85,7 @@ extern void jprint(JNIEnv *env, char *txt);
 #define INDEX_VALID(env,ptr,col,row)                IndexValid(env, ptr, col, row)
 #define INDEX_INSERT_VALID(env,ptr,col,row)         IndexInsertValid(env, ptr, col, row)
 #define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)  IndexAndTypeValid(env, ptr, col, row, type)
+#define INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type)  IndexAndTypeInsertValid(env, ptr, col, row, type)
 
 #else
 
@@ -94,6 +95,7 @@ extern void jprint(JNIEnv *env, char *txt);
 #define INDEX_VALID(env,ptr,col,row) (true)
 #define INDEX_INSERT_VALID(env,ptr,col,row) (true)
 #define INDEX_AND_TYPE_VALID(env,ptr,col,row,type) (true)
+#define INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type) (true)
 
 #endif
 
@@ -158,9 +160,9 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex)
     if (tightdb::SameType<Table*, T>::value)    
         if (!TableIsValid(env, TBL(pTable)))
             return false;
-
     bool rowErr = int_greater_than_or_equal(rowIndex, pTable->size());
     if (rowErr) {
+        const size_t s = pTable->size();
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), pTable->size())); 
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
     }
@@ -194,7 +196,8 @@ inline bool IndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong ro
 {
     if (!ColIndexValid(env, pTable, columnIndex))
         return false;
-    bool rowErr = int_greater_than(rowIndex, pTable->size()+1) ;
+    // FIXME: REMOVE const size_t colSize = pTable->GetColumn(columnIndex).Size();
+    bool rowErr = int_greater_than(rowIndex, pTable->size()+1);
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", rowIndex, pTable->size())); 
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
@@ -203,10 +206,8 @@ inline bool IndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong ro
 }
 
 template <class T>
-inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType) 
+inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType) 
 {
-    if (!IndexValid(env, pTable, columnIndex, rowIndex))
-        return false;
     size_t col = static_cast<size_t>(columnIndex);
     size_t row = static_cast<size_t>(rowIndex);
     int colType = pTable->get_column_type(col);
@@ -221,6 +222,25 @@ inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong r
     return true;
 }
 
+template <class T>
+inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType) 
+{
+    if (!IndexValid(env, pTable, columnIndex, rowIndex))
+        return false;
+    if (!TypeValid(env, pTable, columnIndex, rowIndex, expectColType))
+        return false;
+    return true;
+}
+
+template <class T>
+inline bool IndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType) 
+{
+    if (!IndexInsertValid(env, pTable, columnIndex, rowIndex))
+        return false;
+    if (!TypeValid(env, pTable, columnIndex, rowIndex, expectColType))
+        return false;
+    return true;
+}
 
 bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data);
 

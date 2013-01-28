@@ -8,7 +8,7 @@ public class JNIMixedSubtableTest {
 
 	@Test
 	public void shouldCreateSubtableInMixedTypeColumn() {
-		TableBase table = new TableBase();
+		Table table = new Table();
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "num");
@@ -17,7 +17,7 @@ public class JNIMixedSubtableTest {
 		subspec.addColumn(ColumnType.ColumnTypeInt, "num");
 		table.updateFromSpec(tableSpec);
 
-		// Doesn't work: no Mixed stored yet
+		// Shouln't work: no Mixed stored yet
 		//Mixed m1 = table.getMixed(1, 0);
 		//ColumnType mt = table.getMixedType(1,0);
 		
@@ -29,7 +29,7 @@ public class JNIMixedSubtableTest {
 			boolean gotException = false;
 			try {
 				@SuppressWarnings("unused")
-				TableBase subtable = table.getSubTable(1, 0);
+				Table subtable = table.getSubTable(1, 0);
 			} catch (IllegalArgumentException e) {
 				gotException = true;
 			}
@@ -38,32 +38,21 @@ public class JNIMixedSubtableTest {
 		}
 		
 		long ROW = 0;
-		boolean simple = true;
 		// Add empty row - the simple way
-		if (simple) {
-			table.addEmptyRow();
-			table.setMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable));
-		} else {
-			// OR Add "empty" row - the "manual" way
-			table.insertLong(0, ROW, 0);
-			table.insertMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable)); 	// Mixed subtable
-			table.insertSubTable(2, ROW);										// Normal subtable
-			table.insertDone();
-		}
+		table.addEmptyRow();
+		table.setMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable));
 		assertEquals(1, table.size());
 		assertEquals(0, table.getSubTableSize(1, 0));
 		
 		// Create schema for the one Mixed cell with a subtable
-		TableBase subtable = table.getSubTable(1, ROW);
+		Table subtable = table.getSubTable(1, ROW);
 		TableSpec subspecMixed = subtable.getTableSpec();
 		subspecMixed.addColumn(ColumnType.ColumnTypeInt, "num");
 		subtable.updateFromSpec(subspecMixed);
 
 		// Insert value in the Mixed subtable
-		subtable.insertLong(0, 0, 27);
-		subtable.insertDone();
-		subtable.insertLong(0, 1, 273);
-		subtable.insertDone();
+		subtable.add(27);
+		subtable.add(273);
 		assertEquals(2, subtable.size());
 		assertEquals(2, table.getSubTableSize(1, ROW));
 		assertEquals(27, subtable.getLong(0, ROW));
@@ -73,7 +62,7 @@ public class JNIMixedSubtableTest {
 	@SuppressWarnings("unused")
 	@Test
 	public void shouldCreateSubtableInMixedTypeColumn2() {
-		TableBase table = new TableBase();
+		Table table = new Table();
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "num");
@@ -83,7 +72,7 @@ public class JNIMixedSubtableTest {
 		table.addEmptyRow();
 		table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));
 		
-		TableBase subtable = table.getSubTable(1, 0);
+		Table subtable = table.getSubTable(1, 0);
 	}
 
 }

@@ -50,7 +50,6 @@ public class TableSpec {
 				return false;
 			return true;
 		}
-		
 	}
 
 	private List<ColumnInfo> columnInfos;
@@ -64,8 +63,7 @@ public class TableSpec {
 	}
 
 	protected void addColumn(int colTypeIndex, String name) {
-		ColumnType[] colTypes = ColumnType.values();
-		addColumn(colTypes[colTypeIndex], name);
+		addColumn(ColumnType.fromNativeValue(colTypeIndex), name);
 	}
 
 	public TableSpec addSubtableColumn(String name) {

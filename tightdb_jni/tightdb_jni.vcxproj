@@ -22,10 +22,9 @@
     <ClInclude Include="src\columntypeutil.h" />
     <ClInclude Include="src\com_tightdb_group.h" />
     <ClInclude Include="src\com_tightdb_internal_util.h" />
-    <ClInclude Include="src\com_tightdb_tablebase.h" />
+    <ClInclude Include="src\com_tightdb_Table.h" />
     <ClInclude Include="src\com_tightdb_tablequery.h" />
-    <ClInclude Include="src\com_tightdb_tableviewbase.h" />
-    <ClInclude Include="src\com_tightdb_util.h" />
+    <ClInclude Include="src\com_tightdb_TableView.h" />
     <ClInclude Include="src\mem_usage.hpp" />
     <ClInclude Include="src\tablebase_tpl.hpp" />
     <ClInclude Include="src\tablespecutil.h" />
@@ -35,9 +34,9 @@
   <ItemGroup>
     <ClCompile Include="src\columntypeutil.cpp" />
     <ClCompile Include="src\com_tightdb_group.cpp" />
-    <ClCompile Include="src\com_tightdb_tablebase.cpp" />
+    <ClCompile Include="src\com_tightdb_table.cpp" />
     <ClCompile Include="src\com_tightdb_tablequery.cpp" />
-    <ClCompile Include="src\com_tightdb_tableviewbase.cpp" />
+    <ClCompile Include="src\com_tightdb_tableview.cpp" />
     <ClCompile Include="src\com_tightdb_internal_util.cpp" />
     <ClCompile Include="src\java_lang_list_util.cpp" />
     <ClCompile Include="src\mem_usage.cpp" />

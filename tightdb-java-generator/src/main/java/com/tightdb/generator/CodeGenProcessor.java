@@ -26,7 +26,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.StandardLocation;
 
-import com.tightdb.Table;
+import com.tightdb.DefineTable;
 
 public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
@@ -45,9 +45,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	private final CodeRenderer renderer = new CodeRenderer();
 
 	static {
-		NUM_TYPES = new HashSet<String>(Arrays.asList("long", "int", "byte",
-				"short", "java.lang.Long", "java.lang.Integer",
-				"java.lang.Byte", "java.lang.Short"));
+		NUM_TYPES = new HashSet<String>(Arrays.asList("long", "int", "byte", "short", "java.lang.Long",
+				"java.lang.Integer", "java.lang.Byte", "java.lang.Short"));
 	}
 
 	private Map<String, TypeElement> tables = new HashMap<String, TypeElement>();
@@ -56,15 +55,14 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	private FieldSorter fieldSorter;
 
 	@Override
-	public void processAnnotations(Set<? extends TypeElement> annotations,
-			RoundEnvironment env, boolean insideEclipse) throws Exception {
+	public void processAnnotations(Set<? extends TypeElement> annotations, RoundEnvironment env, boolean insideEclipse)
+			throws Exception {
 		fieldSorter = new FieldSorter(logger, getSourceFolders());
 
 		for (TypeElement annotation : annotations) {
 			String annotationName = annotation.getQualifiedName().toString();
-			if (annotationName.equals(Table.class.getCanonicalName())) {
-				Set<? extends Element> elements = env
-						.getElementsAnnotatedWith(annotation);
+			if (annotationName.equals(DefineTable.class.getCanonicalName())) {
+				Set<? extends Element> elements = env.getElementsAnnotatedWith(annotation);
 				processAnnotatedElements(elements, insideEclipse);
 			} else {
 				logger.warn("Unexpected annotation: " + annotationName);
@@ -72,12 +70,10 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		}
 	}
 
-	private void processAnnotatedElements(Set<? extends Element> elements, boolean insideEclipse)
-			throws IOException {
+	private void processAnnotatedElements(Set<? extends Element> elements, boolean insideEclipse) throws IOException {
 		logger.info("Processing " + elements.size() + " elements...");
 
-		URI uri = filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "foo")
-				.toUri();
+		URI uri = filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "foo").toUri();
 		if (uri.toString().equals("foo")) {
 			throw new RuntimeException(
 					"The path of the Java source and generated files must be configured as source output! (see -s option of javac)");
@@ -85,7 +81,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 
 		List<File> sourcesPath = new LinkedList<File>();
 
-		// FIXME: Workaround for OS X - resolve relative URIs against current working directory
+		// FIXME: Workaround for OS X - resolve relative URIs against current
+		// working directory
 		uri = new File(".").getAbsoluteFile().toURI().resolve(uri);
 
 		File file = new File(uri);
@@ -126,24 +123,20 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	}
 
 	private void setupModelInfo(TypeElement model) {
-		AnnotationMirror annotationMirror = getAnnotationInfo(model,
-				Table.class);
+		AnnotationMirror annotationMirror = getAnnotationInfo(model, DefineTable.class);
 		String tableName = getAttribute(annotationMirror, "table");
 		String cursorName = getAttribute(annotationMirror, "row");
 		String viewName = getAttribute(annotationMirror, "view");
 		String queryName = getAttribute(annotationMirror, "query");
 
-		String entity = StringUtils
-				.capitalize(model.getSimpleName().toString());
+		String entity = StringUtils.capitalize(model.getSimpleName().toString());
 
 		tableName = tableName == null ? calculateTableName(entity) : tableName;
-		cursorName = cursorName == null ? calculateCursorName(entity)
-				: cursorName;
+		cursorName = cursorName == null ? calculateCursorName(entity) : cursorName;
 		viewName = viewName == null ? calculateViewName(entity) : viewName;
 		queryName = queryName == null ? calculateQueryName(entity) : queryName;
 
-		modelsInfo.put(entity, new ModelInfo(tableName, cursorName, viewName,
-				queryName));
+		modelsInfo.put(entity, new ModelInfo(tableName, cursorName, viewName, queryName));
 	}
 
 	private void processModel(List<File> sourceFolders, TypeElement model, boolean insideEclipse) {
@@ -158,11 +151,9 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		}
 
 		// get the capitalized model name
-		String entity = StringUtils
-				.capitalize(model.getSimpleName().toString());
+		String entity = StringUtils.capitalize(model.getSimpleName().toString());
 
-		logger.info("Generating code for entity '" + entity + "' with "
-				+ fields.size() + " columns...");
+		logger.info("Generating code for entity '" + entity + "' with " + fields.size() + " columns...");
 
 		/*********** Prepare the attributes for the templates ****************/
 
@@ -190,8 +181,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		commonAttr.put("queryName", modelInfo.getQueryName());
 		commonAttr.put("java_header", INFO_GENERATED);
 
-		generateSources(model, modelInfo.getTableName(),
-				modelInfo.getCursorName(), modelInfo.getViewName(),
+		generateSources(model, modelInfo.getTableName(), modelInfo.getCursorName(), modelInfo.getViewName(),
 				modelInfo.getQueryName(), packageName, commonAttr);
 	}
 
@@ -234,9 +224,8 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		return columns;
 	}
 
-	private void generateSources(TypeElement model, String tableName,
-			String cursorName, String viewName, String queryName,
-			String packageName, Map<String, Object> commonAttr) {
+	private void generateSources(TypeElement model, String tableName, String cursorName, String viewName,
+			String queryName, String packageName, Map<String, Object> commonAttr) {
 		/*********** Generate the table class ****************/
 
 		Model table = new Model();
@@ -315,8 +304,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 			String pkgName = pkg.getQualifiedName().toString();
 			return pkgName.isEmpty() ? "" : pkgName;
 		} else {
-			logger.warn("Couldn't calculate the target package! Using default: "
-					+ DEFAULT_PACKAGE);
+			logger.warn("Couldn't calculate the target package! Using default: " + DEFAULT_PACKAGE);
 			return DEFAULT_PACKAGE;
 		}
 	}
@@ -352,8 +340,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		}
 	}
 
-	private boolean isReferencedBy(TypeElement model,
-			Set<? extends Element> elements) {
+	private boolean isReferencedBy(TypeElement model, Set<? extends Element> elements) {
 		String modelType = model.getQualifiedName().toString();
 
 		for (Element element : elements) {
@@ -363,12 +350,10 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 						VariableElement field = (VariableElement) enclosedElement;
 						TypeMirror fieldType = field.asType();
 						if (fieldType.getKind().equals(TypeKind.DECLARED)) {
-							Element typeAsElement = typeUtils
-									.asElement(fieldType);
+							Element typeAsElement = typeUtils.asElement(fieldType);
 							if (typeAsElement instanceof TypeElement) {
 								TypeElement typeElement = (TypeElement) typeAsElement;
-								if (typeElement.getQualifiedName().toString()
-										.equals(modelType)) {
+								if (typeElement.getQualifiedName().toString().equals(modelType)) {
 									return true;
 								}
 							}
@@ -415,8 +400,7 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	}
 
 	private String fieldSimpleType(VariableElement field) {
-		return fieldType(field).replaceFirst("<.*>", "").replaceFirst(".*\\.",
-				"");
+		return fieldType(field).replaceFirst("<.*>", "").replaceFirst(".*\\.", "");
 	}
 
 	private String getSubtableType(VariableElement field) {
@@ -440,17 +424,14 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 	private String getParamType(VariableElement field) {
 		String type = fieldType(field);
 
-		if (NUM_TYPES.contains(type)) {
-			type = "long";
-		} else if (type.equals("java.lang.Object")) {
-			type = "com.tightdb.Mixed";
+		if (isSubtable(type)) {
+			type = "Object[][]";
 		}
 
 		return type;
 	}
 
-	private static AnnotationMirror getAnnotationInfo(TypeElement typeElement,
-			Class<?> clazz) {
+	private static AnnotationMirror getAnnotationInfo(TypeElement typeElement, Class<?> clazz) {
 		String clazzName = clazz.getName();
 		for (AnnotationMirror m : typeElement.getAnnotationMirrors()) {
 			if (m.getAnnotationType().toString().equals(clazzName)) {
@@ -460,10 +441,9 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		return null;
 	}
 
-	private static String getAttribute(AnnotationMirror annotationMirror,
-			String name) {
-		for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror
-				.getElementValues().entrySet()) {
+	private static String getAttribute(AnnotationMirror annotationMirror, String name) {
+		for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror.getElementValues()
+				.entrySet()) {
 			if (entry.getKey().getSimpleName().toString().equals(name)) {
 				return String.valueOf(entry.getValue().getValue());
 			}

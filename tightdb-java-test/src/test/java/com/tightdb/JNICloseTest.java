@@ -7,7 +7,7 @@ public class JNICloseTest {
 	@Test (enabled=true, expectedExceptions = IllegalArgumentException.class)
 	public void shouldCloseTable() {
 		// util.setDebugLevel(1);
-		TableBase table = new TableBase();
+		Table table = new Table();
 		table.close();
 		
 		@SuppressWarnings("unused")
@@ -19,12 +19,16 @@ public class JNICloseTest {
 	// Verify that methods make exceptions when Tables are invalidated.
 	// Verify subtables are invalidated when table is changed/updated in any way.
 	// Check that Group.close works
-	
+		
 	@Test (enabled=false)
 	public void shouldCloseGroup() {
 		//Group group = new Group();
 
 		//	EmployeeTable employees = new EmployeeTable(group);
+		
+		
 	}
+	
+	
 	
 }

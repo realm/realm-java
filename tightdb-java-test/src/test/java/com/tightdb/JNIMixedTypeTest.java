@@ -61,15 +61,14 @@ public class JNIMixedTypeTest {
 	@Test(dataProvider = "mixedValuesProvider")
 	public void shouldStoreValuesOfMixedType(MixedData value1,
 			MixedData value2, MixedData value3) throws Exception {
-		TableBase table = new TableBase();
+		Table table = new Table();
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
 		table.updateFromSpec(tableSpec);
 
-		table.insertMixed(0, 0, Mixed.mixedValue(value1.value));
-		table.insertDone();
-
+		table.add(value1.value);
+		
 		checkMixedCell(table, 0, 0, value1.type, value1.value);
 
 		table.setMixed(0, 0, Mixed.mixedValue(value2.value));
@@ -82,7 +81,7 @@ public class JNIMixedTypeTest {
 		table.close();
 	}
 
-	private void checkMixedCell(TableBase table, long col, long row,
+	private void checkMixedCell(Table table, long col, long row,
 			ColumnType columnType, Object value) throws IllegalAccessException {
 		ColumnType mixedType = table.getMixedType(col, row);
 		assertEquals(columnType, mixedType);

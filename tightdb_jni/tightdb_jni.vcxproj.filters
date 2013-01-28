@@ -7,13 +7,7 @@
     <ClCompile Include="src\com_tightdb_group.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\com_tightdb_tablebase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\com_tightdb_tablequery.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\com_tightdb_tableviewbase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\java_lang_list_util.cpp">
@@ -34,6 +28,12 @@
     <ClCompile Include="src\com_tightdb_internal_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\com_tightdb_table.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\com_tightdb_tableview.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\columntypeutil.h">
@@ -42,13 +42,7 @@
     <ClInclude Include="src\com_tightdb_group.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\com_tightdb_tablebase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\com_tightdb_tablequery.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\com_tightdb_tableviewbase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\mixedutil.h">
@@ -60,9 +54,6 @@
     <ClInclude Include="src\tablespecutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\com_tightdb_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\tablebase_tpl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -70,6 +61,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\com_tightdb_internal_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\com_tightdb_Table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\com_tightdb_TableView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

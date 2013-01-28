@@ -1,7 +1,6 @@
 *~
 /test_output
 *.bat
-*.class
 *.orig
 tightdb_jni??d*.dll
 tightdb_jni*.exp

@@ -2,13 +2,13 @@ package com.tightdb.example;
 
 import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
-import com.tightdb.TableBase;
+import com.tightdb.Table;
 import com.tightdb.TableSpec;
 
 public class MixedTest {
 
 	public static void main(String[] args) {
-		TableBase table = new TableBase();
+		Table table = new Table();
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "num");

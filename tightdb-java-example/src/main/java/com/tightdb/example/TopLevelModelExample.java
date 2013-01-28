@@ -1,8 +1,8 @@
 package com.tightdb.example;
 
-import com.tightdb.Table;
+import com.tightdb.DefineTable;
 
-@Table
+@DefineTable
 class foo {
 	String b;
 	boolean c;

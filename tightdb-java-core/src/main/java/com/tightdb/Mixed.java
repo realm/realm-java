@@ -14,10 +14,8 @@ public class Mixed {
 
 	public Mixed(ColumnType columnType) {
 		// It's actually ok to call with any columnType - it will however be assumed to be a ColumnTypeTable.
-		//assert (columnType == ColumnType.ColumnTypeTable);
-		
-		this.value = null;	
-		// = (TableB
+		assert (columnType == null  || columnType == ColumnType.ColumnTypeTable);
+		this.value = null;
 	}
 
 	public Mixed(boolean value) {
@@ -111,33 +109,33 @@ public class Mixed {
 	}
 
 	public static Mixed mixedValue(Object value) {
-		Mixed mixed;
 		// TODO: Isn't it a slow way to convert? Can it be done faster?
 		if (value instanceof String) {
-			mixed = new Mixed((String) value);
+			return new Mixed((String) value);
 		} else if (value instanceof Long) {
-			mixed = new Mixed((Long) value);
+			return new Mixed((Long) value);
 		} else if (value instanceof Integer) {
-			mixed = new Mixed(new Long(((Integer) value).intValue()));
+			return new Mixed(((Integer)value).longValue());
 		} else if (value instanceof Boolean) {
-			mixed = new Mixed((Boolean) value);
+			return new Mixed((Boolean) value);
 		} else if (value instanceof Date) {
-			mixed = new Mixed((Date) value);
+			return new Mixed((Date) value);
 		} else if (value instanceof ByteBuffer) {
-			mixed = new Mixed((ByteBuffer) value);
+			return new Mixed((ByteBuffer) value);
 		} else if (value instanceof byte[]) {
-			mixed = new Mixed((byte[]) value);
+			return new Mixed((byte[]) value);
+		} else if (value instanceof Mixed) {
+			return ((Mixed)(value));
 		} else {
 			throw new IllegalArgumentException("The value is of unsupported type: " + value.getClass());
 		}
-		return mixed;
 	}
 
 	public long getLongValue() throws IllegalAccessException {
 		if (!(value instanceof Long)) {
 			throw new IllegalAccessException("Tryng to access an different type from mixed");
 		}
-		return ((Number) value).longValue();
+		return ((Long)value).longValue();
 	}
 
 	public boolean getBooleanValue() throws IllegalAccessException {

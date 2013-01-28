@@ -2,16 +2,16 @@ package com.tightdb.example;
 
 import java.util.Date;
 
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 public class NestedTablesExample {
 
 	public static void main(String[] args) {
 		EmployeeTable employees = new EmployeeTable();
 
-		Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra");
-		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true);
-		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234);
+		Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra", null);
+		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true, null);
+		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
 
 		PhoneTable p = john.getPhones();
 		p.add("mobile", "111");

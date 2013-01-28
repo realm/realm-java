@@ -1,7 +1,7 @@
 package com.tightdb;
 
 import com.tightdb.internal.CloseMutex;
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 public class SharedGroup {
 
@@ -38,8 +38,7 @@ public class SharedGroup {
 			throw new IllegalStateException(
 					"Can't beginRead() during another active transaction");
 		// FIXME: throw from nativeMethod in case of error
-		ReadTransaction t = new ReadTransaction(this,
-				nativeBeginRead(nativePtr));
+		ReadTransaction t = new ReadTransaction(this, nativeBeginRead(nativePtr));
 		activeTransaction = true;
 		return t;
 	}

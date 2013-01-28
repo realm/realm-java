@@ -7,7 +7,7 @@ import com.tightdb.*;
 
 public class ReplicationExample {
 
-    @Table(row="Employee")
+    @DefineTable(row="Employee")
     class employee {
         String firstName;
         String lastName;
@@ -19,7 +19,7 @@ public class ReplicationExample {
         phone phones;
     }
 
-    @Table(row="Phone")
+    @DefineTable(row="Phone")
     class phone {
         String type;
         String number;
@@ -62,7 +62,7 @@ public class ReplicationExample {
             try {
                 EmployeeTable employees = new EmployeeTable(transact);
                 employees.add("John", "Doe", 10000, true,
-                              new byte[] { 1, 2, 3 }, new Date(), "extra");
+                              new byte[] { 1, 2, 3 }, new Date(), "extra", null);
                 System.out.println(employees.size());
                 transact.commit();
             } catch (Throwable e) {

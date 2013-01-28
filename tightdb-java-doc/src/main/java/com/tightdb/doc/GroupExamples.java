@@ -5,10 +5,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.tightdb.Group;
-import com.tightdb.TableBase;
+import com.tightdb.Table;
 
 public class GroupExamples {
 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 
 		Group group = new Group();
@@ -19,7 +20,7 @@ public class GroupExamples {
 		
 		/* EXAMPLE: getTable */
 
-		TableBase a = group.getTable("PersonTable");
+		Table a = group.getTable("PersonTable");
 		
 		/* EXAMPLE: getTableCount */
 
