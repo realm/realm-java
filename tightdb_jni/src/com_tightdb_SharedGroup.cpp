@@ -15,23 +15,30 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
     if (!file_name_ptr)
         return 0; // Exception is thrown by GetStringUTFChars()
 
-    SharedGroup* db;
-    if (enable_replication) {
+    SharedGroup* db = 0;
+    try {
+        if (enable_replication) {
 #ifdef TIGHTDB_ENABLE_REPLICATION
-        db = new SharedGroup(SharedGroup::replication_tag(), *file_name_ptr ? file_name_ptr : 0);
+            db = new SharedGroup(SharedGroup::replication_tag(), *file_name_ptr ? file_name_ptr : 0);
 #else
-        ThrowException(env, UnsupportedOperation,
-                       "Replication was disabled in the native library at compile time.");
-        return 0;
+            ThrowException(env, UnsupportedOperation,
+                           "Replication was disabled in the native library at compile time.");
 #endif
+        }
+        else {
+            db = new SharedGroup(file_name_ptr);
+        }
     }
-    else {
-        db = new SharedGroup(file_name_ptr);
-    }
-    if (!db->is_valid()) {
-        delete db;
-        ThrowException(env, IllegalArgument, "Failed to instantiate database."); // FIXME: More details must be made available.
-        return 0;
+    catch (...) {
+        // FIXME: Diffrent exception types mean different things. More
+        // details must be made available. We should proably have
+        // special catches for at least these:
+        // tightdb::File::OpenError (and various derivatives),
+        // tightdb::ResourceAllocError, std::bad_alloc. In general,
+        // any core library function or operator that is not declared
+        // 'noexcept' must be considered as being able to throw
+        // anything derived from std::exception.
+        ThrowException(env, IllegalArgument, "Failed to instantiate database.");
     }
     return reinterpret_cast<jlong>(db);
 }
