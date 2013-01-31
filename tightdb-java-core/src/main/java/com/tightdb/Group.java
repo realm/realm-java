@@ -17,10 +17,14 @@ public class Group {
 		TightDB.loadLibrary();
 	}
 
-	private void checkNativePtr() {
-		if (this.nativePtr == 0)
-			throw new OutOfMemoryError("Out of native memory.");
-	}
+    private void checkNativePtr() {
+        if (this.nativePtr == 0)
+            // FIXME: It is wrong to assume that a null pointer means 'out
+            // of memory'. An out of memory condition in
+            // createNative() must be handled by having createNative()
+            // throw OutOfMemoryError.
+            throw new OutOfMemoryError("Out of native memory.");
+    }
 
 	public Group() {
 		this.nativePtr = createNative();
@@ -46,10 +50,14 @@ public class Group {
 
 	protected native long createNative(String filename, boolean readOnly);
 
-	public Group(byte[] data) {
-		this.nativePtr = createNative(data);
-		checkNativePtr();
-	}
+    public Group(byte[] data) {
+        if (data != null) {
+            this.nativePtr = createNative(data);
+            checkNativePtr();
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
 
 	protected native long createNative(byte[] data);
 
@@ -79,25 +87,12 @@ public class Group {
 	public void close() {
 		synchronized (CloseMutex.getInstance()) {
 			if (nativePtr != 0) {
-				if (isValid()) {
-					// System.err.println("CLOSE GROUP -------------- this " +
-					// this + "   native " + nativePtr);
-					nativeClose(nativePtr);
-				} else {
-					// System.err.println("CLOSE GROUP - INVALID!!!!");
-				}
 				nativePtr = 0;
 			}
 		}
 	}
 
 	protected native void nativeClose(long nativeGroupPtr);
-
-	public boolean isValid() {
-		return nativeIsValid(nativePtr);
-	}
-
-	protected native boolean nativeIsValid(long nativeGroupPtr);
 
 	public long getTableCount() {
 		return nativeGetTableCount(nativePtr);
