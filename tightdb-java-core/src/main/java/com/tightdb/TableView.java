@@ -24,7 +24,7 @@ import java.util.Date;
  * tableview. For that purpose we will first define the spec of an employee 
  * entity
  * 
- * 	@Table
+ * 	@DefineTable
  *	public class employee {
  *		String name;
  *		long age;

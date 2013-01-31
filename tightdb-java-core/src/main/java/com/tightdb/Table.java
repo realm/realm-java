@@ -22,7 +22,7 @@ import com.tightdb.typed.TightDB;
  * For this purpose we will create a class named "employee" with an Entity
  * annotation as follows.
  * 
- * 		@Table
+ * 		@DefineTable
  *		public class employee {
  *			String name;
  *			long age;
