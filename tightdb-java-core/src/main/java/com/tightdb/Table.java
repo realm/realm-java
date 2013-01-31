@@ -309,8 +309,14 @@ public class Table implements TableOrView {
 			case ColumnTypeBool:	
 				nativeInsertBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
 				break;
-			case ColumnTypeInt:	
+			case ColumnTypeInt:
 				nativeInsertLong(nativePtr, columnIndex, rowIndex, ((Number)value).longValue());
+				break;
+			case ColumnTypeFloat:
+				nativeInsertFloat(nativePtr, columnIndex, rowIndex, ((Float)value).floatValue());
+				break;
+			case ColumnTypeDouble:
+				nativeInsertDouble(nativePtr, columnIndex, rowIndex, ((Double)value).doubleValue());
 				break;
 			case ColumnTypeString:
 				nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
@@ -392,6 +398,20 @@ public class Table implements TableOrView {
 		nativeInsertLong(nativePtr, columnIndex, rowIndex, value);
 	}
 
+	protected native void nativeInsertFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
+
+	public void insertFloat(long columnIndex, long rowIndex, float value) {
+		if (immutable) throwImmutable();
+		nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
+	}
+
+	protected native void nativeInsertDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
+
+	public void insertDouble(long columnIndex, long rowIndex, double value) {
+		if (immutable) throwImmutable();
+		nativeInsertDouble(nativePtr, columnIndex, rowIndex, value);
+	}
+
 	protected native void nativeInsertLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
 	public void insertBoolean(long columnIndex, long rowIndex, boolean value) {
@@ -456,35 +476,33 @@ public class Table implements TableOrView {
 
 	protected native void nativeInsertDone(long nativeTablePtr);
 
-	/**
-	 * Get the value of the particular (integer) cell.
-	 * 
-	 * @param columnIndex
-	 *            0 based index value of the column.
-	 * @param rowIndex
-	 *            0 based row value of the column.
-	 * @return value of the particular cell.
-	 */
+	//
+	// Getters
+	//
+	
 	public long getLong(long columnIndex, long rowIndex) {
 		return nativeGetLong(nativePtr, columnIndex, rowIndex);
 	}
 
 	protected native long nativeGetLong(long nativeTablePtr, long columnIndex, long rowIndex);
 
-	/**
-	 * Get the value of the particular (boolean) cell.
-	 * 
-	 * @param columnIndex
-	 *            0 based index value of the cell column.
-	 * @param rowIndex
-	 *            0 based index of the row.
-	 * @return value of the particular cell.
-	 */
 	public boolean getBoolean(long columnIndex, long rowIndex) {
 		return nativeGetBoolean(nativePtr, columnIndex, rowIndex);
 	}
 
 	protected native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
+
+	public float getFloat(long columnIndex, long rowIndex) {
+		return nativeGetFloat(nativePtr, columnIndex, rowIndex);
+	}
+
+	protected native float nativeGetFloat(long nativeTablePtr, long columnIndex, long rowIndex);
+
+	public double getDouble(long columnIndex, long rowIndex) {
+		return nativeGetDouble(nativePtr, columnIndex, rowIndex);
+	}
+
+	protected native double nativeGetDouble(long nativeTablePtr, long columnIndex, long rowIndex);
 
 	public Date getDate(long columnIndex, long rowIndex) {
 		return new Date(nativeGetDateTime(nativePtr, columnIndex, rowIndex)*1000);
@@ -578,34 +596,11 @@ public class Table implements TableOrView {
 
 	protected native void nativeClearSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
 
-	/**
-	 * Sets a value for a (string) cell. 
-	 * Note that if we call this method on the table for a particular column 
-	 * marked by the columnIndex, that column has to be an String based column
-	 * which means the type of the column must be ColumnType.ColumnTypeString.
-	 * 
-	 * @param columnIndex
-	 *            column index of the cell
-	 * @param rowIndex
-	 *            row index of the cell
-	 * @param value
-	 */
-	public void setString(long columnIndex, long rowIndex, String value) {
-		if (immutable) throwImmutable();
-		nativeSetString(nativePtr, columnIndex, rowIndex, value);
-	}
 
-	protected native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+	//
+	// Setters
+	//
 
-	/**
-	 * Sets the value for a particular (integer) cell.
-	 * 
-	 * @param columnIndex
-	 *            column index of the cell
-	 * @param rowIndex
-	 *            row index of the cell
-	 * @param value
-	 */
 	public void setLong(long columnIndex, long rowIndex, long value) {
 		if (immutable) throwImmutable();
 		nativeSetLong(nativePtr, columnIndex, rowIndex, value);
@@ -613,15 +608,6 @@ public class Table implements TableOrView {
 
 	protected native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
-	/**
-	 * Sets value for a particular (boolean) cell.
-	 * 
-	 * @param columnIndex
-	 *            column index of the cell
-	 * @param rowIndex
-	 *            row index of the cell
-	 * @param value
-	 */
 	public void setBoolean(long columnIndex, long rowIndex, boolean value) {
 		if (immutable) throwImmutable();
 		nativeSetBoolean(nativePtr, columnIndex, rowIndex, value);
@@ -629,12 +615,33 @@ public class Table implements TableOrView {
 
 	protected native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
 
+	public void setFloat(long columnIndex, long rowIndex, float value) {
+		if (immutable) throwImmutable();
+		nativeSetFloat(nativePtr, columnIndex, rowIndex, value);
+	}
+
+	protected native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
+
+	public void setDouble(long columnIndex, long rowIndex, double value) {
+		if (immutable) throwImmutable();
+		nativeSetDouble(nativePtr, columnIndex, rowIndex, value);
+	}
+
+	protected native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
+
 	public void setDate(long columnIndex, long rowIndex, Date date) {
 		if (immutable) throwImmutable();
 		nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
 	}
 
 	protected native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
+	
+	public void setString(long columnIndex, long rowIndex, String value) {
+		if (immutable) throwImmutable();
+		nativeSetString(nativePtr, columnIndex, rowIndex, value);
+	}
+
+	protected native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
 
 	/**
 	 * Sets the value for a (binary) cell.
@@ -714,7 +721,11 @@ public class Table implements TableOrView {
 
 	protected native boolean nativeHasIndex(long nativePtr, long columnIndex);
 
-	// Aggregate functions.
+	//
+	// Aggregate functions
+	//
+
+	// Integers
 	public long sum(long columnIndex) {
 		return nativeSum(nativePtr, columnIndex);
 	}
@@ -739,7 +750,61 @@ public class Table implements TableOrView {
 
 	protected native double nativeAverage(long nativePtr, long columnIndex);
 
+	// Floats
+	public float sumFloat(long columnIndex) {
+		return nativeSumFloat(nativePtr, columnIndex);
+	}
+
+	protected native float nativeSumFloat(long nativePtr, long columnIndex);
+
+	public float maximumFloat(long columnIndex) {
+		return nativeMaximumFloat(nativePtr, columnIndex);
+	}
+
+	protected native float nativeMaximumFloat(long nativePtr, long columnIndex);
+
+	public float minimumFloat(long columnIndex) {
+		return nativeMinimumFloat(nativePtr, columnIndex);
+	}
+
+	protected native float nativeMinimumFloat(long nativePtr, long columnnIndex);
+
+	public float averageFloat(long columnIndex) {
+		return nativeAverageFloat(nativePtr, columnIndex);
+	}
+
+	protected native float nativeAverageFloat(long nativePtr, long columnIndex);
+
+	// Doubles
+	public double sumDouble(long columnIndex) {
+		return nativeSumDouble(nativePtr, columnIndex);
+	}
+
+	protected native double nativeSumDouble(long nativePtr, long columnIndex);
+
+	public double maximumDouble(long columnIndex) {
+		return nativeMaximumDouble(nativePtr, columnIndex);
+	}
+
+	protected native double nativeMaximumDouble(long nativePtr, long columnIndex);
+
+	public double minimumDouble(long columnIndex) {
+		return nativeMinimumDouble(nativePtr, columnIndex);
+	}
+
+	protected native double nativeMinimumDouble(long nativePtr, long columnnIndex);
+
+	public double averageDouble(long columnIndex) {
+		return nativeAverageDouble(nativePtr, columnIndex);
+	}
+
+	protected native double nativeAverageDouble(long nativePtr, long columnIndex);
+
+	
+	//
 	// Searching methods.
+	//
+	
 	public TableQuery where() {
 		return new TableQuery(nativeWhere(nativePtr), immutable);
 	}
@@ -757,6 +822,18 @@ public class Table implements TableOrView {
 	}
 
 	protected native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
+
+	public long findFirstFloat(long columnIndex, float value) {
+		return nativeFindFirstFloat(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
+
+	public long findFirstDouble(long columnIndex, double value) {
+		return nativeFindFirstDouble(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
 
 	public long findFirstDate(long columnIndex, Date date) {
 		return nativeFindFirstDate(nativePtr, columnIndex, date.getTime()/1000);
@@ -781,6 +858,18 @@ public class Table implements TableOrView {
 	}
 
 	protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
+
+	public TableView findAllFloat(long columnIndex, float value) {
+		return new TableView(nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
+	}
+
+	protected native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
+
+	public TableView findAllDouble(long columnIndex, double value) {
+		return new TableView(nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
+	}
+
+	protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
 	public TableView findAllDate(long columnIndex, Date date) {
 		return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
@@ -812,7 +901,6 @@ public class Table implements TableOrView {
 		return nativeToJson(nativePtr);
 	}
 
-	// TODO: implement this!
 	protected native String nativeToJson(long nativeTablePtr);
 
 	

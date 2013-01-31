@@ -54,6 +54,26 @@ public interface TableOrView {
 	boolean getBoolean(long columnIndex, long rowIndex);
 
 	/**
+	 * Get the float value of a cell of the table identified by the
+	 * columnIndex and rowIndex.
+	 * 
+	 * @param columnIndex
+	 * @param rowIndex
+	 * @return
+	 */
+	float getFloat(long columnIndex, long rowIndex);
+
+	/**
+	 * Get the double value of a cell of the table identified by the
+	 * columnIndex and rowIndex.
+	 * 
+	 * @param columnIndex
+	 * @param rowIndex
+	 * @return
+	 */
+	double getDouble(long columnIndex, long rowIndex);
+
+	/**
 	 * Gets the string value of a cell identified by the columnIndex and
 	 * rowIndex of the cell.
 	 * 
@@ -116,6 +136,26 @@ public interface TableOrView {
 	void setBoolean(long columnIndex, long rowIndex, boolean value);
 
 	/**
+	 * Sets the float value of a cell identified by the columnIndex and the
+	 * rowIndex of that cell.
+	 * 
+	 * @param columnIndex
+	 * @param rowIndex
+	 * @param value
+	 */
+	void setFloat(long columnIndex, long rowIndex, float value);
+
+	/**
+	 * Sets the double value of a cell identified by the columnIndex and the
+	 * rowIndex of that cell.
+	 * 
+	 * @param columnIndex
+	 * @param rowIndex
+	 * @param value
+	 */
+	void setDouble(long columnIndex, long rowIndex, double value);
+
+	/**
 	 * Sets the string value of a particular cell of the table/view identified
 	 * by the columnIndex and the rowIndex of this table/view
 	 * 
@@ -141,6 +181,7 @@ public interface TableOrView {
 	
 	void setMixed(long columnIndex, long rowIndex, Mixed data);
 
+	
 	void addLong(long columnIndex, long value);
 	
 	long sum(long columnIndex);
@@ -150,18 +191,47 @@ public interface TableOrView {
 	long minimum(long columnIndex);
 
 	double average(long columnIndex);
+	
+	
+	float sumFloat(long columnIndex);
+	
+	float maximumFloat(long columnIndex);
+	
+	float minimumFloat(long columnIndex);
+
+	float averageFloat(long columnIndex);
+	
+
+	double sumDouble(long columnIndex);
+	
+	double maximumDouble(long columnIndex);
+	
+	double minimumDouble(long columnIndex);
+
+	double averageDouble(long columnIndex);
+	
 
 	long findFirstLong(long columnIndex, long value);
 	
 	long findFirstBoolean(long columnIndex, boolean value);
 	
+	long findFirstFloat(long columnIndex, float value);
+
+	long findFirstDouble(long columnIndex, double value);
+
 	long findFirstDate(long columnIndex, Date value);
 	
 	long findFirstString(long columnIndex, String value);
+	
+	
 
 	TableView findAllLong(long columnIndex, long value);
 	
 	TableView findAllBoolean(long columnIndex, boolean value);
+	
+	TableView findAllFloat(long columnIndex, float value);
+	
+	TableView findAllDouble(long columnIndex, double value);
 	
 	TableView findAllDate(long columnIndex, Date value);
 	

@@ -122,6 +122,32 @@ public class TableView implements TableOrView {
 	protected native boolean nativeGetBoolean(long nativeViewPtr, long columnIndex, long rowIndex);
 	
 	/**
+	 * Get the value of the particular (float) cell.
+	 * 
+	 * @param columnIndex 0 based index value of the cell column.
+	 * @param rowIndex 0 based index of the row.
+	 * @return value of the particular cell.
+	 */
+	public float getFloat(long columnIndex, long rowIndex){
+		return nativeGetFloat(nativePtr, columnIndex, rowIndex);
+	}
+	
+	protected native float nativeGetFloat(long nativeViewPtr, long columnIndex, long rowIndex);
+	
+	/**
+	 * Get the value of the particular (double) cell.
+	 * 
+	 * @param columnIndex 0 based index value of the cell column.
+	 * @param rowIndex 0 based index of the row.
+	 * @return value of the particular cell.
+	 */
+	public double getDouble(long columnIndex, long rowIndex){
+		return nativeGetDouble(nativePtr, columnIndex, rowIndex);
+	}
+	
+	protected native double nativeGetDouble(long nativeViewPtr, long columnIndex, long rowIndex);
+	
+	/**
 	 * Get the value of the particular (date) cell.
 	 * 
 	 * @param columnIndex 0 based index value of the cell column.
@@ -229,6 +255,34 @@ public class TableView implements TableOrView {
 	}
 	
 	protected native void nativeSetBoolean(long nativeViewPtr, long columnIndex, long rowIndex, boolean value);
+
+	/**
+	 * Sets the value for a particular (float) cell.
+	 * 
+	 * @param columnIndex column index of the cell
+	 * @param rowIndex row index of the cell
+	 * @param value
+	 */
+	public void setFloat(long columnIndex, long rowIndex, float value){
+		if (immutable) throwImmutable();
+		nativeSetFloat(nativePtr, columnIndex, rowIndex, value);
+	}
+	
+	protected native void nativeSetFloat(long nativeViewPtr, long columnIndex, long rowIndex, float value);
+
+	/**
+	 * Sets the value for a particular (double) cell.
+	 * 
+	 * @param columnIndex column index of the cell
+	 * @param rowIndex row index of the cell
+	 * @param value
+	 */
+	public void setDouble(long columnIndex, long rowIndex, double value){
+		if (immutable) throwImmutable();
+		nativeSetDouble(nativePtr, columnIndex, rowIndex, value);
+	}
+	
+	protected native void nativeSetDouble(long nativeViewPtr, long columnIndex, long rowIndex, double value);
 
 	/**
 	 * Sets the value for a particular (date) cell.
@@ -351,6 +405,20 @@ public class TableView implements TableOrView {
 	protected native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
 
  	//!!!TODO: New
+	public long findFirstFloat(long columnIndex, float value) {
+		return nativeFindFirstFloat(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
+
+ 	//!!!TODO: New
+	public long findFirstDouble(long columnIndex, double value) {
+		return nativeFindFirstDouble(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
+
+ 	//!!!TODO: New
 	public long findFirstDate(long columnIndex, Date date) {
 		return nativeFindFirstDate(nativePtr, columnIndex, date.getTime()/1000);
 	}
@@ -380,6 +448,20 @@ public class TableView implements TableOrView {
 	protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
  	//!!!TODO: New
+	public TableView findAllFloat(long columnIndex, float value) {
+		return new TableView(this, nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
+	}
+
+	protected native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
+
+ 	//!!!TODO: New
+	public TableView findAllDouble(long columnIndex, double value) {
+		return new TableView(this, nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
+	}
+
+	protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
+
+ 	//!!!TODO: New
 	public TableView findAllDate(long columnIndex, Date date) {
 		return new TableView(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
 	}
@@ -392,12 +474,17 @@ public class TableView implements TableOrView {
 	
 	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
+
+	//
+	// Integer Aggregates
+	//
+	
 	/** 
 	 * Calculate the sum of the values in a particular column of this 
 	 * tableview. 
 	 *
 	 * Note: the type of the column marked by the columnIndex has to be of
-	 * type ColumnType.ColumnTypeInt for obvious reason.
+	 * type ColumnType.ColumnTypeInt.
 	 * 
 	 * @param columnIndex column index
 	 * @return the sum of the values in the column
@@ -443,6 +530,59 @@ public class TableView implements TableOrView {
 	}
 
 	protected native double nativeAverage(long nativePtr, long columnIndex);
+
+	
+	// Float aggregates
+	
+	public float sumFloat(long columnIndex){
+		return nativeSumFloat(nativePtr, columnIndex);
+	}
+	protected native float nativeSumFloat(long nativeViewPtr, long columnIndex);
+	
+	public float maximumFloat(long columnIndex){
+		return nativeMaximumFloat(nativePtr, columnIndex);
+	}
+	protected native float nativeMaximumFloat(long nativeViewPtr, long columnIndex);
+	
+	public float minimumFloat(long columnIndex){
+		return nativeMinimumFloat(nativePtr, columnIndex);
+	}
+	
+	protected native float nativeMinimumFloat(long nativeViewPtr, long columnIndex);
+	
+	public float averageFloat(long columnIndex) {
+		return nativeAverageFloat(nativePtr, columnIndex);
+	}
+
+	protected native float nativeAverageFloat(long nativePtr, long columnIndex);
+
+	
+	// Double aggregates
+	
+	public double sumDouble(long columnIndex){
+		return nativeSumDouble(nativePtr, columnIndex);
+	}
+	protected native double nativeSumDouble(long nativeViewPtr, long columnIndex);
+	
+	public double maximumDouble(long columnIndex){
+		return nativeMaximumDouble(nativePtr, columnIndex);
+	}
+	protected native double nativeMaximumDouble(long nativeViewPtr, long columnIndex);
+	
+	public double minimumDouble(long columnIndex){
+		return nativeMinimumDouble(nativePtr, columnIndex);
+	}
+	
+	protected native double nativeMinimumDouble(long nativeViewPtr, long columnIndex);
+	
+	public double averageDouble(long columnIndex) {
+		return nativeAverageDouble(nativePtr, columnIndex);
+	}
+
+	protected native double nativeAverageDouble(long nativePtr, long columnIndex);
+
+
+	// Sorting
 	
 	enum Order { ascending, descending };
 	

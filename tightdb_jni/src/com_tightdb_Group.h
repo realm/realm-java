@@ -49,14 +49,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose
 
 /*
  * Class:     com_tightdb_Group
- * Method:    nativeIsValid
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeIsValid
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     com_tightdb_Group
  * Method:    nativeGetTableCount
  * Signature: (J)J
  */
