@@ -38,9 +38,9 @@ public class GroupExamples {
 		
 		/* EXAMPLE: isValid */
 
-		if (group.isValid()) {
+//		if (group.isValid()) {
 			  // do something
-		}
+//		}
 		
 		/* EXAMPLE: writeToByteBuffer */
 
