@@ -2,8 +2,7 @@ package com.tightdb.example;
 
 import java.util.Date;
 
-import com.tightdb.DefineTable;
-import com.tightdb.typed.TightDB;
+import com.tightdb.*;
 
 public class SmallExample {
 
