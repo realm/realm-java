@@ -8,13 +8,28 @@ import java.nio.ByteBuffer;
 public enum ColumnType {
     ColumnTypeBool(1),
     ColumnTypeInt(0),
+    ColumnTypeFloat(9),
+    ColumnTypeDouble(10),
     ColumnTypeString(2),
     ColumnTypeBinary(4),
     ColumnTypeDate(7),
     ColumnTypeTable(5),
     ColumnTypeMixed(6);
-
+    // When adding above, remember to update size of largest number below 
+    
     private final int nativeValue;
+
+    // Note that if this array is too small, an
+    // IndexOutOfBoundsException will be thrown during class loading.
+    private static ColumnType[] byNativeValue = new ColumnType[11];
+
+    static {
+        ColumnType[] columnTypes = values();
+        for(int i=0; i<columnTypes.length; ++i) {
+            int v = columnTypes[i].nativeValue;
+            byNativeValue[v] = columnTypes[i];
+        }
+    }
 
     private ColumnType(int nativeValue)
     {
@@ -35,6 +50,8 @@ public enum ColumnType {
 				obj == null || obj instanceof Object[][] ||
 				obj instanceof java.util.Date);
 		case 7: return (obj instanceof java.util.Date);
+		case 9: return (obj instanceof Float);
+		case 10: return (obj instanceof Double);
 		default: throw new RuntimeException("Invalid index in ColumnType.");
 		}
 	}
@@ -49,16 +66,5 @@ public enum ColumnType {
         throw new IllegalArgumentException("Bad native column type");
     }
 
-    // Note that if this array is too small, an
-    // IndexOutOfBoundsException will be thrown during class loading.
-    private static ColumnType[] byNativeValue = new ColumnType[10];
-
-    static {
-        ColumnType[] columnTypes = values();
-        for(int i=0; i<columnTypes.length; ++i) {
-            int v = columnTypes[i].nativeValue;
-            byNativeValue[v] = columnTypes[i];
-        }
-    }
 }
 

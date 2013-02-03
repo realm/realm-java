@@ -33,6 +33,22 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_TableView_nativeGetBoolean
 
 /*
  * Class:     com_tightdb_TableView
+ * Method:    nativeGetFloat
+ * Signature: (JJJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_TableView_nativeGetFloat
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetDouble
+ * Signature: (JJJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeGetDouble
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
  * Method:    nativeGetDateTimeValue
  * Signature: (JJJ)J
  */
@@ -121,6 +137,22 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetBoolean
 
 /*
  * Class:     com_tightdb_TableView
+ * Method:    nativeSetFloat
+ * Signature: (JJJF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetFloat
+  (JNIEnv *, jobject, jlong, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeSetDouble
+ * Signature: (JJJD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetDouble
+  (JNIEnv *, jobject, jlong, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_TableView
  * Method:    nativeSetDateTimeValue
  * Signature: (JJJJ)V
  */
@@ -201,6 +233,22 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstBool
 
 /*
  * Class:     com_tightdb_TableView
+ * Method:    nativeFindFirstFloat
+ * Signature: (JJF)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstFloat
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeFindFirstDouble
+ * Signature: (JJD)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstDouble
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_TableView
  * Method:    nativeFindFirstDate
  * Signature: (JJJ)J
  */
@@ -230,6 +278,22 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindAllInt
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindAllBool
   (JNIEnv *, jobject, jlong, jlong, jboolean);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeFindAllFloat
+ * Signature: (JJF)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindAllFloat
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeFindAllDouble
+ * Signature: (JJD)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindAllDouble
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
 
 /*
  * Class:     com_tightdb_TableView
@@ -277,6 +341,70 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMinimum
  * Signature: (JJ)D
  */
 JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeAverage
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeSumFloat
+ * Signature: (JJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_TableView_nativeSumFloat
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeMaximumFloat
+ * Signature: (JJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_TableView_nativeMaximumFloat
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeMinimumFloat
+ * Signature: (JJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_TableView_nativeMinimumFloat
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeAverageFloat
+ * Signature: (JJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_TableView_nativeAverageFloat
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeSumDouble
+ * Signature: (JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeSumDouble
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeMaximumDouble
+ * Signature: (JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeMaximumDouble
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeMinimumDouble
+ * Signature: (JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeMinimumDouble
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeAverageDouble
+ * Signature: (JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeAverageDouble
   (JNIEnv *, jobject, jlong, jlong);
 
 /*

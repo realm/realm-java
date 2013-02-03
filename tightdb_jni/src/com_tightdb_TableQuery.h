@@ -76,7 +76,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJJ
  * Method:    nativeGreater
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJJ
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -84,7 +84,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater
  * Method:    nativeGreaterEqual
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJJ
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -92,7 +92,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual
  * Method:    nativeLess
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJJ
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -100,7 +100,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess
  * Method:    nativeLessEqual
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJJ
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -108,8 +108,120 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual
  * Method:    nativeBetween
  * Signature: (JJJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJJJ
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeEqual
+ * Signature: (JJF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJF
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeNotEqual
+ * Signature: (JJF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJF
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeGreater
+ * Signature: (JJF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJF
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeGreaterEqual
+ * Signature: (JJF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJF
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeLess
+ * Signature: (JJF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJF
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeLessEqual
+ * Signature: (JJF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJF
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeBetween
+ * Signature: (JJFF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJFF
+  (JNIEnv *, jobject, jlong, jlong, jfloat, jfloat);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeEqual
+ * Signature: (JJD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJD
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeNotEqual
+ * Signature: (JJD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJD
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeGreater
+ * Signature: (JJD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJD
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeGreaterEqual
+ * Signature: (JJD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJD
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeLess
+ * Signature: (JJD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJD
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeLessEqual
+ * Signature: (JJD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJD
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeBetween
+ * Signature: (JJDD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJDD
+  (JNIEnv *, jobject, jlong, jlong, jdouble, jdouble);
 
 /*
  * Class:     com_tightdb_TableQuery
@@ -205,6 +317,70 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimum
  * Signature: (JJJJJ)D
  */
 JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeSumFloat
+ * Signature: (JJJJJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeSumFloat
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeMaximumFloat
+ * Signature: (JJJJJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMaximumFloat
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeMinimumFloat
+ * Signature: (JJJJJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMinimumFloat
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeAverageFloat
+ * Signature: (JJJJJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeAverageFloat
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeSumDouble
+ * Signature: (JJJJJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeSumDouble
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeMaximumDouble
+ * Signature: (JJJJJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeMaximumDouble
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeMinimumDouble
+ * Signature: (JJJJJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeMinimumDouble
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeAverageDouble
+ * Signature: (JJJJJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageDouble
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*

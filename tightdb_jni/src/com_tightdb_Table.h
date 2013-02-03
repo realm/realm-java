@@ -115,6 +115,22 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddEmptyRow
 
 /*
  * Class:     com_tightdb_Table
+ * Method:    nativeInsertFloat
+ * Signature: (JJJF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertFloat
+  (JNIEnv *, jobject, jlong, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeInsertDouble
+ * Signature: (JJJD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertDouble
+  (JNIEnv *, jobject, jlong, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_Table
  * Method:    nativeInsertLong
  * Signature: (JJJJ)V
  */
@@ -203,6 +219,22 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeGetBoolean
 
 /*
  * Class:     com_tightdb_Table
+ * Method:    nativeGetFloat
+ * Signature: (JJJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_Table_nativeGetFloat
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeGetDouble
+ * Signature: (JJJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeGetDouble
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
  * Method:    nativeGetDateTime
  * Signature: (JJJ)J
  */
@@ -283,14 +315,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClearSubTable
 
 /*
  * Class:     com_tightdb_Table
- * Method:    nativeSetString
- * Signature: (JJJLjava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetString
-  (JNIEnv *, jobject, jlong, jlong, jlong, jstring);
-
-/*
- * Class:     com_tightdb_Table
  * Method:    nativeSetLong
  * Signature: (JJJJ)V
  */
@@ -307,11 +331,35 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetBoolean
 
 /*
  * Class:     com_tightdb_Table
+ * Method:    nativeSetFloat
+ * Signature: (JJJF)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetFloat
+  (JNIEnv *, jobject, jlong, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeSetDouble
+ * Signature: (JJJD)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetDouble
+  (JNIEnv *, jobject, jlong, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_Table
  * Method:    nativeSetDate
  * Signature: (JJJJ)V
  */
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetDate
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeSetString
+ * Signature: (JJJLjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetString
+  (JNIEnv *, jobject, jlong, jlong, jlong, jstring);
 
 /*
  * Class:     com_tightdb_Table
@@ -395,6 +443,70 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverage
 
 /*
  * Class:     com_tightdb_Table
+ * Method:    nativeSumFloat
+ * Signature: (JJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_Table_nativeSumFloat
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeMaximumFloat
+ * Signature: (JJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_Table_nativeMaximumFloat
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeMinimumFloat
+ * Signature: (JJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_Table_nativeMinimumFloat
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeAverageFloat
+ * Signature: (JJ)F
+ */
+JNIEXPORT jfloat JNICALL Java_com_tightdb_Table_nativeAverageFloat
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeSumDouble
+ * Signature: (JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeSumDouble
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeMaximumDouble
+ * Signature: (JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeMaximumDouble
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeMinimumDouble
+ * Signature: (JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeMinimumDouble
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeAverageDouble
+ * Signature: (JJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageDouble
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
  * Method:    nativeWhere
  * Signature: (J)J
  */
@@ -416,6 +528,22 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstInt
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstBool
   (JNIEnv *, jobject, jlong, jlong, jboolean);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeFindFirstFloat
+ * Signature: (JJF)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstFloat
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeFindFirstDouble
+ * Signature: (JJD)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstDouble
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
 
 /*
  * Class:     com_tightdb_Table
@@ -448,6 +576,22 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllInt
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllBool
   (JNIEnv *, jobject, jlong, jlong, jboolean);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeFindAllFloat
+ * Signature: (JJF)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllFloat
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeFindAllDouble
+ * Signature: (JJD)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllDouble
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
 
 /*
  * Class:     com_tightdb_Table
