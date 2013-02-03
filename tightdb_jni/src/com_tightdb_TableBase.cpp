@@ -562,7 +562,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableBase_nativeClose(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableBase_createNative(JNIEnv* env, jobject jTable)
 {
     TR((env, "CreateNative(jTable: %x)\n", jTable));
-    return reinterpret_cast<jlong>(LangBindHelper::new_table());
+    return reinterpret_cast<jlong>(LangBindHelper::new_table()); // FIXME: May throw
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_TableBase_nativeIsValid(
