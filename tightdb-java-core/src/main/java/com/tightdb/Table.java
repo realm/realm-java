@@ -751,11 +751,11 @@ public class Table implements TableOrView {
 	protected native double nativeAverage(long nativePtr, long columnIndex);
 
 	// Floats
-	public float sumFloat(long columnIndex) {
+	public double sumFloat(long columnIndex) {
 		return nativeSumFloat(nativePtr, columnIndex);
 	}
 
-	protected native float nativeSumFloat(long nativePtr, long columnIndex);
+	protected native double nativeSumFloat(long nativePtr, long columnIndex);
 
 	public float maximumFloat(long columnIndex) {
 		return nativeMaximumFloat(nativePtr, columnIndex);
@@ -769,11 +769,11 @@ public class Table implements TableOrView {
 
 	protected native float nativeMinimumFloat(long nativePtr, long columnnIndex);
 
-	public float averageFloat(long columnIndex) {
+	public double averageFloat(long columnIndex) {
 		return nativeAverageFloat(nativePtr, columnIndex);
 	}
 
-	protected native float nativeAverageFloat(long nativePtr, long columnIndex);
+	protected native double nativeAverageFloat(long nativePtr, long columnIndex);
 
 	// Doubles
 	public double sumDouble(long columnIndex) {

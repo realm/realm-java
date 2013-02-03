@@ -470,7 +470,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverage(
 
 // Aggregare methods for float
 
-JNIEXPORT jfloat JNICALL Java_com_tightdb_Table_nativeSumFloat(
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeSumFloat(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
    	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
@@ -494,7 +494,7 @@ JNIEXPORT jfloat JNICALL Java_com_tightdb_Table_nativeMinimumFloat(
     return TBL(nativeTablePtr)->minimum_float( S(columnIndex));
 }
 
-JNIEXPORT jfloat JNICALL Java_com_tightdb_Table_nativeAverageFloat(
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageFloat(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
    	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;

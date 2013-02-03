@@ -377,7 +377,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMinimum(
 
 // float aggregates
 
-JNIEXPORT jfloat JNICALL Java_com_tightdb_TableView_nativeSumFloat(
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeSumFloat(
 	JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {	
     if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
@@ -385,13 +385,13 @@ JNIEXPORT jfloat JNICALL Java_com_tightdb_TableView_nativeSumFloat(
 	return TV(nativeViewPtr)->sum_float( S(columnIndex));
 }
 
-JNIEXPORT jfloat JNICALL Java_com_tightdb_TableView_nativeAverageFloat(
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeAverageFloat(
 	JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {	
     if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
 
     // FIXME: Add support for native Average
-	return static_cast<jfloat>( TV(nativeViewPtr)->sum_float( S(columnIndex)) ) / TV(nativeViewPtr)->size();
+	return TV(nativeViewPtr)->sum_float( S(columnIndex)) / TV(nativeViewPtr)->size();
 }
 
 JNIEXPORT jfloat JNICALL Java_com_tightdb_TableView_nativeMaximumFloat(

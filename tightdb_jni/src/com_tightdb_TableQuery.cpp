@@ -328,7 +328,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage(
 
 // float Aggregates
 
-JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeSumFloat(
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeSumFloat(
 	JNIEnv* env, jobject, jlong nativeQueryPtr, 
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {	
@@ -370,7 +370,7 @@ JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMinimumFloat(
     return pQuery->minimum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
 }
 
-JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeAverageFloat(
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageFloat(
 	JNIEnv* env, jobject, jlong nativeQueryPtr, 
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {	
@@ -382,7 +382,7 @@ JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeAverageFloat(
         return 0;
 
     size_t resultcount;
-    float avg = pQuery->average_float(S(columnIndex), &resultcount, S(start), S(end), S(limit));
+    double avg = pQuery->average_float(S(columnIndex), &resultcount, S(start), S(end), S(limit));
     return avg;
 }
 
