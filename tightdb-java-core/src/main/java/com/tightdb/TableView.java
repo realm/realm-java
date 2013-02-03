@@ -534,10 +534,10 @@ public class TableView implements TableOrView {
 	
 	// Float aggregates
 	
-	public float sumFloat(long columnIndex){
+	public double sumFloat(long columnIndex){
 		return nativeSumFloat(nativePtr, columnIndex);
 	}
-	protected native float nativeSumFloat(long nativeViewPtr, long columnIndex);
+	protected native double nativeSumFloat(long nativeViewPtr, long columnIndex);
 	
 	public float maximumFloat(long columnIndex){
 		return nativeMaximumFloat(nativePtr, columnIndex);
@@ -550,11 +550,11 @@ public class TableView implements TableOrView {
 	
 	protected native float nativeMinimumFloat(long nativeViewPtr, long columnIndex);
 	
-	public float averageFloat(long columnIndex) {
+	public double averageFloat(long columnIndex) {
 		return nativeAverageFloat(nativePtr, columnIndex);
 	}
 
-	protected native float nativeAverageFloat(long nativePtr, long columnIndex);
+	protected native double nativeAverageFloat(long nativePtr, long columnIndex);
 
 	
 	// Double aggregates

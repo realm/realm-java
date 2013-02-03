@@ -322,9 +322,9 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeSumFloat
- * Signature: (JJJJJ)F
+ * Signature: (JJJJJ)D
  */
-JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeSumFloat
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeSumFloat
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
@@ -346,9 +346,9 @@ JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMinimumFloat
 /*
  * Class:     com_tightdb_TableQuery
  * Method:    nativeAverageFloat
- * Signature: (JJJJJ)F
+ * Signature: (JJJJJ)D
  */
-JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeAverageFloat
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageFloat
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*

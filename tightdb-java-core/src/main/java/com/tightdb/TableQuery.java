@@ -406,13 +406,13 @@ public class TableQuery {
 	
 	// float aggregation
 	
-	public float sumFloat(long columnIndex, long start, long end){
+	public double sumFloat(long columnIndex, long start, long end){
 		return nativeSumFloat(nativePtr, columnIndex, start, end, Table.INFINITE);
 	}
-	public float sumFloat(long columnIndex){
+	public double sumFloat(long columnIndex){
 		return nativeSumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
 	}
-	protected native float nativeSumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);	
+	protected native double nativeSumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);	
 
 	
 	public float maximumFloat(long columnIndex, long start, long end){
@@ -433,13 +433,13 @@ public class TableQuery {
 	protected native float nativeMinimumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 	
 	
-	public float averageFloat(long columnIndex, long start, long end){
+	public double averageFloat(long columnIndex, long start, long end){
 		return nativeAverageFloat(nativePtr, columnIndex, start, end, Table.INFINITE);
 	}
-	public float averageFloat(long columnIndex){
+	public double averageFloat(long columnIndex){
 		return nativeAverageFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
 	}
-	protected native float nativeAverageFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+	protected native double nativeAverageFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 	
 	// double aggregation

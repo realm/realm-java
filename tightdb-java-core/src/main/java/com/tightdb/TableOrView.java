@@ -193,13 +193,13 @@ public interface TableOrView {
 	double average(long columnIndex);
 	
 	
-	float sumFloat(long columnIndex);
+	double sumFloat(long columnIndex);
 	
 	float maximumFloat(long columnIndex);
 	
 	float minimumFloat(long columnIndex);
 
-	float averageFloat(long columnIndex);
+	double averageFloat(long columnIndex);
 	
 
 	double sumDouble(long columnIndex);
