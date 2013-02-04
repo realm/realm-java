@@ -93,6 +93,14 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 		spec.addColumn(ColumnType.ColumnTypeInt, name);
 	}
 
+	protected static void addFloatColumn(TableSpec spec, String name) {
+		spec.addColumn(ColumnType.ColumnTypeFloat, name);
+	}
+
+	protected static void addDoubleColumn(TableSpec spec, String name) {
+		spec.addColumn(ColumnType.ColumnTypeDouble, name);
+	}
+
 	protected static void addStringColumn(TableSpec spec, String name) {
 		spec.addColumn(ColumnType.ColumnTypeString, name);
 	}
@@ -129,6 +137,14 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 
 	protected void insertLong(long columnIndex, long rowIndex, long value) {
 		table.insertLong(columnIndex, rowIndex, value);
+	}
+
+	protected void insertFloat(long columnIndex, long rowIndex, float value) {
+		table.insertFloat(columnIndex, rowIndex, value);
+	}
+
+	protected void insertDouble(long columnIndex, long rowIndex, double value) {
+		table.insertDouble(columnIndex, rowIndex, value);
 	}
 
 	protected void insertString(long columnIndex, long rowIndex, String value) {

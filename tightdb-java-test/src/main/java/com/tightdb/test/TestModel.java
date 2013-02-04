@@ -27,4 +27,11 @@ public class TestModel {
 		String number;
 	}
 
+	@DefineTable
+	class TestNumbers {
+		long longNum;
+		float floatNum;
+		double doubleNum;
+	}
+
 }

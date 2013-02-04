@@ -372,6 +372,10 @@ public class CodeGenProcessor extends AbstractAnnotationProcessor {
 		String columnType;
 		if (NUM_TYPES.contains(type)) {
 			columnType = "Long";
+		} else if ("float".equals(type) || "java.lang.Float".equals(type)) {
+			columnType = "Float";
+		} else if ("double".equals(type) || "java.lang.Double".equals(type)) {
+			columnType = "Double";
 		} else if ("boolean".equals(type) || "java.lang.Boolean".equals(type)) {
 			columnType = "Boolean";
 		} else if ("java.lang.String".equals(type)) {
