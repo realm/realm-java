@@ -56,7 +56,7 @@ How to setup Eclipse:
 	- In Java Compiler -> Annotation processing the "Generated source directory" can be configured as anything (e.g. "target/generated").
 	- Go to Java Compiler -> Annotation processing -> Factory Path, add tightdb_java2/lib/tightdb-devkit.jar (click on Add JARs) and make sure it is checked.
 
-8. If the previous step was done properly, Eclipse will start generating Java source code as soon as you annotate your schema specification classes with the @Table annotation.     
+8. If the previous step was done properly, Eclipse will start generating Java source code as soon as you annotate your schema specification classes with the @DefineTable annotation.     
 
 
 How to run Java tests:

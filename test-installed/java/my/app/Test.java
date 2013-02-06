@@ -4,12 +4,12 @@ import com.tightdb.*;
 
 public class Test {
 
-    @Table
+    @DefineTable
     public class Hilbert {
         String fido;
     }
 
-    @Table
+    @DefineTable
     public class Banach {
         String type;
         String number;
