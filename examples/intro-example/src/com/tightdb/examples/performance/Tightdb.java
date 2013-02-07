@@ -5,7 +5,7 @@ import com.tightdb.internal.util;
 
 public class Tightdb extends PerformanceBase implements IPerformance {
 
-    @Table(row="Test")
+    @DefineTable(row="Test")
 	class test
 	{
 		int 	indexInt;

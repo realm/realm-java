@@ -1,7 +1,7 @@
 package com.tightdb.examples.performance;
 
 import com.tightdb.internal.util;
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 
 public class Performance {

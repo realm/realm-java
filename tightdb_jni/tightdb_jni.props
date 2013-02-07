@@ -14,7 +14,7 @@
       <ManifestFile>$(IntDir)$(TargetName)$(TargetExt).intermediate.manifest</ManifestFile>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(tightdb_path)src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(tightdb_path);$(tightdb_path)src\;$(tightdb_path)src\win32\pthread\;$(JAVA_INCLUDE);</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AssemblerListingLocation>$(IntDir)\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\</ObjectFileName>

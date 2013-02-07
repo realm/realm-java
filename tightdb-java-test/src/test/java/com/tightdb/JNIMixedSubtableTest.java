@@ -8,7 +8,7 @@ public class JNIMixedSubtableTest {
 
 	@Test
 	public void shouldCreateSubtableInMixedTypeColumn() {
-		TableBase table = new TableBase();
+		Table table = new Table();
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "num");
@@ -29,7 +29,7 @@ public class JNIMixedSubtableTest {
 			boolean gotException = false;
 			try {
 				@SuppressWarnings("unused")
-				TableBase subtable = table.getSubTable(1, 0);
+				Table subtable = table.getSubTable(1, 0);
 			} catch (IllegalArgumentException e) {
 				gotException = true;
 			}
@@ -45,7 +45,7 @@ public class JNIMixedSubtableTest {
 		assertEquals(0, table.getSubTableSize(1, 0));
 		
 		// Create schema for the one Mixed cell with a subtable
-		TableBase subtable = table.getSubTable(1, ROW);
+		Table subtable = table.getSubTable(1, ROW);
 		TableSpec subspecMixed = subtable.getTableSpec();
 		subspecMixed.addColumn(ColumnType.ColumnTypeInt, "num");
 		subtable.updateFromSpec(subspecMixed);
@@ -62,7 +62,7 @@ public class JNIMixedSubtableTest {
 	@SuppressWarnings("unused")
 	@Test
 	public void shouldCreateSubtableInMixedTypeColumn2() {
-		TableBase table = new TableBase();
+		Table table = new Table();
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "num");
@@ -72,7 +72,7 @@ public class JNIMixedSubtableTest {
 		table.addEmptyRow();
 		table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));
 		
-		TableBase subtable = table.getSubTable(1, 0);
+		Table subtable = table.getSubTable(1, 0);
 	}
 
 }

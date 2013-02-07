@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.tightdb.internal.CloseMutex;
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 /**
  * This class is used to serialize tables to either disk or memory. It consists
@@ -134,11 +134,11 @@ public class Group {
 	 *            The name of the table.
 	 * @return The table if it exists, otherwise create it.
 	 */
-	public TableBase getTable(String name) {
+	public Table getTable(String name) {
 		if (immutable)
 			if (!hasTable(name))
 				throwImmutable();
-		return new TableBase(this, nativeGetTableNativePtr(nativePtr, name),
+		return new Table(this, nativeGetTableNativePtr(nativePtr, name),
 				immutable);
 	}
 

@@ -22,9 +22,9 @@
     <ClInclude Include="src\columntypeutil.h" />
     <ClInclude Include="src\com_tightdb_group.h" />
     <ClInclude Include="src\com_tightdb_internal_util.h" />
-    <ClInclude Include="src\com_tightdb_tablebase.h" />
+    <ClInclude Include="src\com_tightdb_Table.h" />
     <ClInclude Include="src\com_tightdb_tablequery.h" />
-    <ClInclude Include="src\com_tightdb_tableviewbase.h" />
+    <ClInclude Include="src\com_tightdb_TableView.h" />
     <ClInclude Include="src\mem_usage.hpp" />
     <ClInclude Include="src\tablebase_tpl.hpp" />
     <ClInclude Include="src\tablespecutil.h" />
@@ -34,9 +34,9 @@
   <ItemGroup>
     <ClCompile Include="src\columntypeutil.cpp" />
     <ClCompile Include="src\com_tightdb_group.cpp" />
-    <ClCompile Include="src\com_tightdb_tablebase.cpp" />
+    <ClCompile Include="src\com_tightdb_table.cpp" />
     <ClCompile Include="src\com_tightdb_tablequery.cpp" />
-    <ClCompile Include="src\com_tightdb_tableviewbase.cpp" />
+    <ClCompile Include="src\com_tightdb_tableview.cpp" />
     <ClCompile Include="src\com_tightdb_internal_util.cpp" />
     <ClCompile Include="src\java_lang_list_util.cpp" />
     <ClCompile Include="src\mem_usage.cpp" />
@@ -127,7 +127,6 @@
       <WarningLevel>Level3</WarningLevel>
       <MinimalRebuild>true</MinimalRebuild>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>..\..\..\..\tightdb\src\;$(JAVA_INCLUDE);$(JAVA_INCLUDE)\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TIGHTDB_DEBUG;WIN32;_DEBUG;_WINDOWS;_USRDLL;EXAMPLE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>.\Debug\</AssemblerListingLocation>
       <PrecompiledHeaderOutputFile>.\Debug\example.pch</PrecompiledHeaderOutputFile>
@@ -176,7 +175,6 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>$(JAVA_INCLUDE);$(JAVA_INCLUDE)\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>TIGHTDB_DEBUG;WIN32;_DEBUG;_WINDOWS;_USRDLL;EXAMPLE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DisableSpecificWarnings>4355;4996</DisableSpecificWarnings>
@@ -221,7 +219,6 @@
       <Optimization>MaxSpeed</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>..\..\..\..\tightdb\src\;$(JAVA_INCLUDE);$(JAVA_INCLUDE)\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;EXAMPLE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>.\Release\</AssemblerListingLocation>
       <PrecompiledHeaderOutputFile>.\Release\example.pch</PrecompiledHeaderOutputFile>
@@ -272,7 +269,6 @@
       <Optimization>MaxSpeed</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>..\..\..\..\tightdb\src\;$(JAVA_INCLUDE);$(JAVA_INCLUDE)\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;EXAMPLE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>.\Release\</AssemblerListingLocation>
       <PrecompiledHeaderOutputFile>.\Release\example.pch</PrecompiledHeaderOutputFile>

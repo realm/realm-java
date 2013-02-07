@@ -2,7 +2,7 @@ package com.tightdb.example;
 
 import com.tightdb.*;
 import com.tightdb.internal.util;
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 public class DynamicTableBaseEx {
 
@@ -13,7 +13,7 @@ public class DynamicTableBaseEx {
 		TightDB.loadLibrary();
 		System.out.println("--Memusage: " + util.getNativeMemUsage());
 		
-		TableBase base = new TableBase();
+		Table base = new Table();
 		System.out.println("created table");
 
 		TableSpec tableSpec = new TableSpec();
@@ -33,7 +33,7 @@ public class DynamicTableBaseEx {
 		System.out.println(base.getString(0, 0));
 		System.out.println(base.getLong(1, 0));
 
-		TableViewBase results = base.findAllLong(1, 24000);
+		TableView results = base.findAllLong(1, 24000);
 		System.out.println("Results size: " + results.size());
 
 		long rowIndex = base.findFirstString(0, "John");

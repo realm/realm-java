@@ -50,6 +50,18 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
         if (consId)
 		    return env->NewObject(jMixedClass, consId, mixed.get_int());
 	}
+	case COLUMN_TYPE_FLOAT:
+	{
+		jmethodID consId = GetMixedMethodID(env, "<init>", "(F)V");
+        if (consId)
+		    return env->NewObject(jMixedClass, consId, mixed.get_float());
+	}
+	case COLUMN_TYPE_DOUBLE:
+	{
+		jmethodID consId = GetMixedMethodID(env, "<init>", "(D)V");
+        if (consId)
+		    return env->NewObject(jMixedClass, consId, mixed.get_double());
+	}
 	case COLUMN_TYPE_STRING:
 	{
 		jmethodID consId = GetMixedMethodID(env, "<init>", "(Ljava/lang/String;)V");
@@ -115,6 +127,24 @@ jlong GetMixedIntValue(JNIEnv* env, jobject jMixed)
 
     if (jGetLongValueMethodId)
 	    return env->CallLongMethod(jMixed, jGetLongValueMethodId);
+	return 0;
+}
+
+jfloat GetMixedFloatValue(JNIEnv* env, jobject jMixed) 
+{
+	static jmethodID jGetFloatValueMethodId = GetMixedMethodID(env, "getFloatValue", "()F");
+
+    if (jGetFloatValueMethodId)
+	    return env->CallFloatMethod(jMixed, jGetFloatValueMethodId);
+	return 0;
+}
+
+jdouble GetMixedDoubleValue(JNIEnv* env, jobject jMixed) 
+{
+	static jmethodID jGetDoubleValueMethodId = GetMixedMethodID(env, "getDoubleValue", "()D");
+
+    if (jGetDoubleValueMethodId)
+	    return env->CallDoubleMethod(jMixed, jGetDoubleValueMethodId);
 	return 0;
 }
 

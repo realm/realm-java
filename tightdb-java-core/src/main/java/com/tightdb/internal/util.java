@@ -2,11 +2,11 @@ package com.tightdb.internal;
 
 import java.util.Scanner;
 
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 public class util {
 	
-	public static final long REQUIRED_JNI_VERSION = 15;
+	public static final long REQUIRED_JNI_VERSION = 16;
 
 	static {
 		TightDB.loadLibrary();

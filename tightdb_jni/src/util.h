@@ -162,7 +162,6 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex)
             return false;
     bool rowErr = int_greater_than_or_equal(rowIndex, pTable->size());
     if (rowErr) {
-//        const size_t s = pTable->size();
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), pTable->size())); 
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
     }

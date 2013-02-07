@@ -210,8 +210,8 @@ case "$MODE" in
         # Build tightdb.jar
         mkdir -p "$JAR_DIR" || exit 1
         cd "$TIGHTDB_JAVA_HOME/tightdb-java-core/src/main" || exit 1
-        (cd java && $JAVAC                        com/tightdb/*.java com/tightdb/internal/*.java  com/tightdb/lib/*.java)  || exit 1
-        (cd java && jar cf "$JAR_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/internal/*.class com/tightdb/lib/*.class) || exit 1
+        (cd java && $JAVAC                        com/tightdb/*.java com/tightdb/internal/*.java  com/tightdb/typed/*.java)  || exit 1
+        (cd java && jar cf "$JAR_DIR/tightdb.jar" com/tightdb/*.class com/tightdb/internal/*.class com/tightdb/typed/*.class) || exit 1
         jar i "$JAR_DIR/tightdb.jar" || exit 1
 
         # Build tightdb-devkit.jar
@@ -232,7 +232,7 @@ case "$MODE" in
         (cd java && jar uf "$JAR_DIR/tightdb-devkit.jar" com/tightdb/generator/*.class) || exit 1
         (cd "$JAR_DIR" && jar i "tightdb-devkit.jar") || exit 1
 
-        # Absorb dependency JARs if we have to - generally a bag thing!!!
+        # Absorb dependency JARs if we have to - generally a bad thing!!!
         if [ "$ABSORB_DEP_JARS" ]; then
             TEMP_JAR_DIR="$TEMP_DIR/jar"
             mkdir "$TEMP_JAR_DIR" || exit 1

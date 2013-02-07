@@ -12,7 +12,7 @@ public class TableQuery {
 	}
 
 	// Query TableView
-	public TableQuery tableview(TableViewBase tv){
+	public TableQuery tableview(TableView tv){
 		nativeTableview(nativePtr, tv.nativePtr);
 		return this;
 	}
@@ -118,6 +118,145 @@ public class TableQuery {
 	}
 	protected native void nativeBetween(long nativeQueryPtr, long columnIndex, long value1, long value2);
 	
+
+	// Query for float values.
+
+	public TableQuery equal(long columnIndex, float value){
+		nativeEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery eq(long columnIndex, float value){
+		nativeEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeEqual(long nativeQueryPtr, long columnIndex, float value);
+	
+	public TableQuery notEqual(long columnIndex, float value){
+		nativeNotEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery neq(long columnIndex, float value){
+		nativeNotEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, float value);
+		
+	public TableQuery greaterThan(long columnIndex, float value){
+		nativeGreater(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery gt(long columnIndex, float value){
+		nativeGreater(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeGreater(long nativeQueryPtr, long columnIndex, float value);
+	
+	public TableQuery greaterThanOrEqual(long columnIndex, float value){
+		nativeGreaterEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery gte(long columnIndex, float value){
+		nativeGreaterEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex, float value);
+
+	public TableQuery lessThan(long columnIndex, float value){
+		nativeLess(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery lt(long columnIndex, float value){
+		nativeLess(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeLess(long nativeQueryPtr, long columnIndex, float value);
+	
+	public TableQuery lessThanOrEqual(long columnIndex, float value){
+		nativeLessEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery lte(long columnIndex, float value){
+		nativeLessEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex, float value);
+	
+	public TableQuery between(long columnIndex, float value1, float value2){
+		nativeBetween(nativePtr, columnIndex, value1, value2);
+		return this;
+	}
+	protected native void nativeBetween(long nativeQueryPtr, long columnIndex, float value1, float value2);
+	
+
+	// Query for double values.
+
+	public TableQuery equal(long columnIndex, double value){
+		nativeEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery eq(long columnIndex, double value){
+		nativeEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeEqual(long nativeQueryPtr, long columnIndex, double value);
+	
+	public TableQuery notEqual(long columnIndex, double value){
+		nativeNotEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery neq(long columnIndex, double value){
+		nativeNotEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, double value);
+		
+	public TableQuery greaterThan(long columnIndex, double value){
+		nativeGreater(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery gt(long columnIndex, double value){
+		nativeGreater(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeGreater(long nativeQueryPtr, long columnIndex, double value);
+	
+	public TableQuery greaterThanOrEqual(long columnIndex, double value){
+		nativeGreaterEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery gte(long columnIndex, double value){
+		nativeGreaterEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex, double value);
+
+	public TableQuery lessThan(long columnIndex, double value){
+		nativeLess(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery lt(long columnIndex, double value){
+		nativeLess(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeLess(long nativeQueryPtr, long columnIndex, double value);
+	
+	public TableQuery lessThanOrEqual(long columnIndex, double value){
+		nativeLessEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	public TableQuery lte(long columnIndex, double value){
+		nativeLessEqual(nativePtr, columnIndex, value);
+		return this;
+	}
+	protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex, double value);
+	
+	public TableQuery between(long columnIndex, double value1, double value2){
+		nativeBetween(nativePtr, columnIndex, value1, value2);
+		return this;
+	}
+	protected native void nativeBetween(long nativeQueryPtr, long columnIndex, double value1, double value2);
+	
+
 	// Query for boolean values.
 	
 	public TableQuery equal(long columnIndex, boolean value){
@@ -208,86 +347,158 @@ public class TableQuery {
 	}
 	
 	public long findNext(){
-		return nativeFindNext(nativePtr, TableBase.INFINITE);
+		return nativeFindNext(nativePtr, Table.INFINITE);
 	}
 	
 	protected native long nativeFindNext(long nativeQueryPtr, long lastMatch);
 	
-	public TableViewBase findAll(long start, long end, long limit){
-		return new TableViewBase(nativeFindAll(nativePtr, start, end, limit), immutable);
+	public TableView findAll(long start, long end, long limit){
+		return new TableView(nativeFindAll(nativePtr, start, end, limit), immutable);
 	}
 	
-	public TableViewBase findAll(){
-		return new TableViewBase(nativeFindAll(nativePtr, 0, TableBase.INFINITE, TableBase.INFINITE), immutable);
+	public TableView findAll(){
+		return new TableView(nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE), immutable);
 	}
 
 	protected native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
 	
-	
+	//
 	// Aggregation methods
+	//
+
+	// Integer aggregation
 	
 	public long sum(long columnIndex, long start, long end){
-		return nativeSum(nativePtr, columnIndex, start, end, TableBase.INFINITE);
+		return nativeSum(nativePtr, columnIndex, start, end, Table.INFINITE);
 	}
-
 	public long sum(long columnIndex){
-		return nativeSum(nativePtr, columnIndex, 0, TableBase.INFINITE, TableBase.INFINITE);
+		return nativeSum(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
 	}
-	
 	protected native long nativeSum(long nativeQueryPtr, long columnIndex, long start, long end, long limit);	
 
+	
 	public long maximum(long columnIndex, long start, long end){
-		return nativeMaximum(nativePtr, columnIndex, start, end,  TableBase.INFINITE);
+		return nativeMaximum(nativePtr, columnIndex, start, end,  Table.INFINITE);
 	}
-	
 	public long maximum(long columnIndex){
-		return nativeMaximum(nativePtr, columnIndex, 0, TableBase.INFINITE, TableBase.INFINITE);
+		return nativeMaximum(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
 	}
-	
 	protected native long nativeMaximum(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 	
+	
 	public long minimum(long columnIndex, long start, long end){
-		return nativeMinimum(nativePtr, columnIndex, start, end, TableBase.INFINITE);
+		return nativeMinimum(nativePtr, columnIndex, start, end, Table.INFINITE);
 	}
-	
 	public long minimum(long columnIndex){
-		return nativeMinimum(nativePtr, columnIndex, 0, TableBase.INFINITE, TableBase.INFINITE);
+		return nativeMinimum(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
 	}
-	
 	protected native long nativeMinimum(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 	
 	
 	public double average(long columnIndex, long start, long end){
-		return nativeAverage(nativePtr, columnIndex, start, end, TableBase.INFINITE);
+		return nativeAverage(nativePtr, columnIndex, start, end, Table.INFINITE);
 	}
-	
 	public double average(long columnIndex){
-		return nativeAverage(nativePtr, columnIndex, 0, TableBase.INFINITE, TableBase.INFINITE);
+		return nativeAverage(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
 	}
-	
 	protected native double nativeAverage(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 	
+	// float aggregation
+	
+	public double sumFloat(long columnIndex, long start, long end){
+		return nativeSumFloat(nativePtr, columnIndex, start, end, Table.INFINITE);
+	}
+	public double sumFloat(long columnIndex){
+		return nativeSumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+	}
+	protected native double nativeSumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);	
+
+	
+	public float maximumFloat(long columnIndex, long start, long end){
+		return nativeMaximumFloat(nativePtr, columnIndex, start, end,  Table.INFINITE);
+	}
+	public float maximumFloat(long columnIndex){
+		return nativeMaximumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+	}
+	protected native float nativeMaximumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+	
+	
+	public float minimumFloat(long columnIndex, long start, long end){
+		return nativeMinimumFloat(nativePtr, columnIndex, start, end, Table.INFINITE);
+	}
+	public float minimumFloat(long columnIndex){
+		return nativeMinimumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+	}
+	protected native float nativeMinimumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+	
+	
+	public double averageFloat(long columnIndex, long start, long end){
+		return nativeAverageFloat(nativePtr, columnIndex, start, end, Table.INFINITE);
+	}
+	public double averageFloat(long columnIndex){
+		return nativeAverageFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+	}
+	protected native double nativeAverageFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+
+	
+	// double aggregation
+	
+	public double sumDouble(long columnIndex, long start, long end){
+		return nativeSumDouble(nativePtr, columnIndex, start, end, Table.INFINITE);
+	}
+	public double sumDouble(long columnIndex){
+		return nativeSumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+	}
+	protected native double nativeSumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);	
+
+	
+	public double maximumDouble(long columnIndex, long start, long end){
+		return nativeMaximumDouble(nativePtr, columnIndex, start, end,  Table.INFINITE);
+	}
+	public double maximumDouble(long columnIndex){
+		return nativeMaximumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+	}
+	protected native double nativeMaximumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+	
+	
+	public double minimumDouble(long columnIndex, long start, long end){
+		return nativeMinimumDouble(nativePtr, columnIndex, start, end, Table.INFINITE);
+	}
+	public double minimumDouble(long columnIndex){
+		return nativeMinimumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+	}
+	protected native double nativeMinimumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+	
+	
+	public double averageDouble(long columnIndex, long start, long end){
+		return nativeAverageDouble(nativePtr, columnIndex, start, end, Table.INFINITE);
+	}
+	public double averageDouble(long columnIndex){
+		return nativeAverageDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+	}
+	protected native double nativeAverageDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+
+	// count
+	
 	public long count(long start, long end){
-		return nativeCount(nativePtr, start, end, TableBase.INFINITE);
+		return nativeCount(nativePtr, start, end, Table.INFINITE);
 	}
-	
 	public long count(){
-		return nativeCount(nativePtr, 0, TableBase.INFINITE, TableBase.INFINITE);
+		return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
 	}
-	
 	protected native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
 
 	
 	// Deletion.
 	public long remove(long start, long end){
 		if (immutable) throwImmutable();
-		return nativeRemove(nativePtr, start, end, TableBase.INFINITE);
+		return nativeRemove(nativePtr, start, end, Table.INFINITE);
 	}
 	
 	public long remove(){
 		if (immutable) throwImmutable();
-		return nativeRemove(nativePtr, 0, TableBase.INFINITE, TableBase.INFINITE);
+		return nativeRemove(nativePtr, 0, Table.INFINITE, Table.INFINITE);
 	}
 	
 	protected native long nativeRemove(long nativeQueryPtr, long start, long end, long limit);
@@ -298,12 +509,12 @@ public class TableQuery {
 
 	protected native String nativeGetErrorCode(long nativePtr);
 
-	public TableViewBase findAllMulti(long start, long end){
-		return new TableViewBase(nativeFindAllMulti(nativePtr, start, end), immutable);
+	public TableView findAllMulti(long start, long end){
+		return new TableView(nativeFindAllMulti(nativePtr, start, end), immutable);
 	}
 	
-	public TableViewBase findAllMulti(){
-		return new TableViewBase(nativeFindAllMulti(nativePtr, 0, TableBase.INFINITE), immutable);
+	public TableView findAllMulti(){
+		return new TableView(nativeFindAllMulti(nativePtr, 0, Table.INFINITE), immutable);
 	}
 	
 	protected native long nativeFindAllMulti(long nativeQueryPtr, long start, long end);

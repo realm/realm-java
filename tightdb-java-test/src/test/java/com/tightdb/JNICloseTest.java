@@ -7,7 +7,7 @@ public class JNICloseTest {
 	@Test (enabled=true, expectedExceptions = IllegalArgumentException.class)
 	public void shouldCloseTable() {
 		// util.setDebugLevel(1);
-		TableBase table = new TableBase();
+		Table table = new Table();
 		table.close();
 		
 		@SuppressWarnings("unused")
