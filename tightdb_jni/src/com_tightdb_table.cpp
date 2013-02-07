@@ -264,7 +264,7 @@ JNIEXPORT jint JNICALL Java_com_tightdb_Table_nativeGetMixedType(
 {
 	if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return 0;
 
-	ColumnType mixedType = TBL(nativeTablePtr)->get_mixed_type( S(columnIndex), S(rowIndex));
+	DataType mixedType = TBL(nativeTablePtr)->get_mixed_type( S(columnIndex), S(rowIndex));
 	return static_cast<jint>(mixedType);
 }
 
@@ -280,7 +280,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetMixed(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTable(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, COLUMN_TYPE_TABLE)) return 0;
+    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table)) return 0;
 
 	Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr), 
         S(columnIndex), S(rowIndex)));
@@ -293,7 +293,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableDuringInsert(
 	JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
     if (!INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, 
-         rowIndex, COLUMN_TYPE_TABLE)) return 0;
+         rowIndex, type_Table)) return 0;
 
 	Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr_during_insert(
         TBL(nativeTablePtr), S(columnIndex), S(rowIndex)));
@@ -305,7 +305,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableDuringInsert(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableSize(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, COLUMN_TYPE_TABLE)) return 0;
+    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table)) return 0;
 
     return TBL(nativeTablePtr)->get_subtable_size( S(columnIndex), S(rowIndex));
 }
@@ -346,7 +346,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetDouble(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetString(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jstring value)
 {
-    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, COLUMN_TYPE_STRING)) return;
+    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_String)) return;
 
     const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
     if (valueCharPtr) {
@@ -420,7 +420,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetIndex(
     Table* pTable = TBL(nativeTablePtr);
    	if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
         return;
-    if (pTable->get_column_type(columnIndex) != COLUMN_TYPE_STRING) {
+    if (pTable->get_column_type(columnIndex) != type_String) {
         ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported.");
         return;
     }
@@ -676,7 +676,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeDistinct(
         ThrowException(env, UnsupportedOperation, "The column must be indexed before distinct() can be used.");
         return 0;
     }
-    if (pTable->get_column_type(columnIndex) != COLUMN_TYPE_STRING) {
+    if (pTable->get_column_type(columnIndex) != type_String) {
         ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported.");
         return 0;
     }

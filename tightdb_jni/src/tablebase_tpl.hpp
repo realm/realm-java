@@ -49,21 +49,21 @@ void tbl_nativeDoBinary(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex, j
 template <class M, class T>
 void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
 {
-    ColumnType valueType = GetMixedObjectType(env, jMixedValue);
+    DataType valueType = GetMixedObjectType(env, jMixedValue);
     switch(valueType) {
-    case COLUMN_TYPE_INT:
+    case type_Int:
         {
             jlong longValue = GetMixedIntValue(env, jMixedValue);
             (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(longValue));
             return;
         }
-    case COLUMN_TYPE_BOOL:
+    case type_Bool:
         {
             jboolean boolValue = GetMixedBooleanValue(env, jMixedValue);
             (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(boolValue != 0 ? true : false));
             return;
         }
-    case COLUMN_TYPE_STRING:
+    case type_String:
         {
             jstring stringValue = GetMixedStringValue(env, jMixedValue);
             const char* stringCharPtr = env->GetStringUTFChars(stringValue, NULL);
@@ -74,14 +74,14 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
             }
             break;
         }
-    case COLUMN_TYPE_DATE:
+    case type_Date:
         {
             jlong dateTimeValue = GetMixedDateTimeValue(env, jMixedValue);
             Date date(dateTimeValue);
             (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(date));
             return;
         }
-    case COLUMN_TYPE_BINARY:
+    case type_Binary:
         {
             jint mixedBinaryType = GetMixedBinaryType(env, jMixedValue);
             if (mixedBinaryType == 0) {
@@ -107,15 +107,13 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
             }
             break; // failed
         }
-    case COLUMN_TYPE_TABLE:
+    case type_Table:
         {
             (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed::subtable_tag());
             return;
         }
-    default:
-        {
-            TR_ERR((env, "ERROR: This type of mixed is not supported yet: %d.", valueType));
-        }
+    case type_Mixed:
+        break;
     }
     TR_ERR((env, "\nERROR: nativeSetMixed() failed.\n"));
     ThrowException(env, IllegalArgument, "nativeSetMixed()");

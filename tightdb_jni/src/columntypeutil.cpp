@@ -16,17 +16,17 @@ static jfieldID GetFieldIDColumnType(JNIEnv* env, const char* methodStr, const c
     return myField;
 }
 
-ColumnType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType)
+DataType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType)
 {
     static jfieldID jValueFieldId = GetFieldIDColumnType(env, "nativeValue", "I");
     if (jValueFieldId == NULL)
-        return static_cast<ColumnType>(0);
+        return DataType(0);
 
     jint columnType = env->GetIntField(jColumnType, jValueFieldId);
-    return static_cast<ColumnType>(columnType);
+    return static_cast<DataType>(columnType);
 }
 
-jobject GetJColumnTypeFromColumnType(JNIEnv* env, ColumnType columnType)
+jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType)
 {
     TR((env, "jni: Enter GetJColumnTypeFromColumnType(%d)\n", columnType));
 	static jclass jColumnTypeClass = GetClass(env, "com/tightdb/ColumnType");

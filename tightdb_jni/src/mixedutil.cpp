@@ -24,16 +24,16 @@ jmethodID GetMixedMethodID(JNIEnv* env, const char* methodStr, const char* typeS
     return myMethod;
 }
 
-ColumnType GetMixedObjectType(JNIEnv* env, jobject jMixed)
+DataType GetMixedObjectType(JNIEnv* env, jobject jMixed)
 {
     // Call Java "Mixed.getType"
 	static jmethodID jGetTypeMethodId = GetMixedMethodID(env, "getType", "()Lcom/tightdb/ColumnType;");
     if (jGetTypeMethodId == NULL)
-       	return static_cast<ColumnType>(0);
+       	return DataType(0);
     
     // ???TODO optimize
 	jobject jColumnType = env->CallObjectMethod(jMixed, jGetTypeMethodId);
-    return static_cast<ColumnType>(GetColumnTypeFromJColumnType(env, jColumnType));
+    return static_cast<DataType>(GetColumnTypeFromJColumnType(env, jColumnType));
 }
 
 jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed) 
@@ -44,37 +44,37 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
 
     TR((env, "CreateJMixedFromMixed(type %d)\n", mixed.get_type()));
 	switch (mixed.get_type()) {
-	case COLUMN_TYPE_INT:
+	case type_Int:
 	{
 		jmethodID consId = GetMixedMethodID(env, "<init>", "(J)V");
         if (consId)
 		    return env->NewObject(jMixedClass, consId, mixed.get_int());
 	}
-	case COLUMN_TYPE_FLOAT:
+	case type_Float:
 	{
 		jmethodID consId = GetMixedMethodID(env, "<init>", "(F)V");
         if (consId)
 		    return env->NewObject(jMixedClass, consId, mixed.get_float());
 	}
-	case COLUMN_TYPE_DOUBLE:
+	case type_Double:
 	{
 		jmethodID consId = GetMixedMethodID(env, "<init>", "(D)V");
         if (consId)
 		    return env->NewObject(jMixedClass, consId, mixed.get_double());
 	}
-	case COLUMN_TYPE_STRING:
+	case type_String:
 	{
 		jmethodID consId = GetMixedMethodID(env, "<init>", "(Ljava/lang/String;)V");
 		if (consId)
 		    return env->NewObject(jMixedClass, consId, env->NewStringUTF(mixed.get_string()));
 	}
-	case COLUMN_TYPE_BOOL:
+	case type_Bool:
 	{
         jmethodID consId = GetMixedMethodID(env, "<init>", "(Z)V");
 		if (consId)
 			return env->NewObject(jMixedClass, consId, mixed.get_bool());
 	}
-	case COLUMN_TYPE_DATE:
+	case type_Date:
 		{
 			time_t timeValue = mixed.get_date();
 			jclass jDateClass = env->FindClass("java/util/Date");
@@ -92,7 +92,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
 			if (consId)
 			    return env->NewObject(jMixedClass, consId, jDate);
 		}
-	case COLUMN_TYPE_BINARY:
+	case type_Binary:
 		{
 			BinaryData binaryData = mixed.get_binary();
 			jmethodID consId = GetMixedMethodID(env, "<init>", "(Ljava/nio/ByteBuffer;)V");
@@ -101,21 +101,18 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
 				return env->NewObject(jMixedClass, consId, jByteBuffer);
             }
 		}
-    case COLUMN_TYPE_TABLE:
+    case type_Table:
         {
             // param input: Table* t.   
-            TR((env, "   --Mixed(COLUMN_TYPE_TABLE)\n"));
+            TR((env, "   --Mixed(type_Table)\n"));
             jmethodID consId = GetMixedMethodID(env, "<init>", "(Lcom/tightdb/ColumnType;)V");
 
-            jobject jColumnType = NULL; // GetJColumnTypeFromColumnType(env, COLUMN_TYPE_TABLE);
+            jobject jColumnType = NULL; // GetJColumnTypeFromColumnType(env, type_Table);
             if (consId) 
 			    return env->NewObject(jMixedClass, consId, jColumnType);
         }
-	default:
-		{
-	        ThrowException(env, IllegalArgument, "Invalid Mixed type.");
-            TR((env, "\n\nERROR: Mixed type is not supported: %d. \n\n", mixed.get_type()));
-		}
+	case type_Mixed:
+		break;
 	}
     
 	return NULL;
