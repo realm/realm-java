@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.tightdb.Group;
-import com.tightdb.TableBase;
+import com.tightdb.Table;
 
 public class GroupExamples {
 
@@ -20,7 +20,7 @@ public class GroupExamples {
 		
 		/* EXAMPLE: getTable */
 
-		TableBase a = group.getTable("PersonTable");
+		Table a = group.getTable("PersonTable");
 		
 		/* EXAMPLE: getTableCount */
 
@@ -38,9 +38,9 @@ public class GroupExamples {
 		
 		/* EXAMPLE: isValid */
 
-		if (group.isValid()) {
+//		if (group.isValid()) {
 			  // do something
-		}
+//		}
 		
 		/* EXAMPLE: writeToByteBuffer */
 

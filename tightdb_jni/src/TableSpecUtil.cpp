@@ -74,8 +74,8 @@ void updateSpecFromJSpec(JNIEnv* env, Spec& spec, jobject jTableSpec)
             return;
 
 		jobject jColumnType   = Java_com_tightdb_TableSpec_getColumnType(env, jTableSpec, i);
-		ColumnType columnType = GetColumnTypeFromJColumnType(env, jColumnType);
-		if (columnType != COLUMN_TYPE_TABLE) {
+		DataType columnType = GetColumnTypeFromJColumnType(env, jColumnType);
+		if (columnType != type_Table) {
 			spec.add_column(columnType, columnNameCharPtr);
 		} else {
 			Spec nextColumnTableSpec = spec.add_subtable_column(columnNameCharPtr);
@@ -97,9 +97,9 @@ void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec)
 
 	size_t columnCount = spec.get_column_count();
 	for(size_t i = 0; i < columnCount; ++i) {
-		ColumnType colType = spec.get_column_type(i);
+		DataType colType = spec.get_column_type(i);
 		const char* colName = spec.get_column_name(i);
-		if (colType == COLUMN_TYPE_TABLE) {
+		if (colType == type_Table) {
 			jobject jSubTableSpec = env->CallObjectMethod(jTableSpec, jAddSubtableColumnMethodId, env->NewStringUTF(colName));
 			const Spec& subTableSpec = spec.get_subtable_spec(i);
 			UpdateJTableSpecFromSpec(env, subTableSpec, jSubTableSpec);

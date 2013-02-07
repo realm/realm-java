@@ -9,7 +9,7 @@ public class JNISubtableTest {
 	@Test()
 	public void shouldSynchronizeNestedTables() {
 		Group group = new Group();
-		TableBase table = group.getTable("emp");
+		Table table = group.getTable("emp");
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
@@ -22,12 +22,12 @@ public class JNISubtableTest {
 		table.add("Foo", null);
 		assertEquals(1, table.size());
 
-		TableBase subtable1 = table.getSubTable(1, 0);
+		Table subtable1 = table.getSubTable(1, 0);
 		subtable1.add(123);
 		assertEquals(1, subtable1.size());
 		subtable1.close();
 		
-		TableBase subtable2 = table.getSubTable(1, 0);
+		Table subtable2 = table.getSubTable(1, 0);
 		assertEquals(1, subtable2.size());
 		assertEquals(123, subtable2.getLong(0, 0));
 
@@ -37,7 +37,7 @@ public class JNISubtableTest {
 	@Test()
 	public void shouldInsertNestedTablesNested() {
 		Group group = new Group();
-		TableBase table = group.getTable("emp");
+		Table table = group.getTable("emp");
 
 		// Define table
 		TableSpec tableSpec = new TableSpec();

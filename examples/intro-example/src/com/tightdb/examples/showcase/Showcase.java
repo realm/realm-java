@@ -6,8 +6,8 @@ import java.util.Date;
 
 import com.tightdb.Group;
 import com.tightdb.Table;
-import com.tightdb.lib.AbstractColumn;
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.AbstractColumn;
+import com.tightdb.typed.TightDB;
 
 public class Showcase {
 
@@ -25,7 +25,7 @@ public class Showcase {
 	 * rows in the EmployeeTable, which will also be generated.
 	 */
 	
-	@Table(row="Employee")
+	@DefineTable(row="Employee")
 	class employee {
 		String firstName;
 		String lastName;
@@ -37,7 +37,7 @@ public class Showcase {
 		phone phones;
 	}
 
-	@Table(row="Phone")
+	@DefineTable(row="Phone")
 	class phone {
 		String type;
 		String number;

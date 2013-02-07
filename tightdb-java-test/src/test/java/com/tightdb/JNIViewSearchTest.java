@@ -7,7 +7,7 @@ public class JNIViewSearchTest {
 
 	@Test(enabled = true)
 	public void shouldSearchByColumnValue() {
-		TableBase table = new TableBase();
+		Table table = new Table();
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
@@ -17,7 +17,7 @@ public class JNIViewSearchTest {
 		table.add("Bar");
 
 		TableQuery query = table.where();
-		TableViewBase view = query.findAll(0, table.size(), Integer.MAX_VALUE);
+		TableView view = query.findAll(0, table.size(), Integer.MAX_VALUE);
 		assertEquals(2, view.size());
 
 		view.findAllString(0, "Foo");
@@ -25,7 +25,7 @@ public class JNIViewSearchTest {
 	
 	@Test()
 	public void shouldQueryInView() {
-		TableBase table = new TableBase();
+		Table table = new Table();
 
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
@@ -40,11 +40,11 @@ public class JNIViewSearchTest {
 		table.add("A3");
 
 		TableQuery query = table.where();
-		TableViewBase view = query.beginsWith(0, "A").findAll(0, table.size(), TableBase.INFINITE);
+		TableView view = query.beginsWith(0, "A").findAll(0, table.size(), Table.INFINITE);
 		assertEquals(4, view.size());
 
 		TableQuery query2 = table.where();
-		TableViewBase view2 = query2.tableview(view).contains(0, "3").findAll();
+		TableView view2 = query2.tableview(view).contains(0, "3").findAll();
 		assertEquals(2, view2.size());
 	}
 

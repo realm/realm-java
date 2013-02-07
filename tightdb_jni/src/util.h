@@ -162,7 +162,6 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex)
             return false;
     bool rowErr = int_greater_than_or_equal(rowIndex, pTable->size());
     if (rowErr) {
-//        const size_t s = pTable->size();
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), pTable->size())); 
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
     }
@@ -211,7 +210,7 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex,
     size_t col = static_cast<size_t>(columnIndex);
     size_t row = static_cast<size_t>(rowIndex);
     int colType = pTable->get_column_type(col);
-    if (colType == tightdb::COLUMN_TYPE_MIXED)
+    if (colType == tightdb::type_Mixed)
         colType = pTable->get_mixed_type(col, row);
     
     if (colType != expectColType) {

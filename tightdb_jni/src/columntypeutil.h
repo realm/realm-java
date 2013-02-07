@@ -6,14 +6,14 @@
 
 #ifdef __cplusplus
 
-using tightdb::ColumnType;
+using tightdb::DataType;
 
 extern "C" {
 
 #endif
 
-ColumnType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType);
-jobject GetJColumnTypeFromColumnType(JNIEnv* env, ColumnType columnType);
+DataType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType);
+jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType);
 
 #ifdef __cplusplus
 }

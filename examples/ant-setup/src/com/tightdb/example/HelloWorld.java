@@ -29,7 +29,7 @@ public class HelloWorld {
 		EmployeeTable employees = new EmployeeTable();
 
 		employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 },
-				new Date(), "extra");
+				new Date(), "extra", null);
 
 		TightDB.print("Employees", employees);
 	}

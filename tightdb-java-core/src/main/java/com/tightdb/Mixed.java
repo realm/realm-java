@@ -12,6 +12,14 @@ public class Mixed {
 		this.value = new Long(value);
 	}
 
+	public Mixed(float value) {
+		this.value = new Float(value);
+	}
+	
+	public Mixed(double value) {
+		this.value = new Double(value);
+	}
+
 	public Mixed(ColumnType columnType) {
 		// It's actually ok to call with any columnType - it will however be assumed to be a ColumnTypeTable.
 		assert (columnType == null  || columnType == ColumnType.ColumnTypeTable);
@@ -97,6 +105,10 @@ public class Mixed {
 			return ColumnType.ColumnTypeString;
 		else if (value instanceof Long)
 			return ColumnType.ColumnTypeInt;
+		else if (value instanceof Float)
+			return ColumnType.ColumnTypeFloat;
+		else if (value instanceof Double)
+			return ColumnType.ColumnTypeDouble;
 		else if (value instanceof Date)
 			return ColumnType.ColumnTypeDate;
 		else if (value instanceof Boolean)
@@ -118,6 +130,10 @@ public class Mixed {
 			return new Mixed(((Integer)value).longValue());
 		} else if (value instanceof Boolean) {
 			return new Mixed((Boolean) value);
+		} else if (value instanceof Float) {
+			return new Mixed((Float) value);
+		} else if (value instanceof Double) {
+			return new Mixed((Double) value);
 		} else if (value instanceof Date) {
 			return new Mixed((Date) value);
 		} else if (value instanceof ByteBuffer) {
@@ -142,6 +158,18 @@ public class Mixed {
 		if (!(value instanceof Boolean))
 			throw new IllegalAccessException("Trying to access an different type from mixed");
 		return ((Boolean) value).booleanValue();
+	}
+
+	public float getFloatValue() throws IllegalAccessException {
+		if (!(value instanceof Float))
+			throw new IllegalAccessException("Trying to access an different type from mixed");
+		return ((Float) value).floatValue();
+	}
+
+	public double getDoubleValue() throws IllegalAccessException {
+		if (!(value instanceof Double))
+			throw new IllegalAccessException("Trying to access an different type from mixed");
+		return ((Double) value).doubleValue();
 	}
 
 	public String getStringValue() throws IllegalAccessException {

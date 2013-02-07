@@ -7,7 +7,7 @@ import java.util.Date;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.tightdb.lib.TightDB;
+import com.tightdb.typed.TightDB;
 
 public class JNITransactions {
 
@@ -41,7 +41,7 @@ public class JNITransactions {
     protected void writeOneTransaction(long rows)
 	{
         WriteTransaction trans = db.beginWrite();
-        TableBase tbl = trans.getTable("EmployeeTable");
+        Table tbl = trans.getTable("EmployeeTable");
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
@@ -65,7 +65,7 @@ public class JNITransactions {
 	{
 		// Read transaction
 		ReadTransaction trans = db.beginRead();
-    	TableBase tbl = trans.getTable("EmployeeTable");
+    	Table tbl = trans.getTable("EmployeeTable");
     	assertEquals(true, tbl.isValid());
     	assertEquals(rows, tbl.size());
     	trans.endRead();
@@ -99,7 +99,7 @@ public class JNITransactions {
 		writeOneTransaction(1);
 		
         WriteTransaction trans = db.beginWrite();
-        TableBase tbl = trans.getTable("EmployeeTable");
+        Table tbl = trans.getTable("EmployeeTable");
 
         tbl.add("Hello", 1);
 		assertEquals(2, tbl.size());
@@ -122,7 +122,7 @@ public class JNITransactions {
 		writeOneTransaction(1);
 
  		ReadTransaction t = db.beginRead(); 
- 		TableBase table = t.getTable("EmployeeTable");
+ 		Table table = t.getTable("EmployeeTable");
 
 		try { table.insert(0, 0, false);   		assert(false);} catch (IllegalStateException e) {}		
 		try { table.add(0, false);		  		assert(false);} catch (IllegalStateException e) {}		
@@ -148,7 +148,7 @@ public class JNITransactions {
 		try { q.remove();		assert(false);} catch (IllegalStateException e) {}
 		try { q.remove(0,0);	assert(false);} catch (IllegalStateException e) {}
 
-		TableViewBase v = q.findAll();
+		TableView v = q.findAll();
 		try { v.addLong(0, 0);						assert(false);} catch (IllegalStateException e) {}
 		try { v.clear();							assert(false);} catch (IllegalStateException e) {}
 		try { v.clearSubTable(0, 0);				assert(false);} catch (IllegalStateException e) {}

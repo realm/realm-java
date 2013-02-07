@@ -5,10 +5,10 @@ import org.testng.annotations.Test;
 
 public class JNIQueryTest {
 
-	TableBase table;
+	Table table;
 	
 	void init() {
-		table = new TableBase();
+		table = new Table();
 		TableSpec tableSpec = new TableSpec();
 		tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
 		tableSpec.addColumn(ColumnType.ColumnTypeString, "name");

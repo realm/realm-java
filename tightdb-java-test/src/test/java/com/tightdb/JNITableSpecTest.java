@@ -23,7 +23,7 @@ public class JNITableSpecTest {
 		spec2.addColumn(columnType, "foo");
 		checkSpecIdentity(spec, spec2);
 
-		TableBase table = new TableBase();
+		Table table = new Table();
 		table.updateFromSpec(spec);
 	}
 
@@ -45,7 +45,7 @@ public class JNITableSpecTest {
 		
 		checkSpecIdentity(spec, spec2);
 
-		TableBase table = new TableBase();
+		Table table = new Table();
 		table.updateFromSpec(spec);
 	}
 

@@ -19,11 +19,11 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.FileObject;
 
-import com.tightdb.Table;
+import com.tightdb.DefineTable;
 
 public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
 
-	private static final String[] SUPPORTED_ANNOTATIONS = { Table.class.getCanonicalName() };
+	private static final String[] SUPPORTED_ANNOTATIONS = { DefineTable.class.getCanonicalName() };
 
 	protected Elements elementUtils;
 	protected Types typeUtils;
