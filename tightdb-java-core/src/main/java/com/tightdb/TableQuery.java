@@ -502,28 +502,6 @@ public class TableQuery {
 	}
 	
 	protected native long nativeRemove(long nativeQueryPtr, long start, long end, long limit);
-	
-	public String getErrorCode(){
-		return nativeGetErrorCode(nativePtr);
-	}
-
-	protected native String nativeGetErrorCode(long nativePtr);
-
-	public TableView findAllMulti(long start, long end){
-		return new TableView(nativeFindAllMulti(nativePtr, start, end), immutable);
-	}
-	
-	public TableView findAllMulti(){
-		return new TableView(nativeFindAllMulti(nativePtr, 0, Table.INFINITE), immutable);
-	}
-	
-	protected native long nativeFindAllMulti(long nativeQueryPtr, long start, long end);
-	
-	public int setThreads(int threadCount){
-		return nativeSetThreads(nativePtr, threadCount);
-	}
-	
-	protected native int nativeSetThreads(long nativeQueryPtr, int threadCount);
 
 	private void throwImmutable()
 	{

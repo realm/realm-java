@@ -447,7 +447,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageDouble(
 }
 
 
-// Count
+// Count, Remove
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(
 	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
@@ -458,30 +458,6 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(
         return 0;
 
     return pQuery->count(S(start), S(end), S(limit));
-}
-
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAllMulti(
-	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end)
-{
-    Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = Ref2Ptr(pQuery->get_table());
-    if (!ROW_INDEXES_VALID(env, pTable, start, end, 0))
-        return 0;
-
-    TableView* pResultView = new TableView( pQuery->find_all_multi(S(start), S(end)) );
-	return reinterpret_cast<jlong>(pResultView);
-}
-
-JNIEXPORT jstring JNICALL Java_com_tightdb_TableQuery_nativeGetErrorCode(
-	JNIEnv* env, jobject, jlong nativeQueryPtr)
-{	
-	return env->NewStringUTF(Q(nativeQueryPtr)->error_code.c_str());
-}
-
-JNIEXPORT jint JNICALL Java_com_tightdb_TableQuery_nativeSetThreads(
-	JNIEnv*, jobject, jlong nativeQueryPtr, jint threadCount)
-{	
-	return Q(nativeQueryPtr)->set_threads(threadCount);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove(

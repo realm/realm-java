@@ -399,30 +399,6 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    nativeGetErrorCode
- * Signature: (J)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_com_tightdb_TableQuery_nativeGetErrorCode
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    nativeFindAllMulti
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAllMulti
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     com_tightdb_TableQuery
- * Method:    nativeSetThreads
- * Signature: (JI)I
- */
-JNIEXPORT jint JNICALL Java_com_tightdb_TableQuery_nativeSetThreads
-  (JNIEnv *, jobject, jlong, jint);
-
 #ifdef __cplusplus
 }
 #endif
