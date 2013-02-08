@@ -57,6 +57,18 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
             (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(longValue));
             return;
         }
+    case type_Float:
+        {
+            jfloat floatValue = GetMixedFloatValue(env, jMixedValue);
+            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(floatValue));
+            return;
+        }
+    case type_Double:
+        {
+            jdouble doubleValue = GetMixedDoubleValue(env, jMixedValue);
+            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(doubleValue));
+            return;
+        }
     case type_Bool:
         {
             jboolean boolValue = GetMixedBooleanValue(env, jMixedValue);

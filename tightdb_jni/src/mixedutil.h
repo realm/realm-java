@@ -9,6 +9,8 @@ using namespace tightdb;
 DataType GetMixedObjectType(JNIEnv* env, jobject jMixed);
 jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed);
 jlong GetMixedIntValue(JNIEnv* env, jobject jMixed);
+jfloat GetMixedFloatValue(JNIEnv* env, jobject jMixed);
+jdouble GetMixedDoubleValue(JNIEnv* env, jobject jMixed);
 jstring GetMixedStringValue(JNIEnv* env, jobject jMixed);
 jboolean GetMixedBooleanValue(JNIEnv* env, jobject jMixed);
 jbyteArray GetMixedByteArrayValue(JNIEnv* env, jobject jMixed);
