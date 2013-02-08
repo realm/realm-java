@@ -22,6 +22,7 @@
     <ClInclude Include="src\columntypeutil.h" />
     <ClInclude Include="src\com_tightdb_group.h" />
     <ClInclude Include="src\com_tightdb_internal_util.h" />
+    <ClInclude Include="src\com_tightdb_SharedGroup.h" />
     <ClInclude Include="src\com_tightdb_Table.h" />
     <ClInclude Include="src\com_tightdb_tablequery.h" />
     <ClInclude Include="src\com_tightdb_TableView.h" />
@@ -34,6 +35,7 @@
   <ItemGroup>
     <ClCompile Include="src\columntypeutil.cpp" />
     <ClCompile Include="src\com_tightdb_group.cpp" />
+    <ClCompile Include="src\com_tightdb_SharedGroup.cpp" />
     <ClCompile Include="src\com_tightdb_table.cpp" />
     <ClCompile Include="src\com_tightdb_tablequery.cpp" />
     <ClCompile Include="src\com_tightdb_tableview.cpp" />
