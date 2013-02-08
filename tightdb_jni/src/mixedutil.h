@@ -6,7 +6,7 @@
 
 using namespace tightdb;
 
-ColumnType GetMixedObjectType(JNIEnv* env, jobject jMixed);
+DataType GetMixedObjectType(JNIEnv* env, jobject jMixed);
 jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed);
 jlong GetMixedIntValue(JNIEnv* env, jobject jMixed);
 jstring GetMixedStringValue(JNIEnv* env, jobject jMixed);
