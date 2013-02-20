@@ -196,7 +196,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
         ThrowException(env, IndexOutOfBounds, "Group too big to write.");
     }
     // FIXME: Deallocation must happen even if somthing fails above
-    free(buffer.m_data); // free native data.
+    free(const_cast<char*>(buffer.m_data)); // free native data.
     return jArray;
 }
 
@@ -206,7 +206,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
     TR((env, "nativeWriteToByteBuffer(%x)\n", nativeGroupPtr));
     Group::BufferSpec buffer = G(nativeGroupPtr)->write_to_mem(); // FIXME: May throw at least std::bad_alloc
     if (buffer.m_size <= MAX_JLONG) {
-        return env->NewDirectByteBuffer(static_cast<void*>(buffer.m_data), static_cast<jlong>(buffer.m_size));
+        return env->NewDirectByteBuffer(const_cast<char*>(buffer.m_data), static_cast<jlong>(buffer.m_size));
         // Data is NOT copied in DirectByteBuffer - so we can't free it.
     }
     else {
