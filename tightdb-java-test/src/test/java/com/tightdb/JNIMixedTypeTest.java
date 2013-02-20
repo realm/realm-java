@@ -48,6 +48,12 @@ public class JNIMixedTypeTest {
 		case ColumnTypeInt:
 			mixed.getLongValue();
 			break;
+		case ColumnTypeFloat:
+			mixed.getFloatValue();
+			break;
+		case ColumnTypeDouble:
+			mixed.getDoubleValue();
+			break;
 		case ColumnTypeString:
 			mixed.getStringValue();
 			break;
@@ -99,8 +105,7 @@ public class JNIMixedTypeTest {
 				ByteBuffer valueBuf = ByteBuffer.wrap((byte[]) value);
 				if (!binBuf.equals(valueBuf))
 					System.out.println("***failed");
-				assertEquals(Mixed.mixedValue(valueBuf),
-						Mixed.mixedValue(binBuf));
+				assertEquals(Mixed.mixedValue(valueBuf), Mixed.mixedValue(binBuf));
 			}
 		} else {
 			assertEquals(value, mixed.getValue());
@@ -113,6 +118,8 @@ public class JNIMixedTypeTest {
 				new MixedData(ColumnType.ColumnTypeBool, true),
 				new MixedData(ColumnType.ColumnTypeString, "abc"),
 				new MixedData(ColumnType.ColumnTypeInt, 123L),
+				new MixedData(ColumnType.ColumnTypeFloat, 987.123f),
+				new MixedData(ColumnType.ColumnTypeDouble, 1234567.898d),
 				new MixedData(ColumnType.ColumnTypeDate, new Date(645342)),
 				new MixedData(ColumnType.ColumnTypeBinary, new byte[] { 1, 2,
 						3, 4, 5 }) };
@@ -125,7 +132,8 @@ public class JNIMixedTypeTest {
 	@DataProvider(name = "columnTypesProvider")
 	public Object[][] columnTypesProvider() {
 		Object[][] values = { {ColumnType.ColumnTypeBool},
-				{ColumnType.ColumnTypeString}, {ColumnType.ColumnTypeInt},
+				{ColumnType.ColumnTypeString}, {ColumnType.ColumnTypeInt}, 
+				{ColumnType.ColumnTypeFloat}, {ColumnType.ColumnTypeDouble},
 				{ColumnType.ColumnTypeDate}, {ColumnType.ColumnTypeBinary} };
 
 		return values;
