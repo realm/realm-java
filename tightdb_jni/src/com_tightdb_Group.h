@@ -49,10 +49,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose
 
 /*
  * Class:     com_tightdb_Group
- * Method:    nativeGetTableCount
+ * Method:    nativeSize
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableCount
+JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeSize
   (JNIEnv *, jobject, jlong);
 
 /*

@@ -51,9 +51,9 @@ public class GroupExamples {
 
 		TableBase a = group.getTable("PersonTable");
 		
-		/* EXAMPLE: getTableCount */
+		/* EXAMPLE: size */
 
-		int tableCount = group.getTableCount();
+		int tableCount = group.size();
 		
 		/* EXAMPLE: getTableName */
 

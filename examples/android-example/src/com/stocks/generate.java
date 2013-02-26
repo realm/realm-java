@@ -29,7 +29,7 @@ public class generate {
 
 		Group group = new Group(file);
 		//	Group group = new Group();
-		//	Log.i("TDB", Long.toString(group.getTableCount()) );
+		//	Log.i("TDB", Long.toString(group.size()) );
 		StockaTable stocks = new StockaTable(group);
 
 		try {

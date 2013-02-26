@@ -66,7 +66,7 @@ public class GroupTest {
 		byte[] data = group.writeToMem();
 		
 		// check table info retrieval
-		assertEquals(1, group.getTableCount());
+		assertEquals(1, group.size());
 		assertEquals(TestEmployeeTable.class.getSimpleName(),
 				group.getTableName(0));
 		assertTrue(group.hasTable(TestEmployeeTable.class.getSimpleName()));

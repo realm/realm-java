@@ -22,9 +22,9 @@ public class GroupExamples {
 
 		Table a = group.getTable("PersonTable");
 		
-		/* EXAMPLE: getTableCount */
+		/* EXAMPLE: size */
 
-		long tableCount = group.getTableCount();
+		long tableCount = group.size();
 		
 		/* EXAMPLE: getTableName */
 

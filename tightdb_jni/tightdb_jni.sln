@@ -2,11 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tightdb_jni", "tightdb_jni.vcxproj", "{88BB7EE5-308E-4A8B-F4AD-9A6843CA4AF6}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E} = {C18EDDC1-166A-49C4-B483-11458F48CF8E}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TightDB", "..\..\..\tightdb\TightDB.vcxproj", "{C18EDDC1-166A-49C4-B483-11458F48CF8E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,22 +25,6 @@ Global
 		{88BB7EE5-308E-4A8B-F4AD-9A6843CA4AF6}.Static library, release|Win32.ActiveCfg = Release|Win32
 		{88BB7EE5-308E-4A8B-F4AD-9A6843CA4AF6}.Static library, release|x64.ActiveCfg = Release|x64
 		{88BB7EE5-308E-4A8B-F4AD-9A6843CA4AF6}.Static library, release|x64.Build.0 = Release|x64
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Debug|Win32.Build.0 = Debug|Win32
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Debug|x64.ActiveCfg = Debug|x64
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Debug|x64.Build.0 = Debug|x64
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Release|Win32.ActiveCfg = Release|Win32
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Release|Win32.Build.0 = Release|Win32
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Release|x64.ActiveCfg = Release|x64
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Release|x64.Build.0 = Release|x64
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Static library, debug|Win32.ActiveCfg = Static library, debug|Win32
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Static library, debug|Win32.Build.0 = Static library, debug|Win32
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Static library, debug|x64.ActiveCfg = Static library, debug|x64
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Static library, debug|x64.Build.0 = Static library, debug|x64
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Static library, release|Win32.ActiveCfg = Static library, release|Win32
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Static library, release|Win32.Build.0 = Static library, release|Win32
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Static library, release|x64.ActiveCfg = Static library, release|x64
-		{C18EDDC1-166A-49C4-B483-11458F48CF8E}.Static library, release|x64.Build.0 = Static library, release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

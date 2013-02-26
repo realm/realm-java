@@ -116,7 +116,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose(
     delete grp;
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableCount(
+JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeSize(
 	JNIEnv*, jobject, jlong nativeGroupPtr)
 {
     return static_cast<jlong>( G(nativeGroupPtr)->size() );

@@ -94,11 +94,11 @@ public class Group {
 
 	protected native void nativeClose(long nativeGroupPtr);
 
-	public long getTableCount() {
-		return nativeGetTableCount(nativePtr);
+	public long size() {
+		return nativeSize(nativePtr);
 	}
 
-	protected native long nativeGetTableCount(long nativeGroupPtr);
+	protected native long nativeSize(long nativeGroupPtr);
 
 	/**
 	 * Checks whether table exists in the Group.
@@ -116,7 +116,7 @@ public class Group {
 	protected native boolean nativeHasTable(long nativeGroupPtr, String name);
 
 	public String getTableName(int index) {
-		long cnt = getTableCount();
+		long cnt = size();
 		if (index < 0 || index >= cnt) {
 			throw new IndexOutOfBoundsException(
 					"Table index argument is out of range. possible range is [0, "

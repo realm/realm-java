@@ -420,7 +420,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetIndex(
     Table* pTable = TBL(nativeTablePtr);
    	if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
         return;
-    if (pTable->get_column_type(columnIndex) != type_String) {
+    if (pTable->get_column_type (S(columnIndex)) != type_String) {
         ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported.");
         return;
     }
@@ -672,11 +672,11 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeDistinct(
     Table* pTable = TBL(nativeTablePtr);
     if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
         return 0;
-    if (!pTable->has_index(columnIndex)) {
+    if (!pTable->has_index(S(columnIndex))) {
         ThrowException(env, UnsupportedOperation, "The column must be indexed before distinct() can be used.");
         return 0;
     }
-    if (pTable->get_column_type(columnIndex) != type_String) {
+    if (pTable->get_column_type(S(columnIndex)) != type_String) {
         ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported.");
         return 0;
     }
