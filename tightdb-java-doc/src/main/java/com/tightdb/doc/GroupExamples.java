@@ -36,16 +36,10 @@ public class GroupExamples {
 			  // do something
 		}
 		
-		/* EXAMPLE: isValid */
-
-//		if (group.isValid()) {
-			  // do something
-//		}
-		
 		/* EXAMPLE: writeToByteBuffer */
-
+/* TODO
 		ByteBuffer buffer = group.writeToByteBuffer();
-		
+*/		
 		/* EXAMPLE: writeToFile */
 
 		File file = new File("data.tdb");

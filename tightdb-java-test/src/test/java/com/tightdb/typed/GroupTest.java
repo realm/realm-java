@@ -30,6 +30,7 @@ public class GroupTest {
 		group2.close();
 	}
 
+/* TODO: Enable when implemented "free" method for the data
 	@Test(enabled = true)
 	public void groupByteBufferCanClose() {
 		Group group = new Group();
@@ -39,7 +40,7 @@ public class GroupTest {
 		Group group2 = new Group(data);
 		group2.close();
 	}
-
+*/
 	@Test(enabled = true)
 	public void groupMemCanClose() {
 		Group group = new Group();
