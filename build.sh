@@ -137,7 +137,7 @@ same_path_target()
 find_java()
 {
     if [ -z "$JAVA_HOME" -o \! -e "$JAVA_HOME/$JAVA_BIN/javac" ]; then
-        if ! JAVAC="$(which javac)"; then
+        if ! JAVAC="$(which javac 2>/dev/null)"; then
             echo "No JAVA_HOME and no Java compiler in PATH" 1>&2
             return 1
         fi
