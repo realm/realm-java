@@ -193,13 +193,16 @@ public class Group {
 	}
 
 	protected native byte[] nativeWriteToMem(long nativeGroupPtr);
+/*
+ * TODO: Find a way to release the malloc'ed native memory automatically
 
 	public ByteBuffer writeToByteBuffer() {
 		return nativeWriteToByteBuffer(nativePtr);
 	}
 
 	protected native ByteBuffer nativeWriteToByteBuffer(long nativeGroupPtr);
-
+*/
+	
 	private void throwImmutable() {
 		throw new IllegalStateException(
 				"Mutable method call during read transaction.");
