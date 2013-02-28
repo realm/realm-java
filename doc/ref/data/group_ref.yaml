@@ -187,18 +187,7 @@ CATEGORIES:
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_is_empty
-        
-  - g_group_is_valid:
-      NAMES    : isValid
-      SUMMARY  : *g_group_is_valid_summary
-      DESCR    : *g_group_is_valid_descr
-      RETURN:
-        TYPES  : boolean
-        DESCR  : <code>true</code> if group is valid (consistent), <code>false</code> otherwise.
-      EXAMPLES:
-      - DESCR  :
-        CODE   : ex_java_group_is_valid
-        
+                
 #  - g_group_is_shared:
 #      NAMES    : isShared
 #      SUMMARY  : *g_group_is_shared_summary
