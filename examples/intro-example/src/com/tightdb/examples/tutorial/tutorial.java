@@ -160,31 +160,31 @@ public class tutorial {
 
 	/****************************** TRANSACTIONS ********************************/
 
-	System.out.println("\nTransactions:");
-	// @@Example: transaction @@
+    System.out.println("\nTransactions:");
+    // @@Example: transaction @@
 
-	// Open a shared group
+    // Open a shared group
     SharedGroup db = new SharedGroup("people.tightdb");
 
-	// Write transaction:
-    WriteTransaction wrtTrans = db.beginWrite();	// Start transaction
+    // Write transaction:
+    WriteTransaction wrtTrans = db.beginWrite();    // Start transaction
     try {
         PeopleTable person = new PeopleTable(wrtTrans);
-	    // Add row to table
-	    person.add("Bill", 53, true);
-	    wrtTrans.commit();							// End transaction
+        // Add row to table
+        person.add("Bill", 53, true);
+        wrtTrans.commit();                          // End transaction
     } catch (Throwable e) {
-    	wrtTrans.rollback();						// or Rollback
+        wrtTrans.rollback();                        // or Rollback
     }
 
     // Read transaction:
-    ReadTransaction rdTrans = db.beginRead();		// Start transaction
+    ReadTransaction rdTrans = db.beginRead();       // Start transaction
     PeopleTable people = new PeopleTable(rdTrans);
-	for (PeopleRow person2 : people) {
-	    System.out.println(person2.getName() + " is " + 
-	    				   person2.getAge() + " years old");
+    for (PeopleRow person2 : people) {
+        System.out.println(person2.getName() + " is " +
+                           person2.getAge() + " years old");
 	}
-	rdTrans.endRead();								// End transaction
+    rdTrans.endRead();                              // End transaction
     
     // @@EndExample@@
 
