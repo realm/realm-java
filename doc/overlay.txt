@@ -1,3 +1,7 @@
+@@Overlay: accessing_rows @@
+To get the last row the <tt>last()</tt> method can be used:
+@@EndOverlay
+
 @@Overlay: bracket @@
 the <tt>at</tt> method which returns a cursor to the row:
 @@EndOverlay
@@ -6,3 +10,13 @@ the <tt>at</tt> method which returns a cursor to the row:
 Using Java annotations a number of classes will be generated. For the <tt>people</tt> class you will have <tt>PeopleTable</tt> (the actual table), <tt>People</tt> (representing rows), <tt>PeopleQuery</tt> (query objects), and <tt>PeopleView</tt> (query results).
 @@EndOverlay
 
+@@overlay updating_entire_row @@
+Entire rows can easily be updated:
+@@EndOverlay
+
+@@Overlay: output @@
+John is 20 years old.<br>
+Mary is 21 years old.<br>
+Lars is 32 years old.<br>
+Phil is 43 years old.<br>
+@@EndOverlay
