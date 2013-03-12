@@ -14,3 +14,6 @@ libtightdb_jni_a_LDFLAGS += -lproc
 endif
 
 include ../../generic.mk
+
+get-inst-libraries:
+	@echo $(TARGETS_LIB_STATIC) $(TARGETS_LIB_SHARED_ALIASES)

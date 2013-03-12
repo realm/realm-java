@@ -7,12 +7,7 @@ tightdb_jni*.exp
 
 /examples/*/*/generated/*
 /examples/*/generated/*
-/examples/lib/libtightdb-jni.so
-/examples/lib/libtightdb-jni.jnilib
-/examples/lib/libtightdb.so
-/examples/lib/libtightdb.dylib
-/examples/lib/tightdb-devkit.jar
-/examples/lib/tightdb.jar
+/examples/lib
 
 *.tightdb
 .metadata/*

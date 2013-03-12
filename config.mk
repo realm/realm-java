@@ -1,3 +1,5 @@
+ENABLE_INSTALL_DEBUG_LIBS = 1
+
 # Construct fat binaries on Darwin when using Clang
 ifneq ($(TIGHTDB_ENABLE_FAT_BINARIES),)
 ifneq ($(call CC_CXX_AND_LD_ARE,clang),)

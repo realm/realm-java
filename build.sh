@@ -202,6 +202,8 @@ case "$MODE" in
         find src/ -type f -name '*.class' -delete || exit 1
         rm -f "$JAR_DIR/tightdb.jar" || exit 1
         rm -f "$JAR_DIR/tightdb-devkit.jar" || exit 1
+        rm -f "$TIGHTDB_JAVA_HOME/examples/lib/"* || exit 1
+        rmdir "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         exit 0
         ;;
 
@@ -257,10 +259,15 @@ case "$MODE" in
         # Setup links to libraries and JARs to make the examples work
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
-        for x in "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb$LIB_SUFFIX_SHARED"; do
-            TARGET="$(readlink_f "$x")" || exit 1
-            LINK="$(basename "$x")" || exit 1
-            ln -f "$TARGET" "$LINK" || exit 1
+        CORE_LIBRARY_ALIASES="$(cd ../../../tightdb/src/tightdb && make get-inst-libraries)" || exit 1
+        for x in $CORE_LIBRARY_ALIASES; do
+            ln -s -f "../../../tightdb/src/tightdb/$x" || exit 1
+        done
+        for x in "libtightdb-jni$JNI_SUFFIX" "libtightdb-jni-dbg$JNI_SUFFIX"; do
+            ln -s -f "../../tightdb_jni/src/$x" || exit 1
+        done
+        for x in "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar"; do
+            ln -f "$x" || exit 1
         done
         exit 0
         ;;
