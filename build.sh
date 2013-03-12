@@ -111,9 +111,17 @@ readlink_f()
 {
     local LINK TARGET
     LINK="$1"
+    [ -e "$LINK" ] || return 1
     if ! TARGET="$(readlink "$LINK")"; then
         printf "%s\n" "$LINK"
         return 0
+    fi
+    # If TARGET is relative, then it must be preceeded by dirname of $LINK
+    if ! printf "%s\n" "$TARGET" | grep -q '^/'; then
+        DIR="$(dirname "$LINK")" || return 1
+        if [ "$DIR" != "." ]; then
+            TARGET="$DIR/$TARGET"
+        fi
     fi
     readlink_f "$TARGET"
 }
@@ -250,7 +258,9 @@ case "$MODE" in
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         for x in "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb$LIB_SUFFIX_SHARED"; do
-            ln -f "$x" || exit 1
+            TARGET="$(readlink_f "$x")" || exit 1
+            LINK="$(basename "$x")" || exit 1
+            ln -f "$TARGET" "$LINK" || exit 1
         done
         exit 0
         ;;
