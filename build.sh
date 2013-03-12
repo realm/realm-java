@@ -68,7 +68,6 @@ if [ "$OS" = "Darwin" ]; then
     LIB_SUFFIX_SHARED=".dylib"
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
-    word_list_prepend MAKEFLAGS "-w" || exit 1
     # Absorbing standard JAR files into tightdb-devkit.jar is a fantasticly bad idea, we must back out of this approach as soon as possible!!!
     ABSORB_DEP_JARS="1"
 else
