@@ -263,4 +263,38 @@ inline jstring to_jstring(JNIEnv* env, StringData str)
     return env->NewStringUTF(str.data());
 }
 
+class JStringAccessor {
+public:
+    // FIXME: Using the GetStringUTFChars() / GetStringUTFLength()
+    // pair may be a bad idea, since they most likely both carry out
+    // the same complete transcoding from UTF-16 to UTF-8. The obvious
+    // way to avoid this wasted work is to implement the transcoding
+    // function ourselves just like what is probably required for
+    // to_jstring(), and it is not hard to do.
+    JStringAccessor(JNIEnv* e, jstring s):
+        m_env(e), m_str(s),
+        m_data(m_env->GetStringUTFChars(m_str, 0)),
+        m_size(m_env->GetStringUTFLength(m_str)) {}
+
+    ~JStringAccessor()
+    {
+        m_env->ReleaseStringUTFChars(m_str, m_data);
+    }
+
+    operator StringData() const TIGHTDB_NOEXCEPT { return StringData(m_data, m_size); }
+
+    // Part of the "safe bool" idiom
+    typedef const char* const (JStringAccessor::*unspecified_bool_type);
+    operator unspecified_bool_type() const TIGHTDB_NOEXCEPT
+    {
+        return m_data ? &JStringAccessor::m_data : 0;
+    }
+
+private:
+    JNIEnv* const m_env;
+    const jstring m_str;
+    const char* const m_data;
+    const std::size_t m_size;
+};
+
 #endif // UTIL_H

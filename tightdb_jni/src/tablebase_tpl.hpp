@@ -79,10 +79,9 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
     case type_String:
         {
             jstring stringValue = GetMixedStringValue(env, jMixedValue);
-            const char* stringCharPtr = env->GetStringUTFChars(stringValue, NULL);
-            if (stringCharPtr) {
-                (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(stringCharPtr));
-                env->ReleaseStringUTFChars(stringValue, stringCharPtr);
+            JStringAccessor string(env, stringValue);
+            if (string) {
+                (pTable->*doMixed)( S(columnIndex), S(rowIndex), StringData(string));
                 return;
             }
             break;

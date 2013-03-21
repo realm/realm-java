@@ -66,24 +66,24 @@ jlong Java_com_tightdb_TableSpec_getColumnIndex(JNIEnv* env, jobject jTableSpec,
 
 void updateSpecFromJSpec(JNIEnv* env, Spec& spec, jobject jTableSpec)
 {
-	jlong columnCount = Java_com_tightdb_TableSpec_getColumnCount(env, jTableSpec);
-	for (jlong i = 0; i < columnCount; ++i) {
-		jstring jColumnName = Java_com_tightdb_TableSpec_getColumnName(env, jTableSpec, i);
-		const char* columnNameCharPtr = env->GetStringUTFChars(jColumnName, NULL);
-        if (!columnNameCharPtr) 
+    jlong columnCount = Java_com_tightdb_TableSpec_getColumnCount(env, jTableSpec);
+    for (jlong i = 0; i < columnCount; ++i) {
+        jstring jColumnName = Java_com_tightdb_TableSpec_getColumnName(env, jTableSpec, i);
+        JStringAccessor columnName(env, jColumnName);
+        if (!columnName) 
             return;
 
-		jobject jColumnType   = Java_com_tightdb_TableSpec_getColumnType(env, jTableSpec, i);
-		DataType columnType = GetColumnTypeFromJColumnType(env, jColumnType);
-		if (columnType != type_Table) {
-			spec.add_column(columnType, columnNameCharPtr);
-		} else {
-			Spec nextColumnTableSpec = spec.add_subtable_column(columnNameCharPtr);
-			jobject jNextColumnTableSpec = Java_com_tightdb_TableSpec_getTableSpec(env, jTableSpec, i);
-			updateSpecFromJSpec(env, nextColumnTableSpec, jNextColumnTableSpec);
-		}
-		env->ReleaseStringUTFChars(jColumnName, columnNameCharPtr);
-	}
+        jobject jColumnType   = Java_com_tightdb_TableSpec_getColumnType(env, jTableSpec, i);
+        DataType columnType = GetColumnTypeFromJColumnType(env, jColumnType);
+        if (columnType != type_Table) {
+            spec.add_column(columnType, columnName);
+        }
+        else {
+            Spec nextColumnTableSpec = spec.add_subtable_column(columnName);
+            jobject jNextColumnTableSpec = Java_com_tightdb_TableSpec_getTableSpec(env, jTableSpec, i);
+            updateSpecFromJSpec(env, nextColumnTableSpec, jNextColumnTableSpec);
+        }
+    }
 }
 
 void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec)

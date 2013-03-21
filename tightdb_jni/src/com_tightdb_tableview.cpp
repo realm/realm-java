@@ -158,14 +158,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetDateTimeValue(
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetString(
 	JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jstring value)
 {	
-	if (!INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String)) return;
+    if (!INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String)) return;
 
-    const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr)
+    JStringAccessor value2(env, value);
+    if (!value2)
         return;
 
-	TV(nativeViewPtr)->set_string( S(columnIndex), S(rowIndex), valueCharPtr);
-	env->ReleaseStringUTFChars(value, valueCharPtr);
+    TV(nativeViewPtr)->set_string( S(columnIndex), S(rowIndex), value2);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetBinary(
@@ -265,13 +264,12 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstString(
 {
     if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
 
-	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr)
+    JStringAccessor value2(env, value);
+    if (!value2)
         return 0;
 
-	size_t searchIndex = TV(nativeViewPtr)->find_first_string( S(columnIndex), valueCharPtr);
-	env->ReleaseStringUTFChars(value, valueCharPtr);
-	return static_cast<jlong>(searchIndex);
+    size_t searchIndex = TV(nativeViewPtr)->find_first_string( S(columnIndex), value2);
+    return static_cast<jlong>(searchIndex);
 }
 
 // FindAll*
@@ -329,15 +327,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindAllString(
     
     if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex)) return 0;
 
-	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr)
+    JStringAccessor value2(env, value);
+    if (!value2)
         return 0;
-    TR((env, "nativeFindAllString(col %d, string '%s') ", columnIndex, valueCharPtr));
+    TR((env, "nativeFindAllString(col %d, string '%s') ", columnIndex, StringData(value2).data()));
 
-	TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_string( S(columnIndex), valueCharPtr) );
-	TR((env, "-- resultview size=%lld.\n", pResultView->size()));
-    env->ReleaseStringUTFChars(value, valueCharPtr);
-	return reinterpret_cast<jlong>(pResultView);
+    TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_string( S(columnIndex), value2) );
+    TR((env, "-- resultview size=%lld.\n", pResultView->size()));
+    return reinterpret_cast<jlong>(pResultView);
 }
 
 // Integer aggregates

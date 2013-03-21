@@ -120,10 +120,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeSize(
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
 	JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jTableName)
 {
-    const char* tableNameCharPtr = env->GetStringUTFChars(jTableName, NULL);
-    if (tableNameCharPtr) {
-        bool result = G(nativeGroupPtr)->has_table(tableNameCharPtr);
-        env->ReleaseStringUTFChars(jTableName, tableNameCharPtr);
+    JStringAccessor tableName(env, jTableName);
+    if (tableName) {
+        bool result = G(nativeGroupPtr)->has_table(tableName);
         return result;
     }
     // (exception is thrown by GetStringUTFChars if it fails.)
@@ -139,10 +138,9 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeGetTableName(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableNativePtr(
 	JNIEnv *env, jobject, jlong nativeGroupPtr, jstring name)
 {
-    const char* tableNameCharPtr = env->GetStringUTFChars(name, NULL);
-    if (tableNameCharPtr) {
-        Table* pTable = LangBindHelper::get_table_ptr(G(nativeGroupPtr), tableNameCharPtr);
-        env->ReleaseStringUTFChars(name, tableNameCharPtr);
+    JStringAccessor tableName(env, name);
+    if (tableName) {
+        Table* pTable = LangBindHelper::get_table_ptr(G(nativeGroupPtr), tableName);
         return (jlong)pTable;
     }
     // (exception is thrown by GetStringUTFChars if it fails.)

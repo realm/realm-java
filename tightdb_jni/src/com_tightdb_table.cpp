@@ -149,13 +149,12 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertDate(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertString(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jstring value)
 {
-	if (!INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
+    if (!INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
 
-    const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr) 
+    JStringAccessor value2(env, value);
+    if (!value2) 
         return;
-	TBL(nativeTablePtr)->insert_string( S(columnIndex), S(rowIndex), valueCharPtr);
-	env->ReleaseStringUTFChars(value, valueCharPtr);
+    TBL(nativeTablePtr)->insert_string( S(columnIndex), S(rowIndex), value2);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertMixed(
@@ -347,10 +346,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetString(
 {
     if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_String)) return;
 
-    const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (valueCharPtr) {
-	    TBL(nativeTablePtr)->set_string( S(columnIndex), S(rowIndex), valueCharPtr);
-	    env->ReleaseStringUTFChars(value, valueCharPtr);
+    JStringAccessor value2(env, value);
+    if (value2) {
+	    TBL(nativeTablePtr)->set_string( S(columnIndex), S(rowIndex), value2);
     }
 }
 
@@ -589,15 +587,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstDate(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstString(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jstring value)
 {
-  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
-	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr) 
+    JStringAccessor value2(env, value);
+    if (!value2) 
         return 0;
 
-	jlong result = TBL(nativeTablePtr)->find_first_string( S(columnIndex), valueCharPtr);
-    env->ReleaseStringUTFChars(value, valueCharPtr);
-	return result;
+    jlong result = TBL(nativeTablePtr)->find_first_string( S(columnIndex), value2);
+    return result;
 }
 
 // FindAll
@@ -652,15 +649,15 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllDate(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jstring value)
 {
-  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
     Table* pTable = TBL(nativeTablePtr);
-	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr) 
+    JStringAccessor value2(env, value);
+    if (!value2) 
         return 0;
 
-	TableView* pTableView = new TableView( pTable->find_all_string( S(columnIndex), valueCharPtr) );
-	return reinterpret_cast<jlong>(pTableView);
+    TableView* pTableView = new TableView( pTable->find_all_string( S(columnIndex), value2) );
+    return reinterpret_cast<jlong>(pTableView);
 }
 
 //
