@@ -76,22 +76,17 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
 	JNIEnv* env, jobject, jobject jByteBuffer)
 {
     TR((env, "Group::createNative(binaryData): "));
-    BinaryData data;
-    if (!GetBinaryData(env, jByteBuffer, data))
+    BinaryData bin;
+    if (!GetBinaryData(env, jByteBuffer, bin))
         return 0;
-    TR((env, " %d bytes. ", data.len));
-    // FIXME: I added the const_cast<> because it had to be added
-    // after a const error was fixed in the core library. The
-    // necessity of the const_cast<> leads me to suspect that this
-    // function has something wrong about it. Maybe it should simply
-    // not use a BinaryData instance. Somebody should
-    // investigate. Consider also whether it is correct that ownership
+    TR((env, " %d bytes. ", bin.size()));
+    // FIXME: Consider whether it is correct that ownership
     // of the memory is transferred. If it should indeed be
     // transferred, then the buffer must be explicitely deallocated
     // when the new-operator or the Group constructor fails.
     Group* pGroup = 0;
     try {
-        pGroup = new Group(Group::BufferSpec(const_cast<char*>(data.pointer), data.len));
+        pGroup = new Group(Group::BufferSpec(bin.data(), bin.size()));
     }
     catch (...) {
         // FIXME: Diffrent exception types mean different things. More
@@ -138,8 +133,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
 JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeGetTableName(
 	JNIEnv* env, jobject, jlong nativeGroupPtr, jint index)
 {
-	const char* nameCharPtr = G(nativeGroupPtr)->get_table_name(index);
-	return env->NewStringUTF(nameCharPtr);
+    return to_jstring(env, G(nativeGroupPtr)->get_table_name(index));
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableNativePtr(

@@ -243,4 +243,24 @@ inline bool IndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, j
 
 bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data);
 
+// Must be called only for a string that is followed by a
+// null-character.
+//
+// This probably ceases to be a requirement as soon as this function
+// is fixed to properly handle strings with internal null-characters.
+inline jstring to_jstring(JNIEnv* env, StringData str)
+{
+    // FIXME: This conversion fails silently if the string contains an
+    // internal null-character. Unfortunatly, since JNI primarily
+    // adresses C, it offers no easy way to fix this, that is, there
+    // is no alternative version of NewStringUTF() that takes an extra
+    // 'size' argument. The only solution seems to be to use
+    // env->NewString() instead, but then we will have to do the
+    // conversion from UTF-8 to UTF-16 manually. Fortunately this
+    // conversion is simple, so if the JNI API does not alreay ioffer
+    // a function that can perform this conversion, we can easily
+    // implement it our selves.
+    return env->NewStringUTF(str.data());
+}
+
 #endif // UTIL_H

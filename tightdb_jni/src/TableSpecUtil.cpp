@@ -98,13 +98,13 @@ void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec)
 	size_t columnCount = spec.get_column_count();
 	for(size_t i = 0; i < columnCount; ++i) {
 		DataType colType = spec.get_column_type(i);
-		const char* colName = spec.get_column_name(i);
+		StringData colName = spec.get_column_name(i);
 		if (colType == type_Table) {
-			jobject jSubTableSpec = env->CallObjectMethod(jTableSpec, jAddSubtableColumnMethodId, env->NewStringUTF(colName));
+			jobject jSubTableSpec = env->CallObjectMethod(jTableSpec, jAddSubtableColumnMethodId, to_jstring(env, colName));
 			const Spec& subTableSpec = spec.get_subtable_spec(i);
 			UpdateJTableSpecFromSpec(env, subTableSpec, jSubTableSpec);
 		} else {
-			env->CallVoidMethod(jTableSpec, jAddColumnMethodId, static_cast<jint>(colType), env->NewStringUTF(colName));
+			env->CallVoidMethod(jTableSpec, jAddColumnMethodId, static_cast<jint>(colType), to_jstring(env, colName));
 		}
 	}
 }

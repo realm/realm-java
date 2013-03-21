@@ -49,7 +49,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetColumnName(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return NULL;
-	return env->NewStringUTF( TBL(nativeTablePtr)->get_column_name( S(columnIndex)) );
+    return to_jstring(env, TBL(nativeTablePtr)->get_column_name( S(columnIndex)));
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetTableSpec(
@@ -228,27 +228,26 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeGetDouble(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetDateTime(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-	if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return 0;
+    if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return 0;
 
-    return TBL(nativeTablePtr)->get_date( S(columnIndex), S(rowIndex));
+    return TBL(nativeTablePtr)->get_date( S(columnIndex), S(rowIndex)).get_date();
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetString(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-	if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return NULL;
+    if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return NULL;
 
-	const char* valueCharPtr = TBL(nativeTablePtr)->get_string( S(columnIndex), S(rowIndex));
-	return env->NewStringUTF(valueCharPtr);
+    return to_jstring(env, TBL(nativeTablePtr)->get_string( S(columnIndex), S(rowIndex)));
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetByteBuffer(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-	if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return NULL;
+    if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return NULL;
     
-    BinaryData data = TBL(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
-	return env->NewDirectByteBuffer((void*)data.pointer, data.len);
+    BinaryData bin = TBL(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
+    return env->NewDirectByteBuffer(const_cast<char*>(bin.data()), bin.size());
 }
 
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Table_nativeGetByteArray(

@@ -48,26 +48,26 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeGetDouble(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetDateTimeValue(
 	JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
-	if (!INDEX_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex)) return 0;
+    if (!INDEX_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex)) return 0;
 
-    return TV(nativeViewPtr)->get_date( S(columnIndex), S(rowIndex));
+    return TV(nativeViewPtr)->get_date( S(columnIndex), S(rowIndex)).get_date();
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetString(
 	JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
-	if (!INDEX_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex)) return NULL;
+    if (!INDEX_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex)) return NULL;
 
-    return env->NewStringUTF( TV(nativeViewPtr)->get_string( S(columnIndex), S(rowIndex)) );
+    return to_jstring(env, TV(nativeViewPtr)->get_string( S(columnIndex), S(rowIndex)));
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_TableView_nativeGetBinary(
 	JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {	
-	if (!INDEX_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex)) return NULL;
+    if (!INDEX_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex)) return NULL;
 
-    BinaryData data = TV(nativeViewPtr)->get_binary( S(columnIndex), S(rowIndex));
-	return env->NewDirectByteBuffer((void*)data.pointer,  static_cast<jlong>(data.len));
+    BinaryData bin = TV(nativeViewPtr)->get_binary( S(columnIndex), S(rowIndex));
+    return env->NewDirectByteBuffer(const_cast<char*>(bin.data()),  static_cast<jlong>(bin.size()));
 }
 
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_TableView_nativeGetByteArray(
