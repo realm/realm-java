@@ -1,9 +1,11 @@
 #include <iostream>
+
 #include <jni.h>
+
 #include <tightdb/group_shared.hpp>
 
-#include "util.h"
-#include "com_tightdb_SharedGroup.h"
+#include "util.hpp"
+#include "com_tightdb_SharedGroup.hpp"
 
 using namespace std;
 using namespace tightdb;

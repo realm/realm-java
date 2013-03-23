@@ -1,5 +1,5 @@
-#include "util.h"
-#include "com_tightdb_Group.h"
+#include "util.hpp"
+#include "com_tightdb_Group.hpp"
 
 using namespace tightdb;
 

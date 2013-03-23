@@ -1,13 +1,13 @@
-#include "util.h"
-#include "mixedutil.h"
-#include "com_tightdb_Table.h"
-#include "columntypeutil.h"
-#include "TableSpecUtil.h"
-#include "java_lang_List_Util.h"
-#include "mixedutil.h"
-#include "tablebase_tpl.hpp"
-
 #include <sstream>
+
+#include "util.hpp"
+#include "mixedutil.hpp"
+#include "com_tightdb_Table.hpp"
+#include "columntypeutil.hpp"
+#include "TableSpecUtil.hpp"
+#include "java_lang_List_Util.hpp"
+#include "mixedutil.hpp"
+#include "tablebase_tpl.hpp"
 
 using namespace tightdb;
 

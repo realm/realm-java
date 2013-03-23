@@ -1,6 +1,6 @@
-#include "util.h"
-#include "mixedutil.h"
-#include "columntypeutil.h"
+#include "util.hpp"
+#include "mixedutil.hpp"
+#include "columntypeutil.hpp"
 
 using namespace tightdb;
 

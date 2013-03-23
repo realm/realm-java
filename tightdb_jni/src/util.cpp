@@ -1,6 +1,7 @@
-#include "util.h"
-#include "com_tightdb_internal_util.h"
-#include <assert.h>
+#include <cassert>
+
+#include "util.hpp"
+#include "com_tightdb_internal_util.hpp"
 
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr)

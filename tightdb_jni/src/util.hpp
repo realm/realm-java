@@ -1,15 +1,16 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <string>
+
+#include <jni.h>
+
 #include <tightdb.hpp>
 #include <tightdb/meta.hpp>
 #include <tightdb/lang_bind_helper.hpp>
 #include <tightdb/safe_int_ops.hpp>
 
-#include <jni.h>
-#include <string>
-
-#include "com_tightdb_internal_util.h"
+#include "com_tightdb_internal_util.hpp"
 
 using namespace tightdb;
 

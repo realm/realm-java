@@ -1,9 +1,9 @@
-#include "util.h"
-#include "com_tightdb_TableView.h"
-#include "mixedutil.h"
-#include "tablebase_tpl.hpp"
-
 #include <sstream>
+
+#include "util.hpp"
+#include "com_tightdb_TableView.hpp"
+#include "mixedutil.hpp"
+#include "tablebase_tpl.hpp"
 
 using namespace tightdb;
 

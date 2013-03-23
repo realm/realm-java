@@ -1,6 +1,6 @@
-#include "util.h"
+#include "util.hpp"
 #include "mem_usage.hpp"
-#include "com_tightdb_internal_util.h"
+#include "com_tightdb_internal_util.hpp"
 
 int trace_level = 0;
 

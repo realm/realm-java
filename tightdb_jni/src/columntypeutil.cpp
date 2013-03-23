@@ -1,5 +1,5 @@
-#include "util.h"
-#include "columntypeutil.h"
+#include "util.hpp"
+#include "columntypeutil.hpp"
 
 
 static jfieldID GetFieldIDColumnType(JNIEnv* env, const char* methodStr, const char* typeStr)
