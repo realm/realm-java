@@ -1,3 +1,7 @@
+@@Overlay: accessing_rows @@
+To get the last row the <tt>last()</tt> method can be used:
+@@EndOverlay
+
 @@Overlay: bracket @@
 the <tt>at</tt> method which returns a cursor to the row:
 @@EndOverlay
@@ -12,8 +16,8 @@ Using Java annotations a number of classes will be generated. For the <tt>people
 John is 20 years old.
 Mary is 21 years old.
 Lars is 32 years old.
-Eric is 50 years old.
-Anni is 43 years old.
+Phil is 43 years old.
+Anni is 54 years old.
 </pre>
 </div>
 @@EndOverlay@@

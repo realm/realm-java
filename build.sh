@@ -68,7 +68,6 @@ if [ "$OS" = "Darwin" ]; then
     LIB_SUFFIX_SHARED=".dylib"
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
-    word_list_prepend MAKEFLAGS "-w" || exit 1
     # Absorbing standard JAR files into tightdb-devkit.jar is a fantasticly bad idea, we must back out of this approach as soon as possible!!!
     ABSORB_DEP_JARS="1"
 else
@@ -111,9 +110,17 @@ readlink_f()
 {
     local LINK TARGET
     LINK="$1"
+    [ -e "$LINK" ] || return 1
     if ! TARGET="$(readlink "$LINK")"; then
         printf "%s\n" "$LINK"
         return 0
+    fi
+    # If TARGET is relative, then it must be preceeded by dirname of $LINK
+    if ! printf "%s\n" "$TARGET" | grep -q '^/'; then
+        DIR="$(dirname "$LINK")" || return 1
+        if [ "$DIR" != "." ]; then
+            TARGET="$DIR/$TARGET"
+        fi
     fi
     readlink_f "$TARGET"
 }
@@ -194,6 +201,8 @@ case "$MODE" in
         find src/ -type f -name '*.class' -delete || exit 1
         rm -f "$JAR_DIR/tightdb.jar" || exit 1
         rm -f "$JAR_DIR/tightdb-devkit.jar" || exit 1
+        rm -f "$TIGHTDB_JAVA_HOME/examples/lib/"* || exit 1
+        rmdir "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         exit 0
         ;;
 
@@ -249,7 +258,14 @@ case "$MODE" in
         # Setup links to libraries and JARs to make the examples work
         mkdir -p "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         cd "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
-        for x in "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar" "../../tightdb_jni/src/libtightdb-jni$JNI_SUFFIX" "../../../tightdb/src/tightdb/libtightdb$LIB_SUFFIX_SHARED"; do
+        CORE_LIBRARY_ALIASES="$(cd ../../../tightdb/src/tightdb && make get-inst-libraries)" || exit 1
+        for x in $CORE_LIBRARY_ALIASES; do
+            ln -s -f "../../../tightdb/src/tightdb/$x" || exit 1
+        done
+        for x in "libtightdb-jni$JNI_SUFFIX" "libtightdb-jni-dbg$JNI_SUFFIX"; do
+            ln -s -f "../../tightdb_jni/src/$x" || exit 1
+        done
+        for x in "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar"; do
             ln -f "$x" || exit 1
         done
         exit 0
