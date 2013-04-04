@@ -199,4 +199,8 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 		return AbstractQuery.createQuery(types.getQueryClass(), table, table.where());
 	}
 
+	// experimental
+	public void moveLastOver(long rowIndex) {
+		table.moveLastOver(rowIndex);
+	}
 }

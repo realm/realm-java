@@ -81,6 +81,7 @@ extern void jprint(JNIEnv *env, char *txt);
 
 #define ROW_INDEXES_VALID(env,ptr,start,end, range) RowIndexesValid(env, ptr, start, end, range)
 #define ROW_INDEX_VALID(env,ptr,row)                RowIndexValid(env, ptr, row)
+#define ROW_INDEX_VALID_OFFSET(env,ptr,row, offset) RowIndexValid(env, ptr, row, offset)
 #define COL_INDEX_VALID(env,ptr,col)                ColIndexValid(env, ptr, col)
 #define INDEX_VALID(env,ptr,col,row)                IndexValid(env, ptr, col, row)
 #define INDEX_INSERT_VALID(env,ptr,col,row)         IndexInsertValid(env, ptr, col, row)
@@ -112,7 +113,7 @@ inline bool TableIsValid(JNIEnv* env, Table* pTable)
 }
 
 template <class T>
-inline bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range) 
+bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range) 
 {
     // Check if Table is valid - but only if T is a 'Table' type
     if (tightdb::SameType<Table*, T>::value)    
@@ -154,22 +155,25 @@ inline bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endI
 }
 
 template <class T>
-inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex) 
+inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0) 
 {
     // Check if Table is valid - but only if T is a 'Table' type
     if (tightdb::SameType<Table*, T>::value)    
         if (!TableIsValid(env, TBL(pTable)))
             return false;
-    bool rowErr = int_greater_than_or_equal(rowIndex, pTable->size());
+    size_t size = pTable->size();
+    if (size > 0)
+        size += offset;
+    bool rowErr = int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
-        TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), pTable->size())); 
+        TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), size));
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
     }
     return !rowErr;
 }
 
 template <class T>
-inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex) 
+inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     // Check if Table is valid - but only if T is a 'Table' type
     if (tightdb::SameType<Table*, T>::value)
