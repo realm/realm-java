@@ -3,7 +3,7 @@ package com.tightdb.example.graph;
 import java.io.File;
 import com.tightdb.*;
 
-public class main {
+public class TestTightdbGraph {
 	static String filename = "graph.tightdb";
 	
 	public static void main(String[] args) {
