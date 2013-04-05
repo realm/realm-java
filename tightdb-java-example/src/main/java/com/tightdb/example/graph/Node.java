@@ -4,13 +4,13 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 public class Node {
-	long 		id;
-	long 		node_type;
-	long 		version;
+	int 		id;
+	int 		node_type;
+	int 		version;
 	Date 		time;
-	ByteBuffer 	data;
+	String 	data;
 	
-	Node(long id, long node_type, long version, Date time, ByteBuffer data) {
+	Node(int id, int node_type, int version, Date time, String data) {
 		this.id = id;
 		this.node_type = node_type;
 		this.version = version;
