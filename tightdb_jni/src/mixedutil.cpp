@@ -38,12 +38,12 @@ DataType GetMixedObjectType(JNIEnv* env, jobject jMixed)
 
 jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed) 
 {
-	jclass jMixedClass = GetClassMixed(env);
+    jclass jMixedClass = GetClassMixed(env);
     if (jMixedClass == NULL)
         return NULL;
 
     TR((env, "CreateJMixedFromMixed(type %d)\n", mixed.get_type()));
-	switch (mixed.get_type()) {
+    switch (mixed.get_type()) {
 	case type_Int:
 	{
 		jmethodID consId = GetMixedMethodID(env, "<init>", "(J)V");
@@ -66,7 +66,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
 	{
 		jmethodID consId = GetMixedMethodID(env, "<init>", "(Ljava/lang/String;)V");
 		if (consId)
-		    return env->NewObject(jMixedClass, consId, env->NewStringUTF(mixed.get_string()));
+		    return env->NewObject(jMixedClass, consId, to_jstring(env, mixed.get_string()));
 	}
 	case type_Bool:
 	{
@@ -76,7 +76,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
 	}
 	case type_Date:
 		{
-			time_t timeValue = mixed.get_date();
+			time_t timeValue = mixed.get_date().get_date();
 			jclass jDateClass = env->FindClass("java/util/Date");
 			if (jDateClass == NULL) {
                 ThrowException(env, ClassNotFound, "Date");
@@ -97,7 +97,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
 			BinaryData binaryData = mixed.get_binary();
 			jmethodID consId = GetMixedMethodID(env, "<init>", "(Ljava/nio/ByteBuffer;)V");
 			if (consId) {
-				jobject jByteBuffer = env->NewDirectByteBuffer((void*)binaryData.pointer, binaryData.len);
+				jobject jByteBuffer = env->NewDirectByteBuffer(const_cast<char*>(binaryData.data()), binaryData.size());
 				return env->NewObject(jMixedClass, consId, jByteBuffer);
             }
 		}
