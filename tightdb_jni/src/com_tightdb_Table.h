@@ -35,6 +35,30 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid
 
 /*
  * Class:     com_tightdb_Table
+ * Method:    nativeAddColumn
+ * Signature: (JILjava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
+  (JNIEnv *, jobject, jlong, jint, jstring);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeRemoveColumn
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeRenameColumn
+ * Signature: (JJLjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
+  (JNIEnv *, jobject, jlong, jlong, jstring);
+
+/*
+ * Class:     com_tightdb_Table
  * Method:    nativeUpdateFromSpec
  * Signature: (JLcom/tightdb/TableSpec;)V
  */

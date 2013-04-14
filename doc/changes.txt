@@ -1,3 +1,13 @@
+03-03-2013:
+===========
++ Added Table::addColumn(), renameColumn(), removeColumn()
+
+??
+==
+- Renamed Group::getTableCount() to size()
+- Renamed TableBase to Table, TableViewBase to TableView
++ Added support for Float and Double
+
 18-12-2012:
 ===========
 + Added TableBase: insert(), add(), set() which can insert/add/set all values for a row.

@@ -25,7 +25,7 @@ public enum ColumnType {
 
     static {
         ColumnType[] columnTypes = values();
-        for(int i=0; i<columnTypes.length; ++i) {
+        for (int i=0; i<columnTypes.length; ++i) {
             int v = columnTypes[i].nativeValue;
             byNativeValue[v] = columnTypes[i];
         }
@@ -36,6 +36,10 @@ public enum ColumnType {
         this.nativeValue = nativeValue;
     }
 
+    public int getValue() {
+    	return nativeValue;
+    }
+    
 	public boolean matchObject(Object obj) {
 		switch (this.nativeValue) {
 		case 0: return (obj instanceof Long || obj instanceof Integer || obj instanceof Short || 
