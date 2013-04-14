@@ -15,12 +15,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
   (JNIEnv *env, jobject, jlong nativeTablePtr, jint colType, jstring name)
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr))) return 0;
-    const char* nameCharPtr = env->GetStringUTFChars(name, NULL);
-    if (!nameCharPtr) 
+    JStringAccessor name2(env, name);
+    if (!name2) 
         return 0;
-    size_t colIndex = TBL(nativeTablePtr)->add_column(DataType(colType), nameCharPtr);
-	env->ReleaseStringUTFChars(name, nameCharPtr);
-    return colIndex;
+    return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
@@ -34,11 +32,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jstring name)
 {
     if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return;
-    const char* nameCharPtr = env->GetStringUTFChars(name, NULL);
-    if (!nameCharPtr) 
+    JStringAccessor name2(env, name);
+    if (!name2) 
         return;
-    TBL(nativeTablePtr)->rename_column(S(columnIndex), nameCharPtr);
-	env->ReleaseStringUTFChars(name, nameCharPtr);
+    TBL(nativeTablePtr)->rename_column(S(columnIndex), name2);
 }
 
 
