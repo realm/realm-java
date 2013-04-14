@@ -65,9 +65,9 @@ jclass GetClass(JNIEnv* env, const char* classStr)
 {
     jclass localRefClass = env->FindClass(classStr);
     if (localRefClass == NULL) {
-		ThrowException(env, ClassNotFound, classStr);
-		return NULL;
-	}
+        ThrowException(env, ClassNotFound, classStr);
+        return NULL;
+    }
 
     jclass myClass = reinterpret_cast<jclass>( env->NewGlobalRef(localRefClass) );
     env->DeleteLocalRef(localRefClass);
