@@ -11,6 +11,34 @@
 
 using namespace tightdb;
 
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jint colType, jstring name)
+{
+    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return 0;
+    JStringAccessor name2(env, name);
+    if (!name2) 
+        return 0;
+    return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return;
+    TBL(nativeTablePtr)->remove_column(S(columnIndex));
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jstring name)
+{
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return;
+    JStringAccessor name2(env, name);
+    if (!name2) 
+        return;
+    TBL(nativeTablePtr)->rename_column(S(columnIndex), name2);
+}
+
+
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
 	JNIEnv* env, jobject, jlong nativeTablePtr, jobject jTableSpec)
