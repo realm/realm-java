@@ -53,7 +53,7 @@ public class Table implements TableOrView {
 	// test:
 	protected int tableNo;
 	protected boolean DEBUG = false;
-	static int TableCount = 0;
+	protected static int TableCount = 0;
 	
 	static {
 		TightDB.loadLibrary();

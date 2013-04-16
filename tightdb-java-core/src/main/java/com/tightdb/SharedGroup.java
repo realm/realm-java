@@ -43,7 +43,7 @@ public class SharedGroup {
 		return t;
 	}
 
-	public void endRead() {
+	void endRead() {
 		nativeEndRead(nativePtr);
 		activeTransaction = false;
 	}

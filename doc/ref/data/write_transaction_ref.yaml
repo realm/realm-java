@@ -1,0 +1,39 @@
+#
+# Java reference documentation for WriteTransaction class
+#
+
+ID         : class_write_transaction
+TITLE      : WriteTransaction
+SUMMARY    : Write transactions
+DESCR      : >
+             Write transactions are created from {@link class_shared_group} objects with <code>startWrite()</code>.
+             A WriteTransaction object extends {@link class_group} with two methods to commit or rollback
+             changes.
+             
+             During the write transaction, you will have exclusive access to make changes to the group.
+             Any other processes which tries to initiate a write transaction, will be stalled until your
+             transaction terminates.
+
+SEE        : 
+EXAMPLES: 
+- DESCR    : 
+  CODE     : ex_java_write_transaction_intro
+IGNORE     : []
+CATEGORIES:
+- -:
+  METHODS:
+  - g_write_transaction_commit:
+      NAMES    : commit
+      SUMMARY  : *g_shared_group_commit_summary
+      DESCR    : *g_shared_group_commit_descr
+      EXAMPLES:
+      - CODE   : ex_java_write_transaction_commit
+        DESCR  :
+
+  - g_write_transaction_rollback:
+      NAMES    : rollback
+      SUMMARY  : *g_shared_group_rollback_summary
+      DESCR    : *g_shared_group_rollback_descr
+      EXAMPLES:
+      - CODE   : ex_java_write_transaction_rollback
+        DESCR  :

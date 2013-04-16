@@ -50,17 +50,19 @@ CATEGORIES:                       # list global class-id in order of appearence
 #  - typed_view
 #  - typed_query
 - Dynamic Table:
-#  - dyn_table
+  - dyn_table
 #  - dyn_view
 #  - dyn_query
 - Collection:
   - group
-#  - shared_group
+  - shared_group
+  - read_transaction
+  - write_transaction
 - Helpers:
 #  - mixed
 #  - cursor
 
 EXAMPLES  : 
 - DESCR   : 
-  CODE    : #ex_cpp_intro           # id to example code
+  CODE    : #ex_java_intro           # id to example code
 

@@ -1,0 +1,648 @@
+#
+# Java reference documentation for Table class
+#
+
+ID         : class_dyn_table
+TITLE      : Table (dynamic)
+SUMMARY    : *g_dyn_table_intro_summary
+DESCR      : *g_dyn_table_intro_descr
+SEE        :
+EXAMPLES   :
+- DESCR:
+  CODE     : ex_java_dyn_table_intro
+IGNORE     : []                         # List of method-ids to ignore
+#  - g_find_all_bool_const:
+#  - g_find_all_int_const:
+#  - g_find_all_date_const:
+#  - g_find_all_string_const:
+#  - g_find_all_float_const:
+#  - g_find_all_double_const:
+# - g_dyn_table_get_sorted_view_const:
+#   - g_dyn_table_distinct_const:
+ 
+CATEGORIES :
+
+- State:
+  METHODS:
+  - g_dyn_table_size:
+      NAMES    : size
+      SUMMARY  : *g_dyn_table_size_summary
+      DESCR    : *g_dyn_table_size_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : *g_dyn_table_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_size
+        DESCR  :
+  - g_dyn_table_is_empty:
+      NAMES    : isEmpty
+      SUMMARY  : *g_dyn_table_is_empty_summary
+      DESCR    : *g_dyn_table_is_empty_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if empty, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_is_empty
+        DESCR  :
+#??? needed for what?
+#  - g_dyn_table_is_valid:
+- Table:
+  METHODS:
+  - g_dyn_table_clear:
+      NAMES    : clear
+      SUMMARY  : *g_dyn_table_clear_summary
+      DESCR    : *g_dyn_table_clear_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_clear
+        DESCR  :
+  - g_dyn_table_optimize:
+      NAMES    : optimize
+      SUMMARY  : *g_dyn_table_optimize_summary
+      DESCR    : *g_dyn_table_optimize_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_optimize
+        DESCR  :
+# TODO: add
+#  - g_dyn_table_opertator==:
+#      NAMES    : operator==
+#      SUMMARY  : *g_dyn_table_operator_eq_summary
+#      PARAMS:
+#      - NAME   : table
+#        TYPES  : Table
+#        DESCR  : *g_dyn_table_operator_eq_table_descr
+#      RETURN:
+#        TYPES  : boolean
+#        DESCR  : *g_dyn_table_operator_eq_return_descr
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_operator==
+#        DESCR  :
+
+
+- Columns:
+  METHODS:
+  - g_dyn_table_get_column_count:
+      NAMES    : getColumnCount
+      SUMMARY  : *g_dyn_table_get_column_count_summary
+      DESCR    : *g_dyn_table_get_column_count_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_column_count_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_column_count
+        DESCR  :
+  - g_dyn_table_get_column_name:
+      NAMES    : getColumnName
+      SUMMARY  : *g_dyn_table_get_column_name_summary
+      DESCR    : *g_dyn_table_get_column_name_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_column_name_param1_descr
+      RETURN:
+        TYPES  : String
+        DESCR  : *g_dyn_table_get_column_name_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_column_name
+        DESCR  :
+  - g_dyn_table_get_column_index:
+      NAMES    : getColumnIndex
+      SUMMARY  : *g_dyn_table_get_column_index_summary
+      DESCR    : *g_dyn_table_get_column_index_descr
+      PARAMS:
+      - NAME   : columnName
+        TYPES  : String
+        DESCR  : The name of the column to find.
+      RETURN:
+        TYPES  : long
+        DESCR  : The column index or -1 if there is no column with the specified name.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_column_index
+        DESCR  :
+  - g_dyn_table_get_column_type:
+      NAMES    : getColumnType
+      SUMMARY  : *g_dyn_table_get_column_type_summary
+      DESCR    : >
+                 This method returns the type of a column using the column index. Currently,
+                 the following types are supported from the <code>ColumnType</code> class:
+                 <ul>
+                   <li><code>ColumnTypeBool</code></li>
+                   <li><code>ColumnTypeInt</code></li>
+                   <li><code>ColumnTypeFloat</code></li>
+                   <li><code>ColumnTypeDouble</code></li>
+                   <li><code>ColumnTypeString</code></li>
+                   <li><code>ColumnTypeBinary</code></li>
+                   <li><code>ColumnTypeDate</code></li>
+                   <li><code>ColumnTypeTable</code></li>
+                   <li><code>ColumnTypeMixed</code></li>
+                 </ul>
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index.
+      RETURN:
+        TYPES  : ColumnType
+        DESCR  : The column type.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_column_type
+        DESCR  :
+
+
+- Rows:
+  METHODS:
+  - g_dyn_table_add:
+      NAMES    : add
+      SUMMARY  : Append a row.
+      DESCR    : This method adds one row at the end of the table.
+      PARAMS:
+      - NAME   : values
+        TYPES  : Object...
+        DESCR  : For each column in the tables you must provide a parameter with a matching type
+                 in the same order as the columns are defined.
+#TODO: return index added
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_add
+        DESCR  :
+      SEE      : >
+                See also {@link g_dyn_table_add_empty_rows} to add empty rows.
+                See {@link g_dyn_table_insert} to insert a row into a specific row index.
+  - g_dyn_table_add_empty_row:
+      NAMES    : addEmptyRow
+      SUMMARY  : Append one empty row.
+      DESCR    : This method adds one empty row with default values at the end of the table.
+                 The default values are 0, null, or "", as appropriate to the column types.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_add_empty_row
+        DESCR  :
+      SEE      : >
+                 See also {@link g_dyn_table_add_empty_rows} to add multiple empty rows,
+                 or {@link g_dyn_table_add} to add a row with specific values.
+  - g_dyn_table_add_empty_rows:
+      NAMES    : addEmptyRows
+      SUMMARY  : *g_dyn_table_add_empty_row_summary
+      DESCR    : *g_dyn_table_add_empty_row_descr
+      PARAMS:
+      - NAME   : rows
+        TYPES  : long
+        DESCR  : Number of rows to add.
+  - g_dyn_table_insert:
+      NAMES    : insert
+      SUMMARY  : Append a row.
+      DESCR    : This method inserts one row at a given row index.
+                 The existing row at rowIndex and the following are all incremented one position.
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : The row index where this row should be inserted (starting with 0). 
+      - NAME   : values
+        TYPES  : Object...
+        DESCR  : For each column in the table, you must provide a parameter with a matching type
+                 in the same order as the columns are defined.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_insert
+        DESCR  :
+      SEE      : >
+                See also {@link g_dyn_table_add} to add a row at the end of the table 
+                (equivalent to using size() as rowIndex).
+  - g_dyn_table_set_row:
+      NAMES    : set
+      SUMMARY  : Set all values in a row.
+      DESCR    : This method replaces all values in a specific row.
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : The existing row index where this values should be replaced (starting with 0). 
+      - NAME   : values
+        TYPES  : Object...
+        DESCR  : For each column in the table, you must provide a parameter with a matching type
+                 in the same order as the columns are defined.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_set
+        DESCR  :
+      SEE      : >
+                See also {@link g_dyn_table_set_bool} to set individual values in a given row.  
+  - g_dyn_table_remove_row:
+      NAMES    : remove
+      SUMMARY  : *g_dyn_table_remove_row_summary
+      DESCR    : *g_dyn_table_remove_row_descr
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_remove_row_param1_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_remove
+        DESCR  :
+  - g_dyn_table_remove_last_row:
+      NAMES    : removeLast
+      SUMMARY  : *g_dyn_table_remove_last_row_summary
+      DESCR    : *g_dyn_table_remove_last_row_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_remove_last_row
+        DESCR  :
+
+
+- Values:
+  METHODS:
+  - g_dyn_table_get_bool:
+  - g_dyn_table_get_int:
+  - g_dyn_table_get_date:
+  - g_dyn_table_get_string:
+  - g_dyn_table_get_binary:
+  - g_dyn_table_get_mixed:
+  - g_dyn_table_get_mixed_type:
+  - g_dyn_table_get_subtable:
+      NAMES    : get*
+      SUMMARY  : *g_dyn_table_get_xxx_summary
+      DESCR    : *g_dyn_table_get_xxx_descr
+      SIGNATURE: |
+                 boolean       getBoolean(long columnIndex, long rowIndex)
+                 long          getLong(long columnIndex, long rowIndex)
+                 Date          getDate(long columnIndex, long rowIndex)
+                 float         getFloat(long columnIndex, long rowIndex)
+                 double        getDouble(long columnIndex, long rowIndex)
+                 String        getString(long columnIndex, long rowIndex)
+                 ByteBuffer    getBinaryByteBuffer(long columnIndex, long rowIndex)
+                 byte[]        getBinaryByteArray(long columnIndex, long rowIndex)
+                 Mixed         getMixed(long columnIndex, long rowIndex)
+                 ColumnType    getMixedType(long columnIndex, long rowIndex)
+                 Table         getSubtable(long columnIndex, long rowIndex)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm2_descr
+      RETURN:
+        TYPES  : [boolean, long, float, double, Date, String, ByteBuffer, "byte[]", Mixed, ColumnType]
+        DESCR  : *g_dyn_table_get_xxx_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_xxx
+        DESCR  :
+  - g_dyn_table_set_bool:
+  - g_dyn_table_set_int:
+  - g_dyn_table_set_enum:
+  - g_dyn_table_set_date:
+  - g_dyn_table_set_string:
+  - g_dyn_table_set_binary:
+  - g_dyn_table_set_mixed:
+      NAMES    : set*
+      SUMMARY  : *g_dyn_table_set_xxx_summary
+      DESCR    : *g_dyn_table_set_xxx_descr
+      SIGNATURE: |
+                 setBoolean(long columnIndex, long rowIndex, boolean value)
+                 setLong(long columnIndex, long rowIndex, long value)
+                 setDate(long columnIndex, long rowIndex, Date value)
+                 setFloat(long columnIndex, long rowIndex, float value)
+                 setDouble(long columnIndex, long rowIndex, double value)
+                 setString(long columnIndex, long rowIndex, String value)
+                 setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer value)
+                 setBinaryByteArray(long columnIndex, long rowIndex, byte[] value)
+                 setMixed(long columnIndex, long rowIndex, Mixed value)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : longfrom
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm2_descr
+      - NAME   : value
+        TYPES  : [boolean, long, float, double, Date, String, ByteBuffer, "byte[]", Mixed]
+        DESCR  : *g_dyn_table_set_xxx_parm3_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_set_xxx
+        DESCR  :
+
+- Sub-tables:
+  METHODS:
+  - g_dyn_table_get_subtable_size:
+      NAMES    : getSubtableSize
+      SUMMARY  : *g_dyn_table_get_subtable_size_summary
+      DESCR    : *g_dyn_table_get_subtable_size_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm2_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_subtable_size_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_subtable
+        DESCR  :
+  - g_dyn_table_clear_subtable:
+      NAMES    : clearSubtable
+      SUMMARY  : *g_dyn_table_clear_subtable_summary
+      DESCR    : *g_dyn_table_clear_subtable_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm2_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_clear_subtable
+        DESCR  :
+
+- Indexes:
+  METHODS:
+  - g_dyn_table_set_index:
+      NAMES    : setIndex
+      SUMMARY  : *g_dyn_table_set_index_summary
+      DESCR    : *g_dyn_table_set_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_set_index
+        DESCR  :
+  - g_dyn_table_has_index:
+      NAMES    : hasIndex
+      SUMMARY  : *g_dyn_table_has_index_summary
+      DESCR    : *g_dyn_table_has_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_has_index
+        DESCR  :
+        
+- Searching:
+  METHODS:
+# TODO: Add lookup()
+#  - g_dyn_table_lookup:
+#      NAMES    : lookup
+#      SUMMARY  : *g_dyn_table_lookup_summary
+#      DESCR    : *g_dyn_table_lookup_descr
+#      PARAMS:
+#      - NAME   : value
+#        TYPES  : String
+#        DESCR  : The value to search for.
+#      RETURN:
+#        TYPES  : long
+#        DESCR  : The row index or -1 if there is no match.
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_lookup
+#        DESCR  :
+  - g_dyn_table_find_first_bool:
+  - g_dyn_table_find_first_int:
+  - g_dyn_table_find_first_date:
+  - g_dyn_table_find_first_string:
+      NAMES    : findFirst*
+      SUMMARY  : *g_dyn_table_find_first_xxx_summary
+      DESCR    : *g_dyn_table_find_first_xxx_descr
+      SIGNATURE: |
+                 long findFirstLong(long columnIndex, long value)
+                 long findFirstBoolean(long columnIndex, boolean value)
+                 long findFirstDate(long columnIndex, Date value)
+                 long findFirstString(long columnIndex, String value)
+                 long findFirstFloat(long columnIndex, float value)
+                 long findFirstDouble(long columnIndex, double value)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_find_first_xxx_parm1_descr
+      - NAME   : value
+        TYPES  : [boolean, long, float, double, Date, String]
+        DESCR  : *g_dyn_table_find_first_xxx_parm2_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : The row index or -1 if there is no match.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_find_first_xxx
+        DESCR  :
+  - g_find_all_bool:
+  - g_find_all_int:
+  - g_find_all_date:
+  - g_find_all_string:
+  - g_find_all_float:
+  - g_find_all_double:
+      NAMES    : findAll*
+      SUMMARY  : *g_dyn_table_find_all_xxx_summary
+      DESCR    : *g_dyn_table_find_all_xxx_descr
+      SIGNATURE: |
+                 TableView      find_all_int(long columnIndex, int64_t value);
+                 TableView      find_all_bool(long columnIndex, bool value);
+                 TableView      find_all_date(long columnIndex, time_t value);
+                 TableView      find_all_string(long columnIndex, const char* value);
+                 TableView      find_all_float(long columnIndex, float value);
+                 TableView      find_all_double(long columnIndex, double value);
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_find_all_xxx_parm1_descr
+      - NAME   : value
+        TYPES  : [bool, int64_t, float, double, time_t, const char*]
+        DESCR  : *g_dyn_table_find_all_xxx_parm2_descr
+      RETURN:
+        TYPES  : TableView
+        DESCR  : *g_dyn_table_find_all_xxx_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_find_all_xxx
+        DESCR  :
+ 
+# - g_dyn_table_get_sorted_view:
+#      NAMES    : get_sorted_view
+#      SUMMARY  : *g_dyn_table_get_sorted_view_summary
+#      DESCR    : *g_dyn_table_get_sorted_view_desc
+#      SIGNATURE: |
+#                 TableView      get_sorted_view(long columnIndex, bool ascending=true);
+#                 ConstTableView get_sorted_view(long columnIndex, bool ascending=true) const;
+#      PARAMS:
+#      - NAME   : columnIndex
+#        TYPES  : long
+#        DESCR  : The column index (starting from 0).
+#      - NAME   : ascending
+#        TYPES  : boolean
+#        DESCR  : *cpp_dyn_table_get_sorted_view_param
+#      RETURN:
+#        TYPES  : TableView
+#        DESCR  : A view.
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_get_sorted_view
+#        DESCR  :
+  - g_dyn_table_distinct:
+      NAMES    : distinct
+      SUMMARY  : *g_dyn_table_distinct_summary
+      DESCR    : *g_dyn_table_distinct_desc
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_distinct_parm1_desc
+      RETURN:
+        TYPES  : "{@link class_dyn_tableview}"
+        DESCR  : *g_dyn_table_distinct_return_desc
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_distinct
+        DESCR  :
+  - g_dyn_table_where:
+  - g_dyn_table_where_const:
+      NAMES    : where
+      SUMMARY  : *g_dyn_table_where_summary
+      DESCR    : *g_dyn_table_where_descr
+      RETURN:
+        TYPES  : Query
+        DESCR  : *g_dyn_table_where_return_descr
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_dyn_table_where
+        
+        
+- Aggregates:
+  METHODS:
+# TODO - g_dyn_table_count_int:
+#      NAMES    : countInt
+#      SUMMARY  : *g_dyn_table_count_summary
+#      DESCR    : *g_dyn_table_count_descr
+#                 This method counts the number of rows matching a value. It is useful
+#                 to determine the number briefly compared to using a {@link class_dyn_query}
+#                 object.
+#      CONST    : True
+#      PARAMS:
+#      - NAME   : columnIndex
+#        TYPES  : long
+#        DESCR  : The column index (starting from 0).
+#      - NAME   : target
+#        TYPES  : int64_t
+#        DESCR  : The value.
+#      RETURN:
+#        TYPES  : long
+#        DESCR  : The number of rows.
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_count
+#        DESCR  :
+        
+  - g_dyn_table_sum:
+  - g_dyn_table_sum_float:
+  - g_dyn_table_sum_double:
+      TITLE    : sum*
+      NAMES    : [sum, sum_float, sum_double]
+      SUMMARY  : *g_dyn_table_sum_summary
+      DESCR    : *g_dyn_table_sum_descr
+      SIGNATURE: |
+                 long   sum(long columnIndex)
+                 double sumFloat(long columnIndex)
+                 double sumDouble(long columnIndex)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_sum_parm1_descr
+      RETURN:
+        TYPES  : [long, double]
+        DESCR  : *g_dyn_table_sum_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_sum
+        DESCR  :
+  - g_dyn_table_maximum:
+  - g_dyn_table_maximum_float:
+  - g_dyn_table_maximum_double:
+      TITLE    : maximum*
+      NAMES    : [maximum, maximu_float, maximum_double]
+      SUMMARY  : *g_dyn_table_maximum_summary
+      DESCR    : *g_dyn_table_maximum_descr
+      SIGNATURE: |
+                 long   maximum(long columnIndex)
+                 float  maximumFloat(long columnIndex)
+                 double maximumDouble(long columnIndex)
+      CONST    : True
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : Column index.
+      RETURN:
+        TYPES  : [int64_t, float, double]
+        DESCR  : The maximum value.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_maximum
+        DESCR  :
+  - g_dyn_table_minimum:
+  - g_dyn_table_minimum_float:
+  - g_dyn_table_minimum_double:
+      TITLE    : minimum*
+      NAMES    : [minimum, minimum_float, minimum_double]
+      SUMMARY  : *g_dyn_table_minimum_summary
+      DESCR    : *g_dyn_table_minimum_descr
+      SIGNATURE: |
+                 long   minimum(long columnIndex)
+                 float  minimumFloat(long columnIndex)
+                 double minimumDouble(long columnIndex)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : Column index.
+      RETURN:
+        TYPES  : [int64_t, float, double]
+        DESCR  : The minimum value.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_minimum
+        DESCR  :
+  - g_dyn_table_average:
+  - g_dyn_table_average_float:
+  - g_dyn_table_average_double:
+      TITLE    : average* 
+      NAMES    : [average, average_float, average_double]
+      SUMMARY  : *g_dyn_table_average_summary
+      DESCR    : *g_dyn_table_average_descr
+      SIGNATURE: |
+                 double  average(long columnIndex)
+                 double  averageFloat(long columnIndex)
+                 double  averageDouble(long columnIndex)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : Column index.
+      RETURN:
+        TYPES  : double
+        DESCR  : The average
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_average
+        DESCR  :
+        
+
+- Dump:
+  METHODS:
+  - g_dyn_table_to_json:
+      NAMES    : to_json
+      SUMMARY  : *g_dyn_table_to_json_summary
+      DESCR    : *g_dyn_table_to_json_descr
+      RETURN:
+        TYPES  : String
+        DESCR  : A string with the JSON representation of the table.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_to_json
+        DESCR  :
+# TODO  - g_dyn_table_to_string:
+#      NAMES    : to_string
+#      SUMMARY  : *g_dyn_table_to_string_summary
+#      DESCR    : *g_dyn_table_to_string_descr
+#      PARAMS:
+#      - NAME   : out
+#        TYPES  : std::ostream&
+#        DESCR  : Output stream.
+#      - NAME   : limit
+#        TYPES  : long
+#        DESCR  : "The number of rows to convert. Default: 500."
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_to_string
+#        DESCR  :
+# TODO - g_dyn_table_row_to_string:
+#      NAMES    : to_string
+#      SUMMARY  : *g_dyn_table_row_to_string_summary
+#      DESCR    : *g_dyn_table_row_to_string_descr
+#      PARAMS:
+#      - NAME   : row_ndx
+#        TYPES  : long
+#        DESCR  : The row index.
+#      - NAME   : out
+#        TYPES  : std::ostream&
+#        DESCR  : Output stream.
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_to_string
+#        DESCR  :
