@@ -23,6 +23,31 @@ struct JcharTraits {
     static jchar to_char_type(jchar i) TIGHTDB_NOEXCEPT { return i; }
 };
 
+struct JStringCharsAccessor {
+    JStringCharsAccessor(JNIEnv* e, jstring s):
+        m_env(e), m_string(s), m_data(e->GetStringChars(s,0)), m_size(get_size(e,s)) {}
+    ~JStringCharsAccessor()
+    {
+        m_env->ReleaseStringChars(m_string, m_data);
+    }
+    const jchar* data() const TIGHTDB_NOEXCEPT { return m_data; }
+    size_t size() const TIGHTDB_NOEXCEPT { return m_size; }
+
+private:
+    JNIEnv* const m_env;
+    const jstring m_string;
+    const jchar* const m_data;
+    const size_t m_size;
+
+    static size_t get_size(JNIEnv* e, jstring s)
+    {
+        size_t size;
+        if (int_cast_with_overflow_detect(e->GetStringLength(s), size))
+            throw runtime_error("String size overflow");
+        return size;
+    }
+};
+
 } // anonymous namespace
 
 
@@ -200,26 +225,24 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
     // excessive over allocation, this is not done for larger input
     // strings.
 
+    JStringCharsAccessor chars(env, str);
+
     typedef Utf8x16<jchar, JcharTraits> Xcode;
-    const jchar* data = env->GetStringChars(str, 0);
-    size_t size;
-    if (int_cast_with_overflow_detect(env->GetStringLength(str), size))
-        throw runtime_error("String size overflow");
     size_t max_project_size = 48;
     TIGHTDB_ASSERT(max_project_size <= numeric_limits<size_t>::max()/4);
     size_t buf_size;
-    if (size <= max_project_size) {
-        buf_size = size * 4;
+    if (chars.size() <= max_project_size) {
+        buf_size = chars.size() * 4;
     }
     else {
-        const jchar* begin = data;
-        const jchar* end   = data + size;
+        const jchar* begin = chars.data();
+        const jchar* end   = begin + chars.size();
         buf_size = Xcode::find_utf8_buf_size(begin, end);
     }
     m_data.reset(new char[buf_size]);
     {
-        const jchar* in_begin = data;
-        const jchar* in_end   = data + size;
+        const jchar* in_begin = chars.data();
+        const jchar* in_end   = in_begin + chars.size();
         char* out_begin = m_data.get();
         char* out_end   = m_data.get() + buf_size;
         if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end))
