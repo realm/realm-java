@@ -15,6 +15,9 @@ using namespace tightdb;
 
 namespace {
 
+// This assumes that 'jchar' is an integral type with at least 16
+// non-sign value bits, that is, an unsigned 16-bit integer, or any
+// signed or unsigned integer with more than 16 bits.
 struct JcharTraits {
     static jchar to_int_type(jchar c)  TIGHTDB_NOEXCEPT { return c; }
     static jchar to_char_type(jchar i) TIGHTDB_NOEXCEPT { return i; }
@@ -137,17 +140,6 @@ bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& bin)
 
 jstring to_jstring(JNIEnv* env, StringData str)
 {
-    // Note: JNI offers methods to convert between modified UTF-8 and
-    // UTF-16. Unfortunately these methods are not appropriate in this
-    // context. The reason is that they use a modified version of
-    // UTF-8 where U+0000 is stored as 0xC0 0x80 instead of 0x00 and
-    // where a character in the range U+10000 to U+10FFFF is stored as
-    // two consecutive UTF-8 encodings of the corresponding UTF-16
-    // surrogate pair. Because Tightdb uses proper UTF-8, we need to
-    // do the transcoding ourselves.
-    //
-    // See also http://en.wikipedia.org/wiki/UTF-8#Modified_UTF-8
-    //
     // For efficiency, if the incoming UTF-8 string is sufficiently
     // small, we will attempt to store the UTF-16 output into a stack
     // allocated buffer of static size. Otherwise we will have to
@@ -173,7 +165,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
 
     {
         const char* in_begin2 = in_begin;
-        size_t size = calc_buf_size_utf8_to_utf16(in_begin2, in_end);
+        size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end);
         if (in_begin2 != in_end) goto bad_utf8;
         if (int_add_with_overflow_detect(size, stack_buf_size))
             throw runtime_error("String size overflow");
@@ -196,4 +188,43 @@ jstring to_jstring(JNIEnv* env, StringData str)
 
   bad_utf8:
     throw runtime_error("Bad UTF-8 encoding");
+}
+
+
+JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
+{
+    // For efficiency, if the incoming UTF-16 string is sufficiently
+    // small, we will choose an UTF-8 output buffer whose size (in
+    // bytes) is simply 4 times the number of 16-bit elements in the
+    // input. This is guaranteed to be enough. However, to avoid
+    // excessive over allocation, this is not done for larger input
+    // strings.
+
+    typedef Utf8x16<jchar, JcharTraits> Xcode;
+    const jchar* data = env->GetStringChars(str, 0);
+    size_t size;
+    if (int_cast_with_overflow_detect(env->GetStringLength(str), size))
+        throw runtime_error("String size overflow");
+    size_t max_project_size = 48;
+    TIGHTDB_ASSERT(max_project_size <= numeric_limits<size_t>::max()/4);
+    size_t buf_size;
+    if (size <= max_project_size) {
+        buf_size = size * 4;
+    }
+    else {
+        const jchar* begin = data;
+        const jchar* end   = data + size;
+        buf_size = Xcode::find_utf8_buf_size(begin, end);
+    }
+    m_data.reset(new char[buf_size]);
+    {
+        const jchar* in_begin = data;
+        const jchar* in_end   = data + size;
+        char* out_begin = m_data.get();
+        char* out_end   = m_data.get() + buf_size;
+        if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end))
+            throw runtime_error("Bad UTF-16 encoding");
+        TIGHTDB_ASSERT(in_begin == in_end);
+        m_size = out_begin - m_data.get();
+    }
 }

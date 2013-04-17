@@ -7,8 +7,9 @@
 
 #include <tightdb.hpp>
 #include <tightdb/meta.hpp>
-#include <tightdb/lang_bind_helper.hpp>
+#include <tightdb/unique_ptr.hpp>
 #include <tightdb/safe_int_ops.hpp>
+#include <tightdb/lang_bind_helper.hpp>
 
 #include "com_tightdb_internal_util.hpp"
 
@@ -245,44 +246,38 @@ inline bool IndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, j
 bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data);
 
 
-jstring to_jstring(JNIEnv*, tightdb::StringData);
+// Note: JNI offers methods to convert between modified UTF-8 and
+// UTF-16. Unfortunately these methods are not appropriate in this
+// context. The reason is that they use a modified version of
+// UTF-8 where U+0000 is stored as 0xC0 0x80 instead of 0x00 and
+// where a character in the range U+10000 to U+10FFFF is stored as
+// two consecutive UTF-8 encodings of the corresponding UTF-16
+// surrogate pair. Because Tightdb uses proper UTF-8, we need to
+// do the transcoding ourselves.
+//
+// See also http://en.wikipedia.org/wiki/UTF-8#Modified_UTF-8
 
+jstring to_jstring(JNIEnv*, tightdb::StringData);
 
 class JStringAccessor {
 public:
-    // FIXME: Using the GetStringUTFChars() / GetStringUTFLength()
-    // pair may be a bad idea, since they most likely both carry out
-    // the same complete transcoding from UTF-16 to UTF-8. The obvious
-    // way to avoid this wasted work is to implement the transcoding
-    // function ourselves just like what is probably required for
-    // to_jstring(), and it is not hard to do.
-    JStringAccessor(JNIEnv* e, jstring s):
-        m_env(e), m_str(s),
-        m_data(m_env->GetStringUTFChars(m_str, 0)),
-        m_size(m_env->GetStringUTFLength(m_str)) {}
-
-    ~JStringAccessor()
-    {
-        m_env->ReleaseStringUTFChars(m_str, m_data);
-    }
+    JStringAccessor(JNIEnv*, jstring);
 
     operator tightdb::StringData() const TIGHTDB_NOEXCEPT
     {
-        return tightdb::StringData(m_data, m_size);
+        return tightdb::StringData(m_data.get(), m_size);
     }
 
     // Part of the "safe bool" idiom
-    typedef const char* const (JStringAccessor::*unspecified_bool_type);
+    typedef tightdb::UniquePtr<char[]> (JStringAccessor::*unspecified_bool_type);
     operator unspecified_bool_type() const TIGHTDB_NOEXCEPT
     {
         return m_data ? &JStringAccessor::m_data : 0;
     }
 
 private:
-    JNIEnv* const m_env;
-    const jstring m_str;
-    const char* const m_data;
-    const std::size_t m_size;
+    tightdb::UniquePtr<char[]> m_data;
+    std::size_t m_size;
 };
 
 #endif // TIGHTDB_JAVA_UTIL_HPP
