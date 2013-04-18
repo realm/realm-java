@@ -635,6 +635,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString
 
 /*
  * Class:     com_tightdb_Table
+ * Method:    nativeFindSortedInt
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindSortedInt
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
  * Method:    nativeDistinct
  * Signature: (JJ)J
  */

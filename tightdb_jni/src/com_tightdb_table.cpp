@@ -695,6 +695,20 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString(
 	return reinterpret_cast<jlong>(pTableView);
 }
 
+
+// experimental
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindSortedInt(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value) 
+{
+  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
+
+    Table* pTable = TBL(nativeTablePtr);
+    size_t pos;
+    bool res = pTable->find_sorted_int(S(columnIndex), S(value), pos);
+    return pos;
+    // TODO: we should actually create and return an object with both pos and res...
+}
+
 //
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeDistinct(
