@@ -1,6 +1,9 @@
 #
 # Java reference documentation for Table class
 #
+#TODO:
+# updateFromSpec, getTableSpec
+# addLong
 
 ID         : class_dyn_table
 TITLE      : Table (dynamic)
@@ -19,7 +22,8 @@ IGNORE     : []                         # List of method-ids to ignore
 #  - g_find_all_double_const:
 # - g_dyn_table_get_sorted_view_const:
 #   - g_dyn_table_distinct_const:
- 
+# - insert*, insertDone()
+
 CATEGORIES :
 
 - State:
@@ -40,12 +44,20 @@ CATEGORIES :
       DESCR    : *g_dyn_table_is_empty_descr
       RETURN:
         TYPES  : boolean
-        DESCR  : <code>true</code> if empty, <code>false</code> otherwise.
+        DESCR  : *g_dyn_table_is_empty_return_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_table_is_empty
         DESCR  :
-#??? needed for what?
-#  - g_dyn_table_is_valid:
+  - g_dyn_table_is_valid:
+      NAMES    : isValid
+      SUMMARY  : *g_dyn_table_is_valid_summary
+      DESCR    : *g_dyn_table_is_valid_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : *g_dyn_table_is_valid_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_is_valid
+        DESCR  :
 - Table:
   METHODS:
   - g_dyn_table_clear:
@@ -80,6 +92,73 @@ CATEGORIES :
 
 - Columns:
   METHODS:
+  - g_dyn_table_add_column:
+      NAMES    : addColumn
+      SUMMARY  : *g_dyn_table_add_column_summary
+      DESCR    : >
+                 This method appends a column of the specified type and name to the table.
+                 If it's used in a table which already has rows, the new column will just get
+                 default values (0, "", null) in those rows.
+                 
+                 Currently, the following types are supported from the <code>ColumnType</code> class:
+                 <ul>
+                   <li><code>ColumnTypeBool</code></li>
+                   <li><code>ColumnTypeInt</code></li>
+                   <li><code>ColumnTypeFloat</code></li>
+                   <li><code>ColumnTypeDouble</code></li>
+                   <li><code>ColumnTypeString</code></li>
+                   <li><code>ColumnTypeBinary</code></li>
+                   <li><code>ColumnTypeDate</code></li>
+                   <li><code>ColumnTypeTable</code></li>
+                   <li><code>ColumnTypeMixed</code></li>
+                 </ul>
+
+      PARAMS:
+      - NAME   : type
+        TYPES  : ColumnType
+        DESCR  : *g_dyn_table_add_column_param1_descr
+      - NAME   : name
+        TYPES  : String
+        DESCR  : *g_dyn_table_add_column_param2_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : *g_dyn_table_add_column_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_add_column
+        DESCR  :
+#TODO: add_subtable_column
+      SEE      : >
+                 NOTICE: Currently adding subtable-columns are not supported yet.
+                 If that is needed create the tables via {@link class_table_spec}.
+  - g_dyn_table_remove_column:
+      NAMES    : removeColumn
+      SUMMARY  : *g_dyn_table_remove_column_summary
+      DESCR    : *g_dyn_table_remove_column_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_remove_column_param1_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_remove_column
+        DESCR  :
+#TODO remove_subtable_column
+      SEE      : >
+                 NOTICE: Currently deleting subtable-columns are not supported yet.
+  - g_dyn_table_rename_column:
+      NAMES    : renameColumn
+      SUMMARY  : *g_dyn_table_rename_column_summary
+      DESCR    : *g_dyn_table_rename_column_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_rename_column_param1_descr
+      - NAME   : newName
+        TYPES  : String
+        DESCR  : *g_dyn_table_rename_column_param2_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_rename_column
+        DESCR  :
+  
   - g_dyn_table_get_column_count:
       NAMES    : getColumnCount
       SUMMARY  : *g_dyn_table_get_column_count_summary
@@ -219,7 +298,7 @@ CATEGORIES :
       - CODE   : ex_java_dyn_table_set
         DESCR  :
       SEE      : >
-                See also {@link g_dyn_table_set_bool} to set individual values in a given row.  
+                See also {@link g_dyn_table_set_bool} to set individual cells in a given row.  
   - g_dyn_table_remove_row:
       NAMES    : remove
       SUMMARY  : *g_dyn_table_remove_row_summary
@@ -311,6 +390,7 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_set_xxx
         DESCR  :
+      SEE      : See alse {@link g_dyn_table_set} to set all values in a row at ones.
 
 - Sub-tables:
   METHODS:
