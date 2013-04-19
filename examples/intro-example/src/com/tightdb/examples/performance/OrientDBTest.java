@@ -19,8 +19,10 @@ public class OrientDBTest extends PerformanceBase implements IPerformance {
     private ODatabaseDocumentTx db;
     
     public OrientDBTest() {
-        this.db = new ODatabaseDocumentTx("local:/home/kneth/orientdb-1.3.0/databases/petshop").open("admin", "admin");
-        this.db.getMetadata().getSchema().dropClass("Table");
+        this.db = new ODatabaseDocumentTx("local:/tmp/test").open("admin", "admin");
+        if (this.db.getMetadata().getSchema().existsClass("Table")) {
+            this.db.getMetadata().getSchema().dropClass("Table");
+        }
         OClass table = db.getMetadata().getSchema().createClass("Table");
         table.createProperty("indexInt", OType.INTEGER);
         table.createProperty("second",   OType.STRING);
