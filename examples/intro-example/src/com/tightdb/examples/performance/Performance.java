@@ -40,6 +40,9 @@ public class Performance {
 		
 		System.out.print("\nPerformance testing SQLite: ");
 		TestResult sqlite = TestPerformance(new SQLiteTest(), numOfValues);
+
+		System.out.print("\nPerformance testing OrientDB: ");
+		TestResult orientdb = TestPerformance(new OrientDBTest(), numOfValues);
 	
 		System.out.println("\n\nRESULTS:");
 		String[] testText = {
@@ -50,7 +53,7 @@ public class Performance {
 				"Add Index:\t\t\t",
 				"Search for byte (indexed):\t"
 		};
-		System.out.println("\t\t\t\t\t   Tightdb\tArrayList\tSQLite");
+		System.out.println("\t\t\t\t\t   Tightdb\tArrayList\tSQLite\t\tOrientDB");
 		for (int test = 0; test < TESTS; ++test) {
 			System.out.print( testText[test] );
 			printTime(tightdb.testTime[test], " ms (x1)", "\t");
@@ -64,6 +67,12 @@ public class Performance {
 			printTime(sqlite.testTime[test], " ms ", "");
 			if (tightdb.testTime[test] > 0)
 				System.out.print( "(x" + sqlite.testTime[test] / tightdb.testTime[test] + ")\t");
+			else
+				System.out.print("\t");
+
+			printTime(orientdb.testTime[test], " ms ", "");
+			if (tightdb.testTime[test] > 0)
+				System.out.print( "(x" + orientdb.testTime[test] / tightdb.testTime[test] + ")\t");
 			else
 				System.out.print("\t");
 			 
