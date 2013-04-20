@@ -1,0 +1,32 @@
+#
+# Java reference documentation for ReadTransaction class
+#
+
+ID         : class_read_transaction
+TITLE      : ReadTransaction
+SUMMARY    : Read transactions
+DESCR      : >
+             Read transactions are created from {@link class_shared_group} objects 
+             with <code>startRead()</code>.
+             A ReadTransaction object extends {@link class_group} with a single 
+             method: <code>endRead()</code>, which terminates the read transaction.
+             During the read transaction, you will have a fully consistent, 
+             non mutable view of the group. 
+             
+             If you use any methods that would normally change the content of the group, 
+             an exception will be thrown.
+SEE        : 
+EXAMPLES: 
+- DESCR    : 
+  CODE     : ex_java_read_transaction_intro
+IGNORE     : []
+CATEGORIES:
+- -:
+  METHODS:
+  - g_read_transaction_end_read:
+      NAMES    : endRead
+      SUMMARY  : *g_shared_group_end_read_summary
+      DESCR    : *g_shared_group_end_read_descr
+      EXAMPLES:
+      - CODE   : ex_java_shared_group_end_read
+        DESCR  :

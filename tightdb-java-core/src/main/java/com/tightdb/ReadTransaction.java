@@ -27,7 +27,7 @@ public class ReadTransaction extends Group {
 //    @Override
 	public void close()
     {
-    	System.out.println("read-close");
+    	//System.out.println("read-close");
     	//TODO: can close fail? make exception
         db.endRead();
     }
