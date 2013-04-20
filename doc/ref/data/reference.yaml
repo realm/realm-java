@@ -1,6 +1,9 @@
 #
 # Reference documentation data for language Java
 #
+
+#TODO: Describe exceptions
+
 ID        : java
 TITLE     : 'Java'
 DESCR     : >
@@ -53,7 +56,7 @@ CATEGORIES:                       # list global class-id in order of appearence
 - Dynamic Table:
   - dyn_table
   - dyn_view
-#  - dyn_query
+  - dyn_query
 - Collection:
   - group
   - shared_group

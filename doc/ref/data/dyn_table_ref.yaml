@@ -6,12 +6,16 @@
 # addLong
 
 ID         : class_dyn_table
-TITLE      : Table (dynamic)
+TITLE      : Table
 SUMMARY    : *g_dyn_table_intro_summary
 DESCR      : *g_dyn_table_intro_descr
-SEE        :
+SEE        : *g_dyn_table_intro_see
 EXAMPLES   :
-- DESCR:
+- DESCR    : >
+             Below examples will showcase all the available methods in a dynamic Table.
+             
+             More specific examples are (soon) available in the detailed description 
+             of each method above.
   CODE     : ex_java_dyn_table_intro
 IGNORE     : []                         # List of method-ids to ignore
 #  - g_find_all_bool_const:
@@ -689,7 +693,7 @@ CATEGORIES :
 - Dump:
   METHODS:
   - g_dyn_table_to_json:
-      NAMES    : to_json
+      NAMES    : toJson
       SUMMARY  : *g_dyn_table_to_json_summary
       DESCR    : *g_dyn_table_to_json_descr
       RETURN:

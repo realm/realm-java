@@ -6,7 +6,10 @@ import java.util.Date;
 import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
-
+/*
+ Add isEqual(Table)
+ 
+ */
 
 /**
  * This class is a base class for all TightDB tables. The class supports all low
@@ -297,7 +300,7 @@ public class Table implements TableOrView {
 	}
 
 	protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
-
+//TODO: change to return index number
 	public void add(Object... values) {
 		insert(size(), values);
 	}
