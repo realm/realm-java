@@ -1,17 +1,12 @@
 package com.tightdb.example;
 
 import com.tightdb.*;
-import com.tightdb.internal.util;
-import com.tightdb.typed.TightDB;
+// import com.tightdb.internal.util;
 
 public class DynamicTableBaseEx {
 
 	public static void main(String[] args) {
-		System.out.println("starting...");
-	//	util.waitForEnter();
-	
-		TightDB.loadLibrary();
-		System.out.println("--Memusage: " + util.getNativeMemUsage());
+		// System.out.println("--Memusage: " + util.getNativeMemUsage());
 		
 		Table base = new Table();
 		System.out.println("created table");
@@ -39,7 +34,7 @@ public class DynamicTableBaseEx {
 		long rowIndex = base.findFirstString(0, "John");
 		System.out.println("First result index: " + rowIndex);
 
-		System.out.println("--Memusage: " + util.getNativeMemUsage());
+		//System.out.println("--Memusage: " + util.getNativeMemUsage());
 		
 		base.remove(0);
 		base.clear();

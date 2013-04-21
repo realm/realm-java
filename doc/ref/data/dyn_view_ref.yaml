@@ -1,0 +1,370 @@
+#
+# Java reference documentation for TableView class
+#
+# TODO: Add addLong()
+
+ID         : class_dyn_tableview
+TITLE      : TableView
+SUMMARY    : *g_dyn_view_intro_summary
+DESCR      : *g_dyn_view_intro_descr
+SEE        :
+EXAMPLES   :
+- DESCR    : The methods available in a TableView is a subset of those in 
+             {@link class_dyn_table}, so you can check the examples there.
+  CODE:      ex_java_dyn_view_intro
+IGNORE     : []                   # List of method-ids to ignore
+CATEGORIES :
+- State:
+  METHODS:
+  - g_dyn_view_size:
+      NAMES    : size
+      SUMMARY  : *g_dyn_table_size_summary
+      DESCR    : *g_dyn_table_size_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : The number of rows.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_size
+        DESCR  :
+  - g_dyn_view_is_empty:
+      NAMES    : is_empty
+      SUMMARY  : *g_dyn_view_is_empty_summary
+      DESCR    : *g_dyn_view_is_empty_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if empty, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_is_empty
+        DESCR  :
+        
+- View:
+  METHODS:
+  - g_dyn_view_clear:
+      NAMES    : clear
+      SUMMARY  : *g_dyn_table_clear_summary
+      DESCR    : *g_dyn_view_clear_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_clear
+        DESCR  :
+        
+## TODO: insert coloum methods here...
+
+- Rows:
+  METHODS:
+# TODO...
+#  - g_dyn_view_get_source_ndx:
+#      NAMES    : get_source_ndx
+#      SUMMARY  : *g_dyn_view_get_source_ndx_summary
+#      DESCR    : *g_dyn_view_get_source_ndx_descr
+#      PARAMS:
+#      - NAME   : rowIndex
+#        TYPES  : long
+#        DESCR  : The row index in the view
+#      RETURN:
+#        TYPES  : long
+#        DESCR  : The row index in the table.
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_view_get_source_ndx
+#        DESCR  :
+  - g_dyn_view_remove_row:
+      NAMES    : remove
+      SUMMARY  : *g_dyn_table_remove_row_summary
+      DESCR    : *g_dyn_table_remove_row_descr
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : Position of row to delete.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_remove
+        DESCR  :
+  - g_dyn_view_remove_last_row:
+      NAMES    : removeLast
+      SUMMARY  : *g_dyn_table_remove_last_row_summary
+      DESCR    : *g_dyn_table_remove_last_row_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_remove_last_row
+        DESCR  :
+
+
+- Values:
+  METHODS:
+  - g_dyn_view_get_boolean:
+  - g_dyn_view_get_int:
+  - g_dyn_view_get_float:
+  - g_dyn_view_get_double:
+  - g_dyn_view_get_date:
+  - g_dyn_view_get_string:
+  - g_dyn_view_get_binary:
+  - g_dyn_view_get_mixed:
+  - g_dyn_view_get_mixed_type:
+  - g_dyn_view_get_subtable:
+  - g_dyn_view_get_subtable_const:
+      NAMES    : get*
+      SUMMARY  : *g_dyn_table_get_xxx_summary
+      DESCR    : *g_dyn_table_get_xxx_descr
+      SIGNATURE: |
+                 boolean    getBoolean(long columnIndex, long rowIndex)
+                 long       getLong(long columnIndex, long rowIndex)
+                 float      getFloat(long columnIndex, long rowIndex)
+                 double     getDouble(long columnIndex, long rowIndex)
+                 Date       getDate(long columnIndex, long rowIndex)
+                 String     getString(long columnIndex, long rowIndex)
+                 ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex)
+                 byte[]     getBinaryByteArray(long columnIndex, long rowIndex)
+                 Mixed      getMixed(long columnIndex, long rowIndex)
+                 ColumnType getMixedType(long columnIndex, long rowIndex)
+                 Table      getSubTable(long columnIndex, long rowIndex)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index.
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : The row index.
+      RETURN:
+        TYPES  : [boolean, long, float, double, Date, String, ByteBuffer, "byte[]", Mixed, ColumnType]
+        DESCR  : The value.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_get_xxx
+        DESCR  :
+  - g_dyn_view_set_boolean:
+  - g_dyn_view_set_int:
+  - g_dyn_view_set_float:
+  - g_dyn_view_set_double:
+  - g_dyn_view_set_enum:
+  - g_dyn_view_set_date:
+  - g_dyn_view_set_string:
+  - g_dyn_view_set_binary:
+  - g_dyn_view_set_mixed:
+      NAMES    : set*
+      SUMMARY  : *g_dyn_table_set_xxx_summary
+      DESCR    : *g_dyn_table_set_xxx_descr
+      SIGNATURE: |
+                 void setBoolean(long columnIndex, long rowIndex, boolean value);
+                 void setLong(long columnIndex, long rowIndex, long value);
+                 void setFloat(long columnIndex, long rowIndex, float value);
+                 void setDouble(long columnIndex, long rowIndex, double value);
+                 void setDate(long columnIndex, long rowIndex, Date value);
+                 void setString(long columnIndex, long rowIndex, String value);
+                 void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer value);
+                 void setBinaryByteArray(long columnIndex, long rowIndex, byte[] value);
+                 void setMixed(long columnIndex, long rowIndex, Mixed value);
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index.
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : The row index.
+      - NAME   : value
+        TYPES  : [boolean, long, float, double, Date, String, "byte[]", ByteBuffer, Mixed]
+        DESCR  : The value.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_set_xxx
+        DESCR  :
+
+- Sub-tables:
+  METHODS:
+  - g_dyn_view_get_subtable_size:
+      NAMES    : getSubTableSize
+      SUMMARY  : *g_dyn_table_get_subtable_size_summary
+      DESCR    : *g_dyn_table_get_subtable_size_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index.
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : The row index.
+      RETURN:
+        TYPES  : long
+        DESCR  : Number of rows.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_get_subtable
+        DESCR  :
+  - g_dyn_view_clear_subtable:
+      NAMES    : clearSubTable
+      SUMMARY  : *g_dyn_table_clear_subtable_summary
+      DESCR    : *g_dyn_table_clear_subtable_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index.
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : The row index.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_clear_subtable
+        DESCR  :
+
+- Searching:
+  METHODS:
+  - g_dyn_view_find_first_boolean:
+  - g_dyn_view_find_first_int:
+  - g_dyn_view_find_first_float:
+  - g_dyn_view_find_first_double:
+  - g_dyn_view_find_first_date:
+  - g_dyn_view_find_first_string:
+      NAMES    : findFirst*
+      SUMMARY  : *g_dyn_table_find_first_xxx_summary
+      DESCR    : *g_dyn_table_find_first_xxx_descr
+      SIGNATURE: |
+                 long findFirstBoolean(long columnIndex, boolean value)
+                 long findFirstLong(long columnIndex, long value)
+                 long findFirstFloat(long columnIndex, float value)
+                 long findFirstDouble(long columnIndex, double value)
+                 long findFirstDate(long columnIndex, Date value)
+                 long findFirstString(long columnIndex, String value)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index.
+      - NAME   : value
+        TYPES  : [boolean, long, float, double, Date, String]
+        DESCR  : The value.
+      RETURN:
+        TYPES  : long
+        DESCR  : "The row index or -1 if there is no match."
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_find_first_xxx
+        DESCR  :
+  - g_dyn_view_find_all_boolean:
+  - g_dyn_view_find_all_int:
+  - g_dyn_view_find_all_float:
+  - g_dyn_view_find_all_double:
+  - g_dyn_view_find_all_date:
+  - g_dyn_view_find_all_string:
+      NAMES    : findAll*
+      SUMMARY  : *g_dyn_table_find_all_xxx_summary
+      DESCR    : *g_dyn_table_find_all_xxx_descr
+      SIGNATURE: |
+                 TableView findAllLong(long columnIndex, long value)
+                 TableView findAllBoolean(long columnIndex, boolean value)
+                 TableView findAllDate(long columnIndex, Date value)
+                 TableView findAllString(long columnIndex, String value)
+                 TableView findAllFloat(long columnIndex, float value)
+                 TableView findAllDouble(long columnIndex, double value)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index to match the value in.
+      - NAME   : value
+        TYPES  : [boolean, long, float, double, Date, String]
+        DESCR  : The value to match.
+      RETURN:
+        TYPES  : TableView
+        DESCR  : The view with the result of all the matching rows.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_find_all_xxx
+        DESCR  :
+  - g_dyn_view_sort:
+      NAMES    : sort
+      SUMMARY  : *g_dyn_view_get_sorted_view_summary
+      DESCR    : *g_dyn_view_get_sorted_view_desc
+      SIGNATURE: |
+                 void sort(long columnIndex)
+                 void sort(long columnIndex, Order order)
+      PARAMS:    
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index to sort by.
+      - NAME   : order
+        TYPES  : Order {ascending, descending}
+        DESCR  : Sort order. If not used, the default sort order is ascending.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_sort
+        DESCR  :
+
+- Aggregates:
+  METHODS:
+  - g_dyn_view_sum:
+  - g_dyn_view_sum_float:
+  - g_dyn_view_sum_double:
+      TITLE    : sum*
+      NAMES    : [sum, sumFloat, sumDouble]
+      SUMMARY  : *g_dyn_view_sum_summary
+      DESCR    : *g_dyn_view_sum_descr
+      SIGNATURE: |
+                 long   sum(long columnIndex)
+                 double sumFloat(long columnIndex)
+                 double sumDouble(long columnIndex)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : Column index.
+      RETURN:
+        TYPES  : [long, float, double]
+        DESCR  : The sum of the column.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_sum
+        DESCR  :
+  - g_dyn_view_maximum:
+  - g_dyn_view_maximum_float:
+  - g_dyn_view_maximum_double:
+      TITLE    : maximum*
+      NAMES    : [maximum, maximumFloat, maximumDouble]
+      SUMMARY  : *g_dyn_view_maximum_summary
+      DESCR    : *g_dyn_view_maximum_descr
+      SIGNATURE: |
+                 long   maximum(long columnIndex)
+                 double maximumFloat(long columnIndex)
+                 double maximumDouble(long columnIndex)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : Column index.
+      RETURN:
+        TYPES  : [long, double]
+        DESCR  : The maximum value in the column.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_maximum
+        DESCR  :
+  - g_dyn_view_minimum:
+  - g_dyn_view_minimum_float:
+  - g_dyn_view_minimum_double:
+      TITLE    : minimum*
+      NAMES    : [minimum, minimumFloat, minimumDouble]
+      SUMMARY  : *g_dyn_view_minimum_summary
+      DESCR    : *g_dyn_view_minimum_descr
+      SIGNATURE: |
+                 long   minimum(long columnIndex)
+                 double minimumFloat(long columnIndex)
+                 double minimumDouble(long columnIndex)
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : Column index.
+      RETURN:
+        TYPES  : [long, double]
+        DESCR  : The minimum value in the column.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_minimum
+        DESCR  :
+
+
+- Dump:
+  METHODS:
+  - g_dyn_view_to_json:
+      NAMES    : toJson
+      SUMMARY  : *g_dyn_table_to_json_summary
+      DESCR    : *g_dyn_view_to_json_descr
+      RETURN:
+        TYPES  : String
+        DESCR  : *g_dyn_table_to_json_summary
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_to_json
+        DESCR  :
+#  - g_dyn_view_to_string:
+#      NAMES    : to_string
+#      SUMMARY  : *g_dyn_view_to_string_summary
+#      DESCR    : *g_dyn_view_to_string_descr
+#      PARAMS:
+#      - NAME   : out
+#        TYPES  : std::ostream&
+#        DESCR  : Output stream.
+#      - NAME   : limit
+#        TYPES  : long
+#        DESCR  : "The number of rows to convert. Default: 500."
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_view_to_string
+#        DESCR  :
