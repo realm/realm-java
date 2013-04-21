@@ -5,7 +5,7 @@ public class TableQuery {
 	protected long nativePtr;
 	protected boolean immutable = false;
 
-
+// TODO: Can we protect this?
 	public TableQuery(long nativeQueryPtr, boolean immutable){
 		this.immutable = immutable;
 		this.nativePtr = nativeQueryPtr;
@@ -42,7 +42,7 @@ public class TableQuery {
 		nativeParent(nativePtr);
 		return this;
 	}
-	public native void nativeParent(long nativeQueryPtr);
+	protected native void nativeParent(long nativeQueryPtr);
 
 	public TableQuery or(){
 		nativeOr(nativePtr);
@@ -342,15 +342,15 @@ public class TableQuery {
 	
 	// Searching methods.
 	
-	public long findNext(long lastMatch){
-		return nativeFindNext(nativePtr, lastMatch);
+	public long findNext(long lastRow){
+		return nativeFindNext(nativePtr, lastRow);
 	}
 	
 	public long findNext(){
 		return nativeFindNext(nativePtr, Table.INFINITE);
 	}
 	
-	protected native long nativeFindNext(long nativeQueryPtr, long lastMatch);
+	protected native long nativeFindNext(long nativeQueryPtr, long lastRow);
 	
 	public TableView findAll(long start, long end, long limit){
 		return new TableView(nativeFindAll(nativePtr, start, end, limit), immutable);
@@ -481,6 +481,7 @@ public class TableQuery {
 
 	// count
 	
+	// TODO: Rename all start, end parameter names to firstRow, lastRow
 	public long count(long start, long end){
 		return nativeCount(nativePtr, start, end, Table.INFINITE);
 	}
