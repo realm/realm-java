@@ -53,7 +53,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
     TR((env, " %d bytes.", byteArrayLength));
     Group* pGroup = 0;
     try {
-        pGroup = new Group(Group::BufferSpec(reinterpret_cast<char*>(buf), S(byteArrayLength)), true);
+        pGroup = new Group(BinaryData(reinterpret_cast<char*>(buf), S(byteArrayLength)), true);
     }
     catch (...) {
         // FIXME: Diffrent exception types mean different things. More
@@ -86,7 +86,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
     // when the new-operator or the Group constructor fails.
     Group* pGroup = 0;
     try {
-        pGroup = new Group(Group::BufferSpec(bin.data(), bin.size()));
+        pGroup = new Group(BinaryData(bin.data(), bin.size()));
     }
     catch (...) {
         // FIXME: Diffrent exception types mean different things. More
@@ -175,20 +175,20 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
     JNIEnv* env, jobject, jlong nativeGroupPtr)
 {
     TR((env, "nativeWriteToMem(%x)\n", nativeGroupPtr));
-    Group::BufferSpec buffer = G(nativeGroupPtr)->write_to_mem(); // FIXME: May throw at least std::bad_alloc
+    BinaryData buffer = G(nativeGroupPtr)->write_to_mem(); // FIXME: May throw at least std::bad_alloc
     jbyteArray jArray = 0;
-    if (buffer.m_size <= MAX_JSIZE) {
-        jsize jlen = static_cast<jsize>(buffer.m_size);
+    if (buffer.size() <= MAX_JSIZE) {
+        jsize jlen = static_cast<jsize>(buffer.size());
         jArray = env->NewByteArray(jlen);
         if (jArray)
             // Copy data to Byte[]
-            env->SetByteArrayRegion(jArray, 0, jlen, (const jbyte*)buffer.m_data);
+            env->SetByteArrayRegion(jArray, 0, jlen, reinterpret_cast<const jbyte*>(buffer.data()));
     }
     if (!jArray) {
         ThrowException(env, IndexOutOfBounds, "Group too big to write.");
     }
     // FIXME: Deallocation must happen even if somthing fails above
-    free(const_cast<char*>(buffer.m_data)); // free native data.
+    free(const_cast<char*>(buffer.data())); // free native data.
     return jArray;
 }
 
@@ -196,9 +196,9 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
     JNIEnv* env, jobject, jlong nativeGroupPtr)
 {
     TR((env, "nativeWriteToByteBuffer(%x)\n", nativeGroupPtr));
-    Group::BufferSpec buffer = G(nativeGroupPtr)->write_to_mem(); // FIXME: May throw at least std::bad_alloc
-    if (buffer.m_size <= MAX_JLONG) {
-        return env->NewDirectByteBuffer(const_cast<char*>(buffer.m_data), static_cast<jlong>(buffer.m_size));
+    BinaryData buffer = G(nativeGroupPtr)->write_to_mem(); // FIXME: May throw at least std::bad_alloc
+    if (buffer.size() <= MAX_JLONG) {
+        return env->NewDirectByteBuffer(const_cast<char*>(buffer.data()), static_cast<jlong>(buffer.size()));
         // Data is NOT copied in DirectByteBuffer - so we can't free it.
     }
     else {
