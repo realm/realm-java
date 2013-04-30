@@ -64,7 +64,7 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
 	}
 
 
-	@Test
+	@Test(enabled=false) // TODO
 	public void shouldDeleteAllButLast() {		
 		employees.moveLastOver(2);
 		employees.moveLastOver(1);
