@@ -600,7 +600,7 @@ public class TableView implements TableOrView {
 
 	public void sort(long columnIndex) {
 		if (immutable) throwImmutable();
-		sort(columnIndex, Order.ascending);
+		nativeSort(nativePtr, columnIndex, true);
 	}
 	
 	protected native void nativeSort(long nativeTableViewPtr, long columnIndex, boolean ascending);

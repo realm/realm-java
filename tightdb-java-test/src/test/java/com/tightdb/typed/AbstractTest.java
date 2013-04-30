@@ -150,7 +150,7 @@ public abstract class AbstractTest {
 		} catch (UnsupportedOperationException e) {
 			return;
 		}
-		fail("Expected unsopported 'remove' operation!");
+		fail("Expected unsupported 'remove' operation!");
 	}
 
 	protected void checkIterator(Iterator<TestPhoneRow> it,

@@ -23,8 +23,8 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 
 	@Override
 	public void set(Subtable value) {
-		throw new UnsupportedOperationException(); // FIXME: maybe implement
-													// this is future?
+		throw new UnsupportedOperationException("Set() for Subtables is not implemented yet"); 
+		// FIXME: maybe implement this is future?
 	}
 
 	@Override

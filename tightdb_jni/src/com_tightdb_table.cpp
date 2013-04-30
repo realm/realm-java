@@ -41,6 +41,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
 	env->ReleaseStringUTFChars(name, nameCharPtr);
 }
 
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeMoveLastOver
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jlong rowIndex)
+{
+    if (!ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, -1)) return;
+#if 0 // TODO: Enable move_last_over
+    TBL(nativeTablePtr)->move_last_over(S(rowIndex));
+#endif
+}
 
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(

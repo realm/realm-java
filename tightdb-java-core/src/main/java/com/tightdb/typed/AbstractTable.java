@@ -203,6 +203,9 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 	
 	public long findSorted(long columnIndex, long value) {
 		return table.findSortedLong(columnIndex, value);
+        }
+	
+	public void moveLastOver(long rowIndex) {
+		table.moveLastOver(rowIndex);
 	}
-
 }
