@@ -80,4 +80,7 @@ public class LongTableOrViewColumn<Cursor, View, Query> extends
 		return view(tableOrView.findAllLong(columnIndex, value));
 	}
 
+	public long findSorted(long value) {
+		return tableOrView.findSortedLong(columnIndex, value);	
+	}
 }

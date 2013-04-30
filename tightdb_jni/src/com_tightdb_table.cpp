@@ -38,6 +38,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
     TBL(nativeTablePtr)->rename_column(S(columnIndex), name2);
 }
 
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeMoveLastOver
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jlong rowIndex)
+{
+    if (!ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, -1)) return;
+#if 0 // TODO: Enable move_last_over
+    TBL(nativeTablePtr)->move_last_over(S(rowIndex));
+#endif
+}
 
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
@@ -686,6 +694,22 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString(
 
     TableView* pTableView = new TableView( pTable->find_all_string( S(columnIndex), value2) );
     return reinterpret_cast<jlong>(pTableView);
+}
+
+
+// experimental
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindSortedInt(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value) 
+{
+  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
+
+    Table* pTable = TBL(nativeTablePtr);
+    size_t pos=0;
+#if 0 // support find_sorted_int
+    bool res = pTable->find_sorted_int(S(columnIndex), S(value), pos);
+#endif
+    return pos;
+    // TODO: we should actually create and return an object with both pos and res...
 }
 
 //

@@ -131,6 +131,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveLast
 
 /*
  * Class:     com_tightdb_Table
+ * Method:    nativeMoveLastOver
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeMoveLastOver
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
  * Method:    nativeAddEmptyRow
  * Signature: (JJ)J
  */
@@ -632,6 +640,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllDate
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString
   (JNIEnv *, jobject, jlong, jlong, jstring);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeFindSortedInt
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindSortedInt
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_Table

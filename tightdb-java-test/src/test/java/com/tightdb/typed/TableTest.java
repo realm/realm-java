@@ -5,6 +5,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.Mixed;
@@ -20,15 +21,17 @@ public class TableTest {
 
 	@BeforeMethod
 	public void init() {
-		// !!! Note: If any of the valueas are changed, update shouldConvertToJson() 'expected' text
+		// !!! Note: If any of the valueas are changed, update
+		// shouldConvertToJson() 'expected' text
 		Date date = new Date(1234567890);
 		employees = new TestEmployeeTable();
 
 		employees.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, date, "extra", null);
 		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, date, true, null);
 		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 1 }, date, 1234, null);
-		employees.add("NoName", "Test Mixed Date", 1, true, new byte[] { 1}, date, new Date(123456789), null);
-		employees.add("NoName", "Test Mixed Binary", 1, true, new byte[] { 1, 2, 3 }, date, new byte[] {3,2,1}, null);
+		employees.add("NoName", "Test Mixed Date", 1, true, new byte[] { 1 }, date, new Date(123456789), null);
+		employees.add("NoName", "Test Mixed Binary", 1, true, new byte[] { 1, 2, 3 }, date, new byte[] { 3, 2, 1 },
+				null);
 	}
 
 	@AfterMethod
@@ -60,6 +63,27 @@ public class TableTest {
 	}
 
 	@Test
+	public void shouldSetEntireRow() {
+		Date date = new Date(1234567890);
+		byte[] bytes = new byte[] { 1, 3, 5 };
+		ByteBuffer buf = ByteBuffer.allocateDirect(3);
+		buf.put(bytes);
+		ByteBuffer buf2 = ByteBuffer.allocateDirect(3);
+		buf2.put(bytes);
+
+		// FIXME: set and check subtable values
+		employees.at(0).set(NAME2, "Bond", 10000, true, buf, date, new Mixed(true), null);
+
+		assertEquals(NAME2, employees.at(0).getFirstName());
+		assertEquals("Bond", employees.at(0).getLastName());
+		assertEquals(10000, employees.at(0).getSalary());
+		assertEquals(true, employees.at(0).getDriver());
+		assertEquals(buf2.rewind(), employees.at(0).getPhoto().rewind());
+		assertEquals(date.getTime() / 1000, employees.at(0).getBirthdate().getTime() / 1000);
+		assertEquals(new Mixed(true), employees.at(0).getExtra());
+	}
+
+	@Test
 	public void shouldAllowMixedValues() throws IllegalAccessException {
 		assertEquals("extra", employees.at(0).getExtra().getValue());
 		assertEquals("extra", employees.at(0).getExtra().getStringValue());
@@ -82,7 +106,7 @@ public class TableTest {
 
 		employees.optimize();
 	}
-	
+
 	@Test()
 	public void shouldConvertToJson() {
 		String json = employees.toJson();

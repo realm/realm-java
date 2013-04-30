@@ -154,7 +154,7 @@ bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& bin)
         return false;
     }
     jlong size = env->GetDirectBufferCapacity(jByteBuffer);
-    if (size < 1) {
+    if (size < 0) {
         ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
         return false;
     }

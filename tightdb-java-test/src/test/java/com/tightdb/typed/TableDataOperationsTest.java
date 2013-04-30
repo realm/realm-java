@@ -18,7 +18,8 @@ import com.tightdb.typed.AbstractTableOrView;
 public class TableDataOperationsTest extends AbstractDataOperationsTest {
 
 	private TestEmployeeTable employees;
-
+	private Object[][] phones;
+	
 	@Override
 	protected AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getEmployees() {
 		return employees;
@@ -32,7 +33,7 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
 		employees.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, new Date(), true, null);
 		employees.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
 
-		Object[][] phones = { { "home", "123-123" }, { "mobile", "456-456" } };
+		phones = new Object[][] { { "home", "123-123" }, { "mobile", "456-456" } };
 		employees.add(NAME3, "Bond", 150000, true, new byte[] { 0 }, new Date(), "x", phones);
 	}
 
@@ -62,4 +63,23 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
 		assertEquals("456-456", phones.at(1).getNumber());
 	}
 
+
+	@Test(enabled=false) // TODO
+	public void shouldDeleteAllButLast() {		
+		employees.moveLastOver(2);
+		employees.moveLastOver(1);
+		employees.moveLastOver(0);
+		assertEquals("Bond", employees.at(0).getLastName());
+		TestPhoneTable phones2 = employees.last().getPhones();
+		assertEquals(2, phones2.size());
+		assertEquals(1, employees.size());
+
+		try {
+			employees.moveLastOver(0);
+			// should not allow the last to be removed
+			assert(false);
+		} catch (Exception e) {
+		}
+		
+	}
 }

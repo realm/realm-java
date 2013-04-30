@@ -9,8 +9,8 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 
 	private final Class<Subtable> subtableClass;
 
-	public TableCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name,
-			Class<Subtable> subtableClass) {
+	public TableCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index,
+			String name, Class<Subtable> subtableClass) {
 		super(types, cursor, index, name);
 		this.subtableClass = subtableClass;
 	}
@@ -23,8 +23,10 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 
 	@Override
 	public void set(Subtable value) {
-		throw new UnsupportedOperationException(); // FIXME: maybe implement
-													// this is future?
+                if (value != null) {
+                        // FIXME: maybe implement this is future? (or replace it with set( Object[][] ) method?
+                        throw new UnsupportedOperationException("Set() for Subtables is not implemented yet"); 
+		}
 	}
 
 	@Override

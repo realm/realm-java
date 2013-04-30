@@ -142,8 +142,5 @@ public class JNITableSpecTest {
 		assertEquals(1, table.getColumnCount());
 		assertEquals("New 4", table.getColumnName(0));
 		assertEquals("44", table.getString(0,4));
-		
-		
-		
 	}
 }
