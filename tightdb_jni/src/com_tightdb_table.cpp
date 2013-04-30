@@ -703,8 +703,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindSortedInt(
   	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
     Table* pTable = TBL(nativeTablePtr);
-    size_t pos;
+    size_t pos=0;
+#if 0 // support find_sorted_int
     bool res = pTable->find_sorted_int(S(columnIndex), S(value), pos);
+#endif
     return pos;
     // TODO: we should actually create and return an object with both pos and res...
 }

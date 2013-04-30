@@ -183,21 +183,25 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
 	JNIEnv* env, jobject, jlong nativeGroupPtr)
 {
     TR((env, "nativeWriteToMem(%x)\n", nativeGroupPtr));
-    Group::BufferSpec buffer = G(nativeGroupPtr)->write_to_mem(); // FIXME: May throw at least std::bad_alloc
-    jbyteArray jArray = 0;
-    if (buffer.m_size <= MAX_JSIZE) {
-        jsize jlen = static_cast<jsize>(buffer.m_size);
-        jArray = env->NewByteArray(jlen);
-        if (jArray)
-            // Copy data to Byte[]
-            env->SetByteArrayRegion(jArray, 0, jlen, (const jbyte*)buffer.m_data);
+    try {
+        Group::BufferSpec buffer = G(nativeGroupPtr)->write_to_mem(); // FIXME: May throw at least std::bad_alloc
+        jbyteArray jArray = 0;
+        if (buffer.m_size <= MAX_JSIZE) {
+            jsize jlen = static_cast<jsize>(buffer.m_size);
+            jArray = env->NewByteArray(jlen);
+            if (jArray)
+                // Copy data to Byte[]
+                env->SetByteArrayRegion(jArray, 0, jlen, (const jbyte*)buffer.m_data);
+        }
+        if (!jArray) {
+            ThrowException(env, IndexOutOfBounds, "Group too big to write.");
+        }
+        // FIXME: Deallocation must happen even if somthing fails above
+        free(const_cast<char*>(buffer.m_data)); // free native data.
+        return jArray;
+    } catch (std::exception& e) {
+        ThrowException(env, IOFailed, e.what());
     }
-    if (!jArray) {
-        ThrowException(env, IndexOutOfBounds, "Group too big to write.");
-    }
-    // FIXME: Deallocation must happen even if somthing fails above
-    free(const_cast<char*>(buffer.m_data)); // free native data.
-    return jArray;
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
