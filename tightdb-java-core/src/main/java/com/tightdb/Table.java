@@ -916,6 +916,16 @@ public class Table implements TableOrView {
 
 	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
+	
+	// Experimental feature
+	public long findSortedLong(long columnIndex, long value) {
+		return nativeFindSortedInt(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeFindSortedInt(long nativePtr, long columnIndex, long value);
+
+	// 
+	
 	public TableView distinct(long columnIndex) {
 		return new TableView(nativeDistinct(nativePtr, columnIndex), immutable);
 	}
