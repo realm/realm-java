@@ -6,7 +6,7 @@ import com.tightdb.typed.TightDB;
 
 public class util {
 	
-	public static final long REQUIRED_JNI_VERSION = 17;
+	public static final long REQUIRED_JNI_VERSION = 18;
 
 	static {
 		TightDB.loadLibrary();
@@ -18,7 +18,12 @@ public class util {
 	static native long nativeGetMemUsage();
 
 	public static boolean versionCompatible() {
-		return (nativeGetVersion() == REQUIRED_JNI_VERSION);
+	    
+		boolean compatible = (nativeGetVersion() == REQUIRED_JNI_VERSION);
+		if (!compatible)
+		    System.err.println("Native lib is version " + nativeGetVersion() 
+		            + " != " +  REQUIRED_JNI_VERSION + " which is expected by the jar.");
+		return compatible;
 	}
 
 	static native int nativeGetVersion();

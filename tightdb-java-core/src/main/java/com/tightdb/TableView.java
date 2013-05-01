@@ -434,6 +434,12 @@ public class TableView implements TableOrView {
 	
 	// Search for all matches
 	
+	// TODO..
+	public long findSortedLong(long columnIndex, long value) {
+		throw new RuntimeException("Not implemented yet");
+	}
+
+	
 	public TableView findAllLong(long columnIndex, long value){
 		return new TableView(this,  nativeFindAllInt(nativePtr, columnIndex, value), immutable);
 	}
@@ -474,6 +480,7 @@ public class TableView implements TableOrView {
 	
 	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
+	
 
 	//
 	// Integer Aggregates
@@ -593,7 +600,7 @@ public class TableView implements TableOrView {
 
 	public void sort(long columnIndex) {
 		if (immutable) throwImmutable();
-		sort(columnIndex, Order.ascending);
+		nativeSort(nativePtr, columnIndex, true);
 	}
 	
 	protected native void nativeSort(long nativeTableViewPtr, long columnIndex, boolean ascending);

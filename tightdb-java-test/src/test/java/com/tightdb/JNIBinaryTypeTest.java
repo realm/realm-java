@@ -58,4 +58,25 @@ public class JNIBinaryTypeTest {
 		assertEquals(ByteBuffer.wrap(value), binBuf);
 	}
 
+	@Test
+	public void test() {
+	    ByteBuffer buf = ByteArrayToByteBuffer(testArray);
+	    byte[] arr = ByteBufferToByteArray(buf);
+	    
+	    assertEquals(testArray, arr);
+	}
+	
+    private static byte[] ByteBufferToByteArray(ByteBuffer buf) {
+        buf.flip(); 
+        byte[] bytes = new byte[buf.remaining()]; 
+        buf.get(bytes);
+        return bytes;
+    }
+
+    private static ByteBuffer ByteArrayToByteBuffer(byte[] bytes) {
+        ByteBuffer bufDirect = ByteBuffer.allocateDirect(bytes.length);
+        bufDirect.put(bytes);
+        return bufDirect;
+    }
+
 }

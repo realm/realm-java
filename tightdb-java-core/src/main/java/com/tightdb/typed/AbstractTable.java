@@ -199,4 +199,13 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 		return AbstractQuery.createQuery(types.getQueryClass(), table, table.where());
 	}
 
+	// Experimental
+	
+	public long findSorted(long columnIndex, long value) {
+		return table.findSortedLong(columnIndex, value);
+        }
+	
+	public void moveLastOver(long rowIndex) {
+		table.moveLastOver(rowIndex);
+	}
 }
