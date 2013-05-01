@@ -1,6 +1,7 @@
-#include "util.h"
-#include "com_tightdb_internal_util.h"
-#include <assert.h>
+#include <cassert>
+
+#include "util.hpp"
+#include "com_tightdb_internal_util.hpp"
 
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr)
@@ -64,9 +65,9 @@ jclass GetClass(JNIEnv* env, const char* classStr)
 {
     jclass localRefClass = env->FindClass(classStr);
     if (localRefClass == NULL) {
-		ThrowException(env, ClassNotFound, classStr);
-		return NULL;
-	}
+        ThrowException(env, ClassNotFound, classStr);
+        return NULL;
+    }
 
     jclass myClass = reinterpret_cast<jclass>( env->NewGlobalRef(localRefClass) );
     env->DeleteLocalRef(localRefClass);

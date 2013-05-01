@@ -2,10 +2,10 @@
 #define TIGHTDB_JNI_TABLEBASE_TPL_HPP
 
 
-template <class T> 
+template <class T>
 jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex)) 
+    if (!INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex))
         return NULL;
 
     BinaryData bin = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
