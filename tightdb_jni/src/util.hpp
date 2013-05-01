@@ -1,5 +1,5 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef TIGHTDB_JAVA_UTIL_HPP
+#define TIGHTDB_JAVA_UTIL_HPP
 
 #include <string>
 
@@ -7,12 +7,13 @@
 
 #include <tightdb.hpp>
 #include <tightdb/meta.hpp>
-#include <tightdb/lang_bind_helper.hpp>
+#include <tightdb/unique_ptr.hpp>
 #include <tightdb/safe_int_ops.hpp>
+#include <tightdb/lang_bind_helper.hpp>
 
 #include "com_tightdb_internal_util.hpp"
 
-using namespace tightdb;
+//using namespace tightdb;
 
 #define TRACE               1       // disable for performance
 #define CHECK_PARAMETERS    1       // Check all parameters in API and throw exceptions in java if invalid
@@ -34,10 +35,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 
 // Helper macros for better readability
 #define S(x) static_cast<size_t>(x)
-#define TBL(x) reinterpret_cast<Table*>(x)
-#define TV(x) reinterpret_cast<TableView*>(x)
-#define Q(x) reinterpret_cast<Query*>(x)
-#define G(x) reinterpret_cast<Group*>(x)
+#define TBL(x) reinterpret_cast<tightdb::Table*>(x)
+#define TV(x) reinterpret_cast<tightdb::TableView*>(x)
+#define Q(x) reinterpret_cast<tightdb::Query*>(x)
+#define G(x) reinterpret_cast<tightdb::Group*>(x)
 
 // Exception handling
 
@@ -101,7 +102,7 @@ extern void jprint(JNIEnv *env, char *txt);
 
 #endif
 
-inline bool TableIsValid(JNIEnv* env, Table* pTable)
+inline bool TableIsValid(JNIEnv* env, tightdb::Table* pTable)
 {
     bool valid = (pTable != NULL);
     if (valid)
@@ -117,7 +118,7 @@ template <class T>
 bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range)
 {
     // Check if Table is valid - but only if T is a 'Table' type
-    if (tightdb::SameType<Table*, T>::value)
+    if (tightdb::SameType<tightdb::Table*, T>::value)
         if (!TableIsValid(env, TBL(pTable)))
             return false;
 
@@ -129,13 +130,13 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
         ThrowException(env, IndexOutOfBounds, "startIndex < 0.");
         return false;
     }
-    if (int_greater_than(startIndex, maxIndex)) {
+    if (tightdb::int_greater_than(startIndex, maxIndex)) {
         TR_ERR((env, "startIndex %lld > %lld - invalid!", S(startIndex), maxIndex));
         ThrowException(env, IndexOutOfBounds, "startIndex > available rows.");
         return false;
     }
 
-    if (int_greater_than(endIndex, maxIndex)) {
+    if (tightdb::int_greater_than(endIndex, maxIndex)) {
         TR_ERR((env, "endIndex %lld > %lld - invalid!", S(endIndex), maxIndex));
         ThrowException(env, IndexOutOfBounds, "endIndex > available rows.");
         return false;
@@ -159,13 +160,13 @@ template <class T>
 inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0)
 {
     // Check if Table is valid - but only if T is a 'Table' type
-    if (tightdb::SameType<Table*, T>::value)
+    if (tightdb::SameType<tightdb::Table*, T>::value)
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     size_t size = pTable->size();
     if (size > 0)
         size += offset;
-    bool rowErr = int_greater_than_or_equal(rowIndex, size);
+    bool rowErr = tightdb::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), size));
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
@@ -177,11 +178,11 @@ template <class T>
 inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     // Check if Table is valid - but only if T is a 'Table' type
-    if (tightdb::SameType<Table*, T>::value)
+    if (tightdb::SameType<tightdb::Table*, T>::value)
         if (!TableIsValid(env, TBL(pTable)))
             return false;
 
-    bool colErr = int_greater_than_or_equal(columnIndex, pTable->get_column_count());
+    bool colErr = tightdb::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
         TR_ERR((env, "columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()));
         ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
@@ -201,7 +202,7 @@ inline bool IndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong ro
     if (!ColIndexValid(env, pTable, columnIndex))
         return false;
     // FIXME: REMOVE const size_t colSize = pTable->GetColumn(columnIndex).Size();
-    bool rowErr = int_greater_than(rowIndex, pTable->size()+1);
+    bool rowErr = tightdb::int_greater_than(rowIndex, pTable->size()+1);
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", rowIndex, pTable->size()));
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
@@ -248,58 +249,39 @@ inline bool IndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, j
 
 bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data);
 
-// Must be called only for a string that is followed by a
-// null-character.
+
+// Note: JNI offers methods to convert between modified UTF-8 and
+// UTF-16. Unfortunately these methods are not appropriate in this
+// context. The reason is that they use a modified version of
+// UTF-8 where U+0000 is stored as 0xC0 0x80 instead of 0x00 and
+// where a character in the range U+10000 to U+10FFFF is stored as
+// two consecutive UTF-8 encodings of the corresponding UTF-16
+// surrogate pair. Because Tightdb uses proper UTF-8, we need to
+// do the transcoding ourselves.
 //
-// This probably ceases to be a requirement as soon as this function
-// is fixed to properly handle strings with internal null-characters.
-inline jstring to_jstring(JNIEnv* env, StringData str)
-{
-    // FIXME: This conversion fails silently if the string contains an
-    // internal null-character. Unfortunatly, since JNI primarily
-    // adresses C, it offers no easy way to fix this, that is, there
-    // is no alternative version of NewStringUTF() that takes an extra
-    // 'size' argument. The only solution seems to be to use
-    // env->NewString() instead, but then we will have to do the
-    // conversion from UTF-8 to UTF-16 manually. Fortunately this
-    // conversion is simple, so if the JNI API does not alreay ioffer
-    // a function that can perform this conversion, we can easily
-    // implement it our selves.
-    return env->NewStringUTF(str.data());
-}
+// See also http://en.wikipedia.org/wiki/UTF-8#Modified_UTF-8
+
+jstring to_jstring(JNIEnv*, tightdb::StringData);
 
 class JStringAccessor {
 public:
-    // FIXME: Using the GetStringUTFChars() / GetStringUTFLength()
-    // pair may be a bad idea, since they most likely both carry out
-    // the same complete transcoding from UTF-16 to UTF-8. The obvious
-    // way to avoid this wasted work is to implement the transcoding
-    // function ourselves just like what is probably required for
-    // to_jstring(), and it is not hard to do.
-    JStringAccessor(JNIEnv* e, jstring s):
-        m_env(e), m_str(s),
-        m_data(m_env->GetStringUTFChars(m_str, 0)),
-        m_size(m_env->GetStringUTFLength(m_str)) {}
+    JStringAccessor(JNIEnv*, jstring);
 
-    ~JStringAccessor()
+    operator tightdb::StringData() const TIGHTDB_NOEXCEPT
     {
-        m_env->ReleaseStringUTFChars(m_str, m_data);
+        return tightdb::StringData(m_data.get(), m_size);
     }
 
-    operator StringData() const TIGHTDB_NOEXCEPT { return StringData(m_data, m_size); }
-
     // Part of the "safe bool" idiom
-    typedef const char* const (JStringAccessor::*unspecified_bool_type);
+    typedef tightdb::UniquePtr<char[]> (JStringAccessor::*unspecified_bool_type);
     operator unspecified_bool_type() const TIGHTDB_NOEXCEPT
     {
         return m_data ? &JStringAccessor::m_data : 0;
     }
 
 private:
-    JNIEnv* const m_env;
-    const jstring m_str;
-    const char* const m_data;
-    const std::size_t m_size;
+    tightdb::UniquePtr<char[]> m_data;
+    std::size_t m_size;
 };
 
-#endif // UTIL_H
+#endif // TIGHTDB_JAVA_UTIL_HPP
