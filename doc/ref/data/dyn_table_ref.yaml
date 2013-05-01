@@ -3,7 +3,6 @@
 #
 #TODO:
 # updateFromSpec, getTableSpec
-# addLong
 
 ID         : class_dyn_table
 TITLE      : Table
@@ -30,8 +29,18 @@ IGNORE     : []                         # List of method-ids to ignore
 
 CATEGORIES :
 
-- State:
+- Table:
   METHODS:
+  - g_dyn_table_is_valid:
+      NAMES    : isValid
+      SUMMARY  : *g_dyn_table_is_valid_summary
+      DESCR    : *g_dyn_table_is_valid_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : *g_dyn_table_is_valid_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_is_valid
+        DESCR  :
   - g_dyn_table_size:
       NAMES    : size
       SUMMARY  : *g_dyn_table_size_summary
@@ -52,18 +61,6 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_is_empty
         DESCR  :
-  - g_dyn_table_is_valid:
-      NAMES    : isValid
-      SUMMARY  : *g_dyn_table_is_valid_summary
-      DESCR    : *g_dyn_table_is_valid_descr
-      RETURN:
-        TYPES  : boolean
-        DESCR  : *g_dyn_table_is_valid_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_is_valid
-        DESCR  :
-- Table:
-  METHODS:
   - g_dyn_table_clear:
       NAMES    : clear
       SUMMARY  : *g_dyn_table_clear_summary
@@ -78,6 +75,32 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_optimize
         DESCR  :
+  - g_dyn_table_set_index:
+      NAMES    : setIndex
+      SUMMARY  : *g_dyn_table_set_index_summary
+      DESCR    : *g_dyn_table_set_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_set_index
+        DESCR  :
+  - g_dyn_table_has_index:
+      NAMES    : hasIndex
+      SUMMARY  : *g_dyn_table_has_index_summary
+      DESCR    : *g_dyn_table_has_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_has_index
+        DESCR  :
+
 # TODO: add
 #  - g_dyn_table_opertator==:
 #      NAMES    : operator==
@@ -322,8 +345,19 @@ CATEGORIES :
       - CODE   : ex_java_dyn_table_remove_last_row
         DESCR  :
 
+  - g_dyn_table_add_int:
+      NAMES    : addInt
+      SUMMARY  : *g_dyn_table_add_int_summary
+      DESCR    : *g_dyn_table_add_int_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_add_int_parm1_descr
+      - NAME   : value
+        TYPES  : long
+        DESCR  : *g_dyn_table_add_int_parm2_descr
 
-- Values:
+- Cells:
   METHODS:
   - g_dyn_table_get_bool:
   - g_dyn_table_get_int:
@@ -396,8 +430,6 @@ CATEGORIES :
         DESCR  :
       SEE      : See alse {@link g_dyn_table_set} to set all values in a row at ones.
 
-- Sub-tables:
-  METHODS:
   - g_dyn_table_get_subtable_size:
       NAMES    : getSubtableSize
       SUMMARY  : *g_dyn_table_get_subtable_size_summary
@@ -430,33 +462,6 @@ CATEGORIES :
       - CODE   : ex_java_dyn_table_clear_subtable
         DESCR  :
 
-- Indexes:
-  METHODS:
-  - g_dyn_table_set_index:
-      NAMES    : setIndex
-      SUMMARY  : *g_dyn_table_set_index_summary
-      DESCR    : *g_dyn_table_set_index_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_set_index
-        DESCR  :
-  - g_dyn_table_has_index:
-      NAMES    : hasIndex
-      SUMMARY  : *g_dyn_table_has_index_summary
-      DESCR    : *g_dyn_table_has_index_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      RETURN:
-        TYPES  : boolean
-        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_has_index
-        DESCR  :
         
 - Searching:
   METHODS:
