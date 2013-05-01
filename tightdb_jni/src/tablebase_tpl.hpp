@@ -8,13 +8,14 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
     if (!INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex)) 
         return NULL;
 
-    BinaryData data = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
-    if (data.len <= MAX_JSIZE) {
-        jbyteArray jresult = env->NewByteArray(static_cast<jsize>(data.len));
+    BinaryData bin = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
+    if (bin.size() <= MAX_JSIZE) {
+        jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
         if (jresult)
-            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(data.len), (const jbyte*)(data.pointer));
+            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));
         return jresult;
-    } else {
+    }
+    else {
         //???TODO: More specific exception
         ThrowException(env, IndexOutOfBounds, "Length of ByteArray is larger than int.");
         return NULL;
@@ -30,7 +31,7 @@ void tbl_nativeDoByteArray(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex
         return;
     }
     size_t dataLen = S(env->GetArrayLength(dataArray));
-    (pTable->*doBinary)( S(columnIndex), S(rowIndex), reinterpret_cast<const char*>(bytePtr), dataLen);
+    (pTable->*doBinary)( S(columnIndex), S(rowIndex), BinaryData(reinterpret_cast<char*>(bytePtr), dataLen));
     env->ReleaseByteArrayElements(dataArray, bytePtr, 0);
 }
 
@@ -38,9 +39,9 @@ void tbl_nativeDoByteArray(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex
 template <class M, class T>
 void tbl_nativeDoBinary(M doBinary, T* pTable, JNIEnv* env, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
-    BinaryData data;
-    if (GetBinaryData(env, byteBuffer, data))
-        (pTable->*doBinary)( S(columnIndex), S(rowIndex), data.pointer, data.len);
+    BinaryData bin;
+    if (GetBinaryData(env, byteBuffer, bin))
+        (pTable->*doBinary)( S(columnIndex), S(rowIndex), bin);
 }
 
 
@@ -78,10 +79,9 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
     case type_String:
         {
             jstring stringValue = GetMixedStringValue(env, jMixedValue);
-            const char* stringCharPtr = env->GetStringUTFChars(stringValue, NULL);
-            if (stringCharPtr) {
-                (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(stringCharPtr));
-                env->ReleaseStringUTFChars(stringValue, stringCharPtr);
+            JStringAccessor string(env, stringValue);
+            if (string) {
+                (pTable->*doMixed)( S(columnIndex), S(rowIndex), StringData(string));
                 return;
             }
             break;
@@ -100,21 +100,21 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
                 jbyteArray dataArray = GetMixedByteArrayValue(env, jMixedValue);
                 if (!dataArray)
                     break;
-                BinaryData binaryData;
-                binaryData.pointer = (const char*)(env->GetByteArrayElements(dataArray, NULL));
-                if (!binaryData.pointer)
+                char* data = reinterpret_cast<char*>(env->GetByteArrayElements(dataArray, NULL));
+                if (!data)
                     break;
-                binaryData.len = S(env->GetArrayLength(dataArray));
-                (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(binaryData));
-                env->ReleaseByteArrayElements(dataArray, (jbyte*)(binaryData.pointer), 0);
+                size_t size = S(env->GetArrayLength(dataArray));
+                (pTable->*doMixed)( S(columnIndex), S(rowIndex), BinaryData(data, size));
+                env->ReleaseByteArrayElements(dataArray, reinterpret_cast<jbyte*>(data), 0);
                 return;
-            } else if (mixedBinaryType == 1) {
+            }
+            else if (mixedBinaryType == 1) {
                 jobject jByteBuffer = GetMixedByteBufferValue(env, jMixedValue);
                 if (!jByteBuffer)
                     break;
                 BinaryData binaryData;
                 if (GetBinaryData(env, jByteBuffer, binaryData))
-                    (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(binaryData));
+                    (pTable->*doMixed)( S(columnIndex), S(rowIndex), binaryData);
                 return;
             }
             break; // failed

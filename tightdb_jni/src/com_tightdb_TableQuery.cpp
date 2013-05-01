@@ -153,56 +153,51 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJZ(
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_String_2Z(
 	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
-	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr) 
+    JStringAccessor value2(env, value);
+    if (!value2) 
         return;
 
-	Q(nativeQueryPtr)->equal(S(columnIndex), valueCharPtr, caseSensitive ? true : false);
-	env->ReleaseStringUTFChars(value, valueCharPtr);
+    Q(nativeQueryPtr)->equal(S(columnIndex), value2, caseSensitive ? true : false);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
 	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
-	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr) 
+    JStringAccessor value2(env, value);
+    if (!value2) 
         return;
 
-    Q(nativeQueryPtr)->begins_with(S(columnIndex), valueCharPtr, caseSensitive ? true : false);
-	env->ReleaseStringUTFChars(value, valueCharPtr);
+    Q(nativeQueryPtr)->begins_with(S(columnIndex), value2, caseSensitive ? true : false);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
 	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
-	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr) 
+    JStringAccessor value2(env, value);
+    if (!value2) 
         return;
 
-    Q(nativeQueryPtr)->ends_with(S(columnIndex), valueCharPtr, caseSensitive ? true : false);
-	env->ReleaseStringUTFChars(value, valueCharPtr);
+    Q(nativeQueryPtr)->ends_with(S(columnIndex), value2, caseSensitive ? true : false);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
 	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
-	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr) 
+    JStringAccessor value2(env, value);
+    if (!value2) 
         return;
 
-    Q(nativeQueryPtr)->contains(S(columnIndex), valueCharPtr, caseSensitive ? true : false);
-	env->ReleaseStringUTFChars(value, valueCharPtr);
+    Q(nativeQueryPtr)->contains(S(columnIndex), value2, caseSensitive ? true : false);
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_String_2Z(
 	JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {	
-	const char* valueCharPtr = env->GetStringUTFChars(value, NULL);
-    if (!valueCharPtr) 
+    JStringAccessor value2(env, value);
+    if (!value2) 
         return;
 
-    Q(nativeQueryPtr)->not_equal(S(columnIndex), valueCharPtr, caseSensitive ? true : false);
-	env->ReleaseStringUTFChars(value, valueCharPtr);
+    Q(nativeQueryPtr)->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
 }
 
 // General

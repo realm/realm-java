@@ -86,7 +86,8 @@ void jprint(JNIEnv *env, char *txt)
 #endif
 }
 
-void jprintf(JNIEnv *env, const char *format, ...) {
+void jprintf(JNIEnv *env, const char *format, ...)
+{
     va_list argptr;
     char buf[200];
     va_start(argptr, format);
@@ -96,18 +97,18 @@ void jprintf(JNIEnv *env, const char *format, ...) {
     va_end(argptr);
 }
 
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data)
+bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& bin)
 {
-	data.pointer = (const char*)(env->GetDirectBufferAddress(jByteBuffer));
-    if (!data.pointer) {
+    const char* data = static_cast<char*>(env->GetDirectBufferAddress(jByteBuffer));
+    if (!data) {
         ThrowException(env, IllegalArgument, "ByteBuffer is invalid");
         return false;
     }
-    jlong len = env->GetDirectBufferCapacity(jByteBuffer);
-    if (len < 0) {
+    jlong size = env->GetDirectBufferCapacity(jByteBuffer);
+    if (size < 0) {
         ThrowException(env, IllegalArgument, "Can't get BufferCapacity.");
         return false;
     }
-    data.len = S(len);
+    bin = BinaryData(data, S(size));
     return true;
 }
