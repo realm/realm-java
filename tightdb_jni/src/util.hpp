@@ -115,7 +115,7 @@ inline bool TableIsValid(JNIEnv* env, tightdb::Table* pTable)
 }
 
 template <class T>
-inline bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range)
+bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range)
 {
     // Check if Table is valid - but only if T is a 'Table' type
     if (tightdb::SameType<tightdb::Table*, T>::value)
@@ -157,7 +157,7 @@ inline bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endI
 }
 
 template <class T>
-inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0) 
+inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0)
 {
     // Check if Table is valid - but only if T is a 'Table' type
     if (tightdb::SameType<tightdb::Table*, T>::value)
