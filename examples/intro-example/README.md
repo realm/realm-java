@@ -19,7 +19,7 @@ Tutorial
 This is the source code you find in the tutorial on www.tightdb.com.
 You can run the tutorial example by executing one of the following commands:
 
-        ./run_tutorial.sh
+        ./run-tutorial.sh
         ant tutorial
 
 The source code is found in the folder `src/com/tightdb/examples/tutorial`.
@@ -30,7 +30,7 @@ Showcase
 To demonstrate how to use the Java interface of TightDB, you can take
 at look at this example. To run it, please execute one of the following commands:
 
-        ./run_showcase.sh
+        ./run-showcase.sh
         ant showcase
 
 The source code is found in the folder `src/com/tightdb/examples/showcase`.
@@ -41,7 +41,7 @@ Quick benchmark
 To demonstrate how to use the Java interface of TightDB, you can take
 at look at this example. To run it, please execute one of the following commands:
 
-        ./run_quickbenchmark.sh
+        ./run-quickbenchmark.sh
         ant quickbenchmark
 
 The source code is found in the folder `src/com/tightdb/examples/quickbenchmark`.
@@ -59,7 +59,7 @@ In this small and unscientific benchmark, we compare the following:
 
 The benchmark runs as you execute one of the following commands:
 
-        ./run_performance
+        ./run-performance.sh
         ant performance
 
 The source code is found in the folder `src/com/tightdb/examples/performance`.
