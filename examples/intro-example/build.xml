@@ -67,7 +67,7 @@
 		</javac>
 	</target>
 
-    <target name="tutorial">
+    <target depends="build" name="tutorial">
         <java classname="com.tightdb.examples.tutorial.tutorial" failonerror="true" fork="yes">
             <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
@@ -76,7 +76,7 @@
         </java>
     </target>
 
-    <target name="showcase">
+    <target depends="build" name="showcase">
         <java classname="com.tightdb.examples.showcase.Showcase" failonerror="true" fork="yes">
             <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
@@ -85,7 +85,16 @@
         </java>
     </target>
 
-    <target name="performance">
+    <target depends="build" name="quickbenchmark">
+        <java classname="com.tightdb.examples.quickbenchmark.QuickBenchmark" failonerror="true" fork="yes">
+            <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
+            <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
+            <sysproperty key="java.library.path" path="${libpath}/lib"/>
+            <classpath refid="samples-classpath"/>
+        </java>
+    </target>
+
+    <target depends="build" name="performance">
         <java classname="com.tightdb.examples.performance.Performance" failonerror="true" fork="yes">
             <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->

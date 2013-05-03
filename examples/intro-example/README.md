@@ -9,59 +9,57 @@ set up the Java runtime environment and execute the example. If you
 make any changes to an example, the script will recompile for you.
 
 If you have a complete Java development kit installed, you can build
-all example by executing the command:
+all examples by executing the command:
 
-    ant
+        ant
 
 
 Tutorial
 --------
-This is the source code you find in the tutorial. You can run the
-tutorial example by executing the following command:
+This is the source code you find in the tutorial on www.tightdb.com.
+You can run the tutorial example by executing one of the following commands:
 
-    ./run_tutorial.sh
+        ./run_tutorial.sh
+        ant tutorial
 
 The source code is found in the folder `src/com/tightdb/examples/tutorial`.
-
-Alternatively, you can execute the following command if you have `ant`
-installed:
-
-    ant tutorial
 
 
 Showcase
 --------
 To demonstrate how to use the Java interface of TightDB, you can take
-at look at this example. To run it, please execute
+at look at this example. To run it, please execute one of the following commands:
 
-    ./run_showcase.sh
+        ./run_showcase.sh
+        ant showcase
 
 The source code is found in the folder `src/com/tightdb/examples/showcase`.
 
-If you have `ant` installed, you can also execute the example using
-the command:
 
-    ant showcase
+Quick benchmark
+---------------
+To demonstrate how to use the Java interface of TightDB, you can take
+at look at this example. To run it, please execute one of the following commands:
+
+        ./run_quickbenchmark.sh
+        ant quickbenchmark
+
+The source code is found in the folder `src/com/tightdb/examples/quickbenchmark`.
 
 
 Performance
 -----------
-You can chooce between many databases and data structures. In this
-small and unscientific benchmark, we compare the following four
-offerings:
+This is a variant of he above benchmark which also measures SQLite.
+It is structured for easily adding more databases.
+In this small and unscientific benchmark, we compare the following:
 
 * TightDB
 * SQLite
 * Java arrays
 
-The benchmark runs as you execute the following command:
+The benchmark runs as you execute one of the following commands:
 
-    ./run_performance
+        ./run_performance
+        ant performance
 
 The source code is found in the folder `src/com/tightdb/examples/performance`.
-
-If you have `ant` installed, you can also run the benchmark by
-executing the following command:
-
-    ant performance
-
