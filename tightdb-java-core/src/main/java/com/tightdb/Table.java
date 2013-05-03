@@ -266,11 +266,10 @@ public class Table implements TableOrView {
 
 	/**
 	 * Removes a row from the specific index. As of now the entry is simply
-	 * removed from the table. No Cascading delete for other table is not taken
-	 * care of. Notice that row index is zero based.
+	 * removed from the table.
 	 * 
 	 * @param rowIndex
-	 *            the row index
+	 *            the row index (starting with 0)
 	 * 
 	 */
 	public void remove(long rowIndex) {
@@ -287,6 +286,16 @@ public class Table implements TableOrView {
 
 	protected native void nativeRemoveLast(long nativeTablePtr);
 
+	/**
+	 *  EXPERIMENTAL function
+	 */
+	public void moveLastOver(long rowIndex) {
+		if (immutable) throwImmutable();
+		nativeMoveLastOver(nativePtr, rowIndex);
+	}
+
+	protected native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
+	
 	
 	// Row Handling methods.
 	public long addEmptyRow() {
@@ -916,6 +925,16 @@ public class Table implements TableOrView {
 
 	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
+	
+	// Experimental feature
+	public long findSortedLong(long columnIndex, long value) {
+		return nativeFindSortedInt(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeFindSortedInt(long nativePtr, long columnIndex, long value);
+
+	// 
+	
 	public TableView distinct(long columnIndex) {
 		return new TableView(nativeDistinct(nativePtr, columnIndex), immutable);
 	}

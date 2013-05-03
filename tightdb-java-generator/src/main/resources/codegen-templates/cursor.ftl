@@ -36,4 +36,10 @@ public class ${name} extends AbstractCursor<${name}> {
 		return getColumnsArray(<#foreach f in columns>${f.name}<#if f_has_next>, </#if></#foreach>);
 	}
 
+    public void set(<#foreach f in columns><#if (f_index > 0)>, </#if><#if f.isSubtable>${f.subTableName}<#else>${f.fieldType}</#if> ${f.name}</#foreach>) {
+<#foreach f in columns>
+        this.${f.name}.set(${f.name});
+</#foreach>
+    }
+    
 }

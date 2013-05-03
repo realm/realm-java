@@ -224,6 +224,8 @@ public interface TableOrView {
 	long findFirstString(long columnIndex, String value);
 	
 	
+	long findSortedLong(long columnIndex, long value);
+	
 
 	TableView findAllLong(long columnIndex, long value);
 	
@@ -238,5 +240,6 @@ public interface TableOrView {
 	TableView findAllString(long columnIndex, String value);
 
 	String toJson();
+	
 	
 }

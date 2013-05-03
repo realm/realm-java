@@ -1,12 +1,12 @@
-#include "util.h"
+#include "util.hpp"
 #include "mem_usage.hpp"
-#include "com_tightdb_internal_util.h"
+#include "com_tightdb_internal_util.hpp"
 
 int trace_level = 0;
 
-static int TIGHTDB_JNI_VERSION = 17;
+static int TIGHTDB_JNI_VERSION = 18;
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM*, void*) 
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM*, void*)
 {
     return JNI_VERSION_1_6;
 }
@@ -21,7 +21,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_internal_util_nativeGetMemUsage(JNIEnv*
     return GetMemUsage();
 }
 
-JNIEXPORT jint JNICALL Java_com_tightdb_internal_util_nativeGetVersion(JNIEnv*, jclass) 
+JNIEXPORT jint JNICALL Java_com_tightdb_internal_util_nativeGetVersion(JNIEnv*, jclass)
 {
     return TIGHTDB_JNI_VERSION;
 }
