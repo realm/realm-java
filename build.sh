@@ -307,22 +307,16 @@ case "$MODE" in
         ;;
 
     "install")
-        uid=$(id -u)
         PREFIX="$1"
         PREFIX_WAS_SPECIFIED="$PREFIX"
         if [ -z "$PREFIX" ]; then
-            if [ $uid -eq 0 ]; then
-                PREFIX="/usr/local"
-            else
-                PREFIX=$HOME/.tightdb
-            fi
+            PREFIX="/usr/local"
         fi
         if [ "$USE_LIB64" ]; then
             LIBDIR="$PREFIX/lib64"
         else
             LIBDIR="$PREFIX/lib"
         fi
-        PREFIX_WAS_SPECIFIED="yes"
         make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" libdir="$LIBDIR" install || exit 1
         # When prefix is not specified, attempt to "hook" into the default search path for JNI.
         if [ -z "$PREFIX_WAS_SPECIFIED" ]; then
@@ -343,24 +337,18 @@ case "$MODE" in
         ;;
 
     "test-installed")
-        uid=$(id -u)
         PREFIX="$1"
         find_java || exit 1
-        if [ -z "$PREFIX" ]; then
-            if [ $uid -eq 0 ] ; then
-                PREFIX="/usr/local"
+        if [ "$PREFIX" ]; then
+            if [ "$USE_LIB64" ]; then
+                LIBDIR="$PREFIX/lib64"
             else
-                PREFIX=$HOME/.tightdb
+                LIBDIR="$PREFIX/lib"
             fi
-        fi
-
-        if [ "$USE_LIB64" ]; then
-            LIBDIR="$PREFIX/lib64"
+            JAVA="$JAVA -Djava.library.path=$LIBDIR"
         else
-            LIBDIR="$PREFIX/lib"
+            PREFIX="/usr/local"
         fi
-        JAVA="$JAVA -Djava.library.path=$LIBDIR"
-
         cd "$TIGHTDB_JAVA_HOME/test-installed" || exit 1
         TEMP_DIR="$(mktemp -d /tmp/tightdb.java.test-installed.XXXX)" || exit 1
         export CLASSPATH="$PREFIX/share/java/tightdb-devkit.jar:."
