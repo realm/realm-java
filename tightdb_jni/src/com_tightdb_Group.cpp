@@ -194,6 +194,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
     } catch (std::exception& e) {
         ThrowException(env, IOFailed, e.what());
     }
+    return 0;
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(

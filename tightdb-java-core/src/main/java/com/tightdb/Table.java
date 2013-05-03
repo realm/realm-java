@@ -844,8 +844,37 @@ public class Table implements TableOrView {
 
 	
 	//
+	// Count
+	//
+	public long count(long columnIndex, long value) {
+		return nativeCountLong(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeCountLong(long nativePtr, long columnIndex, long value);
+	
+	public long count(long columnIndex, float value) {
+		return nativeCountFloat(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeCountFloat(long nativePtr, long columnIndex, float value);
+
+	public long count(long columnIndex, double value) {
+		return nativeCountDouble(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeCountDouble(long nativePtr, long columnIndex, double value);
+
+	public long count(long columnIndex, String value) {
+		return nativeCountString(nativePtr, columnIndex, value);
+	}
+
+	protected native long nativeCountString(long nativePtr, long columnIndex, String value);
+	
+	
+	//
 	// Searching methods.
 	//
+
 	
 	public TableQuery where() {
 		return new TableQuery(nativeWhere(nativePtr), immutable);
@@ -924,6 +953,15 @@ public class Table implements TableOrView {
 	}
 
 	protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
+
+	// Requires that the first column is a string column with index
+	public long lookup(String value) {
+		if (!this.hasIndex(0) || this.getColumnType(0) != ColumnType.ColumnTypeString)
+			throw new RuntimeException("lookup() requires index on column 0 which must be a String column.");
+		return nativeLookup(nativePtr, value);
+	}
+
+	protected native long nativeLookup(long nativeTablePtr, String value);
 
 	
 	// Experimental feature
