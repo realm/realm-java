@@ -394,6 +394,7 @@ EOF
 /tightdb-java-test/pom.xml
 /tightdb-java-test/src/test/resources
 *.dll
+/examples/lib-orientdb
 EOF
         grep -E -v '^(#.*)?$' "$TEMP_DIR/include" >"$TEMP_DIR/include2" || exit 1
         grep -E -v '^(#.*)?$' "$TEMP_DIR/exclude" >"$TEMP_DIR/exclude2" || exit 1
@@ -412,9 +413,13 @@ EOF
         ;;
 
     "dist-remarks")
-        echo "A simple example is provided in tightdb_java2/examples/intro-example"
-        echo "to help you get started. Please consult the README.md file in"
-        echo "directory."
+cat <<EOF
+To help you get started, a simple example is provided in
+"tightdb_java2/examples/intro-example". First you need to build the
+Java extension as described above. Do NOT run "./build clean", as that
+will prevent the example from running. For further details, please
+consult the README.md file in mentioned directory.
+EOF
         exit 0
         ;;
 
