@@ -539,6 +539,38 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageDouble
 
 /*
  * Class:     com_tightdb_Table
+ * Method:    nativeCountLong
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountLong
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeCountFloat
+ * Signature: (JJF)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountFloat
+  (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeCountDouble
+ * Signature: (JJD)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountDouble
+  (JNIEnv *, jobject, jlong, jlong, jdouble);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeCountString
+ * Signature: (JJLjava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountString
+  (JNIEnv *, jobject, jlong, jlong, jstring);
+
+/*
+ * Class:     com_tightdb_Table
  * Method:    nativeWhere
  * Signature: (J)J
  */
@@ -640,6 +672,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllDate
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString
   (JNIEnv *, jobject, jlong, jlong, jstring);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeLookup
+ * Signature: (JLjava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeLookup
+  (JNIEnv *, jobject, jlong, jstring);
 
 /*
  * Class:     com_tightdb_Table
