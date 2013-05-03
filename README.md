@@ -52,13 +52,13 @@ The TightDB core library must have been installed.
 
     Install Java
     #   Dependencies for building the java library:
-    Install /usr/share/java/commons-io.jar (from Apache)
-    Install /usr/share/java/commons-lang.jar (from Apache)
-    Install /usr/share/java/freemarker.jar
+    Install /usr/share/java/commons-io.jar (from Apache: http://projects.apache.org/projects/commons_io.html)
+    Install /usr/share/java/commons-lang.jar (from Apache: http://projects.apache.org/projects/commons_lang.html)
+    Install /usr/share/java/freemarker.jar (http://freemarker.sourceforge.net/)
     #   Dependencies for test suite:
-    Install /usr/share/java/testng.jar
-    Install /usr/share/java/qdox.jar
-    Install /usr/share/java/bsh.jar
+    Install /usr/share/java/testng.jar (http://testng.org/doc/download.html)
+    Install /usr/share/java/qdox.jar (http://qdox.codehaus.org/download.html)
+    Install /usr/share/java/bsh.jar (http://www.beanshell.org/download.html)
 
 
 Building and installing
@@ -90,5 +90,6 @@ Examples
 --------
 
 You can try the TightDB with Java in the examples provided in:
-./examples. Please consult the README file in that directory.
+./examples/intro-example. Please consult the README.md file in that
+directory.
 
