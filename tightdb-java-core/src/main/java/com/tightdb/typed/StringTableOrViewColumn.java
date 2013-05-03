@@ -36,4 +36,15 @@ public class StringTableOrViewColumn<Cursor, View, Query> extends StringQueryCol
 	public View findAll(String value) {
 		return view(tableOrView.findAllString(columnIndex, value));
 	}
+	
+	// experimental:
+	
+	public long count(String value) {
+	    return tableOrView.count(columnIndex, value);
+	}
+	
+    public long lookup(String value) {
+	    return tableOrView.lookup(value);
+    }	    
+
 }

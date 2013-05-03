@@ -846,6 +846,7 @@ public class Table implements TableOrView {
 	//
 	// Count
 	//
+
 	public long count(long columnIndex, long value) {
 		return nativeCountLong(nativePtr, columnIndex, value);
 	}

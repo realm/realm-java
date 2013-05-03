@@ -1,3 +1,9 @@
+
+03-05-2013:
+===========
++ Added Table::count() methods and Table::lookup() (still missing documentation..)
++ Added QuickBenchmark example
+
 03-03-2013:
 ===========
 + Added Table::addColumn(), renameColumn(), removeColumn()

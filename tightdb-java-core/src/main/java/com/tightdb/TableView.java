@@ -634,5 +634,17 @@ public class TableView implements TableOrView {
 
 	protected long nativePtr;
 	protected boolean immutable = false;
-	protected TableView tableView;	
+	protected TableView tableView;
+	
+	
+    @Override
+    public long lookup(String value) {
+        throw new RuntimeException("Not implemented yet.");
+    }
+
+    @Override
+    public long count(long columnIndex, String value) {
+        // TODO: implement
+        throw new RuntimeException("Not implemented yet.");
+    }	
 }
