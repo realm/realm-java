@@ -394,7 +394,6 @@ EOF
 /tightdb-java-test/pom.xml
 /tightdb-java-test/src/test/resources
 *.dll
-/examples/lib-orientdb
 EOF
         grep -E -v '^(#.*)?$' "$TEMP_DIR/include" >"$TEMP_DIR/include2" || exit 1
         grep -E -v '^(#.*)?$' "$TEMP_DIR/exclude" >"$TEMP_DIR/exclude2" || exit 1
