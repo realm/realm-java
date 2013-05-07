@@ -87,7 +87,8 @@ public class Group {
 	public void close() {
 		synchronized (CloseMutex.getInstance()) {
 			if (nativePtr != 0) {
-				nativePtr = 0;
+			    nativeClose(nativePtr);
+			    nativePtr = 0;
 			}
 		}
 	}

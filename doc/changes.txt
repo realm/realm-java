@@ -1,3 +1,7 @@
+??
+==========:
++ BUGFIX: Removed memory leak, which occured af using a Group().
+
 18-12-2012:
 ===========
 + Added TableBase: insert(), add(), set() which can insert/add/set all values for a row.
