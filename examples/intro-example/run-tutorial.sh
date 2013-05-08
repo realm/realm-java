@@ -1,10 +1,14 @@
 #!/bin/sh
 
 # environment
-JAVA_LIB_PATH="../../lib"
-export CLASSPATH="bin:../../lib/tightdb.jar:../lib-sqlite/sqlite4java.jar"
-mkdir -p $(pwd)/bin
-mkdir -p $(pwd)/generated
+
+# FIXME: This one is not working. The idea was that this test should be able to run without requiring installation of core library and Java language binding. It looks like the problem is in out custom class loader. Due to this problem, the example fails unless installation has been performed first.
+JAVA_LIB_PATH="$(pwd)/../lib"
+
+
+export CLASSPATH="bin:../lib/tightdb.jar:../lib-sqlite/sqlite4java.jar"
+mkdir "bin"
+mkdir "generated"
 
 # compile
 JAVAC=$(which javac)
@@ -16,20 +20,18 @@ if [ -n "$JAVAC" ]; then
             -sourcepath "src" \
             -target 1.6 -g:none \
             -processor com.tightdb.generator.CodeGenProcessor \
-            -processorpath "../../lib/tightdb-devkit.jar" \
+            -processorpath "../lib/tightdb-devkit.jar" \
             -s "generated" -proc:only -source 1.6 \
-            "src/$f" > /dev/null 2>&1
+            "src/$f"
     done
 
     for f in $FILES; do
         javac \
             -d "bin" \
-            -classpath $CLASSPATH \
             -sourcepath "src:generated" \
             -target 1.6 \
-            -g:source,line,vars \
             -source 1.6 \
-            "src/$f" > /dev/null 2>&1
+            "src/$f"
     done
 fi
 

@@ -1,4 +1,9 @@
 
+07-05-2013:
+===========
+! BUGFIX: Removed memory leak, which occurred when creating a Group object.
+
+
 03-05-2013:
 ===========
 + Added Table::count() methods and Table::lookup() (still missing documentation..)
