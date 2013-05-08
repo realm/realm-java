@@ -21,7 +21,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
     try {
         if (enable_replication) {
 #ifdef TIGHTDB_ENABLE_REPLICATION
-            db = new SharedGroup(SharedGroup::replication_tag(), *file_name_ptr ? file_name_ptr : 0);
+            ThrowException(env, UnsupportedOperation,
+                           "Replication is not currently supported by the Java language binding.");
+//            db = new SharedGroup(SharedGroup::replication_tag(), *file_name_ptr ? file_name_ptr : 0);
 #else
             ThrowException(env, UnsupportedOperation,
                            "Replication was disabled in the native library at compile time.");
@@ -93,7 +95,10 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_SharedGroup_nativeGetDefaultReplicati
     JNIEnv* env, jclass)
 {
 #ifdef TIGHTDB_ENABLE_REPLICATION
-    return env->NewStringUTF(Replication::get_path_to_database_file());
+    ThrowException(env, UnsupportedOperation,
+                   "Replication is not currently supported by the Java language binding.");
+    return 0;
+//    return env->NewStringUTF(Replication::get_path_to_database_file());
 #else
     ThrowException(env, UnsupportedOperation,
                    "Replication was disable in the native library at compile time");
