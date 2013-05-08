@@ -7,7 +7,7 @@
 #include <tightdb/utf8.hpp>
 
 #include "util.hpp"
-#include "com_tightdb_internal_util.hpp"
+#include "com_tightdb_internal_util.h"
 
 
 using namespace std;

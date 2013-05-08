@@ -1,7 +1,7 @@
 #include <sstream>
 
 #include "util.hpp"
-#include "com_tightdb_TableView.hpp"
+#include "com_tightdb_TableView.h"
 #include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
 

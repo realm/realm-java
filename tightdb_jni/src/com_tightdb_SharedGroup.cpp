@@ -5,7 +5,7 @@
 #include <tightdb/group_shared.hpp>
 
 #include "util.hpp"
-#include "com_tightdb_SharedGroup.hpp"
+#include "com_tightdb_SharedGroup.h"
 
 using namespace std;
 using namespace tightdb;

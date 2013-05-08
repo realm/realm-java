@@ -2,7 +2,7 @@
 
 #include "util.hpp"
 #include "mixedutil.hpp"
-#include "com_tightdb_Table.hpp"
+#include "com_tightdb_Table.h"
 #include "columntypeutil.hpp"
 #include "TableSpecUtil.hpp"
 #include "java_lang_List_Util.hpp"

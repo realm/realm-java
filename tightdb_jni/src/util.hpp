@@ -11,7 +11,7 @@
 #include <tightdb/safe_int_ops.hpp>
 #include <tightdb/lang_bind_helper.hpp>
 
-#include "com_tightdb_internal_util.hpp"
+#include "com_tightdb_internal_util.h"
 
 //using namespace tightdb;
 
