@@ -47,12 +47,12 @@ public class Performance {
 */
 		System.out.println("\n\nRESULTS:");
 		String[] testText = {
-				"Search for small integer:\t\t",
+				"Search for small integer:     \t",
 				"Search for byte sized integer:\t",
 				"Search for long sized integer:\t",
-				"Search for string:\t\t\t",
-				"Add Index:\t\t\t",
-				"Search for byte (indexed):\t"
+				"Search for string:            \t",
+				"Add Index:                    \t",
+				"Search for byte (indexed):    \t"
 		};
 //		System.out.println("\t\t\t\t\t   Tightdb\tArrayList\tSQLite\t\tOrientDB");
 		System.out.println("\t\t\t\t\t   Tightdb\tArrayList\tSQLite");

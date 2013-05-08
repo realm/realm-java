@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 #undef com_tightdb_internal_util_REQUIRED_JNI_VERSION
-#define com_tightdb_internal_util_REQUIRED_JNI_VERSION 17i64
+#define com_tightdb_internal_util_REQUIRED_JNI_VERSION 18i64
 /*
  * Class:     com_tightdb_internal_util
  * Method:    nativeGetMemUsage

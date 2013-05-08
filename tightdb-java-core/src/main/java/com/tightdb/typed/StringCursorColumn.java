@@ -15,5 +15,4 @@ public class StringCursorColumn<Cursor, View, Query> extends AbstractColumn<Stri
 	public void set(String value) {
 		cursor.tableOrView.setString(columnIndex, cursor.getPosition(), value);
 	}
-
 }

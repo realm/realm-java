@@ -568,6 +568,52 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageDouble(
     return TBL(nativeTablePtr)->average_double( S(columnIndex));
 }
 
+// Count 
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountLong(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value)
+{
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
+    return TBL(nativeTablePtr)->count_int( S(columnIndex), value);
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountFloat(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jfloat value)
+{
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
+    return TBL(nativeTablePtr)->count_float( S(columnIndex), value);
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountDouble(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jdouble value)
+{
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
+    return TBL(nativeTablePtr)->count_double( S(columnIndex), value);
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountString(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jstring value)
+{
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
+    JStringAccessor value2(env, value);
+    if (!value2)
+        return 0;
+    return TBL(nativeTablePtr)->count_string( S(columnIndex), value2);
+}
+
+
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeLookup(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jstring value)
+{
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), 0)) return 0;
+    JStringAccessor value2(env, value);
+    if (!value2)
+        return 0;
+    return TBL(nativeTablePtr)->lookup(value2);
+}
+
+
 //
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeWhere(

@@ -222,7 +222,7 @@ public interface TableOrView {
 	long findFirstDate(long columnIndex, Date value);
 	
 	long findFirstString(long columnIndex, String value);
-	
+
 	
 	long findSortedLong(long columnIndex, long value);
 	
@@ -240,6 +240,12 @@ public interface TableOrView {
 	TableView findAllString(long columnIndex, String value);
 
 	String toJson();
+
+// Experimental:
+	
+    long lookup(String value);
+
+    long count(long columnIndex, String value);
 	
 	
 }

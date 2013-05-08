@@ -183,14 +183,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 		table.insertDone();
 	}
 
-	public void setIndex(long columnIndex) {
-		table.setIndex(columnIndex);
-	}
-
-	public boolean hasIndex(long columnIndex) {
-		return table.hasIndex(columnIndex);
-	}
-
 	public void optimize() {
 		table.optimize();
 	}
@@ -200,12 +192,26 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 	}
 
 	// Experimental
+	public long lookup(String value) {
+	    return table.lookup(value);
+	}
 	
+    public void moveLastOver(long rowIndex) {
+        table.moveLastOver(rowIndex);
+    }
+
+    // TODO: Should be moved to column
+    
+    public void setIndex(long columnIndex) {
+        table.setIndex(columnIndex);
+    }
+
+    public boolean hasIndex(long columnIndex) {
+        return table.hasIndex(columnIndex);
+    }
+
 	public long findSorted(long columnIndex, long value) {
 		return table.findSortedLong(columnIndex, value);
         }
 	
-	public void moveLastOver(long rowIndex) {
-		table.moveLastOver(rowIndex);
-	}
 }
