@@ -201,8 +201,10 @@ case "$MODE" in
         find src/ -type f -name '*.class' -delete || exit 1
         rm -f "$JAR_DIR/tightdb.jar" || exit 1
         rm -f "$JAR_DIR/tightdb-devkit.jar" || exit 1
-        rm -f "$TIGHTDB_JAVA_HOME/examples/lib/"* || exit 1
-        rmdir "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
+        if [ -e "$TIGHTDB_JAVA_HOME/examples/lib" ]; then
+            rm -f "$TIGHTDB_JAVA_HOME/examples/lib/"* || exit 1
+            rmdir "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
+        fi
         exit 0
         ;;
 
