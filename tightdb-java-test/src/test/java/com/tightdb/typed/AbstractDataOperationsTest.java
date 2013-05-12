@@ -3,19 +3,13 @@ package com.tightdb.typed;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import java.util.Date;
-
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.tightdb.Mixed;
 import com.tightdb.test.TestEmployeeQuery;
 import com.tightdb.test.TestEmployeeRow;
-import com.tightdb.test.TestEmployeeTable;
 import com.tightdb.test.TestEmployeeView;
-import com.tightdb.test.TestPhoneTable;
-import com.tightdb.typed.AbstractTableOrView;
-import com.tightdb.typed.TightDB;
 
 public abstract class AbstractDataOperationsTest {
 
