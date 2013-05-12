@@ -11,8 +11,8 @@ import com.tightdb.typed.*;
  */
 public class ${viewName} extends AbstractView<${cursorName}, ${viewName}, ${queryName}> {
 
-<#foreach f in columns><#if f.isSubtable>	public final ${f.type}TableOrViewColumn<${cursorName}, ${viewName}, ${queryName}, ${f.subTableName}> ${f.name} = new ${f.type}TableOrViewColumn<${cursorName}, ${viewName}, ${queryName}, ${f.subTableName}>(${tableName}.TYPES, tableOrView, ${f.index}, "${f.name}", ${f.subTableName}.class);
-<#else>	public final ${f.type}TableOrViewColumn<${cursorName}, ${viewName}, ${queryName}> ${f.name} = new ${f.type}TableOrViewColumn<${cursorName}, ${viewName}, ${queryName}>(${tableName}.TYPES, tableOrView, ${f.index}, "${f.name}");
+<#foreach f in columns><#if f.isSubtable>	public final ${f.type}ViewColumn<${cursorName}, ${viewName}, ${queryName}, ${f.subTableName}> ${f.name} = new ${f.type}ViewColumn<${cursorName}, ${viewName}, ${queryName}, ${f.subTableName}>(${tableName}.TYPES, tableOrView, ${f.index}, "${f.name}", ${f.subTableName}.class);
+<#else>	public final ${f.type}ViewColumn<${cursorName}, ${viewName}, ${queryName}> ${f.name} = new ${f.type}ViewColumn<${cursorName}, ${viewName}, ${queryName}>(${tableName}.TYPES, tableOrView, ${f.index}, "${f.name}");
 </#if></#foreach>
 	public ${viewName}(TableView view) {
 		super(${tableName}.TYPES, view);
