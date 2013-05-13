@@ -364,7 +364,7 @@ case "$MODE" in
         PREFIX="$1"
         find_java || exit 1
         if [ "$PREFIX" ]; then
-            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make get-libdir)" || exit 1
+            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make prefix="$PREFIX" get-libdir)" || exit 1
             JAVA="$JAVA -Djava.library.path=$LIBDIR"
         else
             PREFIX="/usr/local"
