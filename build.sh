@@ -68,7 +68,9 @@ if [ "$OS" = "Darwin" ]; then
     LIB_SUFFIX_SHARED=".dylib"
     STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
-    # Absorbing standard JAR files into tightdb-devkit.jar is a fantasticly bad idea, we must back out of this approach as soon as possible!!!
+    # FIXME: Absorbing standard JAR files into tightdb-devkit.jar is a
+    # fantasticly bad idea, we must back out of this approach as soon
+    # as possible!!!
     ABSORB_DEP_JARS="1"
 else
     if [ -r /proc/cpuinfo ]; then
@@ -79,16 +81,6 @@ if [ "$NUM_PROCESSORS" ]; then
     word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
 fi
 export MAKEFLAGS
-USE_LIB64=""
-IS_REDHAT_DERIVATIVE=""
-if [ -e /etc/redhat-release ] || grep -q "Amazon" /etc/system-release 2>/dev/null; then
-    IS_REDHAT_DERIVATIVE="1"
-fi
-if [ "$IS_REDHAT_DERIVATIVE" -o -e /etc/SuSE-release ]; then
-    if [ "$ARCH" = "x86_64" -o "$ARCH" = "ia64" ]; then
-        USE_LIB64="1"
-    fi
-fi
 JNI_SUFFIX="$LIB_SUFFIX_SHARED"
 JNI_LIBDIR="lib" # Absolute, or relative to installation prefix
 JAVA_INC="include"
@@ -98,10 +90,8 @@ if [ "$OS" = "Darwin" ]; then
     JNI_SUFFIX=".jnilib"
     JAVA_INC="Headers"
     JAVA_BIN="Commands"
-elif [ "$USE_LIB64" ]; then
-    JNI_LIBDIR="/usr/lib64"
 else
-    JNI_LIBDIR="/usr/lib"
+    JNI_LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make prefix=/usr get-libdir)" || exit 1
 fi
 
 
@@ -314,18 +304,14 @@ case "$MODE" in
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
         fi
-        if [ "$USE_LIB64" ]; then
-            LIBDIR="$PREFIX/lib64"
-        else
-            LIBDIR="$PREFIX/lib"
-        fi
-        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" libdir="$LIBDIR" install || exit 1
+        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" install || exit 1
         # When prefix is not specified, attempt to "hook" into the default search path for JNI.
         if [ -z "$PREFIX_WAS_SPECIFIED" ]; then
             HOOK_INST_DIR="$JNI_LIBDIR"
             if ! printf "%s\n" "$HOOK_INST_DIR" | grep -q '^/'; then
                 HOOK_INST_DIR="$PREFIX/$HOOK_INST_DIR"
             fi
+            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make get-libdir)" || exit 1
             if ! same_path_target "$HOOK_INST_DIR" "$LIBDIR"; then
                 install -d "$HOOK_INST_DIR" || exit 1
                 (cd "$HOOK_INST_DIR" && ln -f -s "$LIBDIR/libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
@@ -342,11 +328,7 @@ case "$MODE" in
         PREFIX="$1"
         find_java || exit 1
         if [ "$PREFIX" ]; then
-            if [ "$USE_LIB64" ]; then
-                LIBDIR="$PREFIX/lib64"
-            else
-                LIBDIR="$PREFIX/lib"
-            fi
+            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make get-libdir)" || exit 1
             JAVA="$JAVA -Djava.library.path=$LIBDIR"
         else
             PREFIX="/usr/local"
