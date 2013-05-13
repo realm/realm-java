@@ -11,6 +11,9 @@ import java.nio.ByteBuffer;
 
 import com.tightdb.internal.util;
 
+/**
+ * Utility methods for TightDB.
+ */
 public class TightDB {
 	
 	private static final String PATH_SEP = System.getProperty("path.separator");

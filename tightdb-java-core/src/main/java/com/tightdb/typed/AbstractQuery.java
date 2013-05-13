@@ -5,6 +5,10 @@ import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 import com.tightdb.TableView;
 
+/**
+ * Super-type of the generated XyzQuery classes for the Xyz entity, having
+ * common query operations for all entities.
+ */
 public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cursor, View, ?>> {
 
 	private Long currPos = null;

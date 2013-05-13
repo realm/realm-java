@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Super-type of the fields that represent a long column in the generated
+ * XyzView and XyzTable classes for the Xyz entity.
+ */
 public class LongTableOrViewColumn<Cursor, View, Query> extends
 		LongQueryColumn<Cursor, View, Query> implements TableOrViewColumn<Long> {
 

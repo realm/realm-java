@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Type of the fields that represent a mixed column in the generated XyzView
+ * class for the Xyz entity.
+ */
 public class MixedViewColumn<Cursor, View, Query> extends MixedTableOrViewColumn<Cursor, View, Query> {
 
 	public MixedViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, int index, String name) {

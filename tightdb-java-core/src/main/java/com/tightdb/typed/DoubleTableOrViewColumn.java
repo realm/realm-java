@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Super-type of the fields that represent a double column in the generated
+ * XyzView and XyzTable classes for the Xyz entity.
+ */
 public class DoubleTableOrViewColumn<Cursor, View, Query> extends DoubleQueryColumn<Cursor, View, Query> implements
 		TableOrViewColumn<Double> {
 

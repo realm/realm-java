@@ -5,6 +5,10 @@ import java.util.Date;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Super-type of the fields that represent a date column in the generated
+ * XyzView and XyzTable classes for the Xyz entity.
+ */
 public class DateTableOrViewColumn<Cursor, View, Query> extends DateQueryColumn<Cursor, View, Query> implements TableOrViewColumn<Date> {
 
 	public DateTableOrViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, int index, String name) {

@@ -8,6 +8,10 @@ import com.tightdb.Mixed;
 import com.tightdb.Table;
 import com.tightdb.TableSpec;
 
+/**
+ * Type of the fields that represent a mixed column in the generated XyzRow class
+ * for the Xyz entity.
+ */
 public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed, Cursor, View, Query> {
 
 	public MixedCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {

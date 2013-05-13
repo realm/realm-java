@@ -2,6 +2,10 @@ package com.tightdb.typed;
 
 import com.tightdb.TableView;
 
+/**
+ * Super-type of the generated XyzView classes for the Xyz entity, having
+ * common view operations for all entities.
+ */
 public abstract class AbstractView<Cursor, View, Query> extends AbstractTableOrView<Cursor, View, Query> {
 
 	protected final TableView viewBase;

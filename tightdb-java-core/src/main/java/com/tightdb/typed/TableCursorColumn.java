@@ -4,6 +4,10 @@ import java.util.Iterator;
 
 import com.tightdb.Table;
 
+/**
+ * Type of the fields that represent a nested table column in the generated XyzRow class
+ * for the Xyz entity.
+ */
 public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends AbstractTable<Subcursor, ?, ?>> extends
 		AbstractColumn<Subtable, Cursor, View, Query> implements Iterable<Subcursor> {
 

@@ -1,5 +1,9 @@
 package com.tightdb.typed;
 
+/**
+ * Type of the fields that represent a string column in the generated XyzRow class
+ * for the Xyz entity.
+ */
 public class StringCursorColumn<Cursor, View, Query> extends AbstractColumn<String, Cursor, View, Query> {
 
 	public StringCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {

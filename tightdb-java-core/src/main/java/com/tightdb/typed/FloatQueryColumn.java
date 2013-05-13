@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Type of the fields that represent a float column in the generated XyzQuery
+ * class for the Xyz entity.
+ */
 public class FloatQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, Cursor, View, Query> {
 
 	public FloatQueryColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, TableQuery query,

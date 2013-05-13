@@ -3,13 +3,20 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
-public class StringTableOrViewColumn<Cursor, View, Query> extends StringQueryColumn<Cursor, View, Query> {
+/**
+ * Super-type of the fields that represent a string column in the generated
+ * XyzView and XyzTable classes for the Xyz entity.
+ */
+public class StringTableOrViewColumn<Cursor, View, Query> extends StringQueryColumn<Cursor, View, Query> implements
+		TableOrViewColumn<String> {
 
-	public StringTableOrViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, int index, String name) {
+	public StringTableOrViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, int index,
+			String name) {
 		this(types, tableOrView, null, index, name);
 	}
 
-	public StringTableOrViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, TableQuery query, int index, String name) {
+	public StringTableOrViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView,
+			TableQuery query, int index, String name) {
 		super(types, tableOrView, query, index, name);
 	}
 
@@ -36,15 +43,15 @@ public class StringTableOrViewColumn<Cursor, View, Query> extends StringQueryCol
 	public View findAll(String value) {
 		return view(tableOrView.findAllString(columnIndex, value));
 	}
-	
+
 	// experimental:
-	
+
 	public long count(String value) {
-	    return tableOrView.count(columnIndex, value);
+		return tableOrView.count(columnIndex, value);
 	}
-	
-    public long lookup(String value) {
-	    return tableOrView.lookup(value);
-    }	    
+
+	public long lookup(String value) {
+		return tableOrView.lookup(value);
+	}
 
 }

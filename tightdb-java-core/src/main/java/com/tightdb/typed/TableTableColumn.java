@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Type of the fields that represent a nested table column in the generated XyzTable
+ * class for the Xyz entity.
+ */
 public class TableTableColumn<Cursor, View, Query, Subtable> extends
 		TableTableOrViewColumn<Cursor, View, Query, Subtable> {
 
