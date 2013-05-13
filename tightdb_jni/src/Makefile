@@ -15,9 +15,6 @@ endif
 
 include ../../generic.mk
 
+# Used by ../../build.sh
 get-inst-libraries:
 	@echo $(TARGETS_LIB_STATIC) $(TARGETS_LIB_SHARED_ALIASES)
-
-# Used by ../../build.sh
-get-libdir:
-	@echo $(libdir)

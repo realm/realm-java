@@ -91,7 +91,7 @@ if [ "$OS" = "Darwin" ]; then
     JAVA_INC="Headers"
     JAVA_BIN="Commands"
 else
-    JNI_LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make prefix=/usr get-libdir)" || exit 1
+    JNI_LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni" && make prefix=/usr get-libdir)" || exit 1
 fi
 
 
@@ -178,10 +178,10 @@ done
 case "$MODE" in
 
     "clean")
-        cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
+        cd "$TIGHTDB_JAVA_HOME/tightdb_jni" || exit 1
         make clean || exit 1
         if [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
-            rm -f "libtightdb-jni$JNI_SUFFIX" || exit 1
+            cd "src" && rm -f "libtightdb-jni$JNI_SUFFIX" || exit 1
         fi
         cd "$TIGHTDB_JAVA_HOME/tightdb-java-core" || exit 1
         find src/ -type f -name '*.class' -delete || exit 1
@@ -202,10 +202,10 @@ case "$MODE" in
         find_java || exit 1
 
         # Build libtightdb-jni.so
-        cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" || exit 1
+        cd "$TIGHTDB_JAVA_HOME/tightdb_jni" || exit 1
         TIGHTDB_ENABLE_FAT_BINARIES="1" make EXTRA_CFLAGS="-I$JAVA_HOME/$JAVA_INC -I$JAVA_HOME/$JAVA_INC/linux" || exit 1
         if [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
-            ln -f "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX" || exit 1
+            cd "src" && ln -f "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX" || exit 1
         fi
 
         # Build tightdb.jar
@@ -304,7 +304,7 @@ case "$MODE" in
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
         fi
-        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" install || exit 1
+        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni" prefix="$PREFIX" install || exit 1
         # When prefix is not specified, attempt to "hook" into the default search path for JNI.
         if [ -z "$PREFIX_WAS_SPECIFIED" ]; then
             HOOK_INST_DIR="$JNI_LIBDIR"
@@ -313,7 +313,7 @@ case "$MODE" in
             fi
             NEED_HOOK=""
             LIBDIR_OPT=""
-            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make get-libdir)" || exit 1
+            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni" && make prefix="$PREFIX" get-libdir)" || exit 1
             if ! same_path_target "$HOOK_INST_DIR" "$LIBDIR"; then
                 NEED_HOOK="1"
                 LIBDIR_OPT="$LIBDIR"
@@ -346,7 +346,7 @@ case "$MODE" in
                 HOOK_INST_DIR="$PREFIX/$HOOK_INST_DIR"
             fi
             NEED_HOOK=""
-            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make get-libdir)" || exit 1
+            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni" && make prefix="$PREFIX" get-libdir)" || exit 1
             if ! same_path_target "$HOOK_INST_DIR" "$LIBDIR"; then
                 NEED_HOOK="1"
             elif [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
@@ -356,7 +356,7 @@ case "$MODE" in
                 rm -f "$HOOK_INST_DIR/libtightdb-jni$JNI_SUFFIX" || exit 1
             fi
         fi
-        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" uninstall || exit 1
+        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni" prefix="$PREFIX" uninstall || exit 1
         exit 0
         ;;
 
@@ -364,7 +364,7 @@ case "$MODE" in
         PREFIX="$1"
         find_java || exit 1
         if [ "$PREFIX" ]; then
-            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make prefix="$PREFIX" get-libdir)" || exit 1
+            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni" && make prefix="$PREFIX" get-libdir)" || exit 1
             JAVA="$JAVA -Djava.library.path=$LIBDIR"
         else
             PREFIX="/usr/local"
@@ -389,6 +389,7 @@ case "$MODE" in
 /README.md
 /build.sh
 /*.mk
+/tightdb_jni/Makefile
 /tightdb_jni/src
 /tightdb-java-core
 /tightdb-java-generator
