@@ -13,16 +13,12 @@
     <path id="build-classpath">
         <pathelement location="${libpath}/lib/tightdb.jar"/>
         <pathelement location="${libpath}/lib-sqlite/sqlite4java.jar"/>
-        <pathelement location="${libpath}/lib-orientdb/orientdb-core-1.3.0.jar"/>
-        <pathelement location="${libpath}/lib-orientdb/orient-commons-1.3.0.jar"/>
     </path>
 
     <path id="samples-classpath">
         <pathelement location="${bindir}"/>
         <pathelement location="${libpath}/lib/tightdb.jar"/>
         <pathelement location="${libpath}/lib-sqlite/sqlite4java.jar"/>
-        <pathelement location="${libpath}/lib-orientdb/orientdb-core-1.3.0.jar"/>
-        <pathelement location="${libpath}/lib-orientdb/orient-commons-1.3.0.jar"/>
     </path>
 
     <target name="init">
