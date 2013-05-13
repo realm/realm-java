@@ -311,16 +311,52 @@ case "$MODE" in
             if ! printf "%s\n" "$HOOK_INST_DIR" | grep -q '^/'; then
                 HOOK_INST_DIR="$PREFIX/$HOOK_INST_DIR"
             fi
+            NEED_HOOK=""
+            LIBDIR_OPT=""
             LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make get-libdir)" || exit 1
             if ! same_path_target "$HOOK_INST_DIR" "$LIBDIR"; then
-                install -d "$HOOK_INST_DIR" || exit 1
-                (cd "$HOOK_INST_DIR" && ln -f -s "$LIBDIR/libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
+                NEED_HOOK="1"
+                LIBDIR_OPT="$LIBDIR"
             elif [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
-                (cd "$HOOK_INST_DIR" && ln -f -s "libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
+                NEED_HOOK="1"
+            fi
+            if [ "$NEED_HOOK" ]; then
+                if [ "$LIBDIR_OPT" ]; then
+                    install -d "$HOOK_INST_DIR" || exit 1
+                fi
+                (cd "$HOOK_INST_DIR" && ln -f -s "$LIBDIR_OPT/libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
             fi
         fi
         install -d "$PREFIX/share/java" || exit 1
         install -m 644 "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
+        exit 0
+        ;;
+
+    "uninstall")
+        PREFIX="$1"
+        PREFIX_WAS_SPECIFIED="$PREFIX"
+        if [ -z "$PREFIX" ]; then
+            PREFIX="/usr/local"
+        fi
+        rm -f "$PREFIX/share/java/tightdb.jar" || exit 1
+        rm -f "$PREFIX/share/java/tightdb-devkit.jar" || exit 1
+        if [ -z "$PREFIX_WAS_SPECIFIED" ]; then
+            HOOK_INST_DIR="$JNI_LIBDIR"
+            if ! printf "%s\n" "$HOOK_INST_DIR" | grep -q '^/'; then
+                HOOK_INST_DIR="$PREFIX/$HOOK_INST_DIR"
+            fi
+            NEED_HOOK=""
+            LIBDIR="$(cd "$TIGHTDB_JAVA_HOME/tightdb_jni/src" && make get-libdir)" || exit 1
+            if ! same_path_target "$HOOK_INST_DIR" "$LIBDIR"; then
+                NEED_HOOK="1"
+            elif [ "$JNI_SUFFIX" != "$LIB_SUFFIX_SHARED" ]; then
+                NEED_HOOK="1"
+            fi
+            if [ "$NEED_HOOK" ]; then
+                rm -f "$HOOK_INST_DIR/libtightdb-jni$JNI_SUFFIX" || exit 1
+            fi
+        fi
+        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni/src" prefix="$PREFIX" uninstall || exit 1
         exit 0
         ;;
 
@@ -396,7 +432,7 @@ EOF
 
     *)
         echo "Unspecified or bad mode '$MODE'" 1>&2
-        echo "Available modes are: clean build test install test-installed" 1>&2
+        echo "Available modes are: clean build test install uninstall test-installed" 1>&2
         echo "As well as: dist-copy dist-remarks" 1>&2
         exit 1
         ;;
