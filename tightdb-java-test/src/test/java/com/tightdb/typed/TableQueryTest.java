@@ -83,14 +83,11 @@ public class TableQueryTest extends AbstractTest {
 		assertEquals(1, employees.firstName.endsWith("hny").findAll().size());
 		assertEquals(2, employees.firstName.contains("ohn").findAll().size());
 
-		if (TightDB.osIsWindows()) {
-			// TODO: Support for case insensitive string matches on Linux - currently only supported on Windows 
-			assertEquals(1, employees.firstName.eq("john", false).findAll().size());
-			assertEquals(1, employees.firstName.equal("john", false).findAll().size());
-			assertEquals(2, employees.firstName.startsWith("j", false).findAll().size());
-			assertEquals(1, employees.firstName.endsWith("hnY", false).findAll().size());
-			assertEquals(2, employees.firstName.contains("ohN", false).findAll().size());
-		}
+        assertEquals(1, employees.firstName.eq("john", false).findAll().size());
+		assertEquals(1, employees.firstName.equal("john", false).findAll().size());
+		assertEquals(2, employees.firstName.startsWith("j", false).findAll().size());
+		assertEquals(1, employees.firstName.endsWith("hnY", false).findAll().size());
+		assertEquals(2, employees.firstName.contains("ohN", false).findAll().size());
 	}
 
 	@Test
