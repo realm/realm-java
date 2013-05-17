@@ -7,6 +7,8 @@ tightdb_jni*.exp
 
 /examples/*/*/generated/*
 /examples/*/generated/*
+/examples/*/generated-sources/*
+/examples/*/lib
 /examples/lib
 
 *.tightdb

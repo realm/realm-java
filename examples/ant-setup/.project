@@ -18,7 +18,7 @@
 		<link>
 			<name>lib</name>
 			<type>2</type>
-			<locationURI>PARENT-1-PROJECT_LOC/lib</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/lib</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
