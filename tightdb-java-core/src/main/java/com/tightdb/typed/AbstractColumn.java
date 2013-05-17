@@ -5,6 +5,10 @@ import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 import com.tightdb.TableView;
 
+/**
+ * Super-type of all the fields that represent columns in the generated
+ * XyzTable, XyzView, XyzRow and XyzQuery classes for the Xyz entity.
+ */
 public abstract class AbstractColumn<Type, Cursor, View, Query> {
 
 	protected final EntityTypes<?, View, Cursor, Query> types;

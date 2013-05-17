@@ -9,6 +9,10 @@ import com.tightdb.Mixed;
 import com.tightdb.Table;
 import com.tightdb.TableSpec;
 
+/**
+ * Super-type of the generated XyzTable classes for the Xyz entity, having
+ * common table operations for all entities.
+ */
 public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOrView<Cursor, View, Query> {
 
 	static {

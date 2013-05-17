@@ -4,6 +4,10 @@ import java.util.Iterator;
 
 import com.tightdb.TableOrView;
 
+/**
+ * Super-type of the generated XyzTable and XyzView classes for the Xyz entity,
+ * having common operations for both table and view.
+ */
 public abstract class AbstractTableOrView<Cursor, View, Query> implements Iterable<Cursor> {
 
 	protected final EntityTypes<?, View, Cursor, Query> types;

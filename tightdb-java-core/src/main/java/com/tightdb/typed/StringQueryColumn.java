@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Type of the fields that represent a string column in the generated XyzQuery
+ * class for the Xyz entity.
+ */
 public class StringQueryColumn<Cursor, View, Query> extends AbstractColumn<String, Cursor, View, Query> {
 
 	public StringQueryColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, TableQuery query, int index, String name) {

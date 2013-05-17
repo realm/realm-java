@@ -2,6 +2,10 @@ package com.tightdb.typed;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Type of the fields that represent a binary column in the generated XyzRow class
+ * for the Xyz entity.
+ */
 public class BinaryCursorColumn<Cursor, View, Query> extends AbstractColumn<ByteBuffer, Cursor, View, Query> {
 
 	public BinaryCursorColumn(EntityTypes<?, View, Cursor, Query> types, AbstractCursor<Cursor> cursor, int index, String name) {

@@ -6,6 +6,10 @@ import com.tightdb.Table;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Super-type of the fields that represent a nested table column in the generated
+ * XyzView and XyzTable classes for the Xyz entity.
+ */
 public class TableTableOrViewColumn<Cursor, View, Query, Subtable> extends TableQueryColumn<Cursor, View, Query, Subtable> {
 
 	public TableTableOrViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, int index, String name, Class<Subtable> subtableClass) {

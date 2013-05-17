@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Super-type of the fields that represent a boolean column in the generated
+ * XyzView and XyzTable classes for the Xyz entity.
+ */
 public class BooleanTableOrViewColumn<Cursor, View, Query> extends BooleanQueryColumn<Cursor, View, Query> implements TableOrViewColumn<Boolean> {
 
 	public BooleanTableOrViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, int index, String name) {

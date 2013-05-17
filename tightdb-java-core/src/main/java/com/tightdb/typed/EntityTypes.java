@@ -1,5 +1,9 @@
 package com.tightdb.typed;
 
+/**
+ * Holder of the generated XyzTable, XyzView, XyzRow and XyzQuery classes, used
+ * to transfer them to the columns, so they can instantiate them as needed.
+ */
 public class EntityTypes<Tbl, View, Cursor, Query> {
 
 	private final Class<Tbl> tableClass;

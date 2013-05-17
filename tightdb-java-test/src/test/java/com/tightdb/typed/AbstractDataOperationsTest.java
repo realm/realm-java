@@ -10,8 +10,6 @@ import com.tightdb.Mixed;
 import com.tightdb.test.TestEmployeeQuery;
 import com.tightdb.test.TestEmployeeRow;
 import com.tightdb.test.TestEmployeeView;
-import com.tightdb.typed.AbstractTableOrView;
-import com.tightdb.typed.TightDB;
 
 public abstract class AbstractDataOperationsTest {
 

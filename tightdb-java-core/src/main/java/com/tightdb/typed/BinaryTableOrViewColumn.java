@@ -5,6 +5,10 @@ import java.nio.ByteBuffer;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Super-type of the fields that represent a binary column in the generated
+ * XyzView and XyzTable classes for the Xyz entity.
+ */
 public class BinaryTableOrViewColumn<Cursor, View, Query> extends BinaryQueryColumn<Cursor, View, Query> implements TableOrViewColumn<ByteBuffer> {
 
 	public BinaryTableOrViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, int index, String name) {

@@ -2,6 +2,9 @@ package com.tightdb.typed;
 
 import com.tightdb.Table;
 
+/**
+ * Super-type of the generated XyzTable classes for the Xyz nested table.
+ */
 public abstract class AbstractSubtable<Cursor, View, Query> extends AbstractTable<Cursor, View, Query> {
 
 	public AbstractSubtable(EntityTypes<?, View, Cursor, Query> types, Table subtable) {

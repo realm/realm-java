@@ -2,6 +2,10 @@ package com.tightdb.typed;
 
 import com.tightdb.TableOrView;
 
+/**
+ * Super-type of the generated XyzRow classes for the Xyz entity, having
+ * common row operations for all entities.
+ */
 public abstract class AbstractCursor<Cursor> {
 
 	protected final long position;

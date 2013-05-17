@@ -3,6 +3,9 @@ package com.tightdb.typed;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+/**
+ * Iterator for the generated XyzView and XyzTable classes for the Xyz entity.
+ */
 public class TableOrViewIterator<T> implements Iterator<T> {
 
 	private final AbstractTableOrView<T, ?, ?> tableOrView;

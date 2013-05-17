@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Type of the fields that represent a double column in the generated XyzQuery
+ * class for the Xyz entity.
+ */
 public class DoubleQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, Cursor, View, Query> {
 
 	public DoubleQueryColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, TableQuery query,

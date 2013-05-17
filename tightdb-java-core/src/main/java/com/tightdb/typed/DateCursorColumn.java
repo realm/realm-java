@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import java.text.DateFormat;
 import java.util.Date;
 
+/**
+ * Type of the fields that represent a date column in the generated XyzRow class
+ * for the Xyz entity.
+ */
 public class DateCursorColumn<Cursor, View, Query> extends AbstractColumn<Date, Cursor, View, Query> {
 
 	private static final DateFormat FORMATTER = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);

@@ -3,7 +3,9 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-
+/**
+ * Specification of the common operations for the low-level table and view API.
+ */
 public interface TableOrView {
 
 	void clear();

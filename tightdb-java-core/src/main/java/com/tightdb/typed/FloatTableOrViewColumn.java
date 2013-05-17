@@ -3,6 +3,10 @@ package com.tightdb.typed;
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
+/**
+ * Super-type of the fields that represent a float column in the generated
+ * XyzView and XyzTable classes for the Xyz entity.
+ */
 public class FloatTableOrViewColumn<Cursor, View, Query> extends FloatQueryColumn<Cursor, View, Query> implements
 		TableOrViewColumn<Float> {
 
