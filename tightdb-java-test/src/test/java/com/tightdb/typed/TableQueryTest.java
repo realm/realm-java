@@ -7,7 +7,6 @@ import org.testng.annotations.Test;
 import com.tightdb.Table;
 import com.tightdb.test.TestEmployeeQuery;
 import com.tightdb.test.TestEmployeeView;
-import com.tightdb.typed.TightDB;
 
 public class TableQueryTest extends AbstractTest {
 

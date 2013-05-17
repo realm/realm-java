@@ -71,7 +71,6 @@ public class TableTest {
 		ByteBuffer buf2 = ByteBuffer.allocateDirect(3);
 		buf2.put(bytes);
 
-		// FIXME: set and check subtable values
 		employees.at(0).set(NAME2, "Bond", 10000, true, buf, date, new Mixed(true), null);
 
 		assertEquals(NAME2, employees.at(0).getFirstName());
