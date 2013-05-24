@@ -50,18 +50,18 @@ public class tutorial {
     
     // @@Example: accessing_rows @@
     // 2 ways to get the value
-    String name = peopleTable.at(2).getName(); // name => "Mary"
+    String name = peopleTable.get(2).getName(); // name => "Mary"
     // or
-    String name2 = peopleTable.at(2).name.get();
+    String name2 = peopleTable.get(2).name.get();
     
     // 2 ways to set the value
-    peopleTable.at(2).name.set("NewName");
+    peopleTable.get(2).name.set("NewName");
     // or
-    peopleTable.at(2).setName("NewName"); 
+    peopleTable.get(2).setName("NewName"); 
     // @@EndExample@@
     
-    System.out.println("at(2).getName -> " + name + " or " + name2);
-    System.out.println("at(2).setName('NewName') -> " + peopleTable.at(2).getName());
+    System.out.println("get(2).getName -> " + name + " or " + name2);
+    System.out.println("get(2).setName('NewName') -> " + peopleTable.get(2).getName());
     
     // @@Example: last_row @@   
     String lastRowName = peopleTable.last().getName();  // retrieve name for last row

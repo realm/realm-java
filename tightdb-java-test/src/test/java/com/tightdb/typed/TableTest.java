@@ -42,24 +42,24 @@ public class TableTest {
 
 	@Test
 	public void shouldRetrieveRowsByIndex() {
-		assertEquals(NAME0, employees.at(0).getFirstName());
-		assertEquals(NAME1, employees.at(1).getFirstName());
-		assertEquals(NAME2, employees.at(2).getFirstName());
+		assertEquals(NAME0, employees.get(0).getFirstName());
+		assertEquals(NAME1, employees.get(1).getFirstName());
+		assertEquals(NAME2, employees.get(2).getFirstName());
 	}
 
 	@Test
 	public void shouldHaveTwoWaysToReadCellValues() {
-		assertEquals(NAME0, employees.at(0).getFirstName());
-		assertEquals(NAME0, employees.at(0).firstName.get());
+		assertEquals(NAME0, employees.get(0).getFirstName());
+		assertEquals(NAME0, employees.get(0).firstName.get());
 	}
 
 	@Test
 	public void shouldHaveTwoWaysToWriteCellValues() {
-		employees.at(0).setFirstName("FOO");
-		assertEquals("FOO", employees.at(0).getFirstName());
+		employees.get(0).setFirstName("FOO");
+		assertEquals("FOO", employees.get(0).getFirstName());
 
-		employees.at(0).firstName.set("BAR");
-		assertEquals("BAR", employees.at(0).getFirstName());
+		employees.get(0).firstName.set("BAR");
+		assertEquals("BAR", employees.get(0).getFirstName());
 	}
 
 	@Test
@@ -71,31 +71,31 @@ public class TableTest {
 		ByteBuffer buf2 = ByteBuffer.allocateDirect(3);
 		buf2.put(bytes);
 
-		employees.at(0).set(NAME2, "Bond", 10000, true, buf, date, new Mixed(true), null);
+		employees.get(0).set(NAME2, "Bond", 10000, true, buf, date, new Mixed(true), null);
 
-		assertEquals(NAME2, employees.at(0).getFirstName());
-		assertEquals("Bond", employees.at(0).getLastName());
-		assertEquals(10000, employees.at(0).getSalary());
-		assertEquals(true, employees.at(0).getDriver());
-		assertEquals(buf2.rewind(), employees.at(0).getPhoto().rewind());
-		assertEquals(date.getTime() / 1000, employees.at(0).getBirthdate().getTime() / 1000);
-		assertEquals(new Mixed(true), employees.at(0).getExtra());
+		assertEquals(NAME2, employees.get(0).getFirstName());
+		assertEquals("Bond", employees.get(0).getLastName());
+		assertEquals(10000, employees.get(0).getSalary());
+		assertEquals(true, employees.get(0).getDriver());
+		assertEquals(buf2.rewind(), employees.get(0).getPhoto().rewind());
+		assertEquals(date.getTime() / 1000, employees.get(0).getBirthdate().getTime() / 1000);
+		assertEquals(new Mixed(true), employees.get(0).getExtra());
 	}
 
 	@Test
 	public void shouldAllowMixedValues() throws IllegalAccessException {
-		assertEquals("extra", employees.at(0).getExtra().getValue());
-		assertEquals("extra", employees.at(0).getExtra().getStringValue());
+		assertEquals("extra", employees.get(0).getExtra().getValue());
+		assertEquals("extra", employees.get(0).getExtra().getStringValue());
 
-		assertEquals(1234L, employees.at(1).getExtra().getValue());
-		assertEquals(1234L, employees.at(1).getExtra().getLongValue());
+		assertEquals(1234L, employees.get(1).getExtra().getValue());
+		assertEquals(1234L, employees.get(1).getExtra().getLongValue());
 
-		assertEquals(true, employees.at(2).getExtra().getValue());
-		assertEquals(true, employees.at(2).getExtra().getBooleanValue());
+		assertEquals(true, employees.get(2).getExtra().getValue());
+		assertEquals(true, employees.get(2).getExtra().getBooleanValue());
 
-		employees.at(1).setExtra(Mixed.mixedValue("new_value"));
-		assertEquals("new_value", employees.at(1).getExtra().getValue());
-		assertEquals("new_value", employees.at(1).getExtra().getStringValue());
+		employees.get(1).setExtra(Mixed.mixedValue("new_value"));
+		assertEquals("new_value", employees.get(1).getExtra().getValue());
+		assertEquals("new_value", employees.get(1).getExtra().getStringValue());
 	}
 
 	@Test

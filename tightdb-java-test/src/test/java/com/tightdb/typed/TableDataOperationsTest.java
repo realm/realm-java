@@ -38,8 +38,8 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
 	}
 
 	private void setAndTestValue(long val) {
-		employees.at(1).setSalary(val);
-		assertEquals(val, employees.at(1).getSalary());
+		employees.get(1).setSalary(val);
+		assertEquals(val, employees.get(1).getSalary());
 	}
 
 	@Test
@@ -56,11 +56,11 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
 		TestPhoneTable phones = employees.last().getPhones();
 		assertEquals(2, phones.size());
 		
-		assertEquals("home", phones.at(0).type.get());
-		assertEquals("123-123", phones.at(0).number.get());
+		assertEquals("home", phones.get(0).type.get());
+		assertEquals("123-123", phones.get(0).number.get());
 		
-		assertEquals("mobile", phones.at(1).getType());
-		assertEquals("456-456", phones.at(1).getNumber());
+		assertEquals("mobile", phones.get(1).getType());
+		assertEquals("456-456", phones.get(1).getNumber());
 	}
 
 
@@ -69,7 +69,7 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
 		employees.moveLastOver(2);
 		employees.moveLastOver(1);
 		employees.moveLastOver(0);
-		assertEquals("Bond", employees.at(0).getLastName());
+		assertEquals("Bond", employees.get(0).getLastName());
 		TestPhoneTable phones2 = employees.last().getPhones();
 		assertEquals(2, phones2.size());
 		assertEquals(1, employees.size());

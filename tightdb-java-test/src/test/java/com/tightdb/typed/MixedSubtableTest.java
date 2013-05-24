@@ -12,7 +12,7 @@ public class MixedSubtableTest extends AbstractTest {
 
 	@Test
 	public void shouldStoreSubtableInMixedTypeColumn() {
-		TestEmployeeRow employee = employees.at(0);
+		TestEmployeeRow employee = employees.get(0);
 		TestPhoneTable phones = employee.extra.createSubtable(TestPhoneTable.class);
 
 		phones.add("mobile", "123");
@@ -24,7 +24,7 @@ public class MixedSubtableTest extends AbstractTest {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void shouldFailOnOnWrongSubtableRetrievalFromMixedTypeColumn() {
-		TestEmployeeRow employee = employees.at(0);
+		TestEmployeeRow employee = employees.get(0);
 		TestPhoneTable phones = employee.extra.createSubtable(TestPhoneTable.class);
 
 		phones.add("mobile", "123");
@@ -36,7 +36,7 @@ public class MixedSubtableTest extends AbstractTest {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void shouldFailOnOnSubtableRetrtievalFromIncorrectType() {
-		TestEmployeeRow employee = employees.at(0);
+		TestEmployeeRow employee = employees.get(0);
 		employee.extra.set(123);
 
 		// should fail

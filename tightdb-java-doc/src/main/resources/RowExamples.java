@@ -9,11 +9,11 @@ public class RowExamples {
 
 		/* EXAMPLE: after */
 
-		Person third = people.at(0).after(2);
+		Person third = people.get(0).after(2);
 		
 		/* EXAMPLE: before */
 
-		Person second = people.at(4).before(3);
+		Person second = people.get(4).before(3);
 		
 		/* EXAMPLE: columns */
 
@@ -23,7 +23,7 @@ public class RowExamples {
 		
 		/* EXAMPLE: next */
 
-		Person fifth = people.at(3).next();
+		Person fifth = people.get(3).next();
 		
 		/* EXAMPLE: previous */
 

@@ -109,7 +109,7 @@ public class TableColumnsTest extends AbstractTest {
 		employees.salary.addLong(123);
 		for (int i = 0; i < EmployeesFixture.EMPLOYEES.length; ++i)
 			assertEquals(EmployeesFixture.EMPLOYEES[i].salary + 123, employees
-					.at(i).getSalary());
+					.get(i).getSalary());
 	}
 
 	@Test
@@ -131,9 +131,9 @@ public class TableColumnsTest extends AbstractTest {
 			PhoneData[] phones = EmployeesFixture.PHONES[i];
 			assertEquals(phones.length, phoneTables[i].size());
 			for (int j = 0; j < phones.length; j++) {
-				assertEquals(phones[j].type, phoneTables[i].at(j).type.get());
+				assertEquals(phones[j].type, phoneTables[i].get(j).type.get());
 				assertEquals(phones[j].number,
-						phoneTables[i].at(j).number.get());
+						phoneTables[i].get(j).number.get());
 			}
 		}
 	}

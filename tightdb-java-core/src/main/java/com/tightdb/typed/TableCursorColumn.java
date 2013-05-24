@@ -50,7 +50,15 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 		cursor.tableOrView.clearSubTable(columnIndex, cursor.getPosition());
 	}
 
+	/**
+	 * This method is deprecated, use {@link #get(long)} instead.
+	 */
+	@Deprecated
 	public Subcursor at(long position) {
+		return subcursor(position);
+	}
+
+	public Subcursor get(long position) {
 		return subcursor(position);
 	}
 

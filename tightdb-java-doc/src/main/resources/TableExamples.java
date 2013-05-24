@@ -20,9 +20,9 @@ public class TableExamples {
 		people.add("Mary", 21, false);
 		people.add("Lars", 24, true);
 		
-		/* EXAMPLE: at */
+		/* EXAMPLE: get */
 
-		Person p = people.at(42);
+		Person p = people.get(42);
 		
 		/* EXAMPLE: clear */
 
