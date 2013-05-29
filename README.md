@@ -13,23 +13,23 @@ dependencies and follow the simple build instructions below.
 Dependencies
 ------------
 
-The TightDB core library must have been installed (see README in the root 
+The TightDB core library must have been installed (see README in the root
 location of this package).
 
-### Ubuntu 12.04
+### Ubuntu 10.04, 12.04
 
     #   Build essentials:
     sudo apt-get install build-essential
-    #   Java:
+    #   Java (replace '7' with '6' on Ubuntu 10.04):
     sudo apt-get install openjdk-7-jre openjdk-7-jdk
     #   For building the JNI library if TIGHTDB_ENABLE_MEM_USAGE is specified:
     sudo apt-get install libproc-dev
-    
+
     #   Dependencies for building the java library:
     sudo apt-get install libcommons-io-java
     sudo apt-get install libcommons-lang-java
     sudo apt-get install libfreemarker-java
-    
+
     #   Dependencies for test suite (only required if you want to run TightDB testsuite):
     sudo apt-get install testng
     sudo apt-get install ant
