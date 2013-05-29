@@ -195,6 +195,7 @@ case "$MODE" in
             rm -f "$TIGHTDB_JAVA_HOME/examples/lib/"* || exit 1
             rmdir "$TIGHTDB_JAVA_HOME/examples/lib" || exit 1
         fi
+        echo "Done cleaning"
         exit 0
         ;;
 
@@ -260,6 +261,7 @@ case "$MODE" in
         for x in "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar"; do
             ln -f "$x" || exit 1
         done
+        echo "Done building"
         exit 0
         ;;
 
@@ -295,6 +297,7 @@ case "$MODE" in
         ant showcase || exit 1
         #echo "ant performance:"
         #ant performance || exit 1
+        echo "Test passed"
         exit 0
         ;;
 
@@ -329,6 +332,7 @@ case "$MODE" in
         fi
         install -d "$PREFIX/share/java" || exit 1
         install -m 644 "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
+        echo "Done installing"
         exit 0
         ;;
 
@@ -357,6 +361,7 @@ case "$MODE" in
             fi
         fi
         make -C "$TIGHTDB_JAVA_HOME/tightdb_jni" prefix="$PREFIX" uninstall || exit 1
+        echo "Done uninstalling"
         exit 0
         ;;
 
@@ -374,6 +379,7 @@ case "$MODE" in
         export CLASSPATH="$PREFIX/share/java/tightdb-devkit.jar:."
         $JAVAC -d "$TEMP_DIR" -s "$TEMP_DIR" java/my/app/Test.java || exit 1
         (cd "$TEMP_DIR" && $JAVA my.app.Test) || exit 1
+        echo "Test passed"
         exit 0
         ;;
 
