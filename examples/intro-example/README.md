@@ -31,8 +31,10 @@ The source code is found in the folder `src/com/tightdb/examples/showcase`.
 
 Quick benchmark
 ---------------
-To demonstrate how to use the Java interface of TightDB, you can take
-at look at this example. To run it, please execute the following command:
+This is a short unscientific benchmark. It will do some simple benchmarking
+of TightDB against Java ArrayList and HashMap.
+
+To run it, please execute the following command:
 
         ant quickbenchmark
 
