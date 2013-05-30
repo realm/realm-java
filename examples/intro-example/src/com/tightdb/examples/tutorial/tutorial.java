@@ -67,6 +67,9 @@ public class tutorial {
     String lastRowName = peopleTable.last().getName();  // retrieve name for last row
     // @@EndExample@@
     
+    // @@Example: updating_entire_row @@
+    peopleTable.at(4).set("Eric", 50, true);
+    // @@EndExample@@
     
     /****************************** DATA REMOVAL *****************************/
     // @@Example: deleting_row @@
@@ -111,7 +114,7 @@ public class tutorial {
     System.out.println(match.size() + " employee(s) match query.");
     
     // Take the average age of the matches    
-    System.out.println(match.age.sum() + " years is the summed age.");
+    System.out.println(match.age.sum() + " years is the sum of ages.");
     
     // Perform query and use the result
     for (PeopleRow person : match) {

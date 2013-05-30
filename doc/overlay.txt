@@ -7,7 +7,14 @@ the <tt>at</tt> method which returns a cursor to the row:
 @@EndOverlay
 
 @@Overlay: generated_classes @@
-Using Java annotations a number of classes will be generated. For the <tt>people</tt> class you will have <tt>PeopleTable</tt> (the actual table), <tt>People</tt> (representing rows), <tt>PeopleQuery</tt> (query objects), and <tt>PeopleView</tt> (query results).
+Using Java annotations a number of classes will be generated. For the <tt>people</tt> class you will have <tt>PeopleTable</tt> (the actual table), <tt>People</tt> (representing rows), <tt>PeopleQuery</tt> (query objects), and <tt>PeopleView</tt> (query results). These classes will then provide you a fully typesafe API
+with your specific columns integrated. This gives you easy access to your named columns, typesafety and autocompletion.
+
+<p>(For more dynamic datastructures unknown at compiletime, another "untyped" API is also available. Please checkout the reference documentation for details.)</p>
+@@EndOverlay
+
+@@Overlay: updating_entire_row @@
+Replacing en entire row can be done like this - fully type safe:
 @@EndOverlay
 
 @@Overlay: output @@
@@ -16,8 +23,24 @@ Using Java annotations a number of classes will be generated. For the <tt>people
 John is 20 years old.
 Mary is 21 years old.
 Lars is 32 years old.
-Phil is 43 years old.
+Eric is 50 years old.
 Anni is 54 years old.
 </pre>
 </div>
+@@EndOverlay@@
+
+@@Overlay: execute_tutorial @@
+Assuming that you have <tt>ant</tt> installed, you can execute the tutorial like this:
+
+<pre>
+$ cd tightdb_java2/examples/intro-example
+$ ant build
+$ ant tutorial
+</pre>
+
+If you don't have <tt>ant</tt> installed, or wish to use Eclipse, please read the <a href="http://www.tightdb.com/documentation/Java_misc/30/Examples/">Java Examples</a> instructions.
+@@EndOverlay@@
+
+@@Overlay: examples @@
+Please check the <a href="http://www.tightdb.com/documentation/Java_misc/30/Examples/">Java Examples</a> page for further instructions.
 @@EndOverlay@@
