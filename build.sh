@@ -307,9 +307,9 @@ case "$MODE" in
         if [ -z "$PREFIX" ]; then
             PREFIX="/usr/local"
         fi
-        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni" prefix="$PREFIX" install || exit 1
+        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni" install DESTDIR="$DESTDIR" prefix="$PREFIX" || exit 1
         # When prefix is not specified, attempt to "hook" into the default search path for JNI.
-        if [ -z "$PREFIX_WAS_SPECIFIED" ]; then
+        if [ -z "$DESTDIR" -a -z "$PREFIX_WAS_SPECIFIED" ]; then
             HOOK_INST_DIR="$JNI_LIBDIR"
             if ! printf "%s\n" "$HOOK_INST_DIR" | grep -q '^/'; then
                 HOOK_INST_DIR="$PREFIX/$HOOK_INST_DIR"
@@ -330,8 +330,8 @@ case "$MODE" in
                 (cd "$HOOK_INST_DIR" && ln -f -s "$LIBDIR_OPT/libtightdb-jni$LIB_SUFFIX_SHARED" "libtightdb-jni$JNI_SUFFIX") || exit 1
             fi
         fi
-        install -d "$PREFIX/share/java" || exit 1
-        install -m 644 "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar" "$PREFIX/share/java" || exit 1
+        install -d "$DESTDIR$PREFIX/share/java" || exit 1
+        install -m 644 "$JAR_DIR/tightdb.jar" "$JAR_DIR/tightdb-devkit.jar" "$DESTDIR$PREFIX/share/java" || exit 1
         echo "Done installing"
         exit 0
         ;;
@@ -360,7 +360,7 @@ case "$MODE" in
                 rm -f "$HOOK_INST_DIR/libtightdb-jni$JNI_SUFFIX" || exit 1
             fi
         fi
-        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni" prefix="$PREFIX" uninstall || exit 1
+        make -C "$TIGHTDB_JAVA_HOME/tightdb_jni" uninstall prefix="$PREFIX" || exit 1
         echo "Done uninstalling"
         exit 0
         ;;
