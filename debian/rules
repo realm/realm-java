@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+# export DH_VERBOSE=1
+
+override_dh_usrlocal:
+
+clean:
+	dh_testdir
+	dh_clean
+	sh build.sh clean
+
+build:
+	sh build.sh build
+
+install: build
+	dh_installdirs
+	sh build.sh install $$(pwd)/debian/tightdb-java/usr
+
+binary-indep: install
+
+binary-arch: install
+	dh_testdir -a
+	dh_testroot -a
+	dh_installdocs -a
+	dh_installchangelogs -a
+	dh_strip -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_installdeb -a
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
+
+binary: binary-indep binary-arch
+
+.PHONY: binary binary-arch binary-indep clean checkroot
