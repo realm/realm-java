@@ -16,7 +16,7 @@ build:
 
 install: build
 	dh_installdirs
-	sh build.sh install $$(pwd)/debian/tightdb-java/usr
+	DESTDIR=$$(pwd)/debian/tightdb-java sh build.sh install /usr
 
 binary-indep: install
 
