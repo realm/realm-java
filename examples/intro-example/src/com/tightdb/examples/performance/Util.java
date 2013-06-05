@@ -5,19 +5,19 @@ import java.util.Scanner;
 import com.tightdb.typed.TightDB;
 
 public class Util {
-    
+
     public static int getRandNumber() {
         return (int)(Math.random() * 1000);
     }
-    
+
     public static String getNumberString(long nlong) {
         String ones[] = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
                                      "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
                                      "eighteen", "nineteen"};
         String tens[] = {"", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"};
-    
+
         int n = (int)nlong;
-        
+
         String txt = null;
         if (n >= 1000) {
             txt = getNumberString(n/1000) + " thousand ";
@@ -36,21 +36,21 @@ public class Util {
             txt += " ";
             txt += ones[n];
         }
-    
+
         return txt;
     }
-    
+
     public void waitForEnter() {
         System.out.println("Press Enter to continue...");
         Scanner sc = new Scanner(System.in);
            while(!sc.nextLine().equals(""));
         sc.close();
     }
-    
-    // Measuring memory usage in Java is highly unreliable... 
-    
+
+    // Measuring memory usage in Java is highly unreliable...
+
     static final Runtime run = Runtime.getRuntime();
-    
+
     private static long memUsed() {
         return run.totalMemory() - run.freeMemory();
     }

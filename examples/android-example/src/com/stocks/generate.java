@@ -67,7 +67,7 @@ public class generate {
             group.writeToFile("sdcard/NOK.tightdb");
         } catch (IOException e) {
             e.printStackTrace();
-        } 
+        }
 
 
 
@@ -86,7 +86,7 @@ public class generate {
         group.writeToFile("sdcard/stocksa.tightdb");
     } catch (IOException e) {
         e.printStackTrace();
-    } 
+    }
     File file_new = new File(dir, "stocksa.tightdb");
     Group group_new = new Group(file_new);
     StockaTable stocks_new = new StockaTable(group_new);

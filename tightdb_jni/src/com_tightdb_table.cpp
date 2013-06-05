@@ -566,7 +566,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageDouble(
     return TBL(nativeTablePtr)->average_double( S(columnIndex));
 }
 
-// Count 
+// Count
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountLong(
     JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value)
@@ -743,7 +743,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString(
 
 // experimental
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindSortedInt(
-    JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value) 
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value)
 {
     if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 

@@ -6,7 +6,7 @@ import org.testng.annotations.Test;
 public class JNIQueryTest {
 
     Table table;
-    
+
     void init() {
         table = new Table();
         TableSpec tableSpec = new TableSpec();
@@ -27,10 +27,10 @@ public class JNIQueryTest {
     public void shouldQuery() {
         init();
         TableQuery query = table.where();
-        
+
         long cnt = query.equal(1, "D").count();
         assertEquals(2, cnt);
-        
+
         cnt = query.minimum(0);
         assertEquals(14, cnt);
 
@@ -39,10 +39,10 @@ public class JNIQueryTest {
 
         cnt = query.sum(0);
         assertEquals(14+16, cnt);
-        
+
         double avg = query.average(0);
         assertEquals(15.0, avg);
-        
+
         // TODO: Add tests with all parameters
     }
 }

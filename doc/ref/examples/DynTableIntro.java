@@ -7,13 +7,13 @@ public class DynTableIntro {
         // @@Show@@
         // Create a basic dynamic table with 3 columns: long, String, Mixed
         Table tbl = new Table();
-        tbl.addColumn(ColumnType.ColumnTypeInt, "myInt");       
+        tbl.addColumn(ColumnType.ColumnTypeInt, "myInt");
         tbl.addColumn(ColumnType.ColumnTypeString, "myStr");
         tbl.addColumn(ColumnType.ColumnTypeMixed, "myMixed");
-        
+
         //
         // Add, delete and set whole Rows
-        //        
+        //
         // Add some data
         tbl.add(12, "hello", 2);
         tbl.add(-15, "World", "I can be different types...");
@@ -28,18 +28,18 @@ public class DynTableIntro {
         tbl.setMixed(2,  0, new Mixed("changed Long value to String"));
         // Inspect the type of Mixed value that was just added:
         Assert(tbl.getMixedType(2, 0) == ColumnType.ColumnTypeString);
-        
+
         // Inspect table
         Assert(tbl.size() == 2);
         Assert(tbl.isEmpty() == false);
-        
+
         // Update columns
         tbl.renameColumn(0,  "myLong");               // Rename the first column
         tbl.removeColumn(1);                          // Remove the string column
         tbl.add(42, "this is the mixed column");      // We now got two columns left
         tbl.addColumn(ColumnType.ColumnTypeDouble, "myDouble");
         tbl.add(-15, "still mixed", 123.45);
-        
+
         // Column introspection
         Assert(tbl.getColumnCount() == 3);
         Assert(tbl.getColumnName(0).equals("myLong"));
@@ -59,8 +59,8 @@ public class DynTableIntro {
         // For more advanced search, checkout the TableQuery Object
         TableQuery q = tbl.where();                   // Create a query on the table
         Assert(q.between(0, 0, 100).count() == 2);    // Column 0 values in range 0-100
-        
-        // Set index and get distinct values (currently only works on Strings) 
+
+        // Set index and get distinct values (currently only works on Strings)
         Table tbl2 = new Table();
         long strColumn = tbl2.addColumn(ColumnType.ColumnTypeString, "new Strings");
         tbl2.setIndex(strColumn);
@@ -69,18 +69,18 @@ public class DynTableIntro {
         tbl2.add("MyString");
         TableView view2 = tbl2.distinct(strColumn);   // Get distinct values
         Assert(view2.size() == 2);
-        
+
         // Dump table content to json format
         String json = tbl.toJson();
         System.out.println("JSON: " + json);
-        
+
         //-------------------------------------------------------------------------
         // Working with sub tables
         //-------------------------------------------------------------------------
-        
+
         // Note: the .addColumn() method currently doesn't support subtables
         // You have the use the older (and likely soon deprecated) TableSpec like this:
-        
+
         // Define schema with 1 String column and one Subtable column with 2 columns
         TableSpec tableSpec = new TableSpec();
         tableSpec.addColumn(ColumnType.ColumnTypeString,"name");
@@ -92,23 +92,23 @@ public class DynTableIntro {
         tbl3.updateFromSpec(tableSpec);
 
         // Add two rows - the first with two rows in its' subtable cell
-        Object[][] sub = new Object[][] { {"firstkey", 12}, 
+        Object[][] sub = new Object[][] { {"firstkey", 12},
                                           {"secondkey", "hi - I'm mixed" } };
         tbl3.add("first", sub);
         tbl3.add("second", null);
         Assert(tbl3.getSubTableSize(1, 0) == 2);
-        
+
         // Add some rows to the empty subtable in the second row
         Table subTbl = tbl3.getSubTable(1,1);     // Get subtable
         // Now you can work with the subtable as any other table
         subTbl.add("key1", 23);
         Assert(subTbl.getString(0, 0).equals("key1"));
-        
+
         // @@EndShow@@
-        
+
         System.out.println("Everything worked :-)");
     }
-        
+
     static void Assert(boolean check) {
         if (!check) {
             throw new RuntimeException();

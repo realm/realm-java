@@ -24,7 +24,7 @@ public class Showcase {
      * generated with first letter uppercase: Employee. Employee is a cursor to
      * rows in the EmployeeTable, which will also be generated.
      */
-    
+
     @DefineTable(row="Employee")
     class employee {
         String firstName;
@@ -53,7 +53,7 @@ public class Showcase {
         Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra", null);
         Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true, null);
         Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
-        
+
         TightDB.print("Employees", employees);
         TightDB.print("Johny", johny);
 
@@ -103,17 +103,17 @@ public class Showcase {
         System.out.println("max salary: " + employees.salary.maximum());
         System.out.println("min salary: " + employees.salary.minimum());
         System.out.println("salary sum: " + employees.salary.sum());
-        
+
         /****************************** COMPLEX QUERY *****************************/
 
-        TightDB.print("Query 1", 
+        TightDB.print("Query 1",
                 employees
                 .firstName.startsWith("Nik")
                 .lastName.contains("vski")
                 .or().firstName.eq("John")
                 .findAll());
 
-        TightDB.print("Query 2a", 
+        TightDB.print("Query 2a",
                 employees.firstName.startsWith("Nik")
                 .group()
                     .lastName.contains("vski")
@@ -121,8 +121,8 @@ public class Showcase {
                     .firstName.eq("John")
                 .endGroup()
                 .findAll());
-        
-        TightDB.print("Query 2b", 
+
+        TightDB.print("Query 2b",
                 employees.where()
                 .group()
                     .lastName.contains("vski")
@@ -202,9 +202,9 @@ public class Showcase {
         TightDB.print(employees);
 
         employees.clear();
-        
+
         employees.firstName.eq("ff").findAll().salary.minimum();
-        
+
         TightDB.print(employees);
 
         /**************************** LOAD FROM FILE *****************************/

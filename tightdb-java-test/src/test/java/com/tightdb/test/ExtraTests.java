@@ -19,7 +19,7 @@ public class ExtraTests {
             i++;
         }
     }
-    
+
     private static class ExactComparisonCriteria extends ComparisonCriteria {
         protected void assertElementsEqual(Object expected, Object actual)
         {

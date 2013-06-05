@@ -14,14 +14,14 @@ public class JNITransactions {
     protected SharedGroup db;
 
     protected String testFile = "transact.tightdb";
-    
+
     protected void deleteFile(String filename)
     {
         File f = new File(filename);
         if (f.exists())
             f.delete();
     }
-    
+
     @BeforeMethod
     public void init() {
         if (TightDB.osIsWindows())
@@ -51,14 +51,14 @@ public class JNITransactions {
             tbl.add("Hi", 1);
         assertEquals(rows, tbl.size());
         trans.commit();
-        
+
         // must throw exception as table is invalid now.
         try {
             assertEquals(1, tbl.size());
             assert(false);
         } catch (IllegalArgumentException e) {
         }
-        
+
     }
 
     protected void checkRead(int rows)
@@ -97,23 +97,23 @@ public class JNITransactions {
             return;
 
         writeOneTransaction(1);
-        
+
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
 
         tbl.add("Hello", 1);
         assertEquals(2, tbl.size());
         trans.rollback();
-        
+
         checkRead(1); // Only 1 row now.
-        
+
         clear();
     }
 
     // Test: exception at all mutable methods in TableBase, TableView,
     // Test: above in custom Typed Tables
     // TableQuery.... in ReadTransactions
-    
+
     @Test
     public void mustFailOnWriteInReadTransactions() {
         if (TightDB.osIsWindows())
@@ -121,11 +121,11 @@ public class JNITransactions {
 
         writeOneTransaction(1);
 
-        ReadTransaction t = db.beginRead(); 
+        ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
 
-        try { table.insert(0, 0, false);        assert(false);} catch (IllegalStateException e) {}      
-        try { table.add(0, false);              assert(false);} catch (IllegalStateException e) {}      
+        try { table.insert(0, 0, false);        assert(false);} catch (IllegalStateException e) {}
+        try { table.add(0, false);              assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRow();                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRows(1);                assert(false);} catch (IllegalStateException e) {}
         try { table.addLong(0,0);                   assert(false);} catch (IllegalStateException e) {}
@@ -143,7 +143,7 @@ public class JNITransactions {
         try { table.setMixed(0,0,null);             assert(false);} catch (IllegalStateException e) {}
         try { table.setString(0,0,"");              assert(false);} catch (IllegalStateException e) {}
         try { table.updateFromSpec(null);           assert(false);} catch (IllegalStateException e) {}
-        
+
         TableQuery q = table.where();
         try { q.remove();       assert(false);} catch (IllegalStateException e) {}
         try { q.remove(0,0);    assert(false);} catch (IllegalStateException e) {}
@@ -168,20 +168,20 @@ public class JNITransactions {
 
 
 /*  ARM Only works for Java 1.7 - NOT available in Android.
- 
+
     @Test(enabled=true)
     public void mustReadARM() {
         writeOneTransaction(1);
-    
+
         // Read from table
         // System.out.println("mustReadARM.");
         try (ReadTransaction t = new ReadTransaction(db)) {
             EmployeeTable employees = new EmployeeTable(t);
             assertEquals(true, employees.isValid());
             assertEquals(1, employees.size());
-        } 
+        }
         catch (Throwable e) {
-        
+
         }
     }
 */

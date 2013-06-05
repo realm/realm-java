@@ -16,7 +16,7 @@ public class MixedTest {
         TableSpec subspec = tableSpec.addSubtableColumn("subtable");
         subspec.addColumn(ColumnType.ColumnTypeInt, "num");
         table.updateFromSpec(tableSpec);
-        
+
         try {
             // Shouldn't work: no Mixed stored yet
             @SuppressWarnings("unused")
@@ -24,14 +24,14 @@ public class MixedTest {
         } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println( "Got exception - as expected!");
         }
-        
+
         table.addEmptyRow();
         table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));
         Mixed m = table.getMixed(1, 0);
-        
+
         ColumnType mt = table.getMixedType(1,0);
         System.out.println("m = " + m + " type: " + mt);
-        
+
     }
 
 }

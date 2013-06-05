@@ -7,7 +7,7 @@ public class DynamicTableBaseEx {
 
     public static void main(String[] args) {
         // System.out.println("--Memusage: " + util.getNativeMemUsage());
-        
+
         Table base = new Table();
         System.out.println("created table");
 
@@ -35,7 +35,7 @@ public class DynamicTableBaseEx {
         System.out.println("First result index: " + rowIndex);
 
         //System.out.println("--Memusage: " + util.getNativeMemUsage());
-        
+
         base.remove(0);
         base.clear();
     }

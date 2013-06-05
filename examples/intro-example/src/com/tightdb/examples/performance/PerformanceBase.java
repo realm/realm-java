@@ -26,7 +26,7 @@ public abstract class PerformanceBase implements IPerformance {
 
     @Override
     public abstract boolean findByteInt(long value);
-    
+
     @Override
     public void end_findByteInt() {
     }
@@ -37,18 +37,18 @@ public abstract class PerformanceBase implements IPerformance {
 
     @Override
     public abstract boolean findLongInt(long value);
-    
+
     @Override
     public void end_findLongInt() {
     }
-    
+
     @Override
     public void begin_findString(String value) {
     }
 
     @Override
     public abstract boolean findString(String value);
-    
+
     @Override
     public void end_findString() {
     }

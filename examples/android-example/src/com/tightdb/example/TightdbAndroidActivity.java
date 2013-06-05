@@ -90,11 +90,11 @@ public class TightdbAndroidActivity extends Activity {
 
         a2.setAutoHeight(false);
         a2.setHeightInPercents(0.2f);
-        a2.getBottomAxis().setLabelFormatProvider(new ILabelFormatProvider() 
+        a2.getBottomAxis().setLabelFormatProvider(new ILabelFormatProvider()
         {
             @Override
-            public String getAxisLabel(Axis sender, double value) 
-            {           
+            public String getAxisLabel(Axis sender, double value)
+            {
                 Area a = sender.getParent();
 
                 for(int i=0;i<a.getSeriesCount();i++)

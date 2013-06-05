@@ -7,8 +7,8 @@ import com.tightdb.*;
 
 public class QuickBenchmark {
     final static int ROW_COUNT = 500000;
-    final static int ROUNDS    = 100; 
-    
+    final static int ROUNDS    = 100;
+
     // Define a TightDB table. It will generate 3 classes: TestTable, TestQuery, TestTableView
     @DefineTable(table = "PersonTable")
     class person {
@@ -39,9 +39,9 @@ public class QuickBenchmark {
         System.out.println("It is by no means a comprehensive or even realistic benchmark.");
         System.out.println("It just does some basic operations and compares with Javas ArrayList and HashMap.");
 
-        System.out.println("\n\nPerformance tests with " + ROW_COUNT + " rows. Test is repeated " 
+        System.out.println("\n\nPerformance tests with " + ROW_COUNT + " rows. Test is repeated "
                 + ROUNDS + " times.");
-        
+
         // We need some random names that we know are present for lookups
         Random rand = new Random();
         String[] randomNames = new String[100];
@@ -49,17 +49,17 @@ public class QuickBenchmark {
             randomNames[i] = "s" + rand.nextInt(ROW_COUNT+1);
         }
         // We also need to define a name and age to search for later
-        final String LAST_NAME = "s" + (ROW_COUNT - 1);   
+        final String LAST_NAME = "s" + (ROW_COUNT - 1);
         final int    LAST_AGE  = 60;
-        
+
         Timer timer = new Timer();
-        
-        
+
+
         /****************************************************************
          * Test TightDB
          ****************************************************************/
         System.out.println("TightDB: ");
-        
+
         // Create a simple table and fill it with somewhat random values
         rand.setSeed(0);
         PersonTable table = new PersonTable();
@@ -77,11 +77,11 @@ public class QuickBenchmark {
                 day = "Tuesday";
 
             table.add(name, hired, age, day);
-            
+
             if (row == 100)
                 table.optimize();
-        }       
-        
+        }
+
         // Start with a search for the last name in the last row
         // (has to do linear scan of all rows)
         long tightdbLastPos = 0;
@@ -92,7 +92,7 @@ public class QuickBenchmark {
         long tightdbFindTime = timer.GetTimeInMs();
         System.out.printf("  find (last integer):    %10d msec\n", tightdbFindTime);
 
-        
+
         // Do some simple aggregates, we will start with a sum
         // (we add them up and print the sum so it does not just get optimized away)
         timer.Start();
@@ -103,7 +103,7 @@ public class QuickBenchmark {
         long tightdbSumTime = timer.GetTimeInMs();
         System.out.printf("  sum (all integers):     %10d msec\n", tightdbSumTime);
 
-        
+
         // Then lets do a count
         timer.Start();
         long tightdbCountMondays = 0;
@@ -113,14 +113,14 @@ public class QuickBenchmark {
         long tightdbCountTime = timer.GetTimeInMs();
         System.out.printf("  count (string):         %10d msec\n", tightdbCountTime);
 
-       
+
         // Add an index and lets try some lookups
         table.setIndex(0);      // syntax will soon be "table.name.setIndex();"
         timer.Start();
         long tightdbLookups = 0;
         int randLength = randomNames.length;
-        for (int n = 0; n < ROUNDS; ++n) {     
-            long rowIndex = table.lookup( randomNames[ rand.nextInt(randLength) ] ); 
+        for (int n = 0; n < ROUNDS; ++n) {
+            long rowIndex = table.lookup( randomNames[ rand.nextInt(randLength) ] );
             tightdbLookups += table.at(rowIndex).getAge();
         }
         long tightdbLookupTime = timer.GetTimeInMs();
@@ -130,12 +130,12 @@ public class QuickBenchmark {
         /****************************************************************
          * Test Java data structures (ArrayList, HashMap)
          ****************************************************************/
-        
+
         System.out.println("Java: ");
 
         // Create a simple table and fill it with somewhat random values
         // Create Map with same data
-        HashMap<String, JavaPerson> javaMapTable = new HashMap<String, JavaPerson>();        
+        HashMap<String, JavaPerson> javaMapTable = new HashMap<String, JavaPerson>();
         ArrayList<JavaPerson> javaTable = new ArrayList<JavaPerson>();
         rand.setSeed(0);
         for (int row = 0; row < ROW_COUNT; row++) {
@@ -150,17 +150,17 @@ public class QuickBenchmark {
                 day = "Monday";
             else
                 day = "Tuesday";
-            
-            JavaPerson person = new JavaPerson(name, hired, age, day); 
+
+            JavaPerson person = new JavaPerson(name, hired, age, day);
             javaTable.add(person);
             javaMapTable.put(name, person);
-        }       
-        
+        }
+
         // Start with a search for the last name in the last row
         // (has to do linear scan of all rows)
         timer.Start();
         long javaLastPos = 0;
-        for (int n = 0; n < ROUNDS; n++) {   
+        for (int n = 0; n < ROUNDS; n++) {
             // Find position of LAST_NAME
             for (int index = 0; index < ROW_COUNT; index++) {
                 //if (javaTable.get(index).name.equals(LAST_NAME)) {
@@ -173,29 +173,29 @@ public class QuickBenchmark {
         long javaFindTime = timer.GetTimeInMs();
         System.out.printf("  find (last integer):    %10d msec\n", javaFindTime);
 
-        
+
         // Do a sum with a basic loop
         timer.Start();
         long javaSumAge = 0;
-        for (int n = 0; n < ROUNDS; n++) {   
+        for (int n = 0; n < ROUNDS; n++) {
             // Find position of LAST_NAME
             for (int index = 0; index < ROW_COUNT; index++) {
                 javaSumAge += javaTable.get(index).age;
-            }            
+            }
         }
         long javaSumTime = timer.GetTimeInMs();
         System.out.printf("  sum (all integers):     %10d msec\n", javaSumTime);
 
-        
+
         // Do a count
         timer.Start();
         long javaCountMondays = 0;
-        for (int n = 0; n < ROUNDS; n++) {   
+        for (int n = 0; n < ROUNDS; n++) {
             // Find position of LAST_NAME
             for (int index = 0; index < ROW_COUNT; index++) {
                 if (javaTable.get(index).day == "Monday")
                     javaCountMondays += 1;
-            }            
+            }
         }
         long javaCountTime = timer.GetTimeInMs();
         System.out.printf("  count (string):         %10d msec\n", javaCountTime);
@@ -203,14 +203,14 @@ public class QuickBenchmark {
 
         timer.Start();
         long javaLookups = 0;
-        for (int n = 0; n < ROUNDS; n++) {   
+        for (int n = 0; n < ROUNDS; n++) {
             javaLookups += javaMapTable.get( randomNames[ rand.nextInt(randLength) ] ).age;
         }
         long javaLookupTime = timer.GetTimeInMs();
         System.out.printf("  lookup (random string): %10d msec\n", javaLookupTime);
-        
-        
-        
+
+
+
         /****************************************************************
          * Compare
          ****************************************************************/
@@ -218,10 +218,10 @@ public class QuickBenchmark {
             tightdbSumAge != javaSumAge ||
             tightdbCountMondays != javaCountMondays ||
             tightdbLookups != javaLookups) {
-        
+
             System.out.println("\nInvalid results!!!");
         }
-        
+
         // Print comparable speeds
         if (tightdbFindTime > 0)
             System.out.printf("\nfind:   tightdb is %d times faster than ArrayList\n", javaFindTime / tightdbFindTime);
@@ -238,13 +238,13 @@ public class QuickBenchmark {
 
 class Timer {
     static long startTime;
-    
+
     public void Start() {
         startTime = System.nanoTime();
     }
-    
+
     public long GetTimeInMs() {
         long stopTime = System.nanoTime();
         return (stopTime - startTime) / 1000000;
-    }   
+    }
 }

@@ -12,7 +12,7 @@ public class ReadTransaction extends Group {
         super(db.beginReadGroup(), true);
         this.db = db;
     }
-    
+
     ReadTransaction(SharedGroup db, long nativePtr)
     {
         super(nativePtr, true); // make Group immutable

@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 
 public class JNISortedLongTest {
     Table table;
-    
+
     void init() {
         table = new Table();
         table.addColumn(ColumnType.ColumnTypeInt, "number");
@@ -26,13 +26,13 @@ public class JNISortedLongTest {
         init();
         long pos;
         boolean found;
-        
+
         // Find first insert position
         pos = table.findSortedLong(0, 0);
         found = (table.getLong(0, pos) == 0);
         assertEquals(0, pos);
         assertEquals(false, found);
-    
+
         // find middle match
         pos = table.findSortedLong(0, 40);
         found = (table.getLong(0, pos) == 40);
@@ -51,11 +51,11 @@ public class JNISortedLongTest {
         assertEquals(7, pos);
         assertEquals(false, found);
 
-        // find last match 
+        // find last match
         pos = table.findSortedLong(0, 60);
         found = (table.getLong(0, pos) == 60);
         assertEquals(6, pos);
         assertEquals(true, found);
-        
+
     }
-}   
+}
