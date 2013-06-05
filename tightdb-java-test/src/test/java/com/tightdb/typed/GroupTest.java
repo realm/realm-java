@@ -4,11 +4,13 @@ import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.io.File;
 
 import com.tightdb.Group;
 import com.tightdb.test.TestEmployeeTable;
@@ -28,6 +30,49 @@ public class GroupTest {
 
         Group group2 = new Group("testfile.tightdb");
         group2.close();
+    }
+
+    @Test(enabled = true)
+    public void groupNoOverwrite() throws NullPointerException, IOException {
+        {
+            Group group = new Group();
+            try {
+                group.writeToFile("test_no_overwrite.tightdb");
+                try {
+                    group.writeToFile("test_no_overwrite.tightdb");
+                    fail("Expected exception did not occur");
+                }
+                catch (Throwable t) {} // FIXME: What exception exactly is expected here?
+            }
+            finally {
+                group.close();
+            }
+        }
+
+        {
+            Group group = new Group("test_no_overwrite.tightdb");
+            try {
+                try {
+                    group.writeToFile("test_no_overwrite.tightdb");
+                    fail("Expected exception did not occur");
+                }
+                catch (Throwable t) {} // FIXME: What exception exactly is expected here?
+            }
+            finally {
+                group.close();
+            }
+        }
+
+        {
+            Group group = new Group();
+            try {
+                (new File(System.getProperty("user.dir"), "test_no_overwrite.tightdb")).delete();
+                group.writeToFile("test_no_overwrite.tightdb");
+            }
+            finally {
+                group.close();
+            }
+        }
     }
 
 /* TODO: Enable when implemented "free" method for the data
