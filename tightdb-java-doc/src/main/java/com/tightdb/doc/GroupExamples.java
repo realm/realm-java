@@ -42,7 +42,7 @@ public class GroupExamples {
 */		
 		/* EXAMPLE: writeToFile */
 
-		File file = new File("data.tdb");
+		File file = new File("data.tightdb");
 		try {
 			group.writeToFile(file);
 		} catch (IOException e) {
@@ -52,7 +52,7 @@ public class GroupExamples {
 		/* EXAMPLE: writeToFile-2 */
 
 		try {
-			group.writeToFile("data.tdb");
+			group.writeToFile("data.tightdb");
 		} catch (IOException e) {
 			throw new RuntimeException("Couldn't write to file!", e);
 		}

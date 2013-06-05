@@ -23,10 +23,10 @@ public class GroupTest {
 	@Test(enabled = true)
 	public void groupFileCanClose() throws NullPointerException, IOException {
 		Group group = new Group();
-		group.writeToFile("testfile.tdb");
+		group.writeToFile("testfile.tightdb");
 		group.close();
 
-		Group group2 = new Group("testfile.tdb");
+		Group group2 = new Group("testfile.tightdb");
 		group2.close();
 	}
 

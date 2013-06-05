@@ -2763,7 +2763,7 @@ Group group = new Group();
 	                		<dd>
 								<pre class="prettyprint lang-java">
 
-Group group = new Group(new File("data.tdb"));
+Group group = new Group(new File("data.tightdb"));
 
 								</pre>
 	                         </dd>
@@ -2791,7 +2791,7 @@ Group group = new Group(new File("data.tdb"));
 	                		<dd>
 								<pre class="prettyprint lang-java">
 
-Group group = new Group("data.tdb", true);
+Group group = new Group("data.tightdb", true);
 
 								</pre>
 	                         </dd>
@@ -2818,7 +2818,7 @@ Group group = new Group("data.tdb", true);
 	                		<dd>
 								<pre class="prettyprint lang-java">
 
-Group group = new Group("data.tdb");
+Group group = new Group("data.tightdb");
 
 								</pre>
 	                         </dd>
@@ -3098,7 +3098,7 @@ ByteBuffer buffer = group.writeToByteBuffer();
 	                		<dd>
 								<pre class="prettyprint lang-java">
 
-File file = new File("data.tdb");
+File file = new File("data.tightdb");
 try {
 group.writeToFile(file);
 } catch (IOException e) {
@@ -3132,7 +3132,7 @@ throw new RuntimeException("Couldn't write to file!", e);
 	                		<dd>
 								<pre class="prettyprint lang-java">
 
-File file = new File("data.tdb");
+File file = new File("data.tightdb");
 try {
 group.writeToFile(file);
 } catch (IOException e) {

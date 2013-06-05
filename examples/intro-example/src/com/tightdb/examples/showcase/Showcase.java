@@ -190,7 +190,7 @@ public class Showcase {
 		/***************************** SAVE TO FILE ******************************/
 
 		try {
-			group.writeToFile("employees.tdb");
+			group.writeToFile("employees.tightdb");
 		} catch (IOException e) {
 			throw new RuntimeException("Couldn't save the data!", e);
 		}
@@ -209,7 +209,7 @@ public class Showcase {
 
 		/**************************** LOAD FROM FILE *****************************/
 
-		Group group2 = new Group("employees.tdb");
+		Group group2 = new Group("employees.tightdb");
 		EmployeeTable employees2 = new EmployeeTable(group2);
 		TightDB.print(employees2);
 	}
