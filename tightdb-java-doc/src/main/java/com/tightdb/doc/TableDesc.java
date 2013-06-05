@@ -11,7 +11,7 @@ public class TableDesc extends AbstractDesc {
     public void describe() {
         constructor("Allocates and instantiates a TightDB table. <br/> Note: Only tables which are part of a Group can be serialized to memory or disk");
         constructor("Allocates and instantiates a TightDB table, as part of the specified group", "Group", "group");
-        
+
         method("Row",       "add", "Insert a new row at the end of the table", "RowDataTypes...", "rowData...");
         method("Row",       "at", "Get a specific row as an object (rowIndex starts at 0)", "long", "rowIndex");
         method("void",      "clear", "Delete all rows in the table");
@@ -32,11 +32,11 @@ public class TableDesc extends AbstractDesc {
         method("void",      "removeLast", "Remove the last row from the table");
         //TODO: setIndex
         method("long",      "size", "Get the number of rows in the table");
-        
+
         method("String",    "toJson", "Retrieve JSON representaion of the data");
         method("Query",     "where", "Create a query for the table");
 
         // EmployeeTable t = new EmployeeTable();
     }
-    
+
 }

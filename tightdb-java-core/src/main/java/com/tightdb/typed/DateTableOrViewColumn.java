@@ -40,7 +40,7 @@ public class DateTableOrViewColumn<Cursor, View, Query> extends DateQueryColumn<
     public Cursor findFirst(Date value) {
         return cursor(tableOrView.findFirstDate(columnIndex, value));
     }
-    
+
     public View findAll(Date value) {
         return view(tableOrView.findAllDate(columnIndex, value));
     }

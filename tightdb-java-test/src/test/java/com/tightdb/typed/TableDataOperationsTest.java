@@ -19,7 +19,7 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
 
     private TestEmployeeTable employees;
     private Object[][] phones;
-    
+
     @Override
     protected AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getEmployees() {
         return employees;
@@ -55,17 +55,17 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
     public void shouldConstructSubtableInline() {
         TestPhoneTable phones = employees.last().getPhones();
         assertEquals(2, phones.size());
-        
+
         assertEquals("home", phones.at(0).type.get());
         assertEquals("123-123", phones.at(0).number.get());
-        
+
         assertEquals("mobile", phones.at(1).getType());
         assertEquals("456-456", phones.at(1).getNumber());
     }
 
 
     @Test(enabled=true)
-    public void shouldDeleteAllButLast() {      
+    public void shouldDeleteAllButLast() {
         employees.moveLastOver(2);
         employees.moveLastOver(1);
         employees.moveLastOver(0);
@@ -80,6 +80,6 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
             assert(false);
         } catch (Exception e) {
         }
-        
+
     }
 }

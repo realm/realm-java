@@ -52,7 +52,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 
     /**
      * Returns the number of columns in the table.
-     * 
+     *
      * @return the number of columns.
      */
     public long getColumnCount() {
@@ -62,7 +62,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     /**
      * Returns the name of a column identified by columnIndex. Notice that the
      * index is zero based.
-     * 
+     *
      * @param columnIndex
      *            the column index
      * @return the name of the column
@@ -73,7 +73,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 
     /**
      * Returns the 0-based index of a column based on the name.
-     * 
+     *
      * @param columnName
      *            the column name
      * @return the index, -1 if not found
@@ -84,7 +84,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
 
     /**
      * Get the type of a column identified by the columnIdex.
-     * 
+     *
      * @param columnIndex
      *            index of the column.
      * @return Type of the particular column.
@@ -199,13 +199,13 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     public long lookup(String value) {
         return table.lookup(value);
     }
-    
+
     public void moveLastOver(long rowIndex) {
         table.moveLastOver(rowIndex);
     }
 
     // TODO: Should be moved to column
-    
+
     public void setIndex(long columnIndex) {
         table.setIndex(columnIndex);
     }
@@ -217,5 +217,5 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     public long findSorted(long columnIndex, long value) {
         return table.findSortedLong(columnIndex, value);
         }
-    
+
 }

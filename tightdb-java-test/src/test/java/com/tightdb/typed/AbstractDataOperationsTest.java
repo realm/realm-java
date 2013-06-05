@@ -92,7 +92,7 @@ public abstract class AbstractDataOperationsTest {
         assertEquals(NAME0, getEmployees().at(0).getFirstName());
         assertEquals(NAME1, getEmployees().at(1).getFirstName());
         assertEquals(NAME2, getEmployees().at(2).getFirstName());
-        
+
         // Remove last row
         getEmployees().removeLast();
         assertEquals(2, getEmployees().size());
@@ -118,5 +118,5 @@ public abstract class AbstractDataOperationsTest {
         String json = getEmployees().toJson();
         assertNotNull(json);
     }
-    
+
 }

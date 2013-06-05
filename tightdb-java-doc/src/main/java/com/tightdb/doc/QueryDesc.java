@@ -21,13 +21,13 @@ public class QueryDesc extends AbstractDesc {
 
         method("Query",     "group", "Group conditions ('left' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis");
         method("Query",     "or", "Logical OR");
-        
+
         method("long",      "remove", "Remove the matching rows from the table, return the number of removed rows");
         method("long",      "remove", "Remove the matching rows from the table for the specified range and limit, return the number of removed rows", "long", "start", "long", "end", "long", "limit");
-        
+
         // FIXME: what about these:
 //      method("Query",     "subTable", "");
 //      method("Query",     "endSubTable", "");
-        
+
     }
 }

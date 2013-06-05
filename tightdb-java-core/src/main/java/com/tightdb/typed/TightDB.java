@@ -15,28 +15,28 @@ import com.tightdb.internal.util;
  * Utility methods for TightDB.
  */
 public class TightDB {
-    
+
     private static final String PATH_SEP = System.getProperty("path.separator");
     private static final String JAVA_LIBRARY_PATH = "java.library.path";
     private static final String BINARIES_PATH = "lib" + PATH_SEP + "../lib";
-            
+
     private static boolean loadedLibrary;
 
     private static String getJniFileName()
     {
-        String os = System.getProperty("os.name").toLowerCase(); 
+        String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("win") >= 0)
-            return "tightdb_jni32.dll or tightdb_jni64.dll";    
+            return "tightdb_jni32.dll or tightdb_jni64.dll";
         if (os.indexOf("mac") >= 0)
             return "libtightdb-jni.jnilib";
         if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 || os.indexOf("sunos") >= 0)
             return "libtightdb-jni.so";
         return "tightdb-jni";
     }
-    
+
     public static boolean osIsWindows()
     {
-        String os = System.getProperty("os.name").toLowerCase(); 
+        String os = System.getProperty("os.name").toLowerCase();
         return (os.indexOf("win") >= 0);
     }
 
@@ -144,7 +144,7 @@ public class TightDB {
             }
             if (!loadedLibrary) {
                 System.err.println("Searched JAVA_LIBRARY_PATH=" + System.getProperty(JAVA_LIBRARY_PATH));
-                throw new RuntimeException("Couldn't load the TightDB JNI library '" + getJniFileName() + 
+                throw new RuntimeException("Couldn't load the TightDB JNI library '" + getJniFileName() +
                         "'. Please include the directory to the library in java.library.path.");
             }
         }
@@ -174,8 +174,8 @@ public class TightDB {
     }
 
     // Hack for having a cross platform location for the lib:
-    // The Classloader has a static field (sys_paths) that contains the paths. 
-    // If that field is set to null, it is initialized automatically. 
+    // The Classloader has a static field (sys_paths) that contains the paths.
+    // If that field is set to null, it is initialized automatically.
     // Therefore forcing that field to null will result into the reevaluation of the library path
     // as soon as loadLibrary() is called
 

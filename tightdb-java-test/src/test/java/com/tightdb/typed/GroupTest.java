@@ -65,7 +65,7 @@ public class GroupTest {
                 5 }, new Date(), 1234, null);
 
         byte[] data = group.writeToMem();
-        
+
         // check table info retrieval
         assertEquals(1, group.size());
         assertEquals(TestEmployeeTable.class.getSimpleName(),
@@ -101,21 +101,21 @@ public class GroupTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void groupByteBufferChecksForNull() {
         ByteBuffer data = null;
-        Group group = new Group(data);  
+        Group group = new Group(data);
         // Expect to throw exception
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void groupByteBufferChecksForDatabaseFormat() {
         ByteBuffer data = ByteBuffer.allocateDirect(5);
-        Group group = new Group(data);  
+        Group group = new Group(data);
         // Expect to throw exception
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void groupByteArrayChecksForDatabaseFormat() {
         byte[] data = {1,2,3,4,5};
-        Group group = new Group(data);  
+        Group group = new Group(data);
         // Expect to throw exception
     }
 }

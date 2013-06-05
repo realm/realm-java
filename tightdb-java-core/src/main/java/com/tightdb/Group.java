@@ -103,7 +103,7 @@ public class Group {
 
     /**
      * Checks whether table exists in the Group.
-     * 
+     *
      * @param name
      *            The name of the table.
      * @return true if the table exists, otherwise false.
@@ -130,7 +130,7 @@ public class Group {
 
     /**
      * Returns a table with the specified name.
-     * 
+     *
      * @param name
      *            The name of the table.
      * @return The table if it exists, otherwise create it.
@@ -148,7 +148,7 @@ public class Group {
 
     /**
      * Writes the group to the specific file on the disk.
-     * 
+     *
      * @param fileName
      *            The file of the file.
      * @throws IOException
@@ -166,7 +166,7 @@ public class Group {
 
     /**
      * Serialize the group to the specific file on the disk.
-     * 
+     *
      * @param file
      *            A File object representing the file.
      * @throws IOException
@@ -186,7 +186,7 @@ public class Group {
 
     /**
      * Serialize the group to a memory buffer. The byte[] is owned by the JVM.
-     * 
+     *
      * @return Binary array of the serialized group.
      */
     public byte[] writeToMem() {
@@ -203,7 +203,7 @@ public class Group {
 
     protected native ByteBuffer nativeWriteToByteBuffer(long nativeGroupPtr);
 */
-    
+
     private void throwImmutable() {
         throw new IllegalStateException(
                 "Mutable method call during read transaction.");

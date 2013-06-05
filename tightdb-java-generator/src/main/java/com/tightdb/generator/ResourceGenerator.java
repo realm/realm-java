@@ -16,12 +16,12 @@ public class ResourceGenerator {
     private static void generate(String... names) throws IOException {
         String frm = "    public static final String %s = \"%s\";";
         List<String> lines = new LinkedList<String>();
-        
+
         lines.add("package com.tightdb.generator;");
         lines.add("");
         lines.add("/* This class is automatically generated from the .ftl templates */");
         lines.add("public class Templates {");
-        
+
         for (String name : names) {
             File file = new File("src/main/resources/codegen-templates/" + name + ".ftl");
             if (file.exists()) {
@@ -34,7 +34,7 @@ public class ResourceGenerator {
         }
 
         lines.add("}");
-        
+
         File output = new File("src/main/java/com/tightdb/generator/Templates.java");
         FileUtils.writeLines(output, lines);
     }

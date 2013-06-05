@@ -29,7 +29,7 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
     public void set(Subtable value) {
                 if (value != null) {
                         // FIXME: maybe implement this is future? (or replace it with set( Object[][] ) method?
-                        throw new UnsupportedOperationException("Set() for Subtables is not implemented yet"); 
+                        throw new UnsupportedOperationException("Set() for Subtables is not implemented yet");
         }
     }
 

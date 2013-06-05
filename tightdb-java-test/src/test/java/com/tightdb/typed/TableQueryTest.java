@@ -37,7 +37,7 @@ public class TableQueryTest extends AbstractTest {
 
     @Test()
     public void shouldCalculateStatistics() {
-        
+
         TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
         assertEquals(2, results.count());
 
@@ -46,7 +46,7 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(30000, results.salary.minimum(1, 2)); // second
         assertEquals(10000, results.salary.minimum(0, Table.INFINITE)); // both
         // TODO: Check invalid parameters
-        
+
         assertEquals(30000, results.salary.maximum());
         assertEquals(10000, results.salary.maximum(0, 1)); // first
         assertEquals(30000, results.salary.maximum(1, 2)); // second
@@ -67,9 +67,9 @@ public class TableQueryTest extends AbstractTest {
     public void shouldCheckWrongParameters() {
         TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
     //  assertEquals(2, results.count());
-        assertEquals(10000, results.salary.minimum(0, 5)); // first     
+        assertEquals(10000, results.salary.minimum(0, 5)); // first
     }
-    
+
     @Test
     public void shouldMatchOnSimpleStringCriteria() {
         assertEquals(1, employees.firstName.eq("John").findAll().size());

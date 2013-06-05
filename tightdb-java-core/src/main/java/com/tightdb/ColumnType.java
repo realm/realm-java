@@ -15,8 +15,8 @@ public enum ColumnType {
     ColumnTypeDate(7),
     ColumnTypeTable(5),
     ColumnTypeMixed(6);
-    // When adding above, remember to update size of largest number below 
-    
+    // When adding above, remember to update size of largest number below
+
     private final int nativeValue;
 
     // Note that if this array is too small, an
@@ -39,18 +39,18 @@ public enum ColumnType {
     public int getValue() {
         return nativeValue;
     }
-    
+
     public boolean matchObject(Object obj) {
         switch (this.nativeValue) {
-        case 0: return (obj instanceof Long || obj instanceof Integer || obj instanceof Short || 
+        case 0: return (obj instanceof Long || obj instanceof Integer || obj instanceof Short ||
                 obj instanceof Byte);
         case 1: return (obj instanceof Boolean);
         case 2: return (obj instanceof String);
         case 4: return (obj instanceof byte[] || obj instanceof ByteBuffer);
         case 5: return (obj == null || obj instanceof Object[][]);
-        case 6: return (obj instanceof Mixed || 
-                obj instanceof Long || obj instanceof Integer || 
-                obj instanceof Short || obj instanceof Byte || obj instanceof Boolean || 
+        case 6: return (obj instanceof Mixed ||
+                obj instanceof Long || obj instanceof Integer ||
+                obj instanceof Short || obj instanceof Byte || obj instanceof Boolean ||
                 obj instanceof Float || obj instanceof Double ||
                 obj instanceof String ||
                 obj instanceof byte[] || obj instanceof ByteBuffer ||
@@ -62,12 +62,12 @@ public enum ColumnType {
         default: throw new RuntimeException("Invalid index in ColumnType.");
         }
     }
-    
+
     static ColumnType fromNativeValue(int value)
     {
         if (0 <= value && value < byNativeValue.length) {
             ColumnType e = byNativeValue[value];
-            if (e != null) 
+            if (e != null)
                 return e;
         }
         throw new IllegalArgumentException("Bad native column type");

@@ -15,7 +15,7 @@ public class Mixed {
     public Mixed(float value) {
         this.value = new Float(value);
     }
-    
+
     public Mixed(double value) {
         this.value = new Double(value);
     }
@@ -116,7 +116,7 @@ public class Mixed {
         else if (value instanceof ByteBuffer || (value instanceof byte[])) {
             return ColumnType.ColumnTypeBinary;
         }
-        
+
         throw new IllegalStateException("Unknown column type!");
     }
 

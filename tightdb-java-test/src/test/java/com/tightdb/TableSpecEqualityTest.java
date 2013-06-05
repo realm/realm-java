@@ -31,7 +31,7 @@ public class TableSpecEqualityTest {
 
         assertFalse(spec1.equals(spec2));
     }
-    
+
     @Test
     public void shouldntMatchSpecsWithDifferentColumnTypes() {
         TableSpec spec1 = new TableSpec();
@@ -82,5 +82,5 @@ public class TableSpecEqualityTest {
 
         assertFalse(spec1.equals(spec2));
     }
-    
+
 }

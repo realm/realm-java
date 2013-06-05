@@ -42,7 +42,7 @@ public class FloatTableOrViewColumn<Cursor, View, Query> extends FloatQueryColum
 
     /*
      * public void setIndex() { tableOrView.setIndex(columnIndex); }
-     * 
+     *
      * public boolean hasIndex() { return tableOrView.hasIndex(columnIndex); }
      */
 

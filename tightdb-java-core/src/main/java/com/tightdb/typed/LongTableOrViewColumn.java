@@ -44,12 +44,12 @@ public class LongTableOrViewColumn<Cursor, View, Query> extends
         public void setIndex() {
             tableOrView.setIndex(columnIndex);
         }
-        
+
         public boolean hasIndex() {
             return tableOrView.hasIndex(columnIndex);
         }
     */
-    
+
     @Override
     public Long[] getAll() {
         long count = tableOrView.size();
@@ -85,6 +85,6 @@ public class LongTableOrViewColumn<Cursor, View, Query> extends
     }
 
     public long findSorted(long value) {
-        return tableOrView.findSortedLong(columnIndex, value);  
+        return tableOrView.findSortedLong(columnIndex, value);
     }
 }

@@ -41,7 +41,7 @@ public abstract class AbstractAnnotationProcessor extends AbstractProcessor {
         if (insideEclipse) {
             logger.debug("Detected Eclipse, the appropriate work-arounds will be activated...");
         }
-        
+
         if (!env.processingOver()) {
             logger.info("Processing annotations...");
             try {

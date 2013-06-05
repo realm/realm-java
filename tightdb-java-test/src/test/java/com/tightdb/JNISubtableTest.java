@@ -5,7 +5,7 @@ import static org.testng.AssertJUnit.*;
 import org.testng.annotations.Test;
 
 public class JNISubtableTest {
-    
+
     @Test()
     public void shouldSynchronizeNestedTables() {
         Group group = new Group();
@@ -26,14 +26,14 @@ public class JNISubtableTest {
         subtable1.add(123);
         assertEquals(1, subtable1.size());
         subtable1.close();
-        
+
         Table subtable2 = table.getSubTable(1, 0);
         assertEquals(1, subtable2.size());
         assertEquals(123, subtable2.getLong(0, 0));
 
         table.clear();
     }
-    
+
     @Test()
     public void shouldInsertNestedTablesNested() {
         Group group = new Group();
@@ -42,10 +42,10 @@ public class JNISubtableTest {
         // Define table
         TableSpec tableSpec = new TableSpec();
         tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
-        
+
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
         subspec.addColumn(ColumnType.ColumnTypeInt, "num");
-        
+
         tableSpec.addColumn(ColumnType.ColumnTypeInt, "Int");
         table.updateFromSpec(tableSpec);
 
@@ -57,6 +57,6 @@ public class JNISubtableTest {
 
         assertEquals(1, table.size());
     }
-    
+
 
 }

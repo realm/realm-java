@@ -19,27 +19,27 @@ public class SearchExample {
 
         EmployeeQuery q1 = Employees.firstName.startsWith("J").lastName.endsWith("e");
         System.out.println(q1);
-        
+
         EmployeeView results = q1.findAll();
         System.out.println(results);
-        
+
         TightDB.print(results);
-        
+
         System.out.println("First names: " + Arrays.toString(results.firstName.getAll()));
         System.out.println("Salary sum: " + results.salary.sum());
         System.out.println("Salary min: " + results.salary.minimum());
         System.out.println("Salary max: " + results.salary.maximum());
         System.out.println("Salary average: " + results.salary.average());
-        
+
         TightDB.print(results);
-        
+
         results.clear();
-        
+
         TightDB.print(Employees);
-        
+
         long count = Employees.firstName.contains("iko").clear();
         System.out.println("Removed " + count + " rows!");
-        
+
         TightDB.print(Employees);
     }
 

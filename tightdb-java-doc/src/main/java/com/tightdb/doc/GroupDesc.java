@@ -29,7 +29,7 @@ public class GroupDesc extends AbstractDesc {
         method("void", "writeToFile", "Serialize the group to disk", "File", "file");
         method("void", "writeToFile", "Serialize the group to disk", "String", "fileName");
         method("byte[]", "writeToMem", "Serialize the group to a memory buffer");
-        
+
         Group g = null;
     }
 }

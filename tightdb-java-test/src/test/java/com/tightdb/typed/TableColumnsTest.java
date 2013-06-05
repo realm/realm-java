@@ -92,15 +92,15 @@ public class TableColumnsTest extends AbstractTest {
     public void shouldAggregateColumnValue() {
         assertEquals(EmployeesFixture.EMPLOYEES[0].salary,
                 employees.salary.minimum());
-        
+
         assertEquals(EmployeesFixture.EMPLOYEES[1].salary,
                 employees.salary.maximum());
-        
+
         long sum = EmployeesFixture.EMPLOYEES[0].salary
                 + EmployeesFixture.EMPLOYEES[1].salary
                 + EmployeesFixture.EMPLOYEES[2].salary;
         assertEquals(sum, employees.salary.sum());
-        
+
         assertEquals(sum / 3.0, employees.salary.average(), 0.00001);
     }
 
@@ -167,7 +167,7 @@ public class TableColumnsTest extends AbstractTest {
             // Dates are truncated to secs
             assertEquals(date.getTime()/1000, d.getTime()/1000);
         }
-        
+
         Mixed extra = Mixed.mixedValue("extra");
         employees.extra.setAll(extra);
         assertSameArrayElement(extra, employees.extra.getAll());

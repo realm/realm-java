@@ -6,7 +6,7 @@ import java.util.List;
 public class TableSpec {
 
     public static class ColumnInfo {
-        
+
         protected final ColumnType type;
         protected final String name;
         protected final TableSpec tableSpec;

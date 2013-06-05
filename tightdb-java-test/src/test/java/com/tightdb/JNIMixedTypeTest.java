@@ -57,7 +57,7 @@ public class JNIMixedTypeTest {
         case ColumnTypeString:
             mixed.getStringValue();
             break;
-            
+
         default:
             assertTrue(false);
             break;
@@ -74,7 +74,7 @@ public class JNIMixedTypeTest {
         table.updateFromSpec(tableSpec);
 
         table.add(value1.value);
-        
+
         checkMixedCell(table, 0, 0, value1.type, value1.value);
 
         table.setMixed(0, 0, Mixed.mixedValue(value2.value));
@@ -132,7 +132,7 @@ public class JNIMixedTypeTest {
     @DataProvider(name = "columnTypesProvider")
     public Object[][] columnTypesProvider() {
         Object[][] values = { {ColumnType.ColumnTypeBool},
-                {ColumnType.ColumnTypeString}, {ColumnType.ColumnTypeInt}, 
+                {ColumnType.ColumnTypeString}, {ColumnType.ColumnTypeInt},
                 {ColumnType.ColumnTypeFloat}, {ColumnType.ColumnTypeDouble},
                 {ColumnType.ColumnTypeDate}, {ColumnType.ColumnTypeBinary} };
 

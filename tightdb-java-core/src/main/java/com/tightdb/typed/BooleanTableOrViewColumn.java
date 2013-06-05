@@ -38,7 +38,7 @@ public class BooleanTableOrViewColumn<Cursor, View, Query> extends BooleanQueryC
     public Cursor findFirst(boolean value) {
         return cursor(tableOrView.findFirstBoolean(columnIndex, value));
     }
-    
+
     public View findAll(boolean value) {
         return view(tableOrView.findAllBoolean(columnIndex, value));
     }

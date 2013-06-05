@@ -13,33 +13,33 @@ public class GroupExamples {
     public static void main(String[] args) {
 
         Group group = new Group();
-        
+
         /* EXAMPLE: close */
 
         group.close();
-        
+
         /* EXAMPLE: getTable */
 
         Table a = group.getTable("PersonTable");
-        
+
         /* EXAMPLE: size */
 
         long tableCount = group.size();
-        
+
         /* EXAMPLE: getTableName */
 
         String firstTableName = group.getTableName(0);
-        
+
         /* EXAMPLE: hasTable */
 
         if (group.hasTable("PersonTable")) {
               // do something
         }
-        
+
         /* EXAMPLE: writeToByteBuffer */
 /* TODO
         ByteBuffer buffer = group.writeToByteBuffer();
-*/      
+*/
         /* EXAMPLE: writeToFile */
 
         File file = new File("data.tightdb");
@@ -48,7 +48,7 @@ public class GroupExamples {
         } catch (IOException e) {
             throw new RuntimeException("Couldn't write to file!", e);
         }
-        
+
         /* EXAMPLE: writeToFile-2 */
 
         try {
@@ -56,14 +56,14 @@ public class GroupExamples {
         } catch (IOException e) {
             throw new RuntimeException("Couldn't write to file!", e);
         }
-        
-        
+
+
         /* EXAMPLE: writeToMem */
-        
+
         byte[] mem = group.writeToMem();
 
         /* EXAMPLE: END! */
-        
+
     }
-    
+
 }

@@ -22,7 +22,7 @@ public class JNIViewSearchTest {
 
         view.findAllString(0, "Foo");
     }
-    
+
     @Test()
     public void shouldQueryInView() {
         Table table = new Table();

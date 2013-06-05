@@ -42,7 +42,7 @@ public class DoubleTableOrViewColumn<Cursor, View, Query> extends DoubleQueryCol
 
     /*
      * public void setIndex() { tableOrView.setIndex(columnIndex); }
-     * 
+     *
      * public boolean hasIndex() { return tableOrView.hasIndex(columnIndex); }
      */
 

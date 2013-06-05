@@ -18,10 +18,10 @@ public class NestedTablesExample {
         john.getPhones().add("home", "222");
 
         johny.getPhones().add("mobile", "333");
-        
+
         nikolche.getPhones().add("mobile", "444");
         nikolche.getPhones().add("work", "555");
-        
+
         TightDB.print(employees);
 
         for (PhoneTable phoneTable : employees.phones.getAll()) {

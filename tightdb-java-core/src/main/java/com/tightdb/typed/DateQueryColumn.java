@@ -15,7 +15,7 @@ public class DateQueryColumn<Cursor, View, Query> extends AbstractColumn<Date, C
         super(types, tableOrView, query, index, name);
     }
 // FIXME: Add methods
-    
+
 //  public Query before(Date value) {
 //      return query(getQuery().less(columnIndex, value.getTime()));
 //  }
@@ -23,7 +23,7 @@ public class DateQueryColumn<Cursor, View, Query> extends AbstractColumn<Date, C
 //  public Query beforeOrEqual(Date value) {
 //      return query(getQuery().lessEqual(columnIndex, value.getTime()));
 //  }
-//  
+//
 //  public Query after(Date value) {
 //      return query(getQuery().greater(columnIndex, value.getTime()));
 //  }
@@ -39,5 +39,5 @@ public class DateQueryColumn<Cursor, View, Query> extends AbstractColumn<Date, C
 //  public Query is(Date value) {
 //      return query(getQuery().equal(columnIndex, value));
 //  }
-    
+
 }

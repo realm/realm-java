@@ -69,5 +69,5 @@ public abstract class AbstractTableOrView<Cursor, View, Query> implements Iterab
     public String toJson() {
         return tableOrView.toJson();
     }
-    
+
 }

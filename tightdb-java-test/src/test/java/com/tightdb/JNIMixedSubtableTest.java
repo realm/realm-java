@@ -20,12 +20,12 @@ public class JNIMixedSubtableTest {
         // Shouln't work: no Mixed stored yet
         //Mixed m1 = table.getMixed(1, 0);
         //ColumnType mt = table.getMixedType(1,0);
-        
+
         // You can't "getSubTable()" unless there is one. And the addEmptyRow will put in a Mixed(0) as default.
         // You now get an exception instead of crash if you try anyway
         {
             table.addEmptyRow();
-            
+
             boolean gotException = false;
             try {
                 @SuppressWarnings("unused")
@@ -36,14 +36,14 @@ public class JNIMixedSubtableTest {
             assertEquals(true, gotException);
             table.removeLast();
         }
-        
+
         long ROW = 0;
         // Add empty row - the simple way
         table.addEmptyRow();
         table.setMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable));
         assertEquals(1, table.size());
         assertEquals(0, table.getSubTableSize(1, 0));
-        
+
         // Create schema for the one Mixed cell with a subtable
         Table subtable = table.getSubTable(1, ROW);
         TableSpec subspecMixed = subtable.getTableSpec();
@@ -71,7 +71,7 @@ public class JNIMixedSubtableTest {
 
         table.addEmptyRow();
         table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));
-        
+
         Table subtable = table.getSubTable(1, 0);
     }
 

@@ -26,7 +26,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
     public ColumnType getType() {
         return cursor.tableOrView.getMixedType(columnIndex, cursor.getPosition());
     }
-    
+
     @Override
     public void set(Mixed value) {
         cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), value);
@@ -81,11 +81,11 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 
         Table subtableBase = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
         TableSpec spec = subtableBase.getTableSpec();
-        
+
         // Build table schema
         final TableSpec spec2 = new TableSpec();
         AbstractTable.specifyTableStructure(tableClass, spec2);
-        
+
         return spec.equals(spec2);
     }
 

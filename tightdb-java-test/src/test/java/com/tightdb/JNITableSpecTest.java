@@ -19,7 +19,7 @@ public class JNITableSpecTest {
         spec.addColumn(columnType, "foo");
         assertEquals(0, spec.getColumnIndex("foo"));
         assertEquals(-1, spec.getColumnIndex("xx"));
-        
+
         TableSpec spec2 = new TableSpec();
         spec2.addColumn(columnType, "foo");
         checkSpecIdentity(spec, spec2);
@@ -43,7 +43,7 @@ public class JNITableSpecTest {
         spec2.addColumn(columnType, "foo");
         TableSpec subspec2 = spec2.addSubtableColumn("bar");
         subspec2.addColumn(columnType2, "subbar");
-        
+
         checkSpecIdentity(spec, spec2);
 
         Table table = new Table();
@@ -64,7 +64,7 @@ public class JNITableSpecTest {
         assertEquals(spec, spec2);
         assertEquals(spec.hashCode(), spec2.hashCode());
     }
-    
+
     private List<?> columnTypes() {
         return Arrays.asList(ColumnType.values());
     }
@@ -78,7 +78,7 @@ public class JNITableSpecTest {
         assertEquals("0", table.getColumnName(0));
         assertEquals(ColumnType.ColumnTypeInt, table.getColumnType(0));
         table.add(23);
-        
+
         table.addColumn(ColumnType.ColumnTypeFloat, "1");
         table.add(11, 11.1f);
         table.addColumn(ColumnType.ColumnTypeDouble, "2");
@@ -96,10 +96,10 @@ public class JNITableSpecTest {
         table.add(77, 77.7f, -77.7, true, "77", date, new byte[] {7, 7}, "mix");
         table.addColumn(ColumnType.ColumnTypeTable, "8");
         table.add(88, 88.8f, -88.8, false, "88", date, new byte[] {8, 8, 8}, "mixed", null);
-        
+
         table.addEmptyRows(10);
         assertEquals(9+10, table.size());
-                
+
         // Check columns
         long columns = 9;
         assertEquals(columns, table.getColumnCount());
@@ -108,16 +108,16 @@ public class JNITableSpecTest {
             assertEquals(name, table.getColumnName(i));
             assertEquals(i, table.getColumnIndex(name));
         }
-        
+
         // Test renameColumn():
-        
-        for (long i=0; i<columns; i++) 
+
+        for (long i=0; i<columns; i++)
             table.renameColumn(i, "New " + i);
-        for (long i=0; i<columns; i++)  
+        for (long i=0; i<columns; i++)
             assertEquals("New " + i, table.getColumnName(i));
-        
+
         // Test removeColumn():
-        
+
         table.removeColumn(1);
         assertEquals(columns-1, table.getColumnCount());
         assertEquals("New 0", table.getColumnName(0));
