@@ -6,8 +6,8 @@ package com.tightdb.typed;
  */
 public interface TableOrViewColumn<Type> {
 
-	Type[] getAll();
+    Type[] getAll();
 
-	void setAll(Type value);
+    void setAll(Type value);
 
 }

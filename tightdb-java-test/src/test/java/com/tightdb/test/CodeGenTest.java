@@ -7,10 +7,10 @@ import com.tightdb.DefineTable;
  */
 class CodeGenTest {
 
-	@DefineTable // this is enabled only for occasional local tests
-	class someModel {
-		String name;
-		int age;
-	}
+    @DefineTable // this is enabled only for occasional local tests
+    class someModel {
+        String name;
+        int age;
+    }
 
 }

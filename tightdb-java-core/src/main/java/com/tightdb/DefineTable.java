@@ -14,12 +14,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface DefineTable {
 
-	String row() default "";
+    String row() default "";
 
-	String table() default "";
+    String table() default "";
 
-	String view() default "";
+    String view() default "";
 
-	String query() default "";
+    String query() default "";
 
 }

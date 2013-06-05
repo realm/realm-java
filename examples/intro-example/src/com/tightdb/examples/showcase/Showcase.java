@@ -11,206 +11,206 @@ import com.tightdb.typed.TightDB;
 
 public class Showcase {
 
-	public static void main(String[] args) {
-		showLongExample();
-	}
+    public static void main(String[] args) {
+        showLongExample();
+    }
 
-	/******************************************************************/
-	/* Example of simple Tightdb operations using highlevel interface */
-	/******************************************************************/
+    /******************************************************************/
+    /* Example of simple Tightdb operations using highlevel interface */
+    /******************************************************************/
 
-	/*
-	 * Define a table like below and name it in lowercase. A class will be
-	 * generated with first letter uppercase: Employee. Employee is a cursor to
-	 * rows in the EmployeeTable, which will also be generated.
-	 */
-	
-	@DefineTable(row="Employee")
-	class employee {
-		String firstName;
-		String lastName;
-		int salary;
-		boolean driver;
-		byte[] photo;
-		Date birthdate;
-		Object extra;
-		phone phones;
-	}
+    /*
+     * Define a table like below and name it in lowercase. A class will be
+     * generated with first letter uppercase: Employee. Employee is a cursor to
+     * rows in the EmployeeTable, which will also be generated.
+     */
+    
+    @DefineTable(row="Employee")
+    class employee {
+        String firstName;
+        String lastName;
+        int salary;
+        boolean driver;
+        byte[] photo;
+        Date birthdate;
+        Object extra;
+        phone phones;
+    }
 
-	@DefineTable(row="Phone")
-	class phone {
-		String type;
-		String number;
-	}
+    @DefineTable(row="Phone")
+    class phone {
+        String type;
+        String number;
+    }
 
-	@SuppressWarnings("unused")
-	public static void showLongExample() {
-		Group group = new Group();
-		EmployeeTable employees = new EmployeeTable(group);
+    @SuppressWarnings("unused")
+    public static void showLongExample() {
+        Group group = new Group();
+        EmployeeTable employees = new EmployeeTable(group);
 
-		/****************************** BASIC OPERATIONS *****************************/
+        /****************************** BASIC OPERATIONS *****************************/
 
-		Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra", null);
-		Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true, null);
-		Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
-		
-		TightDB.print("Employees", employees);
-		TightDB.print("Johny", johny);
+        Employee john = employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra", null);
+        Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true, null);
+        Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
+        
+        TightDB.print("Employees", employees);
+        TightDB.print("Johny", johny);
 
-		System.out.println("first record: " + john);
-		System.out.println("second record: " + nikolche);
-		System.out.println("some column: " + john.firstName);
+        System.out.println("first record: " + john);
+        System.out.println("second record: " + nikolche);
+        System.out.println("some column: " + john.firstName);
 
-		/****************************** GETTERS AND SETTERS *****************************/
+        /****************************** GETTERS AND SETTERS *****************************/
 
-		// 2 ways to get the value
-		System.out.println("name1: " + john.firstName.get());
-		System.out.println("name2: " + john.getFirstName());
+        // 2 ways to get the value
+        System.out.println("name1: " + john.firstName.get());
+        System.out.println("name2: " + john.getFirstName());
 
-		// 2 ways to set the value
-		employees.at(2).lastName.set("NewName");
-		employees.at(2).setLastName("NewName");
+        // 2 ways to set the value
+        employees.at(2).lastName.set("NewName");
+        employees.at(2).setLastName("NewName");
 
-		/****************************** MANIPULATION OF ALL RECORDS *****************************/
+        /****************************** MANIPULATION OF ALL RECORDS *****************************/
 
-		Employee is17 = employees.salary.equal(17).findFirst();
-		TightDB.print("**************** Salary 17?: ", is17);
-		if (is17 == null)
-			System.out.println("No - (Correct.))");
+        Employee is17 = employees.salary.equal(17).findFirst();
+        TightDB.print("**************** Salary 17?: ", is17);
+        if (is17 == null)
+            System.out.println("No - (Correct.))");
 
-		Employee is30000 = employees.salary.equal(30000).findFirst();
-		TightDB.print("**************** With Salary 30000?: ", is30000);
+        Employee is30000 = employees.salary.equal(30000).findFirst();
+        TightDB.print("**************** With Salary 30000?: ", is30000);
 
-		// using explicit OR
-		TightDB.print("Search example", employees.firstName.equal("Johnny")
-				.or().lastName.equal("Mihajlovski").findFirst());
+        // using explicit OR
+        TightDB.print("Search example", employees.firstName.equal("Johnny")
+                .or().lastName.equal("Mihajlovski").findFirst());
 
-		// using implicit AND
-		TightDB.print("Search example 2", employees.firstName.eq("Johnny").lastName.startsWith("B").findLast());
+        // using implicit AND
+        TightDB.print("Search example 2", employees.firstName.eq("Johnny").lastName.startsWith("B").findLast());
 
-		employees.firstName.eq("John").findLast().salary.set(30000);
+        employees.firstName.eq("John").findLast().salary.set(30000);
 
-		/****************************** ITERATION OF ALL RECORDS *****************************/
+        /****************************** ITERATION OF ALL RECORDS *****************************/
 
-		// lazy iteration over the table
-		for (Employee employee : employees) {
-			System.out.println("iterating: " + employee);
-		}
+        // lazy iteration over the table
+        for (Employee employee : employees) {
+            System.out.println("iterating: " + employee);
+        }
 
-		/****************************** AGGREGATION *****************************/
+        /****************************** AGGREGATION *****************************/
 
-		// aggregation of the salary
-		System.out.println("max salary: " + employees.salary.maximum());
-		System.out.println("min salary: " + employees.salary.minimum());
-		System.out.println("salary sum: " + employees.salary.sum());
-		
-		/****************************** COMPLEX QUERY *****************************/
+        // aggregation of the salary
+        System.out.println("max salary: " + employees.salary.maximum());
+        System.out.println("min salary: " + employees.salary.minimum());
+        System.out.println("salary sum: " + employees.salary.sum());
+        
+        /****************************** COMPLEX QUERY *****************************/
 
-		TightDB.print("Query 1", 
-				employees
-				.firstName.startsWith("Nik")
-				.lastName.contains("vski")
-				.or().firstName.eq("John")
-				.findAll());
+        TightDB.print("Query 1", 
+                employees
+                .firstName.startsWith("Nik")
+                .lastName.contains("vski")
+                .or().firstName.eq("John")
+                .findAll());
 
-		TightDB.print("Query 2a", 
-				employees.firstName.startsWith("Nik")
-				.group()
-					.lastName.contains("vski")
-					.or()
-					.firstName.eq("John")
-				.endGroup()
-				.findAll());
-		
-		TightDB.print("Query 2b", 
-				employees.where()
-				.group()
-					.lastName.contains("vski")
-					.or()
-					.firstName.eq("John")
-				.endGroup()
-				.firstName.startsWith("Nik")
-				.findAll());
+        TightDB.print("Query 2a", 
+                employees.firstName.startsWith("Nik")
+                .group()
+                    .lastName.contains("vski")
+                    .or()
+                    .firstName.eq("John")
+                .endGroup()
+                .findAll());
+        
+        TightDB.print("Query 2b", 
+                employees.where()
+                .group()
+                    .lastName.contains("vski")
+                    .or()
+                    .firstName.eq("John")
+                .endGroup()
+                .firstName.startsWith("Nik")
+                .findAll());
 
-		// lazy iteration over query
-		EmployeeQuery employeesOnN = employees.firstName.startsWith("J");
-		Employee employee;
-		while ((employee = employeesOnN.findNext()) != null) {
-			TightDB.print("Employee starting with J: ", employee);
-		}
-		/****************************** MANIPULATION OF ALL RECORDS *****************************/
+        // lazy iteration over query
+        EmployeeQuery employeesOnN = employees.firstName.startsWith("J");
+        Employee employee;
+        while ((employee = employeesOnN.findNext()) != null) {
+            TightDB.print("Employee starting with J: ", employee);
+        }
+        /****************************** MANIPULATION OF ALL RECORDS *****************************/
 
-		System.out.println("- First names: " + Arrays.toString(employees.firstName.getAll()));
+        System.out.println("- First names: " + Arrays.toString(employees.firstName.getAll()));
 
-		employees.salary.setAll(100000);
-		employees.firstName.contains("o").findAll().firstName.setAll("Bill");
+        employees.salary.setAll(100000);
+        employees.firstName.contains("o").findAll().firstName.setAll("Bill");
 
-		TightDB.print(employees);
+        TightDB.print(employees);
 
-		/****************************** COLUMN RETRIEVAL *****************************/
+        /****************************** COLUMN RETRIEVAL *****************************/
 
-		System.out.print("- Columns: ");
-		for (AbstractColumn<?, ?, ?, ?> column : john.columns()) {
-			System.out.print(column.getName() + "=" + column.getReadableValue() + " ");
-		}
-		System.out.println();
+        System.out.print("- Columns: ");
+        for (AbstractColumn<?, ?, ?, ?> column : john.columns()) {
+            System.out.print(column.getName() + "=" + column.getReadableValue() + " ");
+        }
+        System.out.println();
 
-		/****************************** SUBTABLES *****************************/
+        /****************************** SUBTABLES *****************************/
 
-		PhoneTable subtable = john.phones.get();
-		subtable.add("mobile", "111");
+        PhoneTable subtable = john.phones.get();
+        subtable.add("mobile", "111");
 
-		john.getPhones().add("mobile", "111");
-		john.getPhones().add("home", "222");
+        john.getPhones().add("mobile", "111");
+        john.getPhones().add("home", "222");
 
-		johny.getPhones().add("mobile", "333");
+        johny.getPhones().add("mobile", "333");
 
-		nikolche.getPhones().add("mobile", "444");
-		nikolche.getPhones().add("work", "555");
+        nikolche.getPhones().add("mobile", "444");
+        nikolche.getPhones().add("work", "555");
 
-		for (PhoneTable phoneTable : employees.phones.getAll()) {
-			TightDB.print(phoneTable);
-		}
+        for (PhoneTable phoneTable : employees.phones.getAll()) {
+            TightDB.print(phoneTable);
+        }
 
-		// convenience methods on the column:
+        // convenience methods on the column:
 
-		for (Phone phone : nikolche.phones) {
-			TightDB.print("- phone", phone);
-		}
+        for (Phone phone : nikolche.phones) {
+            TightDB.print("- phone", phone);
+        }
 
-		TightDB.print("- first phone", nikolche.phones.first());
+        TightDB.print("- first phone", nikolche.phones.first());
 
-		/*************************** CURSOR NAVIGATION ***************************/
+        /*************************** CURSOR NAVIGATION ***************************/
 
-		Employee p1 = employees.at(0).next(); 		// 2nd row
-		Employee p2 = employees.last().previous(); 	// 2nd-last row
-		Employee p3 = employees.first().after(2); 	// 3rd row
-		employees.last().before(2); 				// 3rd-last row
+        Employee p1 = employees.at(0).next();       // 2nd row
+        Employee p2 = employees.last().previous();  // 2nd-last row
+        Employee p3 = employees.first().after(2);   // 3rd row
+        employees.last().before(2);                 // 3rd-last row
 
-		/***************************** SAVE TO FILE ******************************/
+        /***************************** SAVE TO FILE ******************************/
 
-		try {
-			group.writeToFile("employees.tightdb");
-		} catch (IOException e) {
-			throw new RuntimeException("Couldn't save the data!", e);
-		}
+        try {
+            group.writeToFile("employees.tightdb");
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't save the data!", e);
+        }
 
-		/****************************** DATA REMOVAL *****************************/
+        /****************************** DATA REMOVAL *****************************/
 
-		employees.remove(0);
+        employees.remove(0);
 
-		TightDB.print(employees);
+        TightDB.print(employees);
 
-		employees.clear();
-		
-		employees.firstName.eq("ff").findAll().salary.minimum();
-		
-		TightDB.print(employees);
+        employees.clear();
+        
+        employees.firstName.eq("ff").findAll().salary.minimum();
+        
+        TightDB.print(employees);
 
-		/**************************** LOAD FROM FILE *****************************/
+        /**************************** LOAD FROM FILE *****************************/
 
-		Group group2 = new Group("employees.tightdb");
-		EmployeeTable employees2 = new EmployeeTable(group2);
-		TightDB.print(employees2);
-	}
+        Group group2 = new Group("employees.tightdb");
+        EmployeeTable employees2 = new EmployeeTable(group2);
+        TightDB.print(employees2);
+    }
 }

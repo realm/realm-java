@@ -23,7 +23,7 @@ public class WriteTransaction extends Group {
 
     WriteTransaction(SharedGroup db, long nativePtr)
     {
-        super(nativePtr, false);	// Group is mutable
+        super(nativePtr, false);    // Group is mutable
         this.db = db;
     }
 

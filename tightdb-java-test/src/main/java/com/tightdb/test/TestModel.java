@@ -9,29 +9,29 @@ import com.tightdb.DefineTable;
  */
 public class TestModel {
 
-	@DefineTable
-	class TestEmployee {
-		String firstName;
-		String lastName;
-		int salary;
-		boolean driver;
-		byte[] photo;
-		Date birthdate;
-		Object extra;
-		TestPhone phones;
-	}
+    @DefineTable
+    class TestEmployee {
+        String firstName;
+        String lastName;
+        int salary;
+        boolean driver;
+        byte[] photo;
+        Date birthdate;
+        Object extra;
+        TestPhone phones;
+    }
 
-	@DefineTable
-	class TestPhone {
-		String type;
-		String number;
-	}
+    @DefineTable
+    class TestPhone {
+        String type;
+        String number;
+    }
 
-	@DefineTable
-	class TestNumbers {
-		long longNum;
-		float floatNum;
-		double doubleNum;
-	}
+    @DefineTable
+    class TestNumbers {
+        long longNum;
+        float floatNum;
+        double doubleNum;
+    }
 
 }

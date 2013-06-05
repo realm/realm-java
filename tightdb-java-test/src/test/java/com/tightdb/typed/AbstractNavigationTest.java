@@ -12,56 +12,56 @@ import com.tightdb.typed.AbstractTableOrView;
 
 public abstract class AbstractNavigationTest {
 
-	protected abstract AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getTableOrView();
+    protected abstract AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getTableOrView();
 
-	@Test
-	public void shouldNavigateToFirstRecord() {
-		TestEmployeeRow first = getTableOrView().first();
+    @Test
+    public void shouldNavigateToFirstRecord() {
+        TestEmployeeRow first = getTableOrView().first();
 
-		assertEquals(0, first.getPosition());
-	}
+        assertEquals(0, first.getPosition());
+    }
 
-	@Test
-	public void shouldNavigateToLastRecord() {
-		TestEmployeeRow last = getTableOrView().last();
+    @Test
+    public void shouldNavigateToLastRecord() {
+        TestEmployeeRow last = getTableOrView().last();
 
-		assertEquals(getTableOrView().size() - 1, last.getPosition());
-	}
+        assertEquals(getTableOrView().size() - 1, last.getPosition());
+    }
 
-	@Test
-	public void shouldNavigateToNextRecord() {
-		TestEmployeeRow e = getTableOrView().at(0).next();
+    @Test
+    public void shouldNavigateToNextRecord() {
+        TestEmployeeRow e = getTableOrView().at(0).next();
 
-		assertEquals(1, e.getPosition());
-	}
+        assertEquals(1, e.getPosition());
+    }
 
-	@Test
-	public void shouldNavigateToPreviousRecord() {
-		TestEmployeeRow e = getTableOrView().at(1).previous();
+    @Test
+    public void shouldNavigateToPreviousRecord() {
+        TestEmployeeRow e = getTableOrView().at(1).previous();
 
-		assertEquals(0, e.getPosition());
-	}
+        assertEquals(0, e.getPosition());
+    }
 
-	@Test
-	public void shouldNavigateAfterSpecifiedRecords() {
-		TestEmployeeRow e = getTableOrView().at(0).after(2);
+    @Test
+    public void shouldNavigateAfterSpecifiedRecords() {
+        TestEmployeeRow e = getTableOrView().at(0).after(2);
 
-		assertEquals(2, e.getPosition());
-	}
+        assertEquals(2, e.getPosition());
+    }
 
-	@Test
-	public void shouldNavigateBeforeSpecifiedRecords() {
-		TestEmployeeRow e = getTableOrView().at(2).before(2);
+    @Test
+    public void shouldNavigateBeforeSpecifiedRecords() {
+        TestEmployeeRow e = getTableOrView().at(2).before(2);
 
-		assertEquals(0, e.getPosition());
-	}
+        assertEquals(0, e.getPosition());
+    }
 
-	@Test
-	public void shouldReturnNullOnInvalidPosition() {
-		assertNull(getTableOrView().at(0).previous());
-		assertNull(getTableOrView().last().next());
-		assertNull(getTableOrView().at(1).before(2));
-		assertNull(getTableOrView().at(2).after(1000));
-	}
+    @Test
+    public void shouldReturnNullOnInvalidPosition() {
+        assertNull(getTableOrView().at(0).previous());
+        assertNull(getTableOrView().last().next());
+        assertNull(getTableOrView().at(1).before(2));
+        assertNull(getTableOrView().at(2).after(1000));
+    }
 
 }

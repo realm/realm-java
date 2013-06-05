@@ -4,18 +4,18 @@ import com.tightdb.ColumnType;
 
 public class MixedData {
 
-	public ColumnType type;
+    public ColumnType type;
 
-	public Object value;
+    public Object value;
 
-	public MixedData(ColumnType type, Object value) {
-		this.type = type;
-		this.value = value;
-	}
+    public MixedData(ColumnType type, Object value) {
+        this.type = type;
+        this.value = value;
+    }
 
-	@Override
-	public String toString() {
-		return "MixedData [type=" + type + ", value=" + value + "]";
-	}
+    @Override
+    public String toString() {
+        return "MixedData [type=" + type + ", value=" + value + "]";
+    }
 
 }

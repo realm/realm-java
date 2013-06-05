@@ -7,9 +7,9 @@ import java.util.List;
 
 public class DataProviderUtil {
 
-	public static Iterator<Object[]> allCombinations(List<?>... lists) {
-		Iterator<Object[]> iterator = new VariationsIterator<Object>(Arrays.asList(lists));
-		return iterator;
-	}
+    public static Iterator<Object[]> allCombinations(List<?>... lists) {
+        Iterator<Object[]> iterator = new VariationsIterator<Object>(Arrays.asList(lists));
+        return iterator;
+    }
 
 }

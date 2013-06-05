@@ -4,9 +4,9 @@ import com.tightdb.DefineTable;
 
 @DefineTable
 class foo {
-	String b;
-	boolean c;
-	int a;
+    String b;
+    boolean c;
+    int a;
 }
 
 public class TopLevelModelExample {

@@ -9,8 +9,8 @@ public class ReadTransaction extends Group {
 
     ReadTransaction(SharedGroup db)
     {
-    	super(db.beginReadGroup(), true);
-    	this.db = db;
+        super(db.beginReadGroup(), true);
+        this.db = db;
     }
     
     ReadTransaction(SharedGroup db, long nativePtr)
@@ -25,10 +25,10 @@ public class ReadTransaction extends Group {
     }
 
 //    @Override
-	public void close()
+    public void close()
     {
-    	//System.out.println("read-close");
-    	//TODO: can close fail? make exception
+        //System.out.println("read-close");
+        //TODO: can close fail? make exception
         db.endRead();
     }
 

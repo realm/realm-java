@@ -10,64 +10,64 @@ import com.tightdb.TableOrView;
  */
 public abstract class AbstractTableOrView<Cursor, View, Query> implements Iterable<Cursor> {
 
-	protected final EntityTypes<?, View, Cursor, Query> types;
-	protected final TableOrView tableOrView;
+    protected final EntityTypes<?, View, Cursor, Query> types;
+    protected final TableOrView tableOrView;
 
-	public AbstractTableOrView(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView) {
-		this.types = types;
-		this.tableOrView = tableOrView;
-	}
+    public AbstractTableOrView(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView) {
+        this.types = types;
+        this.tableOrView = tableOrView;
+    }
 
-	public long size() {
-		return tableOrView.size();
-	}
+    public long size() {
+        return tableOrView.size();
+    }
 
-	public boolean isEmpty() {
-		return tableOrView.isEmpty();
-	}
+    public boolean isEmpty() {
+        return tableOrView.isEmpty();
+    }
 
-	public void clear() {
-		tableOrView.clear();
-	}
+    public void clear() {
+        tableOrView.clear();
+    }
 
-	public void remove(long rowIndex) {
-		tableOrView.remove(rowIndex);
-	}
+    public void remove(long rowIndex) {
+        tableOrView.remove(rowIndex);
+    }
 
-	public void removeLast() {
-		tableOrView.removeLast();
-	}
+    public void removeLast() {
+        tableOrView.removeLast();
+    }
 
-/*	TODO:
+/*  TODO:
  * public View range(long from, long to) {
-		throw new UnsupportedOperationException();
-	}
+        throw new UnsupportedOperationException();
+    }
 */
-	public Cursor at(long position) {
-		return cursor(position);
-	}
+    public Cursor at(long position) {
+        return cursor(position);
+    }
 
-	public Cursor first() {
-		return cursor(0);
-	}
+    public Cursor first() {
+        return cursor(0);
+    }
 
-	public Cursor last() {
-		return cursor(size() - 1);
-	}
+    public Cursor last() {
+        return cursor(size() - 1);
+    }
 
-	protected Cursor cursor(long position) {
-		return AbstractCursor.createCursor(types.getCursorClass(), tableOrView, position);
-	}
+    protected Cursor cursor(long position) {
+        return AbstractCursor.createCursor(types.getCursorClass(), tableOrView, position);
+    }
 
-	@Override
-	public Iterator<Cursor> iterator() {
-		return new TableOrViewIterator<Cursor>(this);
-	}
+    @Override
+    public Iterator<Cursor> iterator() {
+        return new TableOrViewIterator<Cursor>(this);
+    }
 
-	public abstract String getName();
+    public abstract String getName();
 
-	public String toJson() {
-		return tableOrView.toJson();
-	}
-	
+    public String toJson() {
+        return tableOrView.toJson();
+    }
+    
 }

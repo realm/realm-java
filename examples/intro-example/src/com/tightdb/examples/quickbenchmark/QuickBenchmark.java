@@ -35,16 +35,16 @@ public class QuickBenchmark {
     }
 
     public static void main(String[] args) {
-		System.out.println("\nThis is just a basic sanity check to see if TightDB was compiled correctly.");
-		System.out.println("It is by no means a comprehensive or even realistic benchmark.");
-		System.out.println("It just does some basic operations and compares with Javas ArrayList and HashMap.");
+        System.out.println("\nThis is just a basic sanity check to see if TightDB was compiled correctly.");
+        System.out.println("It is by no means a comprehensive or even realistic benchmark.");
+        System.out.println("It just does some basic operations and compares with Javas ArrayList and HashMap.");
 
-		System.out.println("\n\nPerformance tests with " + ROW_COUNT + " rows. Test is repeated " 
-				+ ROUNDS + " times.");
+        System.out.println("\n\nPerformance tests with " + ROW_COUNT + " rows. Test is repeated " 
+                + ROUNDS + " times.");
         
-	    // We need some random names that we know are present for lookups
+        // We need some random names that we know are present for lookups
         Random rand = new Random();
-		String[] randomNames = new String[100];
+        String[] randomNames = new String[100];
         for (int i = 0; i < 100; i++) {
             randomNames[i] = "s" + rand.nextInt(ROW_COUNT+1);
         }
@@ -55,14 +55,14 @@ public class QuickBenchmark {
         Timer timer = new Timer();
         
         
-		/****************************************************************
-		 * Test TightDB
-		 ****************************************************************/
-		System.out.println("TightDB: ");
-		
+        /****************************************************************
+         * Test TightDB
+         ****************************************************************/
+        System.out.println("TightDB: ");
+        
         // Create a simple table and fill it with somewhat random values
-		rand.setSeed(0);
-		PersonTable table = new PersonTable();
+        rand.setSeed(0);
+        PersonTable table = new PersonTable();
         for (int row = 0; row < ROW_COUNT; row++) {
             // we want name to be unique so we just make it from the number
             String  name  = "s" + row;
@@ -80,11 +80,11 @@ public class QuickBenchmark {
             
             if (row == 100)
                 table.optimize();
-        }		
-		
+        }       
+        
         // Start with a search for the last name in the last row
         // (has to do linear scan of all rows)
-		long tightdbLastPos = 0;
+        long tightdbLastPos = 0;
         timer.Start();
         for (int n = 0; n < ROUNDS; ++n) {
             tightdbLastPos += table.age.findFirst(LAST_AGE).getPosition();
@@ -130,7 +130,7 @@ public class QuickBenchmark {
         /****************************************************************
          * Test Java data structures (ArrayList, HashMap)
          ****************************************************************/
-		
+        
         System.out.println("Java: ");
 
         // Create a simple table and fill it with somewhat random values
@@ -208,10 +208,10 @@ public class QuickBenchmark {
         }
         long javaLookupTime = timer.GetTimeInMs();
         System.out.printf("  lookup (random string): %10d msec\n", javaLookupTime);
-		
-		
-		
-	    /****************************************************************
+        
+        
+        
+        /****************************************************************
          * Compare
          ****************************************************************/
         if (tightdbLastPos != javaLastPos ||
@@ -221,30 +221,30 @@ public class QuickBenchmark {
         
             System.out.println("\nInvalid results!!!");
         }
-	    
+        
         // Print comparable speeds
         if (tightdbFindTime > 0)
             System.out.printf("\nfind:   tightdb is %d times faster than ArrayList\n", javaFindTime / tightdbFindTime);
-	    if (tightdbSumTime > 0)
-	        System.out.printf("sum:    tightdb is %d times faster than ArrayList\n", javaSumTime / tightdbSumTime);
-	    if (tightdbCountTime > 0)
-	        System.out.printf("count:  tightdb is %d times faster than ArrayList\n", javaCountTime / tightdbCountTime);
-	    if (tightdbLookupTime > 0)
-	        System.out.printf("lookup: tightdb is %d times faster than HashMap\n", javaLookupTime / tightdbLookupTime);
-	    System.out.println("\nDONE.");
-	}
+        if (tightdbSumTime > 0)
+            System.out.printf("sum:    tightdb is %d times faster than ArrayList\n", javaSumTime / tightdbSumTime);
+        if (tightdbCountTime > 0)
+            System.out.printf("count:  tightdb is %d times faster than ArrayList\n", javaCountTime / tightdbCountTime);
+        if (tightdbLookupTime > 0)
+            System.out.printf("lookup: tightdb is %d times faster than HashMap\n", javaLookupTime / tightdbLookupTime);
+        System.out.println("\nDONE.");
+    }
 }
 
 
 class Timer {
-	static long startTime;
+    static long startTime;
     
-	public void Start()	{
-		startTime = System.nanoTime();
-	}
-	
-	public long GetTimeInMs() {
-	    long stopTime = System.nanoTime();
-	    return (stopTime - startTime) / 1000000;
-	}	
+    public void Start() {
+        startTime = System.nanoTime();
+    }
+    
+    public long GetTimeInMs() {
+        long stopTime = System.nanoTime();
+        return (stopTime - startTime) / 1000000;
+    }   
 }

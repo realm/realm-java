@@ -12,12 +12,12 @@ public class ExtraTests {
 
     public static void assertDateArrayEquals(Object[] expecteds, Date[] actuals)
     {
-    	int i=0;
-    	for (Date date : actuals) {
-    		Date expect = (Date)expecteds[i];
-    		AssertJUnit.assertEquals(expect.getTime()/1000, date.getTime()/1000);
-    		i++;
-    	}
+        int i=0;
+        for (Date date : actuals) {
+            Date expect = (Date)expecteds[i];
+            AssertJUnit.assertEquals(expect.getTime()/1000, date.getTime()/1000);
+            i++;
+        }
     }
     
     private static class ExactComparisonCriteria extends ComparisonCriteria {

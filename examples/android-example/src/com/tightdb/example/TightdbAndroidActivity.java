@@ -24,109 +24,109 @@ import org.stockchart.series.StockSeries;
 
 public class TightdbAndroidActivity extends Activity {
 
-	@DefineTable(row = "Stocka")
-	class stocka {
-		String Date;
-		int Open;
-		int High;
-		int Low;
-		int Close;
-		int Volume;
-		int Adj_Close;
-	}
+    @DefineTable(row = "Stocka")
+    class stocka {
+        String Date;
+        int Open;
+        int High;
+        int Low;
+        int Close;
+        int Volume;
+        int Adj_Close;
+    }
 
-	private Handler mHandler = new Handler();
-	private StockSeries s1 = new StockSeries();
+    private Handler mHandler = new Handler();
+    private StockSeries s1 = new StockSeries();
 
-	private static long tttt = 0;
-	StockChartView s;
-	private Runnable mUpdateTimeTask = new Runnable() {
-		public void run() {
+    private static long tttt = 0;
+    StockChartView s;
+    private Runnable mUpdateTimeTask = new Runnable() {
+        public void run() {
 
-			// new generate().stocks();
+            // new generate().stocks();
 
-			File dir = Environment.getExternalStorageDirectory();
-//			File file = new File(dir, "NOK.tightdb");
-			File file = new File(dir, "stocks_ZBRA.tightdb");
+            File dir = Environment.getExternalStorageDirectory();
+//          File file = new File(dir, "NOK.tightdb");
+            File file = new File(dir, "stocks_ZBRA.tightdb");
 
-			Group group = new Group(file);
-			StockaTable stocks = new StockaTable(group);
+            Group group = new Group(file);
+            StockaTable stocks = new StockaTable(group);
 
-			Log.i("STOCK", stocks.getName() + "SSS" );
-			for (Stocka stock : stocks) {
-				Log.i("STOCK", "BLA!" + stock.getDate() +" " + Long.toString(stock.getHigh()) );
-				StockPoint ss = new StockPoint(++tttt);
-				ss.setLow(stock.getLow());
-				ss.setHigh(stock.getHigh());
-				ss.setClose(stock.getClose());
-				ss.setOpen(stock.getOpen());
-				s1.addPoint(ss);
-			}
-			s.invalidate();
-		}
-	};
+            Log.i("STOCK", stocks.getName() + "SSS" );
+            for (Stocka stock : stocks) {
+                Log.i("STOCK", "BLA!" + stock.getDate() +" " + Long.toString(stock.getHigh()) );
+                StockPoint ss = new StockPoint(++tttt);
+                ss.setLow(stock.getLow());
+                ss.setHigh(stock.getHigh());
+                ss.setClose(stock.getClose());
+                ss.setOpen(stock.getOpen());
+                s1.addPoint(ss);
+            }
+            s.invalidate();
+        }
+    };
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-		s = new StockChartView(this);
+        s = new StockChartView(this);
 
-		AxisRange ar = new AxisRange();
-		ar.setMovable(true);
-		ar.setZoomable(true);
+        AxisRange ar = new AxisRange();
+        ar.setMovable(true);
+        ar.setZoomable(true);
 
-		s.enableGlobalAxisRange(Axis.Side.BOTTOM, ar);
+        s.enableGlobalAxisRange(Axis.Side.BOTTOM, ar);
 
-		Area a1 = new Area();
-		Area a2 = new Area();
-		a1.getRightAxis().setLabelFormatProvider(new ILabelFormatProvider()
-		{
-			@Override
-			public String getAxisLabel(Axis sender, double value) {
-				return String.valueOf(value);
-			}
-		});
+        Area a1 = new Area();
+        Area a2 = new Area();
+        a1.getRightAxis().setLabelFormatProvider(new ILabelFormatProvider()
+        {
+            @Override
+            public String getAxisLabel(Axis sender, double value) {
+                return String.valueOf(value);
+            }
+        });
 
-		a2.setAutoHeight(false);
-		a2.setHeightInPercents(0.2f);
-		a2.getBottomAxis().setLabelFormatProvider(new ILabelFormatProvider() 
-		{
-			@Override
-			public String getAxisLabel(Axis sender, double value) 
-			{			
-				Area a = sender.getParent();
+        a2.setAutoHeight(false);
+        a2.setHeightInPercents(0.2f);
+        a2.getBottomAxis().setLabelFormatProvider(new ILabelFormatProvider() 
+        {
+            @Override
+            public String getAxisLabel(Axis sender, double value) 
+            {           
+                Area a = sender.getParent();
 
-				for(int i=0;i<a.getSeriesCount();i++)
-				{
-					AbstractSeries s = a.getSeriesAt(i);
+                for(int i=0;i<a.getSeriesCount();i++)
+                {
+                    AbstractSeries s = a.getSeriesAt(i);
 
-					int index = s.convertToArrayIndex(value);
-					if(index >=0 && index < s.getPointCount())
-					{
-						Object id = s.getPointAt(index).getID();
+                    int index = s.convertToArrayIndex(value);
+                    if(index >=0 && index < s.getPointCount())
+                    {
+                        Object id = s.getPointAt(index).getID();
 
-						if(null != id)
-							return id.toString();
-					}
-				}
-				return null;
-			}
-		});
+                        if(null != id)
+                            return id.toString();
+                    }
+                }
+                return null;
+            }
+        });
 
-		a1.getLeftAxis().setVisible(false);
-		a1.getTopAxis().setVisible(false);
+        a1.getLeftAxis().setVisible(false);
+        a1.getTopAxis().setVisible(false);
 
-		a2.getLeftAxis().setVisible(false);
-		a2.getTopAxis().setVisible(false);
+        a2.getLeftAxis().setVisible(false);
+        a2.getTopAxis().setVisible(false);
 
-		a1.addSeries(s1);
+        a1.addSeries(s1);
 
-		s.addArea(a1);
+        s.addArea(a1);
 
-		setContentView(s, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+        setContentView(s, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 
-		mHandler.removeCallbacks(mUpdateTimeTask);
-		mHandler.postDelayed(mUpdateTimeTask, 100);
-	}
+        mHandler.removeCallbacks(mUpdateTimeTask);
+        mHandler.postDelayed(mUpdateTimeTask, 100);
+    }
 }

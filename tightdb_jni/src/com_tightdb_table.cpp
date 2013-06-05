@@ -745,7 +745,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindSortedInt(
     JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value) 
 {
-  	if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
+    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) return 0;
 
     Table* pTable = TBL(nativeTablePtr);
     size_t pos=0;

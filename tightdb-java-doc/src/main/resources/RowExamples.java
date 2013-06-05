@@ -5,41 +5,41 @@ import com.tightdb.lib.AbstractColumn;
 
 public class RowExamples {
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		/* EXAMPLE: after */
+        /* EXAMPLE: after */
 
-		Person third = people.at(0).after(2);
-		
-		/* EXAMPLE: before */
+        Person third = people.at(0).after(2);
+        
+        /* EXAMPLE: before */
 
-		Person second = people.at(4).before(3);
-		
-		/* EXAMPLE: columns */
+        Person second = people.at(4).before(3);
+        
+        /* EXAMPLE: columns */
 
-		for (AbstractColumn<?, ?, ?, ?> column : john.columns()) {
-			System.out.println(column.getName() + "=" + column.getReadableValue());
-		}
-		
-		/* EXAMPLE: next */
+        for (AbstractColumn<?, ?, ?, ?> column : john.columns()) {
+            System.out.println(column.getName() + "=" + column.getReadableValue());
+        }
+        
+        /* EXAMPLE: next */
 
-		Person fifth = people.at(3).next();
-		
-		/* EXAMPLE: previous */
+        Person fifth = people.at(3).next();
+        
+        /* EXAMPLE: previous */
 
-		Person secondLast = people.last().previous();
-		
-		/* EXAMPLE: getFoo */
+        Person secondLast = people.last().previous();
+        
+        /* EXAMPLE: getFoo */
 
-		String name = people.first().getName();
-		int age = people.last().getAge();
-		
-		/* EXAMPLE: setFoo */
+        String name = people.first().getName();
+        int age = people.last().getAge();
+        
+        /* EXAMPLE: setFoo */
 
-		people.last().setName("John");
-		people.first().setAge(30);
-		
-		/* EXAMPLE: END! */
-		
-	}
+        people.last().setName("John");
+        people.first().setAge(30);
+        
+        /* EXAMPLE: END! */
+        
+    }
 }

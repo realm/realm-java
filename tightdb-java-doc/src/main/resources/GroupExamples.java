@@ -9,96 +9,96 @@ import com.tightdb.TableBase;
 
 public class GroupExamples {
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		Group group = new Group();
-		
-		/* EXAMPLE: constructor-1 */
+        Group group = new Group();
+        
+        /* EXAMPLE: constructor-1 */
 
-		Group group = new Group();
-		
-		/* EXAMPLE: constructor-2 */
+        Group group = new Group();
+        
+        /* EXAMPLE: constructor-2 */
 
-		Group group = new Group(new File("data.tightdb"));
-		
-		/* EXAMPLE: constructor-3 */
+        Group group = new Group(new File("data.tightdb"));
+        
+        /* EXAMPLE: constructor-3 */
 
-		Group group = new Group("data.tightdb", true);
-		
-		/* EXAMPLE: constructor-4 */
+        Group group = new Group("data.tightdb", true);
+        
+        /* EXAMPLE: constructor-4 */
 
-		Group group = new Group("data.tigthdb");
-		
-		/* EXAMPLE: constructor-5 */
+        Group group = new Group("data.tigthdb");
+        
+        /* EXAMPLE: constructor-5 */
 
-		byte[] data = loadData();
-		Group group = new Group(data);
-		
-		/* EXAMPLE: constructor-6 */
+        byte[] data = loadData();
+        Group group = new Group(data);
+        
+        /* EXAMPLE: constructor-6 */
 
-		ByteBuffer buffer = loadBuffer();
-		Group group = new Group(buffer);
-		
-		/* EXAMPLE: close */
+        ByteBuffer buffer = loadBuffer();
+        Group group = new Group(buffer);
+        
+        /* EXAMPLE: close */
 
-		group.close();
-		
-		/* EXAMPLE: commit */
+        group.close();
+        
+        /* EXAMPLE: commit */
 
-		group.commit();
-		
-		/* EXAMPLE: getTable */
+        group.commit();
+        
+        /* EXAMPLE: getTable */
 
-		TableBase a = group.getTable("PersonTable");
-		
-		/* EXAMPLE: size */
+        TableBase a = group.getTable("PersonTable");
+        
+        /* EXAMPLE: size */
 
-		int tableCount = group.size();
-		
-		/* EXAMPLE: getTableName */
+        int tableCount = group.size();
+        
+        /* EXAMPLE: getTableName */
 
-		String firstTableName = group.getTableName(0);
-		
-		/* EXAMPLE: hasTable */
+        String firstTableName = group.getTableName(0);
+        
+        /* EXAMPLE: hasTable */
 
-		if (group.hasTable("PersonTable")) {
-			  // do something
-		}
-		
-		/* EXAMPLE: isValid */
+        if (group.hasTable("PersonTable")) {
+              // do something
+        }
+        
+        /* EXAMPLE: isValid */
 
-		if (group.isValid()) {
-			  // do something
-		}
-		
-		/* EXAMPLE: writeToByteBuffer */
+        if (group.isValid()) {
+              // do something
+        }
+        
+        /* EXAMPLE: writeToByteBuffer */
 
-		ByteBuffer buffer = group.writeToByteBuffer();
-		
-		/* EXAMPLE: writeToFile */
+        ByteBuffer buffer = group.writeToByteBuffer();
+        
+        /* EXAMPLE: writeToFile */
 
-		File file = new File("data.tightdb");
-		try {
-			group.writeToFile(file);
-		} catch (IOException e) {
-			throw new RuntimeException("Couldn't write to file!", e);
-		}
-		
-		/* EXAMPLE: writeToFile-2 */
+        File file = new File("data.tightdb");
+        try {
+            group.writeToFile(file);
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't write to file!", e);
+        }
+        
+        /* EXAMPLE: writeToFile-2 */
 
-		try {
-			group.writeToFile("data.tightdb");
-		} catch (IOException e) {
-			throw new RuntimeException("Couldn't write to file!", e);
-		}
-		
-		
-		/* EXAMPLE: writeToMem */
-		
-		byte[] mem = group.writeToMem();
+        try {
+            group.writeToFile("data.tightdb");
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't write to file!", e);
+        }
+        
+        
+        /* EXAMPLE: writeToMem */
+        
+        byte[] mem = group.writeToMem();
 
-		/* EXAMPLE: END! */
-		
-	}
-	
+        /* EXAMPLE: END! */
+        
+    }
+    
 }

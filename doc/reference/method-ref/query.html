@@ -7,7 +7,7 @@
                 (method invocations can be daisy chained). Conditions are by default folded using logical-and. Query objects can be reused, and queries can be repeatly executed by the <tt>find_all()</tt> method (resembles the prepare/execute pattern in SQL clients).</p>
 
                 <h3>Query column fields</h3>
-				
+                
 
 
 
@@ -26,14 +26,14 @@
 
                     <dl>
                       <dd><p> The tables show the declared methods for various types of column fields for a query:</p></dd>
-					  
+                      
 
                       <dd><p><b>For boolean columns:</b></p></dd>
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                            <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(Boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(Boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(Boolean value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(Boolean value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
                             </tbody>
                           </table>
                         </p>
@@ -41,15 +41,15 @@
 
                       <dd><p><b>For long columns:</b></p></dd>
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                            <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThan/gt </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThanOrEqual/gte </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThan/lt </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThanOrEqual/lte </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>between </b>(long value_1)</tt></td><td>Represents <b>'long value_2'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(long value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(long value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThan/gt </b>(long value)</tt></td><td>Represents <b>'greater than'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>greaterThanOrEqual/gte </b>(long value)</tt></td><td>Represents <b>'greater than or equal to'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThan/lt </b>(long value)</tt></td><td>Represents <b>'less than'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>lessThanOrEqual/lte </b>(long value)</tt></td><td>Represents <b>'less than or equal to'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>between </b>(long value_1)</tt></td><td>Represents <b>'long value_2'</b> criterium</td></tr>
                             </tbody>
                           </table>
                         </p>
@@ -57,145 +57,145 @@
 
                       <dd><p><b>For String columns:</b></p></dd>
                       <dd><p><table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-                        	<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                            <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
                               <th>Method</th><th>Description</th></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>beginsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the begining of the text'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>endsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the end of the text'</b> criterium</td></tr>
-							  <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>contains </b>(String value)</tt></td><td>Represents <b>'substring search'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>equal/eq </b>(String value)</tt></td><td>Represents <b>'equal to'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>notEqual/neq </b>(String value)</tt></td><td>Represents <b>'not equal to'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>beginsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the begining of the text'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>endsWith </b>(String value)</tt></td><td>Represents <b>'substring match at the end of the text'</b> criterium</td></tr>
+                              <tr bgcolor="white" class="TableRowColor"><td><tt>Query <b>contains </b>(String value)</tt></td><td>Represents <b>'substring search'</b> criterium</td></tr>
                             </tbody>
                           </table>
                         </p>
                       </dd>
-					  
+                      
                     <dl>
                       <dt><b>Examples:</b></dt>
                       <dd>
-						<p>
+                        <p>
                         <pre class="prettyprint" lang-java>
 PeopleView v = people.hired.equals(true).age.between(20, 30).findAll();
                         </pre>
-						</p>
+                        </p>
                       </dd>
                     </dl>
                 </dd></dl>
-				
+                
 
-				<table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
-				<tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
-				<th align="left" colspan="2"><font size="+2">
-				<b>Method Summary</b></font></th>
-				</tr>
+                <table border="1" width="100%" cellpadding="3" cellspacing="0" summary="">
+                <tbody><tr bgcolor="#CCCCFF" class="TableHeadingColor">
+                <th align="left" colspan="2"><font size="+2">
+                <b>Method Summary</b></font></th>
+                </tr>
 
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;void</code></font></td>
-					<td><code><b><a href="query-clear.html">clear</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute the query and delete all matching rows</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;long</code></font></td>
-					<td><code><b><a href="query-count.html">count</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a view</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;long</code></font></td>
-					<td><code><b><a href="query-count.html">count</a></b>(<i>long</i> start, <i>long</i> end, <i>long</i> limit)
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a view for the specified range and limit</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;Query</code></font></td>
-					<td><code><b><a href="query-endGroup.html">endGroup</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group conditions ('right' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;View</code></font></td>
-					<td><code><b><a href="query-findAll.html">findAll</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute a query and retrieve a View of all results</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;Row</code></font></td>
-					<td><code><b><a href="query-findFirst.html">findFirst</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute a query and retrieve the first result</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;Row</code></font></td>
-					<td><code><b><a href="query-findLast.html">findLast</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute a query and retrieve the last result</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;Row</code></font></td>
-					<td><code><b><a href="query-findNext.html">findNext</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Retrieve the next result for the previously executed query</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;Query</code></font></td>
-					<td><code><b><a href="query-group.html">group</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group conditions ('left' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;Query</code></font></td>
-					<td><code><b><a href="query-or.html">or</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logical OR</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;long</code></font></td>
-					<td><code><b><a href="query-remove.html">remove</a></b>()
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the matching rows from the table, return the number of removed rows</td>
-				</tr>
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;long</code></font></td>
-					<td><code><b><a href="query-remove.html">remove</a></b>(<i>long</i> start, <i>long</i> end, <i>long</i> limit)
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the matching rows from the table for the specified range and limit, return the number of removed rows</td>
-				</tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;void</code></font></td>
+                    <td><code><b><a href="query-clear.html">clear</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute the query and delete all matching rows</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;long</code></font></td>
+                    <td><code><b><a href="query-count.html">count</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a view</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;long</code></font></td>
+                    <td><code><b><a href="query-count.html">count</a></b>(<i>long</i> start, <i>long</i> end, <i>long</i> limit)
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Get the number of rows in a view for the specified range and limit</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;Query</code></font></td>
+                    <td><code><b><a href="query-endGroup.html">endGroup</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group conditions ('right' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;View</code></font></td>
+                    <td><code><b><a href="query-findAll.html">findAll</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute a query and retrieve a View of all results</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;Row</code></font></td>
+                    <td><code><b><a href="query-findFirst.html">findFirst</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute a query and retrieve the first result</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;Row</code></font></td>
+                    <td><code><b><a href="query-findLast.html">findLast</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Execute a query and retrieve the last result</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;Row</code></font></td>
+                    <td><code><b><a href="query-findNext.html">findNext</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Retrieve the next result for the previously executed query</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;Query</code></font></td>
+                    <td><code><b><a href="query-group.html">group</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Group conditions ('left' parenthesis). Group of conditions can be nested and they are conceptually a parenthesis</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;Query</code></font></td>
+                    <td><code><b><a href="query-or.html">or</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Logical OR</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;long</code></font></td>
+                    <td><code><b><a href="query-remove.html">remove</a></b>()
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the matching rows from the table, return the number of removed rows</td>
+                </tr>
+                <tr bgcolor="white" class="TableRowColor">
+                <td align="right" valign="top" width="1%"><font size="-1">
+                <code>
+                    &nbsp;long</code></font></td>
+                    <td><code><b><a href="query-remove.html">remove</a></b>(<i>long</i> start, <i>long</i> end, <i>long</i> limit)
+                </code>
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Remove the matching rows from the table for the specified range and limit, return the number of removed rows</td>
+                </tr>
 
 
-				</tbody></table>
+                </tbody></table>

@@ -32,7 +32,7 @@ public class DynTableIntro {
         // Inspect table
         Assert(tbl.size() == 2);
         Assert(tbl.isEmpty() == false);
-		
+        
         // Update columns
         tbl.renameColumn(0,  "myLong");               // Rename the first column
         tbl.removeColumn(1);                          // Remove the string column
@@ -80,7 +80,7 @@ public class DynTableIntro {
         
         // Note: the .addColumn() method currently doesn't support subtables
         // You have the use the older (and likely soon deprecated) TableSpec like this:
-		
+        
         // Define schema with 1 String column and one Subtable column with 2 columns
         TableSpec tableSpec = new TableSpec();
         tableSpec.addColumn(ColumnType.ColumnTypeString,"name");

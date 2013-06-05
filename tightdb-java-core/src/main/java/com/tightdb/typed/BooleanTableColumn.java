@@ -9,13 +9,13 @@ import com.tightdb.TableQuery;
  */
 public class BooleanTableColumn<Cursor, View, Query> extends BooleanTableOrViewColumn<Cursor, View, Query> {
 
-	public BooleanTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, int index, String name) {
-		super(types, table, index, name);
-	}
+    public BooleanTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, int index, String name) {
+        super(types, table, index, name);
+    }
 
-	public BooleanTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
-			String name) {
-		super(types, table, query, index, name);
-	}
+    public BooleanTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
+            String name) {
+        super(types, table, query, index, name);
+    }
 
 }

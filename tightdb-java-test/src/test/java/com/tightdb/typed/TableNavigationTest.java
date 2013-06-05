@@ -13,22 +13,22 @@ import com.tightdb.typed.AbstractTableOrView;
 @Test
 public class TableNavigationTest extends AbstractNavigationTest {
 
-	private TestEmployeeTable employees;
+    private TestEmployeeTable employees;
 
-	public TableNavigationTest() {
-		employees = new TestEmployeeTable();
+    public TableNavigationTest() {
+        employees = new TestEmployeeTable();
 
-		employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 },
-				new Date(), "extra", null);
-		employees.add("Johny", "B. Good", 20000, true, new byte[] { 1, 2, 3 },
-				new Date(), true, null);
-		employees.insert(1, "Nikolche", "Mihajlovski", 30000, false,
-				new byte[] { 4, 5 }, new Date(), 1234, null);
-	}
+        employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 },
+                new Date(), "extra", null);
+        employees.add("Johny", "B. Good", 20000, true, new byte[] { 1, 2, 3 },
+                new Date(), true, null);
+        employees.insert(1, "Nikolche", "Mihajlovski", 30000, false,
+                new byte[] { 4, 5 }, new Date(), 1234, null);
+    }
 
-	@Override
-	protected AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getTableOrView() {
-		return employees;
-	}
+    @Override
+    protected AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getTableOrView() {
+        return employees;
+    }
 
 }
