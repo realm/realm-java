@@ -1,6 +1,8 @@
 06-06-2013:
 ===========
 +- at() in Table and TableView is now deprecated. Use get() instead.
++  added SharedGroup::close() method which will do a rollback() if needed. 
+   Meant to be used in a finally {} clause after a transaction.
 
 16-05-2013:
 ===========
