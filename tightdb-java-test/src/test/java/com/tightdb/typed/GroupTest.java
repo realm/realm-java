@@ -128,9 +128,9 @@ public class GroupTest {
         Group group2 = new Group(data);
         TestEmployeeTable employees2 = new TestEmployeeTable(group2);
         assertEquals(3, employees2.size());
-        assertEquals(NAME0, employees2.at(0).getFirstName());
-        assertEquals(NAME1, employees2.at(1).getFirstName());
-        assertEquals(NAME2, employees2.at(2).getFirstName());
+        assertEquals(NAME0, employees2.get(0).getFirstName());
+        assertEquals(NAME1, employees2.get(1).getFirstName());
+        assertEquals(NAME2, employees2.get(2).getFirstName());
         employees2.clear();
         group2.close();
 

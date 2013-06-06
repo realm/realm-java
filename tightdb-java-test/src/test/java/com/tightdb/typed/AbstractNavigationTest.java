@@ -30,38 +30,38 @@ public abstract class AbstractNavigationTest {
 
     @Test
     public void shouldNavigateToNextRecord() {
-        TestEmployeeRow e = getTableOrView().at(0).next();
+		TestEmployeeRow e = getTableOrView().get(0).next();
 
         assertEquals(1, e.getPosition());
     }
 
     @Test
     public void shouldNavigateToPreviousRecord() {
-        TestEmployeeRow e = getTableOrView().at(1).previous();
+		TestEmployeeRow e = getTableOrView().get(1).previous();
 
         assertEquals(0, e.getPosition());
     }
 
     @Test
     public void shouldNavigateAfterSpecifiedRecords() {
-        TestEmployeeRow e = getTableOrView().at(0).after(2);
+		TestEmployeeRow e = getTableOrView().get(0).after(2);
 
         assertEquals(2, e.getPosition());
     }
 
     @Test
     public void shouldNavigateBeforeSpecifiedRecords() {
-        TestEmployeeRow e = getTableOrView().at(2).before(2);
+		TestEmployeeRow e = getTableOrView().get(2).before(2);
 
         assertEquals(0, e.getPosition());
     }
 
     @Test
     public void shouldReturnNullOnInvalidPosition() {
-        assertNull(getTableOrView().at(0).previous());
+		assertNull(getTableOrView().get(0).previous());
         assertNull(getTableOrView().last().next());
-        assertNull(getTableOrView().at(1).before(2));
-        assertNull(getTableOrView().at(2).after(1000));
+		assertNull(getTableOrView().get(1).before(2));
+		assertNull(getTableOrView().get(2).after(1000));
     }
 
 }

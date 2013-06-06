@@ -13,9 +13,10 @@ public class TableDesc extends AbstractDesc {
         constructor("Allocates and instantiates a TightDB table, as part of the specified group", "Group", "group");
 
         method("Row",       "add", "Insert a new row at the end of the table", "RowDataTypes...", "rowData...");
-        method("Row",       "at", "Get a specific row as an object (rowIndex starts at 0)", "long", "rowIndex");
+        method("Row", 		"at", "[Deprecated] Get a specific row as an object (rowIndex starts at 0)", "long", "rowIndex");
         method("void",      "clear", "Delete all rows in the table");
         method("Row",       "first", "Get the first row as an object");
+	method("Row", 		"get", "Get a specific row as an object (rowIndex starts at 0)", "long", "rowIndex");
         method("long",      "getColumnCount", "Get number of columns in the table");
         method("String",    "getColumnName", "Get the name of the column");
         method("ColumnType","getColumnType", "Get the type of the column");

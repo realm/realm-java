@@ -38,12 +38,20 @@ public abstract class AbstractTableOrView<Cursor, View, Query> implements Iterab
         tableOrView.removeLast();
     }
 
-/*  TODO:
- * public View range(long from, long to) {
-        throw new UnsupportedOperationException();
-    }
-*/
+	/*
+	 * TODO: public View range(long from, long to) { throw new
+	 * UnsupportedOperationException(); }
+	 */
+
+	/**
+	 * This method is deprecated, use {@link #get(long)} instead.
+	 */
+	@Deprecated
     public Cursor at(long position) {
+        return cursor(position);
+    }
+
+    public Cursor get(long position) {
         return cursor(position);
     }
 

@@ -72,13 +72,13 @@ public class TightDB {
         String format = "%-15s| ";
         System.out.println(String.format("================== %s ====================", caption));
         if (!tableOrView.isEmpty()) {
-            for (AbstractColumn<?, ?, ?, ?> column : tableOrView.at(0).columns()) {
+            for (AbstractColumn<?, ?, ?, ?> column : tableOrView.get(0).columns()) {
                 System.out.print(String.format(format, column.getName()));
             }
             System.out.println();
 
             for (int i = 0; i < tableOrView.size(); i++) {
-                AbstractCursor<?> p = tableOrView.at(i);
+                AbstractCursor<?> p = tableOrView.get(i);
                 for (AbstractColumn<?, ?, ?, ?> column : p.columns()) {
                     System.out.print(String.format(format, column.getReadableValue()));
                 }

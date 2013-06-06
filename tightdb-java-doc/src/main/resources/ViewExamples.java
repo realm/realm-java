@@ -6,9 +6,9 @@ public class ViewExamples {
 
     public static void main(String[] args) {
 
-        /* EXAMPLE: at */
+        /* EXAMPLE: get */
 
-        Person p = people.age.equals(19).findAll().at(1);
+        Person p = people.age.equals(19).findAll().get(1);
 
         /* EXAMPLE: clear */
 

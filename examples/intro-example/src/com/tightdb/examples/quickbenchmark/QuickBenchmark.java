@@ -121,7 +121,7 @@ public class QuickBenchmark {
         int randLength = randomNames.length;
         for (int n = 0; n < ROUNDS; ++n) {
             long rowIndex = table.lookup( randomNames[ rand.nextInt(randLength) ] );
-            tightdbLookups += table.at(rowIndex).getAge();
+            tightdbLookups += table.get(rowIndex).getAge();
         }
         long tightdbLookupTime = timer.GetTimeInMs();
         System.out.printf("  lookup (random string): %10d msec\n", tightdbLookupTime);
