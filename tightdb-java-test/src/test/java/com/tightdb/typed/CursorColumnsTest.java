@@ -23,7 +23,7 @@ public class CursorColumnsTest extends AbstractTest {
         TestEmployeeRow employee0 = employees.first();
         checkCursor(EmployeesFixture.EMPLOYEES[0], employee0);
 
-		TestEmployeeRow employee1 = employees.get(1);
+        TestEmployeeRow employee1 = employees.get(1);
         checkCursor(EmployeesFixture.EMPLOYEES[1], employee1);
 
         TestEmployeeRow employee2 = employee1.next();

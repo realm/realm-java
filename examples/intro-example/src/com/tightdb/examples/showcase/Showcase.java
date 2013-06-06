@@ -182,7 +182,7 @@ public class Showcase {
 
         /*************************** CURSOR NAVIGATION ***************************/
 
-        Employee p1 = employees.get(0).next(); 		// 2nd row
+        Employee p1 = employees.get(0).next();      // 2nd row
         Employee p2 = employees.last().previous();  // 2nd-last row
         Employee p3 = employees.first().after(2);   // 3rd row
         employees.last().before(2);                 // 3rd-last row

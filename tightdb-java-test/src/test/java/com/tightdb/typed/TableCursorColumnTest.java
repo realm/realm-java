@@ -25,9 +25,9 @@ public class TableCursorColumnTest extends AbstractTest {
         // make sure the 2 predefined records in the "phones" sub-table match
         checkCursorValues(EmployeesFixture.PHONES[2][0],
                 employee.phones.first());
-		checkCursorValues(EmployeesFixture.PHONES[2][0], employee.phones.get(0));
+        checkCursorValues(EmployeesFixture.PHONES[2][0], employee.phones.get(0));
         checkCursorValues(EmployeesFixture.PHONES[2][1], employee.phones.last());
-		checkCursorValues(EmployeesFixture.PHONES[2][1], employee.phones.get(1));
+        checkCursorValues(EmployeesFixture.PHONES[2][1], employee.phones.get(1));
 
         // check the iteration through the predefined records
         Iterator<TestPhoneRow> it = employee.phones.iterator();

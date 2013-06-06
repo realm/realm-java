@@ -27,40 +27,40 @@ public abstract class AbstractDataOperationsTest {
 
     @Test
     public void shouldRetrieveRowsByIndex() {
-		assertEquals(NAME0, getEmployees().get(0).getFirstName());
-		assertEquals(NAME1, getEmployees().get(1).getFirstName());
-		assertEquals(NAME2, getEmployees().get(2).getFirstName());
+        assertEquals(NAME0, getEmployees().get(0).getFirstName());
+        assertEquals(NAME1, getEmployees().get(1).getFirstName());
+        assertEquals(NAME2, getEmployees().get(2).getFirstName());
     }
 
     @Test
     public void shouldHaveTwoWaysToReadCellValues() {
-		assertEquals(NAME0, getEmployees().get(0).getFirstName());
-		assertEquals(NAME0, getEmployees().get(0).firstName.get());
+        assertEquals(NAME0, getEmployees().get(0).getFirstName());
+        assertEquals(NAME0, getEmployees().get(0).firstName.get());
     }
 
     @Test
     public void shouldHaveTwoWaysToWriteCellValues() {
-		getEmployees().get(0).setFirstName("FOO");
-		assertEquals("FOO", getEmployees().get(0).getFirstName());
+        getEmployees().get(0).setFirstName("FOO");
+        assertEquals("FOO", getEmployees().get(0).getFirstName());
 
-		getEmployees().get(0).firstName.set("BAR");
-		assertEquals("BAR", getEmployees().get(0).getFirstName());
+        getEmployees().get(0).firstName.set("BAR");
+        assertEquals("BAR", getEmployees().get(0).getFirstName());
     }
 
     @Test
     public void shouldAllowMixedValues() throws IllegalAccessException {
-		assertEquals("extra", getEmployees().get(0).getExtra().getValue());
-		assertEquals("extra", getEmployees().get(0).getExtra().getStringValue());
+        assertEquals("extra", getEmployees().get(0).getExtra().getValue());
+        assertEquals("extra", getEmployees().get(0).getExtra().getStringValue());
 
-		assertEquals(1234L, getEmployees().get(1).getExtra().getValue());
-		assertEquals(1234L, getEmployees().get(1).getExtra().getLongValue());
+        assertEquals(1234L, getEmployees().get(1).getExtra().getValue());
+        assertEquals(1234L, getEmployees().get(1).getExtra().getLongValue());
 
-		assertEquals(true, getEmployees().get(2).getExtra().getValue());
-		assertEquals(true, getEmployees().get(2).getExtra().getBooleanValue());
+        assertEquals(true, getEmployees().get(2).getExtra().getValue());
+        assertEquals(true, getEmployees().get(2).getExtra().getBooleanValue());
 
-		getEmployees().get(1).setExtra(Mixed.mixedValue("new_value"));
-		assertEquals("new_value", getEmployees().get(1).getExtra().getValue());
-		assertEquals("new_value", getEmployees().get(1).getExtra()
+        getEmployees().get(1).setExtra(Mixed.mixedValue("new_value"));
+        assertEquals("new_value", getEmployees().get(1).getExtra().getValue());
+        assertEquals("new_value", getEmployees().get(1).getExtra()
                 .getStringValue());
     }
 
@@ -68,9 +68,9 @@ public abstract class AbstractDataOperationsTest {
     public void shouldRemoveFirstRow() throws IllegalAccessException {
         // Remove first row
         getEmployees().remove(0);
-		assertEquals(NAME1, getEmployees().get(0).getFirstName());
-		assertEquals(NAME2, getEmployees().get(1).getFirstName());
-		assertEquals(NAME3, getEmployees().get(2).getFirstName());
+        assertEquals(NAME1, getEmployees().get(0).getFirstName());
+        assertEquals(NAME2, getEmployees().get(1).getFirstName());
+        assertEquals(NAME3, getEmployees().get(2).getFirstName());
         assertEquals(3, getEmployees().size());
     }
 
@@ -78,9 +78,9 @@ public abstract class AbstractDataOperationsTest {
     public void shouldRemoveMiddleRow() throws IllegalAccessException {
         // Remove middle row
         getEmployees().remove(1);
-		assertEquals(NAME0, getEmployees().get(0).getFirstName());
-		assertEquals(NAME2, getEmployees().get(1).getFirstName());
-		assertEquals(NAME3, getEmployees().get(2).getFirstName());
+        assertEquals(NAME0, getEmployees().get(0).getFirstName());
+        assertEquals(NAME2, getEmployees().get(1).getFirstName());
+        assertEquals(NAME3, getEmployees().get(2).getFirstName());
         assertEquals(3, getEmployees().size());
     }
 
@@ -89,15 +89,15 @@ public abstract class AbstractDataOperationsTest {
         // Remove last row
         getEmployees().remove(3);
         assertEquals(3, getEmployees().size());
-		assertEquals(NAME0, getEmployees().get(0).getFirstName());
-		assertEquals(NAME1, getEmployees().get(1).getFirstName());
-		assertEquals(NAME2, getEmployees().get(2).getFirstName());
+        assertEquals(NAME0, getEmployees().get(0).getFirstName());
+        assertEquals(NAME1, getEmployees().get(1).getFirstName());
+        assertEquals(NAME2, getEmployees().get(2).getFirstName());
 
         // Remove last row
         getEmployees().removeLast();
         assertEquals(2, getEmployees().size());
-		assertEquals(NAME0, getEmployees().get(0).getFirstName());
-		assertEquals(NAME1, getEmployees().get(1).getFirstName());
+        assertEquals(NAME0, getEmployees().get(0).getFirstName());
+        assertEquals(NAME1, getEmployees().get(1).getFirstName());
     }
 
     @Test

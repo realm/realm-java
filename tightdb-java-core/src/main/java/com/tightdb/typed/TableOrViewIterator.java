@@ -26,7 +26,7 @@ public class TableOrViewIterator<T> implements Iterator<T> {
         if (hasNext() == false) {
             throw new NoSuchElementException();
         }
-	return tableOrView.get(index++);
+    return tableOrView.get(index++);
     }
 
     public void remove() {

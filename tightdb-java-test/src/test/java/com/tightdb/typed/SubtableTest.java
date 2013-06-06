@@ -17,7 +17,7 @@ public class SubtableTest extends AbstractTest {
 
     @Test
     public void shouldSaveSubtableChanges() {
-		TestEmployeeRow employee = employees.get(0);
+        TestEmployeeRow employee = employees.get(0);
 
         // check the basic operations
         TestPhoneTable phones1 = employee.getPhones();
@@ -50,7 +50,7 @@ public class SubtableTest extends AbstractTest {
 
         TestPhoneView all = phoneQuery.findAll();
         assertEquals(1, all.size());
-		checkPhone(all.get(0), "mobile", "111");
+        checkPhone(all.get(0), "mobile", "111");
 
         checkPhone(phoneQuery.findFirst(), "mobile", "111");
         checkPhone(phoneQuery.findLast(), "mobile", "111");
@@ -58,9 +58,9 @@ public class SubtableTest extends AbstractTest {
         assertEquals(null, phoneQuery.findNext());
 
         // make sure the other sub-tables and independent and were not changed
-		assertEquals(EmployeesFixture.PHONES[1].length, employees.get(1)
+        assertEquals(EmployeesFixture.PHONES[1].length, employees.get(1)
                 .getPhones().size());
-		assertEquals(EmployeesFixture.PHONES[2].length, employees.get(2)
+        assertEquals(EmployeesFixture.PHONES[2].length, employees.get(2)
                 .getPhones().size());
 
         // check the clear operation on the query
@@ -85,7 +85,7 @@ public class SubtableTest extends AbstractTest {
 
     @Test
     public void shouldInvalidateWhenParentTableIsCleared() {
-		TestEmployeeRow employee = employees.get(0);
+        TestEmployeeRow employee = employees.get(0);
         TestPhoneTable phones = employee.getPhones();
         assertTrue(phones.isValid());
 
@@ -95,7 +95,7 @@ public class SubtableTest extends AbstractTest {
 
     @Test
     public void shouldInvalidateOnRemovedRecordParentTable() {
-		TestEmployeeRow employee = employees.get(0);
+        TestEmployeeRow employee = employees.get(0);
         TestPhoneTable phones = employee.getPhones();
         assertTrue(phones.isValid());
 
