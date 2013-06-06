@@ -1,3 +1,10 @@
+06-06-2013:
+===========
++- at() in Table and TableView is now deprecated. Use get() instead.
+
+16-05-2013:
+===========
+* Removing shell scripts for compiling examples (ant will also be installed).
 
 07-05-2013:
 ===========
