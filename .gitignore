@@ -1,5 +1,4 @@
 *~
-/test_output
 *.bat
 *.orig
 tightdb_jni??d*.dll
@@ -9,7 +8,6 @@ tightdb_jni*.exp
 /examples/*/generated/*
 /examples/*/generated-sources/*
 /examples/*/lib
-/examples/lib
 
 *.tightdb
 .metadata/*
@@ -60,3 +58,13 @@ _ReSharper*/
 .settings/*
 */.settings/*
 */test-output
+
+# sh build.sh config
+/config
+
+# sh build.sh build
+/lib
+/examples/lib
+
+# sh build.sh test
+/test_output

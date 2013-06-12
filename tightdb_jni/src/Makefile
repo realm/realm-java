@@ -17,4 +17,4 @@ include ../../generic.mk
 
 # Used by ../../build.sh
 get-inst-libraries:
-	@echo $(TARGETS_LIB_STATIC) $(TARGETS_LIB_SHARED_ALIASES)
+	@echo $(filter-out libtightdb-jni-cov.%,$(TARGETS_LIB_SHARED_ALIASES))

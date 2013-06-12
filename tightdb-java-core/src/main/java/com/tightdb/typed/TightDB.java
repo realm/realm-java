@@ -16,12 +16,15 @@ import com.tightdb.internal.util;
  */
 public class TightDB {
 
+/*
     private static final String PATH_SEP = System.getProperty("path.separator");
     private static final String JAVA_LIBRARY_PATH = "java.library.path";
     private static final String BINARIES_PATH = "lib" + PATH_SEP + "../lib";
+*/
 
-    private static boolean loadedLibrary;
+    private static boolean libraryIsLoaded;
 
+/*
     private static String getJniFileName()
     {
         String os = System.getProperty("os.name").toLowerCase();
@@ -33,6 +36,7 @@ public class TightDB {
             return "libtightdb-jni.so";
         return "tightdb-jni";
     }
+*/
 
     public static boolean osIsWindows()
     {
@@ -126,8 +130,28 @@ public class TightDB {
     }
 
     public static void loadLibrary() {
-        if (!loadedLibrary) {
-            initTightDB();
+        // FIXME: How is this thread-safe?
+        if (libraryIsLoaded) return;
+
+        // FIXME: How exactly does this help? Why is it done?
+        initTightDB();
+
+        String jnilib;
+        String debug = System.getenv("TIGHTDB_JAVA_DEBUG");
+        if (debug == null || debug.isEmpty()) {
+            jnilib = "tightdb-jni";
+        }
+        else {
+            jnilib = "tightdb-jni-dbg";
+        }
+        System.loadLibrary(jnilib);
+        libraryIsLoaded = true;
+
+        if (!util.versionCompatible()) {
+            throw new RuntimeException("Version mismatch between tightdb.jar and native JNI library.");
+        }
+
+/*
             try {
                 addNativeLibraryPath(BINARIES_PATH);
                 resetLibraryPath();
@@ -147,12 +171,10 @@ public class TightDB {
                 throw new RuntimeException("Couldn't load the TightDB JNI library '" + getJniFileName() +
                         "'. Please include the directory to the library in java.library.path.");
             }
-        }
-        if (!util.versionCompatible()) {
-            throw new RuntimeException("tightdb-jni jar and tightdb-jni lib are incompatible. Please check your installation.");
-        }
+*/
     }
 
+/*
     private static boolean loadCorrectLibrary(String... libraryCandidateNames) {
         for (String libraryCandidateName : libraryCandidateNames) {
             try {
@@ -189,4 +211,5 @@ public class TightDB {
             throw new RuntimeException("Cannot reset the library path!", e);
         }
     }
+*/
 }

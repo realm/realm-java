@@ -21,7 +21,8 @@ public class Performance {
     }
 
     public static void main(String[] args) {
-        TightDB.addNativeLibraryPath("lib-sqlite");
+// FIXME: Wrong approach - must use 'java -Djava-library.path=...'
+//        TightDB.addNativeLibraryPath("lib-sqlite");
 
         // Measuring memory is not very reliable in Java...
         // Util.test_getMemUsed();
