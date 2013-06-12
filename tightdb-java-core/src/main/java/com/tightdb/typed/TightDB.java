@@ -137,20 +137,27 @@ public class TightDB {
         initTightDB();
 
         String jnilib;
-        String debug = System.getenv("TIGHTDB_JAVA_DEBUG");
-        if (debug == null || debug.isEmpty()) {
-            jnilib = "tightdb-jni";
+        if (osIsWindows()) {
+            loadLibraryWindows();
         }
         else {
-            jnilib = "tightdb-jni-dbg";
+            String debug = System.getenv("TIGHTDB_JAVA_DEBUG");
+            if (debug == null || debug.isEmpty()) {
+                jnilib = "tightdb-jni";
+            }
+            else {
+                jnilib = "tightdb-jni-dbg";
+            }
+            System.loadLibrary(jnilib);
         }
-        System.loadLibrary(jnilib);
         libraryIsLoaded = true;
 
         if (!util.versionCompatible()) {
             throw new RuntimeException("Version mismatch between tightdb.jar and native JNI library.");
         }
+    }
 
+    private static void loadLibraryWindows() {
 /*
             try {
                 addNativeLibraryPath(BINARIES_PATH);
@@ -159,22 +166,20 @@ public class TightDB {
             catch (Throwable e) {
                 // Above can't be used on Android.
             }
-            // Load debug library first - if available
-            loadedLibrary = loadCorrectLibrary("tightdb-jnid", "tightdb_jni32d", "tightdb_jni64d");
-            if (loadedLibrary) {
-                System.out.println("!!! TightDB debug version loaded. !!!\n");
-            } else {
-                loadedLibrary = loadCorrectLibrary("tightdb-jni", "tightdb_jni32", "tightdb_jni64");
-            }
-            if (!loadedLibrary) {
-                System.err.println("Searched JAVA_LIBRARY_PATH=" + System.getProperty(JAVA_LIBRARY_PATH));
-                throw new RuntimeException("Couldn't load the TightDB JNI library '" + getJniFileName() +
-                        "'. Please include the directory to the library in java.library.path.");
-            }
 */
+        // Load debug library first - if available
+        if (loadCorrectLibrary("tightdb-jnid", "tightdb_jni32d", "tightdb_jni64d")) {
+            System.out.println("!!! TightDB debug version loaded. !!!\n");
+        }
+        else {
+            if (!loadCorrectLibrary("tightdb-jni", "tightdb_jni32", "tightdb_jni64")) {
+                System.err.println("Searched java.library.path=" + System.getProperty("java.library.path"));
+                throw new RuntimeException("Couldn't load the TightDB JNI library 'tightdb_jni32.dll or tightdb_jni64.dll" +
+                                           "'. Please include the directory to the library in java.library.path.");
+            }
+        }
     }
 
-/*
     private static boolean loadCorrectLibrary(String... libraryCandidateNames) {
         for (String libraryCandidateName : libraryCandidateNames) {
             try {
@@ -186,6 +191,7 @@ public class TightDB {
         return false;
     }
 
+/*
     public static void addNativeLibraryPath(String path) {
         try {
             String libraryPath = System.getProperty(JAVA_LIBRARY_PATH) + PATH_SEP + path + PATH_SEP;
