@@ -256,7 +256,7 @@ bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data);
 // UTF-8 where U+0000 is stored as 0xC0 0x80 instead of 0x00 and
 // where a character in the range U+10000 to U+10FFFF is stored as
 // two consecutive UTF-8 encodings of the corresponding UTF-16
-// surrogate pair. Because Tightdb uses proper UTF-8, we need to
+// surrogate pair. Because TightDB uses proper UTF-8, we need to
 // do the transcoding ourselves.
 //
 // See also http://en.wikipedia.org/wiki/UTF-8#Modified_UTF-8

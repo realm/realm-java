@@ -16,7 +16,7 @@ public class Showcase {
     }
 
     /******************************************************************/
-    /* Example of simple Tightdb operations using highlevel interface */
+    /* Example of simple TightDB operations using highlevel interface */
     /******************************************************************/
 
     /*

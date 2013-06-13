@@ -52,7 +52,7 @@ public class Performance {
                 "Search for byte (indexed):    \t"
         };
 
-        System.out.println("\t\t\t\t\t   Tightdb\tArrayList\tSQLite");
+        System.out.println("\t\t\t\t\t   TightDB\tArrayList\tSQLite");
         for (int test = 0; test < TESTS; ++test) {
             System.out.print( testText[test] );
             printTime(tightdb.testTime[test], " ms (x1)", "\t");

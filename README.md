@@ -1,8 +1,8 @@
 Java
 ====
 
-This README file explains how to build and install the Tightdb
-language binding for Java. It assumes that the Tightdb core library
+This README file explains how to build and install the TightDB
+language binding for Java. It assumes that the TightDB core library
 has already been installed.
 
 After building, and before installing, it is possible to run a number
