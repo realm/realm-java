@@ -32,7 +32,7 @@ each of our major platforms:
     sudo apt-get install libcommons-io-java libcommons-lang-java libfreemarker-java
     sudo apt-get install testng libqdox-java bsh
 
-### Ubuntu 12.04
+### Ubuntu 12.04 and 13.04
 
     sudo apt-get install build-essential openjdk-7-jre openjdk-7-jdk
     sudo apt-get install libcommons-io-java libcommons-lang-java libfreemarker-java
