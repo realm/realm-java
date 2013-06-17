@@ -8,8 +8,6 @@ MODE="$1"
 
 DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
-JAR_DIR="lib"
-
 
 word_list_append()
 {
@@ -322,18 +320,14 @@ EOF
             echo "Removing class files in 'tightdb-java-$x'"
             (cd "tightdb-java-$x" && find src/ -type f -name '*.class' -delete) || exit 1
         done
-        if [ -e "$JAR_DIR" ]; then
+        if [ -e "lib" ]; then
             for x in tightdb.jar tightdb-devkit.jar; do
-                echo "Removing '$JAR_DIR/$x'"
-                rm -f "$JAR_DIR/$x" || exit 1
+                echo "Removing 'lib/$x'"
+                rm -f "lib/$x" || exit 1
             done
-            rmdir "$JAR_DIR" || exit 1
-        fi
-        dir="examples/lib"
-        if [ -e "$dir" ]; then
-            echo "Removing library and JAR symlinks for examples from '$dir'"
-            rm -f "$dir/"* || exit 1
-            rmdir "$dir" || exit 1
+            echo "Removing library symlinks for examples from 'lib'"
+            rm -f "lib/"* || exit 1
+            rmdir "lib" || exit 1
         fi
         echo "Done cleaning"
         exit 0
@@ -349,18 +343,18 @@ EOF
         # FIXME: On Mac with Oracle JDK 7, 'darwin' must be substituded for 'linux'.
         TIGHTDB_ENABLE_FAT_BINARIES="1" make -C "tightdb_jni" EXTRA_CFLAGS="-I$include_dir -I$include_dir/linux" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
 
-        mkdir -p "$JAR_DIR" || exit 1
+        mkdir -p "lib" || exit 1
 
         # Build tightdb.jar
-        echo "Building 'tightdb.jar'"
+        echo "Building 'lib/tightdb.jar'"
         dir="tightdb-java-core/src/main"
-        tightdb_jar="$TIGHTDB_JAVA_HOME/$JAR_DIR/tightdb.jar"
+        tightdb_jar="$TIGHTDB_JAVA_HOME/lib/tightdb.jar"
         (cd "$dir/java" && $javac_cmd            com/tightdb/*.java com/tightdb/internal/*.java  com/tightdb/typed/*.java)   || exit 1
         (cd "$dir/java" && jar cf "$tightdb_jar" com/tightdb/*.class com/tightdb/internal/*.class com/tightdb/typed/*.class) || exit 1
-        (cd "$JAR_DIR" && jar i "tightdb.jar") || exit 1
+        (cd "lib" && jar i "tightdb.jar") || exit 1
 
         # Build tightdb-devkit.jar
-        echo "Building 'tightdb-devkit.jar'"
+        echo "Building 'lib/tightdb-devkit.jar'"
         required_jars="$(get_config_param "required-jars")" || exit 1
         manifest_jars="$required_jars"
         word_list_prepend "manifest_jars" "tightdb.jar" || exit 1
@@ -375,27 +369,23 @@ EOF
         export CLASSPATH
         dir="tightdb-java-generator/src/main"
         # FIXME: Must run ResourceGenerator to produce "$dir/java/com/tightdb/generator/Templates.java"
-        devkit_jar="$TIGHTDB_JAVA_HOME/$JAR_DIR/tightdb-devkit.jar"
+        devkit_jar="$TIGHTDB_JAVA_HOME/lib/tightdb-devkit.jar"
         (cd "$dir" && jar cfm "$devkit_jar" "$manifest" -C resources META-INF) || exit 1
         (cd "$dir/java" && $javac_cmd           com/tightdb/generator/*.java)  || exit 1
         (cd "$dir/java" && jar uf "$devkit_jar" com/tightdb/generator/*.class) || exit 1
-        (cd "$JAR_DIR" && jar i "tightdb-devkit.jar") || exit 1
+        (cd "lib" && jar i "tightdb-devkit.jar") || exit 1
 
-        # Setup links to libraries and JARs to make the examples work
-        dir="examples/lib"
-        echo "Setting up library and JAR symlinks in '$dir' to make examples work"
-        mkdir -p "$dir" || exit 1
+        # Setup links to libraries to make the examples work
+        echo "Setting up library symlinks in 'lib' to make examples work"
+        mkdir -p "lib" || exit 1
         core_dir="../tightdb"
         core_library_aliases="$(cd "$core_dir/src/tightdb" && make get-inst-libraries)" || exit 1
         for x in $core_library_aliases; do
-            (cd "$dir" && ln -s -f "../../$core_dir/src/tightdb/$x") || exit 1
+            (cd "lib" && ln -s -f "../$core_dir/src/tightdb/$x") || exit 1
         done
         library_aliases="$(cd "tightdb_jni/src" && make get-inst-libraries LIB_SUFFIX_SHARED="$jni_suffix")" || exit 1
         for x in $library_aliases; do
-            (cd "$dir" && ln -s -f "../../tightdb_jni/src/$x") || exit 1
-        done
-        for x in "tightdb.jar" "tightdb-devkit.jar"; do
-            (cd "$dir" && ln -s -f "../../$JAR_DIR/$x") || exit 1
+            (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
         done
         echo "Done building"
         exit 0
@@ -404,7 +394,7 @@ EOF
     "test")
         require_config || exit 1
         javac_cmd="$(get_config_param "javac-command")" || exit 1
-        devkit_jar="$TIGHTDB_JAVA_HOME/$JAR_DIR/tightdb-devkit.jar"
+        devkit_jar="$TIGHTDB_JAVA_HOME/lib/tightdb-devkit.jar"
         temp_dir="$(mktemp -d /tmp/tightdb.java.test-debug.XXXX)" || exit 1
         mkdir "$temp_dir/out" || exit 1
         mkdir "$temp_dir/gen" || exit 1
@@ -459,7 +449,7 @@ EOF
         install -d "$jar_install_dir" || exit 1
         for x in "tightdb.jar" "tightdb-devkit.jar"; do
             echo "Installing '$jar_install_dir/$x'"
-            install -m 644 "$JAR_DIR/$x" "$jar_install_dir" || exit 1
+            install -m 644 "lib/$x" "$jar_install_dir" || exit 1
         done
 
         echo "Done installing"
