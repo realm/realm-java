@@ -515,6 +515,7 @@ EOF
 /tightdb-java-test
 /test-installed
 /examples
+/prerequisite_jars
 EOF
         cat >"$TEMP_DIR/exclude" <<EOF
 .gitignore
