@@ -44,6 +44,48 @@ each of our major platforms:
     sudo yum install apache-commons-io apache-commons-lang freemarker
     sudo yum install testng ant qdox bsh
 
+### Mac OS X 10.7 and 10.8
+
+On Mac OS X, the build procedure uses Clang as the C/C++
+compiler. Clang comes with Xcode, so install Xcode if it is not
+already installed. If you have a version that preceeds 4.2, we
+recommend that you upgrade. This will ensure that the Clang version is
+at least 3.0. Run the following command in the command prompt to se if
+you have Xcode installed, and, if os, what version it is:
+
+    xcodebuild -version
+
+Run the following command on the command prompt to see if Java is
+already ínstalled:
+
+    java -version
+
+If Java is not already installed, this command will initiate the
+installation procedure.
+
+The prerequisite Java libraries (JAR's) can be downloaded and
+installed individually from the respective wesites. To make this
+process a little easier, we have bundled the relevant libraries with
+the TightDB Java extension in the `prerequisite_jars` subdirectory,
+but please note that TightDB makes no guarantees, and has no
+responsibility with respect to the fitness of the bundled libraries on
+any target system.
+
+With that said, here are the commands that will install the bundeled
+JAR's on your system (please be carefull about overwriting existing
+files):
+
+    sudo install -d /usr/share/java
+    sudo install -m 644 prerequisite_jars/commons-lang.jar /usr/share/java
+    sudo install -m 644 prerequisite_jars/commons-io.jar /usr/share/java
+    sudo install -m 644 prerequisite_jars/freemarker.jar /usr/share/java
+
+If you intend to run the optional test-suite, you also need these:
+
+    sudo install -m 644 prerequisite_jars/testng.jar /usr/share/java
+    sudo install -m 644 prerequisite_jars/qdox.jar /usr/share/java
+    sudo install -m 644 prerequisite_jars/bsh.jar /usr/share/java
+
 
 Building, testing, and installing
 ---------------------------------

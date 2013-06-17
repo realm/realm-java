@@ -260,25 +260,29 @@ case "$MODE" in
         echo "Using Java command: $java_cmd (version $version)"
         java_version="$version"
 
-        if [ "$OS" = "Darwin" ]; then
-            jni_suffix=".jnilib"
-        else
-            jni_suffix=".so"
-        fi
-
         if [ "$install_prefix" = "auto" ]; then
             if [ "$OS" = "Darwin" ]; then
                 jni_install_dir="/Library/Java/Extensions"
+                jar_install_dir="/Library/Java/Extensions"
             else
                 # We choose /usr/lib over /usr/local/lib because the
                 # latter is not in the default runtime library search
                 # path on RedHat and RedHat derived systems.
                 jni_install_dir="$(cd "tightdb_jni" && make prefix="/usr" get-libdir)" || exit 1
+                jar_install_dir="/usr/share/java"
             fi
-            jar_install_dir="/usr/local/share/java"
         else
             jni_install_dir="$(cd "tightdb_jni" && make prefix="$install_prefix" get-libdir)" || exit 1
             jar_install_dir="$install_prefix/share/java"
+        fi
+
+        jar_search_dirs="/usr/share /usr/local/share"
+
+        if [ "$OS" = "Darwin" ]; then
+            jni_suffix=".jnilib"
+            word_list_append jar_search_dirs "/Library/Java/Extensions"
+        else
+            jni_suffix=".so"
         fi
 
         required_jars=""
@@ -350,6 +354,7 @@ EOF
         jni_suffix="$(get_config_param "jni-suffix")"   || exit 1
 
         # Build libtightdb-jni.so
+        # FIXME: On Mac with Oracle JDK 7, 'darwin' must be substituded for 'linux'.
         TIGHTDB_ENABLE_FAT_BINARIES="1" make -C "tightdb_jni" EXTRA_CFLAGS="-I$include_dir -I$include_dir/linux" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
 
         mkdir -p "$JAR_DIR" || exit 1
@@ -573,17 +578,6 @@ EOF
         grep -v -f "$TEMP_DIR/exclude.bre" "$TEMP_DIR/files2" >"$TEMP_DIR/files3" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" -T "$TEMP_DIR/files3" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
-
-        # Copy prerequisite JARs. These will be used as fallbacks in
-        # case they do not exist in the target system
-        mkdir -p "$TARGET_DIR/dep_jars" || exit 1
-        for x in $DEP_JARS; do
-            cp "/usr/share/java/$x" "$TARGET_DIR/dep_jars/" || exit 1
-        done
-        testing_jars="$(FOR_DIST_COPY="1" get_testing_jars)" || exit 1
-        for x in $testing_jars; do
-            cp "$x" "$TARGET_DIR/dep_jars/" || exit 1
-        done
         exit 0
         ;;
 
