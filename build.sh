@@ -109,55 +109,6 @@ readlink_f()
     readlink_f "$TARGET"
 }
 
-get_testing_jars()
-{
-    local x dir testng deps test_major test_minor version major minor jars path
-    x="testng.jar"
-    dir="/usr/share/java"
-    testng="$dir/$x"
-    if ! [ -e "$testng" ]; then
-        dir="$TIGHTDB_JAVA_HOME/dep_jars"
-        testng="$dir/$x"
-        if ! [ -z "$FOR_DIST_COPY" -a -e "$testng" ]; then
-            echo "ERROR: Could not find prerequisite JAR '$x' for testing" 1>&2
-            return 1
-        fi
-    fi
-
-    deps="qdox.jar bsh.jar"
-
-    # Newer versions of testng.jar (probably >= 6) require beust-jcommander.jar
-    test_major="6"
-    test_minor="0"
-    version="$(jar tf "$testng" | grep '^TESTNG-' | sed 's/^[^0-9]*//')"
-    major="$(printf "%s\n" "$version" | cut -d. -f1)" || return 1
-    minor="$(printf "%s\n" "$version" | cut -d. -f2)" || return 1
-    if ! printf "%s\n" "$major" | grep -q '^[0-9][0-9]*$' || ! printf "%s\n" "$minor" | grep -q '^[0-9][0-9]*$'; then
-        echo "ERROR: Could not determine TestNG version from '$version'" 1>&2
-        return 1
-    fi
-    if [ -z "$FOR_DIST_COPY" ]; then
-        echo "Detected TestNG jar '$testng' (version $version)" 1>&2
-    fi
-    if [ "$major" -gt "$test_major" -o "$major" -eq "$test_major" -a "$minor" -ge "$test_minor" ] 2>/dev/null; then
-        x="beust-jcommander.jar"
-        echo "Adding '$x' as an extra prerequisite JAR for testing" 1>&2
-        word_list_append "deps" "$x" || return 1
-    fi
-
-    jars="$testng"
-    for x in $deps; do
-        path="$dir/$x"
-        if ! [ -e "$path" ]; then
-            echo "ERROR: Could not find prerequisite JAR '$x' for testing in '$dir'" 1>&2
-            return 1
-        fi
-        word_list_append "jars" "$path" || return 1
-    done
-
-    printf "%s\n" "$jars"
-}
-
 require_config()
 {
     cd "$TIGHTDB_JAVA_HOME" || return 1
@@ -263,45 +214,87 @@ case "$MODE" in
         if [ "$install_prefix" = "auto" ]; then
             if [ "$OS" = "Darwin" ]; then
                 jni_install_dir="/Library/Java/Extensions"
-                jar_install_dir="/Library/Java/Extensions"
             else
                 # We choose /usr/lib over /usr/local/lib because the
                 # latter is not in the default runtime library search
                 # path on RedHat and RedHat derived systems.
                 jni_install_dir="$(cd "tightdb_jni" && make prefix="/usr" get-libdir)" || exit 1
-                jar_install_dir="/usr/share/java"
             fi
+            jar_install_dir="/usr/local/share/java"
         else
             jni_install_dir="$(cd "tightdb_jni" && make prefix="$install_prefix" get-libdir)" || exit 1
             jar_install_dir="$install_prefix/share/java"
         fi
 
-        jar_search_dirs="/usr/share /usr/local/share"
+        jar_dirs="/usr/local/share/java /usr/share/java"
 
         if [ "$OS" = "Darwin" ]; then
             jni_suffix=".jnilib"
-            word_list_append jar_search_dirs "/Library/Java/Extensions"
+            word_list_append jar_dirs "/Library/Java/Extensions"
+            word_list_append jar_dirs "/System/Library/Java/Extensions"
         else
             jni_suffix=".so"
         fi
 
         required_jars=""
-        absorbed_jars=""
         for x in $DEP_JARS; do
-            path="/usr/share/java/$x"
-            if ! [ -e "$path" ]; then
-                path="$TIGHTDB_JAVA_HOME/dep_jars/$x"
-                if ! [ -e "$path" ]; then
-                    echo "ERROR: Could not find prerequisite JAR '$x'" 1>&2
-                    exit 1
+            found=""
+            for y in $jar_dirs; do
+                path="$y/$x"
+                if [ -e "$path" ]; then
+                    found="1"
+                    break
                 fi
-                word_list_append "absorbed_jars" "$path" || exit 1
+            done
+            if [ -z "$found" ]; then
+                echo "ERROR: Could not find prerequisite JAR '$x'" 1>&2
+                exit 1
             fi
             word_list_append "required_jars" "$path" || exit 1
         done
 
-        # OK if his fails
-        testing_jars="$(get_testing_jars)"
+        # For testing we need testng.jar. It, in turn, requires
+        # qdox.jar and bsh.jar. Because some versions also require
+        # beust-jcommander.jar, we add it if we can find it.
+        testing_jars=""
+        jars_paths=""
+        found=""
+        x="testng.jar"
+        for y in $jar_dirs; do
+            path="$y/$x"
+            if [ -e "$path" ]; then
+                found="1"
+                break
+            fi
+        done
+        if [ "$found" ]; then
+            word_list_append "jar_paths" "$path" || exit 1
+            for x in "qdox.jar" "bsh.jar"; do
+                found=""
+                for y in $jar_dirs; do
+                    path="$y/$x"
+                    if [ -e "$path" ]; then
+                        found="1"
+                        break;
+                    fi
+                done
+                if [ -z "$found" ]; then
+                    break
+                fi
+                word_list_append "jar_paths" "$path" || exit 1
+            done
+            if [ "$found" ]; then
+                x="beust-jcommander.jar"
+                for y in $jar_dirs; do
+                    path="$y/$x"
+                    if [ -e "$path" ]; then
+                        word_list_append "jar_paths" "$path" || exit 1
+                        break
+                    fi
+                done
+                testing_jars="$jar_paths"
+            fi
+        fi
 
         cat >"config" <<EOF
 java-version:    $java_version
@@ -309,7 +302,6 @@ java-command:    $java_cmd
 javac-command:   $javac_cmd
 include-dir:     $include_dir
 required-jars:   $required_jars
-absorbed-jars:   $absorbed_jars
 testing-jars:    $testing_jars
 install-prefix:  $install_prefix
 jni-install-dir: $jni_install_dir
@@ -370,27 +362,14 @@ EOF
         # Build tightdb-devkit.jar
         echo "Building 'tightdb-devkit.jar'"
         required_jars="$(get_config_param "required-jars")" || exit 1
-        absorbed_jars="$(get_config_param "absorbed-jars")" || exit 1
-        unabsorbed_jars="tightdb.jar"
-        for x in $required_jars; do
-            found=""
-            for y in $absorbed_jars; do
-                if [ "$x" = "$y" ]; then
-                    found="1"
-                    break
-                fi
-            done
-            if [ -z "$found" ]; then
-                word_list_append "unabsorbed_jars" "$x" || exit 1
-            fi
-        done
+        manifest_jars="$required_jars"
+        word_list_prepend "manifest_jars" "tightdb.jar" || exit 1
         temp_dir="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
         manifest="$temp_dir/MANIFEST.MF"
         touch "$manifest" || exit 1
-        echo "Class-Path: $unabsorbed_jars" >>"$manifest"
+        echo "Class-Path: $manifest_jars" >>"$manifest"
         echo "MANIFEST.MF constains:"
         cat "$manifest" | sed 's/^/    /' || exit 1
-        echo "Absorbed JARs: ${absorbed_jars:-None}"
         CLASSPATH="$(printf "%s\n" "$required_jars" | sed 's/  */:/g')" || exit 1
         path_list_append CLASSPATH "$tightdb_jar" || exit 1
         export CLASSPATH
@@ -401,25 +380,6 @@ EOF
         (cd "$dir/java" && $javac_cmd           com/tightdb/generator/*.java)  || exit 1
         (cd "$dir/java" && jar uf "$devkit_jar" com/tightdb/generator/*.class) || exit 1
         (cd "$JAR_DIR" && jar i "tightdb-devkit.jar") || exit 1
-
-        # FIXME: Absorbing standard JAR files into tightdb-devkit.jar
-        # is a fantasticly bad idea, we must back out of this approach
-        # as soon as possible!!!
-
-        # Absorb dependency JARs
-        if [ "$absorbed_jars" ]; then
-            temp_jar_dir="$temp_dir/jar"
-            mkdir "$temp_jar_dir" || exit 1
-            for x in $absorbed_jars; do
-                echo "Absorbing dependency JAR '$x' into 'tightdb-devkit.jar'"
-                (cd "$temp_jar_dir" && jar xf "$x") || exit 1
-            done
-            # Manifest files from the dependency JARs cannot be
-            # retained, becuase they would clobber our own
-            # MANIFEST.MF.
-            rm -f "$temp_jar_dir/META-INF/MANIFEST.MF" || exit 1
-            (cd "$temp_jar_dir" && jar uf "$devkit_jar" *) || exit 1
-        fi
 
         # Setup links to libraries and JARs to make the examples work
         dir="examples/lib"
@@ -445,18 +405,16 @@ EOF
         require_config || exit 1
         javac_cmd="$(get_config_param "javac-command")" || exit 1
         devkit_jar="$TIGHTDB_JAVA_HOME/$JAR_DIR/tightdb-devkit.jar"
-
-        dir="tightdb-java-test/src/main"
-        echo "Testing com/tightdb/test/TestModel.java in '$dir'"
-        temp_dir="$(mktemp -d /tmp/tightdb.java.test.XXXX)" || exit 1
+        temp_dir="$(mktemp -d /tmp/tightdb.java.test-debug.XXXX)" || exit 1
         mkdir "$temp_dir/out" || exit 1
         mkdir "$temp_dir/gen" || exit 1
-        export CLASSPATH="$devkit_jar:$temp_dir/gen:."
-        (cd "$dir/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestModel.java) || exit 1
 
         dir="tightdb-java-test/src/test"
         echo "Building test suite in '$dir'"
-        export CLASSPATH="$devkit_jar:$temp_dir/gen:../main:."
+        export CLASSPATH="$devkit_jar:$temp_dir/gen:."
+        (cd "$dir/../main/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestModel.java) || exit 1
+
+        path_list_append "CLASSPATH" "../main" || exit 1
         testing_jars="$(get_config_param "testing-jars")" || exit 1
         for x in $testing_jars; do
             path_list_append "CLASSPATH" "$x" || exit 1
@@ -468,10 +426,16 @@ EOF
         echo "Running test suite in '$dir'"
         java_cmd="$(get_config_param "java-command")" || exit 1
         (cd "$temp_dir/out" && $java_cmd -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $classes) || exit 1
+        exit 0
+        ;;
 
-        echo "Running examples"
+    "test-debug")
+        TIGHTDB_JAVA_DEBUG="1" sh build.sh test || exit 1
+        exit 0
+        ;;
+
+    "test-examples")
         cd "examples/intro-example" || exit 1
-        unset CLASSPATH
         echo "ant build:"
         ant build || exit 1
         echo "ant tutorial:"
@@ -594,7 +558,7 @@ EOF
 
     *)
         echo "Unspecified or bad mode '$MODE'" 1>&2
-        echo "Available modes are: config clean build test install uninstall test-installed" 1>&2
+        echo "Available modes are: config clean build test test-debug test-examples install uninstall test-installed" 1>&2
         echo "As well as: dist-copy dist-remarks" 1>&2
         exit 1
         ;;

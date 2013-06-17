@@ -75,16 +75,16 @@ With that said, here are the commands that will install the bundeled
 JAR's on your system (please be carefull about overwriting existing
 files):
 
-    sudo install -d /usr/share/java
-    sudo install -m 644 prerequisite_jars/commons-lang.jar /usr/share/java
-    sudo install -m 644 prerequisite_jars/commons-io.jar /usr/share/java
-    sudo install -m 644 prerequisite_jars/freemarker.jar /usr/share/java
+    sudo install -d /usr/local/share/java
+    sudo install -m 644 prerequisite_jars/commons-lang.jar /usr/local/share/java
+    sudo install -m 644 prerequisite_jars/commons-io.jar /usr/local/share/java
+    sudo install -m 644 prerequisite_jars/freemarker.jar /usr/local/share/java
 
 If you intend to run the optional test-suite, you also need these:
 
-    sudo install -m 644 prerequisite_jars/testng.jar /usr/share/java
-    sudo install -m 644 prerequisite_jars/qdox.jar /usr/share/java
-    sudo install -m 644 prerequisite_jars/bsh.jar /usr/share/java
+    sudo install -m 644 prerequisite_jars/testng.jar /usr/local/share/java
+    sudo install -m 644 prerequisite_jars/qdox.jar /usr/local/share/java
+    sudo install -m 644 prerequisite_jars/bsh.jar /usr/local/share/java
 
 
 Building, testing, and installing
@@ -113,7 +113,7 @@ It will also install the following two Java libraries:
 The 'devkit' variant includes an annotation processor and should be
 used when compiling your application, as in the following example:
 
-    CLASSPATH=/path/to/tightdb.jar:. javac foo/MyApp.java
+    CLASSPATH=/path/to/tightdb-devkit.jar:. javac foo/MyApp.java
 
 To run your application you only need `tightd.jar`:
 
