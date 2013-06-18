@@ -103,7 +103,7 @@ an appropriate system directory (see "Configuration" below):
     libtightdb-jni.so
     libtightdb-jni-dbg.so
 
-Note: '.so' is replaced by '.dylib' on OS X.
+Note: '.so' is replaced by '.jnilib' on OS X.
 
 It will also install the following two Java libraries:
 
