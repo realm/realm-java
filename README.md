@@ -28,6 +28,8 @@ with Clang 3.0 and newer.
 To run the test suite you need TestNG (http://testng.org) as well as
 its dependencies.
 
+To run the examples you need Apache Ant (http://ant.apache.org).
+
 The following is a suggestion of how to install the prerequisites on
 each of our major platforms:
 
@@ -35,25 +37,25 @@ each of our major platforms:
 
     sudo apt-get install build-essential openjdk-6-jre openjdk-6-jdk
     sudo apt-get install libcommons-io-java libcommons-lang-java libfreemarker-java
-    sudo apt-get install testng libqdox-java bsh
+    sudo apt-get install testng libqdox-java bsh ant
 
 ### Ubuntu 12.04 and 13.04
 
     sudo apt-get install build-essential openjdk-7-jre openjdk-7-jdk
     sudo apt-get install libcommons-io-java libcommons-lang-java libfreemarker-java
-    sudo apt-get install testng libqdox-java bsh
+    sudo apt-get install testng libqdox-java bsh ant
 
 ### Fedora 17 and 18
 
     sudo yum install gcc gcc-c++ java-1.7.0-openjdk-devel
     sudo yum install apache-commons-io apache-commons-lang freemarker
-    sudo yum install testng qdox bsh
+    sudo yum install testng qdox bsh ant
 
 ### Amazon Linux 2012.09
 
     sudo yum install gcc gcc-c++ java-1.7.0-openjdk-devel
     sudo yum install apache-commons-io apache-commons-lang
-    sudo yum install qdox bsh
+    sudo yum install qdox bsh ant
 
 Java libraries Freemarker and TestNG are not currently available in
 the Yum repository, but they can be downloaded and installed manually
