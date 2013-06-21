@@ -47,7 +47,32 @@ each of our major platforms:
 
     sudo yum install gcc gcc-c++ java-1.7.0-openjdk-devel
     sudo yum install apache-commons-io apache-commons-lang freemarker
-    sudo yum install testng ant qdox bsh
+    sudo yum install testng qdox bsh
+
+### Amazon Linux 2012.09
+
+    sudo yum install gcc gcc-c++ java-1.7.0-openjdk-devel
+    sudo yum install apache-commons-io apache-commons-lang
+    sudo yum install qdox bsh
+
+Java libraries Freemarker and TestNG are not currently available in
+the Yum repository, but they can be downloaded and installed manually
+from the respective wesites. To make this process a little easier, we
+have bundled the relevant libraries with the TightDB Java extension in
+the `prerequisite_jars` subdirectory, but please note that TightDB
+makes no guarantees, and has no responsibility with respect to the
+fitness of the bundled libraries on any target system.
+
+With that said, here are the commands that will install the Freemarker
+JAR on your system (please be carefull about overwriting existing
+files):
+
+    sudo install -d /usr/local/share/java
+    sudo install -m 644 prerequisite_jars/freemarker.jar /usr/local/share/java
+
+If you intend to run the optional test-suite, you also need this one:
+
+    sudo install -m 644 prerequisite_jars/testng.jar /usr/local/share/java
 
 ### Mac OS X 10.7 and 10.8
 
