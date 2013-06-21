@@ -7,10 +7,8 @@
 /*.gcda
 
 /libtightdb-jni.so
-/libtightdb-jni.dylib
 /libtightdb-jni.jnilib
-/libtightdb-jni.a
 /libtightdb-jni-dbg.so
-/libtightdb-jni-dbg.dylib
+/libtightdb-jni-dbg.jnilib
 /libtightdb-jni-cov.so
-/libtightdb-jni-cov.dylib
+/libtightdb-jni-cov.jnilib

@@ -12,11 +12,12 @@ clean:
 	sh build.sh clean
 
 build:
+	sh build.sh config /usr
 	sh build.sh build
 
 install: build
 	dh_installdirs
-	DESTDIR=$$(pwd)/debian/tightdb-java sh build.sh install /usr
+	DESTDIR=$$(pwd)/debian/tightdb-java sh build.sh install
 
 binary-indep: install
 

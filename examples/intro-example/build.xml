@@ -8,17 +8,18 @@
 	<property name="srcdir" value="src" />
 	<property name="gendir" value="generated" />
 	<property name="bindir" value="bin" />
-	<property name="libpath" value=".." />
+	<property name="libpath" value="../../lib" />
+	<property name="libpath-sqlite" value="../lib-sqlite" />
 
     <path id="build-classpath">
-        <pathelement location="${libpath}/lib/tightdb.jar"/>
-        <pathelement location="${libpath}/lib-sqlite/sqlite4java.jar"/>
+        <pathelement location="${libpath}/tightdb.jar"/>
+        <pathelement location="${libpath-sqlite}/sqlite4java.jar"/>
     </path>
 
     <path id="samples-classpath">
         <pathelement location="${bindir}"/>
-        <pathelement location="${libpath}/lib/tightdb.jar"/>
-        <pathelement location="${libpath}/lib-sqlite/sqlite4java.jar"/>
+        <pathelement location="${libpath}/tightdb.jar"/>
+        <pathelement location="${libpath-sqlite}/sqlite4java.jar"/>
     </path>
 
     <target name="init">
@@ -56,7 +57,7 @@
 			<compilerarg value="-processor" />
 			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
 			<compilerarg value="-processorpath" />
-			<compilerarg value="${libpath}/lib/tightdb-devkit.jar" />
+			<compilerarg value="${libpath}/tightdb-devkit.jar" />
 			<compilerarg value="-s" />
 			<compilerarg value="${gendir}" />
 			<compilerarg value="-proc:only" />
@@ -65,36 +66,44 @@
 
     <target depends="build" name="tutorial">
         <java classname="com.tightdb.examples.tutorial.tutorial" failonerror="true" fork="yes">
-            <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
-            <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
-            <sysproperty key="java.library.path" path="${libpath}/lib"/>
+<!--
+            <env key="LD_LIBRARY_PATH" path="${libpath}"/>
+            <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
+-->
+            <sysproperty key="java.library.path" path="${libpath}"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
 
     <target depends="build" name="showcase">
         <java classname="com.tightdb.examples.showcase.Showcase" failonerror="true" fork="yes">
-            <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
-            <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
-            <sysproperty key="java.library.path" path="${libpath}/lib"/>
+<!--
+            <env key="LD_LIBRARY_PATH" path="${libpath}"/>
+            <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
+-->
+            <sysproperty key="java.library.path" path="${libpath}"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
 
     <target depends="build" name="quickbenchmark">
         <java classname="com.tightdb.examples.quickbenchmark.QuickBenchmark" failonerror="true" fork="yes">
-            <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
-            <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
-            <sysproperty key="java.library.path" path="${libpath}/lib"/>
+<!--
+            <env key="LD_LIBRARY_PATH" path="${libpath}"/>
+            <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
+-->
+            <sysproperty key="java.library.path" path="${libpath}"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
 
     <target depends="build" name="performance">
         <java classname="com.tightdb.examples.performance.Performance" failonerror="true" fork="yes">
-            <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
-            <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
-            <sysproperty key="java.library.path" path="${libpath}/lib"/>
+<!--
+            <env key="LD_LIBRARY_PATH" path="${libpath}"/>
+            <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
+-->
+            <sysproperty key="java.library.path" path="${libpath}"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
