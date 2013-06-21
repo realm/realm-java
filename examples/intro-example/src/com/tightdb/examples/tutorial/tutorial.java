@@ -1,5 +1,5 @@
 //
-//This example is used in the short introduction "Tightdb Java Interface"
+//This example is used in the short introduction "TightDB Java Interface"
 //The @@ comments below are used for automatic extraction to the documentation
 //
 

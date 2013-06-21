@@ -172,9 +172,6 @@ public class Group {
      * @throws IOException
      */
     public void writeToFile(File file) throws IOException {
-        if (!file.exists()) {
-            file.createNewFile();
-        }
         try {
             nativeWriteToFile(nativePtr, file.getAbsolutePath());
         } catch (Exception ex) {
