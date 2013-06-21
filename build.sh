@@ -414,8 +414,22 @@ EOF
         (cd "$dir/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" $sources) || exit 1
 
         echo "Running test suite in '$dir'"
+        testng_xml="$temp_dir/testng.xml"
+        cat >"$testng_xml" <<EOF
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Test suite" verbose="1"><test name="All"><classes>
+EOF
+        for x in $classes; do
+            y="$(printf "%s\n" "$x" | sed 's/\.class$//' | sed 's|/|.|g')"
+            cat >>"$testng_xml" <<EOF
+<class name="$y"/>
+EOF
+        done
+        cat >>"$testng_xml" <<EOF
+</classes></test></suite>
+EOF
         java_cmd="$(get_config_param "java-command")" || exit 1
-        (cd "$temp_dir/out" && $java_cmd -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" -testclass $classes) || exit 1
+        (cd "$temp_dir/out" && $java_cmd -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" "$testng_xml") || exit 1
         exit 0
         ;;
 
