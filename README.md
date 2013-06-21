@@ -43,7 +43,7 @@ each of our major platforms:
     sudo apt-get install libcommons-io-java libcommons-lang-java libfreemarker-java
     sudo apt-get install testng libqdox-java bsh
 
-### Fedora 17
+### Fedora 17 and 18
 
     sudo yum install gcc gcc-c++ java-1.7.0-openjdk-devel
     sudo yum install apache-commons-io apache-commons-lang freemarker
