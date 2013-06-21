@@ -16,9 +16,14 @@ Prerequisites
 To build this language binding, you need version 1.6 or newer of the
 Java Development Kit (JDK).
 
-Additionally, you need the "Commons IO" and "Commons Lang" Java
-libraries from Apache Commons (http://commons.apache.org), as well as
-the "Freemarker" Java library (http://freemarker.sourceforge.net).
+You also need the "Commons IO" and "Commons Lang" Java libraries from
+Apache Commons (http://commons.apache.org), as well as the
+"Freemarker" Java library (http://freemarker.sourceforge.net).
+
+Additionally, you need the standard set of build tools. This includes
+a C/C++ compiler and GNU make. TightDB is thoroughly tested with both
+GCC and Clang. It is known to work with GCC 4.2 and newer, as well as
+with Clang 3.0 and newer.
 
 To run the test suite you need TestNG (http://testng.org) as well as
 its dependencies.
@@ -50,10 +55,13 @@ On Mac OS X, the build procedure uses Clang as the C/C++
 compiler. Clang comes with Xcode, so install Xcode if it is not
 already installed. If you have a version that preceeds 4.2, we
 recommend that you upgrade. This will ensure that the Clang version is
-at least 3.0. Run the following command in the command prompt to se if
-you have Xcode installed, and, if os, what version it is:
+at least 3.0. Run the following command in the command prompt to see
+if you have Xcode installed, and, if so, what version it is:
 
     xcodebuild -version
+
+Make sure you also install "Command line tools" found under the
+preferences pane "Downloads" in Xcode.
 
 Run the following command on the command prompt to see if Java is
 already ínstalled:
