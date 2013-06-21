@@ -416,6 +416,7 @@ EOF
         echo "Running test suite in '$dir'"
         testng_xml="$temp_dir/testng.xml"
         cat >"$testng_xml" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="Test suite" verbose="1"><test name="All"><classes>
 EOF
