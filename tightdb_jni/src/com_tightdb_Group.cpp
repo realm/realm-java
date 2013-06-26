@@ -21,7 +21,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
 
     Group* pGroup = 0;
     try {
-        pGroup = new Group(fileNameCharPtr, readOnly != 0 ? Group::mode_ReadOnly : Group::mode_Normal);
+        pGroup = new Group(fileNameCharPtr, readOnly != 0 ? Group::mode_ReadOnly : Group::mode_ReadWrite);
     }
     catch (...) {
         // FIXME: Diffrent exception types mean different things. More
