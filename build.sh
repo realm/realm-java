@@ -220,7 +220,7 @@ case "$MODE" in
             fi
             jar_install_dir="/usr/local/share/java"
         else
-            jni_install_dir="$(cd "tightdb_jni" && make prefix="$install_prefix" get-libdir)" || exit 1
+            jni_install_dir="$(cd "tightdb_jni" && make -s prefix="$install_prefix" get-libdir)" || exit 1
             jar_install_dir="$install_prefix/share/java"
         fi
 
@@ -459,7 +459,6 @@ EOF
         jni_install_dir="$(get_config_param "jni-install-dir")" || exit 1
         jni_suffix="$(get_config_param "jni-suffix")"           || exit 1
         make -C "tightdb_jni" install DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
-
         jar_install_dir="$DESTDIR$(get_config_param "jar-install-dir")" || exit 1
         install -d "$jar_install_dir" || exit 1
         for x in "tightdb.jar" "tightdb-devkit.jar"; do

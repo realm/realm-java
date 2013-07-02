@@ -2,7 +2,7 @@
 # -*- makefile -*-
 
 # Uncomment this to turn on verbose mode.
-# export DH_VERBOSE=1
+#export DH_VERBOSE=1
 
 override_dh_usrlocal:
 
@@ -37,4 +37,4 @@ binary-arch: install
 
 binary: binary-indep binary-arch
 
-.PHONY: binary binary-arch binary-indep clean checkroot
+.PHONY: clean checkroot build install binary-indep binary-arch binary
