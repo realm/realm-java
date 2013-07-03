@@ -216,7 +216,7 @@ case "$MODE" in
                 # We choose /usr/lib over /usr/local/lib because the
                 # latter is not in the default runtime library search
                 # path on RedHat and RedHat derived systems.
-                jni_install_dir="$(cd "tightdb_jni" && make prefix="/usr" get-libdir)" || exit 1
+                jni_install_dir="$(cd "tightdb_jni" && make -s prefix="/usr" get-libdir)" || exit 1
             fi
             jar_install_dir="/usr/local/share/java"
         else
@@ -379,11 +379,11 @@ EOF
         echo "Setting up library symlinks in 'lib' to make examples work"
         mkdir -p "lib" || exit 1
         core_dir="../tightdb"
-        core_library_aliases="$(cd "$core_dir/src/tightdb" && make get-inst-libraries)" || exit 1
+        core_library_aliases="$(cd "$core_dir/src/tightdb" && make -s get-inst-libraries)" || exit 1
         for x in $core_library_aliases; do
             (cd "lib" && ln -s -f "../$core_dir/src/tightdb/$x") || exit 1
         done
-        library_aliases="$(cd "tightdb_jni/src" && make get-inst-libraries LIB_SUFFIX_SHARED="$jni_suffix")" || exit 1
+        library_aliases="$(cd "tightdb_jni/src" && make -s get-inst-libraries LIB_SUFFIX_SHARED="$jni_suffix")" || exit 1
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
         done
@@ -456,15 +456,28 @@ EOF
     "install")
         require_config || exit 1
 
+        prod_only="$1"
+        if [ -z "$prod_only" ]; then
+            prod_only="no"
+        fi
+
         jni_install_dir="$(get_config_param "jni-install-dir")" || exit 1
         jni_suffix="$(get_config_param "jni-suffix")"           || exit 1
         make -C "tightdb_jni" install DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
         jar_install_dir="$DESTDIR$(get_config_param "jar-install-dir")" || exit 1
         install -d "$jar_install_dir" || exit 1
-        for x in "tightdb.jar" "tightdb-devkit.jar"; do
+
+        if [ "$prod_only" = "no" ]; then
+            jar_list="tightdb.jar tightdb-devkit.jar"
+        else
+            jar_list="tightdb.jar"
+        fi
+
+        for x in $jar_list; do
             echo "Installing '$jar_install_dir/$x'"
             install -m 644 "lib/$x" "$jar_install_dir" || exit 1
         done
+
 
         echo "Done installing"
         exit 0

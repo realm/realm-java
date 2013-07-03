@@ -11,30 +11,48 @@ clean:
 	dh_clean
 	sh build.sh clean
 
-build:
+build: clean
 	sh build.sh config /usr
 	sh build.sh build
 
-install: build
-	dh_installdirs
-	DESTDIR=$$(pwd)/debian/tightdb-java sh build.sh install
 
-binary-indep: install
-
-binary-arch: install
+tightdb-java: build
+	DESTDIR=$$(pwd)/debian/tightdb-java sh build.sh install PROD
 	dh_testdir -a
 	dh_testroot -a
 	dh_installdocs -a
-	dh_installchangelogs -a
-	dh_strip -a
-	dh_compress -a
-	dh_fixperms -a
-	dh_installdeb -a
-	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
-	dh_gencontrol -a
-	dh_md5sums -a
-	dh_builddeb -a
+	dh_installchangelogs -p$@ -a
+	dh_strip -p$@ .a
+	dh_compress -p$@ -s
+	dh_fixperms -p$@ -a
+	dh_installdeb -p$@ -a
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info -p$@ -a
+	dh_gencontrol -p$@ -a
+	dh_md5sums -p$@ -a
+	dh_builddeb -p$@ -a
+	dh_installdirs
 
-binary: binary-indep binary-arch
+tightdb-java-dev: build
+	DESTDIR=$$(pwd)/debian/tightdb-java-dev sh build.sh install
+	dh_testdir -a
+	dh_testroot -a
+	dh_installdocs -a
+	dh_installchangelogs -p$@ -a
+	dh_strip -p$@ .a
+	dh_compress -p$@ -s
+	dh_fixperms -p$@ -a
+	dh_installdeb -p$@ -a
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info -p$@ -a
+	dh_gencontrol -p$@ -a
+	dh_md5sums -p$@ -a
+	dh_builddeb -p$@ -a
+	dh_installdirs
 
-.PHONY: clean checkroot build install binary-indep binary-arch binary
+binary: build binary-indep binary-arch
+
+binary-indep: tightdb-java-dev
+
+binary: tightdb-java
+
+
+.PHONY: binary binary-arch binary-indep clean checkroot build  tightdb-java tightdb-java-dev

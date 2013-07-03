@@ -12,3 +12,9 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libtightdb
 Description: Fast, embedded database
  TightDB is a fast, embedded database. This is the Java interface.
+
+Package: tightdb-java-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libtightdb
+Description: Fast, embedded database [development]
+ TightDB is a fast, embedded database. This is the Java interface.
