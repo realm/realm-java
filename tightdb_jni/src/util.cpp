@@ -82,7 +82,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case IOFailed:
-            jExceptionClass = env->FindClass("java/lang/IOException");
+            jExceptionClass = env->FindClass("java/io/IOException");
             message = "Failed to open " + classStr;
             break;
 
