@@ -17,7 +17,7 @@ build: clean
 
 
 tightdb-java: build
-	DESTDIR=$$(pwd)/debian/tightdb-java sh build.sh install PROD
+	DESTDIR=$$(pwd)/debian/tightdb-java sh build.sh install
 	dh_testdir -a
 	dh_testroot -a
 	dh_installdocs -a

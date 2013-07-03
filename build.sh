@@ -456,21 +456,27 @@ EOF
     "install")
         require_config || exit 1
 
-        prod_only="$1"
-        if [ -z "$prod_only" ]; then
-            prod_only="no"
+        if [ -z "$DESTDIR" ]; then
+            jar_list="tightdb-devkit.jar tightdb.jar"
+            full_install="yes"
+        else
+            if [ $(echo $DESTDIR | grep -c "dev$") = 1 ]; then
+                jar_list="tightdb-devkit.jar"
+                full_install="no"
+            else
+                jar_list="tightdb.jar"
+                full_install="yes"
+            fi
         fi
 
         jni_install_dir="$(get_config_param "jni-install-dir")" || exit 1
         jni_suffix="$(get_config_param "jni-suffix")"           || exit 1
-        make -C "tightdb_jni" install DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
         jar_install_dir="$DESTDIR$(get_config_param "jar-install-dir")" || exit 1
+
         install -d "$jar_install_dir" || exit 1
 
-        if [ "$prod_only" = "no" ]; then
-            jar_list="tightdb.jar tightdb-devkit.jar"
-        else
-            jar_list="tightdb.jar"
+        if [ "$full_install" = "yes" ]; then
+            make -C "tightdb_jni" install DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
         fi
 
         for x in $jar_list; do
