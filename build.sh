@@ -216,11 +216,11 @@ case "$MODE" in
                 # We choose /usr/lib over /usr/local/lib because the
                 # latter is not in the default runtime library search
                 # path on RedHat and RedHat derived systems.
-                jni_install_dir="$(cd "tightdb_jni" && make prefix="/usr" get-libdir)" || exit 1
+                jni_install_dir="$(cd "tightdb_jni" && make -s prefix="/usr" get-libdir)" || exit 1
             fi
             jar_install_dir="/usr/local/share/java"
         else
-            jni_install_dir="$(cd "tightdb_jni" && make prefix="$install_prefix" get-libdir)" || exit 1
+            jni_install_dir="$(cd "tightdb_jni" && make -s prefix="$install_prefix" get-libdir)" || exit 1
             jar_install_dir="$install_prefix/share/java"
         fi
 
@@ -379,11 +379,11 @@ EOF
         echo "Setting up library symlinks in 'lib' to make examples work"
         mkdir -p "lib" || exit 1
         core_dir="../tightdb"
-        core_library_aliases="$(cd "$core_dir/src/tightdb" && make get-inst-libraries)" || exit 1
+        core_library_aliases="$(cd "$core_dir/src/tightdb" && make -s get-inst-libraries)" || exit 1
         for x in $core_library_aliases; do
             (cd "lib" && ln -s -f "../$core_dir/src/tightdb/$x") || exit 1
         done
-        library_aliases="$(cd "tightdb_jni/src" && make get-inst-libraries LIB_SUFFIX_SHARED="$jni_suffix")" || exit 1
+        library_aliases="$(cd "tightdb_jni/src" && make -s get-inst-libraries LIB_SUFFIX_SHARED="$jni_suffix")" || exit 1
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
         done
@@ -456,16 +456,34 @@ EOF
     "install")
         require_config || exit 1
 
+        if [ -z "$DESTDIR" ]; then
+            jar_list="tightdb-devkit.jar tightdb.jar"
+            full_install="yes"
+        else
+            if [ $(echo $DESTDIR | grep -c "dev$") = 1 ]; then
+                jar_list="tightdb-devkit.jar"
+                full_install="no"
+            else
+                jar_list="tightdb.jar"
+                full_install="yes"
+            fi
+        fi
+
         jni_install_dir="$(get_config_param "jni-install-dir")" || exit 1
         jni_suffix="$(get_config_param "jni-suffix")"           || exit 1
-        make -C "tightdb_jni" install DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
-
         jar_install_dir="$DESTDIR$(get_config_param "jar-install-dir")" || exit 1
+
         install -d "$jar_install_dir" || exit 1
-        for x in "tightdb.jar" "tightdb-devkit.jar"; do
+
+        if [ "$full_install" = "yes" ]; then
+            make -C "tightdb_jni" install DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+        fi
+
+        for x in $jar_list; do
             echo "Installing '$jar_install_dir/$x'"
             install -m 644 "lib/$x" "$jar_install_dir" || exit 1
         done
+
 
         echo "Done installing"
         exit 0

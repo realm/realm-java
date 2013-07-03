@@ -2,13 +2,19 @@ Source: tightdb-java
 Section: unknown
 Priority: extra
 Maintainer: Kenneth Geisshirt <kg@tightdb.com>
-Build-Depends: debhelper (>=9), tightdb
+Build-Depends: debhelper (>=7), libtightdb, libtightdb-dev
 X-Python-Version: 2.7
 Standards-Version: 3.9.4
 Homepage: http://www.tightdb.com/
 
 Package: tightdb-java
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, tightdb
+Depends: ${shlibs:Depends}, ${misc:Depends}, libtightdb
 Description: Fast, embedded database
+ TightDB is a fast, embedded database. This is the Java interface.
+
+Package: tightdb-java-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libtightdb
+Description: Fast, embedded database [development]
  TightDB is a fast, embedded database. This is the Java interface.
