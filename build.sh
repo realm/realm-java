@@ -409,7 +409,7 @@ EOF
         for x in $testing_jars; do
             path_list_append "CLASSPATH" "$x" || exit 1
         done
-        sources="$(cd "$dir/java" && find * -type f -name '*Test.java')" || exit 1
+        sources="$(cd "$dir/java" && find * -type f -name '*.java')" || exit 1
         classes="$(printf "%s\n" "$sources" | sed 's/\.java$/.class/')" || exit 1
         (cd "$dir/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" $sources) || exit 1
 
