@@ -1,5 +1,6 @@
 package com.tightdb.examples.showcase;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
@@ -188,7 +189,8 @@ public class Showcase {
         employees.last().before(2);                 // 3rd-last row
 
         /***************************** SAVE TO FILE ******************************/
-
+        
+        new File("employees.tightdb").delete();
         try {
             group.writeToFile("employees.tightdb");
         } catch (IOException e) {
@@ -212,5 +214,6 @@ public class Showcase {
         Group group2 = new Group("employees.tightdb");
         EmployeeTable employees2 = new EmployeeTable(group2);
         TightDB.print(employees2);
+        group2.close();
     }
 }

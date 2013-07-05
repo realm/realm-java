@@ -6,6 +6,7 @@
 package com.tightdb.examples.tutorial;
 
 import java.io.IOException;
+import java.io.File;
 import com.tightdb.*;
 
 @SuppressWarnings("unused")
@@ -68,7 +69,7 @@ public class tutorial {
     // @@EndExample@@
 
     // @@Example: updating_entire_row @@
-    peopleTable.at(4).set("Eric", 50, true);
+    peopleTable.get(4).set("Eric", 50, true);
     // @@EndExample@@
 
     /****************************** DATA REMOVAL *****************************/
@@ -126,6 +127,8 @@ public class tutorial {
     /****************************** SERIALIZE ********************************/
 
     System.out.println("Serialize to file:");
+    new File("people.tightdb").delete(); // remove file if there - can't write to the same file
+    
     // @@Example: serialisation @@
     // Create Table in Group
     Group group = new Group();
@@ -138,7 +141,8 @@ public class tutorial {
     try {
         group.writeToFile("people.tightdb");
     } catch (IOException e) {
-        e.printStackTrace();
+    	// unable to write - handle...
+    	System.exit(1);
     }
 
     // Load a group from disk (and print contents)

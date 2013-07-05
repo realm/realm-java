@@ -1,3 +1,8 @@
+05-July-2013:
+============
++ Exception now thrown when calling a method on a closed Group().
+! Proper exception is now thrown if group.writeToFile() is called on an existing file.
+
 06-06-2013:
 ===========
 +- at() in Table and TableView is now deprecated. Use get() instead.
