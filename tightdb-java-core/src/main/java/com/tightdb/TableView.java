@@ -435,7 +435,10 @@ public class TableView implements TableOrView {
     // Search for all matches
 
     // TODO..
-    public long findSortedLong(long columnIndex, long value) {
+    public long lowerBoundLong(long columnIndex, long value) {
+        throw new RuntimeException("Not implemented yet");
+    }
+    public long upperBoundLong(long columnIndex, long value) {
         throw new RuntimeException("Not implemented yet");
     }
 

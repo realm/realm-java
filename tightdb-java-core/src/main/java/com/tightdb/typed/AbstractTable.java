@@ -214,8 +214,10 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
         return table.hasIndex(columnIndex);
     }
 
-    public long findSorted(long columnIndex, long value) {
-        return table.findSortedLong(columnIndex, value);
-        }
-
+    public long lowerBound(long columnIndex, long value) {
+        return table.lowerBoundLong(columnIndex, value);
+    }
+    public long upperBound(long columnIndex, long value) {
+        return table.upperBoundLong(columnIndex, value);
+    }
 }

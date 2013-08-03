@@ -966,11 +966,15 @@ public class Table implements TableOrView {
 
 
     // Experimental feature
-    public long findSortedLong(long columnIndex, long value) {
-        return nativeFindSortedInt(nativePtr, columnIndex, value);
+    public long lowerBoundLong(long columnIndex, long value) {
+        return nativeLowerBoundInt(nativePtr, columnIndex, value);
+    }
+    public long upperBoundLong(long columnIndex, long value) {
+        return nativeUpperBoundInt(nativePtr, columnIndex, value);
     }
 
-    protected native long nativeFindSortedInt(long nativePtr, long columnIndex, long value);
+    protected native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
+    protected native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
 
     //
 

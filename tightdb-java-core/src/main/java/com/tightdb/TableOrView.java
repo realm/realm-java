@@ -226,7 +226,8 @@ public interface TableOrView {
     long findFirstString(long columnIndex, String value);
 
 
-    long findSortedLong(long columnIndex, long value);
+    long lowerBoundLong(long columnIndex, long value);
+    long upperBoundLong(long columnIndex, long value);
 
 
     TableView findAllLong(long columnIndex, long value);

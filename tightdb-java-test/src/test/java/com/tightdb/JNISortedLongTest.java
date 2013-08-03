@@ -18,44 +18,33 @@ public class JNISortedLongTest {
         table.add(40, "D");
         table.add(50, "D");
         table.add(60, "D");
-        assertEquals(7, table.size());
+        table.add(60, "D");
+        assertEquals(8, table.size());
     }
 
-    @Test(enabled=false)    // TODO: enable
+    @Test(enabled=true)    // TODO: enable
     public void shouldTestSortedInt() {
         init();
-        long pos;
-        boolean found;
 
-        // Find first insert position
-        pos = table.findSortedLong(0, 0);
-        found = (table.getLong(0, pos) == 0);
-        assertEquals(0, pos);
-        assertEquals(false, found);
+        // before first entry
+        assertEquals(0, table.lowerBoundLong(0, 0));
+        assertEquals(0, table.upperBoundLong(0, 0));
 
         // find middle match
-        pos = table.findSortedLong(0, 40);
-        found = (table.getLong(0, pos) == 40);
-        assertEquals(4, pos);
-        assertEquals(true, found);
+        assertEquals(4, table.lowerBoundLong(0, 40));
+        assertEquals(5, table.upperBoundLong(0, 40));
 
-        // find mindle insert position
-        pos = table.findSortedLong(0, 41);
-        found = (table.getLong(0, pos) == 41);
-        assertEquals(5, pos);
-        assertEquals(false, found);
+        // find mindle (nonexisting)
+        assertEquals(5, table.lowerBoundLong(0, 41));
+        assertEquals(5, table.upperBoundLong(0, 41));
 
-        // find last insert position
-        pos = table.findSortedLong(0, 100);
-        found = (pos < table.size() && (table.getLong(0, pos) == 100) );
-        assertEquals(7, pos);
-        assertEquals(false, found);
+        // beyond last entry
+        assertEquals(8, table.lowerBoundLong(0, 100));
+        assertEquals(8, table.upperBoundLong(0, 100));
 
-        // find last match
-        pos = table.findSortedLong(0, 60);
-        found = (table.getLong(0, pos) == 60);
-        assertEquals(6, pos);
-        assertEquals(true, found);
+        // find last match (duplicated)
+        assertEquals(6, table.lowerBoundLong(0, 60));
+        assertEquals(8, table.upperBoundLong(0, 60));
 
     }
 }
