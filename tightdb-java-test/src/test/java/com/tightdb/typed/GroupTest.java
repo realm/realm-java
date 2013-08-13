@@ -13,6 +13,7 @@ import java.util.Date;
 import java.io.File;
 
 import com.tightdb.Group;
+import com.tightdb.Table;
 import com.tightdb.test.TestEmployeeTable;
 
 @SuppressWarnings("unused")
@@ -70,6 +71,30 @@ public class GroupTest {
 
     }
 
+    public void testHasTable() {
+        Group group = new Group();
+        assertEquals(group.hasTable(null), false);
+        assertEquals(group.hasTable(""), false);
+        assertEquals(group.hasTable("hi"), false);
+        
+        Table table = group.getTable("hi");
+        assertEquals(table.isValid(), true);
+        assertEquals(group.hasTable("hi"), true);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void getTableShouldThrowIllegalArgument1() {
+        Group group = new Group();
+        group.getTable(null);
+        // Expect to throw exception
+    }
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void getTableShouldThrowIllegalArgument2() {
+        Group group = new Group();
+        group.getTable("");
+        // Expect to throw exception
+    }
+    
     @Test 
     public void shouldOpenExistingGroupFile() throws IOException {
     	new File(FILENAME).delete();

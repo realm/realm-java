@@ -153,6 +153,8 @@ public class Group {
      */
     public Table getTable(String name) {
     	verifyGroupIsValid();
+    	if (name == null || name == "")
+    		throw new IllegalArgumentException("Invalid name. Name must be a non-empty string.");
         if (immutable)
             if (!hasTable(name))
                 throwImmutable();
