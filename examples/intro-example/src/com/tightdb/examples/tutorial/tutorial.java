@@ -178,7 +178,7 @@ public class tutorial {
     try {
         PeopleTable person = new PeopleTable(wrtTrans);
         // Add row to table
-        person.add("John", 53, true);
+        person.add("Bill", 53, true);
         wrtTrans.commit();                          // End transaction
     } catch (Throwable e) {
         wrtTrans.rollback();                        // or Rollback
