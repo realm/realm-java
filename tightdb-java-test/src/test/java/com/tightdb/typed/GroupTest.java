@@ -12,7 +12,9 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.io.File;
 
+import com.tightdb.ColumnType;
 import com.tightdb.Group;
+import com.tightdb.Group.OpenMode;
 import com.tightdb.Table;
 import com.tightdb.test.TestEmployeeTable;
 
@@ -95,17 +97,62 @@ public class GroupTest {
         // Expect to throw exception
     }
     
+    //
+    // Open Group with file
+    //
+    
     @Test 
     public void shouldOpenExistingGroupFile() throws IOException {
     	new File(FILENAME).delete();
+    	
     	Group group = new Group();
         group.writeToFile(FILENAME);
         group.close();
         
     	Group group2 = new Group(FILENAME);
     	group2.close();
+
+    	Group group3 = new Group(FILENAME, OpenMode.READ_ONLY);
+    	group3.close();
+
+    	Group group4 = new Group(FILENAME, OpenMode.READ_WRITE);
+    	group4.close();
+
+    	Group group5 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE);
+    	group5.close();
     }
     
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void shouldOpenReadOnly() throws IOException {
+    	File file = new File(FILENAME);
+    	file.delete();
+    	file.createNewFile();
+    	// Throw when opening non-TightDB file
+    	Group group = new Group(FILENAME, OpenMode.READ_ONLY);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void shouldThrowExceptionOnGroupReadOnly() throws IOException {
+    	new File(FILENAME).delete();
+    	// Throw when opening non-existing file
+    	Group group = new Group(FILENAME, OpenMode.READ_ONLY);    	
+    }
+    
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void shouldThrowExceptionOnOpenWrongFileReadOnly() throws IOException {
+    	File file = new File(FILENAME);
+    	file.delete();
+    	file.createNewFile();
+    	// Throw when opening non-TightDB file
+    	Group group = new Group(FILENAME, OpenMode.READ_ONLY);
+    }
+    
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void ThrowExceptionOnGroupNoCreate() throws IOException {
+    	new File(FILENAME).delete();      
+    	Group group2 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE);
+    }
+
     @Test
     public void groupCanWriteToFile() throws IOException {
     	new File(FILENAME).delete();
@@ -133,6 +180,32 @@ public class GroupTest {
         group.writeToFile(FILENAME);
         // writing to the same file should throw exception
         group.writeToFile(FILENAME);
+    }
+
+    @Test
+    public void shouldCommitToDisk() throws IOException {
+    	new File(FILENAME).delete();
+
+    	// Write a DB to file
+    	Group group = new Group(FILENAME, OpenMode.READ_WRITE);
+    	group.commit();
+  	
+      	Table tbl = group.getTable("test");
+    	tbl.addColumn(ColumnType.ColumnTypeInt, "number");
+    	tbl.add(1);
+    	group.commit();
+    	assertEquals(tbl.getLong(0, 0), 1);
+    	
+    	// Update, commit and close file.
+    	tbl.set(0, 27);
+    	group.commit();
+    	group.close();
+    	
+    	// Open file again and verify content
+    	Group readGrp = new Group(FILENAME);
+    	Table tbl2 = readGrp.getTable("test");
+    	assertEquals(tbl2.getLong(0, 0), 27);
+    	readGrp.close();
     }
 
 /* TODO: Enable when implemented "free" method for the data

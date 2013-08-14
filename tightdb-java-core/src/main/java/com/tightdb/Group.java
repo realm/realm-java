@@ -37,19 +37,30 @@ public class Group {
 
     protected native long createNative();
 
-    public Group(String fileName, boolean readOnly) {
-        this.nativePtr = createNative(fileName, readOnly);
+    public enum OpenMode {
+    	// Below values must match the values in tightdb::group::OpenMode in C++
+    	READ_ONLY(0), 
+    	READ_WRITE(1), 
+    	READ_WRITE_NO_CREATE(2);
+    	private int value;
+    	private OpenMode(int value) {
+    		this.value = value;
+    	}
+    };
+
+    public Group(String filepath, OpenMode mode) {
+        this.nativePtr = createNative(filepath, mode.value);
         checkNativePtr();
     }
 
-    protected native long createNative(String filename, boolean readOnly);
+    protected native long createNative(String filepath, int value);
 
-    public Group(String fileName) {
-        this(fileName, true);
+    public Group(String filepath) {
+        this(filepath, OpenMode.READ_ONLY);
     }
 
     public Group(File file) {
-        this(file.getAbsolutePath(), !file.canWrite());
+        this(file.getAbsolutePath(), file.canWrite() ? OpenMode.READ_WRITE : OpenMode.READ_ONLY);
     }
 
 
@@ -217,6 +228,13 @@ public class Group {
     protected native ByteBuffer nativeWriteToByteBuffer(long nativeGroupPtr);
 */
 
+    public void commit() {
+    	verifyGroupIsValid();
+        nativeCommit(nativePtr);    	
+    }
+    
+    protected native void nativeCommit(long nativeGroupPtr);
+    
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
