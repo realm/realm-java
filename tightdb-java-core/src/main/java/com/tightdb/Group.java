@@ -118,7 +118,14 @@ public class Group {
             throw new IllegalStateException("Illegal to call methods on a closed Group.");    		
     }
     
-
+    public boolean equals(Object group) {
+    	if (!(group instanceof Group))
+    		return false;
+		return nativeEquals(nativePtr, ((Group)group).nativePtr);
+    }
+    
+    protected native boolean nativeEquals(long nativeGroupPtr, long compareToGroupPtr);
+    
     public long size() {
     	verifyGroupIsValid();
 		return nativeSize(nativePtr);

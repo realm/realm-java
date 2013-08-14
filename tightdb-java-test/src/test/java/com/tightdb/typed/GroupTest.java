@@ -271,5 +271,22 @@ public class GroupTest {
         	fail("Didn't throw exception");
     }    
 
-    
+    @Test
+    public void shouldCompareGroups() {
+    	Group group1 = new Group();
+      	Table tbl = group1.getTable("test");
+    	tbl.addColumn(ColumnType.ColumnTypeInt, "number");
+    	tbl.add(1);
+
+    	Group group2 = new Group();
+      	Table tbl2 = group2.getTable("test");
+    	tbl2.addColumn(ColumnType.ColumnTypeInt, "number");
+    	tbl2.add(1);
+    	
+    	assertEquals(true, group1.equals(group2));
+    	
+    	tbl2.add(2);
+    	assertEquals(false, group1.equals(group2));    	
+    }
+
 }

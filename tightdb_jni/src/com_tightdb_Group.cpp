@@ -219,3 +219,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeCommit(
 {
     G(nativeGroupPtr)->commit();
 }
+
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeEquals(
+  JNIEnv* env, jobject, jlong nativeGroupPtr, jlong compareToGroupPtr)
+{
+    return *G(nativeGroupPtr) == *G(compareToGroupPtr);
+}
