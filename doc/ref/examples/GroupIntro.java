@@ -45,13 +45,13 @@ public class GroupIntro {
         group = new Group(file);
 
         //Get the number of tables in the group. In this case, only 1 table has been added
-        assert(group.size() == 1);
+        Assert(group.size() == 1);
 
         //Returns the name of the first (zero-indexed) table in the group. In this case 'table1'
         String tableName = group.getTableName(0);
 
         //Checks if the group contains the specified table name
-        assert(group.hasTable(tableName));
+        Assert(group.hasTable(tableName));
 
         //-------------------------------------------------------------------
         //Writing to byte array and transfer over a socket
@@ -84,11 +84,17 @@ public class GroupIntro {
             //Get a table from the group, and read the value from column 1, row 2 (zero-indexed)
             Table tableFromArray = fromArray.getTable(tableName);
             String value = tableFromArray.getString(1, 2);
-            assert(value.equals("Elephant")); 
+            Assert(value.equals("Elephant")); 
 
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }  // @@EndShow@@
+    }
+    
+    static void Assert(boolean check) {
+        if (!check) {
+            throw new RuntimeException();
+        }
     }
 } //@@EndExample@@

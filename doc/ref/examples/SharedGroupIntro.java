@@ -49,11 +49,17 @@ public class SharedGroupIntro {
             long size = table.size();
 
             //Size should be 3, as we have added 3 rows
-            assert(size == 3);
+            Assert(size == 3);
 
         } finally {
             //Always end the read transaction
             rt.endRead();
         }  // @@EndShow@@
+    }
+    
+    static void Assert(boolean check) {
+        if (!check) {
+            throw new RuntimeException();
+        }
     }
 } //@@EndExample@@
