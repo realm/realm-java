@@ -14,7 +14,7 @@ public class SharedGroupIntro {
         //Begins a write transaction
         WriteTransaction wt = group.beginWrite(); 
 
-        try {
+        try { 
             
             //Creates a new table by using getTable with the new table name as parameter
             Table table = wt.getTable("newTable");
