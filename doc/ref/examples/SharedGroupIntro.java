@@ -10,6 +10,11 @@ public class SharedGroupIntro {
         // @@Show@@
         //Opens an existing database file or creates a new database file and opens it into a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        
+        
+        //-------------------------------------------------------------------
+        //Writing to the group using transaction
+        //-------------------------------------------------------------------
 
         //Begins a write transaction
         WriteTransaction wt = group.beginWrite(); 
@@ -36,6 +41,11 @@ public class SharedGroupIntro {
             t.printStackTrace();
             wt.rollback();
         }
+        
+        
+        //-------------------------------------------------------------------
+        //Reading from the group using transaction
+        //-------------------------------------------------------------------
         
         //Create a read transaction from the group
         ReadTransaction rt = group.beginRead();
