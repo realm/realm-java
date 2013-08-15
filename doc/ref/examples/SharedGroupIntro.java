@@ -7,25 +7,22 @@ import com.tightdb.*;
 public class SharedGroupIntro {
 
 	public static void main(String[] args) {
-		 // @@Show@@
+		// @@Show@@
 		//Opens an existing database file or creates a new database file and opens it into a shared group
-		SharedGroup group = new SharedGroup("mydata.tightdb");
+		SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
 		//Begins a write transaction
-		WriteTransaction wt = group.beginWrite();
+		WriteTransaction wt = group.beginWrite(); 
 
 		try{
 
 			//Creates a new table by using getTable with the new table name as parameter
 			Table table = wt.getTable("newTable");
 
-			//Create a TableSpec and specify the column types and names
-			TableSpec spec = new TableSpec();
-			spec.addColumn(ColumnType.ColumnTypeInt, "ID");
-			spec.addColumn(ColumnType.ColumnTypeString, "City");
+			//Specify the column types and names
+			table.addColumn(ColumnType.ColumnTypeInt, "ID");
+			table.addColumn(ColumnType.ColumnTypeString, "City");
 
-			//Update the table from the spec
-			table.updateFromSpec(spec);
 
 			//Add data to the table
 			table.add(1, "Washington");
@@ -44,29 +41,29 @@ public class SharedGroupIntro {
 		ReadTransaction rt = group.beginRead();
 
 		try{
-			
+
 			//Get the newly created table
 			Table table = rt.getTable("newTable");
-			
+
 			//Get the size of the table
 			long size = table.size();
-			
-			//Size should be 3, as we have added 3 rows
-	        Assert(size == 3);
 
-	        
+			//Size should be 3, as we have added 3 rows
+			Assert(size == 3);
+
+
 		} finally{
 			//Always end the read transaction
 			rt.endRead();
 		}
-		
+
 		// @@EndShow@@
 	}
-	
+
 	static void Assert(boolean check) {
-        if (!check) {
-            throw new RuntimeException();
-        }
-    }
+		if (!check) {
+			throw new RuntimeException();
+		}
+	}
 }
 //@@EndExample@@
