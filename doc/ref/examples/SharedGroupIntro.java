@@ -6,64 +6,64 @@ import com.tightdb.*;
 
 public class SharedGroupIntro {
 
-	public static void main(String[] args) {
-		// @@Show@@
-		//Opens an existing database file or creates a new database file and opens it into a shared group
-		SharedGroup group = new SharedGroup("mydatabase.tightdb");
+    public static void main(String[] args) {
+        // @@Show@@
+        //Opens an existing database file or creates a new database file and opens it into a shared group
+        SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
-		//Begins a write transaction
-		WriteTransaction wt = group.beginWrite(); 
+        //Begins a write transaction
+        WriteTransaction wt = group.beginWrite(); 
 
-		try{
+        try {
+            
+            //Creates a new table by using getTable with the new table name as parameter
+            Table table = wt.getTable("newTable");
+            
+            //Specify the column types and names
+            table.addColumn(ColumnType.ColumnTypeInt, "ID");
+            table.addColumn(ColumnType.ColumnTypeString, "City");
+            
 
-			//Creates a new table by using getTable with the new table name as parameter
-			Table table = wt.getTable("newTable");
+            //Add data to the table
+            table.add(1, "Washington");
+            table.add(2, "Los Angeles");
+            table.add(3, "New York");
 
-			//Specify the column types and names
-			table.addColumn(ColumnType.ColumnTypeInt, "ID");
-			table.addColumn(ColumnType.ColumnTypeString, "City");
+            //Commit the changes, otherwise no data is written to the table
+            wt.commit();
 
+        } catch (Throwable t) {
+            t.printStackTrace();
+            wt.rollback();
+        }
+        
+        //Create a read transaction from the group
+        ReadTransaction rt = group.beginRead();
+        
+        try {
+            
+            //Get the newly created table
+            Table table = rt.getTable("newTable");
 
-			//Add data to the table
-			table.add(1, "Washington");
-			table.add(2, "Los Angeles");
-			table.add(3, "New York");
+            //Get the size of the table
+            long size = table.size();
 
-			//Commit the changes, otherwise no data is written to the table
-			wt.commit();
-
-		} catch (Throwable t){
-			t.printStackTrace();
-			wt.rollback();
-		}
-
-		//Create a read transaction from the group
-		ReadTransaction rt = group.beginRead();
-
-		try{
-
-			//Get the newly created table
-			Table table = rt.getTable("newTable");
-
-			//Get the size of the table
-			long size = table.size();
-
-			//Size should be 3, as we have added 3 rows
-			Assert(size == 3);
+            //Size should be 3, as we have added 3 rows
+            Assert(size == 3);
 
 
-		} finally{
-			//Always end the read transaction
-			rt.endRead();
-		}
+        } finally {
+            //Always end the read transaction
+            rt.endRead();
+        }
 
-		// @@EndShow@@
-	}
+        // @@EndShow@@
+    }
 
-	static void Assert(boolean check) {
-		if (!check) {
-			throw new RuntimeException();
-		}
-	}
+    static void Assert(boolean check) {
+        if (!check) {
+            throw new RuntimeException();
+        }
+    }
 }
 //@@EndExample@@
