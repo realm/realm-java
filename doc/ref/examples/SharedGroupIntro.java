@@ -11,37 +11,28 @@ public class SharedGroupIntro {
         //Opens an existing database file or creates a new database file and opens it into a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
         
-        
         //-------------------------------------------------------------------
         //Writing to the group using transaction
         //-------------------------------------------------------------------
 
         //Begins a write transaction
         WriteTransaction wt = group.beginWrite(); 
-
         try { 
-            
             //Creates a new table by using getTable with the new table name as parameter
             Table table = wt.getTable("newTable");
             
-            //Specify the column types and names
+            //Specify 2 columns and add 3 rows of data
             table.addColumn(ColumnType.ColumnTypeInt, "ID");
             table.addColumn(ColumnType.ColumnTypeString, "City");
-            
-
-            //Add data to the table
             table.add(1, "Washington");
             table.add(2, "Los Angeles");
             table.add(3, "New York");
 
             //Commit the changes, otherwise no data is written to the table
             wt.commit();
-
         } catch (Throwable t) {
-            t.printStackTrace();
             wt.rollback();
         }
-        
         
         //-------------------------------------------------------------------
         //Reading from the group using transaction
@@ -51,7 +42,6 @@ public class SharedGroupIntro {
         ReadTransaction rt = group.beginRead();
         
         try {
-            
             //Get the newly created table
             Table table = rt.getTable("newTable");
 
@@ -59,21 +49,11 @@ public class SharedGroupIntro {
             long size = table.size();
 
             //Size should be 3, as we have added 3 rows
-            Assert(size == 3);
-
+            assert(size == 3);
 
         } finally {
             //Always end the read transaction
             rt.endRead();
-        }
-
-        // @@EndShow@@
+        }  // @@EndShow@@
     }
-
-    static void Assert(boolean check) {
-        if (!check) {
-            throw new RuntimeException();
-        }
-    }
-}
-//@@EndExample@@
+} //@@EndExample@@
