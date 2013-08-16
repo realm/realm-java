@@ -10,7 +10,7 @@ public class WriteTransactionIntro {
         // @@Show@@
         //Opens an existing database file. We assume the file is also being accessed by other processes, thats why we use a SharedGroup object
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
-        
+
         //-------------------------------------------------------------------
         //Writing to the group using transactions
         //-------------------------------------------------------------------
@@ -18,11 +18,8 @@ public class WriteTransactionIntro {
         //Begins a write transaction. Any other process trying to initiate a write transaction will be stalled until this transaction ends.
         WriteTransaction wt = group.beginWrite(); 
         try { 
-            //Gets and existing table from the group, and adds values
-            Table table = wt.getTable("PeopleTable");
-            table.add("Peter", "Johnson", 314);
-            table.add("Miranda", "Flint", 502);
-            table.add("Jessica", "Appleton", 220);
+            //Transaction extends from Group and can be used on methods that take Group object as input
+            update(wt);
 
             //Closes the transaction and all changes are written to the shared group
             wt.commit();
@@ -31,7 +28,13 @@ public class WriteTransactionIntro {
             wt.rollback();
         }
     }
-    
+
+    public static void update(Group group){
+        Table people = group.getTable("people");
+        //All updates here will be persisted when wt.commit() is called
+        //...
+    } // @@EndShow@@ 
+
     static void Assert(boolean check) {
         if (!check) {
             throw new RuntimeException();
