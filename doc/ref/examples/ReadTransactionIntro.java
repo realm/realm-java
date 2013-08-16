@@ -28,6 +28,10 @@ public class ReadTransactionIntro {
             //Do all table read operations here
             //Actions inside a ReadTransacton will never affect the original group and tables
             String value = table.getString(1, 0);
+            
+            //-------------------------------------------------------------------
+            //ReadTransaction as a Group parameter in methods
+            //-------------------------------------------------------------------
 
             //As a Transaction extends Group, it can be passed as a Group parameter
             analyzeGroup(rt);
