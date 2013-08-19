@@ -31,7 +31,7 @@ public class WriteTransactionIntro {
 
     public static void update(Group group){
         Table people = group.getTable("people");
-        //All updates here will be persisted when wt.commit() is called
+        //All updates here will be written when wt.commit() is called
         //...
     } // @@EndShow@@ 
 
