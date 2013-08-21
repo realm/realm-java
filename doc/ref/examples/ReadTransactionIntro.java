@@ -25,27 +25,24 @@ public class ReadTransactionIntro {
             //Get a table from the group
             Table table = rt.getTable("table");
 
-            //Do all table read operations here
             //Actions inside a ReadTransacton will never affect the original group and tables
             String value = table.getString(1, 0);
+         
+            //Do more table read operations here...
             
-            //-------------------------------------------------------------------
-            //ReadTransaction as a Group parameter in methods
-            //-------------------------------------------------------------------
-
-            //As a Transaction extends Group, it can be passed as a Group parameter
+            //A Transaction extends Group, and can be passed as a Group parameter
             analyzeGroup(rt);
 
         } finally {
-            //Always end the read transaction in a finally block, if something should go
-            //wrong inside the transaction. If it is not closed, a new transaction can not be initialized
+            //Always end the read transaction in a finally block. If the read-transaction is not
+            //closed, a new one cannot be started using the same SharedGroup instance.
             rt.endRead();
         }  
     }
 
     private static void analyzeGroup(Group group){
         String tableName = group.getTableName(0);
-    }// @@EndShow@@  //@@EndExample@@
+    } // @@EndShow@@ 
 
     static void Assert(boolean check) {
         if (!check) {
@@ -53,3 +50,4 @@ public class ReadTransactionIntro {
         }
     }
 } 
+//@@EndExample@@

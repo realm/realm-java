@@ -97,4 +97,5 @@ public class GroupIntro {
             throw new RuntimeException();
         }
     }
-} //@@EndExample@@
+} 
+//@@EndExample@@

@@ -62,4 +62,5 @@ public class SharedGroupIntro {
             throw new RuntimeException();
         }
     }
-} //@@EndExample@@
+} 
+//@@EndExample@@

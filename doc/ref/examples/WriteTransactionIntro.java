@@ -40,4 +40,5 @@ public class WriteTransactionIntro {
             throw new RuntimeException();
         }
     }
-} //@@EndExample@@
+} 
+//@@EndExample@@
