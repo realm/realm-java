@@ -67,3 +67,5 @@ _ReSharper*/
 
 # sh build.sh test
 /test_output
+
+.DS_Store
