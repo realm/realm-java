@@ -314,8 +314,8 @@ CATEGORIES :
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_dyn_query_contains
-        
-        
+
+
 - Combiners:
   METHODS:
   - g_dyn_query_group:
@@ -409,7 +409,7 @@ CATEGORIES :
       PARAMS:
       - NAME   : lastRow
         TYPES  : long
-        DESCR  : "Last row to search (-1 means infinity)."
+        DESCR  : *g_dyn_query_find_next_parm1_descr
       RETURN:
         TYPES  : long
         DESCR  : *g_dyn_query_find_next
