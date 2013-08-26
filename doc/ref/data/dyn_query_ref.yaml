@@ -24,16 +24,16 @@ IGNORE     : []                   # List of method-ids to ignore
 CATEGORIES :
 - Conditions:
   METHODS:
-  - g_dyn_query_equals_boolean:
   - g_dyn_query_equals_integer:
   - g_dyn_query_equals_float:
   - g_dyn_query_equals_double:
+  - g_dyn_query_equals_boolean:
   - g_dyn_query_equals_string:
 #todo  - g_dyn_query_equals_date:
 #todo  - g_dyn_query_equals_binary:
       TITLE    : equal
       ALIAS    : eq
-      NAMES    : [ equal, equal_date, equal_binary ]
+      NAMES    : [ equal, equal, equal, equal, equal ] # equal_date, equal_binary ]
       SIGNATURE: |
                  TableQuery equal(long columnIndex, boolean value);
                  TableQuery equal(long columnIndex, long value);
@@ -70,7 +70,7 @@ CATEGORIES :
 #  - g_dyn_query_notEquals_binary:
       TITLE    : notEqual
       ALIAS    : neq
-      NAMES    : [ not_equal, not_equal, not_equal_binary ]
+      NAMES    : [ notEqual, notEqual, notEqual, notEqual ] # , not_equal_binary ]
       SIGNATURE: |
                  TableQuery notEqual(long columnIndex, long value);
                  TableQuery notEqual(long columnIndex, float value);
@@ -87,7 +87,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : Column index.
       - NAME   : value
-        TYPES  : [boolean, long, float, double, String, Date]
+        TYPES  : [long, float, double, String]
         DESCR  : The value.
       - NAME   : caseSensitive
         TYPES  : boolean
@@ -101,10 +101,10 @@ CATEGORIES :
   - g_dyn_query_greaterThan_integer:
   - g_dyn_query_greaterThan_float:
   - g_dyn_query_greaterThan_double:
-  - g_dyn_query_greaterThan_date:
+#  - g_dyn_query_greaterThan_date:
       TITLE    : greaterThan
       ALIAS    : gt
-      NAMES    : greaterThan
+      NAMES    : [greaterThan, greaterThan, greaterThan]
       SIGNATURE: |
                  TableQuery greaterThan(long columnIndex, long value);
                  TableQuery greaterThan(long columnIndex, float value);
@@ -117,7 +117,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : Column index.
       - NAME   : value
-        TYPES  : [long, float, double, Date]
+        TYPES  : [long, float, double]
         DESCR  : The value.
       RETURN:
         TYPES  : TableQuery
@@ -131,7 +131,7 @@ CATEGORIES :
 #todo  - g_dyn_query_greaterThanOrEqual_date:
       TITLE    : greaterThanOrEqual
       ALIAS    : gte
-      NAMES    : greaterThanOrEqual
+      NAMES    : [greaterThanOrEqual, greaterThanOrEqual, greaterThanOrEqual]
       SIGNATURE: |
                  TableQuery greaterThanOrEqual(long columnIndex, long value);
                  TableQuery greaterThanOrEqual(long columnIndex, float value);
@@ -159,7 +159,7 @@ CATEGORIES :
 #todo  - g_dyn_query_lessThan_date:
       TITLE    : lessThan
       ALIAS    : lt
-      NAMES    : lessThan
+      NAMES    : [lessThan, lessThan, lessThan]
       SIGNATURE: |
                  TableQuery lessThan(long columnIndex, long value);
                  TableQuery lessThan(long columnIndex, float value);
@@ -187,7 +187,7 @@ CATEGORIES :
 #todo  - g_dyn_query_lessThanOrEqual_date:
       TITLE    : lessThanOrEqual
       ALIAS    : lte
-      NAMES    : lessThanOrEqual
+      NAMES    : [lessThanOrEqual, lessThanOrEqual, lessThanOrEqual]
       SIGNATURE: |
                  TableQuery lessThanOrEqual(long columnIndex, long value);
                  TableQuery lessThanOrEqual(long columnIndex, long value);
@@ -214,7 +214,7 @@ CATEGORIES :
   - g_dyn_query_between_double:
 #todo  - g_dyn_query_between_date:
       TITLE    : between
-      NAMES    : between
+      NAMES    : [between, between, between]
       SIGNATURE: |
                  TableQuery between(long columnIndex, long from, long to);
                  TableQuery between(long columnIndex, float from, float to);
@@ -445,7 +445,7 @@ CATEGORIES :
   - g_dyn_query_sum_float:
   - g_dyn_query_sum_double:
       TITLE    : sum*
-      NAMES    : [sum, sum_float, sum_double]
+      NAMES    : [sum, sumFloat, sumDouble]
       DESCR    : *g_dyn_query_sum_descr
       SUMMARY  : *g_dyn_query_sum_summary
       SIGNATURE: |
@@ -469,17 +469,18 @@ CATEGORIES :
 #        TYPES  : long
 #        DESCR  : "Maximum number of rows to search. Default: -1 (infinity)."
       RETURN:
-        TYPES  : [long, float, double]
+        TYPES  : [long, double, double]
         DESCR  : The sum.
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_dyn_query_sum
 
 #todo  - g_dyn_query_maximum_date:
-  - g_dyn_query_maximum_double:
-  - g_dyn_query_maximum_float:
   - g_dyn_query_maximum:
-      NAMES    : maximum*
+  - g_dyn_query_maximum_float:
+  - g_dyn_query_maximum_double:
+      TITLE    : maximum*
+      NAMES    : [maximum, maximumFloat, maximumDouble]
       DESCR    : *g_dyn_query_maximum_descr
       SUMMARY  : *g_dyn_query_maximum_summary
       SIGNATURE: |
@@ -504,17 +505,17 @@ CATEGORIES :
 #        TYPES  : long
 #        DESCR  : "Maximum number of rows to search. Default: -1 (infinity)."
       RETURN:
-        TYPES  : [long, float, double, Date]
+        TYPES  : [long, float, double] #, Date]
         DESCR  : The highest value.
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_dyn_query_maximum
 #todo  - g_dyn_query_minimum_date:
-  - g_dyn_query_minimum_double:
-  - g_dyn_query_minimum_float:
   - g_dyn_query_minimum:
+  - g_dyn_query_minimum_float:
+  - g_dyn_query_minimum_double:
       TITLE    : minimum*
-      NAMES    : [minimum, minimum_float, minimum_double, minimum_date]
+      NAMES    : [minimum, minimumFloat, minimumDouble] #, minimum_date]
       DESCR    : *g_dyn_query_minimum_descr
       SUMMARY  : *g_dyn_query_minimum_summary
       SIGNATURE: |
@@ -539,17 +540,17 @@ CATEGORIES :
  #       TYPES  : long
  #       DESCR  : "Maximum number of rows to find. Default: -1 (infinity)."
       RETURN:
-        TYPES  : [long, float, double, Date]
+        TYPES  : [long, float, double] #, Date]
         DESCR  : The lowest value.
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_dyn_query_minimum
 
-  - g_dyn_query_average_double:
-  - g_dyn_query_average_float:
   - g_dyn_query_average:
+  - g_dyn_query_average_float:
+  - g_dyn_query_average_double:
       TITLE    : average*
-      NAMES    : [average, average_float, average_double]
+      NAMES    : [average, averageFloat, averageDouble]
       SUMMARY  : *g_dyn_query_average_summary
       DESCR    : *g_dyn_query_average_descr
       SIGNATURE: |
