@@ -16,16 +16,23 @@ EXAMPLES   :
              More specific examples are (soon) available in the detailed description 
              of each method above.
   CODE     : ex_java_dyn_table_intro
-IGNORE     : []                         # List of method-ids to ignore
-#  - g_find_all_bool_const:
-#  - g_find_all_int_const:
-#  - g_find_all_date_const:
-#  - g_find_all_string_const:
-#  - g_find_all_float_const:
-#  - g_find_all_double_const:
-# - g_dyn_table_get_sorted_view_const:
-#   - g_dyn_table_distinct_const:
-# - insert*, insertDone()
+IGNORE     : [g_dyn_table_where_const, 
+              g_dyn_table_find_all_bool_const,
+              g_dyn_table_find_all_int_const,
+              g_dyn_table_find_all_date_const, 
+              g_dyn_table_find_all_string_const, 
+              g_dyn_table_find_all_float_const,
+              g_dyn_table_find_all_double_const, 
+              g_dyn_table_find_all_binary_const,
+              g_dyn_table_get_sorted_view_const,
+              g_dyn_table_get_subtable_const,
+              g_dyn_table_distinct_const,
+              g_dyn_table_set_enum,
+              g_dyn_table_insert_bool, g_dyn_table_insert_int, g_dyn_table_insert_enum, 
+              g_dyn_table_insert_float, g_dyn_table_insert_double, g_dyn_table_insert_date, 
+              g_dyn_table_insert_string, g_dyn_table_insert_binary, g_dyn_table_insert_mixed,
+              g_dyn_table_insert_subtable, g_dyn_table_insert_done
+              ]
 
 CATEGORIES :
 
@@ -361,21 +368,27 @@ CATEGORIES :
   METHODS:
   - g_dyn_table_get_bool:
   - g_dyn_table_get_int:
+  - g_dyn_table_get_float:
+  - g_dyn_table_get_double:
   - g_dyn_table_get_date:
   - g_dyn_table_get_string:
   - g_dyn_table_get_binary:
+  - g_dyn_table_get_binary2:
   - g_dyn_table_get_mixed:
   - g_dyn_table_get_mixed_type:
   - g_dyn_table_get_subtable:
-      NAMES    : get*
+      TITLE    : get*
+      NAMES    : [getBoolean, getLong, getFloat, getDouble, getDate, getString, 
+                  getBinaryByteBuffer, getBinaryByteArray, getMixed, getMixedType, 
+                  getSubtable]
       SUMMARY  : *g_dyn_table_get_xxx_summary
       DESCR    : *g_dyn_table_get_xxx_descr
       SIGNATURE: |
                  boolean       getBoolean(long columnIndex, long rowIndex)
                  long          getLong(long columnIndex, long rowIndex)
-                 Date          getDate(long columnIndex, long rowIndex)
                  float         getFloat(long columnIndex, long rowIndex)
                  double        getDouble(long columnIndex, long rowIndex)
+                 Date          getDate(long columnIndex, long rowIndex)
                  String        getString(long columnIndex, long rowIndex)
                  ByteBuffer    getBinaryByteBuffer(long columnIndex, long rowIndex)
                  byte[]        getBinaryByteArray(long columnIndex, long rowIndex)
@@ -390,19 +403,25 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_dyn_table_get_xxx_parm2_descr
       RETURN:
-        TYPES  : [boolean, long, float, double, Date, String, ByteBuffer, "byte[]", Mixed, ColumnType]
+        TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, "byte[]", 
+                  Mixed, ColumnType, Table]
         DESCR  : *g_dyn_table_get_xxx_return_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_table_get_xxx
         DESCR  :
-  - g_dyn_table_set_bool:
   - g_dyn_table_set_int:
-  - g_dyn_table_set_enum:
+#  - g_dyn_table_set_enum:
+  - g_dyn_table_set_float:
+  - g_dyn_table_set_double:
+  - g_dyn_table_set_bool:
   - g_dyn_table_set_date:
   - g_dyn_table_set_string:
   - g_dyn_table_set_binary:
+  - g_dyn_table_set_binary2:
   - g_dyn_table_set_mixed:
-      NAMES    : set*
+      TITLE    : set*
+      NAMES    : [setLong, setFloat, setDouble, setBoolean, setDate, setString, 
+                  setBinaryByteBuffer, setBinaryByteArray, setMixed] 
       SUMMARY  : *g_dyn_table_set_xxx_summary
       DESCR    : *g_dyn_table_set_xxx_descr
       SIGNATURE: |
@@ -423,7 +442,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_dyn_table_get_xxx_parm2_descr
       - NAME   : value
-        TYPES  : [boolean, long, float, double, Date, String, ByteBuffer, "byte[]", Mixed]
+        TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, "byte[]", Mixed]
         DESCR  : *g_dyn_table_set_xxx_parm3_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_table_set_xxx
@@ -480,26 +499,30 @@ CATEGORIES :
 #      EXAMPLES:
 #      - CODE   : ex_java_dyn_table_lookup
 #        DESCR  :
-  - g_dyn_table_find_first_bool:
   - g_dyn_table_find_first_int:
+  - g_dyn_table_find_first_float:
+  - g_dyn_table_find_first_double:  
+  - g_dyn_table_find_first_bool:
   - g_dyn_table_find_first_date:
   - g_dyn_table_find_first_string:
-      NAMES    : findFirst*
+      NAMES    : [findFirstLong, findFirstFloat, findFirstDouble, 
+                  findFirstBoolean, findFirstDate, findFirstString] 
+      TITLE    : findFirst*
       SUMMARY  : *g_dyn_table_find_first_xxx_summary
       DESCR    : *g_dyn_table_find_first_xxx_descr
       SIGNATURE: |
                  long findFirstLong(long columnIndex, long value)
+                 long findFirstFloat(long columnIndex, float value)
+                 long findFirstDouble(long columnIndex, double value)
                  long findFirstBoolean(long columnIndex, boolean value)
                  long findFirstDate(long columnIndex, Date value)
                  long findFirstString(long columnIndex, String value)
-                 long findFirstFloat(long columnIndex, float value)
-                 long findFirstDouble(long columnIndex, double value)
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
         DESCR  : *g_dyn_table_find_first_xxx_parm1_descr
       - NAME   : value
-        TYPES  : [boolean, long, float, double, Date, String]
+        TYPES  : [long, float, double, boolean, Date, String]
         DESCR  : *g_dyn_table_find_first_xxx_parm2_descr
       RETURN:
         TYPES  : long
@@ -507,28 +530,30 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_find_first_xxx
         DESCR  :
-  - g_find_all_bool:
-  - g_find_all_int:
-  - g_find_all_date:
-  - g_find_all_string:
-  - g_find_all_float:
-  - g_find_all_double:
-      NAMES    : findAll*
+  - g_dyn_table_find_all_int:
+  - g_dyn_table_find_all_float:
+  - g_dyn_table_find_all_double:
+  - g_dyn_table_find_all_bool:
+  - g_dyn_table_find_all_date:
+  - g_dyn_table_find_all_string:
+      NAMES    : [findAllLong, findAllFloat, findAllDouble, 
+                  findAllBoolean, findAllDate, findAllString] 
+      TITLE    : findFAll*
       SUMMARY  : *g_dyn_table_find_all_xxx_summary
       DESCR    : *g_dyn_table_find_all_xxx_descr
       SIGNATURE: |
-                 TableView      find_all_int(long columnIndex, int64_t value);
-                 TableView      find_all_bool(long columnIndex, bool value);
-                 TableView      find_all_date(long columnIndex, time_t value);
-                 TableView      find_all_string(long columnIndex, const char* value);
-                 TableView      find_all_float(long columnIndex, float value);
-                 TableView      find_all_double(long columnIndex, double value);
+                 TableView      findAllLong(long columnIndex, long value);
+                 TableView      findAllFloat(long columnIndex, float value);
+                 TableView      findAllDouble(long columnIndex, double value);
+                 TableView      findAllBoolean(long columnIndex, boolean value);
+                 TableView      findAllDate(long columnIndex, Date value);
+                 TableView      findAllString(long columnIndex, String value);
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
         DESCR  : *g_dyn_table_find_all_xxx_parm1_descr
       - NAME   : value
-        TYPES  : [bool, int64_t, float, double, time_t, const char*]
+        TYPES  : [long, float, double, boolean, Date, String]
         DESCR  : *g_dyn_table_find_all_xxx_parm2_descr
       RETURN:
         TYPES  : TableView
@@ -572,7 +597,7 @@ CATEGORIES :
       - CODE   : ex_java_dyn_table_distinct
         DESCR  :
   - g_dyn_table_where:
-  - g_dyn_table_where_const:
+#  - g_dyn_table_where_const:
       NAMES    : where
       SUMMARY  : *g_dyn_table_where_summary
       DESCR    : *g_dyn_table_where_descr
@@ -599,7 +624,7 @@ CATEGORIES :
 #        TYPES  : long
 #        DESCR  : The column index (starting from 0).
 #      - NAME   : target
-#        TYPES  : int64_t
+#        TYPES  : long
 #        DESCR  : The value.
 #      RETURN:
 #        TYPES  : long
@@ -612,7 +637,7 @@ CATEGORIES :
   - g_dyn_table_sum_float:
   - g_dyn_table_sum_double:
       TITLE    : sum*
-      NAMES    : [sum, sum_float, sum_double]
+      NAMES    : [sum, sumFloat, sumDouble]
       SUMMARY  : *g_dyn_table_sum_summary
       DESCR    : *g_dyn_table_sum_descr
       SIGNATURE: |
@@ -633,7 +658,7 @@ CATEGORIES :
   - g_dyn_table_maximum_float:
   - g_dyn_table_maximum_double:
       TITLE    : maximum*
-      NAMES    : [maximum, maximu_float, maximum_double]
+      NAMES    : [maximum, maximumFloat, maximumDouble]
       SUMMARY  : *g_dyn_table_maximum_summary
       DESCR    : *g_dyn_table_maximum_descr
       SIGNATURE: |
@@ -646,7 +671,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : Column index.
       RETURN:
-        TYPES  : [int64_t, float, double]
+        TYPES  : [long, float, double]
         DESCR  : The maximum value.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_maximum
@@ -655,7 +680,7 @@ CATEGORIES :
   - g_dyn_table_minimum_float:
   - g_dyn_table_minimum_double:
       TITLE    : minimum*
-      NAMES    : [minimum, minimum_float, minimum_double]
+      NAMES    : [minimum, minimumFloat, minimumDouble]
       SUMMARY  : *g_dyn_table_minimum_summary
       DESCR    : *g_dyn_table_minimum_descr
       SIGNATURE: |
@@ -667,7 +692,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : Column index.
       RETURN:
-        TYPES  : [int64_t, float, double]
+        TYPES  : [long, float, double]
         DESCR  : The minimum value.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_minimum
@@ -676,7 +701,7 @@ CATEGORIES :
   - g_dyn_table_average_float:
   - g_dyn_table_average_double:
       TITLE    : average* 
-      NAMES    : [average, average_float, average_double]
+      NAMES    : [average, averageFloat, averageDouble]
       SUMMARY  : *g_dyn_table_average_summary
       DESCR    : *g_dyn_table_average_descr
       SIGNATURE: |
@@ -689,7 +714,7 @@ CATEGORIES :
         DESCR  : Column index.
       RETURN:
         TYPES  : double
-        DESCR  : The average
+        DESCR  : The average.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_average
         DESCR  :
