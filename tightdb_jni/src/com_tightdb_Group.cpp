@@ -21,7 +21,17 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
 
     Group* pGroup = 0;
     try {
-        pGroup = new Group(fileNameCharPtr, Group::OpenMode(mode));
+        Group::OpenMode openmode;
+        switch (mode) {
+        case 0: openmode = Group::mode_ReadOnly; break;
+        case 1: openmode = Group::mode_ReadWrite; break;
+        case 2: openmode = Group::mode_ReadWriteNoCreate; break;
+        default:
+            TR((env, "Invalid mode: %d\n", mode));
+            ThrowException(env, IllegalArgument, "Group(): Invalid mode parameter.");
+            return 0;
+        }
+        pGroup = new Group(fileNameCharPtr, openmode);
     }
     catch (...) {
         // FIXME: Different exception types mean different things. More
