@@ -21,15 +21,19 @@ CATEGORIES:
   METHODS:
   - g_group_constructor_plain:
   - g_group_constructor_file:
+  - g_group_constructor_file2:
+  - g_group_constructor_file3:
   - g_group_constructor_memory:
-      NAMES    : Group
+  - g_group_constructor_memory2:
+      TITLE    : Group
+      NAMES    : [Group, Group, Group, Group, Group. Group]
       DESCR    : *g_group_constructor_descr
       SUMMARY  : *g_group_constructor_summary
       SIGNATURE: |
                  Group()
                  Group(File file)
                  Group(String fileName)
-                 Group(String fileName, boolean readOnly)
+                 Group(String fileName, OpenMode mode)
                  Group(byte[] data)
                  Group(ByteBuffer buffer)
       PARAMS:
@@ -39,18 +43,21 @@ CATEGORIES:
       - NAME   : fileName
         TYPES  : String
         DESCR  : The name of the file.
-      - NAME   : readOnly
-        TYPES  : boolean
-        DESCR  : Open the group as read-only or read-write. If not used, the file opened as read-only.
+      - NAME   : mode
+        TYPES  : OpenMode
+        DESCR  : |
+                 OpenMode.READ_ONLY:  Open in read-only mode. Fail if the file does not already exist.
+                 OpenMode.READ_WRITE: Open in read/write mode. Create the file if it does not already exist.
+                 OpenMode.READ_WRITE_NO_CREATE: Open in read/write mode. Fail if the file does not already exist.
       - NAME   : data
         TYPES  : byte[]
-        DESCR  : In-memory binary encoded representation of a group.
+        DESCR  : *g_group_constructor_memory_parm3_descr
       - NAME   : buffer
         TYPES  : ByteBuffer
-        DESCR  : In-memory binary encoded representation of a group.
+        DESCR  : *g_group_constructor_memory_parm3_descr
       RETURN:
         TYPES  : Group
-        DESCR  : A - possibly empty - group.
+        DESCR  : *g_group_constructor_memory_return1_descr
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_constructor_plain
@@ -59,11 +66,11 @@ CATEGORIES:
       - DESCR  :
         CODE   : ex_java_group_constructor_memory
       SEE      : "{@link g_group_is_valid}"
-  - g_group_desctructor:
+  - g_group_destructor:
       NAMES    : close
       DESCR    : >
                  This method will close the group and release it's resources (memory and files).
-                 Java will to this automatically via garbage collection, but if you want explicit control, 
+                 Java will do this automatically via garbage collection, but if you want explicit control, 
                  you have the option with this method.
       SUMMARY  : Close the group and release it's resources.
       
@@ -175,7 +182,7 @@ CATEGORIES:
         DESCR  : The number of tables in the group.
       EXAMPLES:
       - DESCR  :
-        CODE   : #???ex_cpp_group_traverse
+        CODE   : #???ex_java_group_traverse
 
   - g_group_is_empty:
       NAMES    : isEmpty
@@ -187,7 +194,26 @@ CATEGORIES:
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_is_empty
-                
+
+  - g_group_operator_equal:
+      NAME     : equals
+      SUMMARY  : *g_group_operator_equal_summary
+      DESCR    : *g_group_operator_equal_descr
+      PARAMS:
+      - TYPES  : Object
+        NAME   : group
+        DESCR  : The group (of type Group) to compare with.
+      RETURN:
+        TYPES  : boolean
+        DESCR  : *g_group_operator_equal_return_descr
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_group_operator_equal
+
+  - g_group_operator_not_equal:
+      NAME     : operator!=
+
+
 #  - g_group_is_shared:
 #      NAMES    : isShared
 #      SUMMARY  : *g_group_is_shared_summary
