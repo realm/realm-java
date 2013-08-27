@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 
 import com.tightdb.ColumnType;
 import com.tightdb.Table;
-import com.tightdb.exceptions.IlegalTypeException;
+import com.tightdb.exceptions.IllegalTypeException;
 
 public class ColumnTypeInsertTest {
     
@@ -21,18 +21,18 @@ public class ColumnTypeInsertTest {
     }
     
     
-    @Test(expectedExceptions=IlegalTypeException.class)
+    @Test(expectedExceptions=IllegalTypeException.class)
     public void testStringInsertInDateColumn() {
       t.add("I'm an String", "I'm also a String");
     }
     
     
-    @Test(expectedExceptions=IlegalTypeException.class)
+    @Test(expectedExceptions=IllegalTypeException.class)
     public void testDoubleInsertInDateColumn() {
       t.add(34.65, "I'm also a String");
     }
     
-    @Test(expectedExceptions=IlegalTypeException.class)
+    @Test(expectedExceptions=IllegalTypeException.class)
     public void testIntegerInsertInStringColumn() {
       t.add(new Date(), 400);
     }
