@@ -1,4 +1,4 @@
-package pkg.test;
+package com.tightdb.test;
 
 import static org.testng.AssertJUnit.*;
 import java.util.Calendar;
@@ -12,7 +12,7 @@ import com.tightdb.Table;
 
 public class DateToJSONTest {
     @Test
-    public void f() {
+    public void shouldExportJSONContainingSomeValues() {
 
         Date date = new Date();
         Calendar cal = Calendar.getInstance();
