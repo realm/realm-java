@@ -59,6 +59,9 @@ _ReSharper*/
 */.settings/*
 */test-output
 
+# ref-doc
+/doc/ref/html
+
 # sh build.sh config
 /config
 

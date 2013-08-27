@@ -309,9 +309,11 @@ public class Table implements TableOrView {
     }
 
     protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
-//TODO: change to return index number
-    public void add(Object... values) {
-        insert(size(), values);
+
+    public long add(Object... values) {
+        long rowIndex = size();
+    	insert(rowIndex, values);
+    	return rowIndex;
     }
 
 
