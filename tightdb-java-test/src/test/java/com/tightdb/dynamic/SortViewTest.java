@@ -1,4 +1,4 @@
-package com.tightdb.test;
+package com.tightdb.dynamic;
 
 import static org.testng.AssertJUnit.*;
 
@@ -34,7 +34,6 @@ public class SortViewTest {
         //Sort without specifying the order, should default to ascending. First row in colmun 0 should be aa
         view.sort(0);
         
-        System.out.println(view.toJson());
         assertEquals("aa", view.getString(0, 0));
         
         //Sort ascending. First row in column 0 should be aa
