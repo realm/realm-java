@@ -4,7 +4,7 @@ import org.testng.annotations.Test;
 
 public class JNICloseTest {
 
-    @Test (enabled=true, expectedExceptions = IllegalArgumentException.class)
+    @Test (enabled=true, expectedExceptions = IllegalStateException.class)
     public void shouldCloseTable() {
         // util.setDebugLevel(1);
         Table table = new Table();
