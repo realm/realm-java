@@ -822,5 +822,5 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_createNative(JNIEnv* env, jobject
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid(
     JNIEnv*, jobject, jlong nativeTablePtr)
 {
-    return TBL(nativeTablePtr)->is_valid();
+    return TBL(nativeTablePtr)->is_attached();
 }
