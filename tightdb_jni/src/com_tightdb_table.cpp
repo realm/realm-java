@@ -199,7 +199,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertString(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertMixed(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
 {
-    if (!INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
+    if (!INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) 
+        return;
 
     tbl_nativeDoMixed(&Table::insert_mixed, TBL(nativeTablePtr), env, columnIndex, rowIndex, jMixedValue);
 }
@@ -207,7 +208,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertMixed(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetMixed(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
 {
-    if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) return;
+    if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) 
+        return;
 
     tbl_nativeDoMixed(&Table::set_mixed, TBL(nativeTablePtr), env, columnIndex, rowIndex, jMixedValue);
 }
@@ -226,7 +228,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertSubTable(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertDone(
     JNIEnv* env, jobject, jlong nativeTablePtr)
 {
-    if (!TABLE_VALID(env, TBL(nativeTablePtr))) return;
+    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
+        return;
 
     TBL(nativeTablePtr)->insert_done();
 }
@@ -308,8 +311,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Table_nativeGetByteArray(
 JNIEXPORT jint JNICALL Java_com_tightdb_Table_nativeGetMixedType(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-// TODO: Check if type is type_Mixed??
-    if (!INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex))
+    if (!INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Mixed))
         return 0;
 
     DataType mixedType = TBL(nativeTablePtr)->get_mixed_type( S(columnIndex), S(rowIndex));
@@ -895,5 +897,5 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_createNative(JNIEnv* env, jobject
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid(
     JNIEnv*, jobject, jlong nativeTablePtr)
 {
-    return TBL(nativeTablePtr)->is_valid();
+    return TBL(nativeTablePtr)->is_attached();
 }

@@ -113,14 +113,21 @@ extern void jprint(JNIEnv *env, char *txt);
 
 #endif
 
-inline bool TableIsValid(JNIEnv* env, tightdb::Table* pTable)
+template <class T>
+inline bool TableIsValid(JNIEnv* env, T* pTable)
 {
     bool valid = (pTable != NULL);
-    if (valid)
-        valid = pTable->is_valid();
+    if (valid) {
+        // Check if Table is valid - but only if T is a 'Table' type
+        if (tightdb::SameType<tightdb::Table, T>::value) {
+            valid = TBL(pTable)->is_attached();
+        }
+        // TODO: Add check for TableView
+
+    }
     if (!valid) {
-        TR_ERR((env, "Table %x is invalid!", pTable));
-        ThrowException(env, TableInvalid, "An invalid Table is being accessed.");
+        TR_ERR((env, "Table accessor %x is no longer attached!", pTable));
+        ThrowException(env, IllegalArgument, "Table accessor is no longer attached.");
     }
     return valid;
 }
