@@ -1,9 +1,17 @@
 package com.tightdb;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import com.tightdb.test.DataProviderUtil;
+import com.tightdb.test.TestHelper;
+
 import static org.testng.AssertJUnit.*;
 
 
@@ -178,6 +186,42 @@ public class JNITableInsertTest {
             table.insert(0, false, 1, "hi", buf, new Date(), mix, new Object[] {1,2,3} );
             assertTrue(false);
         } catch (IllegalArgumentException e) {}
+    }
+    
+    
+    
+  //Generates a table with a a column with column typed determined from the first parameter, and then puts in a value from the second parameter.
+    //In cases, where the 2 parameter types do not match, we expect an IllegalArgumentException
+    @Test(expectedExceptions=IllegalArgumentException.class, dataProvider = "columnTypesProvider")
+    public void testGenericAddOnTable(Object colTypeObject, Object o) {
+        Table t  = new Table();
+        
+        //If the objects matches it will not fail, therefore we throw an exception as it should not be tested
+        if (o.getClass().equals(colTypeObject.getClass())){
+            throw new IllegalArgumentException();
+        }
+        //Add column, set name to the simplename of the class
+        t.addColumn(TestHelper.getColumnType(colTypeObject), colTypeObject.getClass().getSimpleName());
+        
+        //Add object
+        t.add(o);
+    }
+    
+    //Generates a list of different objects to be passed as parameter to the insert() on table
+    @DataProvider(name = "columnTypesProvider")
+    public Iterator<Object[]> mixedValuesProvider() {
+        Object[] values = {
+                true, 
+                "abc", 
+                123L,
+                987.123f, 
+                1234567.898d, 
+                new Date(645342), 
+                new byte[] { 1, 2, 3, 4, 5 }
+        };
+
+        List<?> mixedValues = Arrays.asList(values);
+        return DataProviderUtil.allCombinations(mixedValues,mixedValues);
     }
 
 }
