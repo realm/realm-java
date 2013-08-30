@@ -140,51 +140,51 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     }
 
     protected void insertLong(long columnIndex, long rowIndex, long value) {
-        table.insertLong(columnIndex, rowIndex, value);
+        table.getInternalMethods().insertLong(columnIndex, rowIndex, value);
     }
 
     protected void insertFloat(long columnIndex, long rowIndex, float value) {
-        table.insertFloat(columnIndex, rowIndex, value);
+        table.getInternalMethods().insertFloat(columnIndex, rowIndex, value);
     }
 
     protected void insertDouble(long columnIndex, long rowIndex, double value) {
-        table.insertDouble(columnIndex, rowIndex, value);
+        table.getInternalMethods().insertDouble(columnIndex, rowIndex, value);
     }
 
     protected void insertString(long columnIndex, long rowIndex, String value) {
-        table.insertString(columnIndex, rowIndex, value);
+        table.getInternalMethods().insertString(columnIndex, rowIndex, value);
     }
 
     protected void insertBoolean(long columnIndex, long rowIndex, boolean value) {
-        table.insertBoolean(columnIndex, rowIndex, value);
+        table.getInternalMethods().insertBoolean(columnIndex, rowIndex, value);
     }
 
     protected void insertBinary(long columnIndex, long rowIndex, byte[] value) {
         ByteBuffer buffer = ByteBuffer.allocateDirect(value.length);
         buffer.put(value);
 
-        table.insertBinary(columnIndex, rowIndex, buffer);
+        table.getInternalMethods().insertBinary(columnIndex, rowIndex, buffer);
     }
 
     protected void insertBinary(long columnIndex, long rowIndex, ByteBuffer value) {
-        table.insertBinary(columnIndex, rowIndex, value);
+        table.getInternalMethods().insertBinary(columnIndex, rowIndex, value);
     }
 
     protected void insertDate(long columnIndex, long rowIndex, Date value) {
-        table.insertDate(columnIndex, rowIndex, value);
+        table.getInternalMethods().insertDate(columnIndex, rowIndex, value);
     }
 
     protected void insertMixed(long columnIndex, long rowIndex, Object value) {
         Mixed mixed = Mixed.mixedValue(value);
-        table.insertMixed(columnIndex, rowIndex, mixed);
+        table.getInternalMethods().insertMixed(columnIndex, rowIndex, mixed);
     }
 
     protected void insertTable(long columnIndex, long rowIndex, Object[][] values) {
-        table.insertSubTable(columnIndex, rowIndex, values);
+        table.getInternalMethods().insertSubTable(columnIndex, rowIndex, values);
     }
 
     protected void insertDone() {
-        table.insertDone();
+        table.getInternalMethods().insertDone();
     }
 
     public void optimize() {

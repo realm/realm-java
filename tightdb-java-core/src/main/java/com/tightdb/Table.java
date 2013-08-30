@@ -395,7 +395,7 @@ public class Table implements TableOrView {
                 throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int)columnIndex]));
             }
         }
-        insertDone();
+        this.im.insertDone();
     }
 
     private void insertSubtableValues(long rowIndex, long columnIndex, Object value) {
@@ -445,88 +445,121 @@ public class Table implements TableOrView {
         remove(rowIndex);
         insert(rowIndex, values);
     }
-
-
-    public void insertLong(long columnIndex, long rowIndex, long value) {
-        if (immutable) throwImmutable();
-        nativeInsertLong(nativePtr, columnIndex, rowIndex, value);
+    
+    //Instance of the inner class InternalMethods.
+    private InternalMethods im = new InternalMethods();
+    
+    //Returns InternalMethods instance with public internal methods. Shoule only be called by AbstractTable
+    public InternalMethods getInternalMethods(){
+        return this.im;
     }
+    
+    
+    //Holds methods that must be publicly available for AbstractClass.
+    //Should not be called when using the dynamic interface. The methods can be accessed by calling getInternalMethods() in Table class
+    public class InternalMethods{
+        
+        public void insertLong(long columnIndex, long rowIndex, long value) {
+            if (immutable) throwImmutable();
+            nativeInsertLong(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertDouble(long columnIndex, long rowIndex, double value) {
+            if (immutable) throwImmutable();
+            nativeInsertDouble(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertFloat(long columnIndex, long rowIndex, float value) {
+            if (immutable) throwImmutable();
+            nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertBoolean(long columnIndex, long rowIndex, boolean value) {
+            if (immutable) throwImmutable();
+            nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertDate(long columnIndex, long rowIndex, Date date) {
+            if (immutable) throwImmutable();
+            nativeInsertDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
+        }
+        
+        public void insertString(long columnIndex, long rowIndex, String value) {
+            if (immutable) throwImmutable();
+            nativeInsertString(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertMixed(long columnIndex, long rowIndex, Mixed data) {
+            if (immutable) throwImmutable();
+            nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
+        }
+        
+        public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
+            if (immutable) throwImmutable();
+            //System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
+            //System.err.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
+            if (data.isDirect())
+                nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, data);
+            else
+                throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");   // FIXME: support other than allocateDirect
+        }
+        
+        public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
+            if (immutable) throwImmutable();
+            nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
+        }
+        
+        public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
+            if (immutable) throwImmutable();
+            nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
+            insertSubtableValues(rowIndex, columnIndex, values);
+        }
+        
+        public void insertDone() {
+            if (immutable) throwImmutable();
+            nativeInsertDone(nativePtr);
+        }
+    }
+
+
+    
 
     protected native void nativeInsertFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
 
-    public void insertFloat(long columnIndex, long rowIndex, float value) {
-        if (immutable) throwImmutable();
-        nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
-    }
+    
 
     protected native void nativeInsertDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
 
-    public void insertDouble(long columnIndex, long rowIndex, double value) {
-        if (immutable) throwImmutable();
-        nativeInsertDouble(nativePtr, columnIndex, rowIndex, value);
-    }
-
+    
     protected native void nativeInsertLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
-    public void insertBoolean(long columnIndex, long rowIndex, boolean value) {
-        if (immutable) throwImmutable();
-        nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
-    }
+    
 
     protected native void nativeInsertBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
 
-    public void insertDate(long columnIndex, long rowIndex, Date date) {
-        if (immutable) throwImmutable();
-        nativeInsertDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
-    }
+    
 
     protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
 
-    public void insertString(long columnIndex, long rowIndex, String value) {
-        if (immutable) throwImmutable();
-        nativeInsertString(nativePtr, columnIndex, rowIndex, value);
-    }
-
+   
     protected native void nativeInsertString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
 
-    public void insertMixed(long columnIndex, long rowIndex, Mixed data) {
-        if (immutable) throwImmutable();
-        nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
-    }
+   
 
     protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
-    public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
-        if (immutable) throwImmutable();
-        //System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
-        //System.err.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
-        if (data.isDirect())
-            nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, data);
-        else
-            throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");   // FIXME: support other than allocateDirect
-    }
+   
 
     protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
-    public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
-        if (immutable) throwImmutable();
-        nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
-    }
-
+    
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
 
-    public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
-        if (immutable) throwImmutable();
-        nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
-        insertSubtableValues(rowIndex, columnIndex, values);
-    }
+   
 
     protected native void nativeInsertSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
 
-    public void insertDone() {
-        if (immutable) throwImmutable();
-        nativeInsertDone(nativePtr);
-    }
+   
 
     protected native void nativeInsertDone(long nativeTablePtr);
 
