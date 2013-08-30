@@ -177,8 +177,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
             // not declared 'noexcept' must be considered as being
             // able to throw anything derived from std::exception.
             ThrowException(env, IOFailed, fileNameCharPtr);
-        env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
         }
+        env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
     }
     // (exception is thrown by GetStringUTFChars if it fails.)
 }

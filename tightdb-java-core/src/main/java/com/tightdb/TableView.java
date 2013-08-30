@@ -594,7 +594,7 @@ public class TableView implements TableOrView {
 
     // Sorting
 
-    enum Order { ascending, descending };
+    public enum Order { ascending, descending };
 
     public void sort(long columnIndex, Order order) {
         if (immutable) throwImmutable();

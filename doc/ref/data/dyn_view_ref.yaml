@@ -12,7 +12,16 @@ EXAMPLES   :
 - DESCR    : The methods available in a TableView is a subset of those in 
              {@link class_dyn_table}, so you can check the examples there.
   CODE:      ex_java_dyn_view_intro
-IGNORE     : []                   # List of method-ids to ignore
+IGNORE     : [g_dyn_view_get_subtable_const,
+              g_dyn_view_find_all_bool_const,
+              g_dyn_view_find_all_int_const,
+              g_dyn_view_find_all_float_const,
+              g_dyn_view_find_all_double_const,
+              g_dyn_view_find_all_date_const,
+              g_dyn_view_find_all_string_const,
+              g_dyn_view_find_all_binary_const,
+              ]
+
 CATEGORIES :
 - State:
   METHODS:
@@ -27,7 +36,7 @@ CATEGORIES :
       - CODE   : ex_java_dyn_view_size
         DESCR  :
   - g_dyn_view_is_empty:
-      NAMES    : is_empty
+      NAMES    : isEmpty
       SUMMARY  : *g_dyn_view_is_empty_summary
       DESCR    : *g_dyn_view_is_empty_descr
       RETURN:
@@ -88,18 +97,21 @@ CATEGORIES :
 
 - Values:
   METHODS:
-  - g_dyn_view_get_boolean:
+  - g_dyn_view_get_bool:
   - g_dyn_view_get_int:
   - g_dyn_view_get_float:
   - g_dyn_view_get_double:
   - g_dyn_view_get_date:
   - g_dyn_view_get_string:
   - g_dyn_view_get_binary:
+  - g_dyn_view_get_binary2:
   - g_dyn_view_get_mixed:
   - g_dyn_view_get_mixed_type:
   - g_dyn_view_get_subtable:
-  - g_dyn_view_get_subtable_const:
-      NAMES    : get*
+      NAMES    : [getBoolean, getLong, getFloat, getDouble, getDate, getString,
+                  getBinaryByteBuffer, getBinaryByteArray, getMixed, getMixedType,
+                  getSubTable]
+      TITLE    : get*
       SUMMARY  : *g_dyn_table_get_xxx_summary
       DESCR    : *g_dyn_table_get_xxx_descr
       SIGNATURE: |
@@ -122,12 +134,14 @@ CATEGORIES :
         TYPES  : long
         DESCR  : The row index.
       RETURN:
-        TYPES  : [boolean, long, float, double, Date, String, ByteBuffer, "byte[]", Mixed, ColumnType]
+        TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, 
+                  "byte[]", Mixed, ColumnType, Table]
         DESCR  : The value.
       EXAMPLES:
       - CODE   : ex_java_dyn_view_get_xxx
         DESCR  :
-  - g_dyn_view_set_boolean:
+
+  - g_dyn_view_set_bool:
   - g_dyn_view_set_int:
   - g_dyn_view_set_float:
   - g_dyn_view_set_double:
@@ -135,8 +149,11 @@ CATEGORIES :
   - g_dyn_view_set_date:
   - g_dyn_view_set_string:
   - g_dyn_view_set_binary:
+  - g_dyn_view_set_binary2:
   - g_dyn_view_set_mixed:
-      NAMES    : set*
+      NAMES    : [setBoolean, setLong, setFloat, setDouble, setDate, setString,
+                  setBinaryByteBuffer, setBinaryByteArray, setMixed]
+      TITLE    : set*
       SUMMARY  : *g_dyn_table_set_xxx_summary
       DESCR    : *g_dyn_table_set_xxx_descr
       SIGNATURE: |
@@ -157,7 +174,8 @@ CATEGORIES :
         TYPES  : long
         DESCR  : The row index.
       - NAME   : value
-        TYPES  : [boolean, long, float, double, Date, String, "byte[]", ByteBuffer, Mixed]
+        TYPES  : [long, float, double, boolean, Date, String, "byte[]", 
+                  ByteBuffer, Mixed]
         DESCR  : The value.
       EXAMPLES:
       - CODE   : ex_java_dyn_view_set_xxx
@@ -199,13 +217,14 @@ CATEGORIES :
 
 - Searching:
   METHODS:
-  - g_dyn_view_find_first_boolean:
+  - g_dyn_view_find_first_bool:
   - g_dyn_view_find_first_int:
   - g_dyn_view_find_first_float:
-  - g_dyn_view_find_first_double:
+  - g_dyn_view_find_first_double:  
   - g_dyn_view_find_first_date:
   - g_dyn_view_find_first_string:
-      NAMES    : findFirst*
+      NAMES    : [findFirstBoolean, findFirstLong, findFirstFloat, findFirstDouble, 
+                  findFirstDate, findFirstString] 
       SUMMARY  : *g_dyn_table_find_first_xxx_summary
       DESCR    : *g_dyn_table_find_first_xxx_descr
       SIGNATURE: |
@@ -220,7 +239,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : The column index.
       - NAME   : value
-        TYPES  : [boolean, long, float, double, Date, String]
+        TYPES  : [long, float, double, boolean, Date, String]
         DESCR  : The value.
       RETURN:
         TYPES  : long
@@ -228,22 +247,25 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_view_find_first_xxx
         DESCR  :
-  - g_dyn_view_find_all_boolean:
+
+  - g_dyn_view_find_all_bool:
   - g_dyn_view_find_all_int:
   - g_dyn_view_find_all_float:
   - g_dyn_view_find_all_double:
   - g_dyn_view_find_all_date:
   - g_dyn_view_find_all_string:
-      NAMES    : findAll*
+      NAMES    : [findAllBoolean, findAllLong, findAllFloat, findAllDouble, 
+                  findAllDate, findAllString] 
+      TITLE    : findAll*
       SUMMARY  : *g_dyn_table_find_all_xxx_summary
       DESCR    : *g_dyn_table_find_all_xxx_descr
       SIGNATURE: |
-                 TableView findAllLong(long columnIndex, long value)
                  TableView findAllBoolean(long columnIndex, boolean value)
-                 TableView findAllDate(long columnIndex, Date value)
-                 TableView findAllString(long columnIndex, String value)
+                 TableView findAllLong(long columnIndex, long value)
                  TableView findAllFloat(long columnIndex, float value)
                  TableView findAllDouble(long columnIndex, double value)
+                 TableView findAllDate(long columnIndex, Date value)
+                 TableView findAllString(long columnIndex, String value)
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
