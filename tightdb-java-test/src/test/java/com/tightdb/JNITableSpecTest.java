@@ -72,29 +72,29 @@ public class JNITableSpecTest {
     @Test()
     public void shouldHandleColumnsDynamically() {
         Table table = new Table();
-        table.addColumn(ColumnType.ColumnTypeInt, "0");
+        table.addColumn(ColumnType.LONG, "0");
         assertEquals(1, table.getColumnCount());
         assertEquals(0, table.getColumnIndex("0"));
         assertEquals("0", table.getColumnName(0));
-        assertEquals(ColumnType.ColumnTypeInt, table.getColumnType(0));
+        assertEquals(ColumnType.LONG, table.getColumnType(0));
         table.add(23);
 
-        table.addColumn(ColumnType.ColumnTypeFloat, "1");
+        table.addColumn(ColumnType.FLOAT, "1");
         table.add(11, 11.1f);
-        table.addColumn(ColumnType.ColumnTypeDouble, "2");
+        table.addColumn(ColumnType.DOUBLE, "2");
         table.add(22, 22.2f, -22.2);
-        table.addColumn(ColumnType.ColumnTypeBool, "3");
+        table.addColumn(ColumnType.BOOLEAN, "3");
         table.add(33, 33.3f, -33.3, true);
-        table.addColumn(ColumnType.ColumnTypeString, "4");
+        table.addColumn(ColumnType.STRING, "4");
         table.add(44, 44.4f, -44.4, true, "44");
-        table.addColumn(ColumnType.ColumnTypeDate, "5");
+        table.addColumn(ColumnType.DATE, "5");
         Date date = new Date();
         table.add(55, 55.5f, -55.5, false, "55", date);
-        table.addColumn(ColumnType.ColumnTypeBinary, "6");
+        table.addColumn(ColumnType.BINARY, "6");
         table.add(66, 66.6f, -66.6, false, "66", date, new byte[] {6});
-        table.addColumn(ColumnType.ColumnTypeMixed, "7");
+        table.addColumn(ColumnType.MIXED, "7");
         table.add(77, 77.7f, -77.7, true, "77", date, new byte[] {7, 7}, "mix");
-        table.addColumn(ColumnType.ColumnTypeTable, "8");
+        table.addColumn(ColumnType.TABLE, "8");
         table.add(88, 88.8f, -88.8, false, "88", date, new byte[] {8, 8, 8}, "mixed", null);
 
         table.addEmptyRows(10);

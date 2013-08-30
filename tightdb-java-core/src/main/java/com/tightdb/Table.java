@@ -360,34 +360,34 @@ public class Table implements TableOrView {
         for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
             Object value = values[(int)columnIndex];
             switch (colTypes[(int)columnIndex]) {
-            case ColumnTypeBool:
+            case BOOLEAN:
                 nativeInsertBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
                 break;
-            case ColumnTypeInt:
+            case LONG:
                 nativeInsertLong(nativePtr, columnIndex, rowIndex, ((Number)value).longValue());
                 break;
-            case ColumnTypeFloat:
+            case FLOAT:
                 nativeInsertFloat(nativePtr, columnIndex, rowIndex, ((Float)value).floatValue());
                 break;
-            case ColumnTypeDouble:
+            case DOUBLE:
                 nativeInsertDouble(nativePtr, columnIndex, rowIndex, ((Double)value).doubleValue());
                 break;
-            case ColumnTypeString:
+            case STRING:
                 nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
                 break;
-            case ColumnTypeDate:
+            case DATE:
                 nativeInsertDate(nativePtr, columnIndex, rowIndex, ((Date)value).getTime()/1000);
                 break;
-            case ColumnTypeMixed:
+            case MIXED:
                 nativeInsertMixed(nativePtr, columnIndex, rowIndex, Mixed.mixedValue(value));
                 break;
-            case ColumnTypeBinary:
+            case BINARY:
                 if (value instanceof byte[])
                     nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
                 else if (value instanceof ByteBuffer)
                     nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, (ByteBuffer)value);
                 break;
-            case ColumnTypeTable:
+            case TABLE:
                 nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
                 insertSubtableValues(rowIndex, columnIndex, value);
                 break;
@@ -449,7 +449,7 @@ public class Table implements TableOrView {
     //Instance of the inner class InternalMethods.
     private InternalMethods im = new InternalMethods();
     
-    //Returns InternalMethods instance with public internal methods. Shoule only be called by AbstractTable
+    //Returns InternalMethods instance with public internal methods. Should only be called by AbstractTable
     public InternalMethods getInternalMethods(){
         return this.im;
     }
@@ -795,7 +795,7 @@ public class Table implements TableOrView {
 
     public void setIndex(long columnIndex) {
         if (immutable) throwImmutable();
-        if (getColumnType(columnIndex) != ColumnType.ColumnTypeString)
+        if (getColumnType(columnIndex) != ColumnType.STRING)
             throw new IllegalArgumentException("Index is only supported on string columns.");
         nativeSetIndex(nativePtr, columnIndex);
     }
@@ -1002,7 +1002,7 @@ public class Table implements TableOrView {
 
     // Requires that the first column is a string column with index
     public long lookup(String value) {
-        if (!this.hasIndex(0) || this.getColumnType(0) != ColumnType.ColumnTypeString)
+        if (!this.hasIndex(0) || this.getColumnType(0) != ColumnType.STRING)
             throw new RuntimeException("lookup() requires index on column 0 which must be a String column.");
         return nativeLookup(nativePtr, value);
     }

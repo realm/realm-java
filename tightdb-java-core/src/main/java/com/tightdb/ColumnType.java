@@ -6,15 +6,15 @@ import java.nio.ByteBuffer;
 // FIXME: Add a unit test that verifies the correct correspondance.
 
 public enum ColumnType {
-    ColumnTypeBool(1),
-    ColumnTypeInt(0),
-    ColumnTypeFloat(9),
-    ColumnTypeDouble(10),
-    ColumnTypeString(2),
-    ColumnTypeBinary(4),
-    ColumnTypeDate(7),
-    ColumnTypeTable(5),
-    ColumnTypeMixed(6);
+    BOOLEAN(1),
+    LONG(0),
+    FLOAT(9),
+    DOUBLE(10),
+    STRING(2),
+    BINARY(4),
+    DATE(7),
+    TABLE(5),
+    MIXED(6);
     // When adding above, remember to update size of largest number below
 
     private final int nativeValue;

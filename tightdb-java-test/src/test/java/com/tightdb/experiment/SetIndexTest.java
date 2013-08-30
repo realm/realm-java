@@ -1,4 +1,4 @@
-package com.tightdb.dynamic;
+package com.tightdb.experiment;
 
 import org.testng.annotations.Test;
 
@@ -7,6 +7,10 @@ import com.tightdb.Group;
 import com.tightdb.SharedGroup;
 import com.tightdb.Table;
 import com.tightdb.WriteTransaction;
+
+
+// TODO: Add asserts!
+// TODO: 
 
 public class SetIndexTest {
     @Test

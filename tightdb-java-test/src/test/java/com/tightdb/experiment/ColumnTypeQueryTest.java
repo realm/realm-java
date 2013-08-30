@@ -1,4 +1,4 @@
-package com.tightdb.dynamic;
+package com.tightdb.experiment;
 
 import java.util.Date;
 

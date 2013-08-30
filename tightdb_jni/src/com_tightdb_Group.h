@@ -18,10 +18,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__
 /*
  * Class:     com_tightdb_Group
  * Method:    createNative
- * Signature: (Ljava/lang/String;Z)J
+ * Signature: (Ljava/lang/String;I)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2Z
-  (JNIEnv *, jobject, jstring, jboolean);
+JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2I
+  (JNIEnv *, jobject, jstring, jint);
 
 /*
  * Class:     com_tightdb_Group
@@ -46,6 +46,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
  */
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_Group
+ * Method:    nativeEquals
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeEquals
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_Group
@@ -101,6 +109,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeLoadFromMem
  * Signature: (J)[B
  */
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_Group
+ * Method:    nativeCommit
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeCommit
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus

@@ -20,20 +20,20 @@ public class TestHelper {
     public static ColumnType getColumnType(Object o){
         
         if (o instanceof Boolean)
-            return ColumnType.ColumnTypeBool;
+            return ColumnType.BOOLEAN;
         if (o instanceof String)
-            return ColumnType.ColumnTypeString;
+            return ColumnType.STRING;
         if (o instanceof Long)
-            return ColumnType.ColumnTypeInt;
+            return ColumnType.LONG;
         if (o instanceof Float)
-            return ColumnType.ColumnTypeFloat;
+            return ColumnType.FLOAT;
         if (o instanceof Double)
-            return ColumnType.ColumnTypeDouble;
+            return ColumnType.DOUBLE;
         if (o instanceof Date)
-            return ColumnType.ColumnTypeDate;
+            return ColumnType.DATE;
         if (o instanceof byte[])
-            return ColumnType.ColumnTypeBinary;
+            return ColumnType.BINARY;
         
-        return ColumnType.ColumnTypeMixed;
+        return ColumnType.MIXED;
     }
 }

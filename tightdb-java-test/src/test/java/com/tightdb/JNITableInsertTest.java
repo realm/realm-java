@@ -45,19 +45,19 @@ public class JNITableInsertTest {
     public void ShouldInsertAddAndSetRows() {
         Table table = new Table();
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeBool, "bool");
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "string");
-        tableSpec.addColumn(ColumnType.ColumnTypeBinary, "Bin");
-        tableSpec.addColumn(ColumnType.ColumnTypeDate, "date");
-        tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
+        tableSpec.addColumn(ColumnType.BOOLEAN, "bool");
+        tableSpec.addColumn(ColumnType.LONG, "number");
+        tableSpec.addColumn(ColumnType.STRING, "string");
+        tableSpec.addColumn(ColumnType.BINARY, "Bin");
+        tableSpec.addColumn(ColumnType.DATE, "date");
+        tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "sub-num");
-        subspec.addColumn(ColumnType.ColumnTypeString, "sub-str");
+        subspec.addColumn(ColumnType.LONG, "sub-num");
+        subspec.addColumn(ColumnType.STRING, "sub-str");
         table.updateFromSpec(tableSpec);
 
         ByteBuffer buf = ByteBuffer.allocateDirect(23);
-        Mixed mixedSubTable = new Mixed(ColumnType.ColumnTypeTable);
+        Mixed mixedSubTable = new Mixed(ColumnType.TABLE);
         Date date = new Date();
         long mixed = 123;
 
@@ -107,14 +107,14 @@ public class JNITableInsertTest {
     public void ShouldFailInsert() {
         Table table = new Table();
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeBool, "bool");
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "string");
-        tableSpec.addColumn(ColumnType.ColumnTypeBinary, "Bin");
-        tableSpec.addColumn(ColumnType.ColumnTypeDate, "date");
-        tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
+        tableSpec.addColumn(ColumnType.BOOLEAN, "bool");
+        tableSpec.addColumn(ColumnType.LONG, "number");
+        tableSpec.addColumn(ColumnType.STRING, "string");
+        tableSpec.addColumn(ColumnType.BINARY, "Bin");
+        tableSpec.addColumn(ColumnType.DATE, "date");
+        tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "sub-num");
+        subspec.addColumn(ColumnType.LONG, "sub-num");
         table.updateFromSpec(tableSpec);
 
         // Wrong number of parameters

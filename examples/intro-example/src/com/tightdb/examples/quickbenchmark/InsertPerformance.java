@@ -11,10 +11,11 @@ public class InsertPerformance {
         
         Table t = new Table();
         
-        t.addColumn(ColumnType.ColumnTypeString, "String");
-        t.addColumn(ColumnType.ColumnTypeBool, "Bool");
-        t.addColumn(ColumnType.ColumnTypeInt, "Long");
-        t.addColumn(ColumnType.ColumnTypeDate, "Date");
+        
+        t.addColumn(ColumnType.STRING, "String");
+        t.addColumn(ColumnType.BOOLEAN, "Bool");
+        t.addColumn(ColumnType.LONG, "Long");
+        t.addColumn(ColumnType.DATE, "Date");
         
         Long timer = System.currentTimeMillis();
         

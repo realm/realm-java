@@ -11,10 +11,10 @@ public class JNIMixedSubtableTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "num");
-        tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
+        tableSpec.addColumn(ColumnType.LONG, "num");
+        tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("subtable");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "num");
+        subspec.addColumn(ColumnType.LONG, "num");
         table.updateFromSpec(tableSpec);
 
         // Shouln't work: no Mixed stored yet
@@ -40,14 +40,14 @@ public class JNIMixedSubtableTest {
         long ROW = 0;
         // Add empty row - the simple way
         table.addEmptyRow();
-        table.setMixed(1, ROW, new Mixed(ColumnType.ColumnTypeTable));
+        table.setMixed(1, ROW, new Mixed(ColumnType.TABLE));
         assertEquals(1, table.size());
         assertEquals(0, table.getSubTableSize(1, 0));
 
         // Create schema for the one Mixed cell with a subtable
         Table subtable = table.getSubTable(1, ROW);
         TableSpec subspecMixed = subtable.getTableSpec();
-        subspecMixed.addColumn(ColumnType.ColumnTypeInt, "num");
+        subspecMixed.addColumn(ColumnType.LONG, "num");
         subtable.updateFromSpec(subspecMixed);
 
         // Insert value in the Mixed subtable
@@ -65,12 +65,12 @@ public class JNIMixedSubtableTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "num");
-        tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
+        tableSpec.addColumn(ColumnType.LONG, "num");
+        tableSpec.addColumn(ColumnType.MIXED, "mix");
         table.updateFromSpec(tableSpec);
 
         table.addEmptyRow();
-        table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));
+        table.setMixed(1, 0, new Mixed(ColumnType.TABLE));
 
         Table subtable = table.getSubTable(1, 0);
     }

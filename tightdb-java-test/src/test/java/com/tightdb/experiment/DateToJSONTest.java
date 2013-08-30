@@ -1,4 +1,4 @@
-package com.tightdb.dynamic;
+package com.tightdb.experiment;
 
 import static org.testng.AssertJUnit.*;
 import java.util.Calendar;
