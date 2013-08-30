@@ -8,6 +8,10 @@ import com.tightdb.SharedGroup;
 import com.tightdb.Table;
 import com.tightdb.WriteTransaction;
 
+
+// TODO: Add asserts!
+// TODO: 
+
 public class SetIndexTest {
     @Test
     public void shouldSetIndexWithoutFailing() {
