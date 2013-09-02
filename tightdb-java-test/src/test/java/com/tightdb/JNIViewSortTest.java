@@ -20,17 +20,17 @@ public class JNIViewSortTest {
 	void init() {
 		//Specify table		
 	    t = new Table();
-	    t.addColumn(ColumnType.ColumnTypeString, "Name");
-	    t.addColumn(ColumnType.ColumnTypeBool,   "Study");
-	    t.addColumn(ColumnType.ColumnTypeInt,    "Age");
-	    t.addColumn(ColumnType.ColumnTypeDate,   "Birthday");
+	    t.addColumn(ColumnType.STRING, "Name");
+	    t.addColumn(ColumnType.BOOLEAN,   "Study");
+	    t.addColumn(ColumnType.LONG,    "Age");
+	    t.addColumn(ColumnType.DATE,   "Birthday");
 	    
 	    // Add unsupported column types
-	    t.addColumn(ColumnType.ColumnTypeString, "Unsupported0");
-	    t.addColumn(ColumnType.ColumnTypeFloat,  "Unsupported1");
-	    t.addColumn(ColumnType.ColumnTypeDouble, "Unsupported2");
-	    t.addColumn(ColumnType.ColumnTypeMixed,  "Unsupported3");
-	    t.addColumn(ColumnType.ColumnTypeTable,  "Unsupported4");
+	    t.addColumn(ColumnType.STRING, "Unsupported0");
+	    t.addColumn(ColumnType.FLOAT,  "Unsupported1");
+	    t.addColumn(ColumnType.DOUBLE, "Unsupported2");
+	    t.addColumn(ColumnType.MIXED,  "Unsupported3");
+	    t.addColumn(ColumnType.TABLE,  "Unsupported4");
 	    
 	    //Add data
 	    t.add("cc", true,  24, date1, "", 0.0f, 0.0, 0, null);
