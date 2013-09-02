@@ -288,5 +288,49 @@ public class GroupTest {
     	tbl2.add(2);
     	assertEquals(false, group1.equals(group2));    	
     }
+    
+    
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void shouldFailWhenModifyingTablesOnClosedGroup() {
+        Group group = new Group();
+        Table tbl = group.getTable("test");
+        tbl.addColumn(ColumnType.LONG, "number");
+        tbl.add(1);
+        
+        //Close the group
+        group.close();
+        
+        //Try to add data to table in group
+        tbl.add(2);
+    }
+    
+    
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void shouldFailWhenAddingTablesToClosedGroup() {
+        Group group = new Group();
+        Table tbl = group.getTable("test");
+        tbl.addColumn(ColumnType.LONG, "number");
+        tbl.add(1);
+        
+        //Close the group
+        group.close();
+        
+        //Try to add data to table in group
+        Table newTable = group.getTable("test2");
+    }
+    
+    
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void shouldFailWhenGettingValuesFromTablesInClosedGroup() {
+        Group group = new Group();
+        Table tbl = group.getTable("test");
+        tbl.addColumn(ColumnType.LONG, "number");
+        tbl.add(1);
+        
+        //Close the group
+        group.close();
+        
+        tbl.getLong(0, 0);
+    }
 
 }
