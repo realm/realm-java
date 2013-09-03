@@ -18,10 +18,10 @@ public class SetIndexTest {
 
         //Specify table
         Table table = new Table();
-        table.addColumn(ColumnType.ColumnTypeString, "Name");
-        table.addColumn(ColumnType.ColumnTypeDouble, "GPA");
-        table.addColumn(ColumnType.ColumnTypeInt, "Age");
-        table.addColumn(ColumnType.ColumnTypeString, "Nickname");
+        table.addColumn(ColumnType.STRING, "Name");
+        table.addColumn(ColumnType.DOUBLE, "GPA");
+        table.addColumn(ColumnType.LONG, "Age");
+        table.addColumn(ColumnType.STRING, "Nickname");
         
         //Add data
         table.add("cc", 2.5, 24, "Pete");
@@ -34,10 +34,10 @@ public class SetIndexTest {
         
         Group group = new Group();
         Table fromGroup = group.getTable("test");
-        fromGroup.addColumn(ColumnType.ColumnTypeString, "Name");
-        fromGroup.addColumn(ColumnType.ColumnTypeDouble, "GPA");
-        fromGroup.addColumn(ColumnType.ColumnTypeInt, "Age");
-        fromGroup.addColumn(ColumnType.ColumnTypeString, "Nickname");
+        fromGroup.addColumn(ColumnType.STRING, "Name");
+        fromGroup.addColumn(ColumnType.DOUBLE, "GPA");
+        fromGroup.addColumn(ColumnType.LONG, "Age");
+        fromGroup.addColumn(ColumnType.STRING, "Nickname");
         
         //Add data
         fromGroup.add("cc", 2.5, 24, "Pete");
@@ -52,10 +52,10 @@ public class SetIndexTest {
         
         try{
             Table tab = wt.getTable("table1");
-            tab.addColumn(ColumnType.ColumnTypeString, "Name");
-            tab.addColumn(ColumnType.ColumnTypeDouble, "GPA");
-            tab.addColumn(ColumnType.ColumnTypeInt, "Age");
-            tab.addColumn(ColumnType.ColumnTypeString, "Nickname");
+            tab.addColumn(ColumnType.STRING, "Name");
+            tab.addColumn(ColumnType.DOUBLE, "GPA");
+            tab.addColumn(ColumnType.LONG, "Age");
+            tab.addColumn(ColumnType.STRING, "Nickname");
             
             //Add data
             tab.add("cc", 2.5, 24, "Pete");

@@ -11,8 +11,8 @@ public class JNIDistinctTest {
 
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.ColumnTypeInt, "number");
-        table.addColumn(ColumnType.ColumnTypeString, "name");
+        table.addColumn(ColumnType.LONG, "number");
+        table.addColumn(ColumnType.STRING, "name");
 
         long i = 0;
         table.add(0, "A");

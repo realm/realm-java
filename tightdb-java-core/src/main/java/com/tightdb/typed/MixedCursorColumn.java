@@ -57,7 +57,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
     }
 
     public <Tbl> Tbl createSubtable(Class<Tbl> tableClass) {
-        set(new Mixed(ColumnType.ColumnTypeTable));
+        set(new Mixed(ColumnType.TABLE));
         Table subtable = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
         return AbstractSubtable.createSubtable(tableClass, subtable);
     }
@@ -75,7 +75,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
      * Check if the subtable (this cursor points at) is the same as the tableClass provided as parameter
      */
     public <Tbl extends AbstractTable<?, ?, ?>> boolean isSubtable(Class<Tbl> tableClass) {
-        if (get().getType() != ColumnType.ColumnTypeTable) {
+        if (get().getType() != ColumnType.TABLE) {
             throw new IllegalArgumentException("The mixed value doesn't contain a sub-table!");
         }
 
