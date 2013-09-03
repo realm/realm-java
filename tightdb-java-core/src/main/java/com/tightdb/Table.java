@@ -395,7 +395,9 @@ public class Table implements TableOrView {
                 throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int)columnIndex]));
             }
         }
-        this.internal.insertDone();
+        //Insert done. Use native, no need to check for immutable again here
+        nativeInsertDone(nativePtr); 
+
     }
 
     private void insertSubtableValues(long rowIndex, long columnIndex, Object value) {
