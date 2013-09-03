@@ -12,7 +12,6 @@ import org.testng.annotations.Test;
 import com.tightdb.ColumnType;
 import com.tightdb.Table;
 import com.tightdb.TableView;
-import com.tightdb.exceptions.IllegalTypeException;
 import com.tightdb.test.DataProviderUtil;
 
 public class ColumnTypeViewTest {

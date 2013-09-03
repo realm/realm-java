@@ -1,4 +1,4 @@
-package com.tightdb.examples.quickbenchmark;
+package com.tightdb.experiment;
 
 import java.util.Date;
 

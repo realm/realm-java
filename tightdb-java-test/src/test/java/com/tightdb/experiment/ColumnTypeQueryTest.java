@@ -8,7 +8,6 @@ import org.testng.annotations.Test;
 import com.tightdb.ColumnType;
 import com.tightdb.Table;
 import com.tightdb.TableQuery;
-import com.tightdb.exceptions.IllegalTypeException;
 
 public class ColumnTypeQueryTest {
     
@@ -28,17 +27,17 @@ public class ColumnTypeQueryTest {
         q = t.where();
     }
     
-    @Test(expectedExceptions=IllegalTypeException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void filterLongOnStringColumn() {
         q.equal(1, 23).findAll();
     }
     
-    @Test(expectedExceptions=IllegalTypeException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void filterStringOnLongColumn() {
         q.equal(3, "I'm a String").findAll();
     }
     
-    @Test(expectedExceptions=IllegalTypeException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void filterStringOnDateColumn() {
         q.equal(1, "I'm a String").findAll();
     }
