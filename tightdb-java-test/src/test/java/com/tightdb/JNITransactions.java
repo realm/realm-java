@@ -90,6 +90,59 @@ public class JNITransactions {
         checkRead(10);
         clear();
     }
+    
+    
+    
+    @Test(expectedExceptions=IllegalStateException.class)
+    public void shouldThrowExceptionAfterClosedReadTransaction() {
+        if (TightDB.osIsWindows())
+            return;
+       ReadTransaction rt = db.beginRead();
+       
+       try{
+       Table tbl = rt.getTable("EmployeeTable");
+       rt.endRead();
+       tbl.getColumnCount();
+       } finally{
+           rt.endRead();
+           clear();
+       }
+    }
+    
+    
+    @Test(expectedExceptions=IllegalStateException.class)
+    public void shouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
+        if (TightDB.osIsWindows())
+            return;
+       ReadTransaction rt = db.beginRead();
+       
+       try{
+       Table tbl = rt.getTable("EmployeeTable");
+       rt.endRead();
+       tbl.addColumn(ColumnType.STRING, "newString");
+       } finally{
+           rt.endRead();
+           clear();
+       }
+    }
+    
+    
+    @Test(expectedExceptions=IllegalStateException.class)
+    public void shouldThrowExceptionWhenWritingInReadTrans() {
+        if (TightDB.osIsWindows())
+            return;
+        
+        ReadTransaction rt = db.beginRead();
+
+        try{
+       Table tbl = rt.getTable("newTable");
+       rt.endRead();
+        } finally{
+            rt.endRead();
+            clear();
+        }
+    }
+    
 
     @Test
     public void mustRollback() {
@@ -124,7 +177,7 @@ public class JNITransactions {
         ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
 
-        try { table.insert(0, 0, false);        assert(false);} catch (IllegalStateException e) {}
+        try { table.addAt(0, 0, false);        assert(false);} catch (IllegalStateException e) {}
         try { table.add(0, false);              assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRow();                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRows(1);                assert(false);} catch (IllegalStateException e) {}

@@ -1,0 +1,60 @@
+package com.tightdb.experiment;
+
+import com.tightdb.ColumnType;
+import com.tightdb.DefineTable;
+import com.tightdb.Table;
+
+public class InsertVsAddPerformance {
+    
+    
+    private static long ROWS = 50000000;
+    
+    
+    @DefineTable(table = "PeopleTable")
+    class people {
+        String  name;
+        long     age;
+        boolean hired;
+    }
+    
+    
+    public static void main(String[] args) {
+        
+        PeopleTable pt = new PeopleTable();
+        
+        Long typedTimer = System.currentTimeMillis();
+        System.out.println("Performance testing TYPED interface on " + ROWS + " rows");
+
+        for (long r=0;r<ROWS;r++){
+            if (r % 1000000 == 0 && r > 0){
+                System.out.println(r + " split time: " +  (System.currentTimeMillis() - typedTimer));
+            }
+            pt.add("name"+r, r, true);
+        }
+        
+        Long totalTimeTyped = System.currentTimeMillis() - typedTimer;
+        System.out.println("Time for TYPED interface: " + totalTimeTyped);
+        
+        Table t = new Table();
+        
+        t.addColumn(ColumnType.STRING, "String");
+        t.addColumn(ColumnType.LONG, "Long");
+        t.addColumn(ColumnType.BOOLEAN, "Boolean");
+        
+        Long dynTimer = System.currentTimeMillis();
+        System.out.println("Performance testing DYNAMIC interface on " + ROWS + " rows");
+
+        for (long r=0;r<ROWS;r++){
+            if (r % 1000000 == 0 && r > 0){
+                System.out.println(r + " split time: " +  (System.currentTimeMillis() - dynTimer));
+            }
+            t.add("name"+r, r, true);
+        }
+        
+        Long totalTimeDyn = System.currentTimeMillis() - dynTimer;
+        
+        System.out.println("Summery for performance tests on " + ROWS + " rows:");
+        System.out.println("TYPED: " + totalTimeTyped);
+        System.out.println("DYNAMIC: " + totalTimeDyn);
+    }
+}
