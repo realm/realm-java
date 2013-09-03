@@ -1,7 +1,14 @@
+13-August-2013:
+===============
++ Table.add() now returns row index of the added row.
+! BREAKING CHANGE: Group() now takes a new OpenMode parameter and not a boolean. 
+  It now supports multiple ways to open a group. (ReadOnly, ReadWrite, WriteNoCreate)
++ Added Group.commit()
++ Added Group.equals()
+
 04-August-2013:
 ===============
 + Experimental Table.findSortedLong() replaced by Table.lowerBoundLong() and Table.upperBoundLong() because these provide more flexibility, and it follows similar changes in the core library. (Kristian Spangsege)
-
 
 05-July-2013:
 ============

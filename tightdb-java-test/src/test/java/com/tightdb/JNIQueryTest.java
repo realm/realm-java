@@ -10,8 +10,8 @@ public class JNIQueryTest {
     void init() {
         table = new Table();
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.LONG, "number");
+        tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 
         table.add(10, "A");

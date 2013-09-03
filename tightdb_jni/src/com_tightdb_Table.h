@@ -687,7 +687,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeLookup
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeLowerBoundInt
-(JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_Table
@@ -695,7 +695,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeLowerBoundInt
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeUpperBoundInt
-(JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_Table

@@ -11,11 +11,9 @@ public class DynamicTableBaseEx {
         Table base = new Table();
         System.out.println("created table");
 
-        TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "salary");
-        tableSpec.addColumn(ColumnType.ColumnTypeMixed, "Whatever");
-        base.updateFromSpec(tableSpec);
+        base.addColumn(ColumnType.STRING, "name");
+        base.addColumn(ColumnType.LONG, "salary");
+        base.addColumn(ColumnType.MIXED, "Whatever");
         System.out.println("specified structure");
 
         base.add("John", 24000, new Mixed(1));

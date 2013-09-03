@@ -12,10 +12,10 @@ public class JNISubtableTest {
         Table table = group.getTable("emp");
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
 
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "num");
+        subspec.addColumn(ColumnType.LONG, "num");
 
         table.updateFromSpec(tableSpec);
 
@@ -41,12 +41,12 @@ public class JNISubtableTest {
 
         // Define table
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
 
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "num");
+        subspec.addColumn(ColumnType.LONG, "num");
 
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "Int");
+        tableSpec.addColumn(ColumnType.LONG, "Int");
         table.updateFromSpec(tableSpec);
 
         // Insert values

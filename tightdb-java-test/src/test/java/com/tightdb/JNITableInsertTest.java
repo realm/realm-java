@@ -1,9 +1,17 @@
 package com.tightdb;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import com.tightdb.test.DataProviderUtil;
+import com.tightdb.test.TestHelper;
+
 import static org.testng.AssertJUnit.*;
 
 
@@ -37,19 +45,19 @@ public class JNITableInsertTest {
     public void ShouldInsertAddAndSetRows() {
         Table table = new Table();
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeBool, "bool");
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "string");
-        tableSpec.addColumn(ColumnType.ColumnTypeBinary, "Bin");
-        tableSpec.addColumn(ColumnType.ColumnTypeDate, "date");
-        tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
+        tableSpec.addColumn(ColumnType.BOOLEAN, "bool");
+        tableSpec.addColumn(ColumnType.LONG, "number");
+        tableSpec.addColumn(ColumnType.STRING, "string");
+        tableSpec.addColumn(ColumnType.BINARY, "Bin");
+        tableSpec.addColumn(ColumnType.DATE, "date");
+        tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "sub-num");
-        subspec.addColumn(ColumnType.ColumnTypeString, "sub-str");
+        subspec.addColumn(ColumnType.LONG, "sub-num");
+        subspec.addColumn(ColumnType.STRING, "sub-str");
         table.updateFromSpec(tableSpec);
 
         ByteBuffer buf = ByteBuffer.allocateDirect(23);
-        Mixed mixedSubTable = new Mixed(ColumnType.ColumnTypeTable);
+        Mixed mixedSubTable = new Mixed(ColumnType.TABLE);
         Date date = new Date();
         long mixed = 123;
 
@@ -58,7 +66,8 @@ public class JNITableInsertTest {
                                                 {345, "row1"},
                                                 {456, "row2"} };
         Object[] rowData0 = new Object[] {false, (short)2, "hi", buf, date, mixed, subTblData};
-        table.add(rowData0);
+        long index = table.add(rowData0);
+        assertEquals(0, index);
         verifyRow(table, 0, rowData0);
 
         Object[] rowData1 = new Object[] {false, 7, "hi1", new byte[] {0,2,3}, date, "mix1", null};
@@ -67,7 +76,8 @@ public class JNITableInsertTest {
 // TODO: support insert of mixed subtable
 
         table.insert(1, rowData1);
-        table.add(rowData2);
+        index = table.add(rowData2);
+        assertEquals(2, index);
         table.insert(0, rowData3);
 
         verifyRow(table, 0, rowData3);
@@ -97,14 +107,14 @@ public class JNITableInsertTest {
     public void ShouldFailInsert() {
         Table table = new Table();
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeBool, "bool");
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "string");
-        tableSpec.addColumn(ColumnType.ColumnTypeBinary, "Bin");
-        tableSpec.addColumn(ColumnType.ColumnTypeDate, "date");
-        tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
+        tableSpec.addColumn(ColumnType.BOOLEAN, "bool");
+        tableSpec.addColumn(ColumnType.LONG, "number");
+        tableSpec.addColumn(ColumnType.STRING, "string");
+        tableSpec.addColumn(ColumnType.BINARY, "Bin");
+        tableSpec.addColumn(ColumnType.DATE, "date");
+        tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "sub-num");
+        subspec.addColumn(ColumnType.LONG, "sub-num");
         table.updateFromSpec(tableSpec);
 
         // Wrong number of parameters
@@ -176,6 +186,42 @@ public class JNITableInsertTest {
             table.insert(0, false, 1, "hi", buf, new Date(), mix, new Object[] {1,2,3} );
             assertTrue(false);
         } catch (IllegalArgumentException e) {}
+    }
+    
+    
+    
+  //Generates a table with a a column with column typed determined from the first parameter, and then puts in a value from the second parameter.
+    //In cases, where the 2 parameter types do not match, we expect an IllegalArgumentException
+    @Test(expectedExceptions=IllegalArgumentException.class, dataProvider = "columnTypesProvider")
+    public void testGenericAddOnTable(Object colTypeObject, Object o) {
+        Table t  = new Table();
+        
+        //If the objects matches it will not fail, therefore we throw an exception as it should not be tested
+        if (o.getClass().equals(colTypeObject.getClass())){
+            throw new IllegalArgumentException();
+        }
+        //Add column, set name to the simplename of the class
+        t.addColumn(TestHelper.getColumnType(colTypeObject), colTypeObject.getClass().getSimpleName());
+        
+        //Add object
+        t.add(o);
+    }
+    
+    //Generates a list of different objects to be passed as parameter to the insert() on table
+    @DataProvider(name = "columnTypesProvider")
+    public Iterator<Object[]> mixedValuesProvider() {
+        Object[] values = {
+                true, 
+                "abc", 
+                123L,
+                987.123f, 
+                1234567.898d, 
+                new Date(645342), 
+                new byte[] { 1, 2, 3, 4, 5 }
+        };
+
+        List<?> mixedValues = Arrays.asList(values);
+        return DataProviderUtil.allCombinations(mixedValues,mixedValues);
     }
 
 }

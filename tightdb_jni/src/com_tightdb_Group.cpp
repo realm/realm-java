@@ -11,8 +11,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__(
     return reinterpret_cast<jlong>(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2Z(
-    JNIEnv* env, jobject, jstring jFileName, jboolean readOnly)
+JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2I(
+    JNIEnv* env, jobject, jstring jFileName, jint mode)
 {
     TR((env, "Group::createNative(file): "));
     const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
@@ -21,10 +21,20 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
 
     Group* pGroup = 0;
     try {
-        pGroup = new Group(fileNameCharPtr, readOnly != 0 ? Group::mode_ReadOnly : Group::mode_ReadWrite);
+        Group::OpenMode openmode;
+        switch (mode) {
+        case 0: openmode = Group::mode_ReadOnly; break;
+        case 1: openmode = Group::mode_ReadWrite; break;
+        case 2: openmode = Group::mode_ReadWriteNoCreate; break;
+        default:
+            TR((env, "Invalid mode: %d\n", mode));
+            ThrowException(env, IllegalArgument, "Group(): Invalid mode parameter.");
+            return 0;
+        }
+        pGroup = new Group(fileNameCharPtr, openmode);
     }
     catch (...) {
-        // FIXME: Diffrent exception types mean different things. More
+        // FIXME: Different exception types mean different things. More
         // details must be made available. We should proably have
         // special catches for at least these:
         // tightdb::File::AccessError (and various derivatives),
@@ -46,8 +56,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative___3B(
     if (byteArrayLength == 0)
         return 0;
     jbyte* buf = static_cast<jbyte*>(malloc(S(byteArrayLength)*sizeof(jbyte)));
-    if (!buf)
+    if (!buf) {
+        // ??? ThrowException(env, );
         return 0; // FIXME: Should throw a Java exception here
+    }
     env->GetByteArrayRegion(jData, 0, byteArrayLength, buf);
 
     TR((env, " %d bytes.", byteArrayLength));
@@ -165,8 +177,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
             // not declared 'noexcept' must be considered as being
             // able to throw anything derived from std::exception.
             ThrowException(env, IOFailed, fileNameCharPtr);
-        env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
         }
+        env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
     }
     // (exception is thrown by GetStringUTFChars if it fails.)
 }
@@ -210,4 +222,16 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
         ThrowException(env, IndexOutOfBounds, "Group too big to write.");
         return NULL;
     }
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeCommit(
+    JNIEnv* env, jobject, jlong nativeGroupPtr)
+{
+    G(nativeGroupPtr)->commit();
+}
+
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeEquals(
+  JNIEnv* env, jobject, jlong nativeGroupPtr, jlong compareToGroupPtr)
+{
+    return *G(nativeGroupPtr) == *G(compareToGroupPtr);
 }
