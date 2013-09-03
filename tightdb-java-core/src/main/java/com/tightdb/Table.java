@@ -395,7 +395,7 @@ public class Table implements TableOrView {
                 throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int)columnIndex]));
             }
         }
-        this.im.insertDone();
+        this.internal.insertDone();
     }
 
     private void insertSubtableValues(long rowIndex, long columnIndex, Object value) {
@@ -447,11 +447,11 @@ public class Table implements TableOrView {
     }
     
     //Instance of the inner class InternalMethods.
-    private InternalMethods im = new InternalMethods();
+    private InternalMethods internal = new InternalMethods();
     
     //Returns InternalMethods instance with public internal methods. Should only be called by AbstractTable
     public InternalMethods getInternalMethods(){
-        return this.im;
+        return this.internal;
     }
     
     
