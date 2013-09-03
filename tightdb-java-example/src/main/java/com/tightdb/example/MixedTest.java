@@ -11,10 +11,10 @@ public class MixedTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "num");
-        tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
+        tableSpec.addColumn(ColumnType.LONG, "num");
+        tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("subtable");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "num");
+        subspec.addColumn(ColumnType.LONG, "num");
         table.updateFromSpec(tableSpec);
 
         try {
@@ -26,7 +26,7 @@ public class MixedTest {
         }
 
         table.addEmptyRow();
-        table.setMixed(1, 0, new Mixed(ColumnType.ColumnTypeTable));
+        table.setMixed(1, 0, new Mixed(ColumnType.TABLE));
         Mixed m = table.getMixed(1, 0);
 
         ColumnType mt = table.getMixedType(1,0);

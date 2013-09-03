@@ -43,8 +43,8 @@ public class JNITransactions {
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
+        tableSpec.addColumn(ColumnType.STRING, "name");
+        tableSpec.addColumn(ColumnType.LONG, "number");
         tbl.updateFromSpec(tableSpec);
 
         for (long row=0; row < rows; row++)

@@ -28,10 +28,10 @@ public abstract class AbstractTest {
             "phones" };
 
     protected static final ColumnType[] EXPECTED_COLUMN_TYPE = {
-            ColumnType.ColumnTypeString, ColumnType.ColumnTypeString,
-            ColumnType.ColumnTypeInt, ColumnType.ColumnTypeBool,
-            ColumnType.ColumnTypeBinary, ColumnType.ColumnTypeDate,
-            ColumnType.ColumnTypeMixed, ColumnType.ColumnTypeTable };
+            ColumnType.STRING, ColumnType.STRING,
+            ColumnType.LONG, ColumnType.BOOLEAN,
+            ColumnType.BINARY, ColumnType.DATE,
+            ColumnType.MIXED, ColumnType.TABLE };
 
     protected TestEmployeeTable employees;
 

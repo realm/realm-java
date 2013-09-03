@@ -22,14 +22,14 @@ public class JNIBinaryTypeTest {
         table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeBinary, "bin");
+        tableSpec.addColumn(ColumnType.BINARY, "bin");
         table.updateFromSpec(tableSpec);
     }
 
     @Test
     public void shouldStoreValuesOfBinaryType_ByteArray() throws Exception {
         table.add(testArray);
-        checkBinaryCell(table, 0, 0, ColumnType.ColumnTypeBinary, testArray);
+        checkBinaryCell(table, 0, 0, ColumnType.BINARY, testArray);
     }
 
     @Test
@@ -37,7 +37,7 @@ public class JNIBinaryTypeTest {
         ByteBuffer bufDirect = ByteBuffer.allocateDirect(testArray.length);
         bufDirect.put(testArray);
         table.add(bufDirect);
-        checkBinaryCell(table, 0, 0, ColumnType.ColumnTypeBinary, testArray);
+        checkBinaryCell(table, 0, 0, ColumnType.BINARY, testArray);
     }
 
     // TODO: handle wrap ByteBuffers
@@ -47,7 +47,7 @@ public class JNIBinaryTypeTest {
         ByteBuffer bufWrap = ByteBuffer.wrap(testArray);
         table.add(bufWrap);
 
-        checkBinaryCell(table, 0, 0, ColumnType.ColumnTypeBinary, testArray);
+        checkBinaryCell(table, 0, 0, ColumnType.BINARY, testArray);
     }
 
     private void checkBinaryCell(Table table, long col, long row, ColumnType columnType, byte[] value) throws IllegalAccessException {

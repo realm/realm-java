@@ -10,7 +10,7 @@ public class JNIViewSearchTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 
         table.add("Foo");
@@ -28,7 +28,7 @@ public class JNIViewSearchTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 
         table.add("A1");
