@@ -311,7 +311,7 @@ CATEGORIES :
         DESCR  : For each column in the table, you must provide a parameter with a matching type
                  in the same order as the columns are defined.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_insert
+      - CODE   : ex_java_dyn_table_add_at
         DESCR  :
       SEE      : >
                 See also {@link g_dyn_table_add} to append a row at the end of the table 

@@ -11,7 +11,7 @@ public class TableViewIntro {
 
     public static void main(String[] args) throws FileNotFoundException {
         // @@Show@@
-        //Creates a new table by using getTable with the new table name as parameter
+        //Creates a new table
         Table table = new Table();
 
         //Specify the column types and names
