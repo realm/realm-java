@@ -86,7 +86,7 @@ public class JNIQueryTest {
         try { query.maximumFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximum(6);                 assert(false); } catch(IllegalArgumentException e) {}
-        try { query.maximumFloat(6);         	assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(6);            assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumDouble(6);         	assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximum(7);                 assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumFloat(7);            assert(false); } catch(IllegalArgumentException e) {}
