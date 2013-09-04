@@ -7,7 +7,6 @@ import java.util.Date;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.tightdb.typed.TightDB;
 
 public class JNITransactions {
 
@@ -24,16 +23,12 @@ public class JNITransactions {
 
     @BeforeMethod
     public void init() {
-        if (TightDB.osIsWindows())
-            return;
         deleteFile(testFile);
         db = new SharedGroup(testFile);
     }
 
     //@AfterMethod
     public void clear() {
-        if (TightDB.osIsWindows())
-            return;
         db.close();
         deleteFile(testFile);
     }
@@ -73,8 +68,6 @@ public class JNITransactions {
 
     @Test
     public void mustWriteAndReadEmpty() {
-        if (TightDB.osIsWindows())
-            return;
 
         writeOneTransaction(0);
         checkRead(0);
@@ -83,18 +76,61 @@ public class JNITransactions {
 
     @Test
     public void mustWriteCommit() {
-        if (TightDB.osIsWindows())
-            return;
 
         writeOneTransaction(10);
         checkRead(10);
         clear();
     }
 
+
+
+    @Test(expectedExceptions=IllegalStateException.class)
+    public void shouldThrowExceptionAfterClosedReadTransaction() {
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            Table tbl = rt.getTable("EmployeeTable");
+            rt.endRead();
+            tbl.getColumnCount(); //Should throw exception, the table is invalid when transaction has been closed
+        } finally {
+            rt.endRead();
+            clear();
+        }
+    }
+
+
+    @Test(expectedExceptions=IllegalStateException.class)
+    public void shouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            Table tbl = rt.getTable("EmployeeTable");
+            rt.endRead();
+            tbl.addColumn(ColumnType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
+        } finally {
+            rt.endRead();
+            clear();
+        }
+    }
+
+
+    @Test(expectedExceptions=IllegalStateException.class)
+    public void shouldThrowExceptionWhenWritingInReadTrans() {
+
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            Table tbl = rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
+            rt.endRead();
+        } finally {
+            rt.endRead();
+            clear();
+        }
+    }
+
+
     @Test
     public void mustRollback() {
-        if (TightDB.osIsWindows())
-            return;
 
         writeOneTransaction(1);
 
@@ -116,15 +152,13 @@ public class JNITransactions {
 
     @Test
     public void mustFailOnWriteInReadTransactions() {
-        if (TightDB.osIsWindows())
-            return;
 
         writeOneTransaction(1);
 
         ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
 
-        try { table.insert(0, 0, false);        assert(false);} catch (IllegalStateException e) {}
+        try { table.addAt(0, 0, false);        assert(false);} catch (IllegalStateException e) {}
         try { table.add(0, false);              assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRow();                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRows(1);                assert(false);} catch (IllegalStateException e) {}
@@ -167,7 +201,7 @@ public class JNITransactions {
     }
 
 
-/*  ARM Only works for Java 1.7 - NOT available in Android.
+    /*  ARM Only works for Java 1.7 - NOT available in Android.
 
     @Test(enabled=true)
     public void mustReadARM() {
@@ -184,5 +218,5 @@ public class JNITransactions {
 
         }
     }
-*/
+     */
 }

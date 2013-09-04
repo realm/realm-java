@@ -17,7 +17,7 @@ public class DynTableIntro {
         // Add some data
         tbl.add(12, "hello", 2);
         tbl.add(-15, "World", "I can be different types...");
-        tbl.insert(0, 53, "I'm now first", true);     // data in order of columns
+        tbl.addAt(0, 53, "I'm now first", true);     // data in order of columns
         tbl.addEmptyRow();                            // append row at end of table - default values
         tbl.set(3, 198, "TightDB", 12.345);           // set values in row 3
         tbl.remove(0);                                // remove row 0

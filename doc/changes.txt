@@ -1,3 +1,8 @@
+02-September-2013
+===============
+! BREAKING CHANGE: ColumnType constants have been renamed, e.g ColumnTypeString is now called STRING etc.
+! BREAKING CHANGE: All insert() methods in Table class working on just 1 column have been hidden from the developer
+
 13-August-2013:
 ===============
 + Table.add() now returns row index of the added row.

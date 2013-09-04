@@ -115,7 +115,7 @@ public class TableIndexAndDistinctTest {
         
         t.setIndex(index);
     }
-
+    
     @Test()
     public void shouldCheckIndexIsOkOnColumn() {
         init();
