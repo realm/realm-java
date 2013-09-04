@@ -1,6 +1,7 @@
 package com.tightdb.typed;
 
 import static org.testng.AssertJUnit.assertEquals;
+
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -8,7 +9,9 @@ import org.testng.annotations.Test;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.tightdb.ColumnType;
 import com.tightdb.Mixed;
+import com.tightdb.Table;
 import com.tightdb.test.TestEmployeeTable;
 
 public class TableTest {
@@ -97,6 +100,21 @@ public class TableTest {
         assertEquals("new_value", employees.get(1).getExtra().getValue());
         assertEquals("new_value", employees.get(1).getExtra().getStringValue());
     }
+
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void shouldThrowExceptionWhenColumnNameIsTooLong() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, LONGER THAN THE MAX 63 CHARACTERS");
+    }
+
+    @Test
+    public void testWhenColumnNameIsExcactly63CharLong() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "THIS STRING HAS 63 CHARACTERS PERFECT FOR THE MAX 63 CHARACTERS");
+    }
+
 
     @Test
     public void shouldOptimizeStrings() {

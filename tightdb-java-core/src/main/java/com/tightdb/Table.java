@@ -320,14 +320,25 @@ public class Table implements TableOrView {
 
     protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
 
+    
+    /**
+     * Appends the specified row to the end of the table
+     * @param values
+     * @return The row index of the appended row
+     */
     public long add(Object... values) {
         long rowIndex = size();
-    	insert(rowIndex, values);
+    	addAt(rowIndex, values);
     	return rowIndex;
     }
 
 
-    public void insert(long rowIndex, Object... values) {
+    /**
+     * Inserts a row at the specified position. Shifts the row currently at that position and any subsequent rows down (adds one to their row index).
+     * @param rowIndex
+     * @param values
+     */
+    public void addAt(long rowIndex, Object... values) {
         if (immutable) throwImmutable();
 
         // Check index
@@ -407,11 +418,16 @@ public class Table implements TableOrView {
             int rows = ((Object[])value).length;
             for (int i=0; i<rows; ++i) {
                 Object rowArr = ((Object[])value)[i];
-                subtable.insert(i, (Object[])rowArr);
+                subtable.addAt(i, (Object[])rowArr);
             }
         }
     }
 
+    /**
+     * Replaces the row at the specified position with the specified row.
+     * @param rowIndex
+     * @param values
+     */
     public void set(long rowIndex, Object... values) {
         if (immutable) throwImmutable();
 
@@ -445,7 +461,7 @@ public class Table implements TableOrView {
         // Now that all values are verified, we can remove the row and insert it again.
         // TODO: Can be optimized to only set the values (but clear any subtables)
         remove(rowIndex);
-        insert(rowIndex, values);
+        addAt(rowIndex, values);
     }
     
     //Instance of the inner class InternalMethods.
@@ -1046,8 +1062,7 @@ public class Table implements TableOrView {
     protected native String nativeToJson(long nativeTablePtr);
 
 
-    private void throwImmutable()
-    {
+    private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 }
