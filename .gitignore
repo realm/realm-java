@@ -73,6 +73,8 @@ _ReSharper*/
 
 .DS_Store
 
+.idea
+*.iml
 
 *.lock
 
