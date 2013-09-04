@@ -102,6 +102,21 @@ public class JNITableInsertTest {
         verifyRow(table, 3, rowData2);
 
     }
+    
+    
+    @Test()
+    public void testAddAtMethod() {
+        Table t = new Table();
+        t.addColumn(ColumnType.STRING, "col1");
+        t.addColumn(ColumnType.LONG, "col2");
+        
+        t.add("s1",1);
+        t.add("s2",2);
+        
+        t.addAt(1, "s22", 22);
+        
+        assertEquals(t.getString(0, 1), "s22");
+    }
 
     @Test()
     public void ShouldFailInsert() {

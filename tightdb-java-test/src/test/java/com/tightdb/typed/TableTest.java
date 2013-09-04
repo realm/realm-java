@@ -100,15 +100,21 @@ public class TableTest {
         assertEquals("new_value", employees.get(1).getExtra().getValue());
         assertEquals("new_value", employees.get(1).getExtra().getStringValue());
     }
-    
+
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void shouldThrowExceptionWhenColumnNameIsTooLong() {
-        
+
         Table table = new Table();
-        table.addColumn(ColumnType.STRING, "THIS IS A STRING NAME FOR THE COLUMN, BUT IT IS LONGER THAN THE 64 CHARACTERS CURRENTLY ALLOWED AND THEREFORE I THROW AN EXCEPTION");
+        table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, LONGER THAN THE MAX 63 CHARACTERS");
     }
-    
-    
+
+    @Test
+    public void testWhenColumnNameIsExcactly63CharLong() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "THIS STRING HAS 63 CHARACTERS PERFECT FOR THE MAX 63 CHARACTERS");
+    }
+
 
     @Test
     public void shouldOptimizeStrings() {

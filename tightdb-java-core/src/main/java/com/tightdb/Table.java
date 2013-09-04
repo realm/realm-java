@@ -1062,8 +1062,7 @@ public class Table implements TableOrView {
     protected native String nativeToJson(long nativeTablePtr);
 
 
-    private void throwImmutable()
-    {
+    private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 }
