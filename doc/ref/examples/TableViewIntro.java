@@ -11,43 +11,43 @@ public class TableViewIntro {
 
     public static void main(String[] args) throws FileNotFoundException {
         // @@Show@@
-        //Creates a new table
+        // Create a new table
         Table table = new Table();
 
-        //Specify the column types and names
+        // Specify the column types and names
         table.addColumn(ColumnType.ColumnTypeInt, "ID");
         table.addColumn(ColumnType.ColumnTypeString, "City");
 
-        //Add data to the table
+        // Add data to the table
         table.add(100, "Washington");
         table.add(200, "Los Angeles");
         table.add(300, "New York");
 
-        //Create a query object from the table without any filters and execute it to retrieve a table view
+        // Create a query object from the table without any filters and execute it to retrieve a table view
         TableView view = table.where().findAll();
 
-        //Remove the first row from the view and thereby also the original table and check that the number of rows in the original table is 2
+        // Remove the first row from the view and thereby also the original table and check that the number of rows in the original table is 2
         view.remove(0);
         Assert(table.size() == 2);
 
-        //Change the value of column 1, row 1 to 'London' and ckech that it is propagated to the original table
+        // Change the value of column 1, row 1 to 'London' and ckech that it is propagated to the original table
         view.setString(1, 1, "London");
         Assert(table.getString(1, 1).equals("London"));
 
-        //-------------------------------------------------------------------
-        //Simple aggregations
-        //-------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // Simple aggregations
+        // -------------------------------------------------------------------
 
         Assert(view.sum(0) == 500);
         Assert(view.maximum(0) == 300);
         Assert(view.maximum(0) == 300);
         Assert(view.average(0) == 250);
 
-        //-------------------------------------------------------------------
-        //Dumping to JSON
-        //-------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // Dumping to JSON
+        // -------------------------------------------------------------------
 
-        //Get JSON representation of the data in the view and print it using e.g. a PrintWriter object
+        // Get JSON representation of the data in the view and print it using e.g. a PrintWriter object
         PrintWriter out = new PrintWriter("fromServlet");
         out.print(view.toJson());
         out.close();
@@ -60,4 +60,4 @@ public class TableViewIntro {
         }
     }
 } 
-//@@EndExample@@
+// @@EndExample@@

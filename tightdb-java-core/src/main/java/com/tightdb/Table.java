@@ -804,7 +804,7 @@ public class Table implements TableOrView {
      * @param value
      */
     //!!!TODO: New. Support in highlevel API
-    public void addLong(long columnIndex, long value) {
+    public void incrementInColumn(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }

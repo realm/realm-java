@@ -297,11 +297,11 @@ CATEGORIES :
       - NAME   : rows
         TYPES  : long
         DESCR  : Number of rows to add.
-  - g_dyn_table_add_at:
+  - g_dyn_table_insert:
       NAMES    : AddAt
       SUMMARY  : Inserts a row at the specified row index.
       DESCR    : Inserts a row at the specified row index. 
-		 Shifts the row currently at that row index and any subsequent rows down (adds one to their row index).
+                 Shifts the row currently at that row index and any subsequent rows down (adds one to their row index).
       PARAMS:
       - NAME   : rowIndex
         TYPES  : long

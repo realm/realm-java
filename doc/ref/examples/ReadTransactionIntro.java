@@ -8,34 +8,34 @@ public class ReadTransactionIntro {
 
     public static void main(String[] args) {
         // @@Show@@
-        //Opens an existing database file. 
-        //We assume the file is also being accessed by other processes, 
-        //thats why we use a SharedGroup object
+        // Opens an existing database file.
+        // We assume the file is also being accessed by other processes,
+        // thats why we use a SharedGroup object
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
-        //-------------------------------------------------------------------
-        //Reading from the group using a transaction
-        //-------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // Reading from the group using a transaction
+        // -------------------------------------------------------------------
 
-        //Create a read transaction from the group
+        // Create a read transaction from the group
         ReadTransaction rt = group.beginRead();
 
-        //Inside the read transaction we have a fully consistent and immutable view of the group
+        // Inside the read transaction we have a fully consistent and immutable view of the group
         try {
-            //Get a table from the group
+            // Get a table from the group
             Table table = rt.getTable("table");
 
-            //Actions inside a ReadTransacton will never affect the original group and tables
+            // Actions inside a ReadTransacton will never affect the original group and tables
             String value = table.getString(1, 0);
          
-            //Do more table read operations here...
+            // Do more table read operations here...
             
-            //A Transaction extends Group, and can be passed as a Group parameter
+            // A Transaction extends Group, and can be passed as a Group parameter
             analyzeGroup(rt);
 
         } finally {
-            //Always end the read transaction in a finally block. If the read-transaction is not
-            //closed, a new one cannot be started using the same SharedGroup instance.
+            // Always end the read transaction in a finally block. If the read-transaction is not
+            // closed, a new one cannot be started using the same SharedGroup instance.
             rt.endRead();
         }  
     }
@@ -50,4 +50,4 @@ public class ReadTransactionIntro {
         }
     }
 } 
-//@@EndExample@@
+// @@EndExample@@

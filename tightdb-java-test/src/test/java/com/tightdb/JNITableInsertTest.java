@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.text.TabExpander;
+
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -201,6 +203,63 @@ public class JNITableInsertTest {
             table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[] {1,2,3} );
             assertTrue(false);
         } catch (IllegalArgumentException e) {}
+    }
+    
+    
+    @Test
+    public void incrementInColumnTest() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "col0");
+        table.addColumn(ColumnType.LONG, "col1");
+        
+        table.add("row0", 0);
+        table.add("row1", 10);
+        table.add("row2", 20);
+        table.add("row3", 30);
+        table.add("row4", 40);
+        
+        table.incrementInColumn(1, 1); //Adding one 1 all rows in col1
+        
+        assertEquals(1, table.getLong(1, 0));
+        assertEquals(11, table.getLong(1, 1));
+        assertEquals(21, table.getLong(1, 2));
+        assertEquals(31, table.getLong(1, 3));
+        assertEquals(41, table.getLong(1, 4));
+    }
+    
+    
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void incrementInColumnOnUnsupportedColumnTypeTest() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "col0");
+        table.addColumn(ColumnType.LONG, "col1");
+        
+        table.add("row0", 0);
+        table.add("row1", 10);
+        table.add("row2", 20);
+        table.add("row3", 30);
+        table.add("row4", 40);
+        
+        table.incrementInColumn(0, 1); //We except this method to throw an exception, if it is called on column with unsupported column type
+    }
+    
+    
+    
+    
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void shouldThrowExceptionWhenColumnNameIsTooLong() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, LONGER THAN THE MAX 63 CHARACTERS");
+    }
+
+    @Test
+    public void testWhenColumnNameIsExcactly63CharLong() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "THIS STRING HAS 63 CHARACTERS PERFECT FOR THE MAX 63 CHARACTERS");
     }
     
     
