@@ -65,7 +65,7 @@ public class JNIQueryTest {
         try { query.minimumDouble(1);           assert(false); } catch(IllegalArgumentException e) {}
         try { query.minimum(2);                 assert(false); } catch(IllegalArgumentException e) {}
         try { query.minimumFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
-	    try { query.minimumDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
         try { query.minimum(6);                 assert(false); } catch(IllegalArgumentException e) {}
         try { query.minimumFloat(6);            assert(false); } catch(IllegalArgumentException e) {}
         try { query.minimumDouble(6);           assert(false); } catch(IllegalArgumentException e) {}
@@ -83,9 +83,9 @@ public class JNIQueryTest {
         try { query.maximumFloat(1);            assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumDouble(1);         	assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximum(2);                 assert(false); } catch(IllegalArgumentException e) {}
-        try { query.maximumFloat(2);         	assert(false); } catch(IllegalArgumentException e) {}
-        try { query.maximumDouble(2);         	assert(false); } catch(IllegalArgumentException e) {}
-        try { query.maximum(6);         		assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximum(6);                 assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumFloat(6);         	assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumDouble(6);         	assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximum(7);                 assert(false); } catch(IllegalArgumentException e) {}
