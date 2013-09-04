@@ -334,7 +334,7 @@ public class Table implements TableOrView {
 
 
     /**
-     * Inserts a row at the specified position. Shifts the row currently at that position and any subsequent rows down (adds one to their row index).
+     * Inserts a row at the specified row index. Shifts the row currently at that row index and any subsequent rows down (adds one to their row index).
      * @param rowIndex
      * @param values
      */

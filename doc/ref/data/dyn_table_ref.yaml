@@ -136,15 +136,15 @@ CATEGORIES :
                  
                  Currently, the following types are supported from the <code>ColumnType</code> class:
                  <ul>
-                   <li><code>ColumnTypeBool</code></li>
-                   <li><code>ColumnTypeInt</code></li>
-                   <li><code>ColumnTypeFloat</code></li>
-                   <li><code>ColumnTypeDouble</code></li>
-                   <li><code>ColumnTypeString</code></li>
-                   <li><code>ColumnTypeBinary</code></li>
-                   <li><code>ColumnTypeDate</code></li>
-                   <li><code>ColumnTypeTable</code></li>
-                   <li><code>ColumnTypeMixed</code></li>
+                   <li><code>BOOLEAN</code></li>
+                   <li><code>LONG</code></li>
+                   <li><code>FLOAT</code></li>
+                   <li><code>DOUBLE</code></li>
+                   <li><code>STRING</code></li>
+                   <li><code>BINARY</code></li>
+                   <li><code>DATE</code></li>
+                   <li><code>TABLE</code></li>
+                   <li><code>MIXED</code></li>
                  </ul>
 
       PARAMS:
@@ -238,15 +238,15 @@ CATEGORIES :
                  This method returns the type of a column using the column index. Currently,
                  the following types are supported from the <code>ColumnType</code> class:
                  <ul>
-                   <li><code>ColumnTypeBool</code></li>
-                   <li><code>ColumnTypeInt</code></li>
-                   <li><code>ColumnTypeFloat</code></li>
-                   <li><code>ColumnTypeDouble</code></li>
-                   <li><code>ColumnTypeString</code></li>
-                   <li><code>ColumnTypeBinary</code></li>
-                   <li><code>ColumnTypeDate</code></li>
-                   <li><code>ColumnTypeTable</code></li>
-                   <li><code>ColumnTypeMixed</code></li>
+                   <li><code>BOOLEAN</code></li>
+                   <li><code>LONG</code></li>
+                   <li><code>FLOAT</code></li>
+                   <li><code>DOUBLE</code></li>
+                   <li><code>STRING</code></li>
+                   <li><code>BINARY</code></li>
+                   <li><code>DATE</code></li>
+                   <li><code>TABLE</code></li>
+                   <li><code>MIXED</code></li>
                  </ul>
       PARAMS:
       - NAME   : columnIndex
@@ -297,11 +297,11 @@ CATEGORIES :
       - NAME   : rows
         TYPES  : long
         DESCR  : Number of rows to add.
-  - g_dyn_table_insert:
-      NAMES    : insert
-      SUMMARY  : Append a row.
-      DESCR    : This method inserts one row at a given row index.
-                 The existing row at rowIndex and the following are all incremented one position.
+  - g_dyn_table_add_at:
+      NAMES    : AddAt
+      SUMMARY  : Inserts a row at the specified row index.
+      DESCR    : Inserts a row at the specified row index. 
+		 Shifts the row currently at that row index and any subsequent rows down (adds one to their row index).
       PARAMS:
       - NAME   : rowIndex
         TYPES  : long
@@ -314,7 +314,7 @@ CATEGORIES :
       - CODE   : ex_java_dyn_table_insert
         DESCR  :
       SEE      : >
-                See also {@link g_dyn_table_add} to add a row at the end of the table 
+                See also {@link g_dyn_table_add} to append a row at the end of the table 
                 (equivalent to using size() as rowIndex).
   - g_dyn_table_set_row:
       NAMES    : set
