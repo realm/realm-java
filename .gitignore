@@ -79,3 +79,5 @@ _ReSharper*/
 *.lock
 
 tightdb-java-test/testng.xml
+
+*.prefs

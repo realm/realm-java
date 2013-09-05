@@ -18,8 +18,8 @@ public class GroupIntro {
 
         // Create a new table with 2 columns and add 3 rows of data
         Table table = group.getTable("table1");
-        table.addColumn(ColumnType.ColumnTypeInt, "ID");
-        table.addColumn(ColumnType.ColumnTypeString, "Animal");
+        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.STRING, "Animal");
         table.add(1, "Lion");
         table.add(2, "Monkey");
         table.add(3, "Elephant");

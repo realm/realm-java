@@ -15,8 +15,8 @@ public class TableViewIntro {
         Table table = new Table();
 
         // Specify the column types and names
-        table.addColumn(ColumnType.ColumnTypeInt, "ID");
-        table.addColumn(ColumnType.ColumnTypeString, "City");
+        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
         table.add(100, "Washington");
