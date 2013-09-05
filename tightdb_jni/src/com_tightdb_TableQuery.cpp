@@ -140,6 +140,52 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJDD(
     Q(nativeQueryPtr)->between(S(columnIndex), value1, value2);
 }
 
+
+// Date
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqualDate(
+    JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+{
+    Q(nativeQueryPtr)->equal_date(S(columnIndex), Date(static_cast<time_t>(value)));
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqualDate(
+    JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+{
+    Q(nativeQueryPtr)->not_equal_date(S(columnIndex), Date(static_cast<time_t>(value)));
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterDate(
+    JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+{
+    Q(nativeQueryPtr)->greater_date(S(columnIndex), Date(static_cast<time_t>(value)));
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqualDate(
+    JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+{
+    Q(nativeQueryPtr)->greater_equal_date(S(columnIndex), Date(static_cast<time_t>(value)));
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessDate(
+    JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+{
+    Q(nativeQueryPtr)->less_date(S(columnIndex), Date(static_cast<time_t>(value)));
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqualDate(
+    JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+{
+    Q(nativeQueryPtr)->less_equal_date(S(columnIndex), Date(static_cast<time_t>(value)));
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetweenDate(
+    JNIEnv*, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value1, jlong value2)
+{
+    Q(nativeQueryPtr)->between_date(S(columnIndex), Date(static_cast<time_t>(value1)), Date(static_cast<time_t>(value2)));
+}
+
+
 // Bool
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJZ(

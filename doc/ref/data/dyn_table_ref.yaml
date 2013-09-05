@@ -38,15 +38,15 @@ CATEGORIES :
 
 - Table:
   METHODS:
-  - g_dyn_table_is_valid:
+  - g_dyn_table_is_attached:
       NAMES    : isValid
-      SUMMARY  : *g_dyn_table_is_valid_summary
-      DESCR    : *g_dyn_table_is_valid_descr
+      SUMMARY  : *g_dyn_table_is_attached_summary
+      DESCR    : *g_dyn_table_is_attached_descr
       RETURN:
         TYPES  : boolean
-        DESCR  : *g_dyn_table_is_valid_return_descr
+        DESCR  : *g_dyn_table_is_attached_return_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_is_valid
+      - CODE   : ex_java_dyn_table_is_attached
         DESCR  :
   - g_dyn_table_size:
       NAMES    : size
