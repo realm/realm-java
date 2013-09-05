@@ -74,7 +74,7 @@ public class JNITableInsertTest {
         Object[] rowData1 = new Object[] {false, 7, "hi1", new byte[] {0,2,3}, date, "mix1", null};
         Object[] rowData2 = new Object[] {true, 12345567789L, "hello", new byte[] {0}, date, buf, null};
         Object[] rowData3 = new Object[] {false, (byte)17, "hi3", buf, date, mixedSubTable, null};
-        // TODO: support insert of mixed subtable
+// TODO: support insert of mixed subtable
 
         table.addAt(1, rowData1);
         index = table.add(rowData2);
@@ -88,8 +88,8 @@ public class JNITableInsertTest {
 
         // Same test - but a one-liner...
         table.add(new Object[] {false, (short)2, "hi", buf, date, mixed, new Object[][] {{234, "row0"},
-                                                                                        {345, "row1"},
-                                                                                        {456, "row2"} }});
+                                                                                         {345, "row1"},
+                                                                                         {456, "row2"} }});
         verifyRow(table, 4, rowData0);
 
         // Test set()
