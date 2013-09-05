@@ -353,7 +353,7 @@ CATEGORIES :
         DESCR  :
 
   - g_dyn_table_add_int:
-      NAMES    : addInt
+      NAMES    : adjustColumnValues
       SUMMARY  : *g_dyn_table_add_int_summary
       DESCR    : *g_dyn_table_add_int_descr
       PARAMS:
