@@ -1,20 +1,19 @@
 package com.tightdb;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.text.TabExpander;
-
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.tightdb.test.DataProviderUtil;
 import com.tightdb.test.TestHelper;
-
-import static org.testng.AssertJUnit.*;
 
 
 public class JNITableInsertTest {
@@ -29,9 +28,9 @@ public class JNITableInsertTest {
             assertEquals((ByteBuffer)values[3], tbl.getBinaryByteBuffer(3, rowIndex));
         assertEquals(((Date)values[4]).getTime()/1000, tbl.getDate(4, rowIndex).getTime()/1000);
 
-        //      Mixed mix1 = Mixed.mixedValue(values[5]);
-        //      Mixed mix2 =  tbl.getMixed(5, rowIndex);
-        // TODO:        assertTrue(mix1.equals(mix2));
+//      Mixed mix1 = Mixed.mixedValue(values[5]);
+//      Mixed mix2 =  tbl.getMixed(5, rowIndex);
+// TODO:        assertTrue(mix1.equals(mix2));
 
         Table subTable = tbl.getSubTable(6,  rowIndex);
         Object[] subValues = (Object[])values[6];
@@ -65,8 +64,8 @@ public class JNITableInsertTest {
 
         // Check subtable
         Object[][] subTblData = new Object[][] {{234, "row0"},
-                {345, "row1"},
-                {456, "row2"} };
+                                                {345, "row1"},
+                                                {456, "row2"} };
         Object[] rowData0 = new Object[] {false, (short)2, "hi", buf, date, mixed, subTblData};
         long index = table.add(rowData0);
         assertEquals(0, index);
@@ -89,14 +88,14 @@ public class JNITableInsertTest {
 
         // Same test - but a one-liner...
         table.add(new Object[] {false, (short)2, "hi", buf, date, mixed, new Object[][] {{234, "row0"},
-            {345, "row1"},
-            {456, "row2"} }});
+                                                                                        {345, "row1"},
+                                                                                        {456, "row2"} }});
         verifyRow(table, 4, rowData0);
 
         // Test set()
         Date date2 = new Date(123);
         Object[] newRowData = new Object[] {true, 321, "new", new byte[] {5}, date2, "hey",
-                new Object[][] {{432, "new"}} };
+                                            new Object[][] {{432, "new"}} };
         table.set(2, newRowData);
         verifyRow(table, 0, rowData3);
         verifyRow(table, 1, rowData0);
@@ -111,7 +110,7 @@ public class JNITableInsertTest {
         Table t = new Table();
         t.addColumn(ColumnType.STRING, "col1");
         t.addColumn(ColumnType.LONG, "col2");
-
+        
         t.add("s1",1);
         t.add("s2",2);
 
