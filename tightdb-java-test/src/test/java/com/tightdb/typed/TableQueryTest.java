@@ -8,6 +8,8 @@ import com.tightdb.Table;
 import com.tightdb.test.TestEmployeeQuery;
 import com.tightdb.test.TestEmployeeView;
 
+import java.util.Date;
+
 public class TableQueryTest extends AbstractTest {
 
     @Test
@@ -181,6 +183,37 @@ public class TableQueryTest extends AbstractTest {
         long n = q.remove();
         assertEquals(0, n);
         assertEquals(3, employees.size());
+    }
+
+    @Test
+    public void queryOnDates() {
+        // Test equal
+        assertEquals(1, employees.birthdate.equal(new Date(2222)).findAll().size());
+        assertEquals(1, employees.birthdate.eq(new Date(2222)).findAll().size());
+
+        // Test not equal
+        assertEquals(2, employees.birthdate.notEqual(new Date(2222)).findAll().size());
+        assertEquals(2, employees.birthdate.neq(new Date(2222)).findAll().size());
+
+        // Test greater than
+        assertEquals(2, employees.birthdate.greaterThan(new Date(2222)).findAll().size());
+        assertEquals(2, employees.birthdate.gt(new Date(2222)).findAll().size());
+
+        // Test greater than or equal
+        assertEquals(2, employees.birthdate.greaterThanOrEqual(new Date(111111)).findAll().size());
+        assertEquals(2, employees.birthdate.gte(new Date(111111)).findAll().size());
+
+        // Test less than
+        assertEquals(2, employees.birthdate.lessThan(new Date(333343333)).findAll().size());
+        assertEquals(2, employees.birthdate.lt(new Date(333343333)).findAll().size());
+
+        // Test less than or equal
+        assertEquals(2, employees.birthdate.lessThanOrEqual(new Date(111111)).findAll().size());
+        assertEquals(2, employees.birthdate.lte(new Date(111111)).findAll().size());
+
+        // Test between
+        assertEquals(1, employees.birthdate.between(new Date(3222), new Date(333342333)).findAll().size());
+
     }
 
 }
