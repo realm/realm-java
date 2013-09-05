@@ -1,3 +1,19 @@
+04-September-2013
+===============
++ Added TableQuery.equal for Date
++ Added TableQuery.eq for Date
++ Added TableQuery.notEqual for Date
++ Added TableQuery.neq for Date
++ Added TableQuery.greaterThan for Date
++ Added TableQuery.gt for Date
++ Added TableQuery.greaterThanOrEqual for Date
++ Added TableQuery.gte for Date
++ Added TableQuery.lessThan for Date
++ Added TableQuery.lt for Date
++ Added TableQuery.lessThanOrEqual for Date
++ Added TableQuery.lte for Date
++ Added TableQuery.between for Date
+
 02-September-2013
 ===============
 ! BREAKING CHANGE: ColumnType constants have been renamed, e.g ColumnTypeString is now called STRING etc.

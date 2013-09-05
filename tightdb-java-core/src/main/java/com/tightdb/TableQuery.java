@@ -1,5 +1,7 @@
 package com.tightdb;
 
+import java.util.Date;
+
 public class TableQuery {
 
     protected long nativePtr;
@@ -268,6 +270,74 @@ public class TableQuery {
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, boolean value);
+
+    // Query for Date values
+
+    public TableQuery equal(long columnIndex, Date value){
+        nativeEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    public TableQuery eq(long columnIndex, Date value){
+        nativeEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    protected native void nativeEqualDate(long nativeQueryPtr, long columnIndex, long value);
+
+    public TableQuery notEqual(long columnIndex, Date value){
+        nativeNotEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    public TableQuery neq(long columnIndex, Date value){
+        nativeNotEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    protected native void nativeNotEqualDate(long nativeQueryPtr, long columnIndex, long value);
+
+    public TableQuery greaterThan(long columnIndex, Date value){
+        nativeGreaterDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    public TableQuery gt(long columnIndex, Date value){
+        nativeGreaterDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    protected native void nativeGreaterDate(long nativeQueryPtr, long columnIndex, long value);
+
+    public TableQuery greaterThanOrEqual(long columnIndex, Date value){
+        nativeGreaterEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    public TableQuery gte(long columnIndex, Date value){
+        nativeGreaterEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    protected native void nativeGreaterEqualDate(long nativeQueryPtr, long columnIndex, long value);
+
+    public TableQuery lessThan(long columnIndex, Date value){
+        nativeLessDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    public TableQuery lt(long columnIndex, Date value){
+        nativeLessDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    protected native void nativeLessDate(long nativeQueryPtr, long columnIndex, long value);
+
+    public TableQuery lessThanOrEqual(long columnIndex, Date value){
+        nativeLessEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    public TableQuery lte(long columnIndex, Date value){
+        nativeLessEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        return this;
+    }
+    protected native void nativeLessEqualDate(long nativeQueryPtr, long columnIndex, long value);
+
+    public TableQuery between(long columnIndex, Date value1, Date value2){
+        nativeBetweenDate(nativePtr, columnIndex, value1.getTime()/1000, value2.getTime()/1000);
+        return this;
+    }
+    protected native void nativeBetweenDate(long nativeQueryPtr, long columnIndex, long value1, long value2);
 
     // Query for String values.
 
