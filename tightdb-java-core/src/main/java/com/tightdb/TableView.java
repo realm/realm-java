@@ -354,7 +354,7 @@ public class TableView implements TableOrView {
      * @param value
      */
     //!!!TODO: New
-    public void incrementInColumn(long columnIndex, long value) {
+    public void adjustColumnValues(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }

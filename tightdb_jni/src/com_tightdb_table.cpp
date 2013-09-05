@@ -460,9 +460,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteArray(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeAddInt(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value)
 {
-    if (!COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) 
+    Table* pTable = TBL(nativeTablePtr);
+    if (!COL_INDEX_VALID(env, pTable, columnIndex)) 
         return;
-
+    if (pTable->get_column_type (S(columnIndex)) != type_Int) {
+        ThrowException(env, IllegalArgument, "Invalid columntype - only Long columns are supported at the moment.");
+        return;
+    }
     TBL(nativeTablePtr)->add_int( S(columnIndex), value);
 }
 
