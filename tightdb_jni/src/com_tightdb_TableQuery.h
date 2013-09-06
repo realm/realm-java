@@ -9,6 +9,14 @@ extern "C" {
 #endif
 /*
  * Class:     com_tightdb_TableQuery
+ * Method:    nativeClose
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
  * Method:    nativeTableview
  * Signature: (JJ)V
  */
