@@ -9,6 +9,7 @@ inline Table* Ref2Ptr(TableRef tableref)
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose(JNIEnv * env, jobject, jlong nativeQueryPtr) {
+    TR((env, "Query nativeClose(ptr %x)\n", nativeQueryPtr));
     Query* query = Q(nativeQueryPtr);
     delete query;
 }
@@ -441,6 +442,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageDouble(
     if (!ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
 
+    //TODO: Return resultcount
     size_t resultcount;
     double avg = pQuery->average_double(S(columnIndex), &resultcount, S(start), S(end), S(limit));
     return avg;

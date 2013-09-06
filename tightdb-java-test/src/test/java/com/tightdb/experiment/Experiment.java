@@ -1,7 +1,33 @@
 package com.tightdb.experiment;
 
+import com.tightdb.Table;
+import com.tightdb.TableQuery;
+import com.tightdb.TableView;
+
 public class Experiment {
     public static void main(String[] args) {
+    
+    	System.out.println("Start experiment");
+    	test2();
+    }
+    
+    public static void test2() {
+    	Table t = new Table();
+    	
+    	TableQuery q = t.where();
+    	
+    	TableView v = q.findAll();
+    	//v.close();
+    	v=null;
+
+    	//q.close();
+    	q=null;
+
+    	t.close();
+    	t = null;
+    }
+    
+    public static void test1() {
         insert(new Object[] {1, "txt"});
         insert("hmm", 2, "hej");
 

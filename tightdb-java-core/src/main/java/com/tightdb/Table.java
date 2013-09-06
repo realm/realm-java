@@ -55,7 +55,7 @@ public class Table implements TableOrView {
 
     // test:
     protected int tableNo;
-    protected boolean DEBUG = false;
+    protected boolean DEBUG = true;
     protected static int TableCount = 0;
 
     static {

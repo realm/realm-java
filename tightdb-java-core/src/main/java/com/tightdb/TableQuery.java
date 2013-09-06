@@ -1,12 +1,15 @@
 package com.tightdb;
 
 public class TableQuery {
+    protected boolean DEBUG = false; //true;
 
     protected long nativePtr;
     protected boolean immutable = false;
 
 // TODO: Can we protect this?
     public TableQuery(long nativeQueryPtr, boolean immutable){
+        if (DEBUG)
+        	System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
         this.immutable = immutable;
         this.nativePtr = nativeQueryPtr;
     }
@@ -15,7 +18,9 @@ public class TableQuery {
         close();
     }
 
-    private void close() {
+    private synchronized void close() {
+        if (DEBUG)
+        	System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
         if (nativePtr == 0) {
             return;
         }
