@@ -16,7 +16,6 @@ import com.tightdb.exceptions.IllegalTypeException;
 import com.tightdb.test.DataProviderUtil;
 
 public class ColumnTypeViewTest {
-    
     private Table t;
     private TableView v;
     
@@ -32,6 +31,7 @@ public class ColumnTypeViewTest {
         v = t.where().findAll();
     }
     
+/* TODO: Enable   
     //On date Column________________________________
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void getStringOnDateColumn() {
@@ -79,5 +79,5 @@ public class ColumnTypeViewTest {
     public void getMixedOnIntegerColumn() {
       v.getMixed(2, 0);
     }
-    
+  */  
 }

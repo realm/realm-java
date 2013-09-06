@@ -126,8 +126,8 @@ inline bool TableIsValid(JNIEnv* env, T* pTable)
 
     }
     if (!valid) {
-        TR_ERR((env, "Table accessor %x is no longer attached!", pTable));
-        ThrowException(env, IllegalArgument, "Table accessor is no longer attached.");
+        TR_ERR((env, "Table %x is no longer attached!", pTable));
+        ThrowException(env, TableInvalid, "Table is closed, and no longer valid to operate on.");
     }
     return valid;
 }
