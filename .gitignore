@@ -72,7 +72,8 @@ _ReSharper*/
 /test_output
 
 .DS_Store
-
+.idea
+*.iml
 
 *.lock
 

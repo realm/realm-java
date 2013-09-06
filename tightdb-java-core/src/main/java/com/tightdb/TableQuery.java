@@ -11,6 +11,19 @@ public class TableQuery {
         this.nativePtr = nativeQueryPtr;
     }
 
+    public void finalize() {
+        close();
+    }
+
+    private void close() {
+        if (nativePtr == 0) {
+            return;
+        }
+        nativeClose(nativePtr);
+        nativePtr = 0;
+    }
+    protected native void nativeClose(long nativeQueryPtr);
+
     // Query TableView
     public TableQuery tableview(TableView tv){
         nativeTableview(nativePtr, tv.nativePtr);
