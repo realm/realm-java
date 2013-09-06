@@ -73,7 +73,7 @@ public class LongTableOrViewColumn<Cursor, View, Query> extends
     }
 
     public void addLong(long value) {
-        tableOrView.addLong(columnIndex, value);
+        tableOrView.adjustColumnValues(columnIndex, value);
     }
 
     public Cursor findFirst(long value) {
