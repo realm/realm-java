@@ -1,3 +1,7 @@
+06-September-2013:
+=================
+! BUGFIX: Fixed small leak in TableQuery.
+
 13-August-2013:
 ===============
 + Table.add() now returns row index of the added row. 
