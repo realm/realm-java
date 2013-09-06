@@ -79,3 +79,9 @@ _ReSharper*/
 *.lock
 
 tightdb-java-test/testng.xml
+
+*.prefs
+
+# Ref doc generated classes
+
+doc/ref/examples/generated/com/tightdb/refdoc/*.java

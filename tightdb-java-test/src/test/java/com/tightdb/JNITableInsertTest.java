@@ -1,5 +1,8 @@
 package com.tightdb;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Date;
@@ -11,8 +14,6 @@ import org.testng.annotations.Test;
 
 import com.tightdb.test.DataProviderUtil;
 import com.tightdb.test.TestHelper;
-
-import static org.testng.AssertJUnit.*;
 
 
 public class JNITableInsertTest {
@@ -102,8 +103,8 @@ public class JNITableInsertTest {
         verifyRow(table, 3, rowData2);
 
     }
-    
-    
+
+
     @Test()
     public void testAddAtMethod() {
         Table t = new Table();
@@ -112,9 +113,9 @@ public class JNITableInsertTest {
         
         t.add("s1",1);
         t.add("s2",2);
-        
+
         t.addAt(1, "s22", 22);
-        
+
         assertEquals(t.getString(0, 1), "s22");
     }
 
@@ -202,26 +203,84 @@ public class JNITableInsertTest {
             assertTrue(false);
         } catch (IllegalArgumentException e) {}
     }
-    
-    
-    
-  //Generates a table with a a column with column typed determined from the first parameter, and then puts in a value from the second parameter.
+
+
+    @Test
+    public void incrementInColumnTest() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "col0");
+        table.addColumn(ColumnType.LONG, "col1");
+
+        table.add("row0", 0);
+        table.add("row1", 10);
+        table.add("row2", 20);
+        table.add("row3", 30);
+        table.add("row4", 40);
+
+        table.adjustColumnValues(1, 1); //Adding one 1 all rows in col1
+
+        assertEquals(1, table.getLong(1, 0));
+        assertEquals(11, table.getLong(1, 1));
+        assertEquals(21, table.getLong(1, 2));
+        assertEquals(31, table.getLong(1, 3));
+        assertEquals(41, table.getLong(1, 4));
+    }
+
+
+    @Test
+    public void adjustColumnValuesOnUnsupportedColumnTypeTest() {
+
+        Table table = TestHelper.getTableWithAllColumnTypes();
+
+        for (long c=0;c<table.getColumnCount();c++){
+
+            if(table.getColumnType(c).equals(ColumnType.LONG) == false){ // Do not check if it is a Long column
+                try{ 
+                    table.adjustColumnValues(c, 10); 
+                    assertTrue(false); //We should never get here, as an exception is thrown above
+                } 
+                catch (IllegalArgumentException e){ 
+                    assertTrue(true); // All other column types than long will throw exception
+                } 
+            }
+        }
+    }
+
+
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void shouldThrowExceptionWhenColumnNameIsTooLong() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, LONGER THAN THE MAX 63 CHARACTERS");
+    }
+
+    @Test
+    public void testWhenColumnNameIsExcactly63CharLong() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "THIS STRING HAS 63 CHARACTERS PERFECT FOR THE MAX 63 CHARACTERS");
+    }
+
+
+
+    //Generates a table with a a column with column typed determined from the first parameter, and then puts in a value from the second parameter.
     //In cases, where the 2 parameter types do not match, we expect an IllegalArgumentException
     @Test(expectedExceptions=IllegalArgumentException.class, dataProvider = "columnTypesProvider")
     public void testGenericAddOnTable(Object colTypeObject, Object o) {
         Table t  = new Table();
-        
+
         //If the objects matches it will not fail, therefore we throw an exception as it should not be tested
         if (o.getClass().equals(colTypeObject.getClass())){
             throw new IllegalArgumentException();
         }
         //Add column, set name to the simplename of the class
         t.addColumn(TestHelper.getColumnType(colTypeObject), colTypeObject.getClass().getSimpleName());
-        
+
         //Add object
         t.add(o);
     }
-    
+
     //Generates a list of different objects to be passed as parameter to the insert() on table
     @DataProvider(name = "columnTypesProvider")
     public Iterator<Object[]> mixedValuesProvider() {
@@ -238,5 +297,6 @@ public class JNITableInsertTest {
         List<?> mixedValues = Arrays.asList(values);
         return DataProviderUtil.allCombinations(mixedValues,mixedValues);
     }
+
 
 }

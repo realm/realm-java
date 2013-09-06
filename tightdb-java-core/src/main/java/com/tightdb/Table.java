@@ -334,7 +334,7 @@ public class Table implements TableOrView {
 
 
     /**
-     * Inserts a row at the specified position. Shifts the row currently at that position and any subsequent rows down (adds one to their row index).
+     * Inserts a row at the specified row index. Shifts the row currently at that row index and any subsequent rows down (adds one to their row index).
      * @param rowIndex
      * @param values
      */
@@ -804,7 +804,7 @@ public class Table implements TableOrView {
      * @param value
      */
     //!!!TODO: New. Support in highlevel API
-    public void addLong(long columnIndex, long value) {
+    public void adjustColumnValues(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }
