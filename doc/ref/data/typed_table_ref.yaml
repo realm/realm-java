@@ -15,7 +15,7 @@ EXAMPLES   :
              
              More specific examples are (soon) available in the detailed description 
              of each method above.
-  CODE     : ex_java_dyn_table_intro
+  CODE     : ex_java_typed_table_intro
 IGNORE     : [g_dyn_table_where_const, 
               g_dyn_table_find_all_bool_const,
               g_dyn_table_find_all_int_const,
@@ -126,77 +126,19 @@ CATEGORIES :
 #        DESCR  :
 
 
-- Columns:
-  METHODS:
-  - g_dyn_table_get_column_count:
-      NAMES    : getColumnCount
-      SUMMARY  : *g_dyn_table_get_column_count_summary
-      DESCR    : *g_dyn_table_get_column_count_descr
-      RETURN:
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_column_count_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_column_count
-        DESCR  :
-  - g_dyn_table_get_column_name:
-      NAMES    : getColumnName
-      SUMMARY  : *g_dyn_table_get_column_name_summary
-      DESCR    : *g_dyn_table_get_column_name_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_column_name_param1_descr
-      RETURN:
-        TYPES  : String
-        DESCR  : *g_dyn_table_get_column_name_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_column_name
-        DESCR  :
-  - g_dyn_table_get_column_index:
-      NAMES    : getColumnIndex
-      SUMMARY  : *g_dyn_table_get_column_index_summary
-      DESCR    : *g_dyn_table_get_column_index_descr
-      PARAMS:
-      - NAME   : columnName
-        TYPES  : String
-        DESCR  : The name of the column to find.
-      RETURN:
-        TYPES  : long
-        DESCR  : The column index or -1 if there is no column with the specified name.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_column_index
-        DESCR  :
-  - g_dyn_table_get_column_type:
-      NAMES    : getColumnType
-      SUMMARY  : *g_dyn_table_get_column_type_summary
-      DESCR    : >
-                 This method returns the type of a column using the column index. Currently,
-                 the following types are supported from the <code>ColumnType</code> class:
-                 <ul>
-                   <li><code>BOOLEAN</code></li>
-                   <li><code>LONG</code></li>
-                   <li><code>FLOAT</code></li>
-                   <li><code>DOUBLE</code></li>
-                   <li><code>STRING</code></li>
-                   <li><code>BINARY</code></li>
-                   <li><code>DATE</code></li>
-                   <li><code>TABLE</code></li>
-                   <li><code>MIXED</code></li>
-                 </ul>
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : The column index.
-      RETURN:
-        TYPES  : ColumnType
-        DESCR  : The column type.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_column_type
-        DESCR  :
-
-
 - Rows:
   METHODS:
+  - g_typed_table_operator_brackets:
+      NAMES    : get
+      SUMMARY  : *g_typed_table_operator_brackets_summary
+      DESCR    : *g_typed_table_remove_row_descr
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_typed_table_operator_brackets_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_get
+        DESCR  :
   - g_typed_table_add:
       NAMES    : add
       SUMMARY  : Append a row.
@@ -359,117 +301,6 @@ CATEGORIES :
         CODE   : ex_java_dyn_table_where
         
         
-- Aggregates:
-  METHODS:
-# TODO - g_dyn_table_count_int:
-#      NAMES    : countInt
-#      SUMMARY  : *g_dyn_table_count_summary
-#      DESCR    : *g_dyn_table_count_descr
-#                 This method counts the number of rows matching a value. It is useful
-#                 to determine the number briefly compared to using a {@link class_dyn_query}
-#                 object.
-#      CONST    : True
-#      PARAMS:
-#      - NAME   : columnIndex
-#        TYPES  : long
-#        DESCR  : The column index (starting from 0).
-#      - NAME   : target
-#        TYPES  : long
-#        DESCR  : The value.
-#      RETURN:
-#        TYPES  : long
-#        DESCR  : The number of rows.
-#      EXAMPLES:
-#      - CODE   : ex_java_dyn_table_count
-#        DESCR  :
-        
-  - g_dyn_table_sum:
-  - g_dyn_table_sum_float:
-  - g_dyn_table_sum_double:
-      TITLE    : sum*
-      NAMES    : [sum, sumFloat, sumDouble]
-      SUMMARY  : *g_dyn_table_sum_summary
-      DESCR    : *g_dyn_table_sum_descr
-      SIGNATURE: |
-                 long   sum(long columnIndex)
-                 double sumFloat(long columnIndex)
-                 double sumDouble(long columnIndex)
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_sum_parm1_descr
-      RETURN:
-        TYPES  : [long, double]
-        DESCR  : *g_dyn_table_sum_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_sum
-        DESCR  :
-  - g_dyn_table_maximum:
-  - g_dyn_table_maximum_float:
-  - g_dyn_table_maximum_double:
-      TITLE    : maximum*
-      NAMES    : [maximum, maximumFloat, maximumDouble]
-      SUMMARY  : *g_dyn_table_maximum_summary
-      DESCR    : *g_dyn_table_maximum_descr
-      SIGNATURE: |
-                 long   maximum(long columnIndex)
-                 float  maximumFloat(long columnIndex)
-                 double maximumDouble(long columnIndex)
-      CONST    : True
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : Column index.
-      RETURN:
-        TYPES  : [long, float, double]
-        DESCR  : The maximum value.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_maximum
-        DESCR  :
-  - g_dyn_table_minimum:
-  - g_dyn_table_minimum_float:
-  - g_dyn_table_minimum_double:
-      TITLE    : minimum*
-      NAMES    : [minimum, minimumFloat, minimumDouble]
-      SUMMARY  : *g_dyn_table_minimum_summary
-      DESCR    : *g_dyn_table_minimum_descr
-      SIGNATURE: |
-                 long   minimum(long columnIndex)
-                 float  minimumFloat(long columnIndex)
-                 double minimumDouble(long columnIndex)
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : Column index.
-      RETURN:
-        TYPES  : [long, float, double]
-        DESCR  : The minimum value.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_minimum
-        DESCR  :
-  - g_dyn_table_average:
-  - g_dyn_table_average_float:
-  - g_dyn_table_average_double:
-      TITLE    : average* 
-      NAMES    : [average, averageFloat, averageDouble]
-      SUMMARY  : *g_dyn_table_average_summary
-      DESCR    : *g_dyn_table_average_descr
-      SIGNATURE: |
-                 double  average(long columnIndex)
-                 double  averageFloat(long columnIndex)
-                 double  averageDouble(long columnIndex)
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : Column index.
-      RETURN:
-        TYPES  : double
-        DESCR  : The average.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_average
-        DESCR  :
-        
-
 - Dump:
   METHODS:
   - g_dyn_table_to_json:
