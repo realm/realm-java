@@ -8,6 +8,11 @@ inline Table* Ref2Ptr(TableRef tableref)
     return &*tableref;
 }
 
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose(JNIEnv * env, jobject, jlong nativeQueryPtr) {
+	Query* query = Q(nativeQueryPtr);
+    delete query;
+}
+
 // Integer
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJJ(
