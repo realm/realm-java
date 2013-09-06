@@ -4,14 +4,14 @@
 #TODO:
 # updateFromSpec, getTableSpec
 
-ID         : class_dyn_table
-TITLE      : Table (dynamic)
-SUMMARY    : *g_dyn_table_intro_summary
-DESCR      : *g_dyn_table_intro_descr
-SEE        : *g_dyn_table_intro_see
+ID         : class_typed_table
+TITLE      : Table (typed)
+SUMMARY    : *g_typed_table_summary
+DESCR      : *g_typed_table_descr
+SEE        : 
 EXAMPLES   :
 - DESCR    : >
-             Below examples will showcase all the available methods in a dynamic Table.
+             Below examples will showcase all the available methods in a typed Table.
              
              More specific examples are (soon) available in the detailed description 
              of each method above.
@@ -38,7 +38,7 @@ CATEGORIES :
 
 - Table:
   METHODS:
-  - g_dyn_table_is_attached:
+  - g_typed_table_is_attached:
       NAMES    : isValid
       SUMMARY  : *g_dyn_table_is_attached_summary
       DESCR    : *g_dyn_table_is_attached_descr
@@ -46,45 +46,45 @@ CATEGORIES :
         TYPES  : boolean
         DESCR  : *g_dyn_table_is_attached_return_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_is_attached
+      - CODE   : ex_java_typed_table_is_attached
         DESCR  :
-  - g_dyn_table_size:
+  - g_typed_table_size:
       NAMES    : size
-      SUMMARY  : *g_dyn_table_size_summary
-      DESCR    : *g_dyn_table_size_descr
+      SUMMARY  : *g_typed_table_size_summary
+      DESCR    : *g_typed_table_size_descr
       RETURN:
         TYPES  : long
-        DESCR  : *g_dyn_table_return_descr
+        DESCR  : *g_typed_table_size_return1_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_size
+      - CODE   : ex_java_typed_table_size
         DESCR  :
-  - g_dyn_table_is_empty:
+  - g_typed_table_is_empty:
       NAMES    : isEmpty
-      SUMMARY  : *g_dyn_table_is_empty_summary
-      DESCR    : *g_dyn_table_is_empty_descr
+      SUMMARY  : *g_typed_table_is_empty_summary
+      DESCR    : *g_typed_table_is_empty_descr
       RETURN:
         TYPES  : boolean
-        DESCR  : *g_dyn_table_is_empty_return_descr
+        DESCR  : *g_typed_table_true_false
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_is_empty
+      - CODE   : ex_java_typed_table_is_empty
         DESCR  :
-  - g_dyn_table_clear:
+  - g_typed_table_clear:
       NAMES    : clear
-      SUMMARY  : *g_dyn_table_clear_summary
-      DESCR    : *g_dyn_table_clear_descr
+      SUMMARY  : *g_typed_table_clear_summary
+      DESCR    : *g_typed_table_clear_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_clear
+      - CODE   : ex_java_typed_table_clear
         DESCR  :
       SEE      : >
-                See also {@link g_dyn_table_is_empty}.
-  - g_dyn_table_optimize:
+                See also {@link g_typed_table_is_empty}.
+  - g_typed_table_optimize:
       NAMES    : optimize
-      SUMMARY  : *g_dyn_table_optimize_summary
-      DESCR    : *g_dyn_table_optimize_descr
+      SUMMARY  : *g_typed_table_optimize_summary
+      DESCR    : *g_typed_table_optimize_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_optimize
+      - CODE   : ex_java_typed_table_optimize
         DESCR  :
-  - g_dyn_table_set_index:
+  - g_typed_table_set_index:
       NAMES    : setIndex
       SUMMARY  : *g_dyn_table_set_index_summary
       DESCR    : *g_dyn_table_set_index_descr
@@ -95,7 +95,7 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_set_index
         DESCR  :
-  - g_dyn_table_has_index:
+  - g_typed_table_has_index:
       NAMES    : hasIndex
       SUMMARY  : *g_dyn_table_has_index_summary
       DESCR    : *g_dyn_table_has_index_descr
@@ -128,73 +128,6 @@ CATEGORIES :
 
 - Columns:
   METHODS:
-  - g_dyn_table_add_column:
-      NAMES    : addColumn
-      SUMMARY  : *g_dyn_table_add_column_summary
-      DESCR    : >
-                 This method appends a column of the specified type and name to the table.
-                 If it's used in a table which already has rows, the new column will just get
-                 default values (0, "", null) in those rows.
-                 
-                 Currently, the following types are supported from the <code>ColumnType</code> class:
-                 <ul>
-                   <li><code>BOOLEAN</code></li>
-                   <li><code>LONG</code></li>
-                   <li><code>FLOAT</code></li>
-                   <li><code>DOUBLE</code></li>
-                   <li><code>STRING</code></li>
-                   <li><code>BINARY</code></li>
-                   <li><code>DATE</code></li>
-                   <li><code>TABLE</code></li>
-                   <li><code>MIXED</code></li>
-                 </ul>
-
-      PARAMS:
-      - NAME   : type
-        TYPES  : ColumnType
-        DESCR  : *g_dyn_table_add_column_param1_descr
-      - NAME   : name
-        TYPES  : String
-        DESCR  : *g_dyn_table_add_column_param2_descr
-      RETURN:
-        TYPES  : long
-        DESCR  : *g_dyn_table_add_column_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_add_column
-        DESCR  :
-#TODO: add_subtable_column
-      SEE      : >
-                 NOTICE: Currently adding subtable-columns are not supported yet.
-                 If that is needed create the tables via {@link class_table_spec}.
-  - g_dyn_table_remove_column:
-      NAMES    : removeColumn
-      SUMMARY  : *g_dyn_table_remove_column_summary
-      DESCR    : *g_dyn_table_remove_column_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_remove_column_param1_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_remove_column
-        DESCR  :
-#TODO remove_subtable_column
-      SEE      : >
-                 NOTICE: Currently deleting subtable-columns are not supported yet.
-  - g_dyn_table_rename_column:
-      NAMES    : renameColumn
-      SUMMARY  : *g_dyn_table_rename_column_summary
-      DESCR    : *g_dyn_table_rename_column_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_rename_column_param1_descr
-      - NAME   : newName
-        TYPES  : String
-        DESCR  : *g_dyn_table_rename_column_param2_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_rename_column
-        DESCR  :
-  
   - g_dyn_table_get_column_count:
       NAMES    : getColumnCount
       SUMMARY  : *g_dyn_table_get_column_count_summary
@@ -264,7 +197,7 @@ CATEGORIES :
 
 - Rows:
   METHODS:
-  - g_dyn_table_add:
+  - g_typed_table_add:
       NAMES    : add
       SUMMARY  : Append a row.
       DESCR    : This method adds one row at the end of the table.
@@ -275,221 +208,30 @@ CATEGORIES :
                  in the same order as the columns are defined.
 #TODO: return index added
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_add
+      - CODE   : ex_java_typed_table_add
         DESCR  :
       SEE      : >
-                See also {@link g_dyn_table_add_empty_rows} to add empty rows.
-                See {@link g_dyn_table_insert} to insert a row into a specific row index.
-  - g_dyn_table_add_empty_row:
-      NAMES    : addEmptyRow
-      SUMMARY  : Append one empty row.
-      DESCR    : This method adds one empty row with default values at the end of the table.
-                 The default values are 0, null, or "", as appropriate to the column types.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_add_empty_row
-        DESCR  :
-      SEE      : >
-                 See also {@link g_dyn_table_add_empty_rows} to add multiple empty rows,
-                 or {@link g_dyn_table_add} to add a row with specific values.
-  - g_dyn_table_add_empty_rows:
-      NAMES    : addEmptyRows
-      SUMMARY  : *g_dyn_table_add_empty_row_summary
-      DESCR    : *g_dyn_table_add_empty_row_descr
-      PARAMS:
-      - NAME   : rows
-        TYPES  : long
-        DESCR  : Number of rows to add.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_add_empty_rows
-        DESCR  :
-      SEE      : >
-                 See also {@link g_dyn_table_add_empty_row} to add one empty row,
-                 or {@link g_dyn_table_add} to add a row with specific values.
-  - g_dyn_table_insert:
-      NAMES    : addAt
-      SUMMARY  : Inserts a row at the specified row index.
-      DESCR    : Inserts a row at the specified row index. 
-                 Shifts the row currently at that row index and any subsequent rows down (adds one to their row index).
-      PARAMS:
-      - NAME   : rowIndex
-        TYPES  : long
-        DESCR  : The row index where this row should be inserted (starting with 0). 
-      - NAME   : values
-        TYPES  : Object...
-        DESCR  : For each column in the table, you must provide a parameter with a matching type
-                 in the same order as the columns are defined.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_add_at
-        DESCR  :
-      SEE      : >
-                See also {@link g_dyn_table_add} to append a row at the end of the table 
-                (equivalent to using size() as rowIndex).
-  - g_dyn_table_set_row:
-      NAMES    : set
-      SUMMARY  : Set all values in a row.
-      DESCR    : This method replaces all values in a specific row.
-      PARAMS:
-      - NAME   : rowIndex
-        TYPES  : long
-        DESCR  : The existing row index where this values should be replaced (starting with 0). 
-      - NAME   : values
-        TYPES  : Object...
-        DESCR  : For each column in the table, you must provide a parameter with a matching type
-                 in the same order as the columns are defined.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_set
-        DESCR  :
-      SEE      : >
-                See also {@link g_dyn_table_set_bool} to set individual cells in a given row.  
-  - g_dyn_table_remove_row:
+                See {@link g_typed_table_insert} to insert a row into a specific row index.
+  - g_typed_table_remove_row:
       NAMES    : remove
-      SUMMARY  : *g_dyn_table_remove_row_summary
-      DESCR    : *g_dyn_table_remove_row_descr
+      SUMMARY  : *g_typed_table_remove_row_summary
+      DESCR    : *g_typed_table_remove_row_descr
       PARAMS:
       - NAME   : rowIndex
         TYPES  : long
-        DESCR  : *g_dyn_table_remove_row_param1_descr
+        DESCR  : *g_typed_table_delete_position_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_remove
+      - CODE   : ex_java_typed_table_remove
         DESCR  :
-  - g_dyn_table_remove_last_row:
+  - g_typed_table_remove_last_row:
       NAMES    : removeLast
-      SUMMARY  : *g_dyn_table_remove_last_row_summary
-      DESCR    : *g_dyn_table_remove_last_row_descr
+      SUMMARY  : *g_typed_table_remove_last_row_summary
+      DESCR    : *g_typed_table_remove_last_row_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_remove_last_row
+      - CODE   : ex_java_typed_table_remove_last_row
         DESCR  :
 
-  - g_dyn_table_add_int:
-      NAMES    : adjustColumnValues
-      SUMMARY  : *g_dyn_table_add_int_summary
-      DESCR    : *g_dyn_table_add_int_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_add_int_parm1_descr
-      - NAME   : value
-        TYPES  : long
-        DESCR  : *g_dyn_table_add_int_parm2_descr
-
-- Cells:
-  METHODS:
-  - g_dyn_table_get_bool:
-  - g_dyn_table_get_int:
-  - g_dyn_table_get_float:
-  - g_dyn_table_get_double:
-  - g_dyn_table_get_date:
-  - g_dyn_table_get_string:
-  - g_dyn_table_get_binary:
-  - g_dyn_table_get_binary2:
-  - g_dyn_table_get_mixed:
-  - g_dyn_table_get_mixed_type:
-  - g_dyn_table_get_subtable:
-      TITLE    : get*
-      NAMES    : [getBoolean, getLong, getFloat, getDouble, getDate, getString, 
-                  getBinaryByteBuffer, getBinaryByteArray, getMixed, getMixedType, 
-                  getSubtable]
-      SUMMARY  : *g_dyn_table_get_xxx_summary
-      DESCR    : *g_dyn_table_get_xxx_descr
-      SIGNATURE: |
-                 boolean       getBoolean(long columnIndex, long rowIndex)
-                 long          getLong(long columnIndex, long rowIndex)
-                 float         getFloat(long columnIndex, long rowIndex)
-                 double        getDouble(long columnIndex, long rowIndex)
-                 Date          getDate(long columnIndex, long rowIndex)
-                 String        getString(long columnIndex, long rowIndex)
-                 ByteBuffer    getBinaryByteBuffer(long columnIndex, long rowIndex)
-                 byte[]        getBinaryByteArray(long columnIndex, long rowIndex)
-                 Mixed         getMixed(long columnIndex, long rowIndex)
-                 ColumnType    getMixedType(long columnIndex, long rowIndex)
-                 Table         getSubtable(long columnIndex, long rowIndex)
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      - NAME   : rowIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm2_descr
-      RETURN:
-        TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, "byte[]", 
-                  Mixed, ColumnType, Table]
-        DESCR  : *g_dyn_table_get_xxx_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_xxx
-        DESCR  :
-  - g_dyn_table_set_int:
-#  - g_dyn_table_set_enum:
-  - g_dyn_table_set_float:
-  - g_dyn_table_set_double:
-  - g_dyn_table_set_bool:
-  - g_dyn_table_set_date:
-  - g_dyn_table_set_string:
-  - g_dyn_table_set_binary:
-  - g_dyn_table_set_binary2:
-  - g_dyn_table_set_mixed:
-      TITLE    : set*
-      NAMES    : [setLong, setFloat, setDouble, setBoolean, setDate, setString, 
-                  setBinaryByteBuffer, setBinaryByteArray, setMixed] 
-      SUMMARY  : *g_dyn_table_set_xxx_summary
-      DESCR    : *g_dyn_table_set_xxx_descr
-      SIGNATURE: |
-                 setBoolean(long columnIndex, long rowIndex, boolean value)
-                 setLong(long columnIndex, long rowIndex, long value)
-                 setDate(long columnIndex, long rowIndex, Date value)
-                 setFloat(long columnIndex, long rowIndex, float value)
-                 setDouble(long columnIndex, long rowIndex, double value)
-                 setString(long columnIndex, long rowIndex, String value)
-                 setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer value)
-                 setBinaryByteArray(long columnIndex, long rowIndex, byte[] value)
-                 setMixed(long columnIndex, long rowIndex, Mixed value)
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : longfrom
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      - NAME   : rowIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm2_descr
-      - NAME   : value
-        TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, "byte[]", Mixed]
-        DESCR  : *g_dyn_table_set_xxx_parm3_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_set_xxx
-        DESCR  :
-      SEE      : See alse {@link g_dyn_table_set} to set all values in a row at ones.
-
-  - g_dyn_table_get_subtable_size:
-      NAMES    : getSubtableSize
-      SUMMARY  : *g_dyn_table_get_subtable_size_summary
-      DESCR    : *g_dyn_table_get_subtable_size_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      - NAME   : rowIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm2_descr
-      RETURN:
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_subtable_size_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_subtable
-        DESCR  :
-  - g_dyn_table_clear_subtable:
-      NAMES    : clearSubtable
-      SUMMARY  : *g_dyn_table_clear_subtable_summary
-      DESCR    : *g_dyn_table_clear_subtable_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      - NAME   : rowIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm2_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_clear_subtable
-        DESCR  :
-
-        
+  
 - Searching:
   METHODS:
 # TODO: Add lookup()
