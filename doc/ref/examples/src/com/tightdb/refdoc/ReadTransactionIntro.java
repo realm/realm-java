@@ -1,4 +1,3 @@
-// @@Example: ex_java_read_transaction_intro @@
 
 package com.tightdb.refdoc;
 
@@ -7,47 +6,69 @@ import com.tightdb.*;
 public class ReadTransactionIntro {
 
     public static void main(String[] args) {
-        // @@Show@@
-        // Opens an existing database file.
-        // We assume the file is also being accessed by other processes,
-        // thats why we use a SharedGroup object
+
+        typedReadTransactionIntro();
+        dynamicReadTransactionIntro();
+
+    }
+
+    // @@Example: ex_java_typed_read_transaction_intro @@
+    // @@Show@@
+    @DefineTable(table = "PeopleTable")
+    class People {
+        String name;
+        int age;
+    }
+
+    public static void typedReadTransactionIntro(){
+        // Open existing database file in a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
-        // -------------------------------------------------------------------
-        // Reading from the group using a transaction
-        // -------------------------------------------------------------------
+        // Create read transaction from the shared group
+        ReadTransaction rt = group.beginRead();
+
+        // Inside transaction is a fully consistent and immutable view of the group
+        try {
+            // Get a table from the group
+            PeopleTable people = new PeopleTable(rt);
+
+            // Read from the first row, the name column
+            String name = people.get(0).getName();
+
+            // Do more table read operations here...
+
+        } finally {
+            // End the read transaction in a finally block. If the read-transaction is not
+            // closed, a new one cannot be started using the same SharedGroup instance.
+            rt.endRead();
+        }  
+    } // @@EndShow@@ 
+    // @@EndExample@@
+
+    // @@Example: ex_java_dyn_read_transaction_intro @@
+    // @@Show@@
+    public static void dynamicReadTransactionIntro(){
+        // Open existing database file in a shared group
+        SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
         // Create a read transaction from the group
         ReadTransaction rt = group.beginRead();
 
-        // Inside the read transaction we have a fully consistent and immutable view of the group
+        // Inside transaction is a fully consistent and immutable view of the group
         try {
             // Get a table from the group
-            Table table = rt.getTable("table");
+            Table table = rt.getTable("people");
 
             // Actions inside a ReadTransacton will never affect the original group and tables
-            String value = table.getString(1, 0);
-         
+            String name = table.getString(0, 0);
+
             // Do more table read operations here...
             
-            // A Transaction extends Group, and can be passed as a Group parameter
-            analyzeGroup(rt);
-
         } finally {
-            // Always end the read transaction in a finally block. If the read-transaction is not
+            // End the read transaction in a finally block. If the read-transaction is not
             // closed, a new one cannot be started using the same SharedGroup instance.
             rt.endRead();
         }  
-    }
-
-    private static void analyzeGroup(Group group){
-        String tableName = group.getTableName(0);
     } // @@EndShow@@ 
-
-    static void Assert(boolean check) {
-        if (!check) {
-            throw new RuntimeException();
-        }
-    }
+    // @@EndExample@@
 } 
-// @@EndExample@@

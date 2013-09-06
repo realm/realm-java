@@ -30,22 +30,16 @@ public class TableViewIntro {
         view.remove(0);
         Assert(table.size() == 2);
 
-        // Change the value of column 1, row 1 to 'London' and ckech that it is propagated to the original table
+        // Change the value of column 1, row 1 to 'London'. The changes are reflected in the original table
         view.setString(1, 1, "London");
         Assert(table.getString(1, 1).equals("London"));
 
-        // -------------------------------------------------------------------
         // Simple aggregations
-        // -------------------------------------------------------------------
-
         Assert(view.sum(0) == 500);
         Assert(view.maximum(0) == 300);
         Assert(view.maximum(0) == 300);
         Assert(view.average(0) == 250);
 
-        // -------------------------------------------------------------------
-        // Dumping to JSON
-        // -------------------------------------------------------------------
 
         // Get JSON representation of the data in the view and print it using e.g. a PrintWriter object
         PrintWriter out = new PrintWriter("fromServlet");

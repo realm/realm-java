@@ -1,4 +1,3 @@
-// @@Example: ex_java_shared_group_intro @@
 
 package com.tightdb.refdoc;
 
@@ -7,10 +6,12 @@ import com.tightdb.*;
 public class SharedGroupIntro {
 
     public static void main(String[] args) {
+
+        // @@Example: ex_java_shared_group_intro @@
         // @@Show@@
         // Opens an existing database file or creates a new database file and opens it into a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
-        
+
         // -------------------------------------------------------------------
         // Writing to the group using transaction
         // -------------------------------------------------------------------
@@ -20,7 +21,7 @@ public class SharedGroupIntro {
         try { 
             // Creates a new table by using getTable with the new table name as parameter
             Table table = wt.getTable("newTable");
-            
+
             // Specify 2 columns and add 3 rows of data
             table.addColumn(ColumnType.LONG, "ID");
             table.addColumn(ColumnType.STRING, "City");
@@ -33,14 +34,14 @@ public class SharedGroupIntro {
         } catch (Throwable t) {
             wt.rollback();
         }
-        
+
         // -------------------------------------------------------------------
         // Reading from the group using transaction
         // -------------------------------------------------------------------
-        
+
         // Create a read transaction from the group
         ReadTransaction rt = group.beginRead();
-        
+
         try {
             // Get the newly created table
             Table table = rt.getTable("newTable");
@@ -56,7 +57,7 @@ public class SharedGroupIntro {
             rt.endRead();
         }  // @@EndShow@@
     }
-    
+
     static void Assert(boolean check) {
         if (!check) {
             throw new RuntimeException();

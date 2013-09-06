@@ -75,6 +75,8 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_clear
         DESCR  :
+      SEE      : >
+                See also {@link g_dyn_table_is_empty}.
   - g_dyn_table_optimize:
       NAMES    : optimize
       SUMMARY  : *g_dyn_table_optimize_summary
@@ -297,6 +299,12 @@ CATEGORIES :
       - NAME   : rows
         TYPES  : long
         DESCR  : Number of rows to add.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_add_empty_rows
+        DESCR  :
+      SEE      : >
+                 See also {@link g_dyn_table_add_empty_row} to add one empty row,
+                 or {@link g_dyn_table_add} to add a row with specific values.
   - g_dyn_table_insert:
       NAMES    : addAt
       SUMMARY  : Inserts a row at the specified row index.

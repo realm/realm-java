@@ -1,4 +1,3 @@
-// @@Example: ex_java_write_transaction_intro @@
 
 package com.tightdb.refdoc;
 
@@ -7,38 +6,61 @@ import com.tightdb.*;
 public class WriteTransactionIntro {
 
     public static void main(String[] args) {
-        // @@Show@@
-        // Opens an existing database file. We assume the file is also being accessed by other processes, thats why we use a SharedGroup object
+        typedWriteTransactionIntro();
+        dynamicWriteTransactionIntro();
+    }
+
+    // @@Example: ex_java_typed_write_transaction_intro @@
+    // @@Show@@
+    @DefineTable(table = "PeopleTable")
+    class People {
+        String name;
+        int age;
+    }
+   
+    public static void typedWriteTransactionIntro(){
+        // Open existing database file in a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
-        // -------------------------------------------------------------------
-        // Writing to the group using transactions
-        // -------------------------------------------------------------------
-
-        // Begins a write transaction. Any other process trying to initiate a write transaction will be stalled until this transaction ends.
+        // Begin write transaction 
         WriteTransaction wt = group.beginWrite(); 
         try { 
-            // Transaction extends from Group and can be used on methods that take Group object as input
-            update(wt);
+            // Create table and add row with data
+            PeopleTable people = new PeopleTable(wt);
+            people.add("John Adams", 45);
 
-            // Closes the transaction and all changes are written to the shared group
+            // Close the transaction and all changes are written to the shared group
             wt.commit();
         } catch (Throwable t) {
             // In case of an error, rollback to close the transaction and discard all changes
             wt.rollback();
         }
-    }
+    } // @@EndShow@@  
+    // @@EndExample@@
 
-    public static void update(Group group){
-        Table people = group.getTable("people");
-        // All updates here will be written when wt.commit() is called
-        // ...
-    } // @@EndShow@@ 
 
-    static void Assert(boolean check) {
-        if (!check) {
-            throw new RuntimeException();
+
+    // @@Example: ex_java_dyn_write_transaction_intro @@ 
+    // @@Show@@
+    public static void dynamicWriteTransactionIntro(){
+        // Open existing database file in a shared group
+        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+
+        // Begin write transaction
+        WriteTransaction wt = group.beginWrite(); 
+        try { 
+            // Create table, add columns and add row with data
+            Table people = wt.getTable("people");
+            people.addColumn(ColumnType.STRING, "name");
+            people.addColumn(ColumnType.LONG, "age");
+            people.add("John Adams", 45);
+
+            // Close the transaction. All changes are written to the shared group
+            wt.commit();
+        } catch (Throwable t) {
+            // In case of an error, rollback to close the transaction and discard all changes
+            wt.rollback();
         }
-    }
+    }   // @@EndShow@@  
+    // @@EndExample@@
 } 
-// @@EndExample@@
