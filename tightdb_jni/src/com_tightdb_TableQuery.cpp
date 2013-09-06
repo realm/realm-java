@@ -9,7 +9,7 @@ inline Table* Ref2Ptr(TableRef tableref)
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose(JNIEnv * env, jobject, jlong nativeQueryPtr) {
-	Query* query = Q(nativeQueryPtr);
+    Query* query = Q(nativeQueryPtr);
     delete query;
 }
 
