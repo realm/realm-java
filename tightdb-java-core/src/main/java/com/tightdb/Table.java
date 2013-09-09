@@ -1010,6 +1010,15 @@ public class Table implements TableOrView {
 
     protected native String nativeToJson(long nativeTablePtr);
 
+    public String toString() {
+        return nativeToString(nativePtr, INFINITE);
+    }
+
+    public String toString(long maxRows) {
+        return nativeToString(nativePtr, maxRows);
+    }
+
+    protected native String nativeToString(long nativeTablePtr, long maxRows);
 
     private void throwImmutable()
     {
