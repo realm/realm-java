@@ -2,6 +2,8 @@ package com.tightdb;
 
 import org.testng.annotations.Test;
 
+import com.tightdb.test.TestHelper;
+
 public class JNICloseTest {
 
     @Test (enabled=true, expectedExceptions = IllegalStateException.class)
@@ -25,8 +27,21 @@ public class JNICloseTest {
         //Group group = new Group();
 
         //  EmployeeTable employees = new EmployeeTable(group);
-
-
+    }
+    
+    /**
+     * Make sure, that an illegavlStateException is thrown when trying to do queries on a closed table
+     */
+    @Test()
+    public void closeTableShouldThrowExceptionWhenQuery(){
+        
+        Table table = TestHelper.getTableWithAllColumnTypes();
+        
+        TableQuery query = table.where();
+        
+        table.close(); //Table is being closed
+        
+        query.findAll(); //Should throw exception, as table has been closed
     }
 
 
