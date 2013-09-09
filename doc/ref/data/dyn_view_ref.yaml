@@ -4,14 +4,14 @@
 # TODO: Add addLong()
 
 ID         : class_dyn_tableview
-TITLE      : TableView
+TITLE      : TableView (dynamic)
 SUMMARY    : *g_dyn_view_intro_summary
 DESCR      : *g_dyn_view_intro_descr
 SEE        :
 EXAMPLES   :
 - DESCR    : The methods available in a TableView is a subset of those in 
              {@link class_dyn_table}, so you can check the examples there.
-  CODE:      ex_java_dyn_view_intro
+  CODE:      ex_java_dyn_table_view_intro
 IGNORE     : [g_dyn_view_get_subtable_const,
               g_dyn_view_find_all_bool_const,
               g_dyn_view_find_all_int_const,

@@ -1,6 +1,6 @@
 package com.tightdb.examples.performance;
 
-import com.tightdb.internal.util;
+import com.tightdb.internal.Util;
 import com.tightdb.typed.TightDB;
 
 
@@ -80,7 +80,7 @@ public class Performance {
                 toKB(sqliteTotal), sqliteTotal/tightTotal);
 
         System.out.println("\nDONE.");
-        if (pause) util.waitForEnter();
+        if (pause) Util.waitForEnter();
     }
 
     static void printTime(long time, String str, String tab) {
@@ -100,13 +100,13 @@ public class Performance {
         Timer       timer = new Timer();
         int         testNo = 0;
 
-        if (pause) util.waitForEnter();
-        long memBefore = Util.getUsedMemory(); memBefore = Util.getUsedMemory();
+        if (pause) Util.waitForEnter();
+        long memBefore = ExampleHelper.getUsedMemory(); memBefore = ExampleHelper.getUsedMemory();
 
         // Build the test database
         test.buildTable(rows);
 
-        result.javaDBMemUsed = Math.max(Util.getUsedMemory() - memBefore, 1);
+        result.javaDBMemUsed = Math.max(ExampleHelper.getUsedMemory() - memBefore, 1);
         result.nativeDBMemUsed = test.usedNativeMemory();
 
         // Search small integer column
@@ -200,7 +200,7 @@ public class Performance {
             }
         }
 */
-        if (pause) util.waitForEnter();
+        if (pause) Util.waitForEnter();
         test.closeTable();
 
         return result;

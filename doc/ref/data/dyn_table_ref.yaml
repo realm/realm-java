@@ -5,7 +5,7 @@
 # updateFromSpec, getTableSpec
 
 ID         : class_dyn_table
-TITLE      : Table
+TITLE      : Table (dynamic)
 SUMMARY    : *g_dyn_table_intro_summary
 DESCR      : *g_dyn_table_intro_descr
 SEE        : *g_dyn_table_intro_see

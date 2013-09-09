@@ -1,3 +1,7 @@
+06-September-2013:
+=================
+! BUGFIX: Fixed small leak in TableQuery.
+
 04-September-2013
 ===============
 + Added TableQuery.equal for Date
