@@ -91,6 +91,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeRollback(
     db->rollback();
 }
 
+JNIEXPORT jboolean JNICALL Java_com_tightdb_SharedGroup_nativeHasChanged
+  (JNIEnv *, jobject, jlong native_ptr)
+{
+    SharedGroup* db = reinterpret_cast<SharedGroup*>(native_ptr);
+    return db->has_changed();
+}
+
 JNIEXPORT jstring JNICALL Java_com_tightdb_SharedGroup_nativeGetDefaultReplicationDatabaseFileName(
     JNIEnv* env, jclass)
 {
