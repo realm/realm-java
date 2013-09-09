@@ -21,7 +21,7 @@
   <ItemGroup>
     <ClInclude Include="src\columntypeutil.h" />
     <ClInclude Include="src\com_tightdb_group.h" />
-    <ClInclude Include="src\com_tightdb_internal_util.h" />
+    <ClInclude Include="src\com_tightdb_internal_Util.h" />
     <ClInclude Include="src\com_tightdb_SharedGroup.h" />
     <ClInclude Include="src\com_tightdb_Table.h" />
     <ClInclude Include="src\com_tightdb_tablequery.h" />
@@ -35,11 +35,11 @@
   <ItemGroup>
     <ClCompile Include="src\columntypeutil.cpp" />
     <ClCompile Include="src\com_tightdb_group.cpp" />
+    <ClCompile Include="src\com_tightdb_internal_Util.cpp" />
     <ClCompile Include="src\com_tightdb_SharedGroup.cpp" />
     <ClCompile Include="src\com_tightdb_table.cpp" />
     <ClCompile Include="src\com_tightdb_tablequery.cpp" />
     <ClCompile Include="src\com_tightdb_tableview.cpp" />
-    <ClCompile Include="src\com_tightdb_internal_util.cpp" />
     <ClCompile Include="src\java_lang_list_util.cpp" />
     <ClCompile Include="src\mem_usage.cpp" />
     <ClCompile Include="src\util.cpp" />
@@ -110,6 +110,8 @@
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <TargetName>$(ProjectName)64d</TargetName>
     <OutDir>$(outputdir)</OutDir>
+    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;C:\Program Files (x86)\Visual Leak Detector\include</IncludePath>
+    <LibraryPath>$(LibraryPath);C:\Program Files (x86)\Visual Leak Detector\lib\win64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>$(ProjectName)32</TargetName>
@@ -207,6 +209,7 @@
       <IgnoreSpecificDefaultLibraries>libcpmtd.lib;LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
       <AssemblyDebug>true</AssemblyDebug>
       <OutputFile>$(outputdir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>$(tightdb_path)lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

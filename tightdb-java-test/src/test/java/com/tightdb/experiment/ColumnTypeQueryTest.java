@@ -10,7 +10,6 @@ import com.tightdb.Table;
 import com.tightdb.TableQuery;
 
 public class ColumnTypeQueryTest {
-    
     private Table t;
     private TableQuery q;
     
@@ -28,18 +27,19 @@ public class ColumnTypeQueryTest {
     }
     
     @Test(expectedExceptions=IllegalArgumentException.class)
+
+    public void filterStringOnDateColumn() {
+        q.equal(0, "I'm a String").findAll();
+    }
+    
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void filterLongOnStringColumn() {
         q.equal(1, 23).findAll();
     }
     
     @Test(expectedExceptions=IllegalArgumentException.class)
-    public void filterStringOnLongColumn() {
-        q.equal(3, "I'm a String").findAll();
-    }
-    
-    @Test(expectedExceptions=IllegalArgumentException.class)
-    public void filterStringOnDateColumn() {
-        q.equal(1, "I'm a String").findAll();
+    public void filterStringOnIntColumn() {
+        q.equal(2, "I'm a String").findAll();
     }
     
     

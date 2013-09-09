@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 import com.tightdb.typed.TightDB;
 
-public class Util {
+public class ExampleHelper {
 
     public static int getRandNumber() {
         return (int)(Math.random() * 1000);
@@ -72,11 +72,11 @@ public class Util {
 
     public static void test_getMemUsed() {
         long mem[] = new long[5];
-        mem[0] = Util.getUsedMemory();
-        mem[1] = Util.getUsedMemory();
-        mem[2] = Util.getUsedMemory();
-        mem[3] = Util.getUsedMemory();
-        mem[4] = Util.getUsedMemory();
+        mem[0] = ExampleHelper.getUsedMemory();
+        mem[1] = ExampleHelper.getUsedMemory();
+        mem[2] = ExampleHelper.getUsedMemory();
+        mem[3] = ExampleHelper.getUsedMemory();
+        mem[4] = ExampleHelper.getUsedMemory();
         for (int i=0; i<5; ++i)
             System.out.println("Memuse " + mem[i]);
     }

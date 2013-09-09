@@ -46,6 +46,7 @@ import java.util.Date;
  *
  */
 public class TableView implements TableOrView {
+    protected boolean DEBUG = false; //true;
 
     /**
      * Creates a TableViewBase with a Java Object Table and a already created
@@ -616,7 +617,8 @@ public class TableView implements TableOrView {
     }
 
     private synchronized void close(){
-        if(nativePtr == 0)
+        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);    	
+        if (nativePtr == 0)
             return;
         nativeClose(nativePtr);
         nativePtr = 0;
