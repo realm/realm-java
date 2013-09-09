@@ -170,6 +170,26 @@ CATEGORIES:
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_write_to_mem
+  - g_group_to_string:
+      NAMES    : toString
+      DESCR    : *g_group_to_string_descr
+      SUMMARY  : *g_group_to_string_summary
+      RETURN:
+        DESCR  : String summary of the Group
+        TYPES  : String
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_group_to_string
+  - g_group_to_json:
+      NAMES    : toJson
+      DESCR    : *g_group_to_json_descr
+      SUMMARY  : *g_group_to_json_summary
+      RETURN:
+        DESCR  : JSON representation of the Group
+        TYPES  : String
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_group_to_json
 
 - Group:
   METHODS:
