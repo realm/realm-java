@@ -22,10 +22,9 @@ public class NestedTablesExample {
         nikolche.getPhones().add("mobile", "444");
         nikolche.getPhones().add("work", "555");
 
-        TightDB.print(employees);
-
+        System.out.println(employees);
         for (PhoneTable phoneTable : employees.phones.getAll()) {
-            TightDB.print(phoneTable);
+            System.out.println(phoneTable);
         }
 
     }

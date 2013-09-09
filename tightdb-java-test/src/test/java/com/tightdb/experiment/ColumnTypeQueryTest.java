@@ -8,7 +8,6 @@ import org.testng.annotations.Test;
 import com.tightdb.ColumnType;
 import com.tightdb.Table;
 import com.tightdb.TableQuery;
-import com.tightdb.exceptions.IllegalTypeException;
 
 public class ColumnTypeQueryTest {
     private Table t;

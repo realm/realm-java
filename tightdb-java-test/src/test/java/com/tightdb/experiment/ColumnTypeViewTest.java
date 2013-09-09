@@ -1,19 +1,12 @@
 package com.tightdb.experiment;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.tightdb.ColumnType;
 import com.tightdb.Table;
 import com.tightdb.TableView;
-import com.tightdb.exceptions.IllegalTypeException;
-import com.tightdb.test.DataProviderUtil;
 
 public class ColumnTypeViewTest {
     private Table t;

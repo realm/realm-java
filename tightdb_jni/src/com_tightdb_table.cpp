@@ -893,6 +893,18 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToJson(
    return env->NewStringUTF(str.c_str());
 }
 
+JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToString(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong maxRows)
+{
+   Table* table = TBL(nativeTablePtr);
+   if (!TABLE_VALID(env, table)) return NULL;
+
+   std::ostringstream ss;
+   table->to_string(ss, maxRows);
+   const std::string str = ss.str();
+   return env->NewStringUTF(str.c_str());
+}
+
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClose(
     JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
