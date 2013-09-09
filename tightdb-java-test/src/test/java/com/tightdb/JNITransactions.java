@@ -42,6 +42,7 @@ public class JNITransactions {
         tableSpec.addColumn(ColumnType.LONG, "number");
         tbl.updateFromSpec(tableSpec);
 
+
         for (long row=0; row < rows; row++)
             tbl.add("Hi", 1);
         assertEquals(rows, tbl.size());
@@ -51,7 +52,7 @@ public class JNITransactions {
         try {
             assertEquals(1, tbl.size());
             assert(false);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException e) {
         }
 
     }
@@ -145,7 +146,35 @@ public class JNITransactions {
 
         clear();
     }
+        
+  //TODO: Enable double rollback() test:
+    @Test(enabled = false)
+    public void mustAllowDoubleCommitAndRollback() {
+	    WriteTransaction trans = db.beginWrite();
+	    Table tbl = trans.getTable("EmployeeTable");
+	    tbl.addColumn(ColumnType.STRING, "name");
+	    tbl.addColumn(ColumnType.LONG, "number");
 
+	    // allow commit before any changes
+	    trans.commit();
+
+	    tbl.add("Hi", 1);
+	    assertEquals(1, tbl.size());
+	    
+	    // allow double commit()
+	    trans.commit();
+	    trans.commit();
+
+	    // allow double rollback
+        tbl.add("Hello", 1);
+        assertEquals(2, tbl.size());
+        trans.rollback();
+        trans.rollback();
+        assertEquals(1, tbl.size());
+
+        clear();
+    }
+    
     // Test: exception at all mutable methods in TableBase, TableView,
     // Test: above in custom Typed Tables
     // TableQuery.... in ReadTransactions
