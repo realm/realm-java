@@ -30,8 +30,7 @@ public class ColumnTypeViewTest {
         
         v = t.where().findAll();
     }
-    
-/* TODO: Enable   
+
     //On date Column________________________________
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void getStringOnDateColumn() {
@@ -40,12 +39,12 @@ public class ColumnTypeViewTest {
     
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void getLongOnDateColumn() {
-      v.getLong(0, 0);
+        v.getLong(0, 0);
     }
     
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void getMixedOnDateColumn() {
-      v.getMixed(0, 0);
+        v.getMixed(0, 0);
     }
     
     //On String Column________________________________
@@ -56,12 +55,12 @@ public class ColumnTypeViewTest {
     
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void getLongOnStringColumn() {
-      v.getLong(1, 0);
+        v.getLong(1, 0);
     }
     
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void getMixedOnStringColumn() {
-      v.getMixed(1, 0);
+        v.getMixed(1, 0);
     }
     
     //On Integer Column________________________________
@@ -71,13 +70,12 @@ public class ColumnTypeViewTest {
     }
     
     @Test(expectedExceptions=IllegalArgumentException.class)
-    public void getLongOnIntegerColumn() {
-      v.getLong(2, 0);
+    public void getStringOnIntegerColumn() {
+        v.getString(2, 0);
     }
     
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void getMixedOnIntegerColumn() {
-      v.getMixed(2, 0);
-    }
-  */  
+        v.getMixed(2, 0);
+    } 
 }

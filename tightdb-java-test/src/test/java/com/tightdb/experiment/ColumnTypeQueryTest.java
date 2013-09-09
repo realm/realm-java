@@ -11,7 +11,6 @@ import com.tightdb.TableQuery;
 import com.tightdb.exceptions.IllegalTypeException;
 
 public class ColumnTypeQueryTest {
-    static final boolean ENABLED = false;
     private Table t;
     private TableQuery q;
     
@@ -28,19 +27,19 @@ public class ColumnTypeQueryTest {
         q = t.where();
     }
     
-    @Test(enabled = ENABLED, expectedExceptions=IllegalTypeException.class)
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void filterStringOnDateColumn() {
+        q.equal(0, "I'm a String").findAll();
+    }
+    
+    @Test(expectedExceptions=IllegalArgumentException.class)
     public void filterLongOnStringColumn() {
         q.equal(1, 23).findAll();
     }
     
-    @Test(enabled = ENABLED, expectedExceptions=IllegalTypeException.class)
-    public void filterStringOnLongColumn() {
-        q.equal(3, "I'm a String").findAll();
-    }
-    
-    @Test(enabled = ENABLED, expectedExceptions=IllegalTypeException.class)
-    public void filterStringOnDateColumn() {
-        q.equal(1, "I'm a String").findAll();
+    @Test(expectedExceptions=IllegalArgumentException.class)
+    public void filterStringOnIntColumn() {
+        q.equal(2, "I'm a String").findAll();
     }
     
     
