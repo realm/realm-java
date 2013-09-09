@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 import com.tightdb.typed.TightDB;
 
-public class util {
+public class Util {
 
     public static final long REQUIRED_JNI_VERSION = 19;
 
