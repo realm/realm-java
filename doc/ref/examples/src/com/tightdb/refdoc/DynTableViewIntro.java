@@ -1,4 +1,4 @@
-// @@Example: ex_java_table_view_intro @@
+// @@Example: ex_java_dyn_table_view_intro @@
 
 package com.tightdb.refdoc;
 
@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 
 import com.tightdb.*;
 
-public class TableViewIntro {
+public class DynTableViewIntro {
 
     public static void main(String[] args) throws FileNotFoundException {
         // @@Show@@
