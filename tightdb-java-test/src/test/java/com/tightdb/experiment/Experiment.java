@@ -1,5 +1,7 @@
 package com.tightdb.experiment;
 
+import com.tightdb.ColumnType;
+import com.tightdb.Group;
 import com.tightdb.Table;
 import com.tightdb.TableQuery;
 import com.tightdb.TableView;
@@ -8,7 +10,22 @@ public class Experiment {
     public static void main(String[] args) {
     
     	System.out.println("Start experiment");
-    	test2();
+    	test3();
+    }
+    
+    public static Table getInvalidTable() {
+        Group g = new Group();
+    	Table t = g.getTable("testTable");
+    	t.addColumn(ColumnType.ColumnTypeString, "test");
+    	g.close();
+    	
+    	return t;
+    }
+
+    public static void test3() {
+    	Table t = getInvalidTable();
+    	t.add("hej");
+    	    	
     }
     
     public static void test2() {
