@@ -57,7 +57,15 @@ public class JNICloseTest {
         
         table.close(); //Closes the table, should not be allowed to access the view
         
-        try{ view.size(); assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
+        try{ view.size();                               assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
+        try{ view.getBinaryByteArray(0, 0);             assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
+        try{ view.getBoolean(1, 0);                     assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
+        try{ view.getDate(2, 0);                        assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
+        try{ view.getDouble(3, 0);                      assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
+        try{ view.getFloat(4, 0);                       assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
+        try{ view.getLong(5, 0);                        assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
+        try{ view.getMixed(7, 0);                       assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
+        try{ view.getString(7, 0);                      assert(false); } catch (IllegalStateException e){} //size() should throw exception, as table is invalid
         
         
     }
