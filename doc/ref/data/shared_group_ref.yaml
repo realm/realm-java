@@ -98,3 +98,16 @@ CATEGORIES:
       EXAMPLES:
       - CODE   : ex_java_shared_group_begin_read
         DESCR  :
+
+- Shared group:
+  METHODS:
+  - g_shared_group_has_changed:
+      NAMES    : hasChanged
+      SUMMARY  : *g_shared_group_has_changed_summary
+      DESCR    : *g_shared_group_has_changed_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if it has changed, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_shared_group_has_changed
+        DESCR  :
