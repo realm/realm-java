@@ -2,7 +2,7 @@
 #include "mem_usage.hpp"
 #include "com_tightdb_internal_Util.h"
 
-#define USE_VLD
+//#define USE_VLD
 #if defined(_MSC_VER) && defined(_DEBUG) && defined(USE_VLD)
     #include "C:\\Program Files (x86)\\Visual Leak Detector\\include\\vld.h"
 #endif

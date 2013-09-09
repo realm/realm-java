@@ -17,7 +17,7 @@ public class Experiment {
     	TableQuery q = t.where();
     	
     	TableView v = q.findAll();
-    	//v.close();
+    	v.close();
     	v=null;
 
     	//q.close();
