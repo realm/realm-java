@@ -24,16 +24,12 @@ public class JNITransactions {
 
     @BeforeMethod
     public void init() {
-        if (TightDB.osIsWindows())
-            return;
         deleteFile(testFile);
         db = new SharedGroup(testFile);
     }
 
     //@AfterMethod
     public void clear() {
-        if (TightDB.osIsWindows())
-            return;
         db.close();
         deleteFile(testFile);
     }
@@ -42,21 +38,20 @@ public class JNITransactions {
     {
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tbl.updateFromSpec(tableSpec);
+        tbl.addColumn(ColumnType.ColumnTypeString, "name");
+        tbl.addColumn(ColumnType.ColumnTypeInt, "number");
 
         for (long row=0; row < rows; row++)
             tbl.add("Hi", 1);
         assertEquals(rows, tbl.size());
         trans.commit();
+        
 
         // must throw exception as table is invalid now.
         try {
             assertEquals(1, tbl.size());
             assert(false);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException e) {
         }
 
     }
@@ -73,9 +68,6 @@ public class JNITransactions {
 
     @Test
     public void mustWriteAndReadEmpty() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(0);
         checkRead(0);
         clear();
@@ -83,9 +75,6 @@ public class JNITransactions {
 
     @Test
     public void mustWriteCommit() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(10);
         checkRead(10);
         clear();
@@ -93,9 +82,6 @@ public class JNITransactions {
 
     @Test
     public void mustRollback() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(1);
 
         WriteTransaction trans = db.beginWrite();
@@ -116,9 +102,6 @@ public class JNITransactions {
 
     @Test
     public void mustFailOnWriteInReadTransactions() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(1);
 
         ReadTransaction t = db.beginRead();
