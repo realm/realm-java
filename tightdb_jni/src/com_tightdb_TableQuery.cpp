@@ -5,6 +5,10 @@ using namespace tightdb;
 
 #if 1
 #define COL_TYPE_VALID(env,ptr,col, type)   TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)
+#define QUERY_VALID(env, pQuery)            QueryValid(env, pQuery)
+#else
+#define COL_TYPE_VALID(env,ptr,col, type)   true
+#define QUERY_VALID(env, pQuery)            true
 #endif
 
 inline Table* Ref2Ptr(TableRef tableref)
@@ -17,6 +21,14 @@ inline Table* get_table_ptr(Query* queryPtr)
     return Ref2Ptr( queryPtr->get_table() );
 }
 
+inline bool QueryValid(JNIEnv* env, Query* pQuery) 
+{
+    Table* pTable = get_table_ptr(pQuery);
+    return TABLE_VALID(env, pTable);
+}
+
+
+//-------------------------------------------------------
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose(JNIEnv * env, jobject, jlong nativeQueryPtr) {
     TR((env, "Query nativeClose(ptr %x)\n", nativeQueryPtr));
@@ -350,28 +362,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
     pQuery->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
 }
 
-// General
-
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeTableview(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong nativeTableViewPtr)
-{
-//TODO: checks?
-    Q(nativeQueryPtr)->tableview(*TV(nativeTableViewPtr));
-}
-
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup(
-    JNIEnv*, jobject, jlong nativeQueryPtr)
-{
-    // No verification of parameters needed
-    Q(nativeQueryPtr)->group();
-}
-
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup(
-    JNIEnv*, jobject, jlong nativeQueryPtr)
-{
-    // No verification of parameters needed
-    Q(nativeQueryPtr)->end_group();
-}
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex)
@@ -384,21 +374,67 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable(
     pQuery->subtable(S(columnIndex));
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent(
-    JNIEnv*, jobject, jlong nativeQueryPtr)
+// General ----------------------------------------------------
+// TODO:
+// Some of these methods may not need the check for Table/Query validity,
+// as they are called for each method when building up the query.
+// Consider to reduce to just the "action" methods on Query
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeTableview(
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong nativeTableViewPtr)
 {
-    // No verification of parameters needed
-    Q(nativeQueryPtr)->end_subtable();
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return;
+
+    pQuery->tableview(*TV(nativeTableViewPtr));
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup(
+    JNIEnv* env, jobject, jlong nativeQueryPtr)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return;
+
+    pQuery->group();
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup(
+    JNIEnv* env, jobject, jlong nativeQueryPtr)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return;
+
+    pQuery->end_group();
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent(
+    JNIEnv* env, jobject, jlong nativeQueryPtr)
+{
+    // No verification of parameters needed?
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return;
+
+    pQuery->end_subtable();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
-    JNIEnv*, jobject, jlong nativeQueryPtr)
+    JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
-    // No verification of parameters needed
-    Q(nativeQueryPtr)->Or();
+    // No verification of parameters needed?
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return;
+
+    pQuery->Or();
 }
 
-// Find
+
+// Find --------------------------------------
+
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindNext(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong lastMatch)

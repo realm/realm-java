@@ -24,16 +24,12 @@ public class JNITransactions {
 
     @BeforeMethod
     public void init() {
-        if (TightDB.osIsWindows())
-            return;
         deleteFile(testFile);
         db = new SharedGroup(testFile);
     }
 
     //@AfterMethod
     public void clear() {
-        if (TightDB.osIsWindows())
-            return;
         db.close();
         deleteFile(testFile);
     }
@@ -42,10 +38,8 @@ public class JNITransactions {
     {
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tbl.updateFromSpec(tableSpec);
+        tbl.addColumn(ColumnType.ColumnTypeString, "name");
+        tbl.addColumn(ColumnType.ColumnTypeInt, "number");
 
         for (long row=0; row < rows; row++)
             tbl.add("Hi", 1);
@@ -56,7 +50,7 @@ public class JNITransactions {
         try {
             assertEquals(1, tbl.size());
             assert(false);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException e) {
         }
 
     }
@@ -73,9 +67,6 @@ public class JNITransactions {
 
     @Test
     public void mustWriteAndReadEmpty() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(0);
         checkRead(0);
         clear();
@@ -83,9 +74,6 @@ public class JNITransactions {
 
     @Test
     public void mustWriteCommit() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(10);
         checkRead(10);
         clear();
@@ -93,9 +81,6 @@ public class JNITransactions {
 
     @Test
     public void mustRollback() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(1);
 
         WriteTransaction trans = db.beginWrite();
@@ -109,16 +94,41 @@ public class JNITransactions {
 
         clear();
     }
+        
+  //TODO: Enable double rollback() test:
+    @Test(enabled = false)
+    public void mustAllowDoubleCommitAndRollback() {
+	    WriteTransaction trans = db.beginWrite();
+	    Table tbl = trans.getTable("EmployeeTable");
+	    tbl.addColumn(ColumnType.ColumnTypeString, "name");
+	    tbl.addColumn(ColumnType.ColumnTypeInt, "number");
 
+	    // allow commit before any changes
+	    trans.commit();
+
+	    tbl.add("Hi", 1);
+	    assertEquals(1, tbl.size());
+	    
+	    // allow double commit()
+	    trans.commit();
+	    trans.commit();
+
+	    // allow double rollback
+        tbl.add("Hello", 1);
+        assertEquals(2, tbl.size());
+        trans.rollback();
+        trans.rollback();
+        assertEquals(1, tbl.size());
+
+        clear();
+    }
+    
     // Test: exception at all mutable methods in TableBase, TableView,
     // Test: above in custom Typed Tables
     // TableQuery.... in ReadTransactions
 
     @Test
     public void mustFailOnWriteInReadTransactions() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(1);
 
         ReadTransaction t = db.beginRead();
