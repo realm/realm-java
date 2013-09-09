@@ -32,7 +32,7 @@ public class JNICloseTest {
     /**
      * Make sure, that an illegavlStateException is thrown when trying to do queries on a closed table
      */
-    @Test()
+    @Test(expectedExceptions = IllegalStateException.class)
     public void closeTableShouldThrowExceptionWhenQuery(){
         
         Table table = TestHelper.getTableWithAllColumnTypes();
