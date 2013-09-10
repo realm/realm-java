@@ -2,13 +2,12 @@
 
 package com.tightdb.refdoc;
 
-import java.io.FileNotFoundException;
 
 import com.tightdb.*;
 
 public class DynTableExamples {
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args)  {
         addAtExample();
         addAtExample();
         setExample();

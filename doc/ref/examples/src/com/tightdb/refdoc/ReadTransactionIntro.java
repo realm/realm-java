@@ -14,15 +14,9 @@ public class ReadTransactionIntro {
 
     // @@Example: ex_java_typed_read_transaction_intro @@
     // @@Show@@
-    @DefineTable(table = "PeopleTable")
-    class People {
-        String name;
-        int age;
-    }
-
     public static void typedReadTransactionIntro(){
         // Open existing database file in a shared group
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
 
         // Create read transaction from the shared group
         ReadTransaction rt = group.beginRead();

@@ -12,22 +12,22 @@ public class WriteTransactionIntro {
 
     // @@Example: ex_java_typed_write_transaction_intro @@
     // @@Show@@
-    @DefineTable(table = "PeopleTable")
-    class People {
-        String name;
-        int age;
-    }
+    @DefineTable(table = "UserTable")
+    class User {
+        String username;
+        int level;
+    } 
    
     public static void typedWriteTransactionIntro(){
         // Open existing database file in a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
-
+ 
         // Begin write transaction 
         WriteTransaction wt = group.beginWrite(); 
         try { 
             // Create table and add row with data
-            PeopleTable people = new PeopleTable(wt);
-            people.add("John Adams", 45);
+            UserTable users = new UserTable(wt);
+            users.add("tarzan", 45);
 
             // Close the transaction and all changes are written to the shared group
             wt.commit();
@@ -37,7 +37,6 @@ public class WriteTransactionIntro {
         }
     } // @@EndShow@@  
     // @@EndExample@@
-
 
 
     // @@Example: ex_java_dyn_write_transaction_intro @@ 
@@ -50,10 +49,10 @@ public class WriteTransactionIntro {
         WriteTransaction wt = group.beginWrite(); 
         try { 
             // Create table, add columns and add row with data
-            Table people = wt.getTable("people");
-            people.addColumn(ColumnType.STRING, "name");
-            people.addColumn(ColumnType.LONG, "age");
-            people.add("John Adams", 45);
+            Table users = wt.getTable("users");
+            users.addColumn(ColumnType.STRING, "username");
+            users.addColumn(ColumnType.LONG, "level");
+            users.add("tarzan", 45);
 
             // Close the transaction. All changes are written to the shared group
             wt.commit();
