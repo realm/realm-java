@@ -31,6 +31,15 @@ public class TypedTableExamples {
         addExample();
         removeExample();
         removeLastExample();
+        
+        
+        // Searching methods
+        whereExample();
+        
+        
+        // Dump methods:
+        toJSONExample();
+        
     }
     
     // ******************************************
@@ -269,15 +278,49 @@ public class TypedTableExamples {
     }
     
     
+    // ******************************************
+    // Searching methods
+    // ******************************************
 
 
+    public static void whereExample(){
+        // @@Example: ex_java_typed_table_where @@
+        // @@Show@@
+        // Create table and add 3 rows of data
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        
+        // Get query object from table
+        PeopleQuery query = people.where();
+        // @@EndShow@@
+        // @@EndExample@@
+    }
 
-
     
     
     
+    // ******************************************
+    // Dump methods
+    // ******************************************
     
-    
+    public static void toJSONExample(){
+        // @@Example: ex_java_dyn_table_to_json @@
+        // @@Show@@
+        // Create table and add 2 rows of data
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        
+        // Generate json output
+        String json = people.toJson();
+        
+        // The json should match the following:
+        Assert(json.equals("[{\"name\":\"John\",\"age\":40,\"hired\":true},{\"name\":\"Susan\",\"age\":50,\"hired\":false}]"));
+        // @@EndShow@@
+        // @@EndExample@@
+    }
     
     
     
