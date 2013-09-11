@@ -224,14 +224,40 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
     }
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeCommit(
+
+JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToJson(
     JNIEnv* env, jobject, jlong nativeGroupPtr)
 {
-    G(nativeGroupPtr)->commit();
+    Group* grp = G(nativeGroupPtr);
+
+    // Write group to string in JSON format
+    std::ostringstream ss;
+    ss.sync_with_stdio(false); // for performance
+    grp->to_json(ss);
+    const std::string str = ss.str();
+    return env->NewStringUTF(str.c_str());
+}
+
+JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToString(
+    JNIEnv* env, jobject, jlong nativeGroupPtr)
+{
+    Group* grp = G(nativeGroupPtr);
+
+    // Write group to string
+    std::ostringstream ss;
+    ss.sync_with_stdio(false); // for performance
+    grp->to_string(ss);
+    const std::string str = ss.str();
+    return env->NewStringUTF(str.c_str());
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeEquals(
-  JNIEnv* env, jobject, jlong nativeGroupPtr, jlong compareToGroupPtr)
+    JNIEnv*, jobject, jlong nativeGroupPtr, jlong nativeGroupToComparePtr)
 {
-    return *G(nativeGroupPtr) == *G(compareToGroupPtr);
+    Group* grp = G(nativeGroupPtr);
+    Group* grpToCompare = G(nativeGroupToComparePtr);
+
+    return (grp == grpToCompare);
+
+
 }

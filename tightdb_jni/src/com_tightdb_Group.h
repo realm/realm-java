@@ -113,11 +113,27 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem
 
 /*
  * Class:     com_tightdb_Group
- * Method:    nativeCommit
- * Signature: (J)V
+ * Method:    nativeToJson
+ * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeCommit
+JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToJson
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_Group
+ * Method:    nativeToString
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToString
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_Group
+ * Method:    nativeEquals
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeEquals
+  (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus
 }

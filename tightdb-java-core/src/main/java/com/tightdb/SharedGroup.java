@@ -5,9 +5,6 @@ import com.tightdb.typed.TightDB;
 
 public class SharedGroup {
 
-    private long nativePtr;
-    private boolean inActiveTransaction;
-    
     static {
         TightDB.loadLibrary();
     }
@@ -18,41 +15,41 @@ public class SharedGroup {
     }
 
     public WriteTransaction beginWrite() {
-        if (inActiveTransaction)
+        if (activeTransaction)
             throw new IllegalStateException(
                     "Can't beginWrite() during another active transaction");
         // FIXME: throw from nativeMethod in case of error
         WriteTransaction t = new WriteTransaction(this,
                 nativeBeginWrite(nativePtr));
-        inActiveTransaction = true;
+        activeTransaction = true;
         return t;
     }
 
     long beginReadGroup() {
-        if (inActiveTransaction)
+        if (activeTransaction)
             throw new IllegalStateException(
                     "Can't beginReadGroup() during another active transaction");
-        inActiveTransaction = true;
+        activeTransaction = true;
         return nativeBeginRead(nativePtr);
     }
 
     public ReadTransaction beginRead() {
-        if (inActiveTransaction)
+        if (activeTransaction)
             throw new IllegalStateException(
                     "Can't beginRead() during another active transaction");
         // FIXME: throw from nativeMethod in case of error
         ReadTransaction t = new ReadTransaction(this, nativeBeginRead(nativePtr));
-        inActiveTransaction = true;
+        activeTransaction = true;
         return t;
     }
 
     void endRead() {
         nativeEndRead(nativePtr);
-        inActiveTransaction = false;
+        activeTransaction = false;
     }
 
     public void close() {
-        if (inActiveTransaction)
+        if (activeTransaction)
             throw new IllegalStateException(
                     "Can't close() SharedGroup during an active transaction");
 
@@ -66,12 +63,12 @@ public class SharedGroup {
 
     void commit() {
         nativeCommit(nativePtr);
-        inActiveTransaction = false;
+        activeTransaction = false;
     }
 
     void rollback() {
         nativeRollback(nativePtr);
-        inActiveTransaction = false;
+        activeTransaction = false;
     }
 
     private void doClose() {
@@ -89,6 +86,14 @@ public class SharedGroup {
         doClose();
     }
 
+    public boolean hasChanged() {
+        return nativeHasChanged(nativePtr);
+    }
+
+    protected native boolean nativeHasChanged(long nativePtr);
+
+    private long nativePtr;
+    private boolean activeTransaction;
 
     private native long nativeBeginRead(long nativePtr);
 

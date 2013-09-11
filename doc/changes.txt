@@ -1,3 +1,8 @@
+09-September-2013:
+=================
++ Added Group::toString, toJson, equals
++ Added SharedGroup::hasChanged
+
 06-September-2013:
 =================
 ! BUGFIX: Fixed small leak in TableQuery.
