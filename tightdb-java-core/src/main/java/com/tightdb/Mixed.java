@@ -218,4 +218,32 @@ public class Mixed {
     public Object getValue() {
         return value;
     }
+    
+    public String getReadableValue() {
+        ColumnType type = getType();
+        try {
+	        switch (type) {
+			case ColumnTypeBinary:
+				return "Binary";
+			case ColumnTypeBool:
+				return String.valueOf(getBooleanValue());
+			case ColumnTypeDate:
+				return String.valueOf(getDateValue());
+			case ColumnTypeDouble:
+				return String.valueOf(getDoubleValue());
+			case ColumnTypeFloat:
+				return String.valueOf(getFloatValue());
+			case ColumnTypeInt:
+				return String.valueOf(getLongValue());
+			case ColumnTypeString:
+				return String.valueOf(getStringValue());
+			case ColumnTypeTable:
+				return "Subtable";
+			case ColumnTypeMixed:
+				break; // error
+	        }
+        } catch (Exception e) {
+        }
+		return "ERROR";
+    }
 }

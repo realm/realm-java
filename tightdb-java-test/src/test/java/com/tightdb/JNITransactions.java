@@ -7,8 +7,6 @@ import java.util.Date;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.tightdb.typed.TightDB;
-
 public class JNITransactions {
 
     protected SharedGroup db;
