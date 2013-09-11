@@ -12,7 +12,7 @@ DESCR      : >
              
              During the write transaction, you will have exclusive access to make changes to the group.
              Any other processes which tries to initiate a write transaction, will be stalled until your
-             transaction terminates.
+             transaction ends with either commit() or rollback().
 
 SEE        : 
 EXAMPLES: 
@@ -29,6 +29,9 @@ CATEGORIES:
       EXAMPLES:
       - CODE   : ex_java_write_transaction_commit
         DESCR  :
+	  THROWS:
+	    EXCEPT : IllegalStateException
+		DESCR  : Thrown if commit() is called more than once after the transaction was initiated.
 
   - g_write_transaction_rollback:
       NAMES    : rollback
