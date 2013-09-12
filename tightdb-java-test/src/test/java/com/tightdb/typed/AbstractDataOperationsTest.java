@@ -139,8 +139,10 @@ public abstract class AbstractDataOperationsTest {
 		result = getEmployees().toString();
 		assertEquals(expectedTableStr1 + expectedTableStr2, result);
 
-		String expectedRowStr = "TestEmployeeRow {firstName=John, lastName=Doe, salary=10000, driver=true" +
-				", photo={binary}, birthdate=02-01-70 11:17, extra=Extra!, phones=subtable}";
+		String expectedRowStr = 
+				"    firstName     lastName  salary  driver      photo            birthdate   extra  phones\n" +
+				"0:  John       Doe           10000    true    3 bytes  1970-01-02 10:17:36  Extra!     [0]\n";
+		
 		result = getEmployees().first().toString();
 		assertEquals(expectedRowStr, result);
         

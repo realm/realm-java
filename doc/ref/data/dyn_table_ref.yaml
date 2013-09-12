@@ -746,7 +746,8 @@ CATEGORIES :
       PARAMS:
       - NAME   : maxRows
         TYPES  : long
-        DESCR  : The maxinum number of rows to convert.
+        DESCR  : The maxinum number of rows to convert. -1 will convert all rows.
+                 If no parameter is used, the first 500 rows are converted.
       RETURN:
         TYPES  : String
         DESCR  : &java_dyn_table_to_string_return_descr

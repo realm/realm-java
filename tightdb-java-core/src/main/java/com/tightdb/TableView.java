@@ -633,7 +633,7 @@ public class TableView implements TableOrView {
     protected native String nativeToJson(long nativeViewPtr);
 
     public String toString() {
-        return nativeToString(nativePtr, -1);
+        return nativeToString(nativePtr, 500);
     }
     
     public String toString(long maxRows) {
@@ -643,7 +643,7 @@ public class TableView implements TableOrView {
     protected native String nativeToString(long nativeTablePtr, long maxRows);
 
     public String rowToString(long rowIndex) {
-        return nativeToString(nativePtr, rowIndex);
+        return nativeRowToString(nativePtr, rowIndex);
     }
 
     protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
