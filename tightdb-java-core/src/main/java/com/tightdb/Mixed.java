@@ -104,7 +104,7 @@ public class Mixed {
         if (value instanceof String)
             return ColumnType.STRING;
         else if (value instanceof Long)
-            return ColumnType.LONG;
+            return ColumnType.INTEGER;
         else if (value instanceof Float)
             return ColumnType.FLOAT;
         else if (value instanceof Double)
@@ -217,5 +217,33 @@ public class Mixed {
 
     public Object getValue() {
         return value;
+    }
+    
+    public String getReadableValue() {
+        ColumnType type = getType();
+        try {
+	        switch (type) {
+			case BINARY:
+				return "Binary";
+			case BOOLEAN:
+				return String.valueOf(getBooleanValue());
+			case DATE:
+				return String.valueOf(getDateValue());
+			case DOUBLE:
+				return String.valueOf(getDoubleValue());
+			case FLOAT:
+				return String.valueOf(getFloatValue());
+			case INTEGER:
+				return String.valueOf(getLongValue());
+			case STRING:
+				return String.valueOf(getStringValue());
+			case TABLE:
+				return "Subtable";
+			case MIXED:
+				break; // error
+	        }
+        } catch (Exception e) {
+        }
+		return "ERROR";
     }
 }

@@ -7,7 +7,7 @@ public class DynTableIntro {
         // @@Show@@
         // Create a basic dynamic table with 3 columns: long, String, Mixed
         Table tbl = new Table();
-        tbl.addColumn(ColumnType.LONG, "myInt");
+        tbl.addColumn(ColumnType.INTEGER, "myInt");
         tbl.addColumn(ColumnType.STRING, "myStr");
         tbl.addColumn(ColumnType.MIXED, "myMixed");
 

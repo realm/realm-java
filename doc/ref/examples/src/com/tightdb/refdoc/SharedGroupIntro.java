@@ -23,7 +23,7 @@ public class SharedGroupIntro {
             Table table = wt.getTable("newTable");
 
             // Specify 2 columns and add 3 rows of data
-            table.addColumn(ColumnType.LONG, "ID");
+            table.addColumn(ColumnType.INTEGER, "ID");
             table.addColumn(ColumnType.STRING, "City");
             table.add(1, "Washington");
             table.add(2, "Los Angeles");

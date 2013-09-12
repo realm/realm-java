@@ -45,7 +45,7 @@ public class JNIMixedTypeTest {
         case BOOLEAN:
             mixed.getBooleanValue();
             break;
-        case LONG:
+        case INTEGER:
             mixed.getLongValue();
             break;
         case FLOAT:
@@ -117,7 +117,7 @@ public class JNIMixedTypeTest {
         Object[] values = {
                 new MixedData(ColumnType.BOOLEAN, true),
                 new MixedData(ColumnType.STRING, "abc"),
-                new MixedData(ColumnType.LONG, 123L),
+                new MixedData(ColumnType.INTEGER, 123L),
                 new MixedData(ColumnType.FLOAT, 987.123f),
                 new MixedData(ColumnType.DOUBLE, 1234567.898d),
                 new MixedData(ColumnType.DATE, new Date(645342)),
@@ -132,7 +132,7 @@ public class JNIMixedTypeTest {
     @DataProvider(name = "columnTypesProvider")
     public Object[][] columnTypesProvider() {
         Object[][] values = { {ColumnType.BOOLEAN},
-                {ColumnType.STRING}, {ColumnType.LONG},
+                {ColumnType.STRING}, {ColumnType.INTEGER},
                 {ColumnType.FLOAT}, {ColumnType.DOUBLE},
                 {ColumnType.DATE}, {ColumnType.BINARY} };
 

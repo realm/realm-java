@@ -1,12 +1,7 @@
 package com.tightdb.experiment;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.tightdb.ColumnType;
@@ -23,7 +18,7 @@ public class ColumnTypeViewTest {
         t  = new Table();
         t.addColumn(ColumnType.DATE, "Date");
         t.addColumn(ColumnType.STRING, "String");
-        t.addColumn(ColumnType.LONG , "Long");
+        t.addColumn(ColumnType.INTEGER , "Long");
         
         t.add(new Date(), "I'm a String", 33);
         

@@ -1,7 +1,5 @@
 package com.tightdb.typed;
 
-import java.util.Date;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -23,16 +21,13 @@ public class ViewDataOperationsTest extends AbstractDataOperationsTest {
 
     @BeforeMethod
     public void init() {
-        TestEmployeeTable employeesTable = new TestEmployeeTable();
-
-        employeesTable.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra", null);
-        employeesTable.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, new Date(), true, null);
-        employeesTable.insert(1, NAME1, "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
-
-        Object[][] phones = { { "home", "123-123" }, { "mobile", "456-456" } };
-        employeesTable.add(NAME3, "Bond", 150000, true, new byte[] { 0 }, new Date(), "x", phones);
-
+        TestEmployeeTable employeesTable = getEmployeeTable();
         employees = employeesTable.where().findAll();
+    }
+    
+    @Test
+    public void shouldPrint() {
+    	super.shouldPrintData("TestEmployeeView");
     }
 
 }

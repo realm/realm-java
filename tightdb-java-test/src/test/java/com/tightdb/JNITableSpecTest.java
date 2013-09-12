@@ -72,11 +72,11 @@ public class JNITableSpecTest {
     @Test()
     public void shouldHandleColumnsDynamically() {
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "0");
+        table.addColumn(ColumnType.INTEGER, "0");
         assertEquals(1, table.getColumnCount());
         assertEquals(0, table.getColumnIndex("0"));
         assertEquals("0", table.getColumnName(0));
-        assertEquals(ColumnType.LONG, table.getColumnType(0));
+        assertEquals(ColumnType.INTEGER, table.getColumnType(0));
         table.add(23);
 
         table.addColumn(ColumnType.FLOAT, "1");

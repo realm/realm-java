@@ -191,7 +191,7 @@ public class GroupTest {
     	group.commit();
   	
       	Table tbl = group.getTable("test");
-    	tbl.addColumn(ColumnType.LONG, "number");
+    	tbl.addColumn(ColumnType.INTEGER, "number");
     	tbl.add(1);
     	group.commit();
     	assertEquals(tbl.getLong(0, 0), 1);
@@ -275,12 +275,12 @@ public class GroupTest {
     public void shouldCompareGroups() {
     	Group group1 = new Group();
       	Table tbl = group1.getTable("test");
-    	tbl.addColumn(ColumnType.LONG, "number");
+    	tbl.addColumn(ColumnType.INTEGER, "number");
     	tbl.add(1);
 
     	Group group2 = new Group();
       	Table tbl2 = group2.getTable("test");
-    	tbl2.addColumn(ColumnType.LONG, "number");
+    	tbl2.addColumn(ColumnType.INTEGER, "number");
     	tbl2.add(1);
     	
     	assertEquals(true, group1.equals(group2));
@@ -294,7 +294,7 @@ public class GroupTest {
     public void shouldFailWhenModifyingTablesOnClosedGroup() {
         Group group = new Group();
         Table tbl = group.getTable("test");
-        tbl.addColumn(ColumnType.LONG, "number");
+        tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
         
         //Close the group
@@ -309,7 +309,7 @@ public class GroupTest {
     public void shouldFailWhenAddingTablesToClosedGroup() {
         Group group = new Group();
         Table tbl = group.getTable("test");
-        tbl.addColumn(ColumnType.LONG, "number");
+        tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
         
         //Close the group
@@ -324,7 +324,7 @@ public class GroupTest {
     public void shouldFailWhenGettingValuesFromTablesInClosedGroup() {
         Group group = new Group();
         Table tbl = group.getTable("test");
-        tbl.addColumn(ColumnType.LONG, "number");
+        tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
         
         //Close the group

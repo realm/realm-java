@@ -538,3 +538,17 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToJson(
 
    return env->NewStringUTF(str.c_str());
 }
+
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToString(
+    JNIEnv *env, jobject, jlong nativeViewPtr, jlong maxRows)
+{
+   TableView* tv = TV(nativeViewPtr);
+   if (!TABLE_VALID(env, tv)) 
+       return NULL;
+
+   std::ostringstream ss;
+   ss.sync_with_stdio(false); // for performance
+   tv->to_string(ss, maxRows);
+   const std::string str = ss.str();
+   return env->NewStringUTF(str.c_str());
+}

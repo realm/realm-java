@@ -1,4 +1,3 @@
-// @@Example: ex_java_dyn_table_view_intro @@
 
 package com.tightdb.refdoc;
 
@@ -9,13 +8,14 @@ import com.tightdb.*;
 
 public class DynTableViewIntro {
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws FileNotFoundException  {
+        // @@Example: ex_java_dyn_table_view_intro @@
         // @@Show@@
         // Create a new table
         Table table = new Table();
 
         // Specify the column types and names
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
@@ -23,14 +23,17 @@ public class DynTableViewIntro {
         table.add(200, "Los Angeles");
         table.add(300, "New York");
 
-        // Create a query object from the table without any filters and execute it to retrieve a table view
+        // Create a query object from the table without any filters 
+        // and execute it to retrieve a table view
         TableView view = table.where().findAll();
 
-        // Remove the first row from the view and thereby also the original table and check that the number of rows in the original table is 2
+        // Remove the first row from the view and thereby also the original table
+        // and check that the number of rows in the original table is 2
         view.remove(0);
         Assert(table.size() == 2);
 
-        // Change the value of column 1, row 1 to 'London'. The changes are reflected in the original table
+        // Change the value of column 1, row 1 to 'London'. 
+        // The changes are reflected in the original table
         view.setString(1, 1, "London");
         Assert(table.getString(1, 1).equals("London"));
 
@@ -41,11 +44,13 @@ public class DynTableViewIntro {
         Assert(view.average(0) == 250);
 
 
-        // Get JSON representation of the data in the view and print it using e.g. a PrintWriter object
+        // Get JSON representation of the data in the view 
+        // and print it using e.g. a PrintWriter object
         PrintWriter out = new PrintWriter("fromServlet");
         out.print(view.toJson());
         out.close();
         // @@EndShow@@
+        // @@EndExample@@
     }
 
     static void Assert(boolean check) {
@@ -54,4 +59,4 @@ public class DynTableViewIntro {
         }
     }
 } 
-// @@EndExample@@
+

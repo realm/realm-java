@@ -47,13 +47,13 @@ public class JNITableInsertTest {
         Table table = new Table();
         TableSpec tableSpec = new TableSpec();
         tableSpec.addColumn(ColumnType.BOOLEAN, "bool");
-        tableSpec.addColumn(ColumnType.LONG, "number");
+        tableSpec.addColumn(ColumnType.INTEGER, "number");
         tableSpec.addColumn(ColumnType.STRING, "string");
         tableSpec.addColumn(ColumnType.BINARY, "Bin");
         tableSpec.addColumn(ColumnType.DATE, "date");
         tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.LONG, "sub-num");
+        subspec.addColumn(ColumnType.INTEGER, "sub-num");
         subspec.addColumn(ColumnType.STRING, "sub-str");
         table.updateFromSpec(tableSpec);
 
@@ -109,7 +109,7 @@ public class JNITableInsertTest {
     public void testAddAtMethod() {
         Table t = new Table();
         t.addColumn(ColumnType.STRING, "col1");
-        t.addColumn(ColumnType.LONG, "col2");
+        t.addColumn(ColumnType.INTEGER, "col2");
         
         t.add("s1",1);
         t.add("s2",2);
@@ -124,13 +124,13 @@ public class JNITableInsertTest {
         Table table = new Table();
         TableSpec tableSpec = new TableSpec();
         tableSpec.addColumn(ColumnType.BOOLEAN, "bool");
-        tableSpec.addColumn(ColumnType.LONG, "number");
+        tableSpec.addColumn(ColumnType.INTEGER, "number");
         tableSpec.addColumn(ColumnType.STRING, "string");
         tableSpec.addColumn(ColumnType.BINARY, "Bin");
         tableSpec.addColumn(ColumnType.DATE, "date");
         tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.LONG, "sub-num");
+        subspec.addColumn(ColumnType.INTEGER, "sub-num");
         table.updateFromSpec(tableSpec);
 
         // Wrong number of parameters
@@ -210,7 +210,7 @@ public class JNITableInsertTest {
 
         Table table = new Table();
         table.addColumn(ColumnType.STRING, "col0");
-        table.addColumn(ColumnType.LONG, "col1");
+        table.addColumn(ColumnType.INTEGER, "col1");
 
         table.add("row0", 0);
         table.add("row1", 10);
@@ -235,7 +235,7 @@ public class JNITableInsertTest {
 
         for (long c=0;c<table.getColumnCount();c++){
 
-            if(table.getColumnType(c).equals(ColumnType.LONG) == false){ // Do not check if it is a Long column
+            if(table.getColumnType(c).equals(ColumnType.INTEGER) == false){ // Do not check if it is a Long column
                 try{ 
                     table.adjustColumnValues(c, 10); 
                     assertTrue(false); //We should never get here, as an exception is thrown above

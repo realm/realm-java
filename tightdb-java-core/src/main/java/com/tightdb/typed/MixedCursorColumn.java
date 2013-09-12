@@ -19,6 +19,11 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
     }
 
     @Override
+    public String getReadableValue() {
+    	return get().getReadableValue();
+    }
+
+    @Override
     public Mixed get() {
         return cursor.tableOrView.getMixed(columnIndex, cursor.getPosition());
     }

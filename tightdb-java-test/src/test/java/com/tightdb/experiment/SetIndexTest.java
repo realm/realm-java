@@ -20,7 +20,7 @@ public class SetIndexTest {
         Table table = new Table();
         table.addColumn(ColumnType.STRING, "Name");
         table.addColumn(ColumnType.DOUBLE, "GPA");
-        table.addColumn(ColumnType.LONG, "Age");
+        table.addColumn(ColumnType.INTEGER, "Age");
         table.addColumn(ColumnType.STRING, "Nickname");
         
         //Add data
@@ -36,7 +36,7 @@ public class SetIndexTest {
         Table fromGroup = group.getTable("test");
         fromGroup.addColumn(ColumnType.STRING, "Name");
         fromGroup.addColumn(ColumnType.DOUBLE, "GPA");
-        fromGroup.addColumn(ColumnType.LONG, "Age");
+        fromGroup.addColumn(ColumnType.INTEGER, "Age");
         fromGroup.addColumn(ColumnType.STRING, "Nickname");
         
         //Add data
@@ -54,7 +54,7 @@ public class SetIndexTest {
             Table tab = wt.getTable("table1");
             tab.addColumn(ColumnType.STRING, "Name");
             tab.addColumn(ColumnType.DOUBLE, "GPA");
-            tab.addColumn(ColumnType.LONG, "Age");
+            tab.addColumn(ColumnType.INTEGER, "Age");
             tab.addColumn(ColumnType.STRING, "Nickname");
             
             //Add data
