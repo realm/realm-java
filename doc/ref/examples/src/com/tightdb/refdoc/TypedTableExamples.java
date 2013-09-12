@@ -2,13 +2,16 @@
 
 package com.tightdb.refdoc;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
 import com.tightdb.ColumnType;
 
 
 
 public class TypedTableExamples {
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) throws FileNotFoundException  {
         
         // Table methods:
         sizeExample();
@@ -105,12 +108,18 @@ public class TypedTableExamples {
         // @@Show@@
         // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
-        people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
         
-        // Optimize table
-        people.optimize();
+        for (long row=0; row<100000;row++){
+            
+            // After 1000 rows of added data, the table
+            // has enough info to update the internal data structure
+            if(row == 1000)
+                people.optimize();
+            
+            people.add("John", 40, true);
+            people.add("Susan", 50, false); 
+            people.add("Greg", 26, true); 
+        }
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -305,7 +314,7 @@ public class TypedTableExamples {
     // Dump methods
     // ******************************************
     
-    public static void toJSONExample(){
+    public static void toJSONExample() throws FileNotFoundException{
         // @@Example: ex_java_dyn_table_to_json @@
         // @@Show@@
         // Create table and add 2 rows of data
@@ -315,6 +324,12 @@ public class TypedTableExamples {
         
         // Generate json output
         String json = people.toJson();
+        
+        // Print json e.g. using a printbwriter
+        PrintWriter out = new PrintWriter("fromServlet");
+        out.print(json);
+        out.close();
+        
         
         // The json should match the following:
         Assert(json.equals("[{\"name\":\"John\",\"age\":40,\"hired\":true},{\"name\":\"Susan\",\"age\":50,\"hired\":false}]"));
