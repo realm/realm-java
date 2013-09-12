@@ -83,13 +83,13 @@ public class GroupTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void getTableShouldThrowIllegalArgument1() {
+    public void getNullTableShouldThrowIllegalArgument() {
         Group group = new Group();
         group.getTable(null);
         // Expect to throw exception
     }
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public void getTableShouldThrowIllegalArgument2() {
+    public void getEmptyTableShouldThrowIllegalArgument() {
         Group group = new Group();
         group.getTable("");
         // Expect to throw exception

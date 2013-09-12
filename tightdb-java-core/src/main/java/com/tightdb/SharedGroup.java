@@ -86,6 +86,12 @@ public class SharedGroup {
         doClose();
     }
 
+    public boolean hasChanged() {
+        return nativeHasChanged(nativePtr);
+    }
+
+    protected native boolean nativeHasChanged(long nativePtr);
+
     private long nativePtr;
     private boolean activeTransaction;
 

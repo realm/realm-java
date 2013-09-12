@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.tightdb.internal.util;
+import com.tightdb.internal.Util;
 
 /**
  * Utility methods for TightDB.
@@ -74,37 +74,11 @@ public class TightDB {
             throw new RuntimeException("Cannot deserialize the object!", e);
         }
     }
-
-    public static void print(String caption, AbstractTableOrView<? extends AbstractCursor<?>, ?, ?> tableOrView) {
-        String format = "%-15s| ";
-        System.out.println(String.format("================== %s ====================", caption));
-        if (!tableOrView.isEmpty()) {
-            for (AbstractColumn<?, ?, ?, ?> column : tableOrView.get(0).columns()) {
-                System.out.print(String.format(format, column.getName()));
-            }
-            System.out.println();
-
-            for (int i = 0; i < tableOrView.size(); i++) {
-                AbstractCursor<?> p = tableOrView.get(i);
-                for (AbstractColumn<?, ?, ?, ?> column : p.columns()) {
-                    System.out.print(String.format(format, column.getReadableValue()));
-                }
-                System.out.println();
-            }
-            System.out.println();
-        } else {
-            System.out.println(" - No records to show!");
-        }
-    }
-
-    public static void print(AbstractTableOrView<? extends AbstractCursor<?>, ?, ?> tableOrView) {
-        print(tableOrView.getName(), tableOrView);
-    }
-
+/*
     public static void print(String caption, AbstractCursor<?> cursor) {
         System.out.println(caption + ": " + cursor);
     }
-
+*/
     /**
      * Guarantee gc is done.
      */
@@ -156,7 +130,7 @@ public class TightDB {
         }
         libraryIsLoaded.set(true);
 
-        if (!util.versionCompatible()) {
+        if (!Util.versionCompatible()) {
             throw new RuntimeException("Version mismatch between tightdb.jar and native JNI library " + jnilib);
         }
     }

@@ -2,8 +2,6 @@ package com.tightdb.example;
 
 import java.util.Date;
 
-import com.tightdb.typed.TightDB;
-
 public class NestedTablesExample {
 
     public static void main(String[] args) {
@@ -22,10 +20,9 @@ public class NestedTablesExample {
         nikolche.getPhones().add("mobile", "444");
         nikolche.getPhones().add("work", "555");
 
-        TightDB.print(employees);
-
+        System.out.println(employees);
         for (PhoneTable phoneTable : employees.phones.getAll()) {
-            TightDB.print(phoneTable);
+            System.out.println(phoneTable);
         }
 
     }

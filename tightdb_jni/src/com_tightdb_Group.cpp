@@ -165,8 +165,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
             // not declared 'noexcept' must be considered as being
             // able to throw anything derived from std::exception.
             ThrowException(env, IOFailed, fileNameCharPtr);
-        env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
         }
+        env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
     }
     // (exception is thrown by GetStringUTFChars if it fails.)
 }
@@ -210,4 +210,41 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
         ThrowException(env, IndexOutOfBounds, "Group too big to write.");
         return NULL;
     }
+}
+
+JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToJson(
+    JNIEnv* env, jobject, jlong nativeGroupPtr)
+{
+    Group* grp = G(nativeGroupPtr);
+
+    // Write group to string in JSON format
+    std::ostringstream ss;
+    ss.sync_with_stdio(false); // for performance
+    grp->to_json(ss);
+    const std::string str = ss.str();
+    return env->NewStringUTF(str.c_str());
+}
+
+JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToString(
+    JNIEnv* env, jobject, jlong nativeGroupPtr)
+{
+    Group* grp = G(nativeGroupPtr);
+
+    // Write group to string
+    std::ostringstream ss;
+    ss.sync_with_stdio(false); // for performance
+    grp->to_string(ss);
+    const std::string str = ss.str();
+    return env->NewStringUTF(str.c_str());
+}
+
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeEquals(
+    JNIEnv*, jobject, jlong nativeGroupPtr, jlong nativeGroupToComparePtr)
+{
+    Group* grp = G(nativeGroupPtr);
+    Group* grpToCompare = G(nativeGroupToComparePtr);
+
+    return (grp == grpToCompare);
+
+
 }

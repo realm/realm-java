@@ -46,6 +46,7 @@ import java.util.Date;
  *
  */
 public class TableView implements TableOrView {
+    protected boolean DEBUG = false; //true;
 
     /**
      * Creates a TableViewBase with a Java Object Table and a already created
@@ -594,7 +595,7 @@ public class TableView implements TableOrView {
 
     // Sorting
 
-    enum Order { ascending, descending };
+    public enum Order { ascending, descending };
 
     public void sort(long columnIndex, Order order) {
         if (immutable) throwImmutable();
@@ -616,7 +617,8 @@ public class TableView implements TableOrView {
     }
 
     private synchronized void close(){
-        if(nativePtr == 0)
+        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);    	
+        if (nativePtr == 0)
             return;
         nativeClose(nativePtr);
         nativePtr = 0;
@@ -630,6 +632,22 @@ public class TableView implements TableOrView {
 
     protected native String nativeToJson(long nativeViewPtr);
 
+    public String toString() {
+        return nativeToString(nativePtr, 500);
+    }
+    
+    public String toString(long maxRows) {
+        return nativeToString(nativePtr, maxRows);
+    }
+
+    protected native String nativeToString(long nativeTablePtr, long maxRows);
+
+    public String rowToString(long rowIndex) {
+        return nativeRowToString(nativePtr, rowIndex);
+    }
+
+    protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
+
     private void throwImmutable()
     {
         throw new IllegalStateException("Mutable method call during read transaction.");
@@ -639,9 +657,9 @@ public class TableView implements TableOrView {
     protected boolean immutable = false;
     protected TableView tableView;
 
-
     @Override
     public long lookup(String value) {
+        // TODO: implement
         throw new RuntimeException("Not implemented yet.");
     }
 

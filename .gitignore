@@ -72,3 +72,9 @@ _ReSharper*/
 /test_output
 
 .DS_Store
+.idea
+*.iml
+
+*.lock
+
+tightdb-java-test/testng.xml

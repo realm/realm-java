@@ -123,12 +123,19 @@ public class Table implements TableOrView {
 
     protected native boolean nativeIsValid(long nativeTablePtr);
 
+    private void verifyColumnName(String name) {
+    	if (name.length() > 63) {
+    		throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
+    	}    	
+    }
+    
     /**
      * Add a column to the table dynamically.
      * @return Index of the new column.
      */
     public long addColumn (ColumnType type, String name) {
-        return nativeAddColumn(nativePtr, type.getValue(), name);
+    	verifyColumnName(name);
+    	return nativeAddColumn(nativePtr, type.getValue(), name);
     }
 
     protected native long nativeAddColumn(long nativeTablePtr, int type, String name);
@@ -147,6 +154,7 @@ public class Table implements TableOrView {
      * Rename a column in the table.
      */
     public void renameColumn(long columnIndex, String newName) {
+    	verifyColumnName(newName);
         nativeRenameColumn(nativePtr, columnIndex, newName);
     }
 
@@ -305,6 +313,8 @@ public class Table implements TableOrView {
 
     public long addEmptyRows(long rows) {
         if (immutable) throwImmutable();
+        if (rows < 1)
+        	throw new IllegalArgumentException("'rows' must be > 0.");
         return nativeAddEmptyRow(nativePtr, rows);
     }
 
@@ -1000,6 +1010,21 @@ public class Table implements TableOrView {
 
     protected native String nativeToJson(long nativeTablePtr);
 
+    public String toString() {
+        return nativeToString(nativePtr, INFINITE);
+    }
+
+    public String toString(long maxRows) {
+        return nativeToString(nativePtr, maxRows);
+    }
+
+    protected native String nativeToString(long nativeTablePtr, long maxRows);
+
+    public String rowToString(long rowIndex) {
+        return nativeRowToString(nativePtr, rowIndex);
+    }
+
+    protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
     private void throwImmutable()
     {

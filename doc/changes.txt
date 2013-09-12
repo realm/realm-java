@@ -1,3 +1,22 @@
+10-September-2013:
+==================
+- Deprecated ReadTransaction.close()
++ WriteTransaction.commit() now throws IllegalStateException
+
+
+09-September-2013:
+==================
++ Added Table.toString(), Table.toString(maxRows), Table.rowToString(row)
++ Added TableView.toString(), TableView.toString(maxRows), TableView.rowToString(row)
++ Added Group.toString(), toJson(), equals()
++ Added Mixed.getReadableValue()
++ Added SharedGroup.hasChanged()
++ Added validation of parameters in all methods. Exceptions are now thrown if invalid parameters are passed. 
+
+06-September-2013:
+=================
+! BUGFIX: Fixed small leak in TableQuery.
+
 13-August-2013:
 ===============
 + Table.add() now returns row index of the added row. 

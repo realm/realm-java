@@ -721,6 +721,22 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeOptimize
 JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToJson
   (JNIEnv *, jobject, jlong);
 
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToString
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeRowToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeRowToString
+  (JNIEnv *, jobject, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

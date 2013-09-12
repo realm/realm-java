@@ -3,8 +3,6 @@ package com.tightdb.example;
 import java.util.Arrays;
 import java.util.Date;
 
-import com.tightdb.typed.TightDB;
-
 public class SearchExample {
 
     @SuppressWarnings("unused")
@@ -15,15 +13,12 @@ public class SearchExample {
         Employee johny = Employees.add("Johny", "Goe", 20000, true, new byte[] { 1, 2, 3 }, new Date(), true, null);
         Employee nikolche = Employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
 
-        TightDB.print(Employees);
-
+        System.out.println(Employees);
+        
         EmployeeQuery q1 = Employees.firstName.startsWith("J").lastName.endsWith("e");
-        System.out.println(q1);
-
         EmployeeView results = q1.findAll();
+        
         System.out.println(results);
-
-        TightDB.print(results);
 
         System.out.println("First names: " + Arrays.toString(results.firstName.getAll()));
         System.out.println("Salary sum: " + results.salary.sum());
@@ -31,16 +26,16 @@ public class SearchExample {
         System.out.println("Salary max: " + results.salary.maximum());
         System.out.println("Salary average: " + results.salary.average());
 
-        TightDB.print(results);
+        System.out.println(results);
 
         results.clear();
 
-        TightDB.print(Employees);
+        System.out.println(Employees);
 
         long count = Employees.firstName.contains("iko").clear();
         System.out.println("Removed " + count + " rows!");
 
-        TightDB.print(Employees);
+        System.out.println(Employees);
     }
 
 }

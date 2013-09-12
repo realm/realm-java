@@ -17,6 +17,14 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_SharedGroup_nativeGetDefaultReplicati
 
 /*
  * Class:     com_tightdb_SharedGroup
+ * Method:    nativeHasChanged
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_tightdb_SharedGroup_nativeHasChanged
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_SharedGroup
  * Method:    nativeBeginRead
  * Signature: (J)J
  */

@@ -78,4 +78,11 @@ public abstract class AbstractTableOrView<Cursor, View, Query> implements Iterab
         return tableOrView.toJson();
     }
 
+    public String toString() {
+        return toString(500);
+    }
+
+    public String toString(long maxRows) {
+        return getName() + ":\n" + tableOrView.toString(maxRows);
+    }
 }

@@ -76,9 +76,13 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case IllegalArgument:
-        case TableInvalid:
             jExceptionClass = env->FindClass("java/lang/IllegalArgumentException");
             message = "Illegal Argument: " + classStr;
+            break;
+
+        case TableInvalid:
+            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
+            message = "Illegal State: " + classStr;
             break;
 
         case IOFailed:
