@@ -11,10 +11,10 @@ public class JNIMixedSubtableTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.LONG, "num");
+        tableSpec.addColumn(ColumnType.INTEGER, "num");
         tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("subtable");
-        subspec.addColumn(ColumnType.LONG, "num");
+        subspec.addColumn(ColumnType.INTEGER, "num");
         table.updateFromSpec(tableSpec);
 
         // Shouln't work: no Mixed stored yet
@@ -47,7 +47,7 @@ public class JNIMixedSubtableTest {
         // Create schema for the one Mixed cell with a subtable
         Table subtable = table.getSubTable(1, ROW);
         TableSpec subspecMixed = subtable.getTableSpec();
-        subspecMixed.addColumn(ColumnType.LONG, "num");
+        subspecMixed.addColumn(ColumnType.INTEGER, "num");
         subtable.updateFromSpec(subspecMixed);
 
         // Insert value in the Mixed subtable
@@ -65,7 +65,7 @@ public class JNIMixedSubtableTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.LONG, "num");
+        tableSpec.addColumn(ColumnType.INTEGER, "num");
         tableSpec.addColumn(ColumnType.MIXED, "mix");
         table.updateFromSpec(tableSpec);
 

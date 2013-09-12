@@ -29,7 +29,7 @@ public abstract class AbstractTest {
 
     protected static final ColumnType[] EXPECTED_COLUMN_TYPE = {
             ColumnType.STRING, ColumnType.STRING,
-            ColumnType.LONG, ColumnType.BOOLEAN,
+            ColumnType.INTEGER, ColumnType.BOOLEAN,
             ColumnType.BINARY, ColumnType.DATE,
             ColumnType.MIXED, ColumnType.TABLE };
 

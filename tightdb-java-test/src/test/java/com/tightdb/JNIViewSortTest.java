@@ -22,7 +22,7 @@ public class JNIViewSortTest {
 	    t = new Table();
 	    t.addColumn(ColumnType.STRING, "Name");
 	    t.addColumn(ColumnType.BOOLEAN,   "Study");
-	    t.addColumn(ColumnType.LONG,    "Age");
+	    t.addColumn(ColumnType.INTEGER,    "Age");
 	    t.addColumn(ColumnType.DATE,   "Birthday");
 	    
 	    // Add unsupported column types

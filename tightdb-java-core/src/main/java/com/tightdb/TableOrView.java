@@ -243,7 +243,11 @@ public interface TableOrView {
     TableView findAllString(long columnIndex, String value);
 
     String toJson();
+    
+    String toString();
 
+    String toString(long maxRows);
+    
 // Experimental:
 
     long lookup(String value);

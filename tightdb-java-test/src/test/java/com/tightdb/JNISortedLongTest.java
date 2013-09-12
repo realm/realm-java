@@ -8,7 +8,7 @@ public class JNISortedLongTest {
 
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.LONG, "number");
+        table.addColumn(ColumnType.INTEGER, "number");
         table.addColumn(ColumnType.STRING, "name");
 
         table.add(1, "A");

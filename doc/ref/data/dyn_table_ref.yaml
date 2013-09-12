@@ -39,7 +39,7 @@ CATEGORIES :
 - Table:
   METHODS:
   - g_dyn_table_is_attached:
-      NAMES    : isValid
+      NAMES    : isAttached
       SUMMARY  : *g_dyn_table_is_attached_summary
       DESCR    : *g_dyn_table_is_attached_descr
       RETURN:

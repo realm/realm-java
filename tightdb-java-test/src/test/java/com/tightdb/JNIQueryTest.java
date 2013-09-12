@@ -15,7 +15,7 @@ public class JNIQueryTest {
     void init() {
         table = new Table();
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.LONG, "number");
+        tableSpec.addColumn(ColumnType.INTEGER, "number");
         tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 

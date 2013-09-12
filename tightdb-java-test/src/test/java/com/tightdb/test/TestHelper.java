@@ -25,7 +25,7 @@ public class TestHelper {
         if (o instanceof String)
             return ColumnType.STRING;
         if (o instanceof Long)
-            return ColumnType.LONG;
+            return ColumnType.INTEGER;
         if (o instanceof Float)
             return ColumnType.FLOAT;
         if (o instanceof Double)
@@ -52,7 +52,7 @@ public class TestHelper {
         t.addColumn(ColumnType.DATE, "date");
         t.addColumn(ColumnType.DOUBLE, "double");
         t.addColumn(ColumnType.FLOAT, "float");
-        t.addColumn(ColumnType.LONG, "long");
+        t.addColumn(ColumnType.INTEGER, "long");
         t.addColumn(ColumnType.MIXED, "mixed");
         t.addColumn(ColumnType.STRING, "string");
         t.addColumn(ColumnType.TABLE, "table");

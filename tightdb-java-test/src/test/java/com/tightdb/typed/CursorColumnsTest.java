@@ -91,7 +91,7 @@ public class CursorColumnsTest extends AbstractTest {
         long num = 135L;
         employee.extra.set(num);
         assertEquals(num, employee.extra.get().getLongValue());
-        assertEquals(ColumnType.LONG, employee.extra.getType());
+        assertEquals(ColumnType.INTEGER, employee.extra.getType());
 
         Mixed mixed = Mixed.mixedValue("mixed");
         employee.extra.set(mixed);
