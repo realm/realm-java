@@ -29,9 +29,9 @@ CATEGORIES:
       EXAMPLES:
       - CODE   : ex_java_write_transaction_commit
         DESCR  :
-	  THROWS:
-	    EXCEPT : IllegalStateException
-		DESCR  : Thrown if commit() is called more than once after the transaction was initiated.
+      THROWS:
+        EXCEPT : IllegalStateException
+        DESCR  : Thrown if commit() is called more than once after the transaction was initiated.
 
   - g_write_transaction_rollback:
       NAMES    : rollback

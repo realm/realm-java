@@ -396,11 +396,11 @@ CATEGORIES :
         TYPES  : String
         DESCR  : &java_dyn_view_to_string_return_descr
                  String representation of the table.
-        EXAMPLES:
+      EXAMPLES:
       - CODE   : ex_java_dyn_view_to_string
         DESCR  :
 
- - g_dyn_view_row_to_string:
+  - g_dyn_view_row_to_string:
       NAMES    : rowToString
       SUMMARY  : *g_dyn_view_row_to_string_summary
       DESCR    : *g_dyn_view_row_to_string_descr
