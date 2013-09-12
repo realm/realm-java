@@ -642,6 +642,11 @@ public class TableView implements TableOrView {
 
     protected native String nativeToString(long nativeTablePtr, long maxRows);
 
+    public String rowToString(long rowIndex) {
+        return nativeToString(nativePtr, rowIndex);
+    }
+
+    protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
     private void throwImmutable()
     {
@@ -651,7 +656,6 @@ public class TableView implements TableOrView {
     protected long nativePtr;
     protected boolean immutable = false;
     protected TableView tableView;
-
 
     @Override
     public long lookup(String value) {
