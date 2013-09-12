@@ -106,10 +106,10 @@ inline bool TableIsValid(JNIEnv* env, tightdb::Table* pTable)
 {
     bool valid = (pTable != NULL);
     if (valid)
-        valid = pTable->is_valid();
+        valid = pTable->is_attached();
     if (!valid) {
-        TR_ERR((env, "Table %x is invalid!", pTable));
-        ThrowException(env, IllegalArgument, "Table is invalid.");
+        TR_ERR((env, "Table accessor %x is no longer attached!", pTable));
+        ThrowException(env, IllegalArgument, "Table accessor is no longer attached.");
     }
     return valid;
 }
