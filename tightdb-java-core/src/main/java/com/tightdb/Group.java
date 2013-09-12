@@ -199,7 +199,6 @@ public class Group {
     protected native void nativeWriteToFile(long nativeGroupPtr, String fileName)
             throws IOException;
     
-    
     /**
      * Serialize the group to the specific file on the disk.
      *
@@ -235,7 +234,7 @@ public class Group {
 
     protected native ByteBuffer nativeWriteToByteBuffer(long nativeGroupPtr);
 */
-    
+
     public void commit() {
         verifyGroupIsValid();
         nativeCommit(nativePtr);
