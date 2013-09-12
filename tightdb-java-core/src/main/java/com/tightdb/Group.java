@@ -124,6 +124,7 @@ public class Group {
 		return nativeEquals(nativePtr, ((Group)group).nativePtr);
     }
     
+    protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
     
     public long size() {
     	verifyGroupIsValid();
@@ -199,14 +200,6 @@ public class Group {
             throws IOException;
     
     
-    public void commit() {
-        verifyGroupIsValid();
-        nativeCommit(nativePtr);
-    }
-    
-    protected native void nativeCommit(long nativeGroupPtr);
-
-
     /**
      * Serialize the group to the specific file on the disk.
      *
@@ -242,6 +235,11 @@ public class Group {
 
     protected native ByteBuffer nativeWriteToByteBuffer(long nativeGroupPtr);
 */
+    
+    public void commit() {
+        verifyGroupIsValid();
+        nativeCommit(nativePtr);
+    }
 
     public String toJson() {
         return nativeToJson(nativePtr);
@@ -252,14 +250,14 @@ public class Group {
     public String toString() {
         return nativeToString(nativePtr);
     }
+    
+    protected native void nativeCommit(long nativeGroupPtr);
 
     protected native String nativeToString(long nativeGroupPtr);
 
     public boolean equals(Group grp) {
         return nativeEquals(nativePtr, grp.nativePtr);
     }
-
-    protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
 
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
