@@ -199,7 +199,7 @@ public class TypedTableExamples {
         PeopleTable people = new PeopleTable();
         
         // Get column index. This example uses the table from Table /typed) intro
-        Assert(people.getColumnType(1).equals(ColumnType.LONG));
+        Assert(people.getColumnType(1).equals(ColumnType.INTEGER));
         // @@EndShow@@
         // @@EndExample@@
     }

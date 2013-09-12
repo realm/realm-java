@@ -49,16 +49,16 @@ public class InsertVsAddPerformance {
         Table t = new Table();
         
         t.addColumn(ColumnType.STRING, "String");
-        t.addColumn(ColumnType.LONG, "Long");
+        t.addColumn(ColumnType.INTEGER, "Long");
         t.addColumn(ColumnType.BOOLEAN, "Boolean");
         t.addColumn(ColumnType.STRING, "String");
-        t.addColumn(ColumnType.LONG, "Long");
+        t.addColumn(ColumnType.INTEGER, "Long");
         t.addColumn(ColumnType.BOOLEAN, "Boolean");
         t.addColumn(ColumnType.STRING, "String");
-        t.addColumn(ColumnType.LONG, "Long");
+        t.addColumn(ColumnType.INTEGER, "Long");
         t.addColumn(ColumnType.BOOLEAN, "Boolean");
         t.addColumn(ColumnType.STRING, "String");
-        t.addColumn(ColumnType.LONG, "Long");
+        t.addColumn(ColumnType.INTEGER, "Long");
         t.addColumn(ColumnType.BOOLEAN, "Boolean");
         
         Long dynTimer = System.currentTimeMillis();

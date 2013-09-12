@@ -15,7 +15,7 @@ public class JNISubtableTest {
         tableSpec.addColumn(ColumnType.STRING, "name");
 
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.LONG, "num");
+        subspec.addColumn(ColumnType.INTEGER, "num");
 
         table.updateFromSpec(tableSpec);
 
@@ -44,9 +44,9 @@ public class JNISubtableTest {
         tableSpec.addColumn(ColumnType.STRING, "name");
 
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.LONG, "num");
+        subspec.addColumn(ColumnType.INTEGER, "num");
 
-        tableSpec.addColumn(ColumnType.LONG, "Int");
+        tableSpec.addColumn(ColumnType.INTEGER, "Int");
         table.updateFromSpec(tableSpec);
 
         // Insert values

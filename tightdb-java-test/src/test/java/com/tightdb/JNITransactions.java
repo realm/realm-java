@@ -39,7 +39,7 @@ public class JNITransactions {
         Table tbl = trans.getTable("EmployeeTable");
         TableSpec tableSpec = new TableSpec();
         tableSpec.addColumn(ColumnType.STRING, "name");
-        tableSpec.addColumn(ColumnType.LONG, "number");
+        tableSpec.addColumn(ColumnType.INTEGER, "number");
         tbl.updateFromSpec(tableSpec);
 
 
@@ -153,7 +153,7 @@ public class JNITransactions {
 	    WriteTransaction trans = db.beginWrite();
 	    Table tbl = trans.getTable("EmployeeTable");
 	    tbl.addColumn(ColumnType.STRING, "name");
-	    tbl.addColumn(ColumnType.LONG, "number");
+	    tbl.addColumn(ColumnType.INTEGER, "number");
 
 	    // allow commit before any changes
 	    trans.commit();

@@ -18,7 +18,7 @@ public class ColumnTypeQueryTest {
         t  = new Table();
         t.addColumn(ColumnType.DATE, "Date");
         t.addColumn(ColumnType.STRING, "String");
-        t.addColumn(ColumnType.LONG, "Long");
+        t.addColumn(ColumnType.INTEGER, "Long");
         
         t.add(new Date(), "I'm a String", 33);
         t.add(new Date(), "Second String", 458);

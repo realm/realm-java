@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 
 public enum ColumnType {
     BOOLEAN(1),
-    LONG(0),
+    INTEGER(0),
     FLOAT(9),
     DOUBLE(10),
     STRING(2),
@@ -72,6 +72,18 @@ public enum ColumnType {
         }
         throw new IllegalArgumentException("Bad native column type");
     }
+    
+    
+    public class Binary {}
+    public class Boolean {}
+    public class Date {}
+    public class Double {}
+    public class Float {}
+    public class Integer {}
+    public class Mixed {}
+    public class String {}   
+    public class Table {}
+    
 
 }
 

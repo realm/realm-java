@@ -104,7 +104,7 @@ public class Mixed {
         if (value instanceof String)
             return ColumnType.STRING;
         else if (value instanceof Long)
-            return ColumnType.LONG;
+            return ColumnType.INTEGER;
         else if (value instanceof Float)
             return ColumnType.FLOAT;
         else if (value instanceof Double)

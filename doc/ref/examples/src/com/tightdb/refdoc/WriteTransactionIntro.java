@@ -51,7 +51,7 @@ public class WriteTransactionIntro {
             // Create table, add columns and add row with data
             Table users = wt.getTable("users");
             users.addColumn(ColumnType.STRING, "username");
-            users.addColumn(ColumnType.LONG, "level");
+            users.addColumn(ColumnType.INTEGER, "level");
             users.add("tarzan", 45);
 
             // Close the transaction. All changes are written to the shared group

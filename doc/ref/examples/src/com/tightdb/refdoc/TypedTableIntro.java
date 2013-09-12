@@ -28,10 +28,8 @@ public class TypedTableIntro {
         peopleTable.add("Phil", 43, false);
         peopleTable.add("Anni", 54, true); 
         
+        peopleTable.get(0).getAge();  
         
-        peopleTable.at(0).getAge();
-        
-          
         // Insert data at row index 2
         peopleTable.insert(2, "Frank", 34, true);
 

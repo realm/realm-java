@@ -20,7 +20,7 @@ public class TableIndexAndDistinctTest {
 
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.LONG, "number");
+        table.addColumn(ColumnType.INTEGER, "number");
         table.addColumn(ColumnType.STRING, "name");
 
         long i = 0;

@@ -11,10 +11,10 @@ public class MixedTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.LONG, "num");
+        tableSpec.addColumn(ColumnType.INTEGER, "num");
         tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("subtable");
-        subspec.addColumn(ColumnType.LONG, "num");
+        subspec.addColumn(ColumnType.INTEGER, "num");
         table.updateFromSpec(tableSpec);
 
         try {

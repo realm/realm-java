@@ -94,7 +94,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     }
 
     protected static void addLongColumn(TableSpec spec, String name) {
-        spec.addColumn(ColumnType.LONG, name);
+        spec.addColumn(ColumnType.INTEGER, name);
     }
 
     protected static void addFloatColumn(TableSpec spec, String name) {

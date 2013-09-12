@@ -27,7 +27,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
@@ -43,7 +43,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
@@ -64,7 +64,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
@@ -85,7 +85,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
@@ -107,7 +107,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
@@ -131,7 +131,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
@@ -157,7 +157,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
@@ -183,7 +183,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table
@@ -207,7 +207,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
         
         // No data has been added to the table
@@ -226,7 +226,7 @@ public class DynTableExamples {
         // @@Show@@
         // Creates table with 2 columns
         Table table = new Table();
-        table.addColumn(ColumnType.LONG, "ID");
+        table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
 
         // Add data to the table

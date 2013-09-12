@@ -22,7 +22,7 @@ public class ${name} extends AbstractCursor<${name}> {
 </#if></#foreach>	}
 
 <#foreach f in columns><#if f.isSubtable>	public ${f.subTableName} get${f.name?cap_first}() {
-<#else>	public ${f.fieldType} get${f.name?cap_first}() {
+<#else>	public ${f.originalType} get${f.name?cap_first}() {
 </#if>		return this.${f.name}.get();
 	}
 

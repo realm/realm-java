@@ -374,7 +374,7 @@ public class Table implements TableOrView {
             case BOOLEAN:
                 nativeInsertBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
                 break;
-            case LONG:
+            case INTEGER:
                 nativeInsertLong(nativePtr, columnIndex, rowIndex, ((Number)value).longValue());
                 break;
             case FLOAT:

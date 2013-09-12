@@ -14,7 +14,7 @@ public class InsertPerformance {
         
         t.addColumn(ColumnType.STRING, "String");
         t.addColumn(ColumnType.BOOLEAN, "Bool");
-        t.addColumn(ColumnType.LONG, "Long");
+        t.addColumn(ColumnType.INTEGER, "Long");
         t.addColumn(ColumnType.DATE, "Date");
         
         Long timer = System.currentTimeMillis();

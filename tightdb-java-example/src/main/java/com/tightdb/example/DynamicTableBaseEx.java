@@ -12,7 +12,7 @@ public class DynamicTableBaseEx {
         System.out.println("created table");
 
         base.addColumn(ColumnType.STRING, "name");
-        base.addColumn(ColumnType.LONG, "salary");
+        base.addColumn(ColumnType.INTEGER, "salary");
         base.addColumn(ColumnType.MIXED, "Whatever");
         System.out.println("specified structure");
 
