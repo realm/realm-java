@@ -223,23 +223,23 @@ public class Mixed {
         ColumnType type = getType();
         try {
 	        switch (type) {
-			case ColumnTypeBinary:
+			case BINARY:
 				return "Binary";
-			case ColumnTypeBool:
+			case BOOLEAN:
 				return String.valueOf(getBooleanValue());
-			case ColumnTypeDate:
+			case DATE:
 				return String.valueOf(getDateValue());
-			case ColumnTypeDouble:
+			case DOUBLE:
 				return String.valueOf(getDoubleValue());
-			case ColumnTypeFloat:
+			case FLOAT:
 				return String.valueOf(getFloatValue());
-			case ColumnTypeInt:
+			case INTEGER:
 				return String.valueOf(getLongValue());
-			case ColumnTypeString:
+			case STRING:
 				return String.valueOf(getStringValue());
-			case ColumnTypeTable:
+			case TABLE:
 				return "Subtable";
-			case ColumnTypeMixed:
+			case MIXED:
 				break; // error
 	        }
         } catch (Exception e) {

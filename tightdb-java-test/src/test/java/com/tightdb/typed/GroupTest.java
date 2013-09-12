@@ -188,17 +188,17 @@ public class GroupTest {
 
     	// Write a DB to file
     	Group group = new Group(FILENAME, OpenMode.READ_WRITE);
-    	//group.commit();
+    	group.commit();
   	
       	Table tbl = group.getTable("test");
     	tbl.addColumn(ColumnType.INTEGER, "number");
     	tbl.add(1);
-    	//group.commit();
+    	group.commit();
     	assertEquals(tbl.getLong(0, 0), 1);
     	
     	// Update, commit and close file.
     	tbl.set(0, 27);
-    	//group.commit();
+    	group.commit();
     	group.close();
     	
     	// Open file again and verify content

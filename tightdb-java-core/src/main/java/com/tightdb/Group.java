@@ -197,6 +197,15 @@ public class Group {
 
     protected native void nativeWriteToFile(long nativeGroupPtr, String fileName)
             throws IOException;
+    
+    
+    public void commit() {
+        verifyGroupIsValid();
+        nativeCommit(nativePtr);
+    }
+    
+    protected native void nativeCommit(long nativeGroupPtr);
+
 
     /**
      * Serialize the group to the specific file on the disk.

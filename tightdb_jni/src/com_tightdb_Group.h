@@ -110,6 +110,16 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeLoadFromMem
  */
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem
   (JNIEnv *, jobject, jlong);
+    
+    
+/*
+ * Class:     com_tightdb_Group
+ * Method:    nativeCommit
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeCommit
+ (JNIEnv *, jobject, jlong);
+    
 
 /*
  * Class:     com_tightdb_Group

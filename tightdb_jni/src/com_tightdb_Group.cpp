@@ -224,6 +224,12 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
     }
 }
 
+JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeCommit(
+     JNIEnv* env, jobject, jlong nativeGroupPtr)
+{
+    G(nativeGroupPtr)->commit();
+}
+
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToJson(
     JNIEnv* env, jobject, jlong nativeGroupPtr)
@@ -252,12 +258,9 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToString(
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeEquals(
-    JNIEnv*, jobject, jlong nativeGroupPtr, jlong nativeGroupToComparePtr)
+    JNIEnv*, jobject, jlong nativeGroupPtr, jlong compareToGroupPtr)
 {
-    Group* grp = G(nativeGroupPtr);
-    Group* grpToCompare = G(nativeGroupToComparePtr);
-
-    return (grp == grpToCompare);
+    return *G(nativeGroupPtr) == *G(compareToGroupPtr);
 
 
 }
