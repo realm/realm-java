@@ -258,7 +258,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToString(
 }
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeEquals(
-   JNIEnv* env, jobject, jlong nativeGroupPtr, jlong compareToGroupPtr)
+  JNIEnv* env, jobject, jlong nativeGroupPtr, jlong compareToGroupPtr)
 {
     return *G(nativeGroupPtr) == *G(compareToGroupPtr);
 }
