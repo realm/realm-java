@@ -330,13 +330,11 @@ public class TypedTableExamples {
         out.print(json);
         out.close();
         
-        
         // The json should match the following:
         Assert(json.equals("[{\"name\":\"John\",\"age\":40,\"hired\":true},{\"name\":\"Susan\",\"age\":50,\"hired\":false}]"));
         // @@EndShow@@
         // @@EndExample@@
     }
-    
     
     
     static void Assert(boolean check) {
