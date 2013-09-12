@@ -21,7 +21,8 @@ public class MemoryTest {
 
             TableQuery query = table.where();
 
-            TableView view = query.findAll();
+            @SuppressWarnings("unused")
+			TableView view = query.findAll();
 
         }
 

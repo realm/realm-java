@@ -72,18 +72,5 @@ public enum ColumnType {
         }
         throw new IllegalArgumentException("Bad native column type");
     }
-    
-    
-    public class Binary {}
-    public class Boolean {}
-    public class Date {}
-    public class Double {}
-    public class Float {}
-    public class Integer {}
-    public class Mixed {}
-    public class String {}   
-    public class Table {}
-    
-
 }
 

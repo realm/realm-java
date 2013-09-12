@@ -20,11 +20,6 @@ public abstract class AbstractView<Cursor, View, Query> extends AbstractTableOrV
         return getClass().getSimpleName();
     }
 
-    @Override
-    public String toString() {
-        return types.getViewClass().getSimpleName() + " {" + size() + " records}";
-    }
-
     protected static <V> V createView(Class<V> viewClass, TableView viewBase) {
         try {
             return viewClass.getConstructor(TableView.class).newInstance(viewBase);

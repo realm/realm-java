@@ -18,15 +18,15 @@ public class GroupToStringTest {
 
         Table table = group.getTable("testTable");
 
-        table.addColumn(ColumnType.ColumnTypeBinary, "binary");     // 0
-        table.addColumn(ColumnType.ColumnTypeBool, "boolean");      // 1
-        table.addColumn(ColumnType.ColumnTypeDate, "date");         // 2
-        table.addColumn(ColumnType.ColumnTypeDouble, "double");     // 3
-        table.addColumn(ColumnType.ColumnTypeFloat, "float");       // 4
-        table.addColumn(ColumnType.ColumnTypeInt, "long");          // 5
-        table.addColumn(ColumnType.ColumnTypeMixed, "mixed");       // 6
-        table.addColumn(ColumnType.ColumnTypeString, "string");     // 7
-        table.addColumn(ColumnType.ColumnTypeTable, "table");       // 8
+        table.addColumn(ColumnType.BINARY, "binary");     // 0
+        table.addColumn(ColumnType.BOOLEAN, "boolean");   // 1
+        table.addColumn(ColumnType.DATE, "date");         // 2
+        table.addColumn(ColumnType.DOUBLE, "double");     // 3
+        table.addColumn(ColumnType.FLOAT, "float");       // 4
+        table.addColumn(ColumnType.INTEGER, "long");      // 5
+        table.addColumn(ColumnType.MIXED, "mixed");       // 6
+        table.addColumn(ColumnType.STRING, "string");     // 7
+        table.addColumn(ColumnType.TABLE, "table");       // 8
 
         table.add(new byte[] {0,2,3}, true, new Date(0), 123D, 123F, 123, new Mixed(123), "TestString", null);
 
@@ -41,15 +41,15 @@ public class GroupToStringTest {
 
         Table table = group.getTable("testTable");
 
-        table.addColumn(ColumnType.ColumnTypeBinary, "binary");     // 0
-        table.addColumn(ColumnType.ColumnTypeBool, "boolean");      // 1
-        table.addColumn(ColumnType.ColumnTypeDate, "date");         // 2
-        table.addColumn(ColumnType.ColumnTypeDouble, "double");     // 3
-        table.addColumn(ColumnType.ColumnTypeFloat, "float");       // 4
-        table.addColumn(ColumnType.ColumnTypeInt, "long");          // 5
-        table.addColumn(ColumnType.ColumnTypeMixed, "mixed");       // 6
-        table.addColumn(ColumnType.ColumnTypeString, "string");     // 7
-        table.addColumn(ColumnType.ColumnTypeTable, "table");       // 8
+        table.addColumn(ColumnType.BINARY, "binary");     // 0
+        table.addColumn(ColumnType.BOOLEAN, "boolean");   // 1
+        table.addColumn(ColumnType.DATE, "date");         // 2
+        table.addColumn(ColumnType.DOUBLE, "double");     // 3
+        table.addColumn(ColumnType.FLOAT, "float");       // 4
+        table.addColumn(ColumnType.INTEGER, "long");      // 5
+        table.addColumn(ColumnType.MIXED, "mixed");       // 6
+        table.addColumn(ColumnType.STRING, "string");     // 7
+        table.addColumn(ColumnType.TABLE, "table");       // 8
 
         table.add(new byte[] {0,2,3}, true, new Date(0), 123D, 123F, 123, new Mixed(123), "TestString", null);
 

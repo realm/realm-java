@@ -1,12 +1,7 @@
 package com.tightdb.experiment;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.tightdb.ColumnType;

@@ -7,7 +7,6 @@ import java.util.Date;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-
 public class JNITransactions {
 
     protected SharedGroup db;

@@ -632,6 +632,17 @@ public class TableView implements TableOrView {
 
     protected native String nativeToJson(long nativeViewPtr);
 
+    public String toString() {
+        return nativeToString(nativePtr, -1);
+    }
+    
+    public String toString(long maxRows) {
+        return nativeToString(nativePtr, maxRows);
+    }
+
+    protected native String nativeToString(long nativeTablePtr, long maxRows);
+
+
     private void throwImmutable()
     {
         throw new IllegalStateException("Mutable method call during read transaction.");
@@ -644,6 +655,7 @@ public class TableView implements TableOrView {
 
     @Override
     public long lookup(String value) {
+        // TODO: implement
         throw new RuntimeException("Not implemented yet.");
     }
 
