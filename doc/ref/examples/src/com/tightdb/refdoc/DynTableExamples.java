@@ -3,11 +3,14 @@
 package com.tightdb.refdoc;
 
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
 import com.tightdb.*;
 
 public class DynTableExamples {
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) throws FileNotFoundException  {
         
         // Table methods:
         clearExample();
@@ -40,20 +43,24 @@ public class DynTableExamples {
         // Cells methods:
         getExamples();
         setExamples();
-        distinctExample();
-        
+        //getSubtableSize();
+        //clearSubtable
         
         
         // Searching methods:
         findFirstExamples();
         findAllExample();
-        
+        distinctExample();
+        whereExample();
         
         // Aggregates methods:
-        
+       sumExample();
+       maximumExample();
+       minimumExample();
+       averageExample();
         
         // Dump methods:
-        
+        toJsonExample();
         
         
         
@@ -623,11 +630,134 @@ public class DynTableExamples {
     }
     
     
+    public static void whereExample(){
+        // @@Example: ex_java_dyn_table_where @@
+        // @@Show@@
+        // Create table with 3 columns and add data
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.addColumn(ColumnType.BOOLEAN, "completed");
+        table.add("user1", 420, false);
+        table.add("user2", 770, false);
+        table.add("user3", 327, false);
+        table.add("user4", 770, false);
+        table.add("user5", 564, true);
+        table.add("user6", 875, false);
+        table.add("user7", 420, true);
+        table.add("user8", 770, true);
+        
+        // Get a query from the table
+        TableQuery query = table.where();
+        
+        // USe the query object to query the table and get a table view with the results
+        TableView view = query.equal(2, false).findAll();
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
     
     // ******************************************
     // Aggregates methods
     // ******************************************
 
+    public static void sumExample(){
+        // @@Example: ex_java_dyn_table_sum @@
+        // @@Show@@
+        // Create table with 3 columns and add data
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.addColumn(ColumnType.BOOLEAN, "completed");
+        table.add("user1", 420, false);
+        table.add("user2", 770, false);
+        table.add("user3", 327, false);
+        table.add("user4", 770, false);
+        table.add("user5", 564, true);
+        table.add("user6", 875, false);
+        table.add("user7", 420, true);
+        table.add("user8", 770, true);
+        
+        // The sum of all values in column 1
+        Long totalScore = table.sum(1);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    
+    public static void maximumExample(){
+        // @@Example: ex_java_dyn_table_maximum @@
+        // @@Show@@
+        // Create table with 3 columns and add data
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.addColumn(ColumnType.BOOLEAN, "completed");
+        table.add("user1", 420, false);
+        table.add("user2", 770, false);
+        table.add("user3", 327, false);
+        table.add("user4", 770, false);
+        table.add("user5", 564, true);
+        table.add("user6", 875, false);
+        table.add("user7", 420, true);
+        table.add("user8", 770, true);
+        
+        // The maximum score in column 1
+        Long maxScore = table.maximum(1);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void minimumExample(){
+        // @@Example: ex_java_dyn_table_minimum @@
+        // @@Show@@
+        // Create table with 3 columns and add data
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.addColumn(ColumnType.BOOLEAN, "completed");
+        table.add("user1", 420, false);
+        table.add("user2", 770, false);
+        table.add("user3", 327, false);
+        table.add("user4", 770, false);
+        table.add("user5", 564, true);
+        table.add("user6", 875, false);
+        table.add("user7", 420, true);
+        table.add("user8", 770, true);
+        
+        // The minimum score in column 1
+        Long minScore = table.minimum(1);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    
+    public static void averageExample(){
+        // @@Example: ex_java_dyn_table_average @@
+        // @@Show@@
+        // Create table with 3 columns and add data
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.addColumn(ColumnType.BOOLEAN, "completed");
+        table.add("user1", 420, false);
+        table.add("user2", 770, false);
+        table.add("user3", 327, false);
+        table.add("user4", 770, false);
+        table.add("user5", 564, true);
+        table.add("user6", 875, false);
+        table.add("user7", 420, true);
+        table.add("user8", 770, true);
+        
+        // The average score in column 1
+        Double avgScore = table.average(1); // Returns a double
+        // @@EndShow@@
+        // @@EndExample@@
+    }
    
 
     
@@ -636,6 +766,29 @@ public class DynTableExamples {
     // Dump methods
     // ******************************************
 
+    
+    public static void toJsonExample() throws FileNotFoundException{
+        // @@Example: ex_java_dyn_table_to_json @@
+        // @@Show@@
+        // Creates table with 2 columns and add data
+        Table table = new Table();
+        table.addColumn(ColumnType.INTEGER, "ID");
+        table.addColumn(ColumnType.STRING, "City");
+        table.add(100, "Washington");
+        table.add(200, "Los Angeles");
+
+        String json = table.toJson();
+        
+        // Print json e.g. using a printbwriter
+        PrintWriter out = new PrintWriter("fromServlet");
+        out.print(json);
+        out.close();
+        
+        Assert(json.equals("[{\"ID\":100,\"City\":\"Washington\"},{\"ID\":200,\"City\":\"Los Angeles\"}]"));
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
 
     static void Assert(boolean check) {
         if (!check) {
