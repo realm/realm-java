@@ -150,10 +150,10 @@ CATEGORIES :
       PARAMS:
       - NAME   : type
         TYPES  : ColumnType
-        DESCR  : *g_dyn_table_add_column_param1_descr
+        DESCR  : *g_dyn_table_add_column_type_descr
       - NAME   : name
         TYPES  : String
-        DESCR  : *g_dyn_table_add_column_param2_descr
+        DESCR  : *g_dyn_table_add_column_name_descr
       RETURN:
         TYPES  : long
         DESCR  : *g_dyn_table_add_column_return_descr
