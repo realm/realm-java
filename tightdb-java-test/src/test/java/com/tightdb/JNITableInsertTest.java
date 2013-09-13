@@ -218,7 +218,7 @@ public class JNITableInsertTest {
         table.add("row3", 30);
         table.add("row4", 40);
 
-        table.adjustColumnValues(1, 1); //Adding one 1 all rows in col1
+        table.adjust(1, 1); //Adding one 1 all rows in col1
 
         assertEquals(1, table.getLong(1, 0));
         assertEquals(11, table.getLong(1, 1));
@@ -237,7 +237,7 @@ public class JNITableInsertTest {
 
             if(table.getColumnType(c).equals(ColumnType.INTEGER) == false){ // Do not check if it is a Long column
                 try{ 
-                    table.adjustColumnValues(c, 10); 
+                    table.adjust(c, 10); 
                     assertTrue(false); //We should never get here, as an exception is thrown above
                 } 
                 catch (IllegalArgumentException e){ 

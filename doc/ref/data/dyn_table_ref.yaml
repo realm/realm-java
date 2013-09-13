@@ -5,7 +5,7 @@
 # updateFromSpec, getTableSpec
 
 ID         : class_dyn_table
-TITLE      : Table (dynamic)
+TITLE      : Table
 SUMMARY    : *g_dyn_table_intro_summary
 DESCR      : *g_dyn_table_intro_descr
 SEE        : *g_dyn_table_intro_see
@@ -138,15 +138,15 @@ CATEGORIES :
                  
                  Currently, the following types are supported from the <code>ColumnType</code> class:
                  <ul>
-                   <li><code>BOOLEAN</code></li>
-                   <li><code>LONG</code></li>
-                   <li><code>FLOAT</code></li>
-                   <li><code>DOUBLE</code></li>
-                   <li><code>STRING</code></li>
-                   <li><code>BINARY</code></li>
-                   <li><code>DATE</code></li>
-                   <li><code>TABLE</code></li>
-                   <li><code>MIXED</code></li>
+                   <li><code>BOOLEAN</code> (default false)</li>
+                   <li><code>INTEGER</code> (default 0. Equivalent to long in java)</li>
+                   <li><code>FLOAT</code> (default 0.0)</li>
+                   <li><code>DOUBLE</code> (default 0.0)</li>
+                   <li><code>STRING</code> (default "")</li>
+                   <li><code>BINARY</code> (default (""))</li>
+                   <li><code>DATE</code> (default 0 - 1970-01-01 00:00:00. Milliseconds are capped)</li>
+                   <li><code>TABLE</code> (default NULL)</li>
+                   <li><code>MIXED</code> (default NULL)</li>
                  </ul>
 
       PARAMS:
@@ -212,10 +212,13 @@ CATEGORIES :
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
-        DESCR  : *g_dyn_table_get_column_name_param1_descr
+        DESCR  : The column index (starting from 0)
       RETURN:
         TYPES  : String
-        DESCR  : *g_dyn_table_get_column_name_return_descr
+        DESCR  : The column name.
+      THROWS:      
+      - EXCEPT : ArrayIndexOutOfBoundsException
+        DESCR  : Throws exception if column index is out of range
       EXAMPLES:
       - CODE   : ex_java_dyn_table_get_column_name
         DESCR  :
@@ -337,10 +340,8 @@ CATEGORIES :
         DESCR  : For each column in the table, you must provide a parameter with a matching type
                  in the same order as the columns are defined.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_set
+      - CODE   : ex_java_dyn_table_set_row
         DESCR  :
-      SEE      : >
-                See also {@link g_dyn_table_set_bool} to set individual cells in a given row.  
   - g_dyn_table_remove_row:
       NAMES    : remove
       SUMMARY  : *g_dyn_table_remove_row_summary
@@ -361,7 +362,7 @@ CATEGORIES :
         DESCR  :
 
   - g_dyn_table_add_int:
-      NAMES    : adjustColumnValues
+      NAMES    : adjust
       SUMMARY  : *g_dyn_table_add_int_summary
       DESCR    : *g_dyn_table_add_int_descr
       PARAMS:
@@ -371,6 +372,9 @@ CATEGORIES :
       - NAME   : value
         TYPES  : long
         DESCR  : *g_dyn_table_add_int_parm2_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_adjust
+        DESCR  :
 
 - Cells:
   METHODS:
@@ -414,8 +418,13 @@ CATEGORIES :
         TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, "byte[]", 
                   Mixed, ColumnType, Table]
         DESCR  : *g_dyn_table_get_xxx_return_descr
+      THROWS:                     
+      - EXCEPT : ArrayIndexOutOfBoundsException
+        DESCR  : Throws exception if column or index is out of range
+      - EXCEPT : IllegalArgumentException
+        DESCR  : Throws exception if column type does not match the method used to access the value
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_xxx
+      - CODE   : ex_java_dyn_table_get
         DESCR  :
   - g_dyn_table_set_int:
 #  - g_dyn_table_set_enum:
@@ -452,10 +461,13 @@ CATEGORIES :
       - NAME   : value
         TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, "byte[]", Mixed]
         DESCR  : *g_dyn_table_set_xxx_parm3_descr
+      THROWS:                     
+      - EXCEPT : ArrayIndexOutOfBoundsException
+        DESCR  : Throws exception if column or index is out of range
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_set_xxx
+      - CODE   : ex_java_dyn_table_set
         DESCR  :
-      SEE      : See alse {@link g_dyn_table_set} to set all values in a row at ones.
+      SEE      : See alse {@link g_dyn_table_set_row} to set all values in a row at ones.
 
   - g_dyn_table_get_subtable_size:
       NAMES    : getSubtableSize
@@ -535,8 +547,11 @@ CATEGORIES :
       RETURN:
         TYPES  : long
         DESCR  : The row index or -1 if there is no match.
+      THROWS:    
+      - EXCEPT : IllegalArgumentException
+        DESCR  : Throws exception if used method does not match the column type
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_find_first_xxx
+      - CODE   : ex_java_dyn_table_find_first
         DESCR  :
   - g_dyn_table_find_all_int:
   - g_dyn_table_find_all_float:
@@ -546,7 +561,7 @@ CATEGORIES :
   - g_dyn_table_find_all_string:
       NAMES    : [findAllLong, findAllFloat, findAllDouble, 
                   findAllBoolean, findAllDate, findAllString] 
-      TITLE    : findFAll*
+      TITLE    : findAll*
       SUMMARY  : *g_dyn_table_find_all_xxx_summary
       DESCR    : *g_dyn_table_find_all_xxx_descr
       SIGNATURE: |
@@ -566,8 +581,11 @@ CATEGORIES :
       RETURN:
         TYPES  : TableView
         DESCR  : *g_dyn_table_find_all_xxx_return_descr
+      THROWS:    
+      - EXCEPT : IllegalArgumentException
+        DESCR  : Throws exception if used method does not match the column type
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_find_all_xxx
+      - CODE   : ex_java_dyn_table_find_all
         DESCR  :
  
 # - g_dyn_table_get_sorted_view:
@@ -599,8 +617,11 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_dyn_table_distinct_parm1_desc
       RETURN:
-        TYPES  : "{@link class_dyn_tableview}"
+        TYPES  : TableView
         DESCR  : *g_dyn_table_distinct_return_desc
+      THROWS:    
+      - EXCEPT : UnsupportedOperationException
+        DESCR  : Throws exception if column is not indexed
       EXAMPLES:
       - CODE   : ex_java_dyn_table_distinct
         DESCR  :
