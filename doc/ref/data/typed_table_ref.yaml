@@ -176,7 +176,7 @@ CATEGORIES :
                  the following types are supported from the <code>ColumnType</code> class:
                  <ul>
                    <li><code>BOOLEAN</code></li>
-                   <li><code>LONG</code></li>
+                   <li><code>INTEGER</code></li>
                    <li><code>FLOAT</code></li>
                    <li><code>DOUBLE</code></li>
                    <li><code>STRING</code></li>
