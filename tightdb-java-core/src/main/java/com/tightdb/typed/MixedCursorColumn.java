@@ -53,10 +53,6 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
         cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
     }
 
-    public void set(ByteBuffer value) {
-        cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
-    }
-
     public void set(byte[] value) {
         cursor.tableOrView.setMixed(columnIndex, cursor.getPosition(), Mixed.mixedValue(value));
     }
