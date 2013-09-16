@@ -3,7 +3,6 @@ package com.tightdb.example;
 import java.util.Date;
 
 import com.tightdb.*;
-import com.tightdb.typed.TightDB;
 
 public class SmallExample {
 

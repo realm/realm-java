@@ -1071,7 +1071,14 @@ public class Table implements TableOrView {
 
     protected native String nativeToString(long nativeTablePtr, long maxRows);
 
-    private void throwImmutable() {
+    public String rowToString(long rowIndex) {
+        return nativeRowToString(nativePtr, rowIndex);
+    }
+
+    protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
+
+    private void throwImmutable()
+    {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 }

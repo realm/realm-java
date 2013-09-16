@@ -552,3 +552,16 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToString(
    const std::string str = ss.str();
    return env->NewStringUTF(str.c_str());
 }
+
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeRowToString(
+    JNIEnv *env, jobject, jlong nativeViewPtr, jlong rowIndex)
+{
+   TableView* tv = TV(nativeViewPtr);
+   if (!TBL_AND_ROW_INDEX_VALID(env, tv, rowIndex)) return NULL;
+
+   std::ostringstream ss;
+   tv->row_to_string(rowIndex, ss);
+   const std::string str = ss.str();
+   return env->NewStringUTF(str.c_str());
+}
+

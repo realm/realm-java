@@ -29,7 +29,7 @@ public class DateToJSONTest {
         //JSON must contain the current year
         assertTrue(t.toJson().contains(""+year));
 
-        //JSON should not contain the next yeaer
+        //JSON should not contain the next year
         assertFalse(t.toJson().contains(""+year+1));
 
         Date date2 = new Date();
@@ -46,8 +46,8 @@ public class DateToJSONTest {
 
         assertTrue(t.toJson().contains("name"));
         
-        System.out.println("Month: " + month2);
-        System.out.println(t.toJson());
+       // System.out.println("Month: " + month2);
+       // System.out.println(t.toJson());
         
 
         assertTrue(t.toJson().contains(""+month2));

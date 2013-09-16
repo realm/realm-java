@@ -79,7 +79,7 @@ public abstract class AbstractTableOrView<Cursor, View, Query> implements Iterab
     }
 
     public String toString() {
-        return toString(-1);
+        return toString(500);
     }
 
     public String toString(long maxRows) {

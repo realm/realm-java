@@ -447,6 +447,14 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToJson
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToString
   (JNIEnv *, jobject, jlong, jlong);
 
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeRowToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeRowToString
+  (JNIEnv *, jobject, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif
