@@ -24,8 +24,6 @@ public class JNITableInsertTest {
         assertEquals((String)values[2], tbl.getString(2, rowIndex));
         if (values[3] instanceof byte[])
             assertEquals((byte[])values[3], tbl.getBinaryByteArray(3, rowIndex));
-        if (values[3] instanceof ByteBuffer)
-            assertEquals((ByteBuffer)values[3], tbl.getBinaryByteBuffer(3, rowIndex));
         assertEquals(((Date)values[4]).getTime()/1000, tbl.getDate(4, rowIndex).getTime()/1000);
 
 //      Mixed mix1 = Mixed.mixedValue(values[5]);
@@ -57,7 +55,8 @@ public class JNITableInsertTest {
         subspec.addColumn(ColumnType.STRING, "sub-str");
         table.updateFromSpec(tableSpec);
 
-        ByteBuffer buf = ByteBuffer.allocateDirect(23);
+        // ByteBuffer buf = ByteBuffer.allocateDirect(23);
+        byte[] buf = new byte[23];
         Mixed mixedSubTable = new Mixed(ColumnType.TABLE);
         Date date = new Date();
         long mixed = 123;
@@ -134,7 +133,8 @@ public class JNITableInsertTest {
         table.updateFromSpec(tableSpec);
 
         // Wrong number of parameters
-        ByteBuffer buf = ByteBuffer.allocateDirect(23);
+      //  ByteBuffer buf = ByteBuffer.allocateDirect(23);
+        byte[] buf = new byte[23];
         try {
             table.addAt(0, false);
             assertTrue(false);
