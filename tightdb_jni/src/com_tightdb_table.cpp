@@ -926,6 +926,12 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeRowToString(
    return env->NewStringUTF(str.c_str());
 }
 
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid(
+    JNIEnv*, jobject, jlong nativeTablePtr)
+{
+    return TBL(nativeTablePtr)->is_attached();
+}
+
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClose(
     JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
@@ -939,10 +945,4 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_createNative(JNIEnv* env, jobject
 {
     TR((env, "CreateNative(jTable: %x)\n", jTable));
     return reinterpret_cast<jlong>(LangBindHelper::new_table()); // FIXME: May throw
-}
-
-JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid(
-    JNIEnv*, jobject, jlong nativeTablePtr)
-{
-    return TBL(nativeTablePtr)->is_attached();
 }

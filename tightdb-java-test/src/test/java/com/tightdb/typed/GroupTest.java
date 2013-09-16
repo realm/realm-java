@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.io.File;
 
+import com.tightdb.ColumnType;
 import com.tightdb.Group;
 import com.tightdb.Table;
 import com.tightdb.test.TestEmployeeTable;
@@ -198,5 +199,47 @@ public class GroupTest {
         	fail("Didn't throw exception");
     }    
 
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void shouldFailWhenModifyingTablesOnClosedGroup() {
+        Group group = new Group();
+        Table tbl = group.getTable("test");
+        tbl.addColumn(ColumnType.ColumnTypeInt, "number");
+        tbl.add(1);
+        
+        //Close the group
+        group.close();
+        
+        //Try to add data to table in group
+        tbl.add(2);
+    }
     
+    
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void shouldFailWhenAddingTablesToClosedGroup() {
+        Group group = new Group();
+        Table tbl = group.getTable("test");
+        tbl.addColumn(ColumnType.ColumnTypeInt, "number");
+        tbl.add(1);
+        
+        //Close the group
+        group.close();
+        
+        //Try to add data to table in group
+        Table newTable = group.getTable("test2");
+    }
+    
+    
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void shouldFailWhenGettingValuesFromTablesInClosedGroup() {
+        Group group = new Group();
+        Table tbl = group.getTable("test");
+        tbl.addColumn(ColumnType.ColumnTypeInt, "number");
+        tbl.add(1);
+        
+        //Close the group
+        group.close();
+        
+        tbl.getLong(0, 0);
+    }
+
 }

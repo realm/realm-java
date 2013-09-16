@@ -23,7 +23,7 @@ public class MemoryTest {
 
             query.private_close();
 
-            table.close();
+            table.private_debug_close();
 
         }
 

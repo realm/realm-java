@@ -84,7 +84,7 @@ public class JNIMixedTypeTest {
         table.setMixed(0, 0, Mixed.mixedValue(value3.value));
 
         checkMixedCell(table, 0, 0, value3.type, value3.value);
-        table.close();
+        table.private_debug_close();
     }
 
     private void checkMixedCell(Table table, long col, long row,
