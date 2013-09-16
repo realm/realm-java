@@ -84,12 +84,7 @@ public abstract class AbstractTest {
         employee.lastName.set(data.lastName);
         employee.salary.set(data.salary);
         employee.driver.set(data.driver);
-        // FIXME: NOTE: This is just a hack. photo.set should take a byte[] as
-        // parameter.
-        // using wrap() doesn't create a Direct allocated buffer as expected.
-        ByteBuffer buf = ByteBuffer.allocateDirect(data.photo.length);
-        buf.put(data.photo);
-        employee.photo.set(buf);
+        employee.photo.set(data.photo);
         // employee.photo.set(ByteBuffer.wrap(data.photo));
         employee.birthdate.set(data.birthdate);
         employee.extra.set(Mixed.mixedValue(data.extra));
@@ -102,7 +97,7 @@ public abstract class AbstractTest {
             assertEquals(expected.lastName, employee.lastName.get());
             assertEquals(expected.salary, employee.salary.get().longValue());
             assertEquals(expected.driver, employee.driver.get().booleanValue());
-            assertEquals(ByteBuffer.wrap(expected.photo), employee.photo.get());
+            assertEquals(expected.photo, employee.photo.get());
             assertEquals(expected.birthdate.getTime()/1000, employee.birthdate.get().getTime()/1000);
             assertEquals(Mixed.mixedValue(expected.extra), employee.extra.get());
         } catch (Exception e) {
