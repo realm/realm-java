@@ -55,7 +55,6 @@ public class JNITableInsertTest {
         subspec.addColumn(ColumnType.STRING, "sub-str");
         table.updateFromSpec(tableSpec);
 
-        // ByteBuffer buf = ByteBuffer.allocateDirect(23);
         byte[] buf = new byte[23];
         Mixed mixedSubTable = new Mixed(ColumnType.TABLE);
         Date date = new Date();
@@ -133,7 +132,6 @@ public class JNITableInsertTest {
         table.updateFromSpec(tableSpec);
 
         // Wrong number of parameters
-      //  ByteBuffer buf = ByteBuffer.allocateDirect(23);
         byte[] buf = new byte[23];
         try {
             table.addAt(0, false);
