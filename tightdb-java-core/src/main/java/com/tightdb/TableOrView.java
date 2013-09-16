@@ -184,7 +184,7 @@ public interface TableOrView {
     void setMixed(long columnIndex, long rowIndex, Mixed data);
 
     //Increments all rows in the specified column with the provided value
-    void adjustColumnValues(long columnIndex, long value);
+    void adjust(long columnIndex, long value);
 
     long sum(long columnIndex);
 

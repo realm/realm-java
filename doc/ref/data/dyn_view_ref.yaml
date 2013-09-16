@@ -4,7 +4,7 @@
 # TODO: Add addLong()
 
 ID         : class_dyn_tableview
-TITLE      : TableView (dynamic)
+TITLE      : TableView
 SUMMARY    : *g_dyn_view_intro_summary
 DESCR      : *g_dyn_view_intro_descr
 SEE        :

@@ -315,7 +315,7 @@ public class TypedTableExamples {
     // ******************************************
     
     public static void toJSONExample() throws FileNotFoundException{
-        // @@Example: ex_java_dyn_table_to_json @@
+        // @@Example: ex_java_typed_table_to_json @@
         // @@Show@@
         // Create table and add 2 rows of data
         PeopleTable people = new PeopleTable();
