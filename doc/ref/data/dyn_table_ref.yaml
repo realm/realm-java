@@ -218,7 +218,8 @@ CATEGORIES :
         DESCR  : The column name.
       THROWS:      
       - EXCEPT : ArrayIndexOutOfBoundsException
-        DESCR  : Throws exception if column index is out of range
+        DESCR  : &java_array_out_of_bounds_exception_text
+                 Throws exception if column index is out of range
       EXAMPLES:
       - CODE   : ex_java_dyn_table_get_column_name
         DESCR  :
@@ -420,7 +421,7 @@ CATEGORIES :
         DESCR  : *g_dyn_table_get_xxx_return_descr
       THROWS:                     
       - EXCEPT : ArrayIndexOutOfBoundsException
-        DESCR  : Throws exception if column or index is out of range
+        DESCR  : *java_array_out_of_bounds_exception_text
       - EXCEPT : IllegalArgumentException
         DESCR  : Throws exception if column type does not match the method used to access the value
       EXAMPLES:
@@ -463,7 +464,7 @@ CATEGORIES :
         DESCR  : *g_dyn_table_set_xxx_parm3_descr
       THROWS:                     
       - EXCEPT : ArrayIndexOutOfBoundsException
-        DESCR  : Throws exception if column or index is out of range
+        DESCR  : *java_array_out_of_bounds_exception_text
       EXAMPLES:
       - CODE   : ex_java_dyn_table_set
         DESCR  :
