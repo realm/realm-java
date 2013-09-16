@@ -12,7 +12,7 @@ import com.tightdb.*;
 @SuppressWarnings("unused")
 
 //@@Example: create_table @@
-public class Tutorial_temp {
+public class Tutorial {
     // Define the TighDB table with columns "name", "age" and "hired"
     @DefineTable(table = "PeopleTable")
     class people {
