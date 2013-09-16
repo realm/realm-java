@@ -19,11 +19,9 @@ public class MemoryTest {
 
             TableQuery query = table.where();
 
-            @SuppressWarnings("unused")
 			TableView view = query.findAll();
 
-            // We must make a public debug version of this, to be able to run a memory analyser and get leak detection
-            //query.close();
+            query.private_close();
 
             table.close();
 
