@@ -248,6 +248,8 @@ public interface TableOrView {
 
     String toString(long maxRows);
     
+    String rowToString(long rowIndex);
+    
 // Experimental:
 
     long lookup(String value);

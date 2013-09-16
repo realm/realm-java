@@ -2,8 +2,6 @@ package com.tightdb.example;
 
 import java.util.Date;
 
-import com.tightdb.typed.TightDB;
-
 public class NestedTablesExample {
 
     public static void main(String[] args) {

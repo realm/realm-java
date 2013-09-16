@@ -735,9 +735,9 @@ CATEGORIES :
       SUMMARY  : *g_dyn_table_average_summary
       DESCR    : *g_dyn_table_average_descr
       SIGNATURE: |
-                 double  average(long columnIndex)
-                 double  averageFloat(long columnIndex)
-                 double  averageDouble(long columnIndex)
+                 double average(long columnIndex)
+                 double averageFloat(long columnIndex)
+                 double averageDouble(long columnIndex)
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
@@ -758,35 +758,45 @@ CATEGORIES :
       DESCR    : *g_dyn_table_to_json_descr
       RETURN:
         TYPES  : String
-        DESCR  : A string with the JSON representation of the table.
+        DESCR  : A string containing the JSON representation of the table.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_to_json
         DESCR  :
-# TODO  - g_dyn_table_to_string:
-#      NAMES    : to_string
-#      SUMMARY  : *g_dyn_table_to_string_summary
-#      DESCR    : *g_dyn_table_to_string_descr
-#      PARAMS:
-#      - NAME   : out
-#        TYPES  : std::ostream&
-#        DESCR  : Output stream.
-#      - NAME   : limit
-#        TYPES  : long
-#        DESCR  : "The number of rows to convert. Default: 500."
-#      EXAMPLES:
-#      - CODE   : ex_java_dyn_table_to_string
-#        DESCR  :
-# TODO - g_dyn_table_row_to_string:
-#      NAMES    : to_string
-#      SUMMARY  : *g_dyn_table_row_to_string_summary
-#      DESCR    : *g_dyn_table_row_to_string_descr
-#      PARAMS:
-#      - NAME   : row_ndx
-#        TYPES  : long
-#        DESCR  : The row index.
-#      - NAME   : out
-#        TYPES  : std::ostream&
-#        DESCR  : Output stream.
-#      EXAMPLES:
-#      - CODE   : ex_java_dyn_table_to_string
-#        DESCR  :
+
+  - g_dyn_table_to_string:
+      NAME     : toString
+  - g_dyn_table_to_string_2:
+      NAME     : toString
+      TITLE    : toString
+      SUMMARY  : *g_dyn_table_to_string_summary
+      DESCR    : *g_dyn_table_to_string_descr
+      SIGNATURE: |
+                 String toString()
+                 String toString(long maxRows)
+      PARAMS:
+      - NAME   : maxRows
+        TYPES  : long
+        DESCR  : The maxinum number of rows to convert. -1 will convert all rows.
+                 If no parameter is used, the first 500 rows are converted.
+      RETURN:
+        TYPES  : String
+        DESCR  : &java_dyn_table_to_string_return_descr
+                 String representation of the table.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_to_string
+        DESCR  :
+
+  - g_dyn_table_row_to_string:
+      NAMES    : rowToString
+      SUMMARY  : *g_dyn_table_row_to_string_summary
+      DESCR    : *g_dyn_table_row_to_string_descr
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_row_to_string_parm1_descr
+      RETURN:
+        TYPES  : String
+        DESCR  : *java_dyn_table_to_string_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_to_string
+        DESCR  :

@@ -3,8 +3,6 @@ package com.tightdb.example;
 import java.util.Arrays;
 import java.util.Date;
 
-import com.tightdb.typed.TightDB;
-
 public class SearchExample {
 
     @SuppressWarnings("unused")
