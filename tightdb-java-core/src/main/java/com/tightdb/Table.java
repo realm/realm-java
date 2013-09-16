@@ -3,6 +3,7 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.tightdb.TableView.Order;
 import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
@@ -143,8 +144,7 @@ public class Table implements TableOrView {
     /**
      * Remove a column in the table dynamically.
      */
-    public void removeColumn(long columnIndex)
-    {
+    public void removeColumn(long columnIndex) {
         nativeRemoveColumn(nativePtr, columnIndex);
     }
 
@@ -421,6 +421,29 @@ public class Table implements TableOrView {
                 subtable.addAt(i, (Object[])rowArr);
             }
         }
+    }
+    
+    /**
+     * Returns a view sorted by the specified column by the default order
+     * @param columnIndex
+     * @return
+     */
+    public TableView getSortedView(long columnIndex){
+        TableView view = this.where().findAll();
+        view.sort(columnIndex);
+        return view;
+    }
+    
+    /**
+     * Returns a view sorted by the specified column and order
+     * @param columnIndex
+     * @param order
+     * @return
+     */
+    public TableView getSortedView(long columnIndex, Order order){
+        TableView view = this.where().findAll();
+        view.sort(columnIndex, order);
+        return view;
     }
 
     /**
