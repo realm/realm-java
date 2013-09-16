@@ -511,7 +511,9 @@ public class Table implements TableOrView {
             if (immutable) throwImmutable();
             nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
         }
-        
+
+        /*
+
         public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
             if (immutable) throwImmutable();
             //System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
@@ -521,6 +523,8 @@ public class Table implements TableOrView {
             else
                 throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");   // FIXME: support other than allocateDirect
         }
+
+        */
         
         public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
             if (immutable) throwImmutable();
@@ -639,11 +643,13 @@ public class Table implements TableOrView {
      *            0 based index value of the cell row
      * @return value of the particular cell.
      */
+    /*
     public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex) {
         return nativeGetByteBuffer(nativePtr, columnIndex, rowIndex);
     }
 
     protected native ByteBuffer nativeGetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex);
+    */
 
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex) {
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
@@ -758,6 +764,8 @@ public class Table implements TableOrView {
      * @param data
      *            the ByteBuffer must be allocated with ByteBuffer.allocateDirect(len)
      */
+
+    /*
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data) {
         if (immutable) throwImmutable();
         if (data == null)
@@ -769,6 +777,8 @@ public class Table implements TableOrView {
     }
 
     protected native void nativeSetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+    */
+
 
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         if (immutable) throwImmutable();
@@ -804,7 +814,7 @@ public class Table implements TableOrView {
      * @param value
      */
     //!!!TODO: New. Support in highlevel API
-    public void adjustColumnValues(long columnIndex, long value) {
+    public void adjust(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }

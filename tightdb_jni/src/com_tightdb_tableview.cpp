@@ -86,6 +86,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetString(
     return to_jstring(env, TV(nativeViewPtr)->get_string( S(columnIndex), S(rowIndex)));
 }
 
+/*
 JNIEXPORT jobject JNICALL Java_com_tightdb_TableView_nativeGetBinary(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
@@ -95,6 +96,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableView_nativeGetBinary(
     BinaryData bin = TV(nativeViewPtr)->get_binary( S(columnIndex), S(rowIndex));
     return env->NewDirectByteBuffer(const_cast<char*>(bin.data()),  static_cast<jlong>(bin.size()));
 }
+*/
 
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_TableView_nativeGetByteArray(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
@@ -203,6 +205,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetString(
     TV(nativeViewPtr)->set_string( S(columnIndex), S(rowIndex), value2);
 }
 
+/*
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetBinary(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
@@ -211,6 +214,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetBinary(
 
     tbl_nativeDoBinary(&TableView::set_binary, TV(nativeViewPtr), env, columnIndex, rowIndex, byteBuffer);
 }
+*/
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetByteArray(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jbyteArray byteArray)

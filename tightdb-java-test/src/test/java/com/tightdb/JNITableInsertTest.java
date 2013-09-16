@@ -24,8 +24,6 @@ public class JNITableInsertTest {
         assertEquals((String)values[2], tbl.getString(2, rowIndex));
         if (values[3] instanceof byte[])
             assertEquals((byte[])values[3], tbl.getBinaryByteArray(3, rowIndex));
-        if (values[3] instanceof ByteBuffer)
-            assertEquals((ByteBuffer)values[3], tbl.getBinaryByteBuffer(3, rowIndex));
         assertEquals(((Date)values[4]).getTime()/1000, tbl.getDate(4, rowIndex).getTime()/1000);
 
 //      Mixed mix1 = Mixed.mixedValue(values[5]);
@@ -57,7 +55,7 @@ public class JNITableInsertTest {
         subspec.addColumn(ColumnType.STRING, "sub-str");
         table.updateFromSpec(tableSpec);
 
-        ByteBuffer buf = ByteBuffer.allocateDirect(23);
+        byte[] buf = new byte[23];
         Mixed mixedSubTable = new Mixed(ColumnType.TABLE);
         Date date = new Date();
         long mixed = 123;
@@ -134,7 +132,7 @@ public class JNITableInsertTest {
         table.updateFromSpec(tableSpec);
 
         // Wrong number of parameters
-        ByteBuffer buf = ByteBuffer.allocateDirect(23);
+        byte[] buf = new byte[23];
         try {
             table.addAt(0, false);
             assertTrue(false);
@@ -218,13 +216,13 @@ public class JNITableInsertTest {
         table.add("row3", 30);
         table.add("row4", 40);
 
-        table.adjustColumnValues(1, 1); //Adding one 1 all rows in col1
+        table.adjust(1, 3); //Adding 3 to all rows in col1
 
-        assertEquals(1, table.getLong(1, 0));
-        assertEquals(11, table.getLong(1, 1));
-        assertEquals(21, table.getLong(1, 2));
-        assertEquals(31, table.getLong(1, 3));
-        assertEquals(41, table.getLong(1, 4));
+        assertEquals(3, table.getLong(1, 0));
+        assertEquals(13, table.getLong(1, 1));
+        assertEquals(23, table.getLong(1, 2));
+        assertEquals(33, table.getLong(1, 3));
+        assertEquals(43, table.getLong(1, 4));
     }
 
 
@@ -237,7 +235,7 @@ public class JNITableInsertTest {
 
             if(table.getColumnType(c).equals(ColumnType.INTEGER) == false){ // Do not check if it is a Long column
                 try{ 
-                    table.adjustColumnValues(c, 10); 
+                    table.adjust(c, 10); 
                     assertTrue(false); //We should never get here, as an exception is thrown above
                 } 
                 catch (IllegalArgumentException e){ 

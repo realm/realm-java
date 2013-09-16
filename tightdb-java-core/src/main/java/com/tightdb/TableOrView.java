@@ -103,7 +103,7 @@ public interface TableOrView {
      * @param rowIndex
      * @return
      */
-    ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
+    //ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
 
     byte[] getBinaryByteArray(long columnIndex, long rowIndex);
 
@@ -175,7 +175,7 @@ public interface TableOrView {
      * @param rowIndex
      * @param data
      */
-    void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
+    //void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
 
     void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data);
 
@@ -184,7 +184,7 @@ public interface TableOrView {
     void setMixed(long columnIndex, long rowIndex, Mixed data);
 
     //Increments all rows in the specified column with the provided value
-    void adjustColumnValues(long columnIndex, long value);
+    void adjust(long columnIndex, long value);
 
     long sum(long columnIndex);
 

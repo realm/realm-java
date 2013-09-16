@@ -182,12 +182,13 @@ public class TableView implements TableOrView {
      * @param rowIndex 0 based index value of the cell row
      * @return value of the particular cell.
      */
+    /*
     public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex){
         return nativeGetBinary(nativePtr, columnIndex, rowIndex);
     }
 
     protected native ByteBuffer nativeGetBinary(long nativeViewPtr, long columnIndex, long rowIndex);
-
+*/
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex){
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
     }
@@ -320,12 +321,14 @@ public class TableView implements TableOrView {
      * @param rowIndex row index of the cell
      * @param data
      */
+    /*
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data){
         if (immutable) throwImmutable();
         nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
     }
 
     protected native void nativeSetBinary(long nativeViewPtr, long columnIndex, long rowIndex, ByteBuffer data);
+    */
 
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
         if (immutable) throwImmutable();
@@ -355,7 +358,7 @@ public class TableView implements TableOrView {
      * @param value
      */
     //!!!TODO: New
-    public void adjustColumnValues(long columnIndex, long value) {
+    public void adjust(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }

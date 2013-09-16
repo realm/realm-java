@@ -73,15 +73,7 @@ public class CursorColumnsTest extends AbstractTest {
                 .getBinaryValue());
         assertEquals(ColumnType.BINARY, employee.extra.getType());
 
-        ByteBuffer buf = ByteBuffer.allocateDirect(3);
-        byte[] arr2 = { 10, 20, 30 };
-        buf.put(arr2);
-        employee.extra.set(buf);
-        assertEquals(Mixed.BINARY_TYPE_BYTE_BUFFER, employee.extra.get()
-                .getBinaryType());
-        assertEquals(ByteBuffer.wrap(arr2), employee.extra.get()
-                .getBinaryValue());
-        assertEquals(ColumnType.BINARY, employee.extra.getType());
+
 
         Date date = new Date(6547);
         employee.extra.set(date);
