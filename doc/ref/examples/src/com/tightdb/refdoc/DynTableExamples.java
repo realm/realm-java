@@ -17,6 +17,7 @@ public class DynTableExamples {
         sizeExample();
         isEmptyExample();
         clearExample();
+        //TODO getSortedViewExample();
         //TODO optimizeExample();
         //TODO setIndexExample();
         //TODO hasIndexExample();
