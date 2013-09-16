@@ -469,7 +469,7 @@ public class DynTableExamples {
         // Get long value value of cell at position 1,1
         // NB! Column type in tightdb is INTEGER
         // In java it is accessed by getLong(col, row);
-        Long score2 = table.getLong(1, 1); 
+        long score2 = table.getLong(1, 1); 
 
         // Check values
         Assert(user1.equals("user1"));
@@ -478,14 +478,14 @@ public class DynTableExamples {
         
         // Throws exception if column or row index is out of range
         try {
-            table.getLong(1, 400);
+            long score = table.getLong(1, 3);
         } catch (ArrayIndexOutOfBoundsException e){
             // ...
         }
         
         // Throws exception if accessor method and column type do not match
         try {
-            table.getBoolean(0, 0);
+            boolean bool = table.getBoolean(0, 0);
         } catch (IllegalArgumentException e){
             // ...
         }
@@ -564,7 +564,7 @@ public class DynTableExamples {
         table.add("user8", 770, true);
         
         // Find first row index where column 2 is true
-        Long rowIndex = table.findFirstBoolean(2, true);
+        long rowIndex = table.findFirstBoolean(2, true);
         
         Assert(table.getString(0, rowIndex).equals("user5"));
         // @@EndShow@@
@@ -680,7 +680,7 @@ public class DynTableExamples {
         table.add("user8", 770, true);
         
         // The sum of all values in column 1
-        Long totalScore = table.sum(1);
+        long totalScore = table.sum(1);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -705,7 +705,7 @@ public class DynTableExamples {
         table.add("user8", 770, true);
         
         // The maximum score in column 1
-        Long maxScore = table.maximum(1);
+        long maxScore = table.maximum(1);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -729,7 +729,7 @@ public class DynTableExamples {
         table.add("user8", 770, true);
         
         // The minimum score in column 1
-        Long minScore = table.minimum(1);
+        long minScore = table.minimum(1);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -754,7 +754,7 @@ public class DynTableExamples {
         table.add("user8", 770, true);
         
         // The average score in column 1
-        Double avgScore = table.average(1); // Returns a double
+        double avgScore = table.average(1); // Returns a double
         // @@EndShow@@
         // @@EndExample@@
     }

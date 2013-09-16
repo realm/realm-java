@@ -218,13 +218,13 @@ public class JNITableInsertTest {
         table.add("row3", 30);
         table.add("row4", 40);
 
-        table.adjust(1, 1); //Adding one 1 all rows in col1
+        table.adjust(1, 3); //Adding 3 to all rows in col1
 
-        assertEquals(1, table.getLong(1, 0));
-        assertEquals(11, table.getLong(1, 1));
-        assertEquals(21, table.getLong(1, 2));
-        assertEquals(31, table.getLong(1, 3));
-        assertEquals(41, table.getLong(1, 4));
+        assertEquals(3, table.getLong(1, 0));
+        assertEquals(13, table.getLong(1, 1));
+        assertEquals(23, table.getLong(1, 2));
+        assertEquals(33, table.getLong(1, 3));
+        assertEquals(43, table.getLong(1, 4));
     }
 
 

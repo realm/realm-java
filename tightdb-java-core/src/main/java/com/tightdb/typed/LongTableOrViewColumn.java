@@ -72,7 +72,7 @@ public class LongTableOrViewColumn<Cursor, View, Query> extends
         setAll(new Long(value));
     }
 
-    public void addLong(long value) {
+    public void adjust(long value) {
         tableOrView.adjust(columnIndex, value);
     }
 
