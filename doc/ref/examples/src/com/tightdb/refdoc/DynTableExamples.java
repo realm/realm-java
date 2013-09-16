@@ -112,12 +112,10 @@ public class DynTableExamples {
     public static void clearExample(){
         // @@Example: ex_java_dyn_table_clear @@
         // @@Show@@
-        // Creates table with 2 columns
+        // Create table with 2 columns and add data
         Table table = new Table();
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
-
-        // Add data to the table
         table.add(100, "Washington");
         table.add(200, "Los Angeles");
         
@@ -264,7 +262,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
     
-    
    
     
     // ******************************************
@@ -274,7 +271,7 @@ public class DynTableExamples {
     public static void addExample(){
         // @@Example: ex_java_dyn_table_add @@
         // @@Show@@
-        // Creates table with 2 columns
+        // Create table with 2 columns
         Table table = new Table();
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
@@ -290,12 +287,10 @@ public class DynTableExamples {
     public static void addEmptyRowExample(){
         // @@Example: ex_java_dyn_table_add_empty_row @@
         // @@Show@@
-        // Creates table with 2 columns
+        // Create table with 2 columns and add data
         Table table = new Table();
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
-
-        // Add data to the table
         table.add(100, "Washington");
         table.add(200, "Los Angeles");
         
@@ -316,12 +311,10 @@ public class DynTableExamples {
     public static void addEmptyRowsExample(){
         // @@Example: ex_java_dyn_table_add_empty_rows @@
         // @@Show@@
-        // Creates table with 2 columns
+        // Create table with 2 columns and add data
         Table table = new Table();
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
-
-        // Add data to the table
         table.add(100, "Washington");
         table.add(200, "Los Angeles");
         
@@ -343,12 +336,10 @@ public class DynTableExamples {
     public static void addAtExample(){
         // @@Example: ex_java_dyn_table_add_at @@
         // @@Show@@
-        // Creates table with 2 columns
+        // Create table with 2 columns and add data
         Table table = new Table();
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
-
-        // Add data to the table
         table.add(100, "Washington");
         table.add(200, "Los Angeles");
         table.add(300, "New York");
@@ -363,12 +354,10 @@ public class DynTableExamples {
     public static void setRowExample(){
         // @@Example: ex_java_dyn_table_set_row @@
         // @@Show@@
-        // Creates table with 2 columns
+        // Create table with 2 columns and add data
         Table table = new Table();
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
-
-        // Add data to the table
         table.add(100, "Washington");
         table.add(200, "Los Angeles");
 
@@ -384,12 +373,10 @@ public class DynTableExamples {
     public static void removeExample(){
         // @@Example: ex_java_dyn_table_remove @@
         // @@Show@@
-        // Creates table with 2 columns
+        // Create table with 2 columns and add data
         Table table = new Table();
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
-
-        // Add data to the table
         table.add(100, "Washington");
         table.add(200, "Los Angeles");
 
@@ -406,12 +393,10 @@ public class DynTableExamples {
     public static void removeLastExample(){
         // @@Example: ex_java_dyn_table_remove_last_row @@
         // @@Show@@
-        // Creates table with 2 columns
+        // Create table with 2 columns and add ata
         Table table = new Table();
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
-
-        // Add data to the table
         table.add(100, "Washington");
         table.add(200, "Los Angeles");
         table.add(300, "New York");
