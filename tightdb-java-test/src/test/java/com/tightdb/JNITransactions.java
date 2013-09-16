@@ -197,7 +197,6 @@ public class JNITransactions {
         try { table.remove(0);                      assert(false);} catch (IllegalStateException e) {}
         try { table.removeLast();                   assert(false);} catch (IllegalStateException e) {}
         try { table.setBinaryByteArray(0,0,null);   assert(false);} catch (IllegalStateException e) {}
-        try { table.setBinaryByteBuffer(0,0,null);  assert(false);} catch (IllegalStateException e) {}
         try { table.setBoolean(0,0,false);          assert(false);} catch (IllegalStateException e) {}
         try { table.setDate(0,0,new Date(0));       assert(false);} catch (IllegalStateException e) {}
         try { table.setIndex(0);                    assert(false);} catch (IllegalStateException e) {}
@@ -217,7 +216,6 @@ public class JNITransactions {
         try { v.remove(0);                          assert(false);} catch (IllegalStateException e) {}
         try { v.removeLast();                       assert(false);} catch (IllegalStateException e) {}
         try { v.setBinaryByteArray(0, 0, null);     assert(false);} catch (IllegalStateException e) {}
-        try { v.setBinaryByteBuffer(0, 0, null);    assert(false);} catch (IllegalStateException e) {}
         try { v.setBoolean(0, 0, false);            assert(false);} catch (IllegalStateException e) {}
         try { v.setDate(0, 0, new Date());          assert(false);} catch (IllegalStateException e) {}
         try { v.setLong(0, 0, 0);                   assert(false);} catch (IllegalStateException e) {}

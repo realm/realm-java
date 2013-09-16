@@ -160,15 +160,14 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     }
 
     protected void insertBinary(long columnIndex, long rowIndex, byte[] value) {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(value.length);
-        buffer.put(value);
-
-        table.getInternalMethods().insertBinary(columnIndex, rowIndex, buffer);
+        table.getInternalMethods().insertBinary(columnIndex, rowIndex, value);
     }
 
+    /*
     protected void insertBinary(long columnIndex, long rowIndex, ByteBuffer value) {
         table.getInternalMethods().insertBinary(columnIndex, rowIndex, value);
     }
+    */
 
     protected void insertDate(long columnIndex, long rowIndex, Date value) {
         table.getInternalMethods().insertDate(columnIndex, rowIndex, value);
