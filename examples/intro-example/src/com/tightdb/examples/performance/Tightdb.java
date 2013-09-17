@@ -1,7 +1,6 @@
 package com.tightdb.examples.performance;
 
 import com.tightdb.DefineTable;
-import com.tightdb.internal.util;
 
 public class Tightdb extends PerformanceBase implements IPerformance {
 
@@ -22,7 +21,7 @@ public class Tightdb extends PerformanceBase implements IPerformance {
     }
 
     public long usedNativeMemory() {
-        return util.getNativeMemUsage();
+        return Util.getUsedMemory();
     }
 
     public void buildTable(int rows) {
