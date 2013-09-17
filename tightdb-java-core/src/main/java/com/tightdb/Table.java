@@ -400,10 +400,7 @@ public class Table implements TableOrView {
                 nativeInsertMixed(nativePtr, columnIndex, rowIndex, Mixed.mixedValue(value));
                 break;
             case BINARY:
-                if (value instanceof byte[])
-                    nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
-                else if (value instanceof ByteBuffer)
-                    nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, (ByteBuffer)value);
+                nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
                 break;
             case TABLE:
                 nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
@@ -605,7 +602,7 @@ public class Table implements TableOrView {
 
    
 
-    protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+    //protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
     
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
