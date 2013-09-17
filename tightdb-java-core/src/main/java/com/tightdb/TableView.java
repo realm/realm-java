@@ -651,8 +651,7 @@ public class TableView implements TableOrView {
 
     protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
-    private void throwImmutable()
-    {
+    private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 

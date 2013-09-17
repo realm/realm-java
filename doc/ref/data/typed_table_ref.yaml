@@ -5,7 +5,7 @@
 # updateFromSpec, getTableSpec
 
 ID         : class_typed_table
-TITLE      : Table (typed)
+TITLE      : Table
 SUMMARY    : *g_typed_table_summary
 DESCR      : *g_typed_table_descr
 SEE        : 
@@ -40,13 +40,25 @@ CATEGORIES :
   METHODS:
   - g_typed_table_is_attached:
       NAMES    : isValid
-      SUMMARY  : *g_dyn_table_is_attached_summary
-      DESCR    : *g_dyn_table_is_attached_descr
+      SUMMARY  : &java_dyn_table_is_attached_summary
+                 Check whether this table  is valid.
+      DESCR    : &java_dyn_table_is_attached_descr
+                 A table accessor that is no longer valid must not
+                 be accessed in any way except by calling
+                 isValid(). A table accessor that is obtained from
+                 a Group becomes detached if its group accessor is
+                 destroyed. This is also true for any subtable
+                 accessor that is obtained indirectly from a group. A
+                 subtable accessor will generally become detached if
+                 its parent table is modified. An accessor
+                 for a freestanding table will never become
+                 detached. An accessor for a subtable of a
+                 freestanding table may become detached.
       RETURN:
         TYPES  : boolean
         DESCR  : *g_dyn_table_is_attached_return_descr
       EXAMPLES:
-      - CODE   : ex_java_typed_table_is_attached
+      - CODE   : ex_java_typed_table_is_valid
         DESCR  :
   - g_typed_table_size:
       NAMES    : size

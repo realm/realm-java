@@ -20,6 +20,10 @@ public class TableQuery {
         close();
     }
 
+    public void private_close() {
+        close();
+    }
+
     private synchronized void close() {
         if (DEBUG)
         	System.err.println("++++ Query CLOSE, ptr= " + nativePtr);

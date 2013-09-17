@@ -7,7 +7,6 @@
 - Deprecated ReadTransaction.close()
 + WriteTransaction.commit() now throws IllegalStateException
 
-
 09-September-2013:
 ==================
 + Added Table.toString(), Table.toString(maxRows), Table.rowToString(row)
