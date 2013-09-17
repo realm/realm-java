@@ -601,12 +601,12 @@ public class TableView implements TableOrView {
     public enum Order { ascending, descending };
 
     public void sort(long columnIndex, Order order) {
-        if (immutable) throwImmutable();
+        // Don't check for immutable. Sorting does not modify original table
         nativeSort(nativePtr, columnIndex, (order == Order.ascending));
     }
 
     public void sort(long columnIndex) {
-        if (immutable) throwImmutable();
+        // Don't check for immutable. Sorting does not modify original table
         nativeSort(nativePtr, columnIndex, true);
     }
 

@@ -362,8 +362,15 @@ public class Table implements TableOrView {
             ColumnType colType = getColumnType(columnIndex);
             colTypes[columnIndex] = colType;
             if (!colType.matchObject(value)) {
+                //String representation of the provided value type
+                String providedType;
+                if (value == null) 
+                    providedType = "null";
+                else
+                    providedType = value.getClass().toString();
+                
                 throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
-                        ". Expected a value compatible with column type " + colType + ", but got " + value.getClass() + ".");
+                        ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
             }
         }
 
@@ -393,10 +400,7 @@ public class Table implements TableOrView {
                 nativeInsertMixed(nativePtr, columnIndex, rowIndex, Mixed.mixedValue(value));
                 break;
             case BINARY:
-                if (value instanceof byte[])
-                    nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
-                else if (value instanceof ByteBuffer)
-                    nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, (ByteBuffer)value);
+                nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
                 break;
             case TABLE:
                 nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
@@ -515,7 +519,7 @@ public class Table implements TableOrView {
             nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
         }
         
-        public void insertBoolean(long columnIndex, long rowIndex, boolean value) {
+        public void insertBoolean(long columnIndex, long rowIndex, boolean value) { 
             if (immutable) throwImmutable();
             nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
         }
@@ -551,7 +555,10 @@ public class Table implements TableOrView {
         
         public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
             if (immutable) throwImmutable();
-            nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
+            if(data != null)
+                nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
+            else
+                throw new RuntimeException("byte[] must not be null. Alternatively insert empty array.");
         }
         
         public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
@@ -595,7 +602,7 @@ public class Table implements TableOrView {
 
    
 
-    protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+    //protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
     
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
