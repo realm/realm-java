@@ -492,7 +492,7 @@ public class Table implements TableOrView {
             nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
         }
         
-        public void insertBoolean(long columnIndex, long rowIndex, boolean value) {
+        public void insertBoolean(long columnIndex, long rowIndex, boolean value) { 
             if (immutable) throwImmutable();
             nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
         }
