@@ -1,7 +1,7 @@
 package com.tightdb;
 
 public class TableQuery {
-    protected boolean DEBUG = false; //true;
+    protected boolean DEBUG = false;
 
     protected long nativePtr;
     protected boolean immutable = false;
@@ -18,7 +18,7 @@ public class TableQuery {
         close();
     }
 
-    public void private_close() {
+    public void private_debug_close() {
         close();
     }
 
