@@ -3,7 +3,7 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 
 // Make sure numbers match with <tightdb/column_type.hpp>
-// FIXME: Add a unit test that verifies the correct correspondance.
+// FIXME: Add a unit test that verifies the correct correspondence.
 
 public enum ColumnType {
     BOOLEAN(1),
