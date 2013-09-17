@@ -364,11 +364,10 @@ public class Table implements TableOrView {
             if (!colType.matchObject(value)) {
                 //String representation of the provided value type
                 String providedType;
-                if (value == null) {
+                if (value == null) 
                     providedType = "null";
-                } else {
+                else
                     providedType = value.getClass().toString();
-                }
                 
                 throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
                         ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
