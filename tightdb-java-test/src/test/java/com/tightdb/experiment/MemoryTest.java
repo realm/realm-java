@@ -11,8 +11,6 @@ public class MemoryTest {
     @Test
     public void testMemoryManagement() {
 
-        // With debug messages enabled this will show that finalizers is actually called when the garbage collector runs. And there by disposing the Table and TableQuery objects
-
         System.out.println("Begin mem test");
 
         for(int i = 0; i < 10000; i++) {
@@ -21,8 +19,11 @@ public class MemoryTest {
 
             TableQuery query = table.where();
 
-            @SuppressWarnings("unused")
 			TableView view = query.findAll();
+
+            query.private_close();
+
+            table.close();
 
         }
 

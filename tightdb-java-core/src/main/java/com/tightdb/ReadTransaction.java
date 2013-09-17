@@ -1,7 +1,7 @@
 package com.tightdb;
 
 // ARM only works in Java 1.7
-// public class ReadTransaction extends Group  implements AutoCloseable {
+// public class ReadTransaction extends Group implements AutoCloseable {
 
 public class ReadTransaction extends Group {
 
@@ -25,10 +25,10 @@ public class ReadTransaction extends Group {
     }
 
 //    @Override
+    @Deprecated
     public void close()
     {
         //System.out.println("read-close");
-        //TODO: can close fail? make exception
         db.endRead();
     }
 

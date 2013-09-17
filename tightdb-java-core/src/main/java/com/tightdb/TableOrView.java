@@ -103,7 +103,7 @@ public interface TableOrView {
      * @param rowIndex
      * @return
      */
-    ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
+    //ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
 
     byte[] getBinaryByteArray(long columnIndex, long rowIndex);
 
@@ -175,7 +175,7 @@ public interface TableOrView {
      * @param rowIndex
      * @param data
      */
-    void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
+    //void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
 
     void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data);
 
@@ -247,6 +247,8 @@ public interface TableOrView {
     String toString();
 
     String toString(long maxRows);
+    
+    String rowToString(long rowIndex);
     
 // Experimental:
 

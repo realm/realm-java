@@ -13,9 +13,14 @@ public class DynTableExamples {
     public static void main(String[] args) throws FileNotFoundException  {
         
         // Table methods:
-        clearExample();
-        isEmptyExample();
+        isValidExample();
         sizeExample();
+        isEmptyExample();
+        clearExample();
+        //TODO getSortedViewExample();
+        //TODO optimizeExample();
+        //TODO setIndexExample();
+        //TODO hasIndexExample();
         
         
         // Columns methods: 
@@ -43,8 +48,8 @@ public class DynTableExamples {
         // Cells methods:
         getExamples();
         setExamples();
-        //getSubtableSize();
-        //clearSubtable
+        //TODO getSubtableSize();
+        //TODO clearSubtable
         
         
         // Searching methods:
@@ -70,6 +75,29 @@ public class DynTableExamples {
     // ******************************************
     // Table methods
     // ******************************************
+    
+    
+    
+    public static void isValidExample(){
+        // @@Example: ex_java_dyn_table_is_valid @@
+        // @@Show@@
+        // Open a group from file
+        Group fromFile = new Group( /* filepath.tightdb */);
+        
+        // Get table from group
+        Table table = fromFile.getTable("peopleTable");
+        
+        // Group is closed
+        fromFile.close();
+        
+        if( table.isValid()) {
+           long size = table.size();
+        } else {
+            System.out.println("Group has been closed, table is no longer valid");
+        }
+        // @@EndShow@@
+        // @@EndExample@@
+    }
     
     
     public static void sizeExample(){

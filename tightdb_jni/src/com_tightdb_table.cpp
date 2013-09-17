@@ -11,6 +11,11 @@
 
 using namespace tightdb;
 
+// TODO: check:
+// Note: Don't modify spec on a table which has a shared_spec. 
+// A spec is shared on subtables that are not in Mixed columns.
+//
+
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
   (JNIEnv *env, jobject, jlong nativeTablePtr, jint colType, jstring name)
 {
@@ -19,6 +24,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
     JStringAccessor name2(env, name);
     if (!name2)
         return 0;
+    //TODO: add check that nativeTablePtr->has_shared_spec() == false
+    // the same for other spec modifying operations
     return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
 }
 
@@ -27,6 +34,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
+    // TODO: see addColumn
     TBL(nativeTablePtr)->remove_column(S(columnIndex));
 }
 
@@ -38,6 +46,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
     JStringAccessor name2(env, name);
     if (!name2)
         return;
+    // TODO: see addColumn
     TBL(nativeTablePtr)->rename_column(S(columnIndex), name2);
 }
 
@@ -303,6 +312,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetString(
     return to_jstring(env, TBL(nativeTablePtr)->get_string( S(columnIndex), S(rowIndex)));
 }
 
+/*
 JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetByteBuffer(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
@@ -312,6 +322,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetByteBuffer(
     BinaryData bin = TBL(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
     return env->NewDirectByteBuffer(const_cast<char*>(bin.data()), bin.size());
 }
+*/
 
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Table_nativeGetByteArray(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
@@ -435,6 +446,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetDate(
     TBL(nativeTablePtr)->set_date( S(columnIndex), S(rowIndex), dateTimeValue);
 }
 
+/*
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetByteBuffer(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
@@ -443,7 +455,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetByteBuffer(
 
     tbl_nativeDoBinary(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, byteBuffer);
 }
-
+*/
+/*
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteBuffer(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
@@ -452,6 +465,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteBuffer(
 
     tbl_nativeDoBinary(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, byteBuffer);
 }
+*/
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetByteArray(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jbyteArray dataArray)
@@ -905,6 +919,18 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToString(
 
    std::ostringstream ss;
    table->to_string(ss, maxRows);
+   const std::string str = ss.str();
+   return env->NewStringUTF(str.c_str());
+}
+
+JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeRowToString(
+    JNIEnv *env, jobject, jlong nativeTablePtr, jlong rowIndex)
+{
+   Table* table = TBL(nativeTablePtr);
+   if (!TBL_AND_ROW_INDEX_VALID(env, table, rowIndex)) return NULL;
+
+   std::ostringstream ss;
+   table->row_to_string(rowIndex, ss);
    const std::string str = ss.str();
    return env->NewStringUTF(str.c_str());
 }

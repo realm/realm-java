@@ -1,10 +1,19 @@
-09-September-2013:
+16-September-2013:
 =================
-+ Added Table.toString(), Table.toString(maxRows)
-+ Added TableView.toString(), TableView.toString(maxRows),
-+ Added Group::toString(), toJson(), equals()
+! BREAKING CHANGE: Removed ByteBuffer as type for Binary. Added byte[] as only type for Binary in both dynamic and typed interface.
+
+10-September-2013:
+==================
+- Deprecated ReadTransaction.close()
++ WriteTransaction.commit() now throws IllegalStateException
+
+09-September-2013:
+==================
++ Added Table.toString(), Table.toString(maxRows), Table.rowToString(row)
++ Added TableView.toString(), TableView.toString(maxRows), TableView.rowToString(row)
++ Added Group.toString(), toJson(), equals()
 + Added Mixed.getReadableValue()
-+ Added SharedGroup::hasChanged
++ Added SharedGroup.hasChanged()
 + Added validation of parameters in all methods. Exceptions are now thrown if invalid parameters are passed. 
 
 06-September-2013:

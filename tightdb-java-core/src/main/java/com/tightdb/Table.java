@@ -3,6 +3,7 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.tightdb.TableView.Order;
 import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
@@ -143,8 +144,7 @@ public class Table implements TableOrView {
     /**
      * Remove a column in the table dynamically.
      */
-    public void removeColumn(long columnIndex)
-    {
+    public void removeColumn(long columnIndex) {
         nativeRemoveColumn(nativePtr, columnIndex);
     }
 
@@ -422,6 +422,29 @@ public class Table implements TableOrView {
             }
         }
     }
+    
+    /**
+     * Returns a view sorted by the specified column by the default order
+     * @param columnIndex
+     * @return
+     */
+    public TableView getSortedView(long columnIndex){
+        TableView view = this.where().findAll();
+        view.sort(columnIndex);
+        return view;
+    }
+    
+    /**
+     * Returns a view sorted by the specified column and order
+     * @param columnIndex
+     * @param order
+     * @return
+     */
+    public TableView getSortedView(long columnIndex, Order order){
+        TableView view = this.where().findAll();
+        view.sort(columnIndex, order);
+        return view;
+    }
 
     /**
      * Replaces the row at the specified position with the specified row.
@@ -511,7 +534,9 @@ public class Table implements TableOrView {
             if (immutable) throwImmutable();
             nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
         }
-        
+
+        /*
+
         public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
             if (immutable) throwImmutable();
             //System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
@@ -521,6 +546,8 @@ public class Table implements TableOrView {
             else
                 throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");   // FIXME: support other than allocateDirect
         }
+
+        */
         
         public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
             if (immutable) throwImmutable();
@@ -639,11 +666,13 @@ public class Table implements TableOrView {
      *            0 based index value of the cell row
      * @return value of the particular cell.
      */
+    /*
     public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex) {
         return nativeGetByteBuffer(nativePtr, columnIndex, rowIndex);
     }
 
     protected native ByteBuffer nativeGetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex);
+    */
 
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex) {
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
@@ -758,6 +787,8 @@ public class Table implements TableOrView {
      * @param data
      *            the ByteBuffer must be allocated with ByteBuffer.allocateDirect(len)
      */
+
+    /*
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data) {
         if (immutable) throwImmutable();
         if (data == null)
@@ -769,6 +800,8 @@ public class Table implements TableOrView {
     }
 
     protected native void nativeSetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+    */
+
 
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         if (immutable) throwImmutable();
@@ -1070,6 +1103,13 @@ public class Table implements TableOrView {
     }
 
     protected native String nativeToString(long nativeTablePtr, long maxRows);
+
+    
+    public String rowToString(long rowIndex) {
+        return nativeRowToString(nativePtr, rowIndex);
+    }
+
+    protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");

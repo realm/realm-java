@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 import com.tightdb.ColumnType;
+import com.tightdb.Group;
 
 
 
@@ -14,6 +15,7 @@ public class TypedTableExamples {
     public static void main(String[] args) throws FileNotFoundException  {
         
         // Table methods:
+        isValidExample();
         sizeExample();
         isEmptyExample();
         clearExample();
@@ -48,6 +50,30 @@ public class TypedTableExamples {
     // ******************************************
     // Table methods
     // ******************************************
+    
+    
+    
+    public static void isValidExample(){
+        // @@Example: ex_java_typed_table_is_valid @@
+        // @@Show@@
+        // Open a group from file
+        Group fromFile = new Group( /* filepath.tightdb */);
+        
+        // Get PeopleTable from group
+        PeopleTable people = new PeopleTable(fromFile);
+        
+        // Group is closed
+        fromFile.close();
+        
+        if( people.isValid()) {
+           long size = people.size();
+        } else {
+            System.out.println("Group has been closed, table is no longer valid");
+        }
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
     
     public static void sizeExample(){
         // @@Example: ex_java_typed_table_size @@

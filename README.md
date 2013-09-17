@@ -199,6 +199,11 @@ Set `TIGHTDB_ENABLE_MEM_USAGE` to a nonempty value to enable
 reporting of memory usage.
 
 
+Setting up a project
+--------------------
+For instructions on setting up: Ant, Maven, Eclipse or IntelliJ IDEA, please consult our online documentation:
+http://www.tightdb.com/documentation/Java_misc/1/Tutorial/
+
 Packaging
 ---------
 

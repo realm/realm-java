@@ -182,12 +182,13 @@ public class TableView implements TableOrView {
      * @param rowIndex 0 based index value of the cell row
      * @return value of the particular cell.
      */
+    /*
     public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex){
         return nativeGetBinary(nativePtr, columnIndex, rowIndex);
     }
 
     protected native ByteBuffer nativeGetBinary(long nativeViewPtr, long columnIndex, long rowIndex);
-
+*/
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex){
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
     }
@@ -320,12 +321,14 @@ public class TableView implements TableOrView {
      * @param rowIndex row index of the cell
      * @param data
      */
+    /*
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data){
         if (immutable) throwImmutable();
         nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
     }
 
     protected native void nativeSetBinary(long nativeViewPtr, long columnIndex, long rowIndex, ByteBuffer data);
+    */
 
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
         if (immutable) throwImmutable();
@@ -633,7 +636,7 @@ public class TableView implements TableOrView {
     protected native String nativeToJson(long nativeViewPtr);
 
     public String toString() {
-        return nativeToString(nativePtr, -1);
+        return nativeToString(nativePtr, 500);
     }
     
     public String toString(long maxRows) {
@@ -642,16 +645,19 @@ public class TableView implements TableOrView {
 
     protected native String nativeToString(long nativeTablePtr, long maxRows);
 
+    public String rowToString(long rowIndex) {
+        return nativeRowToString(nativePtr, rowIndex);
+    }
 
-    private void throwImmutable()
-    {
+    protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
+
+    private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 
     protected long nativePtr;
     protected boolean immutable = false;
     protected TableView tableView;
-
 
     @Override
     public long lookup(String value) {
