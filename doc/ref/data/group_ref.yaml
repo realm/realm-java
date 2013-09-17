@@ -51,10 +51,14 @@ CATEGORIES:
                  OpenMode.READ_WRITE_NO_CREATE: Open in read/write mode. Fail if the file does not already exist.
       - NAME   : data
         TYPES  : byte[]
-        DESCR  : *g_in_memory_binary_descr
+        DESCR  : |
+                 In-memory binary encoded representation of a group.
+                 The referenced memory must be kept alive.
       - NAME   : buffer
         TYPES  : ByteBuffer
-        DESCR  : *g_in_memory_binary_descr
+        DESCR  : |
+                 In-memory binary encoded representation of a group.
+                 The referenced memory must be kept alive.
       RETURN:
         TYPES  : Group
         DESCR  : *g_group_constructor_memory_return1_descr
