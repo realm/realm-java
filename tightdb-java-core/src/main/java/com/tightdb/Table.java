@@ -362,8 +362,16 @@ public class Table implements TableOrView {
             ColumnType colType = getColumnType(columnIndex);
             colTypes[columnIndex] = colType;
             if (!colType.matchObject(value)) {
+                //String representation of the provided value type
+                String providedType;
+                if (value == null) {
+                    providedType = "null";
+                } else {
+                    providedType = value.getClass().toString();
+                }
+                
                 throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
-                        ". Expected a value compatible with column type " + colType + ", but got " + value.getClass() + ".");
+                        ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
             }
         }
 
@@ -551,7 +559,10 @@ public class Table implements TableOrView {
         
         public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
             if (immutable) throwImmutable();
-            nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
+            if(data != null)
+                nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
+            else
+                throw new RuntimeException("byte[] must not be null. Alternatively insert empty array.");
         }
         
         public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
