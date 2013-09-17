@@ -39,14 +39,14 @@ CATEGORIES :
 - Table:
   METHODS:
   - g_dyn_table_is_attached:
-      NAMES    : isAttached
-      SUMMARY  : *g_dyn_table_is_attached_summary
-      DESCR    : *g_dyn_table_is_attached_descr
+      NAMES    : isValid
+      SUMMARY  : *java_dyn_table_is_attached_summary
+      DESCR    : *java_dyn_table_is_attached_descr
       RETURN:
         TYPES  : boolean
         DESCR  : *g_dyn_table_is_attached_return_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_is_attached
+      - CODE   : ex_java_dyn_table_is_valid
         DESCR  :
   - g_dyn_table_size:
       NAMES    : size
@@ -152,10 +152,10 @@ CATEGORIES :
       PARAMS:
       - NAME   : type
         TYPES  : ColumnType
-        DESCR  : *g_dyn_table_add_column_param1_descr
+        DESCR  : *g_dyn_table_add_column_type_descr
       - NAME   : name
         TYPES  : String
-        DESCR  : *g_dyn_table_add_column_param2_descr
+        DESCR  : *g_dyn_table_add_column_name_descr
       RETURN:
         TYPES  : long
         DESCR  : *g_dyn_table_add_column_return_descr

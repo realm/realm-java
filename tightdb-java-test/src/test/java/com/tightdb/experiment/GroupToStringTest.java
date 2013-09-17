@@ -17,10 +17,10 @@ public class GroupToStringTest {
         Group group = new Group();
 
         Table table = group.getTable("testTable");
-        table.addColumn(ColumnType.ColumnTypeBool, "boolean");
+        table.addColumn(ColumnType.BOOLEAN, "boolean");
         table.add(true);
         Table table2 = group.getTable("another-table");
-        table2.addColumn(ColumnType.ColumnTypeBool, "boolean");
+        table2.addColumn(ColumnType.BOOLEAN, "boolean");
         table2.add(true);
 
         assertEquals("     tables        rows  \n" +
@@ -38,10 +38,10 @@ public class GroupToStringTest {
         table.addColumn(ColumnType.BINARY, "binary");     // 0
         table.addColumn(ColumnType.BOOLEAN, "boolean");   // 1
         table.addColumn(ColumnType.DATE, "date");         // 2
-        table.addColumn(ColumnType.INTEGER, "long");      // 5
-        table.addColumn(ColumnType.MIXED, "mixed");       // 6
-        table.addColumn(ColumnType.STRING, "string");     // 7
-        table.addColumn(ColumnType.TABLE, "table");       // 8
+        table.addColumn(ColumnType.INTEGER, "long");      // 3
+        table.addColumn(ColumnType.MIXED, "mixed");       // 4
+        table.addColumn(ColumnType.STRING, "string");     // 5
+        table.addColumn(ColumnType.TABLE, "table");       // 6
 
         table.add(new byte[] {0,2,3}, true, new Date(0), 123, new Mixed(123), "TestString", null);
 

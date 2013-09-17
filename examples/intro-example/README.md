@@ -1,3 +1,9 @@
+Setting up a project
+====================
+For instructions on setting up: Ant, Maven, Eclipse or IntelliJ IDEA, please consult our online documentation:
+http://www.tightdb.com/documentation/Java_misc/1/Tutorial/
+
+
 Examples
 ========
 Within this folder (and subfolders) you find a number of examples on
