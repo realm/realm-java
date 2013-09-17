@@ -11,7 +11,6 @@ public class InsertPerformance {
         
         Table t = new Table();
         
-        
         t.addColumn(ColumnType.STRING, "String");
         t.addColumn(ColumnType.BOOLEAN, "Bool");
         t.addColumn(ColumnType.INTEGER, "Long");
