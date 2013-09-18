@@ -87,7 +87,17 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
 
         case IOFailed:
             jExceptionClass = env->FindClass("java/io/IOException");
-            message = "Failed to open " + classStr;
+            message = "Failed to open " + classStr + ". " + itemStr;
+            break;
+
+        case FileNotFound:
+            jExceptionClass = env->FindClass("java/io/FileNotFoundException");
+            message = "File not found: " + classStr + ".";
+            break;
+
+        case FileAccessError:
+            jExceptionClass = env->FindClass("java/io/FileNotFoundException");
+            message = "Failed to access: " + classStr + ". " + itemStr;
             break;
 
         case IndexOutOfBounds:
@@ -100,9 +110,21 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             message = classStr;
             break;
 
+        case OutOfMemory:
+            jExceptionClass = env->FindClass("java/lang/OutOfMemoryError");
+            message = classStr + " " + itemStr;
+            break;
+
+        case Unspecified:
+            jExceptionClass = env->FindClass("java/lang/RuntimeException");
+            message = "Unspecified exception. " + classStr;
+            break;
+
+        case RuntimeError:
         default:
-            TIGHTDB_ASSERT(false);
-            return;
+            jExceptionClass = env->FindClass("java/lang/RuntimeException");
+            message = classStr;
+            break;
     }
     if (jExceptionClass != NULL)
         env->ThrowNew(jExceptionClass, message.c_str());
