@@ -1,9 +1,5 @@
 package com.tightdb.examples.performance;
 
-import com.tightdb.internal.util;
-import com.tightdb.typed.TightDB;
-
-
 public class Performance {
     final public static int SMALL_TEST_VAL = 2;
     final public static int BYTE_TEST_VAL = 214;
@@ -80,7 +76,7 @@ public class Performance {
                 toKB(sqliteTotal), sqliteTotal/tightTotal);
 
         System.out.println("\nDONE.");
-        if (pause) util.waitForEnter();
+        if (pause) Util.waitForEnter();
     }
 
     static void printTime(long time, String str, String tab) {
@@ -100,7 +96,7 @@ public class Performance {
         Timer       timer = new Timer();
         int         testNo = 0;
 
-        if (pause) util.waitForEnter();
+        if (pause) Util.waitForEnter();
         long memBefore = Util.getUsedMemory(); memBefore = Util.getUsedMemory();
 
         // Build the test database
@@ -200,7 +196,7 @@ public class Performance {
             }
         }
 */
-        if (pause) util.waitForEnter();
+        if (pause) Util.waitForEnter();
         test.closeTable();
 
         return result;

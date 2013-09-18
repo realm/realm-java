@@ -3,6 +3,7 @@ package com.tightdb.test;
 import java.util.Date;
 
 import com.tightdb.ColumnType;
+import com.tightdb.Table;
 
 
 /**
@@ -35,5 +36,27 @@ public class TestHelper {
             return ColumnType.ColumnTypeBinary;
         
         return ColumnType.ColumnTypeMixed;
+    }
+    
+    
+    /**
+     * Creates an empty table with 1 column of all our supported column types, currently 9 columns
+     * @return
+     */
+    public static Table getTableWithAllColumnTypes(){
+        
+        Table t = new Table();
+        
+        t.addColumn(ColumnType.ColumnTypeBinary, "binary");
+        t.addColumn(ColumnType.ColumnTypeBool, "boolean");
+        t.addColumn(ColumnType.ColumnTypeDate, "date");
+        t.addColumn(ColumnType.ColumnTypeDouble, "double");
+        t.addColumn(ColumnType.ColumnTypeFloat, "float");
+        t.addColumn(ColumnType.ColumnTypeInt, "long");
+        t.addColumn(ColumnType.ColumnTypeMixed, "mixed");
+        t.addColumn(ColumnType.ColumnTypeString, "string");
+        t.addColumn(ColumnType.ColumnTypeTable, "table");
+        
+        return t;
     }
 }

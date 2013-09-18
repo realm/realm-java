@@ -40,7 +40,7 @@ public class Util {
         return txt;
     }
 
-    public void waitForEnter() {
+    public static void waitForEnter() {
         System.out.println("Press Enter to continue...");
         Scanner sc = new Scanner(System.in);
            while(!sc.nextLine().equals(""));

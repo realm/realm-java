@@ -97,9 +97,9 @@ public class Table implements TableOrView {
         close();
     }
 
-    public void close() {
+    private void close() {
         synchronized (CloseMutex.getInstance()) {
-            if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+            if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + (TableCount-1));
             if (nativePtr == 0)
                 return;
             if (DEBUG) TableCount--;
@@ -111,6 +111,12 @@ public class Table implements TableOrView {
     protected native void nativeClose(long nativeTablePtr);
 
     /*
+     * FOR TESTING ONLY - It's invalid to access any methods afterwards. 
+     */
+    public void private_debug_close() {
+    	close();
+    }
+    /*
      * Check if the Table is valid.
      * Whenever a Table/subtable is changed/updated all it's subtables are invalidated.
      * You can no longer perform any actions on the table, and if done anyway, an exception is thrown.
@@ -118,6 +124,8 @@ public class Table implements TableOrView {
      */
 
     public boolean isValid(){
+    	if (nativePtr == 0)
+    		return false;
         return nativeIsValid(nativePtr);
     }
 
