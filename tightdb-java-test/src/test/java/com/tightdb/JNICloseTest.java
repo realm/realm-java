@@ -50,10 +50,34 @@ public class JNICloseTest {
         
         TableQuery query = table.where();
         
-        table.private_debug_close();; //Table is being closed
+        table.private_debug_close(); //Table is being closed
         
         query.findAll(); //Should throw exception, as table has been closed
     }
+    
+    /**
+     * Get methods should not be allowed when table has been closed using private_debug_close() method
+     */
+    @Test()
+    public void tableClosedGetMethodsTest(){
+        
+        Table table = TestHelper.getTableWithAllColumnTypes();
+        table.addEmptyRows(10);
+        
+        table.private_debug_close(); //Table is being closed
+        
+        try{ table.size();                       assert(false); } catch (IllegalStateException e){}
+        try{ table.getBinaryByteArray(0, 0);     assert(false); } catch (IllegalStateException e){}
+        try{ table.getBoolean(1, 0);             assert(false); } catch (IllegalStateException e){}        
+        try{ table.getDate(2, 0);                assert(false); } catch (IllegalStateException e){}
+        try{ table.getDouble(3, 0);              assert(false); } catch (IllegalStateException e){}
+        try{ table.getFloat(4, 0);               assert(false); } catch (IllegalStateException e){}
+        try{ table.getLong(5, 0);                assert(false); } catch (IllegalStateException e){}
+        try{ table.getMixed(6, 0);               assert(false); } catch (IllegalStateException e){}
+        try{ table.getString(7, 0);              assert(false); } catch (IllegalStateException e){}
+    }
+    
+    
     
     
     /**
