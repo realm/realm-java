@@ -146,32 +146,38 @@ public class JNITransactions {
         clear();
     }
         
-  //TODO: Enable double rollback() test:
-    @Test(enabled = false)
+    @Test()
     public void mustAllowDoubleCommitAndRollback() {
-	    WriteTransaction trans = db.beginWrite();
-	    Table tbl = trans.getTable("EmployeeTable");
-	    tbl.addColumn(ColumnType.STRING, "name");
-	    tbl.addColumn(ColumnType.INTEGER, "number");
+    	{
+	    	WriteTransaction trans = db.beginWrite();
+		    Table tbl = trans.getTable("EmployeeTable");
+		    tbl.addColumn(ColumnType.STRING, "name");
+		    tbl.addColumn(ColumnType.INTEGER, "number");
+	
+		    // allow commit before any changes
+		    assertEquals(0, tbl.size());
+	        tbl.add("Hello", 1);
+		    trans.commit();
+    	}
+    	{
+	    	WriteTransaction trans = db.beginWrite();
+		    Table tbl = trans.getTable("EmployeeTable");
+		    // allow double rollback
+	        tbl.add("Hello", 2);
+	        assertEquals(2, tbl.size());
+	        trans.rollback();
+	        trans.rollback();
+	        trans.rollback();
+	        trans.rollback();
+    	}
+    	{
+    		ReadTransaction trans = db.beginRead();
+    		Table tbl = trans.getTable("EmployeeTable");
+	        assertEquals(1, tbl.size());
+	        trans.endRead();
+    	}
 
-	    // allow commit before any changes
-	    trans.commit();
-
-	    tbl.add("Hi", 1);
-	    assertEquals(1, tbl.size());
-	    
-	    // allow double commit()
-	    trans.commit();
-	    trans.commit();
-
-	    // allow double rollback
-        tbl.add("Hello", 1);
-        assertEquals(2, tbl.size());
-        trans.rollback();
-        trans.rollback();
-        assertEquals(1, tbl.size());
-
-        clear();
+    	clear();
     }
     
     // Test: exception at all mutable methods in TableBase, TableView,

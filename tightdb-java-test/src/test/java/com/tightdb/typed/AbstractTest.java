@@ -58,6 +58,8 @@ public abstract class AbstractTest {
         employees.clear();
         assertEquals(0, employees.size());
         employeesView.clear();
+        employees = null;
+        employeesView = null;
     }
 
     protected void addEmployee(TestEmployeeTable employees, EmployeeData emp) {

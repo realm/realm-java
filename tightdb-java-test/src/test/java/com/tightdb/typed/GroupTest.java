@@ -303,8 +303,6 @@ public class GroupTest {
         //Try to add data to table in group
         tbl.add(2);
     }
-    
-    
     @Test(expectedExceptions = IllegalStateException.class)
     public void shouldFailWhenAddingTablesToClosedGroup() {
         Group group = new Group();

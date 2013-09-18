@@ -626,6 +626,10 @@ public class TableView implements TableOrView {
         nativeClose(nativePtr);
         nativePtr = 0;
     }
+    
+    public void private_debug_close(){
+    	close();
+    }
 
     protected native void nativeClose(long nativeViewPtr);
 

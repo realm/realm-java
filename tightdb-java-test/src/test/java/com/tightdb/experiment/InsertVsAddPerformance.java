@@ -24,8 +24,6 @@ public class InsertVsAddPerformance {
         String  name4;
         long     age4;
         boolean hired5;
-        
-        
     }
     
     

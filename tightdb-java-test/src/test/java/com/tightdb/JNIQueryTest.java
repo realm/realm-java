@@ -117,7 +117,7 @@ public class JNIQueryTest {
         }
 
         // Compare date
-        /*
+        /* TODO:
         for(int i = 0; i <= 8; i++) {
             if(i != 2) {
                 try { query.equal(i, new Date());                   assert(false); } catch(IllegalArgumentException e) {}
