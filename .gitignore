@@ -78,3 +78,5 @@ _ReSharper*/
 *.lock
 
 tightdb-java-test/testng.xml
+
+doc/ref/examples/fromServlet
