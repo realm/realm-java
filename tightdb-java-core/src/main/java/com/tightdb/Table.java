@@ -1,5 +1,6 @@
 package com.tightdb;
 
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.internal.CloseMutex;

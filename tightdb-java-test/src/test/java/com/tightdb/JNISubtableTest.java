@@ -64,19 +64,19 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.STRING, "name");
-        persons.addColumn(ColumnType.STRING, "email");
-        persons.addColumn(ColumnType.TABLE, "addresses");
+        persons.addColumn(ColumnType.ColumnTypeString, "name");
+        persons.addColumn(ColumnType.ColumnTypeString, "email");
+        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
 
 
         TableDefinition addresses = persons.getSubTableDefinition(2);
-        addresses.addColumn(ColumnType.STRING, "street");
-        addresses.addColumn(ColumnType.INTEGER, "zipcode");
-        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
+        addresses.addColumn(ColumnType.ColumnTypeString, "street");
+        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
+        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
 
 
         TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
-        phone_numbers.addColumn(ColumnType.INTEGER, "number");
+        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
 
         // Inserting data
 
@@ -101,19 +101,19 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.STRING, "name");
-        persons.addColumn(ColumnType.STRING, "email");
-        persons.addColumn(ColumnType.TABLE, "addresses");
+        persons.addColumn(ColumnType.ColumnTypeString, "name");
+        persons.addColumn(ColumnType.ColumnTypeString, "email");
+        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
 
 
         TableDefinition addresses = persons.getSubTableDefinition(2);
-        addresses.addColumn(ColumnType.STRING, "street");
-        addresses.addColumn(ColumnType.INTEGER, "zipcode");
-        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
+        addresses.addColumn(ColumnType.ColumnTypeString, "street");
+        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
+        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
 
 
         TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
-        phone_numbers.addColumn(ColumnType.INTEGER, "number");
+        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
 
         // Inserting data
 
@@ -136,19 +136,19 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.STRING, "name");
-        persons.addColumn(ColumnType.STRING, "email");
-        persons.addColumn(ColumnType.TABLE, "addresses");
+        persons.addColumn(ColumnType.ColumnTypeString, "name");
+        persons.addColumn(ColumnType.ColumnTypeString, "email");
+        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
 
 
         TableDefinition addresses = persons.getSubTableDefinition(2);
-        addresses.addColumn(ColumnType.STRING, "street");
-        addresses.addColumn(ColumnType.INTEGER, "zipcode");
-        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
+        addresses.addColumn(ColumnType.ColumnTypeString, "street");
+        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
+        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
 
 
         TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
-        phone_numbers.addColumn(ColumnType.INTEGER, "number");
+        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
 
         // Inserting data
 
@@ -171,19 +171,19 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.STRING, "name");
-        persons.addColumn(ColumnType.STRING, "email");
-        persons.addColumn(ColumnType.TABLE, "addresses");
+        persons.addColumn(ColumnType.ColumnTypeString, "name");
+        persons.addColumn(ColumnType.ColumnTypeString, "email");
+        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
 
 
         TableDefinition addresses = persons.getSubTableDefinition(2);
-        addresses.addColumn(ColumnType.STRING, "street");
-        addresses.addColumn(ColumnType.INTEGER, "zipcode");
-        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
+        addresses.addColumn(ColumnType.ColumnTypeString, "street");
+        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
+        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
 
 
         TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
-        phone_numbers.addColumn(ColumnType.INTEGER, "number");
+        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
 
         // Inserting data
 
@@ -202,19 +202,19 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.STRING, "name");
-        persons.addColumn(ColumnType.STRING, "email");
-        persons.addColumn(ColumnType.TABLE, "addresses");
+        persons.addColumn(ColumnType.ColumnTypeString, "name");
+        persons.addColumn(ColumnType.ColumnTypeString, "email");
+        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
 
 
         TableDefinition addresses = persons.getSubTableDefinition(2);
-        addresses.addColumn(ColumnType.STRING, "street");
-        addresses.addColumn(ColumnType.INTEGER, "zipcode");
-        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
+        addresses.addColumn(ColumnType.ColumnTypeString, "street");
+        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
+        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
 
 
         TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
-        phone_numbers.addColumn(ColumnType.INTEGER, "number");
+        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
 
         // Inserting data
 
@@ -223,7 +223,7 @@ public class JNISubtableTest {
 
         // Should throw
 
-        persons.getSubTable(2,0).addColumn(ColumnType.INTEGER, "i");
+        persons.getSubTable(2,0).addColumn(ColumnType.ColumnTypeInt, "i");
 
     }
 
