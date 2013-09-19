@@ -138,8 +138,8 @@ public class JNITransactions {
         ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
 
-        try { table.insert(0, 0, false);        assert(false);} catch (IllegalStateException e) {}
-        try { table.add(0, false);              assert(false);} catch (IllegalStateException e) {}
+        try { table.insert(0, 0, false);            assert(false);} catch (IllegalStateException e) {}
+        try { table.add(0, false);                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRow();                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRows(1);                assert(false);} catch (IllegalStateException e) {}
         try { table.addLong(0,0);                   assert(false);} catch (IllegalStateException e) {}

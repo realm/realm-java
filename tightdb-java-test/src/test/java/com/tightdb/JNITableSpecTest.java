@@ -143,4 +143,34 @@ public class JNITableSpecTest {
         assertEquals("New 4", table.getColumnName(0));
         assertEquals("44", table.getString(0,4));
     }
+
+    @Test(expectedExceptions=UnsupportedOperationException.class)
+    public void shouldThrowOnUpdateFromTableSpecOnSubtable() {
+
+        // Table definition
+        Table persons = new Table();
+
+        persons.addColumn(ColumnType.ColumnTypeString, "name");
+        persons.addColumn(ColumnType.ColumnTypeString, "email");
+        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
+
+
+        TableDefinition addresses = persons.getSubTableDefinition(2);
+        addresses.addColumn(ColumnType.ColumnTypeString, "street");
+        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
+        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
+
+        persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, null }} });
+
+        Table address = persons.getSubTable(2,0);
+
+        TableSpec spec = new TableSpec();
+        spec.addColumn(ColumnType.ColumnTypeInt, "foo");
+
+        // Should throw
+        address.updateFromSpec(spec);
+
+
+    }
+
 }
