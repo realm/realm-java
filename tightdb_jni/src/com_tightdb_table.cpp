@@ -74,6 +74,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return;
 
+    if(TBL(nativeTablePtr)->has_shared_spec() == true)
+        ThrowException(env, UnsupportedOperation, "It is not allowed to update a subtable from spec.");
+
     Table* pTable = TBL(nativeTablePtr);
     TR((env, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec));
     Spec& spec = pTable->get_spec();
