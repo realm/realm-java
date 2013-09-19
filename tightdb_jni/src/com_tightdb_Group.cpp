@@ -109,7 +109,6 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeHasTable(
             return G(nativeGroupPtr)->has_table(tableName);
         } CATCH_STD()
     }
-    // (exception is thrown by GetStringUTFChars if it fails.)
     return false;
 }
 
@@ -132,7 +131,6 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_nativeGetTableNativePtr(
             return (jlong)pTable;
         } CATCH_STD()
     }
-    // (exception is thrown by GetStringUTFChars if it fails.)
     return 0;
 }
 

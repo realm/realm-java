@@ -38,7 +38,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
-    if(TBL(nativeTablePtr)->has_shared_spec() == true)
+    if (TBL(nativeTablePtr)->has_shared_spec()) {
+        ThrowException(env, UnsupportedOperation, "Not allowed to remove column in subtable. Use getSubTableSpec() on root table instead.");
+        return;
+    }
     try {
         TBL(nativeTablePtr)->remove_column(S(columnIndex));
     } CATCH_STD()
@@ -53,7 +56,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
     if (!name2)
         return;
     if (TBL(nativeTablePtr)->has_shared_spec()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to rename column in subtable. Use getSubTableSpec() on root table instead.");
+        ThrowException(env, UnsupportedOperation, 
+            "Not allowed to rename column in subtable. Use getSubTableSpec() on root table instead.");
         return;
     }
     try {
@@ -65,7 +69,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsRootTable
   (JNIEnv *, jobject, jlong nativeTablePtr)
 {
-    return !TBL(nativeTablePtr)->has_shared_spec(); //If the spec is shared, it is a subtable, and this method will return false
+    //If the spec is shared, it is a subtable, and this method will return false
+    return !TBL(nativeTablePtr)->has_shared_spec(); 
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
