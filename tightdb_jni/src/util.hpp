@@ -80,19 +80,19 @@ std::string num_to_string(T pNumber)
 // Exception handling
 
 enum ExceptionKind {
-    ClassNotFound,
-    NoSuchField,
-    NoSuchMethod,
-    IllegalArgument,
-    IOFailed,
-    FileNotFound,
-    FileAccessError,
-    IndexOutOfBounds,
-    TableInvalid,
-    UnsupportedOperation,
-    OutOfMemory,
-    Unspecified,
-    RuntimeError
+    ClassNotFound = 0,
+    NoSuchField = 1,
+    NoSuchMethod = 2,
+    IllegalArgument = 3,
+    IOFailed = 4,
+    FileNotFound = 5,
+    FileAccessError = 6,
+    IndexOutOfBounds = 7,
+    TableInvalid = 8,
+    UnsupportedOperation = 9,
+    OutOfMemory = 10,
+    Unspecified = 11,
+    RuntimeError = 12
 };
 
 extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");

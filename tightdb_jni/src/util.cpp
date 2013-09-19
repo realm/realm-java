@@ -121,7 +121,6 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case RuntimeError:
-        default:
             jExceptionClass = env->FindClass("java/lang/RuntimeException");
             message = classStr;
             break;
@@ -277,3 +276,6 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         m_size = out_begin - m_data.get();
     }
 }
+
+
+// native testcases
