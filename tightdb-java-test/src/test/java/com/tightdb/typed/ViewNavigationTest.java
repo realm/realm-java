@@ -16,6 +16,7 @@ public class ViewNavigationTest extends AbstractNavigationTest {
     private TestEmployeeView view;
 
     public ViewNavigationTest() {
+
         TestEmployeeTable employees = new TestEmployeeTable();
 
         employees.add("John", "Doe", 10000, true, new byte[] { 1, 2, 3 },

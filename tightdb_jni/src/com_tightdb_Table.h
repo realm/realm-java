@@ -211,6 +211,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertMixed
 
 /*
  * Class:     com_tightdb_Table
+ * Method:    nativeInsertByteBuffer
+ * Signature: (JJJLjava/nio/ByteBuffer;)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteBuffer
+  (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
+
+/*
+ * Class:     com_tightdb_Table
  * Method:    nativeInsertByteArray
  * Signature: (JJJ[B)V
  */
@@ -279,6 +287,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetDateTime
  * Signature: (JJJ)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetString
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeGetByteBuffer
+ * Signature: (JJJ)Ljava/nio/ByteBuffer;
+ */
+JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetByteBuffer
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -384,6 +400,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetDate
  */
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetString
   (JNIEnv *, jobject, jlong, jlong, jlong, jstring);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeSetByteBuffer
+ * Signature: (JJJLjava/nio/ByteBuffer;)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetByteBuffer
+  (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
  * Class:     com_tightdb_Table
