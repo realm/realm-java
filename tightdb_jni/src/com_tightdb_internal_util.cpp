@@ -93,7 +93,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_internal_Util_nativeTestcase(
             break;
                 ThrowException(env, OutOfMemory, "parm1", "parm2");
         case OutOfMemory:
-            expect = "java.lang.OutOfMemoryError: parm1 parm2";
+            expect = "com.tightdb.OutOfMemoryError: parm1 parm2";
             if (dotest)
                 ThrowException(env, OutOfMemory, "parm1", "parm2");
             break;

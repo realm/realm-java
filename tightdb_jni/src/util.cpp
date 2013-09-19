@@ -111,7 +111,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case OutOfMemory:
-            jExceptionClass = env->FindClass("java/lang/OutOfMemoryError");
+            jExceptionClass = env->FindClass("com/tightdb/OutOfMemoryError");
             message = classStr + " " + itemStr;
             break;
 

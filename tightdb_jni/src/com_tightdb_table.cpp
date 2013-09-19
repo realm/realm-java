@@ -11,7 +11,6 @@
 
 using namespace tightdb;
 
-// TODO: check:
 // Note: Don't modify spec on a table which has a shared_spec. 
 // A spec is shared on subtables that are not in Mixed columns.
 //
@@ -24,8 +23,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
     JStringAccessor name2(env, name);
     if (!name2)
         return 0;
-    if(TBL(nativeTablePtr)->has_shared_spec() == true)
+    if (TBL(nativeTablePtr)->has_shared_spec()) {
         ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubTableSpec() on root table instead.");
+        return 0;
+    }
     try {
         return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
     } CATCH_STD()
@@ -70,8 +71,6 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsRootTable
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
     JNIEnv* env, jobject, jlong nativeTablePtr, jobject jTableSpec)
 {
-
-
     Table* pTable = TBL(nativeTablePtr);
     TR((env, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec));
     if (!TABLE_VALID(env, pTable))
