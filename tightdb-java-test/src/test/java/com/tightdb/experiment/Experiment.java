@@ -29,19 +29,6 @@ public class Experiment {
     	System.out.println(t);
     }
     
-    public static void test2() {
-    	Table t = new Table();
-    	
-    	TableQuery q = t.where();
-    	
-    	TableView v = q.findAll();
-    	v=null;
-    	q=null;
-
-    	t.close();
-    	t = null;
-    }
-    
     public static void test1() {
         insert(new Object[] {1, "txt"});
         insert("hmm", 2, "hej");
