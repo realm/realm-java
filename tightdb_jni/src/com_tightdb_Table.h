@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 #undef com_tightdb_Table_INFINITE
-#define com_tightdb_Table_INFINITE -1i64
+#define com_tightdb_Table_INFINITE -1LL
 /*
  * Class:     com_tightdb_Table
  * Method:    createNative
@@ -31,6 +31,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClose
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeIsRootTable
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsRootTable
   (JNIEnv *, jobject, jlong);
 
 /*

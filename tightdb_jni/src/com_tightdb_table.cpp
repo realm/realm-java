@@ -24,8 +24,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
     JStringAccessor name2(env, name);
     if (!name2)
         return 0;
-    //TODO: add check that nativeTablePtr->has_shared_spec() == false
-    // the same for other spec modifying operations
+    if(TBL(nativeTablePtr)->has_shared_spec() == true)
+        ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubTableSpec() on root table instead.");
     return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
 }
 
@@ -34,7 +34,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
-    // TODO: see addColumn
+    if(TBL(nativeTablePtr)->has_shared_spec() == true)
+            ThrowException(env, UnsupportedOperation, "Not allowed to remove column in subtable. Use getSubTableSpec() on root table instead.");
     TBL(nativeTablePtr)->remove_column(S(columnIndex));
 }
 
@@ -46,8 +47,16 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
     JStringAccessor name2(env, name);
     if (!name2)
         return;
-    // TODO: see addColumn
+    if(TBL(nativeTablePtr)->has_shared_spec() == true)
+            ThrowException(env, UnsupportedOperation, "Not allowed to rename column in subtable. Use getSubTableSpec() on root table instead.");
     TBL(nativeTablePtr)->rename_column(S(columnIndex), name2);
+}
+
+
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsRootTable
+  (JNIEnv *, jobject, jlong nativeTablePtr)
+{
+    return !TBL(nativeTablePtr)->has_shared_spec(); //If the spec is shared, it is a subtable, and this method will return false
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeMoveLastOver
@@ -64,6 +73,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return;
+
+    if(TBL(nativeTablePtr)->has_shared_spec() == true)
+        ThrowException(env, UnsupportedOperation, "It is not allowed to update a subtable from spec.");
 
     Table* pTable = TBL(nativeTablePtr);
     TR((env, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec));
