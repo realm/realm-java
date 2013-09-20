@@ -5,6 +5,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.util.Date;
 
+import com.tightdb.ColumnType;
 import org.testng.annotations.Test;
 
 import com.tightdb.test.EmployeesFixture;
