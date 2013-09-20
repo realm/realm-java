@@ -1,13 +1,15 @@
 package com.tightdb;
 
+import java.io.IOException;
+
 public class SharedGroupWithReplication extends SharedGroup {
 
-    public SharedGroupWithReplication()
+    public SharedGroupWithReplication() throws IOException
     {
         super("", true);
     }
 
-    public SharedGroupWithReplication(String databaseFile)
+    public SharedGroupWithReplication(String databaseFile) throws IOException
     {
         super(databaseFile, true);
     }

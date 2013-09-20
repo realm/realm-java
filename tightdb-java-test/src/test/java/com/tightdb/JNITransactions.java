@@ -3,6 +3,7 @@ package com.tightdb;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -23,7 +24,11 @@ public class JNITransactions {
     @BeforeMethod
     public void init() {
         deleteFile(testFile);
-        db = new SharedGroup(testFile);
+        try {
+            db = new SharedGroup(testFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     //@AfterMethod

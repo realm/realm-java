@@ -3,13 +3,15 @@ package com.tightdb;
 import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
+import java.io.IOException;
+
 public class SharedGroup {
 
     static {
         TightDB.loadLibrary();
     }
 
-    public SharedGroup(String databaseFile) {
+    public SharedGroup(String databaseFile) throws IOException {
         this.nativePtr = createNative(databaseFile, false);
         checkNativePtr();
     }
@@ -56,7 +58,7 @@ public class SharedGroup {
         doClose();
     }
 
-    SharedGroup(String databaseFile, boolean enableReplication) {
+    SharedGroup(String databaseFile, boolean enableReplication) throws IOException {
         this.nativePtr = createNative(databaseFile, enableReplication);
         checkNativePtr();
     }
@@ -105,8 +107,7 @@ public class SharedGroup {
 
     private native void nativeRollback(long nativePtr);
 
-    private native long createNative(String databaseFile,
-            boolean enableReplication);
+    private native long createNative(String databaseFile, boolean enableReplication) throws IOException;
 
     private void checkNativePtr() {
         if (this.nativePtr == 0)

@@ -1,5 +1,6 @@
 package com.tightdb.example;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Date;
 
@@ -56,7 +57,12 @@ public class ReplicationExample {
             System.exit(1);
         }
 
-        SharedGroup db = new SharedGroupWithReplication(databaseFile);
+        SharedGroup db = null;
+        try {
+            db = new SharedGroupWithReplication(databaseFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         try {
             WriteTransaction transact = db.beginWrite();
             try {

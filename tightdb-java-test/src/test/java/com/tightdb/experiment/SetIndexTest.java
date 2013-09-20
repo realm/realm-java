@@ -8,6 +8,8 @@ import com.tightdb.SharedGroup;
 import com.tightdb.Table;
 import com.tightdb.WriteTransaction;
 
+import java.io.IOException;
+
 
 // TODO: Add asserts!
 // TODO: 
@@ -46,8 +48,13 @@ public class SetIndexTest {
         fromGroup.add("aa", 3.6, 22, "Chris");
         
         table.setIndex(0);
-        
-        SharedGroup sharedGroup = new SharedGroup("testGroup.tightdb");
+
+        SharedGroup sharedGroup = null;
+        try {
+            sharedGroup = new SharedGroup("testGroup.tightdb");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         WriteTransaction wt = sharedGroup.beginWrite();
         
         try{
