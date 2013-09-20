@@ -48,18 +48,18 @@ public class Group {
     	}
     };
 
-    public Group(String filepath, OpenMode mode) {
+    public Group(String filepath, OpenMode mode) throws IOException {
         this.nativePtr = createNative(filepath, mode.value);
         checkNativePtr();
     }
 
-    protected native long createNative(String filepath, int value);
+    protected native long createNative(String filepath, int value) throws IOException;
 
-    public Group(String filepath) {
+    public Group(String filepath) throws IOException {
         this(filepath, OpenMode.READ_ONLY);
     }
 
-    public Group(File file) {
+    public Group(File file) throws IOException {
         this(file.getAbsolutePath(), file.canWrite() ? OpenMode.READ_WRITE : OpenMode.READ_ONLY);
     }
 
