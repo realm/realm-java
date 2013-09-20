@@ -37,6 +37,9 @@
     <ClCompile Include="src\com_tightdb_internal_Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\com_tightdb_SubTableDefinition.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\columntypeutil.h">

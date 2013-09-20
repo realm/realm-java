@@ -14,7 +14,7 @@ public class SubTableDefinition implements TableDefinition {
     @Override
     public SubTableDefinition getSubTableDefinition(long columnIndex) {
         long[] newPath = new long[this.path.length+1];
-        for(int i = 0; i < this.path.length; i++) {
+        for (int i = 0; i < this.path.length; i++) {
             newPath[i] = path[i];
         }
         newPath[this.path.length] = columnIndex;
@@ -55,5 +55,4 @@ public class SubTableDefinition implements TableDefinition {
     }
 
     protected native void nativeRenameColumn(long nativeTablePtr, long[] path, long columnIndex, String name);
-
 }
