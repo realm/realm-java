@@ -13,8 +13,7 @@ public class JNITransactions {
 
     protected String testFile = "transact.tightdb";
 
-    protected void deleteFile(String filename)
-    {
+    protected void deleteFile(String filename) {
         File f = new File(filename);
         if (f.exists())
             f.delete();
@@ -79,26 +78,20 @@ public class JNITransactions {
     @Test
     public void onlyOneCommit() { 
         WriteTransaction trans = db.beginWrite();
-        
-        try{
-            
-       
-        Table tbl = trans.getTable("EmployeeTable");
-        tbl.addColumn(ColumnType.ColumnTypeString, "name");
 
-        trans.commit();
-        
-        try {   trans.commit(); assert(false); } catch (IllegalStateException e){}
-        
+        try{
+
+            Table tbl = trans.getTable("EmployeeTable");
+            tbl.addColumn(ColumnType.ColumnTypeString, "name");
+
+            trans.commit();
+
+            try {   trans.commit(); assert(false); } catch (IllegalStateException e){}
+
         } catch (Throwable t){
             trans.rollback();
         }
-
-        
     }
-
-
-
 
     @Test
     public void mustRollback() {
