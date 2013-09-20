@@ -44,32 +44,32 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(2, results.count());
 
         assertEquals(10000, results.salary.minimum());
-        assertEquals(10000, results.salary.minimum(0, 1)); // first
-        assertEquals(30000, results.salary.minimum(1, 2)); // second
-        assertEquals(10000, results.salary.minimum(0, Table.INFINITE)); // both
+        assertEquals(10000, results.salary.minimum(0, 1, 1)); // first
+        assertEquals(30000, results.salary.minimum(1, 2, 1)); // second
+        assertEquals(10000, results.salary.minimum(0, Table.INFINITE, Table.INFINITE)); // both
         // TODO: Check invalid parameters
 
         assertEquals(30000, results.salary.maximum());
-        assertEquals(10000, results.salary.maximum(0, 1)); // first
-        assertEquals(30000, results.salary.maximum(1, 2)); // second
-        assertEquals(30000, results.salary.maximum(0, Table.INFINITE)); // both
+        assertEquals(10000, results.salary.maximum(0, 1, 1)); // first
+        assertEquals(30000, results.salary.maximum(1, 2, 1)); // second
+        assertEquals(30000, results.salary.maximum(0, Table.INFINITE, Table.INFINITE)); // both
 
         assertEquals(40000, results.salary.sum());
-        assertEquals(10000, results.salary.sum(0, 1)); // first
-        assertEquals(30000, results.salary.sum(1, 2)); // second
-        assertEquals(40000, results.salary.sum(0, Table.INFINITE)); // both
+        assertEquals(10000, results.salary.sum(0, 1, 1)); // first
+        assertEquals(30000, results.salary.sum(1, 2, 1)); // second
+        assertEquals(40000, results.salary.sum(0, Table.INFINITE, Table.INFINITE)); // both
 
         assertEquals(20000.0, results.salary.average());
-        assertEquals(30000.0, results.salary.average(1, 2)); // second
-        assertEquals(20000.0, results.salary.average(0, Table.INFINITE)); // both
-        assertEquals(10000.0, results.salary.average(0, 1)); // first
+        assertEquals(30000.0, results.salary.average(1, 2, 1)); // second
+        assertEquals(20000.0, results.salary.average(0, Table.INFINITE, Table.INFINITE)); // both
+        assertEquals(10000.0, results.salary.average(0, 1, 1)); // first
     }
 
     @Test( expectedExceptions = ArrayIndexOutOfBoundsException.class)
     public void shouldCheckWrongParameters() {
         TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
     //  assertEquals(2, results.count());
-        assertEquals(10000, results.salary.minimum(0, 5)); // first
+        assertEquals(10000, results.salary.minimum(0, 5, Table.INFINITE)); // first
     }
 
     @Test
@@ -166,7 +166,7 @@ public class TableQueryTest extends AbstractTest {
         // Remove some
         TestEmployeeQuery q = employees.where().salary.lessThan(100000000);
 
-        assertEquals(1, q.count(1, 2));
+        assertEquals(1, q.count(1, 2, Table.INFINITE));
 
         long n = q.remove(1, 2);
         assertEquals(1, n);
