@@ -66,14 +66,6 @@ public class TableTest {
         
         TestEmployeeTable t2Out = new TestEmployeeTable(group, "t2");
         assertEquals("NoName", t2Out.get(0).getFirstName());
-        
-        
-
-
-        
-        
-
-        
     }
 
     @Test
