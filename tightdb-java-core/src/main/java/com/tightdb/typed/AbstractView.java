@@ -1,5 +1,6 @@
 package com.tightdb.typed;
 
+import com.tightdb.ColumnType;
 import com.tightdb.TableView;
 
 /**

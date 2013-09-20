@@ -192,13 +192,4 @@ public class TableColumnsTest extends AbstractTest {
         employees.firstName.set("x");
     }
 
-    @Test
-    public void shouldGetColumnInformation() {
-        assertEquals(8, employees.getColumnCount());
-        for (int i = 0; i < employees.getColumnCount(); ++i) {
-            assertEquals(EXPECTED_COLUMNS[i], employees.getColumnName(i));
-            assertEquals(EXPECTED_COLUMN_TYPE[i], employees.getColumnType(i));
-        }
-    }
-
 }
