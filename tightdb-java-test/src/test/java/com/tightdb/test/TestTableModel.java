@@ -7,7 +7,7 @@ import com.tightdb.DefineTable;
 /**
  * This model is used to generate classes that are used only for the tests.
  */
-public class TestModel {
+public class TestTableModel {
 
     @DefineTable
     class TestEmployee {
