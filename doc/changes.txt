@@ -1,5 +1,6 @@
 16-September-2013:
 =================
++ Added checked IOException to Group(filename) and SharedGroup(filename)
 ! BREAKING CHANGE: Removed ByteBuffer as type for Binary. Added byte[] as only type for Binary in both dynamic and typed interface.
 
 10-September-2013:
