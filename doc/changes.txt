@@ -1,3 +1,7 @@
+20-September-2013:
+==================
++ Added View.getColumnCount(), View.getColumnIndex(colIndex), View.getColumnName(colIndex), View.getColumnType(colIndex)
+
 10-September-2013:
 ==================
 - Deprecated ReadTransaction.close()
