@@ -108,17 +108,4 @@ public class ViewColumnsTest extends AbstractTest {
                     employeesView.get(i).getSalary());
     }
 
-    @Test
-    public void validateColumnInfo() {
-
-        assertEquals(8, employeesView.getColumnCount());
-
-        assertEquals("lastName", employeesView.getColumnName(1));
-
-        assertEquals(1, employeesView.getColumnIndex("lastName"));
-
-        assertEquals(ColumnType.ColumnTypeString, employeesView.getColumnType(1));
-
-    }
-
 }
