@@ -1,6 +1,7 @@
 20-September-2013:
 ==================
-+ Added View.getColumnCount(), View.getColumnIndex(colIndex), View.getColumnName(colIndex), View.getColumnType(colIndex)
++ Added View.getColumnCount(), View.getColumnIndex(colIndex), View.getColumnName(colIndex), View.getColumnType(colIndex) to Dynamic interface
+- Removed Table.getColumnCount(), Table.getColumnIndex(colIndex), Table.getColumnName(colIndex), Table.getColumnType(colIndex) from Typed interface
 
 
 19-September-2013:
