@@ -17,6 +17,30 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSize
 
 /*
  * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnCount
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnCount
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnName
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetColumnName
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnType
+ * Signature: (JJ)I
+ */
+JNIEXPORT jint JNICALL Java_com_tightdb_TableView_nativeGetColumnType
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
  * Method:    nativeGetLong
  * Signature: (JJJ)J
  */

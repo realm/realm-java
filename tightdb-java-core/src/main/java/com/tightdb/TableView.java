@@ -97,6 +97,62 @@ public class TableView implements TableOrView {
     protected native long nativeSize(long nativeViewPtr);
 
     /**
+     * Returns the number of columns in the table.
+     *
+     * @return the number of columns.
+     */
+    public long getColumnCount() {
+        return nativeGetColumnCount(nativePtr);
+    }
+
+    protected native long nativeGetColumnCount(long nativeViewPtr);
+
+    /**
+     * Returns the name of a column identified by columnIndex. Notice that the
+     * index is zero based.
+     *
+     * @param columnIndex
+     *            the column index
+     * @return the name of the column
+     */
+    public String getColumnName(long columnIndex) {
+        return nativeGetColumnName(nativePtr, columnIndex);
+    }
+
+    protected native String nativeGetColumnName(long nativeViewPtr, long columnIndex);
+
+    /**
+     * Returns the 0-based index of a column based on the name.
+     *
+     * @param name
+     *            column name
+     * @return the index, -1 if not found
+     */
+    public long getColumnIndex(String name) {
+        long columnCount = getColumnCount();
+        for (int i = 0; i < columnCount; i++) {
+            if (name.equals(getColumnName(i))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Get the type of a column identified by the columnIdex.
+     *
+     * @param columnIndex
+     *            index of the column.
+     * @return Type of the particular column.
+     */
+    public ColumnType getColumnType(long columnIndex)
+    {
+        return ColumnType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
+    }
+
+    protected native int nativeGetColumnType(long nativeViewPtr, long columnIndex);
+
+    /**
      * Get the value of the particular (integer) cell.
      *
      * @param columnIndex 0 based index value of the column.

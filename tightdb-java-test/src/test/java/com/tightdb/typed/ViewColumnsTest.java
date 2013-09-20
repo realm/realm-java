@@ -5,6 +5,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.util.Date;
 
+import com.tightdb.ColumnType;
 import org.testng.annotations.Test;
 
 import com.tightdb.test.EmployeesFixture;
@@ -105,6 +106,19 @@ public class ViewColumnsTest extends AbstractTest {
         for (int i = 0; i < EmployeesFixture.EMPLOYEES.length; ++i)
             assertEquals(EmployeesFixture.EMPLOYEES[i].salary + 123,
                     employeesView.get(i).getSalary());
+    }
+
+    @Test
+    public void validateColumnInfo() {
+
+        assertEquals(8, employeesView.getColumnCount());
+
+        assertEquals("lastName", employeesView.getColumnName(1));
+
+        assertEquals(1, employeesView.getColumnIndex("lastName"));
+
+        assertEquals(ColumnType.ColumnTypeString, employeesView.getColumnType(1));
+
     }
 
 }
