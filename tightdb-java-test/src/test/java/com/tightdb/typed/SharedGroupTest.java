@@ -15,8 +15,7 @@ public class SharedGroupTest {
 
     protected String testFile = "transact.tightdb";
 
-    protected void deleteFile(String filename)
-    {
+    protected void deleteFile(String filename) {
         File f = new File(filename);
         if (f.exists())
             f.delete();
