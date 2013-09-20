@@ -250,8 +250,7 @@ public class Table implements TableOrView, TableDefinition {
      * Returns the name of a column identified by columnIndex. Notice that the
      * index is zero based.
      *
-     * @param columnIndex
-     *            the column index
+     * @param columnIndex the column index
      * @return the name of the column
      */
     public String getColumnName(long columnIndex) {
@@ -263,13 +262,12 @@ public class Table implements TableOrView, TableDefinition {
     /**
      * Returns the 0-based index of a column based on the name.
      *
-     * @param name
-     *            column name
+     * @param name column name
      * @return the index, -1 if not found
      */
     public long getColumnIndex(String name) {
         long columnCount = getColumnCount();
-        for (int i = 0; i < columnCount; i++) {
+        for (long i = 0; i < columnCount; i++) {
             if (name.equals(getColumnName(i))) {
                 return i;
             }
@@ -280,8 +278,7 @@ public class Table implements TableOrView, TableDefinition {
     /**
      * Get the type of a column identified by the columnIdex.
      *
-     * @param columnIndex
-     *            index of the column.
+     * @param columnIndex index of the column.
      * @return Type of the particular column.
      */
     public ColumnType getColumnType(long columnIndex)
@@ -295,8 +292,7 @@ public class Table implements TableOrView, TableDefinition {
      * Removes a row from the specific index. As of now the entry is simply
      * removed from the table.
      *
-     * @param rowIndex
-     *            the row index (starting with 0)
+     * @param rowIndex the row index (starting with 0)
      *
      */
     public void remove(long rowIndex) {
