@@ -34,8 +34,7 @@ public abstract class AbstractView<Cursor, View, Query> extends AbstractTableOrV
      * Returns the name of a column identified by columnIndex. Notice that the
      * index is zero based.
      *
-     * @param columnIndex
-     *            the column index
+     * @param columnIndex the column index
      * @return the name of the column
      */
     public String getColumnName(long columnIndex) {
@@ -45,8 +44,7 @@ public abstract class AbstractView<Cursor, View, Query> extends AbstractTableOrV
     /**
      * Returns the 0-based index of a column based on the name.
      *
-     * @param columnName
-     *            the column name
+     * @param columnName the column name
      * @return the index, -1 if not found
      */
     public long getColumnIndex(String columnName) {
@@ -56,8 +54,7 @@ public abstract class AbstractView<Cursor, View, Query> extends AbstractTableOrV
     /**
      * Get the type of a column identified by the columnIdex.
      *
-     * @param columnIndex
-     *            index of the column.
+     * @param columnIndex index of the column.
      * @return Type of the particular column.
      */
     public ColumnType getColumnType(long columnIndex) {
