@@ -19,7 +19,7 @@ public class MemoryLeakTest {
         for (int i = 0; i < 1/*00000*/; i++) {
 
             Table table = new Table();
-            table.addColumn(ColumnType.ColumnTypeInt, "myint");
+            table.addColumn(ColumnType.INTEGER, "myint");
             table.add(i);
             if (true) {
             	TableQuery query = table.where();

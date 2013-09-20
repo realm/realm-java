@@ -24,6 +24,16 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     public AbstractTable(EntityTypes<?, View, Cursor, Query> types) {
         this(types, new Table());
     }
+    
+    /**
+     * Can be used to specify a different name than the class. Allows for more of same type in typed interface
+     * @param types
+     * @param group
+     * @param tableName
+     */
+    public AbstractTable(EntityTypes<?, View, Cursor, Query> types, Group group, String tableName) {
+        this(types, group.getTable(tableName));
+    }
 
     public AbstractTable(EntityTypes<?, View, Cursor, Query> types, Group group) {
         this(types, group.getTable(types.getTableClass().getSimpleName()));

@@ -47,7 +47,7 @@ import com.tightdb.typed.TightDB;
  *
  */
 
-public class Table implements TableOrView {
+public class Table implements TableOrView, TableDefinition {
 
     public static final long INFINITE = -1;
 
@@ -137,6 +137,17 @@ public class Table implements TableOrView {
     		throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
     	}    	
     }
+
+    public TableDefinition getSubTableDefinition(long columnIndex) {
+        if(nativeIsRootTable(nativePtr) == false)
+            throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
+
+        long[] newPath = new long[1];
+        newPath[0] = columnIndex;
+        return new SubTableDefinition(nativePtr, newPath);
+    }
+
+    protected native boolean nativeIsRootTable(long nativeTablePtr);
     
     /**
      * Add a column to the table dynamically.
@@ -780,7 +791,7 @@ public class Table implements TableOrView {
 
     public void setDate(long columnIndex, long rowIndex, Date date) {
         if (immutable) throwImmutable();
-        nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
+        nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
     }
 
     protected native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
@@ -1019,7 +1030,7 @@ public class Table implements TableOrView {
     protected native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
 
     public long findFirstDate(long columnIndex, Date date) {
-        return nativeFindFirstDate(nativePtr, columnIndex, date.getTime()/1000);
+        return nativeFindFirstDate(nativePtr, columnIndex, date.getTime() / 1000);
     }
 
     protected native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
@@ -1055,7 +1066,7 @@ public class Table implements TableOrView {
     protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
     public TableView findAllDate(long columnIndex, Date date) {
-        return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
+        return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000), immutable);
     }
 
     protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);

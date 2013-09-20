@@ -1,3 +1,7 @@
+19-September-2013:
+==================
++ Multiple tables of same type in typed interface can be added to same group, by specifying a custom name in the constructor.
+
 16-September-2013:
 =================
 ! BREAKING CHANGE: Removed ByteBuffer as type for Binary. Added byte[] as only type for Binary in both dynamic and typed interface.

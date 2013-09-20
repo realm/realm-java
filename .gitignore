@@ -87,4 +87,5 @@ tightdb-java-test/testng.xml
 doc/ref/examples/generated/com/tightdb/refdoc/*.java
 
 # generated json output in ref doc json example
+
 doc/ref/examples/fromServlet

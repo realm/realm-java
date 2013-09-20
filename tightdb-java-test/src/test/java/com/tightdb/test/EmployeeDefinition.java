@@ -14,7 +14,7 @@ class TestEmployee {
     byte[] photo;
     Date birthdate;
     Object extra;
-    TestPhone phones;
+    TestPhone phones; 
 }
 
 @DefineTable

@@ -72,7 +72,8 @@ public class GroupTest {
         group3.close();
 
     }
-
+    
+    @Test 
     public void testHasTable() {
         Group group = new Group();
         assertEquals(group.hasTable(null), false);
