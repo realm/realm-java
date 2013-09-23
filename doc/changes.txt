@@ -1,3 +1,7 @@
+23-September-2013:
+==================
++ Added com.tightdb.IOException, as a RuntimeException can be thrown from all methods operating on files, like Group(file), ShreadGroup(file) etc.
+
 20-September-2013:
 ==================
 + Added View.getColumnCount(), View.getColumnIndex(colIndex), View.getColumnName(colIndex), View.getColumnType(colIndex) to Dynamic interface
