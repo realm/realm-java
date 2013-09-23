@@ -171,7 +171,7 @@ public class JNIViewTest {
     
     
     @Test
-    public void getNonExistingolumn() {
+    public void getNonExistingColumn() {
 
         Table t = new Table();
         t.addColumn(ColumnType.ColumnTypeInt, "int");
@@ -179,9 +179,16 @@ public class JNIViewTest {
         TableView view = t.where().findAll();
         
         assertEquals(-1, view.getColumnIndex("non-existing column"));
-        
-        view.getColumnIndex(null);
+    }
     
+    @Test(expectedExceptions = NullPointerException.class)
+    public void getNullColumn() {
+
+        Table t = new Table();
+        t.addColumn(ColumnType.ColumnTypeInt, "");
+        
+        TableView view = t.where().findAll();
+        view.getColumnIndex(null);
     }
 
 	
