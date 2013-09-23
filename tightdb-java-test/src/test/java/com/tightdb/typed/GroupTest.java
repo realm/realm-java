@@ -127,7 +127,7 @@ public class GroupTest {
         // TODO: How can we verify that group is closed?
     }
 
-    @Test(expectedExceptions = IOException.class)
+    @Test(expectedExceptions = com.tightdb.IOException.class)
     public void groupNoOverwrite1() throws IOException {
     	new File(FILENAME).delete();
 
