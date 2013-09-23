@@ -40,6 +40,10 @@ tightdb-java-dev: build
 	dh_installdocs -a
 	dh_installchangelogs -p$@ -a
 	dh_strip -p$@ -a
+	dh_installexamples -p$@ $$(pwd)/examples/ant-setup
+	dh_installexamples -p$@ $$(pwd)/examples/intro-example
+	dh_installexamples -p$@ $$(pwd)/examples/lib-sqlite
+	dh_installexamples -p$@ $$(pwd)/examples/maven-setup
 	dh_compress -p$@ -s
 	dh_fixperms -p$@ -a
 	dh_installdeb -p$@ -a
@@ -48,10 +52,6 @@ tightdb-java-dev: build
 	dh_md5sums -p$@ -a
 	dh_builddeb -p$@ -a
 	dh_installdirs
-	dh_installexamples $$(pwd)/examples/ant-setup
-	dh_installexamples $$(pwd)/examples/intro-example
-	dh_installexamples $$(pwd)/examples/lib-sqlite
-	dh_installexamples $$(pwd)/examples/maven-setup
 
 binary: build binary-indep binary-arch
 
