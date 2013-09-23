@@ -86,17 +86,17 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case IOFailed:
-            jExceptionClass = env->FindClass("java/io/IOException");
+            jExceptionClass = env->FindClass("com/tightdb/IOException");
             message = "Failed to open " + classStr + ". " + itemStr;
             break;
 
         case FileNotFound:
-            jExceptionClass = env->FindClass("java/io/FileNotFoundException");
+            jExceptionClass = env->FindClass("com/tightdb/IOException");
             message = "File not found: " + classStr + ".";
             break;
 
         case FileAccessError:
-            jExceptionClass = env->FindClass("java/io/FileNotFoundException");
+            jExceptionClass = env->FindClass("com/tightdb/IOException");
             message = "Failed to access: " + classStr + ". " + itemStr;
             break;
 
