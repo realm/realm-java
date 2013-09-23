@@ -76,6 +76,24 @@ public class TableView implements TableOrView {
         this.nativePtr = nativePtr;
     }
 
+    public void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
+    }
+
+    private synchronized void close(){
+        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);       
+        if (nativePtr == 0)
+            return;
+        nativeClose(nativePtr);
+        nativePtr = 0;
+    }
+
+    protected native void nativeClose(long nativeViewPtr);
+
     /**
      * Checks whether this table is empty or not.
      *
@@ -612,24 +630,7 @@ public class TableView implements TableOrView {
 
     protected native long createNativeTableView(Table table, long nativeTablePtr);
 
-    public void finalize(){
-        close();
-    }
-
-    private synchronized void close(){
-        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);    	
-        if (nativePtr == 0)
-            return;
-        nativeClose(nativePtr);
-        nativePtr = 0;
-    }
     
-    public void private_debug_close(){
-    	close();
-    }
-
-    protected native void nativeClose(long nativeViewPtr);
-
     public String toJson() {
         return nativeToJson(nativePtr);
     }

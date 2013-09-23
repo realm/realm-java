@@ -1,8 +1,6 @@
 package com.tightdb.typed;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
 import java.util.Date;
 
 import org.testng.annotations.AfterMethod;
