@@ -190,6 +190,4 @@ public class JNIViewTest {
         TableView view = t.where().findAll();
         view.getColumnIndex(null);
     }
-
-	
 }
