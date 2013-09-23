@@ -30,20 +30,20 @@ public class ViewDataOperationsTest extends AbstractDataOperationsTest {
         TestEmployeeTable employeesTable = getEmployeeTable();
         employees = employeesTable.where().findAll();
     }
-    
+
     @Test
     public void shouldPrint() {
-    	super.shouldPrintData("TestEmployeeView");
+        super.shouldPrintData("TestEmployeeView");
     }
 
-    
-    
-    
+
+
+
     @Test
     public void setValuesOnViewInReadTransactionShouldFail() {
-        
+
         SharedGroup group = new SharedGroup("viewTest.tightdb");
-        
+
         // Create table if it does not exists
         WriteTransaction wt = group.beginWrite();
         try {
@@ -53,20 +53,20 @@ public class ViewDataOperationsTest extends AbstractDataOperationsTest {
         } catch (Throwable t){
             wt.rollback();
         }
-        
+
         ReadTransaction rt = group.beginRead();
-        
+
         try {
             TestEmployeeTable t = new TestEmployeeTable(rt);
-           TestEmployeeView view = t.where().findAll();
-           
-           try {  view.get(0).firstName.set("new string");          assert(false); } catch (IllegalStateException e){ }
-           try {  view.get(0).lastName.set("new last name");        assert(false); } catch (IllegalStateException e){ }
-           try {  view.get(0).extra.set(new Mixed(true));           assert(false); } catch (IllegalStateException e){ }
-           try {  view.get(0).birthdate.set(new Date());            assert(false); } catch (IllegalStateException e){ }
-           try {  view.get(0).driver.set(false);                    assert(false); } catch (IllegalStateException e){ }
-           try {  view.get(0).photo.set(null);                      assert(false); } catch (IllegalStateException e){ }
-           
+            TestEmployeeView view = t.where().findAll();
+
+            try {  view.get(0).firstName.set("new string");          assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).lastName.set("new last name");        assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).extra.set(new Mixed(true));           assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).birthdate.set(new Date());            assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).driver.set(false);                    assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).photo.set(null);                      assert(false); } catch (IllegalStateException e){ }
+
         } finally {
             rt.endRead();
         }
