@@ -38,7 +38,7 @@ public class JNICloseTest {
     }
     
     /**
-     * Make sure, that it's possible use the query on a closed table
+     * Make sure, that it's possible to use the query on a closed table
      */
     @Test()
     public void queryAccessibleAfterTableClose() throws Throwable{
