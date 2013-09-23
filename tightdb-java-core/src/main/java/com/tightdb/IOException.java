@@ -1,5 +1,6 @@
 package com.tightdb;
 
+@SuppressWarnings("serial")
 public class IOException extends RuntimeException {
 
     public IOException(Throwable cause) {

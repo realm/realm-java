@@ -43,8 +43,20 @@ public class JNIViewTest {
 	    t.add("bb", true,  22, date3, "", 0.0f, 0.0, 0, null);
 	    t.add("aa", false, 22, date4, "", 0.0f, 0.0, 0, null);
 	}
+    
+    @Test
+    public void unimplementedMethodsShouldFail() {    
+        //Get a view containing all rows in table since you can only sort views currently.
+        TableView view = t.where().findAll();
+    
+        //Sort without specifying the order, should default to ascending.
+        try { view.upperBoundLong(0, 0); assert(false); } catch (RuntimeException e ) { }
+        try { view.lowerBoundLong(0, 0); assert(false); } catch (RuntimeException e ) { }
+        
+    }
+    
 
-
+    @Test
 	public void shouldSortViewDate() {    
 	    //Get a view containing all rows in table since you can only sort views currently.
 	    TableView view = t.where().findAll();
