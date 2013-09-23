@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 public class JNISubtableTest {
 
     @Test()
-    public void shouldSynchronizeNestedTables() {
+    public void shouldSynchronizeNestedTables() throws Throwable {
         Group group = new Group();
         Table table = group.getTable("emp");
 
@@ -25,7 +25,7 @@ public class JNISubtableTest {
         Table subtable1 = table.getSubTable(1, 0);
         subtable1.add(123);
         assertEquals(1, subtable1.size());
-        subtable1.private_debug_close();
+        subtable1.finalize();
 
         Table subtable2 = table.getSubTable(1, 0);
         assertEquals(1, subtable2.size());
