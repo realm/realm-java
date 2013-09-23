@@ -1,6 +1,6 @@
 23-September-2013:
 ==================
-+ Added com.tightdb.IOException, as a RuntimeException can be thrown from all methods operating on files, like Group(file), ShreadGroup(file) etc.
++ Added com.tightdb.IOException, as a RuntimeException can be thrown from all methods operating on files, like Group(file), SharedGroup(file) etc.
 
 20-September-2013:
 ==================
