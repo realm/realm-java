@@ -1,3 +1,7 @@
+20-September-2013:
+=================
+! BREAKING CHANGE: Added limit parameter to all query aggregates which already had a start, and stop parameter.
+
 16-September-2013:
 =================
 ! BREAKING CHANGE: Removed ByteBuffer as type for Binary. Added byte[] as only type for Binary in both dynamic and typed interface.
