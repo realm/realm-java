@@ -48,6 +48,29 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSize(
     return TV(nativeViewPtr)->size();   // noexcept
 }
 
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnCount
+  (JNIEnv *env, jobject, jlong nativeViewPtr)
+{
+    if (!VIEW_VALID(env, nativeViewPtr))
+        return 0;
+    return TV(nativeViewPtr)->get_column_count();
+}
+
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetColumnName
+  (JNIEnv *env, jobject, jlong nativeViewPtr, jlong columnIndex)
+{
+    if (!VIEW_VALID(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
+        return NULL;
+    return to_jstring(env, TV(nativeViewPtr)->get_column_name( S(columnIndex)));
+}
+
+JNIEXPORT jint JNICALL Java_com_tightdb_TableView_nativeGetColumnType
+  (JNIEnv *env, jobject, jlong nativeViewPtr, jlong columnIndex)
+{
+    if (!VIEW_VALID(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
+            return 0;
+        return static_cast<int>( TV(nativeViewPtr)->get_column_type( S(columnIndex)) );
+}
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetLong(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
