@@ -62,17 +62,17 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_internal_Util_nativeTestcase(
                 ThrowException(env, IllegalArgument, "parm1", "parm2");
             break;
         case IOFailed:
-            expect = "java.io.IOException: Failed to open parm1. parm2";
+            expect = "com.tightdb.IOException: Failed to open parm1. parm2";
             if (dotest)
                 ThrowException(env, IOFailed, "parm1", "parm2");
             break;
         case FileNotFound:
-            expect = "java.io.FileNotFoundException: File not found: parm1.";
+            expect = "com.tightdb.IOException: File not found: parm1.";
             if (dotest)
                 ThrowException(env, FileNotFound, "parm1", "parm2");
             break;
         case FileAccessError:
-            expect = "java.io.FileNotFoundException: Failed to access: parm1. parm2";
+            expect = "com.tightdb.IOException: Failed to access: parm1. parm2";
             if (dotest)
                 ThrowException(env, FileAccessError, "parm1", "parm2");
             break;
