@@ -4,7 +4,6 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.tightdb.test.TestHelper;
@@ -14,10 +13,10 @@ import com.tightdb.test.TestHelper;
 public class JNICloseTest {
 
     @Test (enabled=true, expectedExceptions = IllegalStateException.class)
-    public void shouldCloseTable() {
+    public void shouldCloseTable() throws Throwable {
         // util.setDebugLevel(1);
         Table table = new Table();
-        table.private_debug_close();
+        table.finalize();
 
         @SuppressWarnings("unused")
         long s = table.size();
@@ -39,37 +38,37 @@ public class JNICloseTest {
     }
     
     /**
-     * Make sure, that an illegalStateException is thrown when trying to do queries on a closed table
+     * Make sure, that it's possible to use the query on a closed table
      */
     @Test()
-    public void queryShouldThrowAfterTableClose(){
+    public void queryAccessibleAfterTableClose() throws Throwable{
         Table table = TestHelper.getTableWithAllColumnTypes();
         table.addEmptyRows(10);
         for (long i=0; i<table.size(); i++)
         	table.setLong(5, i, i);
         TableQuery query = table.where(); 
-        // Closes the table, it should not be allowed to access the view thereafter
-        table.private_debug_close();
+        // Closes the table, it _should_ be allowed to access the query thereafter
+        table.finalize();
         table = null;
         Table table2 = TestHelper.getTableWithAllColumnTypes();
         table2.addEmptyRows(10);
         for (int i=0; i<table2.size(); i++)
         	table2.setLong(5, i, 117+i);
 
-        TableView tv = query.findAll(); //Should throw exception, as table has been closed
+        TableView tv = query.findAll(); 
         assertEquals(10, tv.size());
 
         // TODO: add a lot of methods
     }  
 
     @Test()
-    public void accessingViewMethodsAfterTableClose(){
+    public void accessingViewMethodsAfterTableClose() throws Throwable{
         Table table = TestHelper.getTableWithAllColumnTypes();
         table.addEmptyRows(10);
         TableQuery query = table.where(); 
         TableView view = query.findAll();
-        //Closes the table, it should not be allowed to access the view thereafter
-        table.private_debug_close();
+        //Closes the table, it should be allowed to access the view thereafter (table is ref-counted)
+        table.finalize();
         table = null;
         
         // Accessing methods should be ok.

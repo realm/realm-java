@@ -3,8 +3,6 @@ package com.tightdb.experiment;
 import com.tightdb.ColumnType;
 import com.tightdb.Group;
 import com.tightdb.Table;
-import com.tightdb.TableQuery;
-import com.tightdb.TableView;
 
 public class Experiment {
     public static void main(String[] args) {

@@ -66,7 +66,7 @@ public class JNIMixedTypeTest {
 
     @Test(dataProvider = "mixedValuesProvider")
     public void shouldStoreValuesOfMixedType(MixedData value1,
-            MixedData value2, MixedData value3) throws Exception {
+            MixedData value2, MixedData value3) throws Throwable {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
@@ -84,7 +84,7 @@ public class JNIMixedTypeTest {
         table.setMixed(0, 0, Mixed.mixedValue(value3.value));
 
         checkMixedCell(table, 0, 0, value3.type, value3.value);
-        table.private_debug_close();
+        table.finalize();
     }
 
     private void checkMixedCell(Table table, long col, long row,
