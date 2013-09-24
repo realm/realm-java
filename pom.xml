@@ -4,8 +4,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.tightdb</groupId>
-	<artifactId>tightdb</artifactId>
-	<version>0.0.1</version>
+	<artifactId>tightdb-parent</artifactId>
+	<version>1.1.0</version>
 	<packaging>pom</packaging>
 
 	<properties>
@@ -34,4 +34,12 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<modules>
+		<module>tightdb-java-core</module>
+		<module>tightdb-java-generator</module>
+		<module>tightdb-java-example</module>
+		<module>tightdb-java-doc</module>
+		<module>tightdb-java-test</module>
+	</modules>
 </project>
