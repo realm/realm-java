@@ -166,13 +166,13 @@ public class JNISubtableTest {
         try {
             // Should throw
             persons.getSubTable(2,0).addColumn(ColumnType.ColumnTypeInt, "i");
-            assertTrue(false);
+            fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
 
         try {
             // Should throw
             persons.getSubTable(2,0).getSubTableDefinition(2);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
 
     }
