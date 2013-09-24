@@ -70,6 +70,7 @@ _ReSharper*/
 
 # sh build.sh test
 /test_output
+<<<<<<< HEAD
 
 .DS_Store
 
@@ -89,3 +90,9 @@ doc/ref/examples/generated/com/tightdb/refdoc/*.java
 # generated json output in ref doc json example
 
 doc/ref/examples/fromServlet
+
+
+# debian packaging
+/debian/tightdb-java
+/debian/tightdb-java-dev
+/debian/.mh

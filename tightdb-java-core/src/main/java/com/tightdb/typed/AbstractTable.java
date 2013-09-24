@@ -56,6 +56,13 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     }
 
     @Override
+    public boolean equals(Object other) {
+        if (other instanceof AbstractTable)
+            return table.equals(((AbstractTable)other).table);
+        return false;
+    }
+    
+    @Override
     public String getName() {
         return getClass().getSimpleName();
     }

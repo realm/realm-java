@@ -1103,6 +1103,17 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeRowToString(
     return NULL;
 }
 
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeEquals(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong nativeTableToComparePtr)
+{
+    Table* tbl = TBL(nativeTablePtr);
+    Table* tblToCompare = TBL(nativeTableToComparePtr);
+    try {
+        return (*tbl == *tblToCompare);
+    } CATCH_STD()
+    return false;
+}
+
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid(
     JNIEnv*, jobject, jlong nativeTablePtr)
 {

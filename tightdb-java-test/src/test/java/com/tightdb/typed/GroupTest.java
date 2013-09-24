@@ -93,7 +93,6 @@ public class GroupTest {
         Table table1 =  group.getTable("table");
         table1.addColumn(ColumnType.STRING, "col");
         table1.add("StringValue");
-
         return group;
     }
 
@@ -101,21 +100,27 @@ public class GroupTest {
     @Test 
     public void testGroupGetWrongTableIndex() {
         Group group = getGroupWithTable();
-
-        try { group.getTableName(-1); assert(false); } catch (IndexOutOfBoundsException e ) { }
-        try { group.getTableName(1000); assert(false); } catch (IndexOutOfBoundsException e ) { }
-
+        try { 
+            group.getTableName(-1); 
+            fail("Should have thrown"); 
+        } catch (IndexOutOfBoundsException e ) { }
+        
+        try { 
+            group.getTableName(1000); 
+            fail("Should have thrown"); 
+        } 
+        catch (IndexOutOfBoundsException e ) { }
     }
 
     @Test 
     public void testGroupEquals() {
         Group group1 = getGroupWithTable();
         Group group2 = getGroupWithTable();
-
         assertEquals(true, group1.equals(group2));
+        Table t = group1.getTable("table");
+        t.add("hej");
+        assertEquals(false, group1.equals(group2));
     }
-
-
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void getNullTableShouldThrowIllegalArgument() {
@@ -267,7 +272,7 @@ public class GroupTest {
         group2.close();
     }
      */
-    @Test(enabled = true)
+    @Test
     public void groupMemCanClose() {
         Group group = new Group();
         byte[] data = group.writeToMem();

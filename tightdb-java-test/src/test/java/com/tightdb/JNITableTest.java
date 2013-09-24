@@ -9,15 +9,12 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.*;
 
-
-    
 public class JNITableTest {
     
-    
-Table t = new Table();
-    
-    @BeforeMethod
-    void init() {       
+    Table t = new Table();
+
+    Table createTestTable() {
+        Table t = new Table();
         t.addColumn(ColumnType.BINARY, "binary"); // 0
         t.addColumn(ColumnType.BOOLEAN, "boolean");  // 1
         t.addColumn(ColumnType.DATE, "date");     // 2
@@ -27,6 +24,12 @@ Table t = new Table();
         t.addColumn(ColumnType.MIXED, "mixed");   // 6
         t.addColumn(ColumnType.STRING, "string"); // 7
         t.addColumn(ColumnType.TABLE, "table");   // 8
+        return t;
+    }
+    
+    @BeforeMethod
+    void init() {       
+        t = createTestTable(); 
     }
 	
     @Test
@@ -47,8 +50,15 @@ Table t = new Table();
         
         assertEquals(expected, t.toString());
     }
-        
-    
+
+    @Test 
+    public void testGroupEquals() {
+        Table t2 = createTestTable();
+        assertEquals(true, t.equals(t2));
+        t.addEmptyRow();
+        assertEquals(false, t.equals(t2));
+    }
+
     @Test
     public void getNonExistingColumn() {
         Table t = new Table();

@@ -248,15 +248,13 @@ public class Group {
     protected native void nativeCommit(long nativeGroupPtr);
 
     protected native String nativeToString(long nativeGroupPtr);
-    
-    
-
+        
     public boolean equals(Object other) {
-        if(other == null)
+        if (other == null)
             return false;
-        if(other == this)
+        if (other == this)
             return true;
-        if( ! (other instanceof Group))
+        if (!(other instanceof Group))
             return false;
         
         Group otherGroup = (Group) other;
