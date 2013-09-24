@@ -128,7 +128,7 @@ Table t = new Table();
         }
     }
     
-    @Test()
+    @Test
     public void shouldThrowWhenSetIndexOnWrongColumnType() {
         for (long colIndex = 0; colIndex < t.getColumnCount(); colIndex++) {
             
@@ -146,6 +146,31 @@ Table t = new Table();
             // Try to hasIndex() for all columnTypes
             t.hasIndex(colIndex);
         }
+    }
+    
+    
+    /**
+     * Returns a table with a few columns and values
+     * @return
+     */
+    private Table getTableWithSimpleData(){
+        Table table =  new Table();
+        table.addColumn(ColumnType.ColumnTypeString, "col");
+        table.addColumn(ColumnType.ColumnTypeInt, "int");
+        table.add("val1", 100);
+        table.add("val2", 200);
+        table.add("val3", 300);
+
+        return table;
+    }
+    
+    @Test
+    public void tableEqualsTest() {
+        
+        Table table1 = getTableWithSimpleData();
+        Table table2 = getTableWithSimpleData();
+        
+        assertEquals(true, table1.equals(table2));
     }
     
 
