@@ -83,6 +83,37 @@ public class JNITableTest {
     }
     
     
+    
+    @Test(expectedExceptions = IllegalStateException.class)
+    public void immutableInsertNotAllowed() {
+
+        SharedGroup group = new SharedGroup("only-test-file.tightdb");
+
+        WriteTransaction wt = group.beginWrite();
+        try{
+            Table table = wt.getTable("tableName");
+            table.addColumn(ColumnType.ColumnTypeString, "col0");
+            table.add("value0");
+            table.add("value1");  
+            table.add("value2");
+
+            wt.commit();
+        } catch (Throwable t) {
+            wt.rollback();
+        }
+
+        ReadTransaction rt = group.beginRead();
+        try{
+            Table table = rt.getTable("tableName");
+            table.insert(1, "NewValue");
+        } finally {
+            rt.endRead();
+        }
+
+
+    }
+    
+    
     @Test
     public void tableNumbers() {
         Table t = new Table();

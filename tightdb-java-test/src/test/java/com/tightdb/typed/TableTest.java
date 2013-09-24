@@ -11,6 +11,9 @@ import java.util.Date;
 
 import com.tightdb.Group;
 import com.tightdb.Mixed;
+import com.tightdb.ReadTransaction;
+import com.tightdb.SharedGroup;
+import com.tightdb.WriteTransaction;
 import com.tightdb.test.TestEmployeeTable;
 
 public class TableTest {
@@ -41,29 +44,29 @@ public class TableTest {
         employees.clear();
         assertEquals(true, employees.isEmpty());
     }
-    
-    
+
+
     @Test
     public void multipleTablesOfSameTypeInGroup() {
         Group group = new Group();
-        
+
         TestEmployeeTable t0 = new TestEmployeeTable(group);
-        
+
         assertEquals(1, group.size());
         assertEquals("TestEmployeeTable", group.getTableName(0));
 
-        
+
         TestEmployeeTable t1 = new TestEmployeeTable(group, "t1");
         TestEmployeeTable t2 = new TestEmployeeTable(group, "t2");
-        
+
         t2.add("NoName", "Test Mixed Binary", 1, true, new byte[] { 1, 2, 3 }, new Date(), new byte[] { 3, 2, 1 },null);
-        
+
         assertEquals(3, group.size());
-        
+
         assertEquals("t1", group.getTableName(1));
         assertEquals("t2", group.getTableName(2));
-        
-        
+
+
         TestEmployeeTable t2Out = new TestEmployeeTable(group, "t2");
         assertEquals("NoName", t2Out.get(0).getFirstName());
     }
@@ -133,6 +136,7 @@ public class TableTest {
 
         employees.optimize();
     }
+
 
     @Test()
     public void shouldConvertToJson() {

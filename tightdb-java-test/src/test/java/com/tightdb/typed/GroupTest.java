@@ -84,11 +84,10 @@ public class GroupTest {
         assertEquals(group.hasTable("hi"), true);
     }
     
-    
     /*
-     * Helper method for testGroupEquals
+     * Helper method. Returns a group populated with a single table with a single column
      */
-    private Group getFilledGroup(){
+    private Group getGroupWithTable(){
         Group group = new Group();
         Table table1 =  group.getTable("table");
         table1.addColumn(ColumnType.ColumnTypeString, "col");
@@ -97,9 +96,10 @@ public class GroupTest {
         return group;
     }
     
+    
     @Test 
     public void testGroupGetWrongTableIndex() {
-        Group group = getFilledGroup();
+        Group group = getGroupWithTable();
         
         try { group.getTableName(-1); assert(false); } catch (IndexOutOfBoundsException e ) { }
         try { group.getTableName(1000); assert(false); } catch (IndexOutOfBoundsException e ) { }
@@ -108,8 +108,8 @@ public class GroupTest {
 
     @Test 
     public void testGroupEquals() {
-        Group group1 = getFilledGroup();
-        Group group2 = getFilledGroup();
+        Group group1 = getGroupWithTable();
+        Group group2 = getGroupWithTable();
 
         assertEquals(true, group1.equals(group2));
     }
