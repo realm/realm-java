@@ -2,8 +2,12 @@ package com.tightdb;
    
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.io.File;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.*;
 
 
     
@@ -101,14 +105,20 @@ Table t = new Table();
     
     
     
-    @Test(expectedExceptions = IllegalStateException.class)
+    @Test
     public void immutableInsertNotAllowed() {
+        
+        String FILENAME = "only-test-file.tightdb";
+        String TABLENAME = "tableName";
+        
+        new File(FILENAME).delete();
 
-        SharedGroup group = new SharedGroup("only-test-file.tightdb");
+        SharedGroup group = new SharedGroup(FILENAME);
 
+        // Write transaction must be run so where are sure a db exists with the correct table
         WriteTransaction wt = group.beginWrite();
         try{
-            Table table = wt.getTable("tableName");
+            Table table = wt.getTable(TABLENAME);
             table.addColumn(ColumnType.ColumnTypeString, "col0");
             table.add("value0");
             table.add("value1");  
@@ -121,8 +131,10 @@ Table t = new Table();
 
         ReadTransaction rt = group.beginRead();
         try{
-            Table table = rt.getTable("tableName");
-            table.insert(1, "NewValue");
+            Table table = rt.getTable(TABLENAME);
+            
+            try {  table.insert(1, "NewValue"); fail("Exception excpeted when inserting in read transaction"); } catch (IllegalStateException e) { }
+            
         } finally {
             rt.endRead();
         }
@@ -222,14 +234,5 @@ Table t = new Table();
         assertEquals(30.0f, t.getFloat(2, 3));
         assertEquals(300.0f, t.getFloat(2, 4));
         assertEquals(3000.0f, t.getFloat(2, 5));
-    }
-    
-    
-    /**
-     * Helper method for asserts
-     * @param string
-     */
-    private void fail(String string) {
-        assert(false);
     }
 }
