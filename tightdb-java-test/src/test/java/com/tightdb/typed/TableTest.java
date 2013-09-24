@@ -77,6 +77,28 @@ public class TableTest {
         assertEquals(NAME1, employees.get(1).getFirstName());
         assertEquals(NAME2, employees.get(2).getFirstName());
     }
+    
+    
+    /**
+     * Helper method, return a new TestEmployeeTable filled with some rows of data
+     * @return
+     */
+    private TestEmployeeTable getFilledTestEmployeeTable(){
+        TestEmployeeTable table = new TestEmployeeTable();
+
+        table.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra", null);
+        table.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, new Date(), true, null);
+        
+        return table;
+    }
+    
+    @Test
+    public void tableEqusl() {
+        TestEmployeeTable t1 = getFilledTestEmployeeTable();
+        TestEmployeeTable t2 = getFilledTestEmployeeTable();
+        
+        assertEquals(true, t1.equals(t2));
+    }
 
     @Test
     public void shouldHaveTwoWaysToReadCellValues() {
