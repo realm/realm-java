@@ -16,12 +16,13 @@ public class TableQuery {
         this.nativePtr = nativeQueryPtr;
     }
 
-    public void finalize() {
-        close();
-    }
-
-    public void private_debug_close() {
-        close();
+    @Override
+    public void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
     }
 
     private synchronized void close() {

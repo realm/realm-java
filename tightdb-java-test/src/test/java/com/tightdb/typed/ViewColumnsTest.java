@@ -5,7 +5,6 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.util.Date;
 
-import com.tightdb.ColumnType;
 import org.testng.annotations.Test;
 
 import com.tightdb.test.EmployeesFixture;
@@ -84,7 +83,7 @@ public class ViewColumnsTest extends AbstractTest {
         assertEquals(0, view.size());
     }
 
-    @Test(enabled=true)
+    @Test
     public void shouldAggregateColumnValue() {
         assertEquals(EmployeesFixture.EMPLOYEES[0].salary,
                 employeesView.salary.minimum());
@@ -107,5 +106,8 @@ public class ViewColumnsTest extends AbstractTest {
             assertEquals(EmployeesFixture.EMPLOYEES[i].salary + 123,
                     employeesView.get(i).getSalary());
     }
+    
+    
+   
 
 }

@@ -13,8 +13,7 @@ public class JNITransactions {
 
     protected String testFile = "transact.tightdb";
 
-    protected void deleteFile(String filename)
-    {
+    protected void deleteFile(String filename) {
         File f = new File(filename);
         if (f.exists())
             f.delete();
@@ -32,8 +31,7 @@ public class JNITransactions {
         deleteFile(testFile);
     }
 
-    protected void writeOneTransaction(long rows)
-    {
+    protected void writeOneTransaction(long rows) {
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
         TableSpec tableSpec = new TableSpec();
@@ -56,8 +54,7 @@ public class JNITransactions {
 
     }
 
-    protected void checkRead(int rows)
-    {
+    protected void checkRead(int rows) {
         // Read transaction
         ReadTransaction trans = db.beginRead();
         Table tbl = trans.getTable("EmployeeTable");
@@ -130,6 +127,24 @@ public class JNITransactions {
 
 
     @Test
+    public void onlyOneCommit() { 
+        WriteTransaction trans = db.beginWrite();
+
+        try{
+
+            Table tbl = trans.getTable("EmployeeTable");
+            tbl.addColumn(ColumnType.STRING, "name");
+
+            trans.commit();
+
+            try {   trans.commit(); assert(false); } catch (IllegalStateException e){}
+
+        } catch (Throwable t){
+            trans.rollback();
+        }
+    }
+
+    @Test
     public void mustRollback() {
 
         writeOneTransaction(1);
@@ -145,41 +160,41 @@ public class JNITransactions {
 
         clear();
     }
-        
+
     @Test()
     public void mustAllowDoubleCommitAndRollback() {
-    	{
-	    	WriteTransaction trans = db.beginWrite();
-		    Table tbl = trans.getTable("EmployeeTable");
-		    tbl.addColumn(ColumnType.STRING, "name");
-		    tbl.addColumn(ColumnType.INTEGER, "number");
-	
-		    // allow commit before any changes
-		    assertEquals(0, tbl.size());
-	        tbl.add("Hello", 1);
-		    trans.commit();
-    	}
-    	{
-	    	WriteTransaction trans = db.beginWrite();
-		    Table tbl = trans.getTable("EmployeeTable");
-		    // allow double rollback
-	        tbl.add("Hello", 2);
-	        assertEquals(2, tbl.size());
-	        trans.rollback();
-	        trans.rollback();
-	        trans.rollback();
-	        trans.rollback();
-    	}
-    	{
-    		ReadTransaction trans = db.beginRead();
-    		Table tbl = trans.getTable("EmployeeTable");
-	        assertEquals(1, tbl.size());
-	        trans.endRead();
-    	}
+        {
+            WriteTransaction trans = db.beginWrite();
+            Table tbl = trans.getTable("EmployeeTable");
+            tbl.addColumn(ColumnType.STRING, "name");
+            tbl.addColumn(ColumnType.INTEGER, "number");
 
-    	clear();
+            // allow commit before any changes
+            assertEquals(0, tbl.size());
+            tbl.add("Hello", 1);
+            trans.commit();
+        }
+        {
+            WriteTransaction trans = db.beginWrite();
+            Table tbl = trans.getTable("EmployeeTable");
+            // allow double rollback
+            tbl.add("Hello", 2);
+            assertEquals(2, tbl.size());
+            trans.rollback();
+            trans.rollback();
+            trans.rollback();
+            trans.rollback();
+        }
+        {
+            ReadTransaction trans = db.beginRead();
+            Table tbl = trans.getTable("EmployeeTable");
+            assertEquals(1, tbl.size());
+            trans.endRead();
+        }
+
+        clear();
     }
-    
+
     // Test: exception at all mutable methods in TableBase, TableView,
     // Test: above in custom Typed Tables
     // TableQuery.... in ReadTransactions

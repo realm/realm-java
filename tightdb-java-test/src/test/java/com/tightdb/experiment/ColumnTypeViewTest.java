@@ -28,8 +28,8 @@ public class ColumnTypeViewTest {
     }
     
     @AfterMethod
-    public void after() {
-    	t.private_debug_close();
+    public void after() throws Throwable {
+    	t.finalize();
     	t = null;
     	v = null;
     }

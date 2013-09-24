@@ -7,6 +7,7 @@ package com.tightdb;
  * to avoid also running out of memory.
  *
  */
+@SuppressWarnings("serial")
 public class OutOfMemoryError extends Error {
 
     public OutOfMemoryError() { 

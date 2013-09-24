@@ -93,17 +93,26 @@ public class Table implements TableOrView, TableDefinition {
     }
 
     @Override
-    public void finalize() {
+    public void finalize() throws Throwable {
         if (DEBUG) System.err.println("==== FINALIZE " + tableNo + "...");
-        close();
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
     }
 
     private void close() {
         synchronized (CloseMutex.getInstance()) {
-            if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + (TableCount-1));
-            if (nativePtr == 0)
+            if (nativePtr == 0) {
+                if (DEBUG)
+                    System.err.println(".... CLOSE ignored.");
                 return;
-            if (DEBUG) TableCount--;
+            }
+            if (DEBUG) {
+                TableCount--;
+                System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+            }
             nativeClose(nativePtr);
             nativePtr = 0;
         }
@@ -111,12 +120,6 @@ public class Table implements TableOrView, TableDefinition {
 
     protected native void nativeClose(long nativeTablePtr);
 
-    /*
-     * FOR TESTING ONLY - It's invalid to access any methods afterwards. 
-     */
-    public void private_debug_close() {
-    	close();
-    }
     /*
      * Check if the Table is valid.
      * Whenever a Table/subtable is changed/updated all it's subtables are invalidated.

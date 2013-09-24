@@ -6,8 +6,6 @@ import com.tightdb.test.TestHelper;
 import org.testng.annotations.Test;
 
 
-import java.util.Date;
-
 public class JNIQueryTest {
 
     Table table;

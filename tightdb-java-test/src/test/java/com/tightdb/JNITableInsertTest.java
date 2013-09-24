@@ -1,7 +1,7 @@
 package com.tightdb;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -135,14 +135,14 @@ public class JNITableInsertTest {
         byte[] buf = new byte[23];
         try {
             table.addAt(0, false);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // wrong row index
         long mix = 123;
         try {
             table.addAt(1, false, 1, "hi", buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // wrong row index
@@ -150,55 +150,55 @@ public class JNITableInsertTest {
         table.addAt(1, false, 1, "hi", buf, new Date(), 123, null);
         try {
             table.addAt(3, false, 1, "hi", buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of bool)
         try {
             table.addAt(0, 999, 1, "hi", buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (bool instead of 1)
         try {
             table.addAt(0, true, false, "hi", buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of string)
         try {
             table.addAt(0, false, 1, 999, buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of Binary)
         try {
             table.addAt(0, false, 1, "hi", 999, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of Date)
         try {
             table.addAt(0, false, 1, "hi", buf, 999, mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of subtable)
         try {
             table.addAt(0, false, 1, "hi", buf, new Date(), mix, 999);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (String instead of subtable-Int)
         try {
             table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[][] { {"err",2,3}} );
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (String instead of subtable-Int)
         try {
             table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[] {1,2,3} );
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
     }
 
@@ -226,7 +226,7 @@ public class JNITableInsertTest {
     }
 
 
-    @Test
+    @Test()
     public void adjustColumnValuesOnUnsupportedColumnTypeTest() {
 
         Table table = TestHelper.getTableWithAllColumnTypes();

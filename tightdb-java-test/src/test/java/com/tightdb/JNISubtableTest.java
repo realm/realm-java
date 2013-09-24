@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 public class JNISubtableTest {
 
     @Test()
-    public void shouldSynchronizeNestedTables() {
+    public void shouldSynchronizeNestedTables() throws Throwable {
         Group group = new Group();
         Table table = group.getTable("emp");
 
@@ -25,7 +25,7 @@ public class JNISubtableTest {
         Table subtable1 = table.getSubTable(1, 0);
         subtable1.add(123);
         assertEquals(1, subtable1.size());
-        subtable1.private_debug_close();
+        subtable1.finalize();
 
         Table subtable2 = table.getSubTable(1, 0);
         assertEquals(1, subtable2.size());
@@ -68,23 +68,18 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-
         TableDefinition addresses = persons.getSubTableDefinition(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-
         TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
 
-
         // Assertions
-
         assertEquals(persons.getColumnName(2), "addresses");
         assertEquals(persons.getSubTable(2,0).getColumnName(2), "phone_numbers");
         assertEquals(persons.getSubTable(2,0).getSubTable(2,0).getColumnName(0), "number");
@@ -92,7 +87,6 @@ public class JNISubtableTest {
         assertEquals(persons.getString(1,0), "xx@xxxx.com");
         assertEquals(persons.getSubTable(2,0).getString(0,0), "X Street");
         assertEquals(persons.getSubTable(2,0).getSubTable(2,0).getLong(0,0), 12345678);
-
     }
 
     @Test
@@ -105,29 +99,21 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-
         TableDefinition addresses = persons.getSubTableDefinition(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-
         TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
 
-
         // Assertions
-
         assertEquals(persons.getSubTable(2,0).getColumnCount(), 3);
-
         addresses.removeColumn(1);
-
         assertEquals(persons.getSubTable(2,0).getColumnCount(), 2);
-
     }
 
     @Test
@@ -140,34 +126,25 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-
         TableDefinition addresses = persons.getSubTableDefinition(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE , "phone_numbers");
 
-
         TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
-
 
         // Assertions
-
         assertEquals("zipcode", persons.getSubTable(2,0).getColumnName(1));
-
         addresses.renameColumn(1, "zip");
-
         assertEquals("zip", persons.getSubTable(2,0).getColumnName(1));
-
     }
 
-    @Test(expectedExceptions=UnsupportedOperationException.class)
+    @Test
     public void shouldThrowOnGetSubtableDefinitionFromSubtable() {
-
         // Table definition
         Table persons = new Table();
 
@@ -175,56 +152,32 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-
         TableDefinition addresses = persons.getSubTableDefinition(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-
         TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
 
+        try {
+            // Should throw
+            persons.getSubTable(2,0).addColumn(ColumnType.INTEGER, "i");
+            fail("expected exception.");
+        } catch (UnsupportedOperationException e) {}
+        
+        try {
+            // Should throw
+            persons.getSubTable(2,0).getSubTableDefinition(2);
+            fail("expected exception.");
+        } catch (UnsupportedOperationException e) {}
 
-        // Should throw
-
-        persons.getSubTable(2,0).getSubTableDefinition(2);
 
     }
 
-    @Test(expectedExceptions=UnsupportedOperationException.class)
-    public void shouldThrowOnAddColumnFromSubtable() {
-
-        // Table definition
-        Table persons = new Table();
-
-        persons.addColumn(ColumnType.STRING, "name");
-        persons.addColumn(ColumnType.STRING, "email");
-        persons.addColumn(ColumnType.TABLE, "addresses");
-
-
-        TableDefinition addresses = persons.getSubTableDefinition(2);
-        addresses.addColumn(ColumnType.STRING, "street");
-        addresses.addColumn(ColumnType.INTEGER, "zipcode");
-        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
-
-
-        TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
-        phone_numbers.addColumn(ColumnType.INTEGER, "number");
-
-        // Inserting data
-
-        persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
-
-
-        // Should throw
-
-        persons.getSubTable(2,0).addColumn(ColumnType.INTEGER, "i");
-
-    }
-
+    // TODO: Add testcases for out of range columnIndexes
+    // TODO: try on mixed columns - it should work there
 }

@@ -24,9 +24,9 @@ public class GroupTest {
     protected static final String NAME0 = "John";
     protected static final String NAME1 = "Nikolche";
     protected static final String NAME2 = "Johny";
-    
+
     protected static final String FILENAME = "test_no_overwrite.tightdb";
-    
+
     @Test
     public void shouldCreateTablesInGroup() {
         //util.setDebugLevel(2);
@@ -72,18 +72,50 @@ public class GroupTest {
         group3.close();
 
     }
-    
+
     @Test 
     public void testHasTable() {
         Group group = new Group();
         assertEquals(group.hasTable(null), false);
         assertEquals(group.hasTable(""), false);
         assertEquals(group.hasTable("hi"), false);
-        
+
         Table table = group.getTable("hi");
         assertEquals(table.isValid(), true);
         assertEquals(group.hasTable("hi"), true);
     }
+
+    /*
+     * Helper method. Returns a group populated with a single table with a single column
+     */
+    private Group getGroupWithTable(){
+        Group group = new Group();
+        Table table1 =  group.getTable("table");
+        table1.addColumn(ColumnType.STRING, "col");
+        table1.add("StringValue");
+
+        return group;
+    }
+
+
+    @Test 
+    public void testGroupGetWrongTableIndex() {
+        Group group = getGroupWithTable();
+
+        try { group.getTableName(-1); assert(false); } catch (IndexOutOfBoundsException e ) { }
+        try { group.getTableName(1000); assert(false); } catch (IndexOutOfBoundsException e ) { }
+
+    }
+
+    @Test 
+    public void testGroupEquals() {
+        Group group1 = getGroupWithTable();
+        Group group2 = getGroupWithTable();
+
+        assertEquals(true, group1.equals(group2));
+    }
+
+
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void getNullTableShouldThrowIllegalArgument() {
@@ -123,20 +155,12 @@ public class GroupTest {
     	group5.close();
     }
     
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void shouldOpenReadOnly() throws IOException {
-    	File file = new File(FILENAME);
-    	file.delete();
-    	file.createNewFile();
-    	// Throw when opening non-TightDB file
-    	Group group = new Group(FILENAME, OpenMode.READ_ONLY);
-    }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void shouldThrowExceptionOnGroupReadOnly() throws IOException {
     	new File(FILENAME).delete();
     	// Throw when opening non-existing file
-    	Group group = new Group(FILENAME, OpenMode.READ_ONLY);    	
+    	try { Group group = new Group(FILENAME, OpenMode.READ_ONLY); fail("Group is read only"); } catch (com.tightdb.IOException e) { } 	
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -148,36 +172,59 @@ public class GroupTest {
     	Group group = new Group(FILENAME, OpenMode.READ_ONLY);
     }
     
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void ThrowExceptionOnGroupNoCreate() throws IOException {
     	new File(FILENAME).delete();      
-    	Group group2 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE);
+    	try { Group group2 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE); fail("Exception excpected"); } catch (com.tightdb.IOException e) { }
     }
 
     @Test
     public void groupCanWriteToFile() throws IOException {
-    	new File(FILENAME).delete();
-    	
-    	Group group = new Group();
+        new File(FILENAME).delete();
+
+        Group group = new Group();
         group.writeToFile(FILENAME);
         group.close();
         // TODO: How can we verify that group is closed?
     }
 
+
+    @Test(expectedExceptions = com.tightdb.IOException.class)
+    public void groupWriteToEmptyStringPath() throws IOException {
+
+        Group group = new Group();
+        group.writeToFile(""); // Empty string - exception
+    }
+
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void groupWriteToNullStringPath() throws IOException {
+
+        Group group = new Group();
+        String path = null;
+        group.writeToFile(path); // String is null - exception
+    }
+
+
+    @Test(expectedExceptions = com.tightdb.IOException.class)
     public void groupCanWriteToFile2() throws IOException {
-    	new File(FILENAME).delete();
-    	
-    	Group group = new Group(FILENAME);
-        group.writeToFile(FILENAME);
-        group.close();
-        // TODO: How can we verify that group is closed?
+        new File(FILENAME).delete();
+        Group group = new Group(FILENAME); // File is deleted, should not be able to open group on non-existing file using a string path
     }
 
-    @Test(expectedExceptions = IOException.class)
-    public void groupNoOverwrite1() throws IOException {
-    	new File(FILENAME).delete();
+    @Test(expectedExceptions = com.tightdb.IOException.class)
+    public void groupCanWriteToFile3() throws IOException {
+        File file = new File(FILENAME);
+        file.delete();
 
-    	Group group = new Group();
+        Group group = new Group(file); // File is deleted, should not be able to open group on non-existing file using a file object
+    }
+
+    @Test(expectedExceptions = com.tightdb.IOException.class)
+    public void groupNoOverwrite1() throws IOException {
+        new File(FILENAME).delete();
+
+        Group group = new Group();
         group.writeToFile(FILENAME);
         // writing to the same file should throw exception
         group.writeToFile(FILENAME);
@@ -209,7 +256,7 @@ public class GroupTest {
     	readGrp.close();
     }
 
-/* TODO: Enable when implemented "free" method for the data
+    /* TODO: Enable when implemented "free" method for the data
     @Test(enabled = true)
     public void groupByteBufferCanClose() {
         Group group = new Group();
@@ -219,7 +266,7 @@ public class GroupTest {
         Group group2 = new Group(data);
         group2.close();
     }
-*/
+     */
     @Test(enabled = true)
     public void groupMemCanClose() {
         Group group = new Group();
@@ -245,6 +292,13 @@ public class GroupTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
+    public void groupByteArrayChecksForNull() {
+        byte[] data = null;
+        Group group = new Group(data);
+        // Expect to throw exception
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void groupByteArrayChecksForDatabaseFormat() {
         byte[] data = {1,2,3,4,5};
         Group group = new Group(data);
@@ -255,7 +309,7 @@ public class GroupTest {
     @Test
     public void shouldThrowExceptionOnMethodCallToClosedGroup() throws IOException {
         boolean failed = false;
-        
+
         new File(FILENAME).delete();
         Group group = new Group();
         group.close();
@@ -267,9 +321,9 @@ public class GroupTest {
         try { group.writeToFile(""); failed = true; } catch (IllegalStateException e) {}
         try { group.writeToFile(new File("hi")); failed = true; } catch (IllegalStateException e) {}
         try { group.writeToMem(); failed = true; } catch (IllegalStateException e) {}
-        
+
         if (failed)
-        	fail("Didn't throw exception");
+            fail("Didn't throw exception");
     }    
 
     @Test
@@ -291,44 +345,46 @@ public class GroupTest {
     }
     
     
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void shouldFailWhenModifyingTablesOnClosedGroup() {
         Group group = new Group();
         Table tbl = group.getTable("test");
         tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
-        
+
         //Close the group
         group.close();
-        
+
         //Try to add data to table in group
-        tbl.add(2);
+        try{ tbl.add(2); fail("Group is closed"); } catch (IllegalStateException e) { }
     }
+
+    
     @Test(expectedExceptions = IllegalStateException.class)
     public void shouldFailWhenAddingTablesToClosedGroup() {
         Group group = new Group();
         Table tbl = group.getTable("test");
         tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
-        
+
         //Close the group
         group.close();
-        
+
         //Try to add data to table in group
         Table newTable = group.getTable("test2");
     }
-    
-    
+
+
     @Test(expectedExceptions = IllegalStateException.class)
     public void shouldFailWhenGettingValuesFromTablesInClosedGroup() {
         Group group = new Group();
         Table tbl = group.getTable("test");
         tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
-        
+
         //Close the group
         group.close();
-        
+
         tbl.getLong(0, 0);
     }
 
