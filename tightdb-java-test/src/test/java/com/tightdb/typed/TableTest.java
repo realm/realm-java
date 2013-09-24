@@ -11,9 +11,6 @@ import java.util.Date;
 
 import com.tightdb.Group;
 import com.tightdb.Mixed;
-import com.tightdb.ReadTransaction;
-import com.tightdb.SharedGroup;
-import com.tightdb.WriteTransaction;
 import com.tightdb.test.TestEmployeeTable;
 
 public class TableTest {
@@ -55,7 +52,6 @@ public class TableTest {
         assertEquals(1, group.size());
         assertEquals("TestEmployeeTable", group.getTableName(0));
 
-
         TestEmployeeTable t1 = new TestEmployeeTable(group, "t1");
         TestEmployeeTable t2 = new TestEmployeeTable(group, "t2");
 
@@ -65,7 +61,6 @@ public class TableTest {
 
         assertEquals("t1", group.getTableName(1));
         assertEquals("t2", group.getTableName(2));
-
 
         TestEmployeeTable t2Out = new TestEmployeeTable(group, "t2");
         assertEquals("NoName", t2Out.get(0).getFirstName());
@@ -81,11 +76,9 @@ public class TableTest {
     
     /**
      * Helper method, return a new TestEmployeeTable filled with some rows of data
-     * @return
      */
     private TestEmployeeTable getFilledTestEmployeeTable(){
         TestEmployeeTable table = new TestEmployeeTable();
-
         table.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra", null);
         table.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, new Date(), true, null);
         
@@ -93,11 +86,13 @@ public class TableTest {
     }
     
     @Test
-    public void tableEqusl() {
+    public void tableEquals() {
         TestEmployeeTable t1 = getFilledTestEmployeeTable();
         TestEmployeeTable t2 = getFilledTestEmployeeTable();
-        
         assertEquals(true, t1.equals(t2));
+        
+        t1.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, new Date(), true, null);
+        assertEquals(false, t1.equals(t2));
     }
 
     @Test
