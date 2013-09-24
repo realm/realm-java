@@ -59,7 +59,7 @@ public class JNIMixedTypeTest {
             break;
 
         default:
-            assertTrue(false);
+            fail("wrong type");
             break;
         }
     }

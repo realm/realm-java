@@ -228,9 +228,19 @@ public class Group {
     }
 
     protected native String nativeToString(long nativeGroupPtr);
+    
+    
 
-    public boolean equals(Group grp) {
-        return nativeEquals(nativePtr, grp.nativePtr);
+    public boolean equals(Object other) {
+        if(other == null)
+            return false;
+        if(other == this)
+            return true;
+        if( ! (other instanceof Group))
+            return false;
+        
+        Group otherGroup = (Group) other;
+        return nativeEquals(nativePtr, otherGroup.nativePtr);
     }
 
     protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);

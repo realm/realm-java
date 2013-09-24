@@ -1,9 +1,8 @@
 package com.tightdb;
-   
-import org.testng.annotations.BeforeMethod;
 
 import static org.testng.AssertJUnit.*;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Date;
@@ -11,16 +10,16 @@ import java.util.Date;
 import com.tightdb.ColumnType;
 import com.tightdb.Table;
 import com.tightdb.TableView;
-import com.tightdb.test.EmployeesFixture;
 
-    
+
+@SuppressWarnings("deprecation")
 public class JNIViewTest {
-	Table t;
-	Date date1 = new Date(2010, 01, 05);
-	Date date2 = new Date(1999, 12, 01);
-	Date date3 = new Date(1990, 12, 24);
-	Date date4 = new Date(2010, 01, 04);
-	
+    Table t;
+    Date date1 = new Date(2010, 01, 05);
+    Date date2 = new Date(1999, 12, 01);
+    Date date3 = new Date(1990, 12, 24);
+    Date date4 = new Date(2010, 01, 04);
+
     @BeforeMethod
 	void init() {
 		//Specify table		
@@ -109,36 +108,37 @@ public class JNIViewTest {
 	    assertEquals("dd", view.getString(0, 0));
 	}
 	
-	public void shouldSortViewBool() {    
-	    //Get a view containing all rows in table since you can only sort views currently.
-	    TableView view = t.where().findAll();
-	
-	    //Sort without specifying the order, should default to ascending.
-	    view.sort(1);
-	    assertEquals(false, view.getBoolean(1, 0));
-	    assertEquals(false, view.getBoolean(1, 1));
-	    assertEquals(true, view.getBoolean(1, 2));
-	    assertEquals(true, view.getBoolean(1, 3));
-	    assertEquals("bb", view.getString(0, 3));
-	}
 
-    public void shouldThrowExceptionForUnsupportedColumns() {
+    @Test
+    public void shouldSortViewBool() {    
+        //Get a view containing all rows in table since you can only sort views currently.
+        TableView view = t.where().findAll();
 
-	    TableView view = t.where().findAll();
-
-		long colIndex;
-		for (colIndex = 4; colIndex <= 8; colIndex++) {
-			try {
-				view.sort(colIndex); // Must throw for invalid column types		
-				assertTrue(false);
-			} catch (IllegalArgumentException e) {		
-			}
-		}
-
+        //Sort without specifying the order, should default to ascending.
+        view.sort(1);
+        assertEquals(false, view.getBoolean(1, 0));
+        assertEquals(false, view.getBoolean(1, 1));
+        assertEquals(true, view.getBoolean(1, 2));
+        assertEquals(true, view.getBoolean(1, 3));
+        assertEquals("bb", view.getString(0, 3));
     }
     
     
-    @Test(enabled = true)
+
+    @Test
+    public void shouldThrowExceptionForUnsupportedColumns() {
+        TableView view = t.where().findAll();
+        long colIndex;
+        for (colIndex = 4; colIndex <= 8; colIndex++) {
+            try {
+                view.sort(colIndex); // Must throw for invalid column types	
+                fail("expected exception.");
+            } catch (IllegalArgumentException e) {
+            }
+        }
+    }
+
+    @Test
     public void shouldSearchByColumnValue() {
         Table table = new Table();
 
@@ -156,7 +156,7 @@ public class JNIViewTest {
         view.findAllString(0, "Foo");
     }
 
-    @Test()
+    @Test
     public void shouldQueryInView() {
         Table table = new Table();
 
@@ -180,25 +180,19 @@ public class JNIViewTest {
         TableView view2 = query2.tableview(view).contains(0, "3").findAll();
         assertEquals(2, view2.size());
     }
-    
-    
+
     @Test
     public void getNonExistingColumn() {
-
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeInt, "int");
-        
-        TableView view = t.where().findAll();
-        
+        t.addColumn(ColumnType.ColumnTypeInt, "int");      
+        TableView view = t.where().findAll();      
         assertEquals(-1, view.getColumnIndex("non-existing column"));
     }
-    
+
     @Test(expectedExceptions = NullPointerException.class)
     public void getNullColumn() {
-
         Table t = new Table();
         t.addColumn(ColumnType.ColumnTypeInt, "");
-        
         TableView view = t.where().findAll();
         view.getColumnIndex(null);
     }

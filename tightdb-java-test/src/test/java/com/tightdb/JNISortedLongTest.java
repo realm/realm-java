@@ -22,7 +22,7 @@ public class JNISortedLongTest {
         assertEquals(8, table.size());
     }
 
-    @Test(enabled=true)    // TODO: enable
+    @Test
     public void shouldTestSortedInt() {
         init();
 
