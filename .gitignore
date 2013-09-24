@@ -78,3 +78,8 @@ _ReSharper*/
 *.lock
 
 tightdb-java-test/testng.xml
+
+# debian packaging
+/debian/tightdb-java
+/debian/tightdb-java-dev
+/debian/.mh

@@ -12,7 +12,7 @@
 #include <tightdb/safe_int_ops.hpp>
 #include <tightdb/lang_bind_helper.hpp>
 
-#include "com_tightdb_internal_util.h"
+#include "com_tightdb_internal_Util.h"
 
 
 #define TRACE               1       // disable for performance
