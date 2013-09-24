@@ -83,7 +83,7 @@ public class GroupTest {
         assertEquals(table.isValid(), true);
         assertEquals(group.hasTable("hi"), true);
     }
-    
+
     /*
      * Helper method. Returns a group populated with a single table with a single column
      */
@@ -92,15 +92,15 @@ public class GroupTest {
         Table table1 =  group.getTable("table");
         table1.addColumn(ColumnType.ColumnTypeString, "col");
         table1.add("StringValue");
-        
+
         return group;
     }
-    
-    
+
+
     @Test 
     public void testGroupGetWrongTableIndex() {
         Group group = getGroupWithTable();
-        
+
         try { group.getTableName(-1); assert(false); } catch (IndexOutOfBoundsException e ) { }
         try { group.getTableName(1000); assert(false); } catch (IndexOutOfBoundsException e ) { }
 
@@ -110,13 +110,8 @@ public class GroupTest {
     public void testGroupEquals() {
         Group group1 = getGroupWithTable();
         Group group2 = getGroupWithTable();
-        
-       // System.out.println(group1);
-       // System.out.println(group2);
-        
-        System.out.println(group1.equals(group2));
 
-     //   assertEquals(true, group1.equals(group2));
+        assertEquals(true, group1.equals(group2));
     }
 
 
@@ -154,16 +149,16 @@ public class GroupTest {
         group.close();
         // TODO: How can we verify that group is closed?
     }
-    
-    
+
+
     @Test(expectedExceptions = com.tightdb.IOException.class)
     public void groupWriteToEmptyStringPath() throws IOException {
 
         Group group = new Group();
         group.writeToFile(""); // Empty string - exception
     }
-    
-    
+
+
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void groupWriteToNullStringPath() throws IOException {
 
@@ -171,7 +166,7 @@ public class GroupTest {
         String path = null;
         group.writeToFile(path); // String is null - exception
     }
-    
+
 
     @Test(expectedExceptions = com.tightdb.IOException.class)
     public void groupCanWriteToFile2() throws IOException {
