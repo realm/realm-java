@@ -126,13 +126,13 @@ Table t = new Table();
         } finally {
             rt.endRead();
         }
-
-
     }
     
     @Test()
     public void shouldThrowWhenSetIndexOnWrongColumnType() {
         for (long colIndex = 0; colIndex < t.getColumnCount(); colIndex++) {
+            
+            // Check all other column types than String throws exception when using setIndex()/hasIndex()
             boolean exceptionExpected = (t.getColumnType(colIndex) != ColumnType.ColumnTypeString);
 
             // Try to setIndex()
@@ -148,11 +148,6 @@ Table t = new Table();
         }
     }
     
-    
-    private void fail(String string) {
-        assert(false);
-        
-    }
 
     @Test
     public void tableNumbers() {
@@ -203,13 +198,13 @@ Table t = new Table();
         assertEquals(300.0f, t.getFloat(2, 4));
         assertEquals(3000.0f, t.getFloat(2, 5));
     }
-
     
+    
+    /**
+     * Helper method for asserts
+     * @param string
+     */
+    private void fail(String string) {
+        assert(false);
+    }
 }
-    
-	
-
-    // Check all other column types than String throws exception when using setIndex()/hasIndex()
-
-   
-
