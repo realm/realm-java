@@ -134,6 +134,22 @@ public class Table implements TableOrView, TableDefinition {
 
     protected native boolean nativeIsValid(long nativeTablePtr);
 
+    @Override
+    public boolean equals(Object other) {
+        if (this == other)
+            return true;
+        if (other == null)
+            return false;
+        // Has to work for all the typed tables as well
+        if (!(other instanceof Table))
+            return false;
+
+        Table otherTable = (Table) other;
+        return nativeEquals(nativePtr, otherTable.nativePtr);
+    }
+
+    protected native boolean nativeEquals(long nativeTablePtr, long nativeTableToComparePtr);
+
     private void verifyColumnName(String name) {
     	if (name.length() > 63) {
     		throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");

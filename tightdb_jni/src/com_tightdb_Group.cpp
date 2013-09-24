@@ -238,7 +238,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Group_nativeEquals(
     Group* grp = G(nativeGroupPtr);
     Group* grpToCompare = G(nativeGroupToComparePtr);
     try {
-        return (grp == grpToCompare);
+        return (*grp == *grpToCompare);
     } CATCH_STD()
     return false;
 }
