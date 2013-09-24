@@ -229,7 +229,7 @@ public class Group {
 
     protected native String nativeToString(long nativeGroupPtr);
         
-    public boolean equals(Group other) {
+    public boolean equals(Object other) {
         if (other == null)
             return false;
         if (other == this)
