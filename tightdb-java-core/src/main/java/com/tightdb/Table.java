@@ -1002,6 +1002,7 @@ public class Table implements TableOrView, TableDefinition {
 
     protected native long nativeCountDouble(long nativePtr, long columnIndex, double value);
 
+    @Override
     public long count(long columnIndex, String value) {
         return nativeCountString(nativePtr, columnIndex, value);
     }
@@ -1092,14 +1093,15 @@ public class Table implements TableOrView, TableDefinition {
 
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
-    // Requires that the first column is a string column with index
+    /*  // Requires that the first column is a string column with index
+    @Override
     public long lookup(String value) {
         if (!this.hasIndex(0) || this.getColumnType(0) != ColumnType.STRING)
             throw new RuntimeException("lookup() requires index on column 0 which must be a String column.");
         return nativeLookup(nativePtr, value);
     }
 
-    protected native long nativeLookup(long nativeTablePtr, String value);
+    protected native long nativeLookup(long nativeTablePtr, String value); */
 
 
     // Experimental feature
