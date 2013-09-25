@@ -1,6 +1,5 @@
 package com.tightdb.typed;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.ColumnType;
@@ -58,7 +57,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     @Override
     public boolean equals(Object other) {
         if (other instanceof AbstractTable)
-            return table.equals(((AbstractTable)other).table);
+            return table.equals(((AbstractTable<?, ?, ?>) other).table);
         return false;
     }
     
