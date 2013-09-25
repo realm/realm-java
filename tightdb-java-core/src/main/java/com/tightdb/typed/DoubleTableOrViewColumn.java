@@ -72,11 +72,11 @@ public class DoubleTableOrViewColumn<Cursor, View, Query> extends DoubleQueryCol
     // tableOrView.addDouble(columnIndex, value);
     // }
 
-    public Cursor findFirst(long value) {
+    public Cursor findFirst(double value) {
         return cursor(tableOrView.findFirstDouble(columnIndex, value));
     }
 
-    public View findAll(long value) {
+    public View findAll(double value) {
         return view(tableOrView.findAllDouble(columnIndex, value));
     }
 

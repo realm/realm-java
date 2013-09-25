@@ -72,11 +72,11 @@ public class FloatTableOrViewColumn<Cursor, View, Query> extends FloatQueryColum
     // tableOrView.addFloat(columnIndex, value);
     // }
 
-    public Cursor findFirst(long value) {
+    public Cursor findFirst(float value) {
         return cursor(tableOrView.findFirstFloat(columnIndex, value));
     }
 
-    public View findAll(long value) {
+    public View findAll(float value) {
         return view(tableOrView.findAllFloat(columnIndex, value));
     }
 
