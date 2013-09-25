@@ -12,12 +12,11 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
     if (bin.size() <= MAX_JSIZE) {
         jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
         if (jresult)
-            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));
+            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));  // throws
         return jresult;
     }
     else {
-        //???TODO: More specific exception
-        ThrowException(env, IndexOutOfBounds, "Length of ByteArray is larger than int.");
+        ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
         return NULL;
     }
 }

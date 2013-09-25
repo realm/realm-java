@@ -46,7 +46,7 @@ import com.tightdb.typed.TightDB;
  *
  */
 
-public class Table implements TableOrView {
+public class Table implements TableOrView, TableDefinition {
 
     public static final long INFINITE = -1;
 
@@ -92,17 +92,26 @@ public class Table implements TableOrView {
     }
 
     @Override
-    public void finalize() {
+    public void finalize() throws Throwable {
         if (DEBUG) System.err.println("==== FINALIZE " + tableNo + "...");
-        close();
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
     }
 
     private void close() {
         synchronized (CloseMutex.getInstance()) {
-            if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + (TableCount-1));
-            if (nativePtr == 0)
+            if (nativePtr == 0) {
+                if (DEBUG)
+                    System.err.println(".... CLOSE ignored.");
                 return;
-            if (DEBUG) TableCount--;
+            }
+            if (DEBUG) {
+                TableCount--;
+                System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+            }
             nativeClose(nativePtr);
             nativePtr = 0;
         }
@@ -110,12 +119,6 @@ public class Table implements TableOrView {
 
     protected native void nativeClose(long nativeTablePtr);
 
-    /*
-     * FOR TESTING ONLY - It's invalid to access any methods afterwards. 
-     */
-    public void private_debug_close() {
-    	close();
-    }
     /*
      * Check if the Table is valid.
      * Whenever a Table/subtable is changed/updated all it's subtables are invalidated.
@@ -131,11 +134,38 @@ public class Table implements TableOrView {
 
     protected native boolean nativeIsValid(long nativeTablePtr);
 
+    @Override
+    public boolean equals(Object other) {
+        if (this == other)
+            return true;
+        if (other == null)
+            return false;
+        // Has to work for all the typed tables as well
+        if (!(other instanceof Table))
+            return false;
+
+        Table otherTable = (Table) other;
+        return nativeEquals(nativePtr, otherTable.nativePtr);
+    }
+
+    protected native boolean nativeEquals(long nativeTablePtr, long nativeTableToComparePtr);
+
     private void verifyColumnName(String name) {
     	if (name.length() > 63) {
     		throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
     	}    	
     }
+
+    public TableDefinition getSubTableDefinition(long columnIndex) {
+        if(nativeIsRootTable(nativePtr) == false)
+            throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
+
+        long[] newPath = new long[1];
+        newPath[0] = columnIndex;
+        return new SubTableDefinition(nativePtr, newPath);
+    }
+
+    protected native boolean nativeIsRootTable(long nativeTablePtr);
     
     /**
      * Add a column to the table dynamically.
@@ -239,8 +269,7 @@ public class Table implements TableOrView {
      * Returns the name of a column identified by columnIndex. Notice that the
      * index is zero based.
      *
-     * @param columnIndex
-     *            the column index
+     * @param columnIndex the column index
      * @return the name of the column
      */
     public String getColumnName(long columnIndex) {
@@ -252,13 +281,12 @@ public class Table implements TableOrView {
     /**
      * Returns the 0-based index of a column based on the name.
      *
-     * @param name
-     *            column name
+     * @param name column name
      * @return the index, -1 if not found
      */
     public long getColumnIndex(String name) {
         long columnCount = getColumnCount();
-        for (int i = 0; i < columnCount; i++) {
+        for (long i = 0; i < columnCount; i++) {
             if (name.equals(getColumnName(i))) {
                 return i;
             }
@@ -269,8 +297,7 @@ public class Table implements TableOrView {
     /**
      * Get the type of a column identified by the columnIdex.
      *
-     * @param columnIndex
-     *            index of the column.
+     * @param columnIndex index of the column.
      * @return Type of the particular column.
      */
     public ColumnType getColumnType(long columnIndex)
@@ -284,8 +311,7 @@ public class Table implements TableOrView {
      * Removes a row from the specific index. As of now the entry is simply
      * removed from the table.
      *
-     * @param rowIndex
-     *            the row index (starting with 0)
+     * @param rowIndex the row index (starting with 0)
      *
      */
     public void remove(long rowIndex) {
@@ -693,7 +719,7 @@ public class Table implements TableOrView {
 
     public void setDate(long columnIndex, long rowIndex, Date date) {
         if (immutable) throwImmutable();
-        nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
+        nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
     }
 
     protected native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
@@ -928,7 +954,7 @@ public class Table implements TableOrView {
     protected native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
 
     public long findFirstDate(long columnIndex, Date date) {
-        return nativeFindFirstDate(nativePtr, columnIndex, date.getTime()/1000);
+        return nativeFindFirstDate(nativePtr, columnIndex, date.getTime() / 1000);
     }
 
     protected native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
@@ -964,7 +990,7 @@ public class Table implements TableOrView {
     protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
     public TableView findAllDate(long columnIndex, Date date) {
-        return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
+        return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000), immutable);
     }
 
     protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
@@ -1034,8 +1060,7 @@ public class Table implements TableOrView {
 
     protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
-    private void throwImmutable()
-    {
+    private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 }

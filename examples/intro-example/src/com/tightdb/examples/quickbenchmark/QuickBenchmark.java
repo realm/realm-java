@@ -115,7 +115,7 @@ public class QuickBenchmark {
 
 
         // Add an index and lets try some lookups
-        table.setIndex(0);      // syntax will soon be "table.name.setIndex();"
+        table.name.setIndex();
         timer.Start();
         long tightdbLookups = 0;
         int randLength = randomNames.length;

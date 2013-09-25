@@ -29,6 +29,33 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 #endif
 
 
+// Exception handling
+
+#define CATCH_FILE(fileName) \
+    catch (InvalidDatabase&) { \
+        ThrowException(env, IllegalArgument, "Invalid Group file format."); \
+    } catch (File::PermissionDenied& e) { \
+        ThrowException(env, IOFailed, fileName, string("Permission denied. ") + e.what()); \
+    } catch (File::NotFound&) { \
+        ThrowException(env, FileNotFound, fileName); \
+    } catch (File::AccessError& e) { \
+        ThrowException(env, FileAccessError, string(fileName), e.what()); \
+    }
+
+#define CATCH_STD() \
+    catch (ResourceAllocError& e) { \
+        ThrowException(env, OutOfMemory, "Resource allocation error.", e.what()); \
+    } catch (std::bad_alloc& e) { \
+        ThrowException(env, OutOfMemory, e.what()); \
+    } catch (std::exception& e) { \
+        ThrowException(env, Unspecified, e.what()); \
+    } catch (...) { \
+        TIGHTDB_ASSERT(false); \
+        ThrowException(env, RuntimeError, "Unknown Exception"); \
+    }
+    /* above (...) is not needed if we only throw exceptions derived from std::exception */
+
+
 template <typename T>
 std::string num_to_string(T pNumber)
 {
@@ -53,14 +80,19 @@ std::string num_to_string(T pNumber)
 // Exception handling
 
 enum ExceptionKind {
-    ClassNotFound,
-    NoSuchField,
-    NoSuchMethod,
-    IllegalArgument,
-    IOFailed,
-    IndexOutOfBounds,
-    TableInvalid,
-    UnsupportedOperation
+    ClassNotFound = 0,
+    NoSuchField = 1,
+    NoSuchMethod = 2,
+    IllegalArgument = 3,
+    IOFailed = 4,
+    FileNotFound = 5,
+    FileAccessError = 6,
+    IndexOutOfBounds = 7,
+    TableInvalid = 8,
+    UnsupportedOperation = 9,
+    OutOfMemory = 10,
+    Unspecified = 11,
+    RuntimeError = 12
 };
 
 extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
