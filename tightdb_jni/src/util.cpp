@@ -7,7 +7,7 @@
 #include <tightdb/utf8.hpp>
 
 #include "util.hpp"
-#include "com_tightdb_internal_util.h"
+#include "com_tightdb_internal_Util.h"
 
 
 using namespace std;
@@ -86,8 +86,18 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case IOFailed:
-            jExceptionClass = env->FindClass("java/io/IOException");
-            message = "Failed to open " + classStr;
+            jExceptionClass = env->FindClass("com/tightdb/IOException");
+            message = "Failed to open " + classStr + ". " + itemStr;
+            break;
+
+        case FileNotFound:
+            jExceptionClass = env->FindClass("com/tightdb/IOException");
+            message = "File not found: " + classStr + ".";
+            break;
+
+        case FileAccessError:
+            jExceptionClass = env->FindClass("com/tightdb/IOException");
+            message = "Failed to access: " + classStr + ". " + itemStr;
             break;
 
         case IndexOutOfBounds:
@@ -100,9 +110,20 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             message = classStr;
             break;
 
-        default:
-            TIGHTDB_ASSERT(false);
-            return;
+        case OutOfMemory:
+            jExceptionClass = env->FindClass("com/tightdb/OutOfMemoryError");
+            message = classStr + " " + itemStr;
+            break;
+
+        case Unspecified:
+            jExceptionClass = env->FindClass("java/lang/RuntimeException");
+            message = "Unspecified exception. " + classStr;
+            break;
+
+        case RuntimeError:
+            jExceptionClass = env->FindClass("java/lang/RuntimeException");
+            message = classStr;
+            break;
     }
     if (jExceptionClass != NULL)
         env->ThrowNew(jExceptionClass, message.c_str());
@@ -255,3 +276,6 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         m_size = out_begin - m_data.get();
     }
 }
+
+
+// native testcases

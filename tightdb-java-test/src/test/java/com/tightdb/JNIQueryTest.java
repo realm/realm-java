@@ -6,8 +6,6 @@ import com.tightdb.test.TestHelper;
 import org.testng.annotations.Test;
 
 
-import java.util.Date;
-
 public class JNIQueryTest {
 
     Table table;
@@ -117,7 +115,7 @@ public class JNIQueryTest {
         }
 
         // Compare date
-        /*
+        /* TODO:
         for(int i = 0; i <= 8; i++) {
             if(i != 2) {
                 try { query.equal(i, new Date());                   assert(false); } catch(IllegalArgumentException e) {}

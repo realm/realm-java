@@ -7,10 +7,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.tightdb.test.TestNumbersTable;
+import com.tightdb.test.TestNumbersView;
 
 public class NumbersTest {
 
     private TestNumbersTable numbers;
+    private TestNumbersView view;
 
     @BeforeMethod
     public void init() {
@@ -21,6 +23,11 @@ public class NumbersTest {
         numbers.insert(1, 30000, 30000.6f, 30000.6d);
 
         assertEquals(3, numbers.size());
+        
+        view = numbers.where().findAll();
+        
+        assertEquals(3, view.size());
+
     }
 
     @Test
@@ -113,6 +120,44 @@ public class NumbersTest {
         assertEquals(30000.6d, numbers.doubleNum.average(1, 2, Table.INFINITE)); // second
         assertEquals(40000.7d/2, numbers.doubleNum.average(0, 2, Table.INFINITE)); // 1st & 2nd
         assertEquals(10000.1d, numbers.doubleNum.average(0, 1, Table.INFINITE)); // first
+    }
+    
+    
+    @Test
+    public void shouldAggregateIntegersOnView() {
+        assertEquals(10000, view.longNum.minimum());
+        assertEquals(30000, view.longNum.maximum());
+        assertEquals(50000, view.longNum.sum());
+        assertEquals(50000d / 3, view.longNum.average());
+    }
+    
+    
+    @Test
+    public void shouldAggregateFloatsOnView() {
+        assertEquals(10000.1f, view.floatNum.minimum());
+        assertEquals(30000.6f, view.floatNum.maximum());
+        assertEquals(50000.8d, view.floatNum.sum(), 0.01);
+        assertEquals(50000.8d/3, view.floatNum.average(), 0.01);
+    }
+    
+    @Test
+    public void shouldAggregateDoublesOnView() {
+        assertEquals(10000.1d, view.doubleNum.minimum());
+        assertEquals(30000.6d, view.doubleNum.maximum());
+        assertEquals(50000.8d, view.doubleNum.sum(), 0.01);
+        assertEquals(50000.8d/3, view.doubleNum.average(), 0.01);
+    }
+    
+    
+    
+    
+    @Test
+    public void viewShouldAggregatesLong() {
+        assertEquals(50000d / 3, view.longNum.average());
+        assertEquals(50000.8d / 3, view.doubleNum.average(), 0.000001);
+        assertEquals(50000.8d / 3, view.floatNum.average(), 0.01);
+
+
     }
 
 }

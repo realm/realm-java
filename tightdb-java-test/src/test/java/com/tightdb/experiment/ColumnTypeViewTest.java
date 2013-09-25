@@ -1,6 +1,8 @@
 package com.tightdb.experiment;
 
 import java.util.Date;
+
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -21,8 +23,15 @@ public class ColumnTypeViewTest {
         t.addColumn(ColumnType.INTEGER , "Long");
         
         t.add(new Date(), "I'm a String", 33);
-        
+ 
         v = t.where().findAll();
+    }
+    
+    @AfterMethod
+    public void after() throws Throwable {
+    	t.finalize();
+    	t = null;
+    	v = null;
     }
 
     //On date Column________________________________
@@ -30,7 +39,7 @@ public class ColumnTypeViewTest {
     public void getStringOnDateColumn() {
         v.getString(0, 0);
     }
-    
+  
     @Test(expectedExceptions=IllegalArgumentException.class)
     public void getLongOnDateColumn() {
         v.getLong(0, 0);
@@ -72,4 +81,5 @@ public class ColumnTypeViewTest {
     public void getMixedOnIntegerColumn() {
         v.getMixed(2, 0);
     } 
+
 }
