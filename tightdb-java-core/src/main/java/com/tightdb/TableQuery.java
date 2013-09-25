@@ -3,7 +3,7 @@ package com.tightdb;
 import java.util.Date;
 
 public class TableQuery {
-    protected boolean DEBUG = false; //true;
+    protected boolean DEBUG = false;
 
     protected long nativePtr;
     protected boolean immutable = false;
@@ -16,12 +16,13 @@ public class TableQuery {
         this.nativePtr = nativeQueryPtr;
     }
 
-    public void finalize() {
-        close();
-    }
-
-    public void private_close() {
-        close();
+    @Override
+    public void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
     }
 
     private synchronized void close() {

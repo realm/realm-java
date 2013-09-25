@@ -3,6 +3,8 @@ package com.tightdb;
 import static org.testng.AssertJUnit.*;
 import org.testng.annotations.Test;
 
+import com.tightdb.test.TestHelper;
+
 // TODO: Check that Index can be set on multiple columns.
 
 @SuppressWarnings("unused")
@@ -52,20 +54,6 @@ public class JNIDistinctTest {
         init();
 
         TableView view = table.distinct(3);
-    }
-
- // TODO: Check all other column types than String throws exception
-
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void shouldTestIndexOnWrongColumnType() {
-        init();
-        table.setIndex(0);
-    }
-
-    @Test()
-    public void shouldCheckIndexIsOkOnColumn() {
-        init();
-        table.setIndex(1);
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)

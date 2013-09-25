@@ -3,8 +3,6 @@ package com.tightdb.experiment;
 import com.tightdb.ColumnType;
 import com.tightdb.Group;
 import com.tightdb.Table;
-import com.tightdb.TableQuery;
-import com.tightdb.TableView;
 
 public class Experiment {
     public static void main(String[] args) {
@@ -28,19 +26,6 @@ public class Experiment {
     	t.add("hej");
     	
     	System.out.println(t);
-    }
-    
-    public static void test2() {
-    	Table t = new Table();
-    	
-    	TableQuery q = t.where();
-    	
-    	TableView v = q.findAll();
-    	v=null;
-    	q=null;
-
-    	t.close();
-    	t = null;
     }
     
     public static void test1() {

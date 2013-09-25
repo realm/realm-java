@@ -8,7 +8,6 @@ import java.util.Date;
 import com.tightdb.Group;
 import com.tightdb.DefineTable;
 import com.tightdb.typed.AbstractColumn;
-import com.tightdb.typed.TightDB;
 
 public class Showcase {
 

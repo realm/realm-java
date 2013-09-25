@@ -1,10 +1,27 @@
+24-September-2013:
+==================
++ Added com.tightdb.Table.equals() and fixed com.tightdb.Group.equals()
+
+23-September-2013:
+==================
++ Added com.tightdb.IOException, as a RuntimeException can be thrown from all methods operating on files, like Group(file), SharedGroup(file) etc.
+
 20-September-2013:
-=================
+==================
++ Added View.getColumnCount(), View.getColumnIndex(colIndex), View.getColumnName(colIndex), View.getColumnType(colIndex) to Dynamic interface
+- Removed Table.getColumnCount(), Table.getColumnIndex(colIndex), Table.getColumnName(colIndex), Table.getColumnType(colIndex) from Typed interface
 ! BREAKING CHANGE: Added limit parameter to all query aggregates which already had a start, and stop parameter.
+
+
+19-September-2013:
+==================
++ Multiple tables of same type in typed interface can be added to same group, by specifying a custom name in the constructor.
+
 
 16-September-2013:
 =================
 ! BREAKING CHANGE: Removed ByteBuffer as type for Binary. Added byte[] as only type for Binary in both dynamic and typed interface.
+
 
 10-September-2013:
 ==================

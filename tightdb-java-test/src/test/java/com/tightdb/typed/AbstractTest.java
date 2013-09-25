@@ -5,7 +5,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
-import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import org.testng.annotations.AfterMethod;
@@ -58,6 +57,8 @@ public abstract class AbstractTest {
         employees.clear();
         assertEquals(0, employees.size());
         employeesView.clear();
+        employees = null;
+        employeesView = null;
     }
 
     protected void addEmployee(TestEmployeeTable employees, EmployeeData emp) {

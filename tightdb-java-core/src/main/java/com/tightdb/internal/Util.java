@@ -33,7 +33,7 @@ public class Util {
         nativeSetDebugLevel(level);
     }
     static native void nativeSetDebugLevel(int level);
-
+    
     static void javaPrint(String txt) {
         System.out.print(txt);
     }
@@ -44,4 +44,37 @@ public class Util {
            while(!sc.nextLine().equals(""));
         sc.close();
     }
+
+    // Testcases run in nativeCode
+    public enum Testcase {
+        Exception_ClassNotFound(0),
+        Exception_NoSuchField(1),
+        Exception_NoSuchMethod(2),
+        Exception_IllegalArgument(3),
+        Exception_IOFailed(4),
+        Exception_FileNotFound(5),
+        Exception_FileAccessError(6),
+        Exception_IndexOutOfBounds(7),
+        Exception_TableInvalid(8),
+        Exception_UnsupportedOperation(9),
+        Exception_OutOfMemory(10),
+        Exception_Unspecified(11),
+        Exception_RuntimeError(12);
+        
+        private final int nativeTestcase;
+        private Testcase(int nativeValue)
+        {
+            this.nativeTestcase = nativeValue;
+        }
+
+        public String expectedResult(long parm1) {
+            return nativeTestcase(nativeTestcase, false, parm1);
+        }        
+        public String execute(long parm1) {
+            return nativeTestcase(nativeTestcase, true, parm1);
+        }        
+    }
+    
+    static native String nativeTestcase(int testcase, boolean dotest, long parm1);
+    
 }

@@ -24,6 +24,16 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     public AbstractTable(EntityTypes<?, View, Cursor, Query> types) {
         this(types, new Table());
     }
+    
+    /**
+     * Can be used to specify a different name than the class. Allows for more of same type in typed interface
+     * @param types
+     * @param group
+     * @param tableName
+     */
+    public AbstractTable(EntityTypes<?, View, Cursor, Query> types, Group group, String tableName) {
+        this(types, group.getTable(tableName));
+    }
 
     public AbstractTable(EntityTypes<?, View, Cursor, Query> types, Group group) {
         this(types, group.getTable(types.getTableClass().getSimpleName()));
@@ -46,51 +56,15 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     }
 
     @Override
+    public boolean equals(Object other) {
+        if (other instanceof AbstractTable)
+            return table.equals(((AbstractTable)other).table);
+        return false;
+    }
+    
+    @Override
     public String getName() {
         return getClass().getSimpleName();
-    }
-
-    /**
-     * Returns the number of columns in the table.
-     *
-     * @return the number of columns.
-     */
-    public long getColumnCount() {
-        return table.getColumnCount();
-    }
-
-    /**
-     * Returns the name of a column identified by columnIndex. Notice that the
-     * index is zero based.
-     *
-     * @param columnIndex
-     *            the column index
-     * @return the name of the column
-     */
-    public String getColumnName(long columnIndex) {
-        return table.getColumnName(columnIndex);
-    }
-
-    /**
-     * Returns the 0-based index of a column based on the name.
-     *
-     * @param columnName
-     *            the column name
-     * @return the index, -1 if not found
-     */
-    public long getColumnIndex(String columnName) {
-        return table.getColumnIndex(columnName);
-    }
-
-    /**
-     * Get the type of a column identified by the columnIdex.
-     *
-     * @param columnIndex
-     *            index of the column.
-     * @return Type of the particular column.
-     */
-    public ColumnType getColumnType(long columnIndex) {
-        return table.getColumnType(columnIndex);
     }
 
     protected static void addLongColumn(TableSpec spec, String name) {
@@ -203,13 +177,11 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
         table.moveLastOver(rowIndex);
     }
 
-    // TODO: Should be moved to column
-
-    public void setIndex(long columnIndex) {
+    protected void setIndex(long columnIndex) {
         table.setIndex(columnIndex);
     }
 
-    public boolean hasIndex(long columnIndex) {
+    protected boolean hasIndex(long columnIndex) {
         return table.hasIndex(columnIndex);
     }
 

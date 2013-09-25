@@ -34,6 +34,14 @@ JNIEXPORT jint JNICALL Java_com_tightdb_internal_Util_nativeGetVersion
 JNIEXPORT void JNICALL Java_com_tightdb_internal_Util_nativeSetDebugLevel
   (JNIEnv *, jclass, jint);
 
+/*
+ * Class:     com_tightdb_internal_Util
+ * Method:    nativeTestcase
+ * Signature: (IZJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_internal_Util_nativeTestcase
+  (JNIEnv *, jclass, jint, jboolean, jlong);
+
 #ifdef __cplusplus
 }
 #endif
