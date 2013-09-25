@@ -3,6 +3,7 @@ package com.tightdb;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -58,6 +59,41 @@ public class JNITableTest {
         t.addEmptyRow();
         assertEquals(false, t.equals(t2));
     }
+    
+    
+    @Test
+    public void tableBinaryTest() {
+        Table t = new Table();
+        t.addColumn(ColumnType.ColumnTypeBinary, "binary");
+        
+        byte[] row0 = new byte[] { 1, 2, 3 };
+        byte[] row1 = new byte[] { 10, 20, 30 };
+        
+        t.insertBinary(0, 0, row0);
+        t.insertBinary(0, 1, row1);
+        t.insertDone();
+        
+        byte[] nullByte = null;
+        
+        try { t.insertBinary(0, 2, nullByte); fail("Inserting null array"); } catch(NullPointerException e) { }
+        
+        ByteBuffer nullBuffer = null;
+        
+        try { t.insertBinary(0, 2, nullBuffer); fail("Inserting null array"); } catch(NullPointerException e) { }
+        
+        assertEquals(new byte[] { 1, 2, 3 }, t.getBinaryByteArray(0, 0));
+        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
+        
+        byte[] newRow0 = new byte[] { 7, 77, 77 };
+        t.setBinaryByteArray(0, 0, newRow0);
+        
+        assertEquals(new byte[] { 7, 77, 77 }, t.getBinaryByteArray(0, 0));
+        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
+        
+        try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(NullPointerException e) { }
+        try { t.setBinaryByteBuffer(0, 2, nullBuffer); fail("Inserting null array"); } catch(NullPointerException e) { }
+    }
+    
 
     @Test
     public void getNonExistingColumn() {
@@ -122,6 +158,8 @@ public class JNITableTest {
         String TABLENAME = "tableName";
         
         new File(FILENAME).delete();
+        new File(FILENAME + ".lock").delete();
+
 
         SharedGroup group = new SharedGroup(FILENAME);
 
@@ -193,6 +231,14 @@ public class JNITableTest {
         Table table2 = getTableWithSimpleData();
         
         assertEquals(true, table1.equals(table2));
+        
+        assertEquals(true, table1.equals(table1)); // Same table
+        
+        assertEquals(false, table1.equals(null)); // Null object
+        
+        assertEquals(false, table1.equals("String")); // Other object
+
+
     }
     
 
