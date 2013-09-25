@@ -9,6 +9,14 @@ extern "C" {
 #endif
 /*
  * Class:     com_tightdb_TableView
+ * Method:    nativeClose
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
  * Method:    nativeSize
  * Signature: (J)J
  */
@@ -446,14 +454,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSort
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_createNativeTableView
   (JNIEnv *, jobject, jobject, jlong);
-
-/*
- * Class:     com_tightdb_TableView
- * Method:    nativeClose
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose
-  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     com_tightdb_TableView
