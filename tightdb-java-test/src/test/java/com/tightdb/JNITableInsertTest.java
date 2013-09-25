@@ -3,7 +3,6 @@ package com.tightdb;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.*;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;

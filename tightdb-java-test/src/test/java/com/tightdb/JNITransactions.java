@@ -19,17 +19,20 @@ public class JNITransactions {
         File f = new File(filename);
         if (f.exists())
             f.delete();
+        
+        f = new File(filename + ".lock"); // Make sure lock file is also removed
+        if (f.exists())
+            f.delete();
     }
 
     @BeforeMethod
     public void init() {
         deleteFile(testFile);
-        deleteFile(testFile + ".lock"); // Make sure lock file is also removed
         
         db = new SharedGroup(testFile);
     }
 
-    //@AfterMethod
+    @AfterMethod
     public void clear() {
         db.close();
         deleteFile(testFile);

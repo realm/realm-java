@@ -5,7 +5,6 @@ import static com.tightdb.test.ExtraTests.assertArrayEquals;
 import static com.tightdb.test.ExtraTests.assertDateArrayEquals;
 import static org.testng.AssertJUnit.*;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 import org.testng.annotations.Test;

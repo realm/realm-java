@@ -225,9 +225,9 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(50000, employees.salary.sum(0, Table.INFINITE, 3));
 
         // Average with limits
-        assertEquals(10000, employees.salary.average(0, Table.INFINITE, 1));
-        assertEquals((10000+30000)/2, employees.salary.average(0, Table.INFINITE, 2));
-        assertEquals((10000+30000+10000)/3, employees.salary.average(0, Table.INFINITE, 3));
+        assertEquals(10000d, employees.salary.average(0, Table.INFINITE, 1));
+        assertEquals((10000d+30000d)/2, employees.salary.average(0, Table.INFINITE, 2));
+        assertEquals((10000d+30000d+10000d)/3, employees.salary.average(0, Table.INFINITE, 3));
 
         // Maximum with limits
         assertEquals(10000, employees.salary.maximum(0, Table.INFINITE, 1));
@@ -235,9 +235,9 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(30000, employees.salary.maximum(0, Table.INFINITE, 3));
 
         // Minimum with limits
-        assertEquals(10000, employees.salary.maximum(0, Table.INFINITE, 1));
-        assertEquals(10000, employees.salary.maximum(0, Table.INFINITE, 2));
-        assertEquals(10000, employees.salary.maximum(0, Table.INFINITE, 3));
+        assertEquals(10000, employees.salary.minimum(0, Table.INFINITE, 1));
+        assertEquals(10000, employees.salary.minimum(0, Table.INFINITE, 2));
+        assertEquals(10000, employees.salary.minimum(0, Table.INFINITE, 3));
 
     }
 
