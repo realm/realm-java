@@ -27,6 +27,10 @@ import com.tightdb.typed.*;
 	public ${tableName}(Group group) {
 		super(TYPES, group);
 	}
+	
+	public ${tableName}(Group group, String tableName) {
+		super(TYPES, group, tableName);
+	}
 </#if>
 	public static void specifyStructure(TableSpec spec) {
 <#foreach f in columns><#if f.isSubtable>        add${f.type}Column(spec, "${f.name}", new ${f.subTableName}(null));

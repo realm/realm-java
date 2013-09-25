@@ -1,18 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+    
 	<modelVersion>4.0.0</modelVersion>
-
+    
 	<groupId>com.tightdb</groupId>
 	<artifactId>tightdb</artifactId>
 	<version>0.0.1</version>
 	<packaging>pom</packaging>
-
+    
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
-
+    
 	<dependencies>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -21,7 +21,7 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
+    
 	<build>
 		<plugins>
 			<plugin>
@@ -33,5 +33,13 @@
 				</configuration>
 			</plugin>
 		</plugins>
-	</build>
+	</build>    
+	<modules>
+		<module>tightdb-java-core</module>
+		<module>tightdb-java-generator</module>
+		<module>tightdb-java-example</module>
+		<module>tightdb-java-doc</module>
+		<module>tightdb-java-test</module>
+	</modules>
 </project>
+

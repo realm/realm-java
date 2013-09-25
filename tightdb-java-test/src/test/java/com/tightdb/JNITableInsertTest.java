@@ -121,14 +121,14 @@ public class JNITableInsertTest {
         ByteBuffer buf = ByteBuffer.allocateDirect(23);
         try {
             table.insert(0, false);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // wrong row index
         long mix = 123;
         try {
             table.insert(1, false, 1, "hi", buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // wrong row index
@@ -136,55 +136,55 @@ public class JNITableInsertTest {
         table.insert(1, false, 1, "hi", buf, new Date(), 123, null);
         try {
             table.insert(3, false, 1, "hi", buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of bool)
         try {
             table.insert(0, 999, 1, "hi", buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (bool instead of 1)
         try {
             table.insert(0, true, false, "hi", buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of string)
         try {
             table.insert(0, false, 1, 999, buf, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of Binary)
         try {
             table.insert(0, false, 1, "hi", 999, new Date(), mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of Date)
         try {
             table.insert(0, false, 1, "hi", buf, 999, mix, null);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (999 instead of subtable)
         try {
             table.insert(0, false, 1, "hi", buf, new Date(), mix, 999);
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (String instead of subtable-Int)
         try {
             table.insert(0, false, 1, "hi", buf, new Date(), mix, new Object[][] { {"err",2,3}} );
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
 
         // Wrong type of parameter (String instead of subtable-Int)
         try {
             table.insert(0, false, 1, "hi", buf, new Date(), mix, new Object[] {1,2,3} );
-            assertTrue(false);
+            fail("expected exception.");
         } catch (IllegalArgumentException e) {}
     }
     
