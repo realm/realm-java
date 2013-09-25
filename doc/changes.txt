@@ -10,6 +10,7 @@
 ==================
 + Added View.getColumnCount(), View.getColumnIndex(colIndex), View.getColumnName(colIndex), View.getColumnType(colIndex) to Dynamic interface
 - Removed Table.getColumnCount(), Table.getColumnIndex(colIndex), Table.getColumnName(colIndex), Table.getColumnType(colIndex) from Typed interface
+! BREAKING CHANGE: Added limit parameter to all query aggregates which already had a start, and stop parameter.
 
 
 19-September-2013:

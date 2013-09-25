@@ -122,6 +122,7 @@ public class JNITableTest {
         String TABLENAME = "tableName";
         
         new File(FILENAME).delete();
+        new File(FILENAME + ".lock").delete();
 
         SharedGroup group = new SharedGroup(FILENAME);
 
