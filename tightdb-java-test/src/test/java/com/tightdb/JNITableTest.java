@@ -129,7 +129,6 @@ public class JNITableTest {
         t.addEmptyRows(-1); // Argument is negative, Throws exception
     }
     
-    
     @Test(expectedExceptions = NullPointerException.class)
     public void addNullInMixedColumn() {
         Table t = new Table();
@@ -138,7 +137,6 @@ public class JNITableTest {
         
         t.setMixed(0, 0, null); // Argument is null, Throws exception
     }
-    
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void setDataWithWrongColumnTypes() {
@@ -149,8 +147,6 @@ public class JNITableTest {
         t.set(0, 100); // Exception expected. Table has string column, and here an integer is inserted
     }
     
-    
-    
     @Test
     public void immutableInsertNotAllowed() {
         
@@ -158,8 +154,6 @@ public class JNITableTest {
         String TABLENAME = "tableName";
         
         new File(FILENAME).delete();
-        new File(FILENAME + ".lock").delete();
-
 
         SharedGroup group = new SharedGroup(FILENAME);
 
@@ -231,14 +225,9 @@ public class JNITableTest {
         Table table2 = getTableWithSimpleData();
         
         assertEquals(true, table1.equals(table2));
-        
         assertEquals(true, table1.equals(table1)); // Same table
-        
         assertEquals(false, table1.equals(null)); // Null object
-        
         assertEquals(false, table1.equals("String")); // Other object
-
-
     }
     
 
@@ -266,14 +255,11 @@ public class JNITableTest {
         assertEquals(3, t.count(2, 3.0f));
         assertEquals(3, t.count(3, "s1"));
         
-        
         assertEquals(3, t.findAllDouble(1, 2.0d).size());
         assertEquals(3, t.findAllFloat(2, 3.0f).size());
         
-        
         assertEquals(3, t.findFirstDouble(1, 20.0d)); // Find rows index for first double value of 20.0 in column 1
         assertEquals(4, t.findFirstFloat(2, 300.0f)); // Find rows index for first float value of 300.0 in column 2
-        
         
         // Set double and float
         t.setDouble(1, 2, -2.0d);

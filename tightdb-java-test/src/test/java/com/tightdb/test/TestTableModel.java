@@ -34,7 +34,6 @@ public class TestTableModel {
         double doubleNum;
     }
     
-    
     @DefineTable
     class TestQueryTable {
         long longNum;

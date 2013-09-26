@@ -145,7 +145,6 @@ public class NumbersTest {
         assertEquals(30000.6d, view.doubleNum.maximum());
         assertEquals(50000.8d, view.doubleNum.sum(), 0.01);
         assertEquals(50000.8d/3, view.doubleNum.average(), 0.01);
-
     }
 
 
@@ -197,17 +196,12 @@ public class NumbersTest {
     }
 
 
-
-
     @Test
     public void viewShouldAggregatesLong() {
         assertEquals(50000d / 3, view.longNum.average());
         assertEquals(50000.8d / 3, view.doubleNum.average(), 0.000001);
         assertEquals(50000.8d / 3, view.floatNum.average(), 0.01);
-
-
     }
-    
     
     @Test
     public void setAndGetNumbers() {
@@ -223,8 +217,5 @@ public class NumbersTest {
         assertEquals(400f, view.get(0).floatNum.get());
         view.get(1).floatNum.set(-0.01f);
         assertEquals(-0.01f, view.get(1).floatNum.get());
-
-
     }
-
 }
