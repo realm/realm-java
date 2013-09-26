@@ -146,6 +146,17 @@ public class NumbersTest {
         assertEquals(30000.6d, view.doubleNum.maximum());
         assertEquals(50000.8d, view.doubleNum.sum(), 0.01);
         assertEquals(50000.8d/3, view.doubleNum.average(), 0.01);
+        
+    }
+    
+    
+    @Test
+    public void searchValuesOnView() {
+        assertEquals(2 , view.doubleNum.findAll(10000.1d).size() );
+        assertEquals(2 , view.floatNum.findAll(10000.1f).size() );
+
+        assertEquals(1 , view.doubleNum.findFirst(30000.6d).getPosition());
+        assertEquals(1 , view.floatNum.findFirst(30000.6f).getPosition() );
     }
     
     
