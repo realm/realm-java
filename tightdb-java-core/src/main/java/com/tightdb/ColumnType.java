@@ -3,18 +3,18 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 
 // Make sure numbers match with <tightdb/column_type.hpp>
-// FIXME: Add a unit test that verifies the correct correspondance.
+// FIXME: Add a unit test that verifies the correct correspondence.
 
 public enum ColumnType {
-    ColumnTypeBool(1),
-    ColumnTypeInt(0),
-    ColumnTypeFloat(9),
-    ColumnTypeDouble(10),
-    ColumnTypeString(2),
-    ColumnTypeBinary(4),
-    ColumnTypeDate(7),
-    ColumnTypeTable(5),
-    ColumnTypeMixed(6);
+    BOOLEAN(1),
+    INTEGER(0),
+    FLOAT(9),
+    DOUBLE(10),
+    STRING(2),
+    BINARY(4),
+    DATE(7),
+    TABLE(5),
+    MIXED(6);
     // When adding above, remember to update size of largest number below
 
     private final int nativeValue;
@@ -72,6 +72,5 @@ public enum ColumnType {
         }
         throw new IllegalArgumentException("Bad native column type");
     }
-
 }
 

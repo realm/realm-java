@@ -241,6 +241,62 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJZ
 
 /*
  * Class:     com_tightdb_TableQuery
+ * Method:    nativeEqualDate
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqualDate
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeNotEqualDate
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqualDate
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeGreaterDate
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterDate
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeGreaterEqualDate
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqualDate
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeLessDate
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessDate
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeLessEqualDate
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqualDate
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeBetweenDate
+ * Signature: (JJJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetweenDate
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
  * Method:    nativeEqual
  * Signature: (JJLjava/lang/String;Z)V
  */

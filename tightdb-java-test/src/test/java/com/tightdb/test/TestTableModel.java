@@ -24,7 +24,7 @@ public class TestTableModel {
     @DefineTable
     class TestPhone {
         String type;
-        String number;
+        String number; 
     }
 
     @DefineTable

@@ -34,8 +34,8 @@ public class JavaArrayList extends PerformanceBase implements IPerformance {
 
     public void buildTable(int rows) {
         for (int i = 0; i < rows; ++i) {
-            int n = Util.getRandNumber();
-            table.add(new Table(n, Util.getNumberString(n), Performance.BYTE_TEST_VAL, Performance.SMALL_TEST_VAL, Performance.LONG_TEST_VAL) );
+            int n = ExampleHelper.getRandNumber();
+            table.add(new Table(n, ExampleHelper.getNumberString(n), Performance.BYTE_TEST_VAL, Performance.SMALL_TEST_VAL, Performance.LONG_TEST_VAL) );
         }
         this.Rows = rows;
     }

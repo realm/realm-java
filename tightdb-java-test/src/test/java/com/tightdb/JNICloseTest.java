@@ -97,8 +97,8 @@ public class JNICloseTest {
 
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        tbl.addColumn(ColumnType.ColumnTypeString, "name");
-        tbl.addColumn(ColumnType.ColumnTypeInt, "number");
+        tbl.addColumn(ColumnType.STRING, "name");
+        tbl.addColumn(ColumnType.INTEGER, "number");
         TableView view = tbl.where().findAll();
         
         trans.commit();

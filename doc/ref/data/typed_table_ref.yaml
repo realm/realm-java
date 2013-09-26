@@ -1,0 +1,318 @@
+#
+# Java reference documentation for Table class
+#
+#TODO:
+# updateFromSpec, getTableSpec
+
+ID         : class_typed_table
+TITLE      : Table
+SUMMARY    : *g_typed_table_summary
+DESCR      : *g_typed_table_descr
+SEE        : 
+EXAMPLES   :
+- DESCR    : >
+             Below examples will showcase all the available methods in a typed Table.
+             
+             More specific examples are (soon) available in the detailed description 
+             of each method above.
+  CODE     : ex_java_typed_table_intro
+IGNORE     : [g_dyn_table_where_const, 
+              g_dyn_table_find_all_bool_const,
+              g_dyn_table_find_all_int_const,
+              g_dyn_table_find_all_date_const, 
+              g_dyn_table_find_all_string_const, 
+              g_dyn_table_find_all_float_const,
+              g_dyn_table_find_all_double_const, 
+              g_dyn_table_find_all_binary_const,
+              g_dyn_table_get_sorted_view_const,
+              g_dyn_table_get_subtable_const,
+              g_dyn_table_distinct_const,
+              g_dyn_table_set_enum,
+              g_dyn_table_insert_bool, g_dyn_table_insert_int, g_dyn_table_insert_enum, 
+              g_dyn_table_insert_float, g_dyn_table_insert_double, g_dyn_table_insert_date, 
+              g_dyn_table_insert_string, g_dyn_table_insert_binary, g_dyn_table_insert_mixed,
+              g_dyn_table_insert_subtable, g_dyn_table_insert_done
+              ]
+
+CATEGORIES :
+
+- Table:
+  METHODS:
+  - g_typed_table_is_attached:
+      NAMES    : isValid
+      SUMMARY  : &java_dyn_table_is_attached_summary
+                 Check whether this table  is valid.
+      DESCR    : &java_dyn_table_is_attached_descr
+                 A table accessor that is no longer valid must not
+                 be accessed in any way except by calling
+                 isValid(). A table accessor that is obtained from
+                 a Group becomes detached if its group accessor is
+                 destroyed. This is also true for any subtable
+                 accessor that is obtained indirectly from a group. A
+                 subtable accessor will generally become detached if
+                 its parent table is modified. An accessor
+                 for a freestanding table will never become
+                 detached. An accessor for a subtable of a
+                 freestanding table may become detached.
+      RETURN:
+        TYPES  : boolean
+        DESCR  : *g_dyn_table_is_attached_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_is_valid
+        DESCR  :
+  - g_typed_table_size:
+      NAMES    : size
+      SUMMARY  : *g_typed_table_size_summary
+      DESCR    : *g_typed_table_size_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : *g_typed_table_size_return1_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_size
+        DESCR  :
+  - g_typed_table_is_empty:
+      NAMES    : isEmpty
+      SUMMARY  : *g_typed_table_is_empty_summary
+      DESCR    : *g_typed_table_is_empty_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : *g_typed_table_true_false
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_is_empty
+        DESCR  :
+  - g_typed_table_clear:
+      NAMES    : clear
+      SUMMARY  : *g_typed_table_clear_summary
+      DESCR    : *g_typed_table_clear_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_clear
+        DESCR  :
+      SEE      : >
+                See also {@link g_typed_table_is_empty}.
+  - g_typed_table_optimize:
+      NAMES    : optimize
+      SUMMARY  : *g_typed_table_optimize_summary
+      DESCR    : *g_typed_table_optimize_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_optimize
+        DESCR  :
+  - g_typed_table_set_index:
+      NAMES    : setIndex
+      SUMMARY  : *g_dyn_table_set_index_summary
+      DESCR    : *g_dyn_table_set_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_set_index
+        DESCR  :
+  - g_typed_table_has_index:
+      NAMES    : hasIndex
+      SUMMARY  : *g_dyn_table_has_index_summary
+      DESCR    : *g_dyn_table_has_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_has_index
+        DESCR  :
+
+# TODO: add
+#  - g_dyn_table_opertator==:
+#      NAMES    : operator==
+#      SUMMARY  : *g_dyn_table_operator_eq_summary
+#      PARAMS:
+#      - NAME   : table
+#        TYPES  : Table
+#        DESCR  : *g_dyn_table_operator_eq_table_descr
+#      RETURN:
+#        TYPES  : boolean
+#        DESCR  : *g_dyn_table_operator_eq_return_descr
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_operator==
+#        DESCR  :
+
+
+- Columns:
+  METHODS:
+  
+ 
+  - g_typed_table_get_column_count:
+      NAMES    : getColumnCount
+      SUMMARY  : *g_dyn_table_get_column_count_summary
+      DESCR    : *g_dyn_table_get_column_count_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_column_count_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_get_column_count
+        DESCR  :
+  - g_typed_table_get_column_name:
+      NAMES    : getColumnName
+      SUMMARY  : *g_dyn_table_get_column_name_summary
+      DESCR    : *g_dyn_table_get_column_name_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_column_name_param1_descr
+      RETURN:
+        TYPES  : String
+        DESCR  : *g_dyn_table_get_column_name_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_get_column_name
+        DESCR  :
+  - g_typed_table_get_column_index:
+      NAMES    : getColumnIndex
+      SUMMARY  : *g_dyn_table_get_column_index_summary
+      DESCR    : *g_dyn_table_get_column_index_descr
+      PARAMS:
+      - NAME   : columnName
+        TYPES  : String
+        DESCR  : The name of the column to find.
+      RETURN:
+        TYPES  : long
+        DESCR  : The column index or -1 if there is no column with the specified name.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_get_column_index
+        DESCR  :
+  - g_typed_table_get_column_type:
+      NAMES    : getColumnType
+      SUMMARY  : *g_dyn_table_get_column_type_summary
+      DESCR    : >
+                 This method returns the type of a column using the column index. Currently,
+                 the following types are supported from the <code>ColumnType</code> class:
+                 <ul>
+                   <li><code>BOOLEAN</code></li>
+                   <li><code>INTEGER</code></li>
+                   <li><code>FLOAT</code></li>
+                   <li><code>DOUBLE</code></li>
+                   <li><code>STRING</code></li>
+                   <li><code>BINARY</code></li>
+                   <li><code>DATE</code></li>
+                   <li><code>TABLE</code></li>
+                   <li><code>MIXED</code></li>
+                 </ul>
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index.
+      RETURN:
+        TYPES  : ColumnType
+        DESCR  : The column type.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_get_column_type
+        DESCR  :
+
+
+
+
+
+- Rows:
+  METHODS:
+  - g_typed_table_operator_brackets:
+      NAMES    : get
+      SUMMARY  : *g_typed_table_operator_brackets_summary
+      DESCR    : *g_typed_table_remove_row_descr
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_typed_table_operator_brackets_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_get
+        DESCR  :
+  - g_typed_table_add:
+      NAMES    : add
+      SUMMARY  : Append a row.
+      DESCR    : This method adds one row at the end of the table.
+      PARAMS:
+      - NAME   : values
+        TYPES  : Object...
+        DESCR  : For each column in the tables you must provide a parameter with a matching type
+                 in the same order as the columns are defined.
+#TODO: return index added
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_add
+        DESCR  :
+      SEE      : >
+                See {@link g_typed_table_insert} to insert a row into a specific row index.
+  - g_typed_table_remove_row:
+      NAMES    : remove
+      SUMMARY  : *g_typed_table_remove_row_summary
+      DESCR    : *g_typed_table_remove_row_descr
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_typed_table_delete_position_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_remove
+        DESCR  :
+  - g_typed_table_remove_last_row:
+      NAMES    : removeLast
+      SUMMARY  : *g_typed_table_remove_last_row_summary
+      DESCR    : *g_typed_table_remove_last_row_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_remove_last_row
+        DESCR  :
+
+  
+- Searching:
+  METHODS:
+# 
+  - g_dyn_table_where:
+#  - g_dyn_table_where_const:
+      NAMES    : where
+      SUMMARY  : *g_dyn_table_where_summary
+      DESCR    : *g_dyn_table_where_descr
+      RETURN:
+        TYPES  : Query
+        DESCR  : *g_dyn_table_where_return_descr
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_typed_table_where
+        
+        
+- Dump:
+  METHODS:
+  - g_dyn_table_to_json:
+      NAMES    : toJson
+      SUMMARY  : *g_dyn_table_to_json_summary
+      DESCR    : *g_dyn_table_to_json_descr
+      RETURN:
+        TYPES  : String
+        DESCR  : A string with the JSON representation of the table.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_to_json
+        DESCR  :
+# TODO  - g_dyn_table_to_string:
+#      NAMES    : to_string
+#      SUMMARY  : *g_dyn_table_to_string_summary
+#      DESCR    : *g_dyn_table_to_string_descr
+#      PARAMS:
+#      - NAME   : out
+#        TYPES  : std::ostream&
+#        DESCR  : Output stream.
+#      - NAME   : limit
+#        TYPES  : long
+#        DESCR  : "The number of rows to convert. Default: 500."
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_to_string
+#        DESCR  :
+# TODO - g_dyn_table_row_to_string:
+#      NAMES    : to_string
+#      SUMMARY  : *g_dyn_table_row_to_string_summary
+#      DESCR    : *g_dyn_table_row_to_string_descr
+#      PARAMS:
+#      - NAME   : row_ndx
+#        TYPES  : long
+#        DESCR  : The row index.
+#      - NAME   : out
+#        TYPES  : std::ostream&
+#        DESCR  : Output stream.
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_to_string
+#        DESCR  :

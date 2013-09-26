@@ -21,8 +21,8 @@ public class DateToJSONTest {
 
         Table t = new Table();
 
-        t.addColumn(ColumnType.ColumnTypeDate, "date");
-        t.addColumn(ColumnType.ColumnTypeString, "name");
+        t.addColumn(ColumnType.DATE, "date");
+        t.addColumn(ColumnType.STRING, "name");
 
         t.add(date, "name1");   
 

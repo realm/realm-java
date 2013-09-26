@@ -9,6 +9,7 @@ import org.testng.annotations.Test;
 import com.tightdb.ColumnType;
 import com.tightdb.Table;
 import com.tightdb.TableView;
+import com.tightdb.test.DataProviderUtil;
 
 public class ColumnTypeViewTest {
     private Table t;
@@ -17,9 +18,9 @@ public class ColumnTypeViewTest {
     @BeforeMethod
     public void init() {
         t  = new Table();
-        t.addColumn(ColumnType.ColumnTypeDate, "Date");
-        t.addColumn(ColumnType.ColumnTypeString, "String");
-        t.addColumn(ColumnType.ColumnTypeInt, "Integer");
+        t.addColumn(ColumnType.DATE, "Date");
+        t.addColumn(ColumnType.STRING, "String");
+        t.addColumn(ColumnType.INTEGER , "Long");
         
         t.add(new Date(), "I'm a String", 33);
  

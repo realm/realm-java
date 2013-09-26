@@ -14,7 +14,8 @@ public class Experiment {
     public static Table getTable() {
         Group g = new Group();
     	Table t = g.getTable("testTable");
-    	t.addColumn(ColumnType.ColumnTypeString, "test");
+    	t.addColumn(ColumnType.STRING, "test");
+    	g.close();
     	
     	return t;
     }

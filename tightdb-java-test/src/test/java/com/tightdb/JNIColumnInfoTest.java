@@ -12,8 +12,8 @@ public class JNIColumnInfoTest {
     @BeforeMethod
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.ColumnTypeString, "firstName");
-        table.addColumn(ColumnType.ColumnTypeString, "lastName");
+        table.addColumn(ColumnType.STRING, "firstName");
+        table.addColumn(ColumnType.STRING, "lastName");
     }
 
     @Test
@@ -25,7 +25,7 @@ public class JNIColumnInfoTest {
 
         assertEquals(1, table.getColumnIndex("lastName"));
 
-        assertEquals(ColumnType.ColumnTypeString, table.getColumnType(1));
+        assertEquals(ColumnType.STRING, table.getColumnType(1));
 
     }
 
@@ -40,7 +40,7 @@ public class JNIColumnInfoTest {
 
         assertEquals(1, view.getColumnIndex("lastName"));
 
-        assertEquals(ColumnType.ColumnTypeString, view.getColumnType(1));
+        assertEquals(ColumnType.STRING, view.getColumnType(1));
 
     }
 

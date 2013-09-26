@@ -15,15 +15,15 @@ public class JNITableTest {
 
     Table createTestTable() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeBinary, "binary"); // 0
-        t.addColumn(ColumnType.ColumnTypeBool, "boolean");  // 1
-        t.addColumn(ColumnType.ColumnTypeDate, "date");     // 2
-        t.addColumn(ColumnType.ColumnTypeDouble, "double"); // 3
-        t.addColumn(ColumnType.ColumnTypeFloat, "float");   // 4
-        t.addColumn(ColumnType.ColumnTypeInt, "long");      // 5
-        t.addColumn(ColumnType.ColumnTypeMixed, "mixed");   // 6
-        t.addColumn(ColumnType.ColumnTypeString, "string"); // 7
-        t.addColumn(ColumnType.ColumnTypeTable, "table");   // 8
+        t.addColumn(ColumnType.BINARY, "binary"); // 0
+        t.addColumn(ColumnType.BOOLEAN, "boolean");  // 1
+        t.addColumn(ColumnType.DATE, "date");     // 2
+        t.addColumn(ColumnType.DOUBLE, "double"); // 3
+        t.addColumn(ColumnType.FLOAT, "float");   // 4
+        t.addColumn(ColumnType.INTEGER, "long");      // 5
+        t.addColumn(ColumnType.MIXED, "mixed");   // 6
+        t.addColumn(ColumnType.STRING, "string"); // 7
+        t.addColumn(ColumnType.TABLE, "table");   // 8
         return t;
     }
     
@@ -36,9 +36,9 @@ public class JNITableTest {
     public void tableToString() {
         Table t = new Table();
         
-        t.addColumn(ColumnType.ColumnTypeString, "stringCol");
-        t.addColumn(ColumnType.ColumnTypeInt, "intCol");
-        t.addColumn(ColumnType.ColumnTypeBool, "boolCol");
+        t.addColumn(ColumnType.STRING, "stringCol");
+        t.addColumn(ColumnType.INTEGER, "intCol");
+        t.addColumn(ColumnType.BOOLEAN, "boolCol");
         
         t.add("s1", 1, true);
         t.add("s2", 2, false);
@@ -62,7 +62,7 @@ public class JNITableTest {
     @Test
     public void getNonExistingColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeInt, "int");
+        t.addColumn(ColumnType.INTEGER, "int");
         
         assertEquals(-1, t.getColumnIndex("non-existing column"));
     }
@@ -70,7 +70,7 @@ public class JNITableTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void setDataInNonExistingRow() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeString, "colName");
+        t.addColumn(ColumnType.STRING, "colName");
         t.add("String val");
         
         t.set(7, "new string val"); // Exception expected. Row 7 does not exist
@@ -79,7 +79,7 @@ public class JNITableTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void setDataWithWrongColumnAmountParameters() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeString, "colName");
+        t.addColumn(ColumnType.STRING, "colName");
         t.add("String val");
         
         t.set(0, "new string val", "This column does not exist"); // Exception expected. Table only has 1 column
@@ -88,7 +88,7 @@ public class JNITableTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void addNegativeEmptyRows() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeString, "colName");
+        t.addColumn(ColumnType.STRING, "colName");
         
         t.addEmptyRows(-1); // Argument is negative, Throws exception
     }
@@ -97,7 +97,7 @@ public class JNITableTest {
     @Test(expectedExceptions = NullPointerException.class)
     public void addNullInMixedColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeMixed, "mixed");
+        t.addColumn(ColumnType.MIXED, "mixed");
         t.add(new Mixed(true));
         
         t.setMixed(0, 0, null); // Argument is null, Throws exception
@@ -107,7 +107,7 @@ public class JNITableTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void setDataWithWrongColumnTypes() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeString, "colName");
+        t.addColumn(ColumnType.STRING, "colName");
         t.add("String val");
         
         t.set(0, 100); // Exception expected. Table has string column, and here an integer is inserted
@@ -122,6 +122,7 @@ public class JNITableTest {
         String TABLENAME = "tableName";
         
         new File(FILENAME).delete();
+        new File(FILENAME + ".lock").delete();
 
         SharedGroup group = new SharedGroup(FILENAME);
 
@@ -129,7 +130,7 @@ public class JNITableTest {
         WriteTransaction wt = group.beginWrite();
         try{
             Table table = wt.getTable(TABLENAME);
-            table.addColumn(ColumnType.ColumnTypeString, "col0");
+            table.addColumn(ColumnType.STRING, "col0");
             table.add("value0");
             table.add("value1");  
             table.add("value2");
@@ -143,7 +144,7 @@ public class JNITableTest {
         try{
             Table table = rt.getTable(TABLENAME);
             
-            try {  table.insert(1, "NewValue"); fail("Exception excpeted when inserting in read transaction"); } catch (IllegalStateException e) { }
+            try {  table.addAt(1, "NewValue"); fail("Exception excpeted when inserting in read transaction"); } catch (IllegalStateException e) { }
             
         } finally {
             rt.endRead();
@@ -155,7 +156,7 @@ public class JNITableTest {
         for (long colIndex = 0; colIndex < t.getColumnCount(); colIndex++) {
             
             // Check all other column types than String throws exception when using setIndex()/hasIndex()
-            boolean exceptionExpected = (t.getColumnType(colIndex) != ColumnType.ColumnTypeString);
+            boolean exceptionExpected = (t.getColumnType(colIndex) != ColumnType.STRING);
 
             // Try to setIndex()
             try {
@@ -177,8 +178,8 @@ public class JNITableTest {
      */
     private Table getTableWithSimpleData(){
         Table table =  new Table();
-        table.addColumn(ColumnType.ColumnTypeString, "col");
-        table.addColumn(ColumnType.ColumnTypeInt, "int");
+        table.addColumn(ColumnType.STRING, "col");
+        table.addColumn(ColumnType.INTEGER, "int");
         table.add("val1", 100);
         table.add("val2", 200);
         table.add("val3", 300);
@@ -199,10 +200,10 @@ public class JNITableTest {
     @Test
     public void tableNumbers() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeInt, "intCol");
-        t.addColumn(ColumnType.ColumnTypeDouble, "doubleCol");
-        t.addColumn(ColumnType.ColumnTypeFloat, "floatCol");
-        t.addColumn(ColumnType.ColumnTypeString, "StringCol");
+        t.addColumn(ColumnType.INTEGER, "intCol");
+        t.addColumn(ColumnType.DOUBLE, "doubleCol");
+        t.addColumn(ColumnType.FLOAT, "floatCol");
+        t.addColumn(ColumnType.STRING, "StringCol");
         
         // Add 3 rows of data with same values in each column
         t.add(1, 2.0d, 3.0f, "s1");
