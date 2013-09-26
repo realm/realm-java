@@ -2,7 +2,7 @@ package com.tightdb.typed;
 
 import com.tightdb.Table;
 import com.tightdb.TableOrView;
-import com.tightdb.TableQuery;
+//import com.tightdb.TableQuery;
 
 /**
  * Type of the fields that represent a string column in the generated XyzTable
