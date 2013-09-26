@@ -152,10 +152,10 @@ CATEGORIES :
       PARAMS:
       - NAME   : type
         TYPES  : ColumnType
-        DESCR  : *g_dyn_table_add_column_type_descr
+        DESCR  : find new text
       - NAME   : name
         TYPES  : String
-        DESCR  : *g_dyn_table_add_column_name_descr
+        DESCR  : find new text
       RETURN:
         TYPES  : long
         DESCR  : *g_dyn_table_add_column_return_descr
