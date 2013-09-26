@@ -206,7 +206,14 @@ public class NumbersTest {
     @Test
     public void setAndGetNumbers() {
         
-        // Double column s
+        
+        // Integer set all columns
+        view.longNum.setAll(400);
+        assertEquals(new Long(400), view.get(0).longNum.get());
+        view.longNum.setAll(-1); 
+        assertEquals(new Long(-1), view.get(1).longNum.get());
+        
+        // Double columns
         view.get(0).doubleNum.set(400d);
         assertEquals(400d, view.get(0).doubleNum.get());
         view.get(1).doubleNum.set(-0.01d);
