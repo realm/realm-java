@@ -1,7 +1,7 @@
 package com.tightdb.typed;
 
 import com.tightdb.TableOrView;
-import com.tightdb.TableQuery;
+//import com.tightdb.TableQuery;
 
 /**
  * Type of the fields that represent a double column in the generated XyzTable
@@ -13,9 +13,9 @@ public class DoubleTableColumn<Cursor, View, Query> extends DoubleTableOrViewCol
         super(types, table, index, name);
     }
 
-    public DoubleTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
+    /*public DoubleTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
             String name) {
         super(types, table, query, index, name);
-    }
+    }*/
 
 }
