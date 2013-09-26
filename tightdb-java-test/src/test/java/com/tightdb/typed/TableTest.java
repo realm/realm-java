@@ -90,8 +90,13 @@ public class TableTest {
         TestEmployeeTable t1 = getFilledTestEmployeeTable();
         TestEmployeeTable t2 = getFilledTestEmployeeTable();
         assertEquals(true, t1.equals(t2));
+        assertEquals(true, t1.equals(t1)); // Same object
+        assertEquals(false, t1.equals(null)); // Null object
+        assertEquals(false, t1.equals("String")); // Other type of object
         
-        t1.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, new Date(), true, null);
+        
+        
+        t1.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, new Date(), true, null); // t1 is changed, but t2 is the same
         assertEquals(false, t1.equals(t2));
     }
 
