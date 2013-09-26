@@ -42,7 +42,7 @@ public class SubtableTest extends AbstractTest {
         assertEquals(1, phones3.number.eq("111").count());
         assertEquals(1, phones3.number.eq("123").count());
         assertEquals(0, phones3.number.eq("xxx").count());
-
+        
         // check the search operations
         TestPhoneQuery phoneQuery = phones3.where().number.eq("111").number
                 .neq("wrong").type.eq("mobile").type.neq("wrong");

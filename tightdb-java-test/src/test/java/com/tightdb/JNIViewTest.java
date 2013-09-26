@@ -189,11 +189,33 @@ public class JNIViewTest {
         assertEquals(-1, view.getColumnIndex("non-existing column"));
     }
 
-    @Test(expectedExceptions = NullPointerException.class)
+    @Test
     public void getNullColumn() {
         Table t = new Table();
         t.addColumn(ColumnType.ColumnTypeInt, "");
         TableView view = t.where().findAll();
-        view.getColumnIndex(null);
+        try { view.getColumnIndex(null); fail("Getting null column"); } catch(NullPointerException e) { }
+    }
+    
+    
+    @Test
+    public void viewToString() {
+        Table t = new Table();
+        
+        t.addColumn(ColumnType.ColumnTypeString, "stringCol");
+        t.addColumn(ColumnType.ColumnTypeInt, "intCol");
+        t.addColumn(ColumnType.ColumnTypeBool, "boolCol");
+        
+        t.add("s1", 1, true);
+        t.add("s2", 2, false);
+        
+        TableView view = t.where().findAll();
+        
+        String expected =  
+"    stringCol  intCol  boolCol\n" +
+"0:  s1              1     true\n" + 
+"1:  s2              2    false\n" ;
+        
+        assertEquals(expected, view.toString());
     }
 }

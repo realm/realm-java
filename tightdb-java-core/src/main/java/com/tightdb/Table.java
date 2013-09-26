@@ -532,6 +532,8 @@ public class Table implements TableOrView, TableDefinition {
 
     public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
         if (immutable) throwImmutable();
+        if (data == null)
+            throw new NullPointerException("ByteBuffer is null");
         //System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
         //System.err.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
         if (data.isDirect())
@@ -543,6 +545,8 @@ public class Table implements TableOrView, TableDefinition {
     protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
     public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
+        if (data == null)
+            throw new NullPointerException("Null Array");
         if (immutable) throwImmutable();
         nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
     }
