@@ -4,7 +4,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.testng.internal.junit.ArrayAsserts;
 
 import com.tightdb.test.TestNumbersTable;
 import com.tightdb.test.TestNumbersView;
@@ -146,7 +145,6 @@ public class NumbersTest {
         assertEquals(30000.6d, view.doubleNum.maximum());
         assertEquals(50000.8d, view.doubleNum.sum(), 0.01);
         assertEquals(50000.8d/3, view.doubleNum.average(), 0.01);
-
     }
 
 
@@ -198,15 +196,10 @@ public class NumbersTest {
     }
 
 
-
-
     @Test
     public void viewShouldAggregatesLong() {
         assertEquals(50000d / 3, view.longNum.average());
         assertEquals(50000.8d / 3, view.doubleNum.average(), 0.000001);
         assertEquals(50000.8d / 3, view.floatNum.average(), 0.01);
-
-
     }
-
 }

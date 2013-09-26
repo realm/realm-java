@@ -222,7 +222,4 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(1150d, query.doubleNum.sum() );
         
     }
-    
-    
-
 }
