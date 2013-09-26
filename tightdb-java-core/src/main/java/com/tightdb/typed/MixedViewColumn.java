@@ -1,7 +1,7 @@
 package com.tightdb.typed;
 
 import com.tightdb.TableOrView;
-import com.tightdb.TableQuery;
+//import com.tightdb.TableQuery;
 
 /**
  * Type of the fields that represent a mixed column in the generated XyzView
@@ -13,9 +13,9 @@ public class MixedViewColumn<Cursor, View, Query> extends MixedTableOrViewColumn
         super(types, view, index, name);
     }
 
-    public MixedViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
+    /*public MixedViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
             String name) {
         super(types, view, query, index, name);
-    }
+    }*/
 
 }
