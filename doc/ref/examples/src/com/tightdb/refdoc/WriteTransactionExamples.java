@@ -11,7 +11,7 @@ public class WriteTransactionExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
         commitExample();
-        roolbackExample
+        roolbackExample();
     }
     
     
