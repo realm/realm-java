@@ -144,7 +144,7 @@ public class JNITableSpecTest {
         assertEquals("44", table.getString(0,4));
     }
 
-    @Test(expectedExceptions=UnsupportedOperationException.class)
+    @Test
     public void shouldThrowOnUpdateFromTableSpecOnSubtable() {
 
         // Table definition
@@ -167,10 +167,8 @@ public class JNITableSpecTest {
         TableSpec spec = new TableSpec();
         spec.addColumn(ColumnType.ColumnTypeInt, "foo");
 
-        // Should throw
-        address.updateFromSpec(spec);
-
-
+        
+       try { address.updateFromSpec(spec); fail("Address is subtable. Not allowed to update from spec"); } catch (UnsupportedOperationException e) { }
     }
 
 }
