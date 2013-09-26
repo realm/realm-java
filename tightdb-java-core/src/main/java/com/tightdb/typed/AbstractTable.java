@@ -55,7 +55,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
         return table.isValid();
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object other) {
         if (other instanceof AbstractTable)
