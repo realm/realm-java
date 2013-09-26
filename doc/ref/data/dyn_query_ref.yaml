@@ -430,10 +430,10 @@ CATEGORIES :
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
       - NAME   : limit
         TYPES  : long
-        DESCR  : "Maximum number of rows to find. Default: -1 (infinity)."
+        DESCR  : "Maximum number of rows to find. -1 for infinity."
       RETURN:
         TYPES  : long
         DESCR  : The number of matching rows.
@@ -464,10 +464,10 @@ CATEGORIES :
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
       - NAME   : limit
         TYPES  : long
-        DESCR  : "Maximum number of rows to search. Default: -1 (infinity)."
+        DESCR  : "Maximum number of rows to search. -1 for infinity."
       RETURN:
         TYPES  : [long, double, double]
         DESCR  : The sum.
@@ -500,10 +500,10 @@ CATEGORIES :
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
       - NAME   : limit
         TYPES  : long
-        DESCR  : "Maximum number of rows to search. Default: -1 (infinity)."
+        DESCR  : "Maximum number of rows to search. -1 for infinity."
       RETURN:
         TYPES  : [long, float, double] #, Date]
         DESCR  : The highest value.
@@ -535,10 +535,10 @@ CATEGORIES :
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
       - NAME   : limit
         TYPES  : long
-        DESCR  : "Maximum number of rows to find. Default: -1 (infinity)."
+        DESCR  : "Maximum number of rows to find. -1 for infinity."
       RETURN:
         TYPES  : [long, float, double] #, Date]
         DESCR  : The lowest value.
@@ -569,10 +569,10 @@ CATEGORIES :
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
       - NAME   : limit
         TYPES  : long
-        DESCR  : "Maximum number of rows to find. Default: -1 (infinity)."
+        DESCR  : "Maximum number of rows to find. -1 for infinity."
       RETURN:
         TYPES  : double
         DESCR  : The average.
@@ -592,10 +592,10 @@ CATEGORIES :
         DESCR  : "Row index to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Last row index to search. Default: -1 (infinity)."
+        DESCR  : "Last row index to search. -1 for infinity."
  #     - NAME   : limit
  #       TYPES  : long
- #       DESCR  : "Maximum number of rows to find. Default: -1 (infinity)."
+ #       DESCR  : "Maximum number of rows to find. -1 for infinity."
       RETURN:
         TYPES  : long
         DESCR  : The number of rows removed.
