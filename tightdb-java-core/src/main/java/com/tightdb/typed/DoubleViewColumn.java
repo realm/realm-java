@@ -13,9 +13,9 @@ public class DoubleViewColumn<Cursor, View, Query> extends DoubleTableOrViewColu
         super(types, view, index, name);
     }
 
-    public DoubleViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
+    /*public DoubleViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
             String name) {
         super(types, view, query, index, name);
     }
-
+*/
 }

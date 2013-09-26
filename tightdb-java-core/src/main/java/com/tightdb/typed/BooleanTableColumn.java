@@ -13,9 +13,9 @@ public class BooleanTableColumn<Cursor, View, Query> extends BooleanTableOrViewC
         super(types, table, index, name);
     }
 
-    public BooleanTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
+  /*  public BooleanTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
             String name) {
         super(types, table, query, index, name);
-    }
+    }*/
 
 }

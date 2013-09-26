@@ -13,9 +13,9 @@ public class MixedTableColumn<Cursor, View, Query> extends MixedTableOrViewColum
         super(types, table, index, name);
     }
 
-    public MixedTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
+   /* public MixedTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
             String name) {
         super(types, table, query, index, name);
-    }
+    }*/
 
 }

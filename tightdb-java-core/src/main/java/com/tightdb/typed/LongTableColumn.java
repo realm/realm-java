@@ -13,9 +13,9 @@ public class LongTableColumn<Cursor, View, Query> extends LongTableOrViewColumn<
         super(types, table, index, name);
     }
 
-    public LongTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
+    /*public LongTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
             String name) {
         super(types, table, query, index, name);
-    }
+    }*/
 
 }

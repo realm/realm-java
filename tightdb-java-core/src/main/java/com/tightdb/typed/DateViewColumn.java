@@ -13,9 +13,9 @@ public class DateViewColumn<Cursor, View, Query> extends DateTableOrViewColumn<C
         super(types, view, index, name);
     }
 
-    public DateViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
+   /* public DateViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
             String name) {
         super(types, view, query, index, name);
-    }
+    }*/
 
 }

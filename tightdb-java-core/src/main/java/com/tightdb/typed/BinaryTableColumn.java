@@ -13,9 +13,9 @@ public class BinaryTableColumn<Cursor, View, Query> extends BinaryTableOrViewCol
         super(types, table, index, name);
     }
 
-    public BinaryTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
+   /* public BinaryTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
             String name) {
         super(types, table, query, index, name);
-    }
+    }*/
 
 }

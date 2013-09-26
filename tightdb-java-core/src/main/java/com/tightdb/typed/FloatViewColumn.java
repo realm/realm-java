@@ -13,9 +13,9 @@ public class FloatViewColumn<Cursor, View, Query> extends FloatTableOrViewColumn
         super(types, view, index, name);
     }
 
-    public FloatViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
+  /*  public FloatViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
             String name) {
         super(types, view, query, index, name);
     }
-
+*/
 }

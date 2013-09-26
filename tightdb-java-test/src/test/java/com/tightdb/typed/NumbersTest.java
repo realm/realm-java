@@ -4,7 +4,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.testng.internal.junit.ArrayAsserts;
 
 import com.tightdb.test.TestNumbersTable;
 import com.tightdb.test.TestNumbersView;
@@ -205,6 +204,25 @@ public class NumbersTest {
         assertEquals(50000d / 3, view.longNum.average());
         assertEquals(50000.8d / 3, view.doubleNum.average(), 0.000001);
         assertEquals(50000.8d / 3, view.floatNum.average(), 0.01);
+
+
+    }
+    
+    
+    @Test
+    public void setAndGetNumbers() {
+        
+        // Double column s
+        view.get(0).doubleNum.set(400d);
+        assertEquals(400d, view.get(0).doubleNum.get());
+        view.get(1).doubleNum.set(-0.01d);
+        assertEquals(-0.01d, view.get(1).doubleNum.get());
+        
+        // FLoat columns
+        view.get(0).floatNum.set(400f);
+        assertEquals(400f, view.get(0).floatNum.get());
+        view.get(1).floatNum.set(-0.01f);
+        assertEquals(-0.01f, view.get(1).floatNum.get());
 
 
     }

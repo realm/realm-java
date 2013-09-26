@@ -17,9 +17,9 @@ public class StringViewColumn<Cursor, View, Query> extends StringTableOrViewColu
         this.view = (TableView)view;
     }
 
-    public StringViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
+    /*public StringViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
             String name) {
         super(types, view, query, index, name);
         this.view = (TableView)view;
-    }
+    }*/
 }
