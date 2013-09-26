@@ -176,14 +176,6 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
         table.moveLastOver(rowIndex);
     }
 
-    protected void setIndex(long columnIndex) {
-        table.setIndex(columnIndex);
-    }
-
-    protected boolean hasIndex(long columnIndex) {
-        return table.hasIndex(columnIndex);
-    }
-
     public long lowerBound(long columnIndex, long value) {
         return table.lowerBoundLong(columnIndex, value);
     }
