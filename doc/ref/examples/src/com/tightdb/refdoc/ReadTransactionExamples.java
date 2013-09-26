@@ -30,7 +30,6 @@ public class ReadTransactionExamples {
         } finally {
             rt.endRead(); // End read transaction in finally
         }
-        
         // @@EndShow@@
         // @@EndExample@@
     }
