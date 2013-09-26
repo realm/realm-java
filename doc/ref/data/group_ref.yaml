@@ -68,7 +68,13 @@ CATEGORIES:
       - DESCR  :
         CODE   : ex_java_group_constructor_file
       - DESCR  :
+        CODE   : ex_java_group_constructor_string
+      - DESCR  :
+        CODE   : ex_java_group_constructor_string_mode
+      - DESCR  :
         CODE   : ex_java_group_constructor_memory
+      - DESCR  :
+        CODE   : ex_java_group_constructor_memory_buffer
       SEE      : "{@link g_group_is_valid}"
   - g_group_destructor:
       NAMES    : close
