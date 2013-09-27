@@ -15,6 +15,8 @@ import com.tightdb.Group.OpenMode;
 public class GroupExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
+        
+        new File("mydatabasefile.tightdb").delete();
 
         // Constructor methods
         constructorPlainExample();
@@ -126,11 +128,16 @@ public class GroupExamples {
     public static void getTableExample(){
         // @@Example: ex_java_group_get_table @@
         // @@Show@@
-        Group group = new Group("mydatabase.tightdb");
+        Group group = new Group();
 
-        // A table is created (if not already in the group) and returned
+        // Create table and return it
         Table table = group.getTable("mytable");
 
+        // Add columns and data
+        table.addColumn(ColumnType.STRING, "String");
+        table.addColumn(ColumnType.INTEGER, "int");
+        table.addColumn(ColumnType.BOOLEAN, "boolean");
+        
         table.add("String value", 400, true); // String, long, boolean
         // More table operations...
         // @@EndShow@@
@@ -157,7 +164,7 @@ public class GroupExamples {
     public static void getTableNameExample(){
         // @@Example: ex_java_group_get_table_name @@
         // @@Show@@
-        Group group = new Group("mydatabase.tightdb");
+        Group group = new Group();
 
         // Add 2 tables to the group
         Table table1 = group.getTable("mytable1"); // Will be positioned at index 0
@@ -186,7 +193,7 @@ public class GroupExamples {
 
         try {
             // Write to the specified file
-            group.writeToFile("mydatabase.tightdb");
+            group.writeToFile("mydatabasefile.tightdb");
         } catch (IOException e) {
             // Exception if file already exists
             e.printStackTrace();
@@ -196,7 +203,7 @@ public class GroupExamples {
     }
 
 
-    public static void writeToMemExample(){
+    public static void writeToMemExample() {
         OutputStream outputStream = null; 
 
         // @@Example: ex_java_group_write_to_mem @@
@@ -212,8 +219,7 @@ public class GroupExamples {
         // E.g send byte array through output stream
         try {
             outputStream.write(array);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
+        } catch (Exception e) {
             e.printStackTrace();
         }
         // @@EndShow@@
