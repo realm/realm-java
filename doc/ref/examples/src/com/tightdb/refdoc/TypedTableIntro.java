@@ -68,7 +68,7 @@ public class TypedTableIntro {
         /****************************** SIMPLE QUERY *****************************/
 
         System.out.println("\nFound: ");
-        PeopleRow p = peopleTable.name.equal("John").findFirst();
+        PeopleRow p = peopleTable.name.equalTo("John").findFirst();
         System.out.println( p );
         // prints: "Employee {name=John, age=20, hired=true}"
 
@@ -79,7 +79,7 @@ public class TypedTableIntro {
                 .age.between(20, 35)    // Implicit AND with below
                 .name.contains("a")     // Implicit AND with below
                 .group()                // "("
-                .hired.equal(true)
+                .hired.equalTo(true)
                 .or()               // or
                 .name.endsWith("y")
                 .endGroup();            // ")"

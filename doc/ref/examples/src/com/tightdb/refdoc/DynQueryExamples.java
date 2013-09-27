@@ -67,7 +67,7 @@ public class DynQueryExamples {
         table.add("user8", 770, true);
 
         // Query the table
-        TableView view = table.where().equal(1, 770).findAll();
+        TableView view = table.where().equalTo(1, 770).findAll();
 
         // @@EndShow@@
         // @@EndExample@@
@@ -94,7 +94,7 @@ public class DynQueryExamples {
         table.add("user8", 770, true);
 
         // Query the table
-        TableView view = table.where().notEqual(1, 770).findAll();
+        TableView view = table.where().notEqualTo(1, 770).findAll();
 
         // @@EndShow@@
         // @@EndExample@@
@@ -329,7 +329,7 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Query the table
-        TableView view = table.where().group().equal(0, "Erik").or().equal(1,770).endGroup().findAll();
+        TableView view = table.where().group().equalTo(0, "Erik").or().equalTo(1,770).endGroup().findAll();
 
         // @@EndShow@@
         // @@EndExample@@
@@ -356,7 +356,7 @@ public class DynQueryExamples {
 
 
         // Query the table
-        TableView view = table.where().subTable(1).equal(2, true).endSubTable().findAll();
+        TableView view = table.where().subTable(1).equalTo(2, true).endSubTable().findAll();
 
         System.out.println(view);
 

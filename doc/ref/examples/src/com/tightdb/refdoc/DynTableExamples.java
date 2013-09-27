@@ -664,7 +664,7 @@ public class DynTableExamples {
         TableQuery query = table.where();
         
         // USe the query object to query the table and get a table view with the results
-        TableView view = query.equal(2, false).findAll();
+        TableView view = query.equalTo(2, false).findAll();
         // @@EndShow@@
         // @@EndExample@@
     }

@@ -77,21 +77,13 @@ public class TableQuery {
 
     // Query for integer values.
 
-    public TableQuery equal(long columnIndex, long value){
-        nativeEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery eq(long columnIndex, long value){
+    public TableQuery equalTo(long columnIndex, long value){
         nativeEqual(nativePtr, columnIndex, value);
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, long value);
 
-    public TableQuery notEqual(long columnIndex, long value){
-        nativeNotEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery neq(long columnIndex, long value){
+    public TableQuery notEqualTo(long columnIndex, long value){
         nativeNotEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -101,17 +93,9 @@ public class TableQuery {
         nativeGreater(nativePtr, columnIndex, value);
         return this;
     }
-    public TableQuery gt(long columnIndex, long value){
-        nativeGreater(nativePtr, columnIndex, value);
-        return this;
-    }
     protected native void nativeGreater(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery greaterThanOrEqual(long columnIndex, long value){
-        nativeGreaterEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery gte(long columnIndex, long value){
         nativeGreaterEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -121,17 +105,9 @@ public class TableQuery {
         nativeLess(nativePtr, columnIndex, value);
         return this;
     }
-    public TableQuery lt(long columnIndex, long value){
-        nativeLess(nativePtr, columnIndex, value);
-        return this;
-    }
     protected native void nativeLess(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery lessThanOrEqual(long columnIndex, long value){
-        nativeLessEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery lte(long columnIndex, long value){
         nativeLessEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -146,21 +122,13 @@ public class TableQuery {
 
     // Query for float values.
 
-    public TableQuery equal(long columnIndex, float value){
-        nativeEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery eq(long columnIndex, float value){
+    public TableQuery equalTo(long columnIndex, float value){
         nativeEqual(nativePtr, columnIndex, value);
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, float value);
 
-    public TableQuery notEqual(long columnIndex, float value){
-        nativeNotEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery neq(long columnIndex, float value){
+    public TableQuery notEqualTo(long columnIndex, float value){
         nativeNotEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -170,17 +138,9 @@ public class TableQuery {
         nativeGreater(nativePtr, columnIndex, value);
         return this;
     }
-    public TableQuery gt(long columnIndex, float value){
-        nativeGreater(nativePtr, columnIndex, value);
-        return this;
-    }
     protected native void nativeGreater(long nativeQueryPtr, long columnIndex, float value);
 
     public TableQuery greaterThanOrEqual(long columnIndex, float value){
-        nativeGreaterEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery gte(long columnIndex, float value){
         nativeGreaterEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -190,17 +150,9 @@ public class TableQuery {
         nativeLess(nativePtr, columnIndex, value);
         return this;
     }
-    public TableQuery lt(long columnIndex, float value){
-        nativeLess(nativePtr, columnIndex, value);
-        return this;
-    }
     protected native void nativeLess(long nativeQueryPtr, long columnIndex, float value);
 
     public TableQuery lessThanOrEqual(long columnIndex, float value){
-        nativeLessEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery lte(long columnIndex, float value){
         nativeLessEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -215,21 +167,13 @@ public class TableQuery {
 
     // Query for double values.
 
-    public TableQuery equal(long columnIndex, double value){
-        nativeEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery eq(long columnIndex, double value){
+    public TableQuery equalTo(long columnIndex, double value){
         nativeEqual(nativePtr, columnIndex, value);
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, double value);
 
-    public TableQuery notEqual(long columnIndex, double value){
-        nativeNotEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery neq(long columnIndex, double value){
+    public TableQuery notEqualTo(long columnIndex, double value){
         nativeNotEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -239,17 +183,9 @@ public class TableQuery {
         nativeGreater(nativePtr, columnIndex, value);
         return this;
     }
-    public TableQuery gt(long columnIndex, double value){
-        nativeGreater(nativePtr, columnIndex, value);
-        return this;
-    }
     protected native void nativeGreater(long nativeQueryPtr, long columnIndex, double value);
 
     public TableQuery greaterThanOrEqual(long columnIndex, double value){
-        nativeGreaterEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery gte(long columnIndex, double value){
         nativeGreaterEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -259,17 +195,9 @@ public class TableQuery {
         nativeLess(nativePtr, columnIndex, value);
         return this;
     }
-    public TableQuery lt(long columnIndex, double value){
-        nativeLess(nativePtr, columnIndex, value);
-        return this;
-    }
     protected native void nativeLess(long nativeQueryPtr, long columnIndex, double value);
 
     public TableQuery lessThanOrEqual(long columnIndex, double value){
-        nativeLessEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery lte(long columnIndex, double value){
         nativeLessEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -284,11 +212,7 @@ public class TableQuery {
 
     // Query for boolean values.
 
-    public TableQuery equal(long columnIndex, boolean value){
-        nativeEqual(nativePtr, columnIndex, value);
-        return this;
-    }
-    public TableQuery eq(long columnIndex, boolean value){
+    public TableQuery equalTo(long columnIndex, boolean value){
         nativeEqual(nativePtr, columnIndex, value);
         return this;
     }
@@ -296,21 +220,13 @@ public class TableQuery {
 
     // Query for Date values
 
-    public TableQuery equal(long columnIndex, Date value){
-        nativeEqualDate(nativePtr, columnIndex, value.getTime()/1000);
-        return this;
-    }
-    public TableQuery eq(long columnIndex, Date value){
+    public TableQuery equalTo(long columnIndex, Date value){
         nativeEqualDate(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
     protected native void nativeEqualDate(long nativeQueryPtr, long columnIndex, long value);
 
-    public TableQuery notEqual(long columnIndex, Date value){
-        nativeNotEqualDate(nativePtr, columnIndex, value.getTime()/1000);
-        return this;
-    }
-    public TableQuery neq(long columnIndex, Date value){
+    public TableQuery notEqualTo(long columnIndex, Date value){
         nativeNotEqualDate(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
@@ -320,17 +236,9 @@ public class TableQuery {
         nativeGreaterDate(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
-    public TableQuery gt(long columnIndex, Date value){
-        nativeGreaterDate(nativePtr, columnIndex, value.getTime()/1000);
-        return this;
-    }
     protected native void nativeGreaterDate(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery greaterThanOrEqual(long columnIndex, Date value){
-        nativeGreaterEqualDate(nativePtr, columnIndex, value.getTime()/1000);
-        return this;
-    }
-    public TableQuery gte(long columnIndex, Date value){
         nativeGreaterEqualDate(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
@@ -340,17 +248,9 @@ public class TableQuery {
         nativeLessDate(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
-    public TableQuery lt(long columnIndex, Date value){
-        nativeLessDate(nativePtr, columnIndex, value.getTime()/1000);
-        return this;
-    }
     protected native void nativeLessDate(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery lessThanOrEqual(long columnIndex, Date value){
-        nativeLessEqualDate(nativePtr, columnIndex, value.getTime()/1000);
-        return this;
-    }
-    public TableQuery lte(long columnIndex, Date value){
         nativeLessEqualDate(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
@@ -365,38 +265,22 @@ public class TableQuery {
     // Query for String values.
 
     // Equal
-    public TableQuery equal(long columnIndex, String value, boolean caseSensitive){
+    public TableQuery equalTo(long columnIndex, String value, boolean caseSensitive){
         nativeEqual(nativePtr, columnIndex, value, caseSensitive);
         return this;
     }
-    public TableQuery eq(long columnIndex, String value, boolean caseSensitive){
-        nativeEqual(nativePtr, columnIndex, value, caseSensitive);
-        return this;
-    }
-    public TableQuery equal(long columnIndex, String value){
-        nativeEqual(nativePtr, columnIndex, value, true);
-        return this;
-    }
-    public TableQuery eq(long columnIndex, String value){
+    public TableQuery equalTo(long columnIndex, String value){
         nativeEqual(nativePtr, columnIndex, value, true);
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
 
     // Not Equal
-    public TableQuery notEqual(long columnIndex, String value, boolean caseSensitive){
+    public TableQuery notEqualTo(long columnIndex, String value, boolean caseSensitive){
         nativeNotEqual(nativePtr, columnIndex, value, caseSensitive);
         return this;
     }
-    public TableQuery neq(long columnIndex, String value, boolean caseSensitive){
-        nativeNotEqual(nativePtr, columnIndex, value, caseSensitive);
-        return this;
-    }
-    public TableQuery notEqual(long columnIndex, String value){
-        nativeNotEqual(nativePtr, columnIndex, value, true);
-        return this;
-    }
-    public TableQuery neq(long columnIndex, String value){
+    public TableQuery notEqualTo(long columnIndex, String value){
         nativeNotEqual(nativePtr, columnIndex, value, true);
         return this;
     }

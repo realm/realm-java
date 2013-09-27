@@ -13,30 +13,18 @@ public class StringQueryColumn<Cursor, View, Query> extends AbstractColumn<Strin
         super(types, tableOrView, query, index, name);
     }
 
-    public Query equal(String value) {
-        return query(getQuery().equal(columnIndex, value));
+    public Query equalTo(String value) {
+        return query(getQuery().equalTo(columnIndex, value));
     }
-    public Query eq(String value) {
-        return query(getQuery().eq(columnIndex, value));
-    }
-    public Query equal(String value, boolean caseSensitive) {
-        return query(getQuery().equal(columnIndex, value, caseSensitive));
-    }
-    public Query eq(String value, boolean caseSensitive) {
-        return query(getQuery().eq(columnIndex, value, caseSensitive));
+    public Query equalTo(String value, boolean caseSensitive) {
+        return query(getQuery().equalTo(columnIndex, value, caseSensitive));
     }
 
-    public Query notEqual(String value) {
-        return query(getQuery().notEqual(columnIndex, value));
+    public Query notEqualTo(String value) {
+        return query(getQuery().notEqualTo(columnIndex, value));
     }
-    public Query neq(String value) {
-        return query(getQuery().neq(columnIndex, value));
-    }
-    public Query notEqual(String value, boolean caseSensitive) {
-        return query(getQuery().notEqual(columnIndex, value, caseSensitive));
-    }
-    public Query neq(String value, boolean caseSensitive) {
-        return query(getQuery().neq(columnIndex, value, caseSensitive));
+    public Query notEqualTo(String value, boolean caseSensitive) {
+        return query(getQuery().notEqualTo(columnIndex, value, caseSensitive));
     }
 
     public Query startsWith(String value) {
