@@ -60,58 +60,58 @@ public class CursorColumnsTest extends AbstractTest {
             throws Exception {
         TestEmployeeRow employee = empls.first();
 
-        employee.extra.set(true);
-        assertEquals(true, employee.extra.get().getBooleanValue());
-        assertEquals(ColumnType.BOOLEAN, employee.extra.getType());
+        employee.setExtra(new Mixed(true));
+        assertEquals(true, employee.getExtra().getBooleanValue());
+        assertEquals(ColumnType.BOOLEAN, employee.getExtra().getType());
 
         byte[] arr = { 1, 3, 5 };
-        employee.extra.set(arr);
+        employee.setExtra(new Mixed(arr));
         // FIXME: shouldn't be BINARY_TYPE_BYTE_ARRAY an expected type here?
-        assertEquals(Mixed.BINARY_TYPE_BYTE_BUFFER, employee.extra.get()
+        assertEquals(Mixed.BINARY_TYPE_BYTE_BUFFER, employee.getExtra()
                 .getBinaryType());
-        assertEquals(ByteBuffer.wrap(arr), employee.extra.get()
+        assertEquals(ByteBuffer.wrap(arr), employee.getExtra()
                 .getBinaryValue());
-        assertEquals(ColumnType.BINARY, employee.extra.getType());
+        assertEquals(ColumnType.BINARY, employee.getExtra().getType());
 
 
 
         Date date = new Date(6547);
-        employee.extra.set(date);
-        assertEquals(date, employee.extra.get().getDateValue());
-        assertEquals(ColumnType.DATE, employee.extra.getType());
+        employee.setExtra(new Mixed(date));
+        assertEquals(date, employee.getExtra().getDateValue());
+        assertEquals(ColumnType.DATE, employee.getExtra().getType());
 
         long num = 135L;
-        employee.extra.set(num);
-        assertEquals(num, employee.extra.get().getLongValue());
-        assertEquals(ColumnType.INTEGER, employee.extra.getType());
+        employee.setExtra(new Mixed(num));
+        assertEquals(num, employee.getExtra().getLongValue());
+        assertEquals(ColumnType.INTEGER, employee.getExtra().getType());
 
         Mixed mixed = Mixed.mixedValue("mixed");
-        employee.extra.set(mixed);
-        assertEquals(mixed, employee.extra.get());
-        assertEquals(ColumnType.STRING, employee.extra.getType());
+        employee.setExtra(mixed);
+        assertEquals(mixed, employee.getExtra());
+        assertEquals(ColumnType.STRING, employee.getExtra().getType());
 
-        employee.extra.set("abc");
-        assertEquals("abc", employee.extra.get().getStringValue());
-        assertEquals(ColumnType.STRING, employee.extra.getType());
+        employee.setExtra(new Mixed("abc"));
+        assertEquals("abc", employee.getExtra().getStringValue());
+        assertEquals(ColumnType.STRING, employee.getExtra().getType());
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void shouldntSetTableValue() {
         // the "set" operation is not supported yet for sub-table columns
-        employees.first().phones.set(employees.last().phones.get());
+        employees.first().setPhones(employees.last().getPhones());
     }
 
     public void shouldProvideReadableValue() {
         TestEmployeeRow employee = employees.first();
 
-        assertNotNull(employee.firstName.getReadableValue());
-        assertNotNull(employee.lastName.getReadableValue());
-        assertNotNull(employee.salary.getReadableValue());
-        assertNotNull(employee.driver.getReadableValue());
-        assertNotNull(employee.photo.getReadableValue());
-        assertNotNull(employee.birthdate.getReadableValue());
-        assertNotNull(employee.extra.getReadableValue());
-        assertNotNull(employee.phones.getReadableValue());
+        assertNotNull(employee.getFirstName());
+        assertNotNull(employee.getLastName());
+        assertNotNull(employee.getSalary());
+        assertNotNull(employee.getDriver());
+        assertNotNull(employee.getPhoto());
+        assertNotNull(employee.getBirthdate());
+        assertNotNull(employee.getExtra());
+        assertNotNull(employee.getPhones());
     }
 
 }
