@@ -1,7 +1,7 @@
 package com.tightdb.typed;
 
 import com.tightdb.TableOrView;
-import com.tightdb.TableQuery;
+//import com.tightdb.TableQuery;
 
 /**
  * Type of the fields that represent a nested table column in the generated XyzTable
@@ -15,9 +15,9 @@ public class TableTableColumn<Cursor, View, Query, Subtable> extends
         super(types, table, index, name, subtableClass);
     }
 
-    public TableTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
+    /*public TableTableColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView table, TableQuery query, int index,
             String name, Class<Subtable> subtableClass) {
         super(types, table, query, index, name, subtableClass);
-    }
+    }*/
 
 }

@@ -51,8 +51,8 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
         TestPhoneTable phones = employees.last().getPhones();
         assertEquals(2, phones.size());
 
-        assertEquals("home", phones.get(0).type.get());
-        assertEquals("123-123", phones.get(0).number.get());
+        assertEquals("home", phones.get(0).getType());
+        assertEquals("123-123", phones.get(0).getNumber());
 
         assertEquals("mobile", phones.get(1).getType());
         assertEquals("456-456", phones.get(1).getNumber());

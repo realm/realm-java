@@ -60,12 +60,12 @@ public class ViewDataOperationsTest extends AbstractDataOperationsTest {
             TestEmployeeTable t = new TestEmployeeTable(rt);
             TestEmployeeView view = t.where().findAll();
 
-            try {  view.get(0).firstName.set("new string");          assert(false); } catch (IllegalStateException e){ }
-            try {  view.get(0).lastName.set("new last name");        assert(false); } catch (IllegalStateException e){ }
-            try {  view.get(0).extra.set(new Mixed(true));           assert(false); } catch (IllegalStateException e){ }
-            try {  view.get(0).birthdate.set(new Date());            assert(false); } catch (IllegalStateException e){ }
-            try {  view.get(0).driver.set(false);                    assert(false); } catch (IllegalStateException e){ }
-            try {  view.get(0).photo.set(null);                      assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).setFirstName("new string");          assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).setLastName("new last name");        assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).setExtra(new Mixed(true));           assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).setBirthdate(new Date());            assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).setDriver(false);                    assert(false); } catch (IllegalStateException e){ }
+            try {  view.get(0).setPhoto(null);                      assert(false); } catch (IllegalStateException e){ }
 
         } finally {
             rt.endRead();

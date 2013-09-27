@@ -693,7 +693,7 @@ public class DynTableExamples {
         table.add("user8", 770, true);
         
         // The sum of all values in column 1
-        long totalScore = table.sum(1);
+        long totalScore = table.sumInt(1);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -718,7 +718,7 @@ public class DynTableExamples {
         table.add("user8", 770, true);
         
         // The maximum score in column 1
-        long maxScore = table.maximum(1);
+        long maxScore = table.maximumInt(1);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -742,7 +742,7 @@ public class DynTableExamples {
         table.add("user8", 770, true);
         
         // The minimum score in column 1
-        long minScore = table.minimum(1);
+        long minScore = table.minimumInt(1);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -767,7 +767,7 @@ public class DynTableExamples {
         table.add("user8", 770, true);
         
         // The average score in column 1
-        double avgScore = table.average(1); // Returns a double
+        double avgScore = table.averageInt(1); // Returns a double
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -792,7 +792,7 @@ public class DynTableExamples {
 
         String json = table.toJson();
         
-        // Print json e.g. using a printbwriter
+        // Print json e.g. using a printwriter
         PrintWriter out = new PrintWriter("fromServlet");
         out.print(json);
         out.close();

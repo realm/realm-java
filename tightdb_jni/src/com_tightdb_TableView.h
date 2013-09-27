@@ -345,34 +345,34 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindAllString
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeSum
+ * Method:    nativeSumInt
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSum
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeMaximum
+ * Method:    nativeMaximumInt
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMaximum
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMaximumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeMinimum
+ * Method:    nativeMinimumInt
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMinimum
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMinimumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeAverage
+ * Method:    nativeAverageInt
  * Signature: (JJ)D
  */
-JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeAverage
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeAverageInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
