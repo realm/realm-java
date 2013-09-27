@@ -76,39 +76,39 @@ public abstract class AbstractTest {
 
     private void addPhones(EmployeeData emp, TestEmployeeRow e) {
         for (PhoneData phone : emp.phones) {
-            e.phones.get().add(phone.type, phone.number);
+            e.getPhones().add(phone.type, phone.number);
         }
     }
 
     protected void updateEmployee(TestEmployeeRow employee, EmployeeData data) {
-        employee.firstName.set(data.firstName);
-        employee.lastName.set(data.lastName);
-        employee.salary.set(data.salary);
-        employee.driver.set(data.driver);
-        employee.photo.set(data.photo);
+        employee.setFirstName(data.firstName);
+        employee.setLastName(data.lastName);
+        employee.setSalary(data.salary);
+        employee.setDriver(data.driver);
+        employee.setPhoto(data.photo);
         // employee.photo.set(ByteBuffer.wrap(data.photo));
-        employee.birthdate.set(data.birthdate);
-        employee.extra.set(Mixed.mixedValue(data.extra));
+        employee.setBirthdate(data.birthdate);
+        employee.setExtra(Mixed.mixedValue(data.extra));
     }
 
     protected void checkCursorValues(EmployeeData expected,
             TestEmployeeRow employee) {
         try {
-            assertEquals(expected.firstName, employee.firstName.get());
-            assertEquals(expected.lastName, employee.lastName.get());
-            assertEquals(expected.salary, employee.salary.get().longValue());
-            assertEquals(expected.driver, employee.driver.get().booleanValue());
-            assertEquals(expected.photo, employee.photo.get());
-            assertEquals(expected.birthdate.getTime()/1000, employee.birthdate.get().getTime()/1000);
-            assertEquals(Mixed.mixedValue(expected.extra), employee.extra.get());
+            assertEquals(expected.firstName, employee.getFirstName());
+            assertEquals(expected.lastName, employee.getLastName());
+            assertEquals(expected.salary, employee.getSalary());
+            assertEquals(expected.driver, employee.getDriver());
+            assertEquals(expected.photo, employee.getPhoto());
+            assertEquals(expected.birthdate.getTime()/1000, employee.getBirthdate().getTime()/1000);
+            assertEquals(Mixed.mixedValue(expected.extra), employee.getExtra());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     protected void checkCursorValues(PhoneData expected, TestPhoneRow phone) {
-        assertEquals(expected.type, phone.type.get());
-        assertEquals(expected.number, phone.number.get());
+        assertEquals(expected.type, phone.getType());
+        assertEquals(expected.number, phone.getNumber());
     }
 
     protected void checkCursorColumns(TestEmployeeRow employee) {

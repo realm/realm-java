@@ -79,8 +79,8 @@ public class SubtableTest extends AbstractTest {
     private void checkPhone(TestPhoneRow phone, String type, String number) {
         assertEquals(type, phone.getType());
         assertEquals(number, phone.getNumber());
-        assertEquals(type, phone.type.get());
-        assertEquals(number, phone.number.get());
+        assertEquals(type, phone.getType());
+        assertEquals(number, phone.getNumber());
     }
 
     @Test
