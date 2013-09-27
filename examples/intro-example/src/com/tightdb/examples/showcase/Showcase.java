@@ -59,16 +59,14 @@ public class Showcase {
 
         System.out.println("first record: " + john);
         System.out.println("second record: " + nikolche);
-        System.out.println("some column: " + john.firstName);
+        System.out.println("some column: " + john.getFirstName());
 
         /****************************** GETTERS AND SETTERS *****************************/
 
-        // 2 ways to get the value
-        System.out.println("name1: " + john.firstName.get());
+        // Get value
         System.out.println("name2: " + john.getFirstName());
 
-        // 2 ways to set the value
-        employees.get(2).lastName.set("NewName");
+        // Set value
         employees.get(2).setLastName("NewName");
 
         /****************************** MANIPULATION OF ALL RECORDS *****************************/
@@ -88,7 +86,7 @@ public class Showcase {
         // using implicit AND
         System.out.println("Search example 2" + employees.firstName.eq("Johnny").lastName.startsWith("B").findLast());
 
-        employees.firstName.eq("John").findLast().salary.set(30000);
+        employees.firstName.eq("John").findLast().setSalary(30000);
 
         /****************************** ITERATION OF ALL RECORDS *****************************/
 
@@ -157,7 +155,7 @@ public class Showcase {
 
         /****************************** SUBTABLES *****************************/
 
-        PhoneTable subtable = john.phones.get();
+        PhoneTable subtable = john.getPhones();
         subtable.add("mobile", "111");
 
         john.getPhones().add("mobile", "111");
@@ -172,13 +170,6 @@ public class Showcase {
             System.out.println(phoneTable);
         }
 
-        // convenience methods on the column:
-
-        for (Phone phone : nikolche.phones) {
-            System.out.println("- phone" + phone);
-        }
-
-        System.out.println("- first phone" + nikolche.phones.first());
 
         /*************************** CURSOR NAVIGATION ***************************/
 
