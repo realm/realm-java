@@ -11,15 +11,18 @@ import com.tightdb.typed.*;
  */
 public class ${name} extends AbstractCursor<${name}> {
 
-<#foreach f in columns><#if f.isSubtable>    public final ${f.type}CursorColumn<${name}, ${viewName}, ${queryName}, ${f.subCursorName}, ${f.subTableName}> ${f.name};
-<#else>    public final ${f.type}CursorColumn<${cursorName}, ${viewName}, ${queryName}> ${f.name};
+<#foreach f in columns><#if f.isSubtable>    private final ${f.type}CursorColumn<${name}, ${viewName}, ${queryName}, ${f.subCursorName}, ${f.subTableName}> ${f.name};
+<#else>    private final ${f.type}CursorColumn<${cursorName}, ${viewName}, ${queryName}> ${f.name};
 </#if></#foreach>
+
 	public ${cursorName}(TableOrView tableOrView, long position) {
 		super(${tableName}.TYPES, tableOrView, position);
 
 <#foreach f in columns><#if f.isSubtable>        ${f.name} = new ${f.type}CursorColumn<${cursorName}, ${viewName}, ${queryName}, ${f.subCursorName}, ${f.subTableName}>(${tableName}.TYPES, this, ${f.index}, "${f.name}", ${f.subTableName}.class);
 <#else>        ${f.name} = new ${f.type}CursorColumn<${cursorName}, ${viewName}, ${queryName}>(${tableName}.TYPES, this, ${f.index}, "${f.name}");
-</#if></#foreach>	}
+</#if></#foreach>
+
+    }
 
 <#foreach f in columns><#if f.isSubtable>	public ${f.subTableName} get${f.name?cap_first}() {
 <#else>	public ${f.fieldType} get${f.name?cap_first}() {

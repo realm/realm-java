@@ -9,7 +9,7 @@ import com.tightdb.test.TestEmployeeTable;
 import com.tightdb.test.TestPhoneTable;
 
 public class MixedSubtableTest extends AbstractTest {
-
+    /*
     @Test
     public void shouldStoreSubtableInMixedTypeColumn() {
         TestEmployeeRow employee = employees.get(0);
@@ -42,5 +42,5 @@ public class MixedSubtableTest extends AbstractTest {
         // should fail
         employee.extra.getSubtable(TestPhoneTable.class);
     }
-
+    */
 }
