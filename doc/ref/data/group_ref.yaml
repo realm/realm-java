@@ -161,7 +161,7 @@ CATEGORIES:
       DESCR    : *g_group_write_to_mem_descr
       SUMMARY  : *g_group_write_to_mem_summary
       RETURN:
-        DESCR  : A copy of the serialized group.
+        DESCR  : A copy of the serialized group. A maximum of 2gb can be returned.
         TYPES  : byte[]
       EXAMPLES:
       - DESCR  :

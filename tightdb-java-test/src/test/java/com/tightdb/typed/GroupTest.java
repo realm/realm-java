@@ -120,6 +120,11 @@ public class GroupTest {
         Table t = group1.getTable("table");
         t.add("hej");
         assertEquals(false, group1.equals(group2));
+        
+        assertEquals(true, group1.equals(group1)); // Compare to itself
+        assertEquals(false, group1.equals(null)); // Compare to null
+        assertEquals(false, group1.equals("String")); // Compare to other object
+        
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
