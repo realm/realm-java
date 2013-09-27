@@ -8,6 +8,8 @@ import com.tightdb.Table;
 import com.tightdb.test.TestEmployeeQuery;
 import com.tightdb.test.TestEmployeeView;
 
+import java.util.Date;
+
 public class TableQueryTest extends AbstractTest {
 
     @Test
@@ -42,32 +44,32 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(2, results.count());
 
         assertEquals(10000, results.salary.minimum());
-        assertEquals(10000, results.salary.minimum(0, 1)); // first
-        assertEquals(30000, results.salary.minimum(1, 2)); // second
-        assertEquals(10000, results.salary.minimum(0, Table.INFINITE)); // both
+        assertEquals(10000, results.salary.minimum(0, 1, 1)); // first
+        assertEquals(30000, results.salary.minimum(1, 2, 1)); // second
+        assertEquals(10000, results.salary.minimum(0, Table.INFINITE, Table.INFINITE)); // both
         // TODO: Check invalid parameters
 
         assertEquals(30000, results.salary.maximum());
-        assertEquals(10000, results.salary.maximum(0, 1)); // first
-        assertEquals(30000, results.salary.maximum(1, 2)); // second
-        assertEquals(30000, results.salary.maximum(0, Table.INFINITE)); // both
+        assertEquals(10000, results.salary.maximum(0, 1, 1)); // first
+        assertEquals(30000, results.salary.maximum(1, 2, 1)); // second
+        assertEquals(30000, results.salary.maximum(0, Table.INFINITE, Table.INFINITE)); // both
 
         assertEquals(40000, results.salary.sum());
-        assertEquals(10000, results.salary.sum(0, 1)); // first
-        assertEquals(30000, results.salary.sum(1, 2)); // second
-        assertEquals(40000, results.salary.sum(0, Table.INFINITE)); // both
+        assertEquals(10000, results.salary.sum(0, 1, 1)); // first
+        assertEquals(30000, results.salary.sum(1, 2, 1)); // second
+        assertEquals(40000, results.salary.sum(0, Table.INFINITE, Table.INFINITE)); // both
 
         assertEquals(20000.0, results.salary.average());
-        assertEquals(30000.0, results.salary.average(1, 2)); // second
-        assertEquals(20000.0, results.salary.average(0, Table.INFINITE)); // both
-        assertEquals(10000.0, results.salary.average(0, 1)); // first
+        assertEquals(30000.0, results.salary.average(1, 2, 1)); // second
+        assertEquals(20000.0, results.salary.average(0, Table.INFINITE, Table.INFINITE)); // both
+        assertEquals(10000.0, results.salary.average(0, 1, 1)); // first
     }
 
     @Test( expectedExceptions = ArrayIndexOutOfBoundsException.class)
     public void shouldCheckWrongParameters() {
         TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
     //  assertEquals(2, results.count());
-        assertEquals(10000, results.salary.minimum(0, 5)); // first
+        assertEquals(10000, results.salary.minimum(0, 5, Table.INFINITE)); // first
     }
 
     @Test
@@ -164,7 +166,7 @@ public class TableQueryTest extends AbstractTest {
         // Remove some
         TestEmployeeQuery q = employees.where().salary.lessThan(100000000);
 
-        assertEquals(1, q.count(1, 2));
+        assertEquals(1, q.count(1, 2, Table.INFINITE));
 
         long n = q.remove(1, 2);
         assertEquals(1, n);
@@ -181,6 +183,62 @@ public class TableQueryTest extends AbstractTest {
         long n = q.remove();
         assertEquals(0, n);
         assertEquals(3, employees.size());
+    }
+
+    @Test
+    public void queryOnDates() {
+        // Test equal
+        assertEquals(1, employees.birthdate.equal(new Date(2222)).findAll().size());
+        assertEquals(1, employees.birthdate.eq(new Date(2222)).findAll().size());
+
+        // Test not equal
+        assertEquals(2, employees.birthdate.notEqual(new Date(2222)).findAll().size());
+        assertEquals(2, employees.birthdate.neq(new Date(2222)).findAll().size());
+
+        // Test greater than
+        assertEquals(2, employees.birthdate.greaterThan(new Date(2222)).findAll().size());
+        assertEquals(2, employees.birthdate.gt(new Date(2222)).findAll().size());
+
+        // Test greater than or equal
+        assertEquals(2, employees.birthdate.greaterThanOrEqual(new Date(111111)).findAll().size());
+        assertEquals(2, employees.birthdate.gte(new Date(111111)).findAll().size());
+
+        // Test less than
+        assertEquals(2, employees.birthdate.lessThan(new Date(333343333)).findAll().size());
+        assertEquals(2, employees.birthdate.lt(new Date(333343333)).findAll().size());
+
+        // Test less than or equal
+        assertEquals(2, employees.birthdate.lessThanOrEqual(new Date(111111)).findAll().size());
+        assertEquals(2, employees.birthdate.lte(new Date(111111)).findAll().size());
+
+        // Test between
+        assertEquals(1, employees.birthdate.between(new Date(3222), new Date(333342333)).findAll().size());
+
+    }
+
+    @Test
+    public void aggregateWithLimit() {
+
+        // SUM with limits
+        assertEquals(10000, employees.salary.sum(0, Table.INFINITE, 1));
+        assertEquals(40000, employees.salary.sum(0, Table.INFINITE, 2));
+        assertEquals(50000, employees.salary.sum(0, Table.INFINITE, 3));
+
+        // Average with limits
+        assertEquals(10000d, employees.salary.average(0, Table.INFINITE, 1));
+        assertEquals((10000d+30000d)/2, employees.salary.average(0, Table.INFINITE, 2));
+        assertEquals((10000d+30000d+10000d)/3, employees.salary.average(0, Table.INFINITE, 3));
+
+        // Maximum with limits
+        assertEquals(10000, employees.salary.maximum(0, Table.INFINITE, 1));
+        assertEquals(30000, employees.salary.maximum(0, Table.INFINITE, 2));
+        assertEquals(30000, employees.salary.maximum(0, Table.INFINITE, 3));
+
+        // Minimum with limits
+        assertEquals(10000, employees.salary.minimum(0, Table.INFINITE, 1));
+        assertEquals(10000, employees.salary.minimum(0, Table.INFINITE, 2));
+        assertEquals(10000, employees.salary.minimum(0, Table.INFINITE, 3));
+
     }
 
 }

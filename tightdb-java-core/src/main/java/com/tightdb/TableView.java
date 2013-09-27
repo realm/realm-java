@@ -253,12 +253,13 @@ public class TableView implements TableOrView {
      * @param rowIndex 0 based index value of the cell row
      * @return value of the particular cell.
      */
+    /*
     public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex){
         return nativeGetBinary(nativePtr, columnIndex, rowIndex);
     }
 
     protected native ByteBuffer nativeGetBinary(long nativeViewPtr, long columnIndex, long rowIndex);
-
+*/
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex){
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
     }
@@ -391,12 +392,14 @@ public class TableView implements TableOrView {
      * @param rowIndex row index of the cell
      * @param data
      */
+    /*
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data){
         if (immutable) throwImmutable();
         nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
     }
 
     protected native void nativeSetBinary(long nativeViewPtr, long columnIndex, long rowIndex, ByteBuffer data);
+    */
 
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
         if (immutable) throwImmutable();
@@ -426,7 +429,7 @@ public class TableView implements TableOrView {
      * @param value
      */
     //!!!TODO: New
-    public void addLong(long columnIndex, long value) {
+    public void adjust(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }
@@ -669,12 +672,12 @@ public class TableView implements TableOrView {
     public enum Order { ascending, descending };
 
     public void sort(long columnIndex, Order order) {
-        if (immutable) throwImmutable();
+        // Don't check for immutable. Sorting does not modify original table
         nativeSort(nativePtr, columnIndex, (order == Order.ascending));
     }
 
     public void sort(long columnIndex) {
-        if (immutable) throwImmutable();
+        // Don't check for immutable. Sorting does not modify original table
         nativeSort(nativePtr, columnIndex, true);
     }
 
@@ -706,8 +709,7 @@ public class TableView implements TableOrView {
 
     protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
-    private void throwImmutable()
-    {
+    private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 
@@ -715,11 +717,11 @@ public class TableView implements TableOrView {
     protected boolean immutable = false;
     protected TableView tableView;
 
-    @Override
+   /* @Override
     public long lookup(String value) {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
-    }
+    }*/
 
     @Override
     public long count(long columnIndex, String value) {

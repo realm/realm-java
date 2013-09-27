@@ -16,8 +16,10 @@ DESCR      : >
 
 SEE        : 
 EXAMPLES: 
-- DESCR    : 
-  CODE     : ex_java_write_transaction_intro
+- DESCR    : Typed interface
+  CODE     : ex_java_typed_write_transaction_intro
+- DESCR    : Dynamic interface
+  CODE     : ex_java_dyn_write_transaction_intro  
 IGNORE     : []
 CATEGORIES:
 - -:

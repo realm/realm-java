@@ -1,7 +1,10 @@
 package com.tightdb;
 
 import static org.testng.AssertJUnit.*;
+
+import com.tightdb.test.TestHelper;
 import org.testng.annotations.Test;
+
 
 public class JNIQueryTest {
 
@@ -10,8 +13,8 @@ public class JNIQueryTest {
     void init() {
         table = new Table();
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.INTEGER, "number");
+        tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 
         table.add(10, "A");
@@ -49,17 +52,7 @@ public class JNIQueryTest {
     @Test
     public void queryWithWrongDataType() {
 
-        Table table = new Table();
-
-        table.addColumn(ColumnType.ColumnTypeBinary, "binary");     // 0
-        table.addColumn(ColumnType.ColumnTypeBool, "boolean");      // 1
-        table.addColumn(ColumnType.ColumnTypeDate, "date");         // 2
-        table.addColumn(ColumnType.ColumnTypeDouble, "double");     // 3
-        table.addColumn(ColumnType.ColumnTypeFloat, "float");       // 4
-        table.addColumn(ColumnType.ColumnTypeInt, "long");          // 5
-        table.addColumn(ColumnType.ColumnTypeMixed, "mixed");       // 6
-        table.addColumn(ColumnType.ColumnTypeString, "string");     // 7
-        table.addColumn(ColumnType.ColumnTypeTable, "table");       // 8
+        Table table = TestHelper.getTableWithAllColumnTypes();
 
         // Query the table
         TableQuery query = table.where();
@@ -138,21 +131,86 @@ public class JNIQueryTest {
 
     @Test
     public void columnIndexOutOfBounds() {
-        Table table = new Table();
-
-        table.addColumn(ColumnType.ColumnTypeBinary, "binary");     // 0
-        table.addColumn(ColumnType.ColumnTypeBool, "boolean");      // 1
-        table.addColumn(ColumnType.ColumnTypeDate, "date");         // 2
-        table.addColumn(ColumnType.ColumnTypeDouble, "double");     // 3
-        table.addColumn(ColumnType.ColumnTypeFloat, "float");       // 4
-        table.addColumn(ColumnType.ColumnTypeInt, "long");          // 5
-        table.addColumn(ColumnType.ColumnTypeMixed, "mixed");       // 6
-        table.addColumn(ColumnType.ColumnTypeString, "string");     // 7
-        table.addColumn(ColumnType.ColumnTypeTable, "table");       // 8
+        Table table = TestHelper.getTableWithAllColumnTypes();
 
         // Query the table
         TableQuery query = table.where();
 
+        try { query.minimum(0);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(0);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(0);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimum(1);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(1);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(1);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimum(2);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimum(6);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(6);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(6);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimum(7);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(7);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(7);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimum(8);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(8);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(8);           assert(false); } catch(IllegalArgumentException e) {}
+
+        try { query.maximum(0);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(0);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(0);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximum(1);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(1);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(1);         	assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximum(2);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximum(6);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(6);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(6);         	assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximum(7);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(7);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(7);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximum(8);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(8);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(8);           assert(false); } catch(IllegalArgumentException e) {}
+
+        try { query.sum(0);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(0);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(0);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sum(1);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(1);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(1);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sum(2);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(2);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(2);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sum(6);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(6);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(6);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sum(7);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(7);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(7);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sum(8);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(8);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(8);               assert(false); } catch(IllegalArgumentException e) {}
+
+        try { query.average(0);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(0);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(0);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.average(1);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(1);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(1);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.average(2);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.average(6);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(6);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(6);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.average(7);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(7);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(7);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.average(8);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(8);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(8);           assert(false); } catch(IllegalArgumentException e) {}
         // Out of bounds for string
         try { query.equal(9, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.notEqual(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}

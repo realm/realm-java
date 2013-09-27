@@ -375,6 +375,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetString(
     return to_jstring(env, TBL(nativeTablePtr)->get_string( S(columnIndex), S(rowIndex)));  // noexcept
 }
 
+/*
 JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetByteBuffer(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
@@ -384,6 +385,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetByteBuffer(
     BinaryData bin = TBL(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
     return env->NewDirectByteBuffer(const_cast<char*>(bin.data()), bin.size());  // throws
 }
+*/
 
 JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Table_nativeGetByteArray(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
@@ -519,6 +521,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetDate(
     } CATCH_STD()
 }
 
+/*
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetByteBuffer(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
@@ -528,7 +531,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetByteBuffer(
         tbl_nativeDoBinary(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, byteBuffer);
     } CATCH_STD()
 }
-
+*/
+/*
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteBuffer(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
 {
@@ -538,6 +542,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteBuffer(
         tbl_nativeDoBinary(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, byteBuffer);
     } CATCH_STD()
 }
+*/
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetByteArray(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jbyteArray dataArray)
@@ -563,8 +568,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteArray(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeAddInt(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value)
 {
-    if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) 
+    Table* pTable = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return;
+    if (pTable->get_column_type (S(columnIndex)) != type_Int) {
+        ThrowException(env, IllegalArgument, "Invalid columntype - only Long columns are supported at the moment.");
+        return;
+    }
     try {
         TBL(nativeTablePtr)->add_int( S(columnIndex), value);
     } CATCH_STD()

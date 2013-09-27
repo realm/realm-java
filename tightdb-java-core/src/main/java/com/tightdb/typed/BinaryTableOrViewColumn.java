@@ -1,7 +1,5 @@
 package com.tightdb.typed;
 
-import java.nio.ByteBuffer;
-
 import com.tightdb.TableOrView;
 import com.tightdb.TableQuery;
 
@@ -9,7 +7,7 @@ import com.tightdb.TableQuery;
  * Super-type of the fields that represent a binary column in the generated
  * XyzView and XyzTable classes for the Xyz entity.
  */
-public class BinaryTableOrViewColumn<Cursor, View, Query> extends BinaryQueryColumn<Cursor, View, Query> implements TableOrViewColumn<ByteBuffer> {
+public class BinaryTableOrViewColumn<Cursor, View, Query> extends BinaryQueryColumn<Cursor, View, Query> implements TableOrViewColumn<byte[]> {
 
     public BinaryTableOrViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView, int index, String name) {
         this(types, tableOrView, null, index, name);
@@ -20,20 +18,23 @@ public class BinaryTableOrViewColumn<Cursor, View, Query> extends BinaryQueryCol
     }
 
     @Override
-    public ByteBuffer[] getAll() {
+    public byte[][] getAll() {
         long count = tableOrView.size();
-        ByteBuffer[] values = new ByteBuffer[(int) count];
+
+        byte[][] values = new byte[(int)count][];
+
         for (int i = 0; i < count; i++) {
-            values[i] = tableOrView.getBinaryByteBuffer(columnIndex, i);
+            values[i] = tableOrView.getBinaryByteArray(columnIndex, i);
         }
+
         return values;
     }
 
     @Override
-    public void setAll(ByteBuffer value) {
+    public void setAll(byte[] value) {
         long count = tableOrView.size();
         for (int i = 0; i < count; i++) {
-            tableOrView.setBinaryByteBuffer(columnIndex, i, value);
+            tableOrView.setBinaryByteArray(columnIndex, i, value);
         }
     }
 

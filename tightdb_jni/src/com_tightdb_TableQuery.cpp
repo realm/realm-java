@@ -369,6 +369,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqualDate(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetweenDate(
+
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value1, jlong value2)
 {
     Query* pQuery = Q(nativeQueryPtr);

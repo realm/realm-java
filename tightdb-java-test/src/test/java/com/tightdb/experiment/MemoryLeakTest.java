@@ -20,7 +20,7 @@ public class MemoryLeakTest {
         for (int i = 0; i < 10000; i++) {
 
             Table table = new Table();
-            table.addColumn(ColumnType.ColumnTypeInt, "myint");
+            table.addColumn(ColumnType.INTEGER, "myint");
             table.add(i);
 
             TableQuery query = table.where();

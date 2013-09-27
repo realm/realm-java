@@ -5,7 +5,6 @@ import static com.tightdb.test.ExtraTests.assertArrayEquals;
 import static com.tightdb.test.ExtraTests.assertDateArrayEquals;
 import static org.testng.AssertJUnit.*;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 import org.testng.annotations.Test;
@@ -106,7 +105,7 @@ public class TableColumnsTest extends AbstractTest {
 
     @Test
     public void shouldAddValueToWholeColumn() {
-        employees.salary.addLong(123);
+        employees.salary.adjust(123);
         for (int i = 0; i < EmployeesFixture.EMPLOYEES.length; ++i)
             assertEquals(EmployeesFixture.EMPLOYEES[i].salary + 123, employees
                     .get(i).getSalary());
@@ -120,7 +119,11 @@ public class TableColumnsTest extends AbstractTest {
                 employees.lastName.getAll());
         assertArrayEquals(EmployeesFixture.getAll(2), employees.salary.getAll());
         assertArrayEquals(EmployeesFixture.getAll(3), employees.driver.getAll());
-        assertArrayEquals(EmployeesFixture.getAll(4), employees.photo.getAll());
+        byte[][] bActual = employees.photo.getAll();
+        Object[] bExpected = EmployeesFixture.getAll(4);
+        for(int i = 0; i < bActual.length; i++) {
+            assertEquals(((java.nio.ByteBuffer)(bExpected[i])).array(), bActual[i]);
+        }
         assertDateArrayEquals(EmployeesFixture.getAll(5), employees.birthdate.getAll());
         assertArrayEquals(EmployeesFixture.getAll(6), employees.extra.getAll());
 
@@ -131,9 +134,10 @@ public class TableColumnsTest extends AbstractTest {
             PhoneData[] phones = EmployeesFixture.PHONES[i];
             assertEquals(phones.length, phoneTables[i].size());
             for (int j = 0; j < phones.length; j++) {
-                assertEquals(phones[j].type, phoneTables[i].get(j).type.get());
+                assertEquals(phones[j].type, phoneTables[i].get(j).getType()
+                );
                 assertEquals(phones[j].number,
-                        phoneTables[i].get(j).number.get());
+                        phoneTables[i].get(j).getNumber());
             }
         }
     }
@@ -153,13 +157,12 @@ public class TableColumnsTest extends AbstractTest {
         employees.driver.setAll(true);
         assertSameArrayElement(true, employees.driver.getAll());
 
-        ByteBuffer buf = ByteBuffer.allocateDirect(2);
-        buf.put(new byte[] { 10, 20 });
-        employees.photo.setAll(buf);
-        for (ByteBuffer buffer : employees.photo.getAll()) {
-            ByteBuffer buf2 = ByteBuffer.wrap(new byte[] { 10, 20 });
-            assertEquals(buf2, buffer);
+        byte[] bArray = new byte[] { 10, 20 };
+        employees.photo.setAll(bArray);
+        for(byte[] bActual : employees.photo.getAll()) {
+            assertEquals(bArray, bActual);
         }
+
 
         Date date = new Date(13579);
         employees.birthdate.setAll(date);

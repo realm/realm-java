@@ -24,17 +24,17 @@ public class JNIViewTest {
 	void init() {
 		//Specify table		
 	    t = new Table();
-	    t.addColumn(ColumnType.ColumnTypeString, "Name");
-	    t.addColumn(ColumnType.ColumnTypeBool,   "Study");
-	    t.addColumn(ColumnType.ColumnTypeInt,    "Age");
-	    t.addColumn(ColumnType.ColumnTypeDate,   "Birthday");
+	    t.addColumn(ColumnType.STRING, "Name");
+	    t.addColumn(ColumnType.BOOLEAN,   "Study");
+	    t.addColumn(ColumnType.INTEGER,    "Age");
+	    t.addColumn(ColumnType.DATE,   "Birthday");
 	    
 	    // Add unsupported column types
-	    t.addColumn(ColumnType.ColumnTypeString, "Unsupported0");
-	    t.addColumn(ColumnType.ColumnTypeFloat,  "Unsupported1");
-	    t.addColumn(ColumnType.ColumnTypeDouble, "Unsupported2");
-	    t.addColumn(ColumnType.ColumnTypeMixed,  "Unsupported3");
-	    t.addColumn(ColumnType.ColumnTypeTable,  "Unsupported4");
+	    t.addColumn(ColumnType.STRING, "Unsupported0");
+	    t.addColumn(ColumnType.FLOAT,  "Unsupported1");
+	    t.addColumn(ColumnType.DOUBLE, "Unsupported2");
+	    t.addColumn(ColumnType.MIXED,  "Unsupported3");
+	    t.addColumn(ColumnType.TABLE,  "Unsupported4");
 	    
 	    //Add data
 	    t.add("cc", true,  24, date1, "", 0.0f, 0.0, 0, null);
@@ -143,7 +143,7 @@ public class JNIViewTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 
         table.add("Foo");
@@ -161,7 +161,7 @@ public class JNIViewTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 
         table.add("A1");
@@ -184,7 +184,7 @@ public class JNIViewTest {
     @Test
     public void getNonExistingColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeInt, "int");      
+        t.addColumn(ColumnType.INTEGER, "int");      
         TableView view = t.where().findAll();      
         assertEquals(-1, view.getColumnIndex("non-existing column"));
     }
@@ -192,7 +192,7 @@ public class JNIViewTest {
     @Test(expectedExceptions = NullPointerException.class)
     public void getNullColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeInt, "");
+        t.addColumn(ColumnType.INTEGER, "");
         TableView view = t.where().findAll();
         view.getColumnIndex(null);
     }

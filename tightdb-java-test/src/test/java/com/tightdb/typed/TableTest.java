@@ -2,12 +2,11 @@ package com.tightdb.typed;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.util.Date;
+
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.nio.ByteBuffer;
-import java.util.Date;
 
 import com.tightdb.Group;
 import com.tightdb.Mixed;
@@ -98,7 +97,7 @@ public class TableTest {
     @Test
     public void shouldHaveTwoWaysToReadCellValues() {
         assertEquals(NAME0, employees.get(0).getFirstName());
-        assertEquals(NAME0, employees.get(0).firstName.get());
+        assertEquals(NAME0, employees.get(0).getFirstName());
     }
 
     @Test
@@ -106,7 +105,7 @@ public class TableTest {
         employees.get(0).setFirstName("FOO");
         assertEquals("FOO", employees.get(0).getFirstName());
 
-        employees.get(0).firstName.set("BAR");
+        employees.get(0).setFirstName("BAR");
         assertEquals("BAR", employees.get(0).getFirstName());
     }
 
@@ -114,18 +113,15 @@ public class TableTest {
     public void shouldSetEntireRow() {
         Date date = new Date(1234567890);
         byte[] bytes = new byte[] { 1, 3, 5 };
-        ByteBuffer buf = ByteBuffer.allocateDirect(3);
-        buf.put(bytes);
-        ByteBuffer buf2 = ByteBuffer.allocateDirect(3);
-        buf2.put(bytes);
 
-        employees.get(0).set(NAME2, "Bond", 10000, true, buf, date, new Mixed(true), null);
+
+        employees.get(0).set(NAME2, "Bond", 10000, true, bytes, date, new Mixed(true), null);
 
         assertEquals(NAME2, employees.get(0).getFirstName());
         assertEquals("Bond", employees.get(0).getLastName());
         assertEquals(10000, employees.get(0).getSalary());
         assertEquals(true, employees.get(0).getDriver());
-        assertEquals(buf2.rewind(), employees.get(0).getPhoto().rewind());
+        assertEquals(bytes, employees.get(0).getPhoto());
         assertEquals(date.getTime() / 1000, employees.get(0).getBirthdate().getTime() / 1000);
         assertEquals(new Mixed(true), employees.get(0).getExtra());
     }
@@ -158,7 +154,6 @@ public class TableTest {
     @Test
     public void shouldConvertToJson() {
         String json = employees.toJson();
-        System.out.println("JSON format: " + json);
         String expect = "[{\"firstName\":\"John\",\"lastName\":\"Doe\",\"salary\":10000,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":\"extra\",\"phones\":[]},{\"firstName\":\"Nikolche\",\"lastName\":\"Mihajlovski\",\"salary\":30000,\"driver\":false,\"photo\":\"01\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":1234,\"phones\":[]},{\"firstName\":\"Johny\",\"lastName\":\"B. Good\",\"salary\":10000,\"driver\":true,\"photo\":\"01\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":true,\"phones\":[]},{\"firstName\":\"NoName\",\"lastName\":\"Test Mixed Date\",\"salary\":1,\"driver\":true,\"photo\":\"01\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":\"1973-11-29 21:33:09\",\"phones\":[]},{\"firstName\":\"NoName\",\"lastName\":\"Test Mixed Binary\",\"salary\":1,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":\"030201\",\"phones\":[]}]";
         assertEquals(json, expect);
     }

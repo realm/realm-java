@@ -8,8 +8,8 @@ public class JNISortedLongTest {
 
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.ColumnTypeInt, "number");
-        table.addColumn(ColumnType.ColumnTypeString, "name");
+        table.addColumn(ColumnType.INTEGER, "number");
+        table.addColumn(ColumnType.STRING, "name");
 
         table.add(1, "A");
         table.add(10, "B");

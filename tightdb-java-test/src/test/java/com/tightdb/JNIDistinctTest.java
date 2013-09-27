@@ -13,8 +13,8 @@ public class JNIDistinctTest {
 
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.ColumnTypeInt, "number");
-        table.addColumn(ColumnType.ColumnTypeString, "name");
+        table.addColumn(ColumnType.INTEGER, "number");
+        table.addColumn(ColumnType.STRING, "name");
 
         long i = 0;
         table.add(0, "A");

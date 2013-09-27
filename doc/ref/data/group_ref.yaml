@@ -2,7 +2,7 @@
 # Java reference documentation for Group class
 #
 
-#UNDOCUMENTED: [  
+#UNDOCUMENTED: [
 # g_group_operator_equal, g_group_operator_not_equal,
 # g_group_is_shared, g_group_tostring,
 # commit, to_json, get_table_typed]
@@ -11,9 +11,9 @@ ID         : class_group
 TITLE      : Group
 SUMMARY    : *g_group_summary
 DESCR      : *g_group_descr
-SEE        : 
-EXAMPLES: 
-- DESCR    : 
+SEE        :
+EXAMPLES:
+- DESCR    :
   CODE     : ex_java_group_intro
 IGNORE     : []                   # List of method-ids to ignore
 CATEGORIES:
@@ -39,7 +39,7 @@ CATEGORIES:
       PARAMS:
       - NAME   : file
         TYPES  : java.io.File
-        DESCR  : A File object. 
+        DESCR  : A File object.
       - NAME   : fileName
         TYPES  : String
         DESCR  : The name of the file.
@@ -51,10 +51,14 @@ CATEGORIES:
                  OpenMode.READ_WRITE_NO_CREATE: Open in read/write mode. Fail if the file does not already exist.
       - NAME   : data
         TYPES  : byte[]
-        DESCR  : *g_group_constructor_memory_parm3_descr
+        DESCR  : |
+                 In-memory binary encoded representation of a group.
+                 The referenced memory must be kept alive.
       - NAME   : buffer
         TYPES  : ByteBuffer
-        DESCR  : *g_group_constructor_memory_parm3_descr
+        DESCR  : |
+                 In-memory binary encoded representation of a group.
+                 The referenced memory must be kept alive.
       RETURN:
         TYPES  : Group
         DESCR  : *g_group_constructor_memory_return1_descr
@@ -64,16 +68,20 @@ CATEGORIES:
       - DESCR  :
         CODE   : ex_java_group_constructor_file
       - DESCR  :
+        CODE   : ex_java_group_constructor_string
+      - DESCR  :
+        CODE   : ex_java_group_constructor_string_mode
+      - DESCR  :
         CODE   : ex_java_group_constructor_memory
       SEE      : "{@link g_group_is_valid}"
   - g_group_destructor:
       NAMES    : close
       DESCR    : >
                  This method will close the group and release it's resources (memory and files).
-                 Java will do this automatically via garbage collection, but if you want explicit control, 
+                 Java will do this automatically via garbage collection, but if you want explicit control,
                  you have the option with this method.
       SUMMARY  : Close the group and release it's resources.
-      
+
 - Table:
   METHODS:
   - g_group_has_table:
@@ -89,8 +97,8 @@ CATEGORIES:
         DESCR  : <code>true</code> if the table exits, otherwise <code>false</code>.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_group_optional_table
-  
+        CODE   : ex_java_group_has_table
+
   - g_group_get_table:
       NAMES    : getTable
       SUMMARY  : *g_group_get_table_summary
@@ -102,17 +110,15 @@ CATEGORIES:
       PARAMS:
       - NAME   : name
         TYPES  : String
-        DESCR  : Name of the table you wish to retrieve. 
+        DESCR  : Name of the table you wish to retrieve.
       RETURN:
         TYPES  : Table
         DESCR  : The requested Table object.
       EXAMPLES:
       -  DESCR :
-         CODE  : ex_java_group_traverse
-      -  DESCR :
-         CODE  : ex_java_group_optional_table
+         CODE  : ex_java_group_get_table
       SEE      : "{@link g_group_has_table}"
-      
+
   - g_group_get_table_name:
       NAMES    : getTableName
       DESCR    : *g_group_get_table_name_descr
@@ -126,7 +132,7 @@ CATEGORIES:
         DESCR  : The table name.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_group_traverse
+        CODE   : ex_java_group_get_table_name
 
 - Serialization:
   METHODS:
@@ -144,9 +150,9 @@ CATEGORIES:
       - NAME   : fileName
         TYPES  : String
         DESCR  : File name, possibly a full path.
-      RETURN:
-        DESCR  : <code>true</code> is successful, <code>false</code> otherwise.
-        TYPES  : bool
+      THROWS:
+      - EXCEPT : IOException
+        DESCR  : Throws exception if file already exists
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_write_to_file
@@ -160,6 +166,16 @@ CATEGORIES:
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_write_to_mem
+#  - g_group_write_to_mem_bytebuffer:
+#      NAMES    : writeToByteBuffer
+#      DESCR    : *g_group_write_to_mem_descr
+#      SUMMARY  : *g_group_write_to_mem_summary
+#      RETURN:
+#        DESCR  : A copy of the serialized group.
+#        TYPES  : ByteBuffer
+#      EXAMPLES:
+#      - DESCR  :
+#        CODE   : ex_java_group_write_to_mem
   - g_group_to_string:
       NAMES    : toString
       DESCR    : *g_group_to_string_descr
@@ -184,7 +200,7 @@ CATEGORIES:
 - Group:
   METHODS:
   - g_group_table_count:
-      NAMES    : getTableCount
+      NAMES    : size
       DESCR    : *g_group_table_count_descr
       SUMMARY  : *g_group_table_count_summary
       RETURN:
@@ -192,7 +208,7 @@ CATEGORIES:
         DESCR  : The number of tables in the group.
       EXAMPLES:
       - DESCR  :
-        CODE   : #???ex_java_group_traverse
+        CODE   : ex_java_group_size
 
   - g_group_is_empty:
       NAMES    : isEmpty
@@ -234,11 +250,11 @@ CATEGORIES:
 #      EXAMPLES:
 #      - DESCR  :
 #        CODE   : ex_java_group_is_shared
-        
+
 #  - g_group_tostring:
 #      NAMES    : toString
 #      SUMMARY  : *g_group_to_string_summary
-#      DESCR    : > 
+#      DESCR    : >
 #                 This methods returns textual information about the group.
 #                 It outputs a list of the table names and the number of rows they contain.
 #      RETURN:
@@ -247,4 +263,3 @@ CATEGORIES:
 #      EXAMPLES:
 #      - DESCR  :
 #        CODE   : ex_java_group_tostring
-

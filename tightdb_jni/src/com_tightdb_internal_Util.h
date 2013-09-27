@@ -7,6 +7,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 #undef com_tightdb_internal_Util_REQUIRED_JNI_VERSION
 #define com_tightdb_internal_Util_REQUIRED_JNI_VERSION 19i64
 /*
