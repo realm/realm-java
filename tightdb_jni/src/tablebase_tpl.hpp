@@ -85,10 +85,10 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
             }
             break;
         }
-    case type_Date:
+    case type_DateTime:
         {
             jlong dateTimeValue = GetMixedDateTimeValue(env, jMixedValue);
-            Date date(dateTimeValue);
+            DateTime date(dateTimeValue);
             (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(date));
             return;
         }
