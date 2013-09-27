@@ -32,7 +32,7 @@ public class GroupIntro {
         File file = new File("mydatabase.tightdb");
 
         // Serializing to a file that already exists is an error
-        // and would cause undefined behaviour
+        // and would cause undefined behavior
         if(file.exists() == false){
             //Serialize the database to the file
             group.writeToFile(file);
