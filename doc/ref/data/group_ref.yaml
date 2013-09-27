@@ -150,9 +150,9 @@ CATEGORIES:
       - NAME   : fileName
         TYPES  : String
         DESCR  : File name, possibly a full path.
-      RETURN:
-        DESCR  : <code>true</code> is successful, <code>false</code> otherwise.
-        TYPES  : bool
+      THROWS:      
+      - EXCEPT : IOException
+        DESCR  : Throws exception if file already exists
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_write_to_file
@@ -166,16 +166,16 @@ CATEGORIES:
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_write_to_mem
-  - g_group_write_to_mem_bytebuffer:
-      NAMES    : writeToByteBuffer
-      DESCR    : *g_group_write_to_mem_descr
-      SUMMARY  : *g_group_write_to_mem_summary
-      RETURN:
-        DESCR  : A copy of the serialized group.
-        TYPES  : ByteBuffer
-      EXAMPLES:
-      - DESCR  :
-        CODE   : ex_java_group_write_to_mem
+#  - g_group_write_to_mem_bytebuffer:
+#      NAMES    : writeToByteBuffer
+#      DESCR    : *g_group_write_to_mem_descr
+#      SUMMARY  : *g_group_write_to_mem_summary
+#      RETURN:
+#        DESCR  : A copy of the serialized group.
+#        TYPES  : ByteBuffer
+#      EXAMPLES:
+#      - DESCR  :
+#        CODE   : ex_java_group_write_to_mem
   - g_group_to_string:
       NAMES    : toString
       DESCR    : *g_group_to_string_descr
@@ -200,7 +200,7 @@ CATEGORIES:
 - Group:
   METHODS:
   - g_group_table_count:
-      NAMES    : getTableCount
+      NAMES    : size
       DESCR    : *g_group_table_count_descr
       SUMMARY  : *g_group_table_count_summary
       RETURN:
@@ -208,7 +208,7 @@ CATEGORIES:
         DESCR  : The number of tables in the group.
       EXAMPLES:
       - DESCR  :
-        CODE   : #???ex_java_group_traverse
+        CODE   : ex_java_group_size
 
   - g_group_is_empty:
       NAMES    : isEmpty
