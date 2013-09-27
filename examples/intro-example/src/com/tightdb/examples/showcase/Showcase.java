@@ -63,10 +63,10 @@ public class Showcase {
 
         /****************************** GETTERS AND SETTERS *****************************/
 
-        // Get the value
+        // Get value
         System.out.println("name2: " + john.getFirstName());
 
-        // Set the value
+        // Set value
         employees.get(2).setLastName("NewName");
 
         /****************************** MANIPULATION OF ALL RECORDS *****************************/

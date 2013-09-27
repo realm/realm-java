@@ -50,10 +50,10 @@ public class Tutorial {
     /****************************** GETTERS AND SETTERS **********************/
 
     // @@Example: accessing_rows @@
-    // Get the value
+    // Get value
     String name = peopleTable.get(2).getName(); // name => "Mary"
 
-    // Set the value
+    // Set value
     peopleTable.get(2).setName("NewName"); 
     // @@EndExample@@
 
