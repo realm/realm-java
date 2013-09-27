@@ -31,7 +31,8 @@ public class GroupIntro {
         // A new file pointing to the location of the database
         File file = new File("mydatabase.tightdb");
 
-        // Serializing to a file that already exists is an error and would case undefined behaviour
+        // Serializing to a file that already exists is an error
+        // and would cause undefined behaviour
         if(file.exists() == false){
             //Serialize the database to the file
             group.writeToFile(file);
@@ -47,7 +48,8 @@ public class GroupIntro {
         // Get the number of tables in the group. In this case, only 1 table has been added
         Assert(group.size() == 1);
 
-        // Returns the name of the first (zero-indexed) table in the group. In this case 'table1'
+        // Returns the name of the first (zero-indexed) table in the group. 
+        // In this case 'table1'
         String tableName = group.getTableName(0);
 
         // Checks if the group contains the specified table name
@@ -74,14 +76,15 @@ public class GroupIntro {
 
             DataInputStream dIn = new DataInputStream(socket.getInputStream());
 
-            int length = dIn.readInt();                                     // read length of incoming byte array
+            int length = dIn.readInt();                 // read length of incoming byte array
             byte[] receivedByteArray = new byte[length];
-            dIn.readFully(receivedByteArray, 0, receivedByteArray.length); // read the byte array
+            dIn.readFully(receivedByteArray, 0, receivedByteArray.length); // read byte array
 
             // Initialize group from the received byte array
             Group fromArray = new Group(receivedByteArray);
 
-            // Get a table from the group, and read the value from column 1, row 2 (zero-indexed)
+            // Get a table from the group, 
+            // and read the value from column 1, row 2 (zero-indexed)
             Table tableFromArray = fromArray.getTable(tableName);
             String value = tableFromArray.getString(1, 2);
             Assert(value.equals("Elephant")); 

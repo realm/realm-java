@@ -128,6 +128,12 @@ public class Group {
 
     protected native long nativeSize(long nativeGroupPtr);
 
+    
+    public boolean isEmpty(){
+        return size() == 0;
+    }
+    
+    
     /**
      * Checks whether table exists in the Group.
      *

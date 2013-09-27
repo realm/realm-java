@@ -25,10 +25,10 @@ public class TypedTableExamples {
         
         
         // Column methods:
-        getColumnCountExample();
+       /* getColumnCountExample();
         getColumnNameExample();
         getColumnIndexExample();
-        getColumnTypeExample();
+        getColumnTypeExample();*/
         
         
         // Row methods:
@@ -193,7 +193,7 @@ public class TypedTableExamples {
     // Column methods
     // ******************************************
 
-    public static void getColumnCountExample(){
+  /*  public static void getColumnCountExample(){
         // @@Example: ex_java_typed_table_get_column_count @@
         // @@Show@@
         PeopleTable people = new PeopleTable();
@@ -237,7 +237,7 @@ public class TypedTableExamples {
         //Assert(people.getColumnType(1).equals(ColumnType.INTEGER));
         // @@EndShow@@
         // @@EndExample@@
-    }
+    }*/
     
     
     
