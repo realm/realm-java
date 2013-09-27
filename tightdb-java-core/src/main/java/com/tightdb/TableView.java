@@ -574,7 +574,7 @@ public class TableView implements TableOrView {
      * @param columnIndex column index
      * @return the sum of the values in the column
      */
-    public long sum(long columnIndex){
+    public long sumInt(long columnIndex){
         return nativeSum(nativePtr, columnIndex);
     }
 
@@ -589,7 +589,7 @@ public class TableView implements TableOrView {
      * @param columnIndex column index
      * @return the maximum value
      */
-    public long maximum(long columnIndex){
+    public long maximumInt(long columnIndex){
         return nativeMaximum(nativePtr, columnIndex);
     }
 
@@ -604,13 +604,13 @@ public class TableView implements TableOrView {
      * @param columnIndex column index
      * @return the minimum value
      */
-    public long minimum(long columnIndex){
+    public long minimumInt(long columnIndex){
         return nativeMinimum(nativePtr, columnIndex);
     }
 
     protected native long nativeMinimum(long nativeViewPtr, long columnIndex);
 
-    public double average(long columnIndex) {
+    public double averageInt(long columnIndex) {
         return nativeAverage(nativePtr, columnIndex);
     }
 
