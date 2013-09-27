@@ -48,8 +48,8 @@ public class DynTableIntro {
 
         // Do some simple aggregations
         Assert(tbl.maximumDouble(2) == 123.45);
-        Assert(tbl.sum(0) == 24);
-        Assert(tbl.average(0) == 6.0);
+        Assert(tbl.sumInt(0) == 24);
+        Assert(tbl.averageInt(0) == 6.0);
 
         // Simple match search
         Assert(tbl.findFirstLong(0, -15) == 1);       // Search for -15 in column 0. returns rowIndex

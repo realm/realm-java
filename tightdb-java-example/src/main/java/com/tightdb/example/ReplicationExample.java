@@ -1,4 +1,4 @@
-package com.tightdb.example;
+/*package com.tightdb.example;
 
 import java.util.ArrayDeque;
 import java.util.Date;
@@ -73,4 +73,4 @@ public class ReplicationExample {
             db.close();
         }
     }
-}
+}*/

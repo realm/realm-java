@@ -33,5 +33,12 @@ public class TestTableModel {
         float floatNum;
         double doubleNum;
     }
-
+    
+    @DefineTable
+    class TestQueryTable {
+        long longNum;
+        float floatNum;
+        double doubleNum;
+        String stringVal;
+    }
 }

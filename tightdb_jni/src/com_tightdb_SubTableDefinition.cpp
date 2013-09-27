@@ -1,5 +1,5 @@
 #include "util.hpp"
-#include "com_tightdb_SubtableDefinition.h"
+#include "com_tightdb_SubTableDefinition.h"
 
 using namespace tightdb;
 using namespace std;

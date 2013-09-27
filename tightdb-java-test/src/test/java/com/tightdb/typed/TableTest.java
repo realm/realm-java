@@ -164,5 +164,4 @@ public class TableTest {
         employees.lastName.setIndex();
         assertEquals(true, employees.lastName.hasIndex());
     }
-
 }
