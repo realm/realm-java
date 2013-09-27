@@ -83,7 +83,7 @@ public class ViewColumnsTest extends AbstractTest {
         assertEquals(0, view.size());
     }
 
-    @Test(enabled=true)
+    @Test
     public void shouldAggregateColumnValue() {
         assertEquals(EmployeesFixture.EMPLOYEES[0].salary,
                 employeesView.salary.minimum());
@@ -101,10 +101,13 @@ public class ViewColumnsTest extends AbstractTest {
 
     @Test
     public void shouldAddValueToWholeColumn() {
-        employeesView.salary.addLong(123);
+        employeesView.salary.adjust(123);
         for (int i = 0; i < EmployeesFixture.EMPLOYEES.length; ++i)
             assertEquals(EmployeesFixture.EMPLOYEES[i].salary + 123,
                     employeesView.get(i).getSalary());
     }
+    
+    
+   
 
 }

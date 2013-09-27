@@ -12,7 +12,7 @@ import com.tightdb.*;
 @SuppressWarnings("unused")
 
 //@@Example: create_table @@
-public class tutorial {
+public class Tutorial {
     // Define the TighDB table with columns "name", "age" and "hired"
     @DefineTable(table = "PeopleTable")
     class people {
@@ -186,12 +186,16 @@ public class tutorial {
 
     // Read transaction:
     ReadTransaction rdTrans = db.beginRead();       // Start transaction
-    PeopleTable people = new PeopleTable(rdTrans);
-    for (PeopleRow person2 : people) {
-        System.out.println(person2.getName() + " is " +
-                           person2.getAge() + " years old");
+    try{
+        PeopleTable people = new PeopleTable(rdTrans);
+        for (PeopleRow person2 : people) {
+            System.out.println(person2.getName() + " is " +
+                               person2.getAge() + " years old");
+        }
+    } finally {
+        rdTrans.endRead();                          // End transaction 
     }
-    rdTrans.endRead();                              // End transaction
+    
 
     // @@EndExample@@
 

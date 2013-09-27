@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 #undef com_tightdb_Table_INFINITE
-#define com_tightdb_Table_INFINITE -1i64
+#define com_tightdb_Table_INFINITE -1LL
 /*
  * Class:     com_tightdb_Table
  * Method:    createNative
@@ -31,6 +31,22 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClose
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeEquals
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeEquals
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeIsRootTable
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsRootTable
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -720,6 +736,22 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeOptimize
  */
 JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToJson
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToString
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeRowToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeRowToString
+  (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus
 }

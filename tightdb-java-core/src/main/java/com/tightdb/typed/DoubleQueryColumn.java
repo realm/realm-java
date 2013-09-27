@@ -70,32 +70,32 @@ public class DoubleQueryColumn<Cursor, View, Query> extends AbstractColumn<Long,
         return getQuery().averageDouble(columnIndex);
     }
 
-    public double average(long start, long end) {
-        return getQuery().averageDouble(columnIndex, start, end);
+    public double average(long start, long end, long limit) {
+        return getQuery().averageDouble(columnIndex, start, end, limit);
     }
 
     public double sum() {
         return getQuery().sumDouble(columnIndex);
     }
 
-    public double sum(long start, long end) {
-        return getQuery().sumDouble(columnIndex, start, end);
+    public double sum(long start, long end, long limit) {
+        return getQuery().sumDouble(columnIndex, start, end, limit);
     }
 
     public double maximum() {
         return getQuery().maximumDouble(columnIndex);
     }
 
-    public double maximum(long start, long end) {
-        return getQuery().maximumDouble(columnIndex, start, end);
+    public double maximum(long start, long end, long limit) {
+        return getQuery().maximumDouble(columnIndex, start, end, limit);
     }
 
     public double minimum() {
         return getQuery().minimumDouble(columnIndex);
     }
 
-    public double minimum(long start, long end) {
-        return getQuery().minimumDouble(columnIndex, start, end);
+    public double minimum(long start, long end, long limit) {
+        return getQuery().minimumDouble(columnIndex, start, end, limit);
     }
 
 }

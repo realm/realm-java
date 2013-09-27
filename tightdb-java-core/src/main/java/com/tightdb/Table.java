@@ -3,6 +3,7 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.tightdb.TableView.Order;
 import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
@@ -46,7 +47,7 @@ import com.tightdb.typed.TightDB;
  *
  */
 
-public class Table implements TableOrView {
+public class Table implements TableOrView, TableDefinition {
 
     public static final long INFINITE = -1;
 
@@ -92,17 +93,26 @@ public class Table implements TableOrView {
     }
 
     @Override
-    public void finalize() {
+    public void finalize() throws Throwable {
         if (DEBUG) System.err.println("==== FINALIZE " + tableNo + "...");
-        close();
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
     }
 
-    public void close() {
+    private void close() {
         synchronized (CloseMutex.getInstance()) {
-            if (DEBUG) System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
-            if (nativePtr == 0)
+            if (nativePtr == 0) {
+                if (DEBUG)
+                    System.err.println(".... CLOSE ignored.");
                 return;
-            if (DEBUG) TableCount--;
+            }
+            if (DEBUG) {
+                TableCount--;
+                System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+            }
             nativeClose(nativePtr);
             nativePtr = 0;
         }
@@ -118,17 +128,53 @@ public class Table implements TableOrView {
      */
 
     public boolean isValid(){
+    	if (nativePtr == 0)
+    		return false;
         return nativeIsValid(nativePtr);
     }
 
     protected native boolean nativeIsValid(long nativeTablePtr);
 
+    @Override
+    public boolean equals(Object other) {
+        if (this == other)
+            return true;
+        if (other == null)
+            return false;
+        // Has to work for all the typed tables as well
+        if (!(other instanceof Table))
+            return false;
+
+        Table otherTable = (Table) other;
+        return nativeEquals(nativePtr, otherTable.nativePtr);
+    }
+
+    protected native boolean nativeEquals(long nativeTablePtr, long nativeTableToComparePtr);
+
+    private void verifyColumnName(String name) {
+    	if (name.length() > 63) {
+    		throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
+    	}    	
+    }
+
+    public TableDefinition getSubTableDefinition(long columnIndex) {
+        if(nativeIsRootTable(nativePtr) == false)
+            throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
+
+        long[] newPath = new long[1];
+        newPath[0] = columnIndex;
+        return new SubTableDefinition(nativePtr, newPath);
+    }
+
+    protected native boolean nativeIsRootTable(long nativeTablePtr);
+    
     /**
      * Add a column to the table dynamically.
      * @return Index of the new column.
      */
     public long addColumn (ColumnType type, String name) {
-        return nativeAddColumn(nativePtr, type.getValue(), name);
+    	verifyColumnName(name);
+    	return nativeAddColumn(nativePtr, type.getValue(), name);
     }
 
     protected native long nativeAddColumn(long nativeTablePtr, int type, String name);
@@ -136,8 +182,7 @@ public class Table implements TableOrView {
     /**
      * Remove a column in the table dynamically.
      */
-    public void removeColumn(long columnIndex)
-    {
+    public void removeColumn(long columnIndex) {
         nativeRemoveColumn(nativePtr, columnIndex);
     }
 
@@ -147,6 +192,7 @@ public class Table implements TableOrView {
      * Rename a column in the table.
      */
     public void renameColumn(long columnIndex, String newName) {
+    	verifyColumnName(newName);
         nativeRenameColumn(nativePtr, columnIndex, newName);
     }
 
@@ -223,8 +269,7 @@ public class Table implements TableOrView {
      * Returns the name of a column identified by columnIndex. Notice that the
      * index is zero based.
      *
-     * @param columnIndex
-     *            the column index
+     * @param columnIndex the column index
      * @return the name of the column
      */
     public String getColumnName(long columnIndex) {
@@ -236,13 +281,12 @@ public class Table implements TableOrView {
     /**
      * Returns the 0-based index of a column based on the name.
      *
-     * @param name
-     *            column name
+     * @param name column name
      * @return the index, -1 if not found
      */
     public long getColumnIndex(String name) {
         long columnCount = getColumnCount();
-        for (int i = 0; i < columnCount; i++) {
+        for (long i = 0; i < columnCount; i++) {
             if (name.equals(getColumnName(i))) {
                 return i;
             }
@@ -253,8 +297,7 @@ public class Table implements TableOrView {
     /**
      * Get the type of a column identified by the columnIdex.
      *
-     * @param columnIndex
-     *            index of the column.
+     * @param columnIndex index of the column.
      * @return Type of the particular column.
      */
     public ColumnType getColumnType(long columnIndex)
@@ -268,8 +311,7 @@ public class Table implements TableOrView {
      * Removes a row from the specific index. As of now the entry is simply
      * removed from the table.
      *
-     * @param rowIndex
-     *            the row index (starting with 0)
+     * @param rowIndex the row index (starting with 0)
      *
      */
     public void remove(long rowIndex) {
@@ -305,19 +347,32 @@ public class Table implements TableOrView {
 
     public long addEmptyRows(long rows) {
         if (immutable) throwImmutable();
+        if (rows < 1)
+        	throw new IllegalArgumentException("'rows' must be > 0.");
         return nativeAddEmptyRow(nativePtr, rows);
     }
 
     protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
 
+    
+    /**
+     * Appends the specified row to the end of the table
+     * @param values
+     * @return The row index of the appended row
+     */
     public long add(Object... values) {
         long rowIndex = size();
-    	insert(rowIndex, values);
+    	addAt(rowIndex, values);
     	return rowIndex;
     }
 
 
-    public void insert(long rowIndex, Object... values) {
+    /**
+     * Inserts a row at the specified row index. Shifts the row currently at that row index and any subsequent rows down (adds one to their row index).
+     * @param rowIndex
+     * @param values
+     */
+    public void addAt(long rowIndex, Object... values) {
         if (immutable) throwImmutable();
 
         // Check index
@@ -341,8 +396,15 @@ public class Table implements TableOrView {
             ColumnType colType = getColumnType(columnIndex);
             colTypes[columnIndex] = colType;
             if (!colType.matchObject(value)) {
+                //String representation of the provided value type
+                String providedType;
+                if (value == null) 
+                    providedType = "null";
+                else
+                    providedType = value.getClass().toString();
+                
                 throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
-                        ". Expected a value compatible with column type " + colType + ", but got " + value.getClass() + ".");
+                        ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
             }
         }
 
@@ -350,34 +412,31 @@ public class Table implements TableOrView {
         for (long columnIndex = 0; columnIndex < columns; columnIndex++) {
             Object value = values[(int)columnIndex];
             switch (colTypes[(int)columnIndex]) {
-            case ColumnTypeBool:
+            case BOOLEAN:
                 nativeInsertBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
                 break;
-            case ColumnTypeInt:
+            case INTEGER:
                 nativeInsertLong(nativePtr, columnIndex, rowIndex, ((Number)value).longValue());
                 break;
-            case ColumnTypeFloat:
+            case FLOAT:
                 nativeInsertFloat(nativePtr, columnIndex, rowIndex, ((Float)value).floatValue());
                 break;
-            case ColumnTypeDouble:
+            case DOUBLE:
                 nativeInsertDouble(nativePtr, columnIndex, rowIndex, ((Double)value).doubleValue());
                 break;
-            case ColumnTypeString:
+            case STRING:
                 nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
                 break;
-            case ColumnTypeDate:
+            case DATE:
                 nativeInsertDate(nativePtr, columnIndex, rowIndex, ((Date)value).getTime()/1000);
                 break;
-            case ColumnTypeMixed:
+            case MIXED:
                 nativeInsertMixed(nativePtr, columnIndex, rowIndex, Mixed.mixedValue(value));
                 break;
-            case ColumnTypeBinary:
-                if (value instanceof byte[])
-                    nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
-                else if (value instanceof ByteBuffer)
-                    nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, (ByteBuffer)value);
+            case BINARY:
+                nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
                 break;
-            case ColumnTypeTable:
+            case TABLE:
                 nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
                 insertSubtableValues(rowIndex, columnIndex, value);
                 break;
@@ -385,7 +444,9 @@ public class Table implements TableOrView {
                 throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int)columnIndex]));
             }
         }
-        insertDone();
+        //Insert done. Use native, no need to check for immutable again here
+        nativeInsertDone(nativePtr); 
+
     }
 
     private void insertSubtableValues(long rowIndex, long columnIndex, Object value) {
@@ -395,11 +456,39 @@ public class Table implements TableOrView {
             int rows = ((Object[])value).length;
             for (int i=0; i<rows; ++i) {
                 Object rowArr = ((Object[])value)[i];
-                subtable.insert(i, (Object[])rowArr);
+                subtable.addAt(i, (Object[])rowArr);
             }
         }
     }
+    
+    /**
+     * Returns a view sorted by the specified column by the default order
+     * @param columnIndex
+     * @return
+     */
+    public TableView getSortedView(long columnIndex){
+        TableView view = this.where().findAll();
+        view.sort(columnIndex);
+        return view;
+    }
+    
+    /**
+     * Returns a view sorted by the specified column and order
+     * @param columnIndex
+     * @param order
+     * @return
+     */
+    public TableView getSortedView(long columnIndex, Order order){
+        TableView view = this.where().findAll();
+        view.sort(columnIndex, order);
+        return view;
+    }
 
+    /**
+     * Replaces the row at the specified position with the specified row.
+     * @param rowIndex
+     * @param values
+     */
     public void set(long rowIndex, Object... values) {
         if (immutable) throwImmutable();
 
@@ -433,90 +522,130 @@ public class Table implements TableOrView {
         // Now that all values are verified, we can remove the row and insert it again.
         // TODO: Can be optimized to only set the values (but clear any subtables)
         remove(rowIndex);
-        insert(rowIndex, values);
+        addAt(rowIndex, values);
+    }
+    
+    //Instance of the inner class InternalMethods.
+    private InternalMethods internal = new InternalMethods();
+    
+    //Returns InternalMethods instance with public internal methods. Should only be called by AbstractTable
+    public InternalMethods getInternalMethods(){
+        return this.internal;
+    }
+    
+    
+    //Holds methods that must be publicly available for AbstractClass.
+    //Should not be called when using the dynamic interface. The methods can be accessed by calling getInternalMethods() in Table class
+    public class InternalMethods{
+        
+        public void insertLong(long columnIndex, long rowIndex, long value) {
+            if (immutable) throwImmutable();
+            nativeInsertLong(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertDouble(long columnIndex, long rowIndex, double value) {
+            if (immutable) throwImmutable();
+            nativeInsertDouble(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertFloat(long columnIndex, long rowIndex, float value) {
+            if (immutable) throwImmutable();
+            nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertBoolean(long columnIndex, long rowIndex, boolean value) { 
+            if (immutable) throwImmutable();
+            nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertDate(long columnIndex, long rowIndex, Date date) {
+            if (immutable) throwImmutable();
+            nativeInsertDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
+        }
+        
+        public void insertString(long columnIndex, long rowIndex, String value) {
+            if (immutable) throwImmutable();
+            nativeInsertString(nativePtr, columnIndex, rowIndex, value);
+        }
+        
+        public void insertMixed(long columnIndex, long rowIndex, Mixed data) {
+            if (immutable) throwImmutable();
+            nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
+        }
+
+        /*
+
+        public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
+            if (immutable) throwImmutable();
+            //System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
+            //System.err.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
+            if (data.isDirect())
+                nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, data);
+            else
+                throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");   // FIXME: support other than allocateDirect
+        }
+
+        */
+        
+        public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
+            if (immutable) throwImmutable();
+            if(data != null)
+                nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
+            else
+                throw new RuntimeException("byte[] must not be null. Alternatively insert empty array.");
+        }
+        
+        public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
+            if (immutable) throwImmutable();
+            nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
+            insertSubtableValues(rowIndex, columnIndex, values);
+        }
+        
+        public void insertDone() {
+            if (immutable) throwImmutable();
+            nativeInsertDone(nativePtr);
+        }
     }
 
 
-    public void insertLong(long columnIndex, long rowIndex, long value) {
-        if (immutable) throwImmutable();
-        nativeInsertLong(nativePtr, columnIndex, rowIndex, value);
-    }
+    
 
     protected native void nativeInsertFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
 
-    public void insertFloat(long columnIndex, long rowIndex, float value) {
-        if (immutable) throwImmutable();
-        nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
-    }
+    
 
     protected native void nativeInsertDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
 
-    public void insertDouble(long columnIndex, long rowIndex, double value) {
-        if (immutable) throwImmutable();
-        nativeInsertDouble(nativePtr, columnIndex, rowIndex, value);
-    }
-
+    
     protected native void nativeInsertLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
-    public void insertBoolean(long columnIndex, long rowIndex, boolean value) {
-        if (immutable) throwImmutable();
-        nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
-    }
+    
 
     protected native void nativeInsertBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
 
-    public void insertDate(long columnIndex, long rowIndex, Date date) {
-        if (immutable) throwImmutable();
-        nativeInsertDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
-    }
+    
 
     protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
 
-    public void insertString(long columnIndex, long rowIndex, String value) {
-        if (immutable) throwImmutable();
-        nativeInsertString(nativePtr, columnIndex, rowIndex, value);
-    }
-
+   
     protected native void nativeInsertString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
 
-    public void insertMixed(long columnIndex, long rowIndex, Mixed data) {
-        if (immutable) throwImmutable();
-        nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
-    }
+   
 
     protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
-    public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
-        if (immutable) throwImmutable();
-        //System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
-        //System.err.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
-        if (data.isDirect())
-            nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, data);
-        else
-            throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");   // FIXME: support other than allocateDirect
-    }
+   
 
-    protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+    //protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
-    public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
-        if (immutable) throwImmutable();
-        nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
-    }
-
+    
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
 
-    public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
-        if (immutable) throwImmutable();
-        nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
-        insertSubtableValues(rowIndex, columnIndex, values);
-    }
+   
 
     protected native void nativeInsertSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
 
-    public void insertDone() {
-        if (immutable) throwImmutable();
-        nativeInsertDone(nativePtr);
-    }
+   
 
     protected native void nativeInsertDone(long nativeTablePtr);
 
@@ -578,11 +707,13 @@ public class Table implements TableOrView {
      *            0 based index value of the cell row
      * @return value of the particular cell.
      */
+    /*
     public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex) {
         return nativeGetByteBuffer(nativePtr, columnIndex, rowIndex);
     }
 
     protected native ByteBuffer nativeGetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex);
+    */
 
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex) {
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
@@ -675,7 +806,7 @@ public class Table implements TableOrView {
 
     public void setDate(long columnIndex, long rowIndex, Date date) {
         if (immutable) throwImmutable();
-        nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
+        nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
     }
 
     protected native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
@@ -697,6 +828,8 @@ public class Table implements TableOrView {
      * @param data
      *            the ByteBuffer must be allocated with ByteBuffer.allocateDirect(len)
      */
+
+    /*
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data) {
         if (immutable) throwImmutable();
         if (data == null)
@@ -708,6 +841,8 @@ public class Table implements TableOrView {
     }
 
     protected native void nativeSetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+    */
+
 
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         if (immutable) throwImmutable();
@@ -743,7 +878,7 @@ public class Table implements TableOrView {
      * @param value
      */
     //!!!TODO: New. Support in highlevel API
-    public void addLong(long columnIndex, long value) {
+    public void adjust(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }
@@ -752,7 +887,7 @@ public class Table implements TableOrView {
 
     public void setIndex(long columnIndex) {
         if (immutable) throwImmutable();
-        if (getColumnType(columnIndex) != ColumnType.ColumnTypeString)
+        if (getColumnType(columnIndex) != ColumnType.STRING)
             throw new IllegalArgumentException("Index is only supported on string columns.");
         nativeSetIndex(nativePtr, columnIndex);
     }
@@ -867,6 +1002,7 @@ public class Table implements TableOrView {
 
     protected native long nativeCountDouble(long nativePtr, long columnIndex, double value);
 
+    @Override
     public long count(long columnIndex, String value) {
         return nativeCountString(nativePtr, columnIndex, value);
     }
@@ -910,7 +1046,7 @@ public class Table implements TableOrView {
     protected native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
 
     public long findFirstDate(long columnIndex, Date date) {
-        return nativeFindFirstDate(nativePtr, columnIndex, date.getTime()/1000);
+        return nativeFindFirstDate(nativePtr, columnIndex, date.getTime() / 1000);
     }
 
     protected native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
@@ -946,7 +1082,7 @@ public class Table implements TableOrView {
     protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
     public TableView findAllDate(long columnIndex, Date date) {
-        return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
+        return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000), immutable);
     }
 
     protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
@@ -957,14 +1093,15 @@ public class Table implements TableOrView {
 
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
-    // Requires that the first column is a string column with index
+    /*  // Requires that the first column is a string column with index
+    @Override
     public long lookup(String value) {
-        if (!this.hasIndex(0) || this.getColumnType(0) != ColumnType.ColumnTypeString)
+        if (!this.hasIndex(0) || this.getColumnType(0) != ColumnType.STRING)
             throw new RuntimeException("lookup() requires index on column 0 which must be a String column.");
         return nativeLookup(nativePtr, value);
     }
 
-    protected native long nativeLookup(long nativeTablePtr, String value);
+    protected native long nativeLookup(long nativeTablePtr, String value); */
 
 
     // Experimental feature
@@ -1000,9 +1137,24 @@ public class Table implements TableOrView {
 
     protected native String nativeToJson(long nativeTablePtr);
 
+    public String toString() {
+        return nativeToString(nativePtr, INFINITE);
+    }
 
-    private void throwImmutable()
-    {
+    public String toString(long maxRows) {
+        return nativeToString(nativePtr, maxRows);
+    }
+
+    protected native String nativeToString(long nativeTablePtr, long maxRows);
+
+    
+    public String rowToString(long rowIndex) {
+        return nativeRowToString(nativePtr, rowIndex);
+    }
+
+    protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
+
+    private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 }

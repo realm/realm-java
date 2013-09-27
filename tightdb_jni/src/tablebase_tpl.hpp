@@ -5,19 +5,18 @@
 template <class T>
 jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex))
+    if (!TBL_AND_INDEX_VALID(env, reinterpret_cast<T*>(nativeTablePtr), columnIndex, rowIndex))
         return NULL;
 
     BinaryData bin = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
     if (bin.size() <= MAX_JSIZE) {
         jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
         if (jresult)
-            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));
+            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));  // throws
         return jresult;
     }
     else {
-        //???TODO: More specific exception
-        ThrowException(env, IndexOutOfBounds, "Length of ByteArray is larger than int.");
+        ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
         return NULL;
     }
 }

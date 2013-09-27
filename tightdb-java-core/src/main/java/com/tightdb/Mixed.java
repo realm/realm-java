@@ -22,7 +22,7 @@ public class Mixed {
 
     public Mixed(ColumnType columnType) {
         // It's actually ok to call with any columnType - it will however be assumed to be a ColumnTypeTable.
-        assert (columnType == null  || columnType == ColumnType.ColumnTypeTable);
+        assert (columnType == null  || columnType == ColumnType.TABLE);
         this.value = null;
     }
 
@@ -99,22 +99,22 @@ public class Mixed {
 
     public ColumnType getType() {
         if (value == null) {
-            return ColumnType.ColumnTypeTable;
+            return ColumnType.TABLE;
         }
         if (value instanceof String)
-            return ColumnType.ColumnTypeString;
+            return ColumnType.STRING;
         else if (value instanceof Long)
-            return ColumnType.ColumnTypeInt;
+            return ColumnType.INTEGER;
         else if (value instanceof Float)
-            return ColumnType.ColumnTypeFloat;
+            return ColumnType.FLOAT;
         else if (value instanceof Double)
-            return ColumnType.ColumnTypeDouble;
+            return ColumnType.DOUBLE;
         else if (value instanceof Date)
-            return ColumnType.ColumnTypeDate;
+            return ColumnType.DATE;
         else if (value instanceof Boolean)
-            return ColumnType.ColumnTypeBool;
+            return ColumnType.BOOLEAN;
         else if (value instanceof ByteBuffer || (value instanceof byte[])) {
-            return ColumnType.ColumnTypeBinary;
+            return ColumnType.BINARY;
         }
 
         throw new IllegalStateException("Unknown column type!");
@@ -217,5 +217,33 @@ public class Mixed {
 
     public Object getValue() {
         return value;
+    }
+    
+    public String getReadableValue() {
+        ColumnType type = getType();
+        try {
+	        switch (type) {
+			case BINARY:
+				return "Binary";
+			case BOOLEAN:
+				return String.valueOf(getBooleanValue());
+			case DATE:
+				return String.valueOf(getDateValue());
+			case DOUBLE:
+				return String.valueOf(getDoubleValue());
+			case FLOAT:
+				return String.valueOf(getFloatValue());
+			case INTEGER:
+				return String.valueOf(getLongValue());
+			case STRING:
+				return String.valueOf(getStringValue());
+			case TABLE:
+				return "Subtable";
+			case MIXED:
+				break; // error
+	        }
+        } catch (Exception e) {
+        }
+		return "ERROR";
     }
 }

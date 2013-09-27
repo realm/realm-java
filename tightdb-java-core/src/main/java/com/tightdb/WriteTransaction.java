@@ -2,33 +2,35 @@ package com.tightdb;
 
 public class WriteTransaction extends Group {
 
-    private boolean commited;
+    private SharedGroup db;
+    private boolean committed;
 
     public void commit() {
-        db.commit();
-        commited = true;
+    	if (!committed) {
+    		db.commit();
+        	committed = true;
+    	} 
+    	else {
+    		throw new IllegalStateException("You can only commit once after a WriteTransaction has been made.");
+    	}
     }
 
-    /**
-     * Does the same thing as close().
-     */
     public void rollback() {
         db.rollback();
     }
 
     public void close() {
-        if (!commited) {
-            db.rollback();
+        if (!committed) {        	
+        	rollback();
         }
     }
 
     WriteTransaction(SharedGroup db, long nativePtr) {
         super(nativePtr, false);    // Group is mutable
         this.db = db;
+        committed = false;
     }
 
     protected void finalize() {
     } // Nullify the actions of Group.finalize()
-
-    private SharedGroup db;
 }

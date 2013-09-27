@@ -46,6 +46,7 @@ import java.util.Date;
  *
  */
 public class TableView implements TableOrView {
+    protected boolean DEBUG = false; //true;
 
     /**
      * Creates a TableViewBase with a Java Object Table and a already created
@@ -75,6 +76,24 @@ public class TableView implements TableOrView {
         this.nativePtr = nativePtr;
     }
 
+    public void finalize() throws Throwable {
+        try {
+            close();
+        } finally {
+            super.finalize();
+        }
+    }
+
+    private synchronized void close(){
+        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);       
+        if (nativePtr == 0)
+            return;
+        nativeClose(nativePtr);
+        nativePtr = 0;
+    }
+
+    protected native void nativeClose(long nativeViewPtr);
+
     /**
      * Checks whether this table is empty or not.
      *
@@ -94,6 +113,59 @@ public class TableView implements TableOrView {
     }
 
     protected native long nativeSize(long nativeViewPtr);
+
+    /**
+     * Returns the number of columns in the table.
+     *
+     * @return the number of columns.
+     */
+    public long getColumnCount() {
+        return nativeGetColumnCount(nativePtr);
+    }
+
+    protected native long nativeGetColumnCount(long nativeViewPtr);
+
+    /**
+     * Returns the name of a column identified by columnIndex. Notice that the
+     * index is zero based.
+     *
+     * @param columnIndex the column index
+     * @return the name of the column
+     */
+    public String getColumnName(long columnIndex) {
+        return nativeGetColumnName(nativePtr, columnIndex);
+    }
+
+    protected native String nativeGetColumnName(long nativeViewPtr, long columnIndex);
+
+    /**
+     * Returns the 0-based index of a column based on the name.
+     *
+     * @param name column name
+     * @return the index, -1 if not found
+     */
+    public long getColumnIndex(String name) {
+        long columnCount = getColumnCount();
+        for (long i = 0; i < columnCount; i++) {
+            if (name.equals(getColumnName(i))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Get the type of a column identified by the columnIdex.
+     *
+     * @param columnIndex index of the column.
+     * @return Type of the particular column.
+     */
+    public ColumnType getColumnType(long columnIndex)
+    {
+        return ColumnType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
+    }
+
+    protected native int nativeGetColumnType(long nativeViewPtr, long columnIndex);
 
     /**
      * Get the value of the particular (integer) cell.
@@ -181,12 +253,13 @@ public class TableView implements TableOrView {
      * @param rowIndex 0 based index value of the cell row
      * @return value of the particular cell.
      */
+    /*
     public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex){
         return nativeGetBinary(nativePtr, columnIndex, rowIndex);
     }
 
     protected native ByteBuffer nativeGetBinary(long nativeViewPtr, long columnIndex, long rowIndex);
-
+*/
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex){
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
     }
@@ -319,12 +392,14 @@ public class TableView implements TableOrView {
      * @param rowIndex row index of the cell
      * @param data
      */
+    /*
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data){
         if (immutable) throwImmutable();
         nativeSetBinary(nativePtr, columnIndex, rowIndex, data);
     }
 
     protected native void nativeSetBinary(long nativeViewPtr, long columnIndex, long rowIndex, ByteBuffer data);
+    */
 
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
         if (immutable) throwImmutable();
@@ -354,7 +429,7 @@ public class TableView implements TableOrView {
      * @param value
      */
     //!!!TODO: New
-    public void addLong(long columnIndex, long value) {
+    public void adjust(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }
@@ -594,15 +669,15 @@ public class TableView implements TableOrView {
 
     // Sorting
 
-    enum Order { ascending, descending };
+    public enum Order { ascending, descending };
 
     public void sort(long columnIndex, Order order) {
-        if (immutable) throwImmutable();
+        // Don't check for immutable. Sorting does not modify original table
         nativeSort(nativePtr, columnIndex, (order == Order.ascending));
     }
 
     public void sort(long columnIndex) {
-        if (immutable) throwImmutable();
+        // Don't check for immutable. Sorting does not modify original table
         nativeSort(nativePtr, columnIndex, true);
     }
 
@@ -611,27 +686,30 @@ public class TableView implements TableOrView {
 
     protected native long createNativeTableView(Table table, long nativeTablePtr);
 
-    public void finalize(){
-        close();
-    }
-
-    private synchronized void close(){
-        if(nativePtr == 0)
-            return;
-        nativeClose(nativePtr);
-        nativePtr = 0;
-    }
-
-    protected native void nativeClose(long nativeViewPtr);
-
+    
     public String toJson() {
         return nativeToJson(nativePtr);
     }
 
     protected native String nativeToJson(long nativeViewPtr);
 
-    private void throwImmutable()
-    {
+    public String toString() {
+        return nativeToString(nativePtr, 500);
+    }
+    
+    public String toString(long maxRows) {
+        return nativeToString(nativePtr, maxRows);
+    }
+
+    protected native String nativeToString(long nativeTablePtr, long maxRows);
+
+    public String rowToString(long rowIndex) {
+        return nativeRowToString(nativePtr, rowIndex);
+    }
+
+    protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
+
+    private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 
@@ -639,11 +717,11 @@ public class TableView implements TableOrView {
     protected boolean immutable = false;
     protected TableView tableView;
 
-
-    @Override
+   /* @Override
     public long lookup(String value) {
+        // TODO: implement
         throw new RuntimeException("Not implemented yet.");
-    }
+    }*/
 
     @Override
     public long count(long columnIndex, String value) {

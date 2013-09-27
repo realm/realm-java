@@ -1,34 +1,30 @@
 package com.tightdb;
 
 // ARM only works in Java 1.7
-// public class ReadTransaction extends Group  implements AutoCloseable {
+// public class ReadTransaction extends Group implements AutoCloseable {
 
 public class ReadTransaction extends Group {
 
     private SharedGroup db;
 
-    ReadTransaction(SharedGroup db)
-    {
+    ReadTransaction(SharedGroup db) {
         super(db.beginReadGroup(), true);
         this.db = db;
     }
 
-    ReadTransaction(SharedGroup db, long nativePtr)
-    {
+    ReadTransaction(SharedGroup db, long nativePtr) {
         super(nativePtr, true); // make Group immutable
         this.db = db;
     }
 
-    public void endRead()
-    {
+    public void endRead() {
         db.endRead();
     }
 
 //    @Override
-    public void close()
-    {
+    @Deprecated
+    public void close() {
         //System.out.println("read-close");
-        //TODO: can close fail? make exception
         db.endRead();
     }
 

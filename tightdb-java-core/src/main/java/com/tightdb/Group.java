@@ -118,13 +118,8 @@ public class Group {
             throw new IllegalStateException("Illegal to call methods on a closed Group.");    		
     }
     
-    public boolean equals(Object group) {
-    	if (!(group instanceof Group))
-    		return false;
-		return nativeEquals(nativePtr, ((Group)group).nativePtr);
-    }
     
-    protected native boolean nativeEquals(long nativeGroupPtr, long compareToGroupPtr);
+    protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
     
     public long size() {
     	verifyGroupIsValid();
@@ -198,7 +193,7 @@ public class Group {
 
     protected native void nativeWriteToFile(long nativeGroupPtr, String fileName)
             throws IOException;
-
+    
     /**
      * Serialize the group to the specific file on the disk.
      *
@@ -236,12 +231,36 @@ public class Group {
 */
 
     public void commit() {
-    	verifyGroupIsValid();
-        nativeCommit(nativePtr);    	
+        verifyGroupIsValid();
+        nativeCommit(nativePtr);
+    }
+
+    public String toJson() {
+        return nativeToJson(nativePtr);
+    }
+
+    protected native String nativeToJson(long nativeGroupPtr);
+
+    public String toString() {
+        return nativeToString(nativePtr);
     }
     
     protected native void nativeCommit(long nativeGroupPtr);
-    
+
+    protected native String nativeToString(long nativeGroupPtr);
+        
+    public boolean equals(Object other) {
+        if (other == null)
+            return false;
+        if (other == this)
+            return true;
+        if (!(other instanceof Group))
+            return false;
+        
+        Group otherGroup = (Group) other;
+        return nativeEquals(nativePtr, otherGroup.nativePtr);
+    }
+
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }

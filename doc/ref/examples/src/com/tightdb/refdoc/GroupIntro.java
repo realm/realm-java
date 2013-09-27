@@ -13,54 +13,54 @@ public class GroupIntro {
 
     public static void main(String[] args) throws IOException {
         // @@Show@@
-        //Create a new empty group
+        // Create a new empty group
         Group group = new Group();
 
-        //Create a new table with 2 columns and add 3 rows of data
+        // Create a new table with 2 columns and add 3 rows of data
         Table table = group.getTable("table1");
-        table.addColumn(ColumnType.ColumnTypeInt, "ID");
-        table.addColumn(ColumnType.ColumnTypeString, "Animal");
+        table.addColumn(ColumnType.INTEGER, "ID");
+        table.addColumn(ColumnType.STRING, "Animal");
         table.add(1, "Lion");
         table.add(2, "Monkey");
         table.add(3, "Elephant");
+ 
+        // -------------------------------------------------------------------
+        // Serialization of the group
+        // -------------------------------------------------------------------
 
-        //-------------------------------------------------------------------
-        //Serialization of the group
-        //-------------------------------------------------------------------
-
-        //A new file pointing to the location of the database
+        // A new file pointing to the location of the database
         File file = new File("mydatabase.tightdb");
 
-        //Serializing to a file that already exists is an error and would case undefined behaviour
+        // Serializing to a file that already exists is an error and would case undefined behaviour
         if(file.exists() == false){
             //Serialize the database to the file
             group.writeToFile(file);
         }
 
-        //-------------------------------------------------------------------
-        //Initialize a group from a database file
-        //-------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // Initialize a group from a database file
+        // -------------------------------------------------------------------
 
-        //Initialize a group object from file
+        // Initialize a group object from file
         group = new Group(file);
 
-        //Get the number of tables in the group. In this case, only 1 table has been added
+        // Get the number of tables in the group. In this case, only 1 table has been added
         Assert(group.size() == 1);
 
-        //Returns the name of the first (zero-indexed) table in the group. In this case 'table1'
+        // Returns the name of the first (zero-indexed) table in the group. In this case 'table1'
         String tableName = group.getTableName(0);
 
-        //Checks if the group contains the specified table name
+        // Checks if the group contains the specified table name
         Assert(group.hasTable(tableName));
 
-        //-------------------------------------------------------------------
-        //Writing to byte array and transfer over a socket
-        //-------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // Writing to byte array and transfer over a socket
+        // -------------------------------------------------------------------
 
-        //Write group to byte array
+        // Write group to byte array
         byte[] byteArray = group.writeToMem();
 
-        //Transfer the byte array using sockets 
+        // Transfer the byte array using sockets
         try {
             Socket socket = new Socket("host", 1234);
             DataOutputStream dOut = new DataOutputStream(socket.getOutputStream());
@@ -68,9 +68,9 @@ public class GroupIntro {
             dOut.writeInt(byteArray.length); // write length of the array
             dOut.write(byteArray);           // write the array
 
-            //-------------------------------------------------------------------
-            //Receive byte array from socket and initialize group
-            //-------------------------------------------------------------------
+            // -------------------------------------------------------------------
+            // Receive byte array from socket and initialize group
+            // -------------------------------------------------------------------
 
             DataInputStream dIn = new DataInputStream(socket.getInputStream());
 
@@ -78,10 +78,10 @@ public class GroupIntro {
             byte[] receivedByteArray = new byte[length];
             dIn.readFully(receivedByteArray, 0, receivedByteArray.length); // read the byte array
 
-            //Initialize group from the received byte array
+            // Initialize group from the received byte array
             Group fromArray = new Group(receivedByteArray);
 
-            //Get a table from the group, and read the value from column 1, row 2 (zero-indexed)
+            // Get a table from the group, and read the value from column 1, row 2 (zero-indexed)
             Table tableFromArray = fromArray.getTable(tableName);
             String value = tableFromArray.getString(1, 2);
             Assert(value.equals("Elephant")); 
@@ -98,4 +98,4 @@ public class GroupIntro {
         }
     }
 } 
-//@@EndExample@@
+// @@EndExample@@

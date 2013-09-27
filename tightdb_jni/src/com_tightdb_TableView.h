@@ -9,11 +9,43 @@ extern "C" {
 #endif
 /*
  * Class:     com_tightdb_TableView
+ * Method:    nativeClose
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
  * Method:    nativeSize
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSize
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnCount
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnCount
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnName
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetColumnName
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnType
+ * Signature: (JJ)I
+ */
+JNIEXPORT jint JNICALL Java_com_tightdb_TableView_nativeGetColumnType
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
@@ -425,19 +457,27 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_createNativeTableView
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeClose
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     com_tightdb_TableView
  * Method:    nativeToJson
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToJson
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToString
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeRowToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeRowToString
+  (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus
 }

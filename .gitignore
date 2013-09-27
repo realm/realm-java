@@ -72,3 +72,26 @@ _ReSharper*/
 /test_output
 
 .DS_Store
+
+.idea
+*.iml
+
+*.lock
+
+tightdb-java-test/testng.xml
+
+*.prefs
+
+# Ref doc generated classes
+
+doc/ref/examples/generated/com/tightdb/refdoc/*.java
+
+# generated json output in ref doc json example
+
+doc/ref/examples/fromServlet
+
+
+# debian packaging
+/debian/tightdb-java
+/debian/tightdb-java-dev
+/debian/.mh

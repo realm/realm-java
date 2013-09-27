@@ -2,6 +2,7 @@
 #define TIGHTDB_JAVA_UTIL_HPP
 
 #include <string>
+#include <sstream>
 
 #include <jni.h>
 
@@ -11,9 +12,8 @@
 #include <tightdb/safe_int_ops.hpp>
 #include <tightdb/lang_bind_helper.hpp>
 
-#include "com_tightdb_internal_util.h"
+#include "com_tightdb_internal_Util.h"
 
-//using namespace tightdb;
 
 #define TRACE               1       // disable for performance
 #define CHECK_PARAMETERS    1       // Check all parameters in API and throw exceptions in java if invalid
@@ -27,6 +27,43 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 #ifdef __cplusplus
 }
 #endif
+
+
+// Exception handling
+
+#define CATCH_FILE(fileName) \
+    catch (InvalidDatabase&) { \
+        ThrowException(env, IllegalArgument, "Invalid Group file format."); \
+    } catch (File::PermissionDenied& e) { \
+        ThrowException(env, IOFailed, fileName, string("Permission denied. ") + e.what()); \
+    } catch (File::NotFound&) { \
+        ThrowException(env, FileNotFound, fileName); \
+    } catch (File::AccessError& e) { \
+        ThrowException(env, FileAccessError, string(fileName), e.what()); \
+    }
+
+#define CATCH_STD() \
+    catch (ResourceAllocError& e) { \
+        ThrowException(env, OutOfMemory, "Resource allocation error.", e.what()); \
+    } catch (std::bad_alloc& e) { \
+        ThrowException(env, OutOfMemory, e.what()); \
+    } catch (std::exception& e) { \
+        ThrowException(env, Unspecified, e.what()); \
+    } catch (...) { \
+        TIGHTDB_ASSERT(false); \
+        ThrowException(env, RuntimeError, "Unknown Exception"); \
+    }
+    /* above (...) is not needed if we only throw exceptions derived from std::exception */
+
+
+template <typename T>
+std::string num_to_string(T pNumber)
+{
+ std::ostringstream oOStrStream;
+ oOStrStream << pNumber;
+ return oOStrStream.str();
+}
+
 
 #define MAX_JLONG  9223372036854775807
 #define MIN_JLONG -9223372036854775808
@@ -43,14 +80,19 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 // Exception handling
 
 enum ExceptionKind {
-    ClassNotFound,
-    NoSuchField,
-    NoSuchMethod,
-    IllegalArgument,
-    IOFailed,
-    IndexOutOfBounds,
-    TableInvalid,
-    UnsupportedOperation
+    ClassNotFound = 0,
+    NoSuchField = 1,
+    NoSuchMethod = 2,
+    IllegalArgument = 3,
+    IOFailed = 4,
+    FileNotFound = 5,
+    FileAccessError = 6,
+    IndexOutOfBounds = 7,
+    TableInvalid = 8,
+    UnsupportedOperation = 9,
+    OutOfMemory = 10,
+    Unspecified = 11,
+    RuntimeError = 12
 };
 
 extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
@@ -75,6 +117,7 @@ extern void jprintf(JNIEnv *env, const char *fmt, ...);
 extern void jprint(JNIEnv *env, char *txt);
 
 
+
 // Check parameters
 
 #define TABLE_VALID(env,ptr)                        TableIsValid(env, ptr)
@@ -82,19 +125,29 @@ extern void jprint(JNIEnv *env, char *txt);
 #if CHECK_PARAMETERS
 
 #define ROW_INDEXES_VALID(env,ptr,start,end, range) RowIndexesValid(env, ptr, start, end, range)
-#define ROW_INDEX_VALID(env,ptr,row)                RowIndexValid(env, ptr, row)
-#define ROW_INDEX_VALID_OFFSET(env,ptr,row, offset) RowIndexValid(env, ptr, row, offset)
-#define COL_INDEX_VALID(env,ptr,col)                ColIndexValid(env, ptr, col)
-#define INDEX_VALID(env,ptr,col,row)                IndexValid(env, ptr, col, row)
-#define INDEX_INSERT_VALID(env,ptr,col,row)         IndexInsertValid(env, ptr, col, row)
-#define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)  IndexAndTypeValid(env, ptr, col, row, type)
-#define INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type)  IndexAndTypeInsertValid(env, ptr, col, row, type)
+
+#define ROW_INDEX_VALID(env,ptr,row)                            RowIndexValid(env, ptr, row)
+#define TBL_AND_ROW_INDEX_VALID(env,ptr,row)                    TblRowIndexValid(env, ptr, row)
+#define TBL_AND_ROW_INDEX_VALID_OFFSET(env,ptr,row, offset)     TblRowIndexValid(env, ptr, row, offset)
+#define COL_INDEX_VALID(env,ptr,col)                            ColIndexValid(env, ptr, col)
+#define TBL_AND_COL_INDEX_VALID(env,ptr,col)                    TblColIndexValid(env, ptr, col)
+#define COL_INDEX_AND_TYPE_VALID(env,ptr,col,type)              ColIndexAndTypeValid(env, ptr, col, type)
+#define TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     TblColIndexAndTypeValid(env, ptr, col, type)
+#define INDEX_VALID(env,ptr,col,row)                            IndexValid(env, ptr, col, row)
+#define TBL_AND_INDEX_VALID(env,ptr,col,row)                    TblIndexValid(env, ptr, col, row)
+#define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             TblIndexInsertValid(env, ptr, col, row)
+#define INDEX_AND_TYPE_VALID(env,ptr,col,row,type)              IndexAndTypeValid(env, ptr, col, row, type, false)
+#define TBL_AND_INDEX_AND_TYPE_VALID(env,ptr,col,row,type)      TblIndexAndTypeValid(env, ptr, col, row, type, false)
+#define INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type)        IndexAndTypeValid(env, ptr, col, row, type, true)
+#define TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type)TblIndexAndTypeValid(env, ptr, col, row, type, true)
+#define TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type) TblIndexAndTypeInsertValid(env, ptr, col, row, type)
 
 #else
 
-#define ROW_INDEXES_VALID(env,ptr,row) (true)
+#define ROW_INDEXES_VALID(env,ptr,row, start,end,range) (true)
 #define ROW_INDEX_VALID(env,ptr,row) (true)
-#define COL_INDEX_VALID(env,ptr,col) (true)
+#define TBL_AND_COL_INDEX_VALID(env,ptr,col) (true)
+#define TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col) (true)
 #define INDEX_VALID(env,ptr,col,row) (true)
 #define INDEX_INSERT_VALID(env,ptr,col,row) (true)
 #define INDEX_AND_TYPE_VALID(env,ptr,col,row,type) (true)
@@ -102,26 +155,30 @@ extern void jprint(JNIEnv *env, char *txt);
 
 #endif
 
-inline bool TableIsValid(JNIEnv* env, tightdb::Table* pTable)
+
+template <class T>
+inline bool TableIsValid(JNIEnv* env, T* objPtr)
 {
-    bool valid = (pTable != NULL);
-    if (valid)
-        valid = pTable->is_valid();
+    bool valid = (objPtr != NULL);
+    if (valid) {
+        // Check if Table is valid
+        if (tightdb::SameType<tightdb::Table, T>::value) {
+            valid = TBL(objPtr)->is_attached();
+        }
+        // TODO: Add check for TableView
+
+    }
     if (!valid) {
-        TR_ERR((env, "Table %x is invalid!", pTable));
-        ThrowException(env, IllegalArgument, "Table is invalid.");
+        TR_ERR((env, "Table %x is no longer attached!", objPtr));
+        ThrowException(env, TableInvalid, "Table is closed, and no longer valid to operate on.");
     }
     return valid;
 }
 
+// Requires an attached Table
 template <class T>
 bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, jlong range)
 {
-    // Check if Table is valid - but only if T is a 'Table' type
-    if (tightdb::SameType<tightdb::Table*, T>::value)
-        if (!TableIsValid(env, TBL(pTable)))
-            return false;
-
     size_t maxIndex = pTable->size();
     if (endIndex == -1)
         endIndex = maxIndex;
@@ -159,10 +216,6 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
 template <class T>
 inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0)
 {
-    // Check if Table is valid - but only if T is a 'Table' type
-    if (tightdb::SameType<tightdb::Table*, T>::value)
-        if (!TableIsValid(env, TBL(pTable)))
-            return false;
     size_t size = pTable->size();
     if (size > 0)
         size += offset;
@@ -175,13 +228,18 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0
 }
 
 template <class T>
-inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
+inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0)
 {
-    // Check if Table is valid - but only if T is a 'Table' type
-    if (tightdb::SameType<tightdb::Table*, T>::value)
+    if (tightdb::SameType<tightdb::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
+    }
+    return RowIndexValid(env, pTable, rowIndex, offset);
+}
 
+template <class T>
+inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
+{
     bool colErr = tightdb::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
         TR_ERR((env, "columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()));
@@ -191,60 +249,96 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 }
 
 template <class T>
-inline bool IndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
+inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
-    return ColIndexValid(env, pTable, columnIndex) && RowIndexValid(env, pTable, rowIndex);
+    if (tightdb::SameType<tightdb::Table, T>::value) {
+        if (!TableIsValid(env, TBL(pTable)))
+            return false;
+    }
+    return ColIndexValid(env, pTable, columnIndex);
 }
 
 template <class T>
-inline bool IndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
+inline bool IndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
 {
-    if (!ColIndexValid(env, pTable, columnIndex))
+    return ColIndexValid(env, pTable, columnIndex)
+        && RowIndexValid(env, pTable, rowIndex);
+}
+
+template <class T>
+inline bool TblIndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
+{
+    return TableIsValid(env, pTable)
+        && IndexValid(env, pTable, columnIndex, rowIndex);
+}
+
+template <class T>
+inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
+{
+    if (!TblColIndexValid(env, pTable, columnIndex))
         return false;
-    // FIXME: REMOVE const size_t colSize = pTable->GetColumn(columnIndex).Size();
     bool rowErr = tightdb::int_greater_than(rowIndex, pTable->size()+1);
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", rowIndex, pTable->size()));
-        ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
+        ThrowException(env, IndexOutOfBounds,
+            "rowIndex " + num_to_string(rowIndex) +
+            " > available rows " + num_to_string(pTable->size()) + ".");
     }
     return !rowErr;
 }
 
 template <class T>
-inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
+inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
 {
     size_t col = static_cast<size_t>(columnIndex);
-    size_t row = static_cast<size_t>(rowIndex);
     int colType = pTable->get_column_type(col);
-    if (colType == tightdb::type_Mixed)
-        colType = pTable->get_mixed_type(col, row);
-
+    if (allowMixed) {
+        if (colType == tightdb::type_Mixed) {
+            size_t row = static_cast<size_t>(rowIndex);
+            colType = pTable->get_mixed_type(col, row);
+        }
+    }
     if (colType != expectColType) {
         TR_ERR((env, "Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col)));
-        ThrowException(env, IllegalArgument, "column type != ColumnTypeTable.");
+        ThrowException(env, IllegalArgument, "ColumnType invalid.");
         return false;
     }
     return true;
 }
 
 template <class T>
-inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
+inline bool ColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
-    if (!IndexValid(env, pTable, columnIndex, rowIndex))
-        return false;
-    if (!TypeValid(env, pTable, columnIndex, rowIndex, expectColType))
-        return false;
-    return true;
+    return ColIndexValid(env, pTable, columnIndex)
+        && TypeValid(env, pTable, columnIndex, 0, expectColType, false);
+}
+template <class T>
+inline bool TblColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
+{
+    return TableIsValid(env, pTable)
+        && ColIndexAndTypeValid(env, pTable, columnIndex, expectColType);
 }
 
+
 template <class T>
-inline bool IndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
+inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
 {
-    if (!IndexInsertValid(env, pTable, columnIndex, rowIndex))
-        return false;
-    if (!TypeValid(env, pTable, columnIndex, rowIndex, expectColType))
-        return false;
-    return true;
+    return IndexValid(env, pTable, columnIndex, rowIndex)
+        && TypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
+}
+template <class T>
+inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
+{
+    return TableIsValid(env, pTable)
+        && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
+}
+
+
+template <class T>
+inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)
+{
+    return TblIndexInsertValid(env, pTable, columnIndex, rowIndex)
+        && TypeValid(env, pTable, columnIndex, rowIndex, expectColType, false);
 }
 
 bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data);

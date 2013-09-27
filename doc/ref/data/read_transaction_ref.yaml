@@ -17,8 +17,10 @@ DESCR      : >
              an exception will be thrown.
 SEE        : 
 EXAMPLES: 
-- DESCR    : 
-  CODE     : ex_java_read_transaction_intro
+- DESCR    : Typed interface
+  CODE     : ex_java_typed_read_transaction_intro
+- DESCR    : Dynamic interface
+  CODE     : ex_java_dyn_read_transaction_intro  
 IGNORE     : []
 CATEGORIES:
 - -:
