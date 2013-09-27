@@ -34,10 +34,6 @@ public class Util {
     }
     static native void nativeSetDebugLevel(int level);
     
-    static void javaPrint(String txt) {
-        System.out.print(txt);
-    }
-
     public static void waitForEnter() {
         System.out.println("Press Enter to continue...");
         Scanner sc = new Scanner(System.in);

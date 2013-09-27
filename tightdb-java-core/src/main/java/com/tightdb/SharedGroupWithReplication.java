@@ -1,4 +1,4 @@
-package com.tightdb;
+/*package com.tightdb;
 
 public class SharedGroupWithReplication extends SharedGroup {
 
@@ -16,4 +16,4 @@ public class SharedGroupWithReplication extends SharedGroup {
     {
         return nativeGetDefaultReplicationDatabaseFileName();
     }
-}
+} */
