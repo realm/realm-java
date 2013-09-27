@@ -42,7 +42,7 @@ public class TableIndexAndDistinctTest {
         table.setIndex(1);
         assertEquals(true, table.hasIndex(1));
 
-        TableView view = table.get_distinct_view(1);
+        TableView view = table.getDistinctView(1);
         assertEquals(4, view.size());
         assertEquals(0, view.getLong(0, 0));
         assertEquals(1, view.getLong(0, 1));
@@ -62,14 +62,14 @@ public class TableIndexAndDistinctTest {
         //Get a table with all available column types
         Table t = TestHelper.getTableWithAllColumnTypes();
         
-        TableView view = table.get_distinct_view(1);
+        TableView view = table.getDistinctView(1);
     }
 
     @Test(expectedExceptions = ArrayIndexOutOfBoundsException.class)
     public void shouldTestDistinctErrorWhenIndexOutOfBounds() {
         init();
 
-        TableView view = table.get_distinct_view(3);
+        TableView view = table.getDistinctView(3);
     }
 
     /**
@@ -126,7 +126,7 @@ public class TableIndexAndDistinctTest {
     public void shouldTestDistinctErrorWhenWrongColumnType() {
         init();
         table.setIndex(1);
-        TableView view = table.get_distinct_view(0);
+        TableView view = table.getDistinctView(0);
     }
     
     
