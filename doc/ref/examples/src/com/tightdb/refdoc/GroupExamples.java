@@ -12,9 +12,25 @@ import com.tightdb.Group.OpenMode;
 public class GroupExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
+        
+        // Constrcutor methods
         constructorPlainExample();
         constructorFileExample();
+        constructorStringExample();
+        constructorStringModeExample();
+        constructorByteArrayExample();
+        
+        
+        // Table methods
+        getTableExample();
+        getTableNameExample();
+        hasTableExample();
     }
+    
+    
+    // **********************
+    // Constructor methods
+    // **********************
 
 
     public static void constructorPlainExample(){
@@ -67,5 +83,94 @@ public class GroupExamples {
         // More table operations...
         // @@EndShow@@
         // @@EndExample@@
+    }
+    
+    public static void constructorByteArrayExample(){
+        // @@Example: ex_java_group_constructor_memory @@
+        // @@Show@@
+        // Existing group
+        Group existingGroup = new Group("mydatabase.tightdb");
+        // Group is written to a byte array
+        byte[] groupMem = existingGroup.writeToMem();
+        
+        // A new group can be created from this byte array
+        Group group = new Group(groupMem); 
+
+        Table table = group.getTable("mytable");
+        // More table operations...
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    // **********************
+    // Table methods
+    // **********************
+    
+    public static void getTableExample(){
+        // @@Example: ex_java_group_get_table @@
+        // @@Show@@
+        Group group = new Group("mydatabase.tightdb");
+        
+        // A table is created (if not already in the group) and returned
+        Table table = group.getTable("mytable");
+
+        table.add("String value", 400, true); // String, long, boolean
+        // More table operations...
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void hasTableExample(){
+        // @@Example: ex_java_group_has_table @@
+        // @@Show@@
+        Group group = new Group("mydatabase.tightdb");
+        
+        // A table is created (if not already in the group) and returned
+        Table table = group.getTable("mytable");
+        // More table operations...
+
+        // Use has table to check if group contains a table with the specified name
+        Assert(group.hasTable("mytable"));
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void getTableNameExample(){
+        // @@Example: ex_java_group_get_table_name @@
+        // @@Show@@
+        Group group = new Group("mydatabase.tightdb");
+        
+        // Add 2 tables to the group
+        Table table1 = group.getTable("mytable1"); // Will be positioned at index 0
+        Table table2 = group.getTable("mytable2"); // Will be positioned at index 1
+
+        // Get name of a table by it's index
+        Assert(group.getTableName(0).equals("mytable1"));
+        Assert(group.getTableName(1).equals("mytable2"));
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    
+    // **********************
+    // Serialization methods
+    // **********************   
+    
+    
+    
+    
+    // **********************
+    // Group methods
+    // **********************   
+    
+    
+    static void Assert(boolean check) {
+        if (!check) {
+            throw new RuntimeException();
+        }
     }
 } 

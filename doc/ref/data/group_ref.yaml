@@ -73,8 +73,6 @@ CATEGORIES:
         CODE   : ex_java_group_constructor_string_mode
       - DESCR  :
         CODE   : ex_java_group_constructor_memory
-      - DESCR  :
-        CODE   : ex_java_group_constructor_memory_buffer
       SEE      : "{@link g_group_is_valid}"
   - g_group_destructor:
       NAMES    : close
@@ -99,7 +97,7 @@ CATEGORIES:
         DESCR  : <code>true</code> if the table exits, otherwise <code>false</code>.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_group_optional_table
+        CODE   : ex_java_group_has_table
   
   - g_group_get_table:
       NAMES    : getTable
@@ -118,9 +116,7 @@ CATEGORIES:
         DESCR  : The requested Table object.
       EXAMPLES:
       -  DESCR :
-         CODE  : ex_java_group_traverse
-      -  DESCR :
-         CODE  : ex_java_group_optional_table
+         CODE  : ex_java_group_get_table
       SEE      : "{@link g_group_has_table}"
       
   - g_group_get_table_name:
@@ -136,7 +132,7 @@ CATEGORIES:
         DESCR  : The table name.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_group_traverse
+        CODE   : ex_java_group_get_table_name
 
 - Serialization:
   METHODS:
