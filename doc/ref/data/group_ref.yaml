@@ -68,6 +68,10 @@ CATEGORIES:
       - DESCR  :
         CODE   : ex_java_group_constructor_file
       - DESCR  :
+        CODE   : ex_java_group_constructor_string
+      - DESCR  :
+        CODE   : ex_java_group_constructor_string_mode
+      - DESCR  :
         CODE   : ex_java_group_constructor_memory
       SEE      : "{@link g_group_is_valid}"
   - g_group_destructor:
@@ -93,7 +97,7 @@ CATEGORIES:
         DESCR  : <code>true</code> if the table exits, otherwise <code>false</code>.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_group_optional_table
+        CODE   : ex_java_group_has_table
   
   - g_group_get_table:
       NAMES    : getTable
@@ -112,9 +116,7 @@ CATEGORIES:
         DESCR  : The requested Table object.
       EXAMPLES:
       -  DESCR :
-         CODE  : ex_java_group_traverse
-      -  DESCR :
-         CODE  : ex_java_group_optional_table
+         CODE  : ex_java_group_get_table
       SEE      : "{@link g_group_has_table}"
       
   - g_group_get_table_name:
@@ -130,7 +132,7 @@ CATEGORIES:
         DESCR  : The table name.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_group_traverse
+        CODE   : ex_java_group_get_table_name
 
 - Serialization:
   METHODS:
@@ -148,9 +150,9 @@ CATEGORIES:
       - NAME   : fileName
         TYPES  : String
         DESCR  : File name, possibly a full path.
-      RETURN:
-        DESCR  : <code>true</code> is successful, <code>false</code> otherwise.
-        TYPES  : bool
+      THROWS:      
+      - EXCEPT : IOException
+        DESCR  : Throws exception if file already exists
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_write_to_file
@@ -164,16 +166,16 @@ CATEGORIES:
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_write_to_mem
-  - g_group_write_to_mem_bytebuffer:
-      NAMES    : writeToByteBuffer
-      DESCR    : *g_group_write_to_mem_descr
-      SUMMARY  : *g_group_write_to_mem_summary
-      RETURN:
-        DESCR  : A copy of the serialized group.
-        TYPES  : ByteBuffer
-      EXAMPLES:
-      - DESCR  :
-        CODE   : ex_java_group_write_to_mem
+#  - g_group_write_to_mem_bytebuffer:
+#      NAMES    : writeToByteBuffer
+#      DESCR    : *g_group_write_to_mem_descr
+#      SUMMARY  : *g_group_write_to_mem_summary
+#      RETURN:
+#        DESCR  : A copy of the serialized group.
+#        TYPES  : ByteBuffer
+#      EXAMPLES:
+#      - DESCR  :
+#        CODE   : ex_java_group_write_to_mem
   - g_group_to_string:
       NAMES    : toString
       DESCR    : *g_group_to_string_descr
@@ -198,7 +200,7 @@ CATEGORIES:
 - Group:
   METHODS:
   - g_group_table_count:
-      NAMES    : getTableCount
+      NAMES    : size
       DESCR    : *g_group_table_count_descr
       SUMMARY  : *g_group_table_count_summary
       RETURN:
@@ -206,7 +208,7 @@ CATEGORIES:
         DESCR  : The number of tables in the group.
       EXAMPLES:
       - DESCR  :
-        CODE   : #???ex_java_group_traverse
+        CODE   : ex_java_group_size
 
   - g_group_is_empty:
       NAMES    : isEmpty

@@ -792,7 +792,7 @@ public class DynTableExamples {
 
         String json = table.toJson();
         
-        // Print json e.g. using a printbwriter
+        // Print json e.g. using a printwriter
         PrintWriter out = new PrintWriter("fromServlet");
         out.print(json);
         out.close();
