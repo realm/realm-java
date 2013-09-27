@@ -198,7 +198,7 @@ public class TypedTableExamples {
         // @@Show@@
         PeopleTable people = new PeopleTable();
         
-        // Get column count. This example uses the table from Table /typed) intro
+        // Get column count. This example uses the table from Table (typed) intro
         //Assert(people.getColumnCount() == 3);
         // @@EndShow@@
         // @@EndExample@@
@@ -210,7 +210,7 @@ public class TypedTableExamples {
         // @@Show@@
         PeopleTable people = new PeopleTable();
         
-        // Get column name. This example uses the table from Table /typed) intro
+        // Get column name. This example uses the table from Table (typed) intro
         //Assert(people.getColumnName(1).equals("age"));
         // @@EndShow@@
         // @@EndExample@@
@@ -222,7 +222,7 @@ public class TypedTableExamples {
         // @@Show@@
         PeopleTable people = new PeopleTable();
         
-        // Get column index. This example uses the table from Table /typed) intro
+        // Get column index. This example uses the table from Table (typed) intro
         //Assert(people.getColumnIndex("age") == 1);
         // @@EndShow@@
         // @@EndExample@@
@@ -233,7 +233,7 @@ public class TypedTableExamples {
         // @@Show@@
         PeopleTable people = new PeopleTable();
         
-        // Get column index. This example uses the table from Table /typed) intro
+        // Get column index. This example uses the table from Table (typed) intro
         //Assert(people.getColumnType(1).equals(ColumnType.INTEGER));
         // @@EndShow@@
         // @@EndExample@@
