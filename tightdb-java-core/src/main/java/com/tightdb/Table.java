@@ -1121,7 +1121,7 @@ public class Table implements TableOrView, TableDefinition {
 
     //
 
-    public TableView get_distinct_view(long columnIndex) {
+    public TableView getDistinctView(long columnIndex) {
         return new TableView(nativeGetDistinctView(nativePtr, columnIndex), immutable);
     }
 
