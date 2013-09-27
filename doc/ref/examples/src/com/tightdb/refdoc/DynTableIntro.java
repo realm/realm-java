@@ -48,8 +48,8 @@ public class DynTableIntro {
 
         // Do some simple aggregations
         Assert(tbl.maximumDouble(2) == 123.45);
-        Assert(tbl.sum(0) == 24);
-        Assert(tbl.average(0) == 6.0);
+        Assert(tbl.sumInt(0) == 24);
+        Assert(tbl.averageInt(0) == 6.0);
 
         // Simple match search
         Assert(tbl.findFirstLong(0, -15) == 1);       // Search for -15 in column 0. returns rowIndex
@@ -78,18 +78,15 @@ public class DynTableIntro {
         // Working with sub tables
         //-------------------------------------------------------------------------
 
-        // Note: the .addColumn() method currently doesn't support subtables
-        // You have the use the older (and likely soon deprecated) TableSpec like this:
-
-        // Define schema with 1 String column and one Subtable column with 2 columns
-        TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.STRING,"name");
-        TableSpec subSpec = tableSpec.addSubtableColumn("subtable");    // Subtable:
-        subSpec.addColumn(ColumnType.STRING, "key");
-        subSpec.addColumn(ColumnType.MIXED,  "value");
-        // Now apply the schema to the table
         Table tbl3 = new Table();
-        tbl3.updateFromSpec(tableSpec);
+
+        tbl3.addColumn(ColumnType.STRING, "name");
+        tbl3.addColumn(ColumnType.TABLE, "subtable");
+
+        TableDefinition subSchema = tbl3.getSubTableDefinition(1);
+        subSchema.addColumn(ColumnType.STRING, "key");
+        subSchema.addColumn(ColumnType.MIXED, "value");
+
 
         // Add two rows - the first with two rows in its' subtable cell
         Object[][] sub = new Object[][] { {"firstkey", 12},
@@ -105,7 +102,6 @@ public class DynTableIntro {
         Assert(subTbl.getString(0, 0).equals("key1"));
 
         // @@EndShow@@
-
         System.out.println("Everything worked :-)");
     }
 

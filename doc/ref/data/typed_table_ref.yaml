@@ -36,6 +36,39 @@ IGNORE     : [g_dyn_table_where_const,
 
 CATEGORIES :
 
+- Constructor:
+  METHODS:
+  - g_typed_table_constructor_plain:
+  - g_typed_table_constructor_group:
+  - g_typed_table_constructor_group_name:
+      TITLE    : Table
+      NAMES    : [Table, Table, Table]
+      DESCR    : Create a typed table. A Group or Transaction (extends Group) can be parsed as parameter thereby attaching the table to the group.
+      SUMMARY  : Create a typed table.
+      SIGNATURE: |
+                 Table()
+                 Table(Group group)
+                 Table(Group group, String tableName)
+                 
+      PARAMS:
+      - NAME   : group
+        TYPES  : com.tight.Group
+        DESCR  : A tightdb group. 
+      - NAME   : tableName
+        TYPES  : String
+        DESCR  : The name of the table in the group.
+
+      RETURN:
+        TYPES  : Table
+        DESCR  : If table already exist in group, a typed table with exisiting data is returned. Otherwise a new empty typed table is returned.
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_table_constructor_plain
+      - DESCR  :
+        CODE   : ex_java_table_constructor_group
+      - DESCR  :
+        CODE   : ex_java_table_constructor_group_name
+
 - Table:
   METHODS:
   - g_typed_table_is_attached:
@@ -138,75 +171,75 @@ CATEGORIES :
 #        DESCR  :
 
 
-- Columns:
-  METHODS:
+# - Columns:
+#   METHODS:
   
  
-  - g_typed_table_get_column_count:
-      NAMES    : getColumnCount
-      SUMMARY  : *g_dyn_table_get_column_count_summary
-      DESCR    : *g_dyn_table_get_column_count_descr
-      RETURN:
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_column_count_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_typed_table_get_column_count
-        DESCR  :
-  - g_typed_table_get_column_name:
-      NAMES    : getColumnName
-      SUMMARY  : *g_dyn_table_get_column_name_summary
-      DESCR    : *g_dyn_table_get_column_name_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_column_name_param1_descr
-      RETURN:
-        TYPES  : String
-        DESCR  : *g_dyn_table_get_column_name_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_typed_table_get_column_name
-        DESCR  :
-  - g_typed_table_get_column_index:
-      NAMES    : getColumnIndex
-      SUMMARY  : *g_dyn_table_get_column_index_summary
-      DESCR    : *g_dyn_table_get_column_index_descr
-      PARAMS:
-      - NAME   : columnName
-        TYPES  : String
-        DESCR  : The name of the column to find.
-      RETURN:
-        TYPES  : long
-        DESCR  : The column index or -1 if there is no column with the specified name.
-      EXAMPLES:
-      - CODE   : ex_java_typed_table_get_column_index
-        DESCR  :
-  - g_typed_table_get_column_type:
-      NAMES    : getColumnType
-      SUMMARY  : *g_dyn_table_get_column_type_summary
-      DESCR    : >
-                 This method returns the type of a column using the column index. Currently,
-                 the following types are supported from the <code>ColumnType</code> class:
-                 <ul>
-                   <li><code>BOOLEAN</code></li>
-                   <li><code>INTEGER</code></li>
-                   <li><code>FLOAT</code></li>
-                   <li><code>DOUBLE</code></li>
-                   <li><code>STRING</code></li>
-                   <li><code>BINARY</code></li>
-                   <li><code>DATE</code></li>
-                   <li><code>TABLE</code></li>
-                   <li><code>MIXED</code></li>
-                 </ul>
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : The column index.
-      RETURN:
-        TYPES  : ColumnType
-        DESCR  : The column type.
-      EXAMPLES:
-      - CODE   : ex_java_typed_table_get_column_type
-        DESCR  :
+#   - g_typed_table_get_column_count:
+#       NAMES    : getColumnCount
+#       SUMMARY  : *g_dyn_table_get_column_count_summary
+#       DESCR    : *g_dyn_table_get_column_count_descr
+#       RETURN:
+#         TYPES  : long
+#         DESCR  : *g_dyn_table_get_column_count_return_descr
+#       EXAMPLES:
+#       - CODE   : ex_java_typed_table_get_column_count
+#         DESCR  :
+#   - g_typed_table_get_column_name:
+#       NAMES    : getColumnName
+#       SUMMARY  : *g_dyn_table_get_column_name_summary
+#       DESCR    : *g_dyn_table_get_column_name_descr
+#       PARAMS:
+#       - NAME   : columnIndex
+#         TYPES  : long
+#         DESCR  : *g_dyn_table_get_column_name_param1_descr
+#       RETURN:
+#         TYPES  : String
+#         DESCR  : *g_dyn_table_get_column_name_return_descr
+#       EXAMPLES:
+#       - CODE   : ex_java_typed_table_get_column_name
+#         DESCR  :
+#   - g_typed_table_get_column_index:
+#       NAMES    : getColumnIndex
+#       SUMMARY  : *g_dyn_table_get_column_index_summary
+#       DESCR    : *g_dyn_table_get_column_index_descr
+#       PARAMS:
+#       - NAME   : columnName
+#         TYPES  : String
+#         DESCR  : The name of the column to find.
+#       RETURN:
+#         TYPES  : long
+#         DESCR  : The column index or -1 if there is no column with the specified name.
+#       EXAMPLES:
+#       - CODE   : ex_java_typed_table_get_column_index
+#         DESCR  :
+#   - g_typed_table_get_column_type:
+#       NAMES    : getColumnType
+#       SUMMARY  : *g_dyn_table_get_column_type_summary
+#       DESCR    : >
+#                  This method returns the type of a column using the column index. Currently,
+#                  the following types are supported from the <code>ColumnType</code> class:
+#                  <ul>
+#                    <li><code>BOOLEAN</code></li>
+#                    <li><code>INTEGER</code></li>
+#                    <li><code>FLOAT</code></li>
+#                    <li><code>DOUBLE</code></li>
+#                    <li><code>STRING</code></li>
+#                    <li><code>BINARY</code></li>
+#                    <li><code>DATE</code></li>
+#                    <li><code>TABLE</code></li>
+#                    <li><code>MIXED</code></li>
+#                  </ul>
+#       PARAMS:
+#       - NAME   : columnIndex
+#         TYPES  : long
+#         DESCR  : The column index.
+#       RETURN:
+#         TYPES  : ColumnType
+#         DESCR  : The column type.
+#       EXAMPLES:
+#       - CODE   : ex_java_typed_table_get_column_type
+#         DESCR  :
 
 
 

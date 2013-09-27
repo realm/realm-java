@@ -1,3 +1,8 @@
+27-September-2013:
+==================
+! BREAKING CHANGE: Removed named column cursors from rows in typed interface. Now only traditional getters/setters are allowed.
+! BREAKING CHANGE: Because of the above subtables in Mixed columns are not supported, until a better implementation is made.
+
 24-September-2013:
 ==================
 + Added com.tightdb.Table.equals() and fixed com.tightdb.Group.equals()

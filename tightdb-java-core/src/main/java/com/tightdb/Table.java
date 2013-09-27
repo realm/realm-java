@@ -592,7 +592,7 @@ public class Table implements TableOrView, TableDefinition {
             if(data != null)
                 nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
             else
-                throw new RuntimeException("byte[] must not be null. Alternatively insert empty array.");
+                throw new NullPointerException("byte[] must not be null. Alternatively insert empty array.");
         }
         
         public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
@@ -634,9 +634,13 @@ public class Table implements TableOrView, TableDefinition {
 
     protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
-   
 
-    //protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+   /* public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
+        if (data == null)
+            throw new NullPointerException("Null Array");
+        if (immutable) throwImmutable();
+        nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
+    }*/
 
     
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);

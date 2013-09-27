@@ -97,7 +97,7 @@ public class TableTest {
     @Test
     public void shouldHaveTwoWaysToReadCellValues() {
         assertEquals(NAME0, employees.get(0).getFirstName());
-        assertEquals(NAME0, employees.get(0).firstName.get());
+        assertEquals(NAME0, employees.get(0).getFirstName());
     }
 
     @Test
@@ -105,7 +105,7 @@ public class TableTest {
         employees.get(0).setFirstName("FOO");
         assertEquals("FOO", employees.get(0).getFirstName());
 
-        employees.get(0).firstName.set("BAR");
+        employees.get(0).setFirstName("BAR");
         assertEquals("BAR", employees.get(0).getFirstName());
     }
 
@@ -164,5 +164,4 @@ public class TableTest {
         employees.lastName.setIndex();
         assertEquals(true, employees.lastName.hasIndex());
     }
-
 }

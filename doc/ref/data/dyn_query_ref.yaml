@@ -263,7 +263,7 @@ CATEGORIES :
         DESCR  : The query object.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_startsWith
+        CODE   : ex_java_dyn_query_beginsWith
   - g_dyn_query_endsWith:
 #todo  - g_dyn_query_endsWith_binary:
       NAMES    : endsWith
@@ -347,7 +347,7 @@ CATEGORIES :
         DESCR  : The query object.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_or
+        CODE   : ex_java_dyn_query_group
   - g_dyn_query_subtable:
       NAMES    : subTable
       DESCR    : *g_dyn_query_subtable_descr
@@ -398,7 +398,7 @@ CATEGORIES :
         DESCR  : *g_dyn_query_find_all_return_desc
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_findall
+        CODE   : ex_java_dyn_query_findAll
   - g_dyn_query_find_next:
       NAMES    : findNext
       DESCR    : *g_dyn_query_find_next_descr
@@ -415,7 +415,7 @@ CATEGORIES :
         DESCR  : *g_dyn_query_find_next
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_find_next
+        CODE   : ex_java_dyn_query_findNext
 
   - g_dyn_query_count:
       NAMES    : count
@@ -439,7 +439,7 @@ CATEGORIES :
         DESCR  : The number of matching rows.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_size
+        CODE   : ex_java_dyn_query_count
 
   - g_dyn_query_sum:
   - g_dyn_query_sum_float:
