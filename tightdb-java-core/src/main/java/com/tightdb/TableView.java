@@ -575,10 +575,10 @@ public class TableView implements TableOrView {
      * @return the sum of the values in the column
      */
     public long sumInt(long columnIndex){
-        return nativeSum(nativePtr, columnIndex);
+        return nativeSumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeSum(long nativeViewPtr, long columnIndex);
+    protected native long nativeSumInt(long nativeViewPtr, long columnIndex);
 
     /**
      * Returns the maximum value of the cells in a column.
@@ -590,10 +590,10 @@ public class TableView implements TableOrView {
      * @return the maximum value
      */
     public long maximumInt(long columnIndex){
-        return nativeMaximum(nativePtr, columnIndex);
+        return nativeMaximumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMaximum(long nativeViewPtr, long columnIndex);
+    protected native long nativeMaximumInt(long nativeViewPtr, long columnIndex);
 
     /**
      * Returns the minimum value of the cells in a column.
@@ -605,16 +605,16 @@ public class TableView implements TableOrView {
      * @return the minimum value
      */
     public long minimumInt(long columnIndex){
-        return nativeMinimum(nativePtr, columnIndex);
+        return nativeMinimumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMinimum(long nativeViewPtr, long columnIndex);
+    protected native long nativeMinimumInt(long nativeViewPtr, long columnIndex);
 
     public double averageInt(long columnIndex) {
-        return nativeAverage(nativePtr, columnIndex);
+        return nativeAverageInt(nativePtr, columnIndex);
     }
 
-    protected native double nativeAverage(long nativePtr, long columnIndex);
+    protected native double nativeAverageInt(long nativePtr, long columnIndex);
 
 
     // Float aggregates

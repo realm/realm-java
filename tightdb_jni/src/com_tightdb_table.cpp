@@ -73,7 +73,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsRootTable
     return !TBL(nativeTablePtr)->has_shared_spec(); 
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpFromSpec(
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
     JNIEnv* env, jobject, jlong nativeTablePtr, jobject jTableSpec)
 {
     Table* pTable = TBL(nativeTablePtr);
@@ -621,7 +621,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeHasIndex(
 
 //---------------------- Aggregare methods for integers
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSum(
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSumInt(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int)) 
@@ -632,7 +632,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSum(
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximum(
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximumInt(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int))
@@ -643,7 +643,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximum(
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimum(
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimumInt(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int))
@@ -654,7 +654,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimum(
     return 0;
 }
 
-JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverage(
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageInt(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int))
@@ -1024,7 +1024,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeUpperBoundInt(
 
 //
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeDGetDistinctView(
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetDistinctView(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     Table* pTable = TBL(nativeTablePtr);
