@@ -31,7 +31,7 @@ public class JNIQueryTest {
         init();
         TableQuery query = table.where();
 
-        long cnt = query.equal(1, "D").count();
+        long cnt = query.equalTo(1, "D").count();
         assertEquals(2, cnt);
 
         cnt = query.minimumInt(0);
@@ -60,8 +60,8 @@ public class JNIQueryTest {
         // Compare strings in non string columns
         for(int i = 0; i <= 8; i++) {
             if(i != 7) {
-                try { query.equal(i, "string");                 assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqual(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
+                try { query.equalTo(i, "string");                 assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
                 try { query.beginsWith(i, "string");            assert(false); } catch(IllegalArgumentException e) {}
                 try { query.endsWith(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
                 try { query.contains(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
@@ -71,8 +71,8 @@ public class JNIQueryTest {
         // Compare integer in non integer columns
         for(int i = 0; i <= 8; i++) {
             if(i != 5) {
-                try { query.equal(i, 123);                      assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqual(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
+                try { query.equalTo(i, 123);                      assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThanOrEqual(i, 123);            assert(false); } catch(IllegalArgumentException e) {}
                 try { query.greaterThan(i, 123);                assert(false); } catch(IllegalArgumentException e) {}
@@ -84,8 +84,8 @@ public class JNIQueryTest {
         // Compare float in non float columns
         for(int i = 0; i <= 8; i++) {
             if(i != 4) {
-                try { query.equal(i, 123F);                     assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqual(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
+                try { query.equalTo(i, 123F);                     assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThanOrEqual(i, 123F);           assert(false); } catch(IllegalArgumentException e) {}
                 try { query.greaterThan(i, 123F);               assert(false); } catch(IllegalArgumentException e) {}
@@ -97,8 +97,8 @@ public class JNIQueryTest {
         // Compare double in non double columns
         for(int i = 0; i <= 8; i++) {
             if(i != 3) {
-                try { query.equal(i, 123D);                     assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqual(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
+                try { query.equalTo(i, 123D);                     assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThanOrEqual(i, 123D);           assert(false); } catch(IllegalArgumentException e) {}
                 try { query.greaterThan(i, 123D);               assert(false); } catch(IllegalArgumentException e) {}
@@ -110,7 +110,7 @@ public class JNIQueryTest {
         // Compare boolean in non boolean columns
         for(int i = 0; i <= 8; i++) {
             if(i != 1) {
-              try { query.equal(i, true);                       assert(false); } catch(IllegalArgumentException e) {}
+              try { query.equalTo(i, true);                       assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
@@ -212,16 +212,16 @@ public class JNIQueryTest {
         try { query.averageFloat(8);            assert(false); } catch(IllegalArgumentException e) {}
         try { query.averageDouble(8);           assert(false); } catch(IllegalArgumentException e) {}
         // Out of bounds for string
-        try { query.equal(9, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqual(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(9, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.beginsWith(9, "string");            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.endsWith(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.contains(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
 
 
         // Out of bounds for integer
-        try { query.equal(9, 123);                      assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqual(9, 123);                   assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(9, 123);                      assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(9, 123);                   assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(9, 123);                   assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(9, 123);            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(9, 123);                assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
@@ -230,8 +230,8 @@ public class JNIQueryTest {
 
 
         // Out of bounds for float
-        try { query.equal(9, 123F);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqual(9, 123F);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(9, 123F);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(9, 123F);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(9, 123F);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(9, 123F);           assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(9, 123F);               assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
@@ -240,8 +240,8 @@ public class JNIQueryTest {
 
 
         // Out of bounds for double
-        try { query.equal(9, 123D);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqual(9, 123D);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(9, 123D);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(9, 123D);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(9, 123D);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(9, 123D);           assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(9, 123D);               assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
@@ -250,7 +250,7 @@ public class JNIQueryTest {
 
 
         // Out of bounds for boolean
-        try { query.equal(9, true);                       assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(9, true);                       assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
 
     }
 
