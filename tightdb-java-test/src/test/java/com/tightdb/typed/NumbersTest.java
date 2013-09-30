@@ -194,13 +194,19 @@ public class NumbersTest {
     
     @Test
     public void setAndGetNumbers() {
+
+        // Integer set all columns
+        view.longNum.setAll(400);
+        assertEquals(400, view.get(0).getLongNum());
+        view.longNum.setAll(-1); 
+        assertEquals(-1, view.get(1).getLongNum());
         
-        // Double column s
+        // Double columns
         view.get(0).setDoubleNum(400d);
         assertEquals(400d, view.get(0).getDoubleNum());
         view.get(1).setDoubleNum(-0.01d);
         assertEquals(-0.01d, view.get(1).getDoubleNum());
-        
+
         // FLoat columns
         view.get(0).setFloatNum(400f);
         assertEquals(400f, view.get(0).getFloatNum());
