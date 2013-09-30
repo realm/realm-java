@@ -56,7 +56,7 @@ CATEGORIES:
         DESCR  : If the file could not be opened for whatever reason.
 # TODO: more specific exceptions
       EXAMPLES:
-      - CODE   : ex_java_shared_group_constructor
+      - CODE   : ex_java_shared_group_constructor_string
         DESCR  :
 #- Utilities:
 #  METHODS:
