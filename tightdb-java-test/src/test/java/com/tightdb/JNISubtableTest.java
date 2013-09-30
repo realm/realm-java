@@ -88,6 +88,22 @@ public class JNISubtableTest {
         assertEquals(persons.getSubTable(2,0).getString(0,0), "X Street");
         assertEquals(persons.getSubTable(2,0).getSubTable(2,0).getLong(0,0), 12345678);
     }
+    
+    
+    @Test
+    public void SubtableAddColumnsChekcNames() {
+
+        // Table definition
+        Table persons = new Table();
+
+        persons.addColumn(ColumnType.ColumnTypeTable, "sub");
+
+        TableDefinition addresses = persons.getSubTableDefinition(0);
+        try { addresses.addColumn(ColumnType.ColumnTypeString, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
+        
+        addresses.addColumn(ColumnType.ColumnTypeString, "I am 63 chracters.............................................."); 
+
+    }
 
     @Test
     public void removeColumnFromSubtable() {

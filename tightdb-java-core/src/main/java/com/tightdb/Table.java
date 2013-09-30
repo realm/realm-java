@@ -156,6 +156,7 @@ public class Table implements TableOrView, TableSchema {
     	}    	
     }
 
+    @Override
     public TableSchema getSubTableSchema(long columnIndex) {
         if(nativeIsRootTable(nativePtr) == false)
             throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
@@ -171,6 +172,7 @@ public class Table implements TableOrView, TableSchema {
      * Add a column to the table dynamically.
      * @return Index of the new column.
      */
+    @Override
     public long addColumn (ColumnType type, String name) {
     	verifyColumnName(name);
     	return nativeAddColumn(nativePtr, type.getValue(), name);
@@ -181,8 +183,8 @@ public class Table implements TableOrView, TableSchema {
     /**
      * Remove a column in the table dynamically.
      */
-    public void removeColumn(long columnIndex)
-    {
+    @Override
+    public void removeColumn(long columnIndex) {
         nativeRemoveColumn(nativePtr, columnIndex);
     }
 
@@ -191,6 +193,7 @@ public class Table implements TableOrView, TableSchema {
     /**
      * Rename a column in the table.
      */
+    @Override
     public void renameColumn(long columnIndex, String newName) {
     	verifyColumnName(newName);
         nativeRenameColumn(nativePtr, columnIndex, newName);
@@ -222,6 +225,7 @@ public class Table implements TableOrView, TableSchema {
      *
      * @return The number of rows.
      */
+    @Override
     public long size() {
         return nativeSize(nativePtr);
     }
@@ -233,6 +237,7 @@ public class Table implements TableOrView, TableSchema {
      *
      * @return true if empty, otherwise false.
      */
+    @Override
     public boolean isEmpty() {
         return size() == 0;
     }
@@ -240,6 +245,7 @@ public class Table implements TableOrView, TableSchema {
     /**
      * Clears the table i.e., deleting all rows in the table.
      */
+    @Override
     public void clear() {
         if (immutable) throwImmutable();
         nativeClear(nativePtr);
@@ -253,12 +259,14 @@ public class Table implements TableOrView, TableSchema {
      *
      * @return the number of columns.
      */
+    @Override
     public long getColumnCount() {
         return nativeGetColumnCount(nativePtr);
     }
 
     protected native long nativeGetColumnCount(long nativeTablePtr);
 
+    
     public TableSpec getTableSpec(){
         return nativeGetTableSpec(nativePtr);
     }
@@ -272,6 +280,7 @@ public class Table implements TableOrView, TableSchema {
      * @param columnIndex the column index
      * @return the name of the column
      */
+    @Override
     public String getColumnName(long columnIndex) {
         return nativeGetColumnName(nativePtr, columnIndex);
     }
@@ -284,6 +293,7 @@ public class Table implements TableOrView, TableSchema {
      * @param name column name
      * @return the index, -1 if not found
      */
+    @Override
     public long getColumnIndex(String name) {
         long columnCount = getColumnCount();
         for (long i = 0; i < columnCount; i++) {
@@ -300,8 +310,8 @@ public class Table implements TableOrView, TableSchema {
      * @param columnIndex index of the column.
      * @return Type of the particular column.
      */
-    public ColumnType getColumnType(long columnIndex)
-    {
+    @Override
+    public ColumnType getColumnType(long columnIndex) {
         return ColumnType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
     }
 
@@ -314,6 +324,7 @@ public class Table implements TableOrView, TableSchema {
      * @param rowIndex the row index (starting with 0)
      *
      */
+    @Override
     public void remove(long rowIndex) {
         if (immutable) throwImmutable();
         nativeRemove(nativePtr, rowIndex);
@@ -321,6 +332,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeRemove(long nativeTablePtr, long rowIndex);
 
+    @Override
     public void removeLast() {
         if (immutable) throwImmutable();
         nativeRemoveLast(nativePtr);
@@ -572,30 +584,35 @@ public class Table implements TableOrView, TableSchema {
     // Getters
     //
 
+    @Override
     public long getLong(long columnIndex, long rowIndex) {
         return nativeGetLong(nativePtr, columnIndex, rowIndex);
     }
 
     protected native long nativeGetLong(long nativeTablePtr, long columnIndex, long rowIndex);
 
+    @Override
     public boolean getBoolean(long columnIndex, long rowIndex) {
         return nativeGetBoolean(nativePtr, columnIndex, rowIndex);
     }
 
     protected native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
 
+    @Override
     public float getFloat(long columnIndex, long rowIndex) {
         return nativeGetFloat(nativePtr, columnIndex, rowIndex);
     }
 
     protected native float nativeGetFloat(long nativeTablePtr, long columnIndex, long rowIndex);
 
+    @Override
     public double getDouble(long columnIndex, long rowIndex) {
         return nativeGetDouble(nativePtr, columnIndex, rowIndex);
     }
 
     protected native double nativeGetDouble(long nativeTablePtr, long columnIndex, long rowIndex);
 
+    @Override
     public Date getDate(long columnIndex, long rowIndex) {
         return new Date(nativeGetDateTime(nativePtr, columnIndex, rowIndex)*1000);
     }
@@ -611,6 +628,7 @@ public class Table implements TableOrView, TableSchema {
      *            0 based index of the row.
      * @return value of the particular cell
      */
+    @Override
     public String getString(long columnIndex, long rowIndex) {
         return nativeGetString(nativePtr, columnIndex, rowIndex);
     }
@@ -626,24 +644,27 @@ public class Table implements TableOrView, TableSchema {
      *            0 based index value of the cell row
      * @return value of the particular cell.
      */
+    @Override
     public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex) {
         return nativeGetByteBuffer(nativePtr, columnIndex, rowIndex);
     }
 
     protected native ByteBuffer nativeGetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex);
 
+    @Override
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex) {
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
     }
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
 
+    @Override
     public Mixed getMixed(long columnIndex, long rowIndex) {
         return nativeGetMixed(nativePtr, columnIndex, rowIndex);
     }
 
-    public ColumnType getMixedType(long columnIndex, long rowIndex)
-    {
+    @Override
+    public ColumnType getMixedType(long columnIndex, long rowIndex) {
         return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
     }
 
@@ -661,6 +682,7 @@ public class Table implements TableOrView, TableSchema {
      * @param rowIndex row index of the cell
      * @return TableBase the subtable at the requested cell
      */
+    @Override
     public Table getSubTable(long columnIndex, long rowIndex) {
         return new Table(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex), immutable);
     }
@@ -669,6 +691,7 @@ public class Table implements TableOrView, TableSchema {
 
     // Below version will allow to getSubTable when number of available rows are not updated yet -
     // which happens before an insertDone().
+    
     private Table getSubTableDuringInsert(long columnIndex, long rowIndex) {
         return new Table(this, nativeGetSubTableDuringInsert(nativePtr, columnIndex, rowIndex), immutable);
     }
@@ -693,6 +716,7 @@ public class Table implements TableOrView, TableSchema {
     // Setters
     //
 
+    @Override
     public void setLong(long columnIndex, long rowIndex, long value) {
         if (immutable) throwImmutable();
         nativeSetLong(nativePtr, columnIndex, rowIndex, value);
@@ -700,6 +724,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
+    @Override
     public void setBoolean(long columnIndex, long rowIndex, boolean value) {
         if (immutable) throwImmutable();
         nativeSetBoolean(nativePtr, columnIndex, rowIndex, value);
@@ -707,6 +732,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
 
+    @Override
     public void setFloat(long columnIndex, long rowIndex, float value) {
         if (immutable) throwImmutable();
         nativeSetFloat(nativePtr, columnIndex, rowIndex, value);
@@ -714,6 +740,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
 
+    @Override
     public void setDouble(long columnIndex, long rowIndex, double value) {
         if (immutable) throwImmutable();
         nativeSetDouble(nativePtr, columnIndex, rowIndex, value);
@@ -721,6 +748,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
 
+    @Override
     public void setDate(long columnIndex, long rowIndex, Date date) {
         if (immutable) throwImmutable();
         nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
@@ -728,6 +756,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
 
+    @Override
     public void setString(long columnIndex, long rowIndex, String value) {
         if (immutable) throwImmutable();
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
@@ -745,6 +774,7 @@ public class Table implements TableOrView, TableSchema {
      * @param data
      *            the ByteBuffer must be allocated with ByteBuffer.allocateDirect(len)
      */
+    @Override
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data) {
         if (immutable) throwImmutable();
         if (data == null)
@@ -757,6 +787,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeSetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
 
+    @Override
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         if (immutable) throwImmutable();
         if (data == null)
@@ -775,6 +806,7 @@ public class Table implements TableOrView, TableSchema {
      *            row index of the cell
      * @param data
      */
+    @Override
     public void setMixed(long columnIndex, long rowIndex, Mixed data) {
         if (immutable) throwImmutable();
         if (data == null)
@@ -791,6 +823,7 @@ public class Table implements TableOrView, TableSchema {
      * @param value
      */
     //!!!TODO: New. Support in highlevel API
+    @Override
     public void addLong(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
@@ -798,6 +831,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
+    
     public void setIndex(long columnIndex) {
         if (immutable) throwImmutable();
         if (getColumnType(columnIndex) != ColumnType.ColumnTypeString)
@@ -807,6 +841,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeSetIndex(long nativePtr, long columnIndex);
 
+    
     public boolean hasIndex(long columnIndex) {
         return nativeHasIndex(nativePtr, columnIndex);
     }
@@ -818,49 +853,57 @@ public class Table implements TableOrView, TableSchema {
     //
 
     // Integers
+    @Override
     public long sum(long columnIndex) {
         return nativeSum(nativePtr, columnIndex);
     }
 
     protected native long nativeSum(long nativePtr, long columnIndex);
 
+    @Override
     public long maximum(long columnIndex) {
         return nativeMaximum(nativePtr, columnIndex);
     }
 
     protected native long nativeMaximum(long nativePtr, long columnIndex);
 
+    @Override
     public long minimum(long columnIndex) {
         return nativeMinimum(nativePtr, columnIndex);
     }
 
     protected native long nativeMinimum(long nativePtr, long columnnIndex);
 
-    public double average(long columnIndex) {
+    @Override
+    public double average(long columnIndex) { 
         return nativeAverage(nativePtr, columnIndex);
     }
 
     protected native double nativeAverage(long nativePtr, long columnIndex);
 
     // Floats
+    @Override
     public double sumFloat(long columnIndex) {
         return nativeSumFloat(nativePtr, columnIndex);
     }
 
     protected native double nativeSumFloat(long nativePtr, long columnIndex);
 
+    @Override
     public float maximumFloat(long columnIndex) {
         return nativeMaximumFloat(nativePtr, columnIndex);
     }
 
     protected native float nativeMaximumFloat(long nativePtr, long columnIndex);
 
+    @Override
     public float minimumFloat(long columnIndex) {
         return nativeMinimumFloat(nativePtr, columnIndex);
     }
 
     protected native float nativeMinimumFloat(long nativePtr, long columnnIndex);
 
+    @Override
     public double averageFloat(long columnIndex) {
         return nativeAverageFloat(nativePtr, columnIndex);
     }
@@ -868,24 +911,28 @@ public class Table implements TableOrView, TableSchema {
     protected native double nativeAverageFloat(long nativePtr, long columnIndex);
 
     // Doubles
+    @Override
     public double sumDouble(long columnIndex) {
         return nativeSumDouble(nativePtr, columnIndex);
     }
 
     protected native double nativeSumDouble(long nativePtr, long columnIndex);
 
+    @Override
     public double maximumDouble(long columnIndex) {
         return nativeMaximumDouble(nativePtr, columnIndex);
     }
 
     protected native double nativeMaximumDouble(long nativePtr, long columnIndex);
 
+    @Override
     public double minimumDouble(long columnIndex) {
         return nativeMinimumDouble(nativePtr, columnIndex);
     }
 
     protected native double nativeMinimumDouble(long nativePtr, long columnnIndex);
 
+    @Override
     public double averageDouble(long columnIndex) {
         return nativeAverageDouble(nativePtr, columnIndex);
     }
@@ -896,13 +943,14 @@ public class Table implements TableOrView, TableSchema {
     //
     // Count
     //
-
+    
     public long count(long columnIndex, long value) {
         return nativeCountLong(nativePtr, columnIndex, value);
     }
 
     protected native long nativeCountLong(long nativePtr, long columnIndex, long value);
 
+    
     public long count(long columnIndex, float value) {
         return nativeCountFloat(nativePtr, columnIndex, value);
     }
@@ -926,79 +974,91 @@ public class Table implements TableOrView, TableSchema {
     // Searching methods.
     //
 
-
+    
     public TableQuery where() {
         return new TableQuery(nativeWhere(nativePtr), immutable);
     }
 
     protected native long nativeWhere(long nativeTablePtr);
 
+    @Override
     public long findFirstLong(long columnIndex, long value) {
         return nativeFindFirstInt(nativePtr, columnIndex, value);
     }
 
     protected native long nativeFindFirstInt(long nativeTablePtr, long columnIndex, long value);
 
+    @Override
     public long findFirstBoolean(long columnIndex, boolean value) {
         return nativeFindFirstBool(nativePtr, columnIndex, value);
     }
 
     protected native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
 
+    @Override
     public long findFirstFloat(long columnIndex, float value) {
         return nativeFindFirstFloat(nativePtr, columnIndex, value);
     }
 
     protected native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
 
+    @Override
     public long findFirstDouble(long columnIndex, double value) {
         return nativeFindFirstDouble(nativePtr, columnIndex, value);
     }
 
     protected native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
 
+    @Override
     public long findFirstDate(long columnIndex, Date date) {
         return nativeFindFirstDate(nativePtr, columnIndex, date.getTime() / 1000);
     }
 
     protected native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
 
+    @Override
     public long findFirstString(long columnIndex, String value) {
         return nativeFindFirstString(nativePtr, columnIndex, value);
     }
 
     protected native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
 
+    @Override
     public TableView findAllLong(long columnIndex, long value) {
         return new TableView(nativeFindAllInt(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
+    @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
         return new TableView(nativeFindAllBool(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
+    @Override
     public TableView findAllFloat(long columnIndex, float value) {
         return new TableView(nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
 
+    @Override
     public TableView findAllDouble(long columnIndex, double value) {
         return new TableView(nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
+    @Override
     public TableView findAllDate(long columnIndex, Date date) {
         return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000), immutable);
     }
 
     protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
 
+    @Override
     public TableView findAllString(long columnIndex, String value) {
         return new TableView(nativeFindAllString(nativePtr, columnIndex, value), immutable);
     }
@@ -1006,6 +1066,7 @@ public class Table implements TableOrView, TableSchema {
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
     // Requires that the first column is a string column with index
+    @Override
     public long lookup(String value) {
         if (!this.hasIndex(0) || this.getColumnType(0) != ColumnType.ColumnTypeString)
             throw new RuntimeException("lookup() requires index on column 0 which must be a String column.");
@@ -1016,9 +1077,11 @@ public class Table implements TableOrView, TableSchema {
 
 
     // Experimental feature
+    @Override
     public long lowerBoundLong(long columnIndex, long value) {
         return nativeLowerBoundInt(nativePtr, columnIndex, value);
     }
+    @Override
     public long upperBoundLong(long columnIndex, long value) {
         return nativeUpperBoundInt(nativePtr, columnIndex, value);
     }
@@ -1028,6 +1091,7 @@ public class Table implements TableOrView, TableSchema {
 
     //
 
+    
     public TableView distinct(long columnIndex) {
         return new TableView(nativeDistinct(nativePtr, columnIndex), immutable);
     }
@@ -1042,22 +1106,26 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeOptimize(long nativeTablePtr);
 
+    @Override
     public String toJson() {
         return nativeToJson(nativePtr);
     }
 
     protected native String nativeToJson(long nativeTablePtr);
 
+    @Override
     public String toString() {
         return nativeToString(nativePtr, INFINITE);
     }
 
+    @Override
     public String toString(long maxRows) {
         return nativeToString(nativePtr, maxRows);
     }
 
     protected native String nativeToString(long nativeTablePtr, long maxRows);
 
+    @Override
     public String rowToString(long rowIndex) {
         return nativeRowToString(nativePtr, rowIndex);
     }
