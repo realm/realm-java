@@ -30,7 +30,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_createNativeTableView(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose(
-    JNIEnv* env, jobject, jlong nativeViewPtr)
+    JNIEnv*, jobject, jlong nativeViewPtr)
 {
     if (nativeViewPtr == 0)
         return;

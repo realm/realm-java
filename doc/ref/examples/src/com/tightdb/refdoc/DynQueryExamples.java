@@ -341,7 +341,7 @@ public class DynQueryExamples {
         table.addColumn(ColumnType.STRING, "username");
         table.addColumn(ColumnType.TABLE, "tasks");
 
-        TableDefinition tasks = table.getSubTableDefinition(1);
+        TableSchema tasks = table.getSubTableSchema(1);
         tasks.addColumn(ColumnType.STRING, "name");
         tasks.addColumn(ColumnType.INTEGER, "score");
         tasks.addColumn(ColumnType.BOOLEAN, "completed");
