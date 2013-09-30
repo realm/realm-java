@@ -55,7 +55,7 @@ public class DynTableExamples {
         // Searching methods:
         findFirstExamples();
         findAllExample();
-        distinctExample();
+        getDistinctViewExample();
         whereExample();
         
         // Aggregates methods:
@@ -611,7 +611,7 @@ public class DynTableExamples {
     }
     
     
-    public static void distinctExample(){
+    public static void getDistinctViewExample(){
         // @@Example: ex_java_dyn_table_get_distinct_view @@
         // @@Show@@
         // Create table with 1 column and add data
