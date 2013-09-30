@@ -264,6 +264,20 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_get_column_type
         DESCR  :
+  - g_dyn_table_add_int:
+      NAMES    : adjust
+      SUMMARY  : *g_dyn_table_add_int_summary
+      DESCR    : *g_dyn_table_add_int_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_add_int_parm1_descr
+      - NAME   : value
+        TYPES  : long
+        DESCR  : *g_dyn_table_add_int_parm2_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_adjust
+        DESCR  :
 
 
 - Rows:
@@ -360,21 +374,6 @@ CATEGORIES :
       DESCR    : *g_dyn_table_remove_last_row_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_table_remove_last_row
-        DESCR  :
-
-  - g_dyn_table_add_int:
-      NAMES    : adjust
-      SUMMARY  : *g_dyn_table_add_int_summary
-      DESCR    : *g_dyn_table_add_int_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_add_int_parm1_descr
-      - NAME   : value
-        TYPES  : long
-        DESCR  : *g_dyn_table_add_int_parm2_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_adjust
         DESCR  :
 
 - Cells:
