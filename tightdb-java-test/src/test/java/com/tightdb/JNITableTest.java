@@ -3,6 +3,7 @@ package com.tightdb;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -58,6 +59,41 @@ public class JNITableTest {
         t.addEmptyRow();
         assertEquals(false, t.equals(t2));
     }
+    
+    
+    @Test
+    public void tableBinaryTest() {
+        Table t = new Table();
+        t.addColumn(ColumnType.ColumnTypeBinary, "binary");
+        
+        byte[] row0 = new byte[] { 1, 2, 3 };
+        byte[] row1 = new byte[] { 10, 20, 30 };
+        
+        t.insertBinary(0, 0, row0);
+        t.insertBinary(0, 1, row1);
+        t.insertDone();
+        
+        byte[] nullByte = null;
+        
+        try { t.insertBinary(0, 2, nullByte); fail("Inserting null array"); } catch(NullPointerException e) { }
+        
+        ByteBuffer nullBuffer = null;
+        
+        try { t.insertBinary(0, 2, nullBuffer); fail("Inserting null array"); } catch(NullPointerException e) { }
+        
+        assertEquals(new byte[] { 1, 2, 3 }, t.getBinaryByteArray(0, 0));
+        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[]{1, 2, 3});
+        
+        byte[] newRow0 = new byte[] { 7, 77, 77 };
+        t.setBinaryByteArray(0, 0, newRow0);
+        
+        assertEquals(new byte[] { 7, 77, 77 }, t.getBinaryByteArray(0, 0));
+        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
+        
+        try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(NullPointerException e) { }
+        try { t.setBinaryByteBuffer(0, 2, nullBuffer); fail("Inserting null array"); } catch(NullPointerException e) { }
+    }
+    
 
     @Test
     public void getNonExistingColumn() {
@@ -93,7 +129,6 @@ public class JNITableTest {
         t.addEmptyRows(-1); // Argument is negative, Throws exception
     }
     
-    
     @Test(expectedExceptions = NullPointerException.class)
     public void addNullInMixedColumn() {
         Table t = new Table();
@@ -102,7 +137,6 @@ public class JNITableTest {
         
         t.setMixed(0, 0, null); // Argument is null, Throws exception
     }
-    
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void setDataWithWrongColumnTypes() {
@@ -113,15 +147,13 @@ public class JNITableTest {
         t.set(0, 100); // Exception expected. Table has string column, and here an integer is inserted
     }
     
-    
-    
     @Test
     public void immutableInsertNotAllowed() {
         
         String FILENAME = "only-test-file.tightdb";
         String TABLENAME = "tableName";
         
-        new File(FILENAME).delete();
+      //  new File(FILENAME).delete();
 
         SharedGroup group = new SharedGroup(FILENAME);
 
@@ -143,7 +175,7 @@ public class JNITableTest {
         try{
             Table table = rt.getTable(TABLENAME);
             
-            try {  table.insert(1, "NewValue"); fail("Exception excpeted when inserting in read transaction"); } catch (IllegalStateException e) { }
+            try {  table.insert(1, "NewValue"); fail("Exception expected when inserting in read transaction"); } catch (IllegalStateException e) { }
             
         } finally {
             rt.endRead();
@@ -193,6 +225,9 @@ public class JNITableTest {
         Table table2 = getTableWithSimpleData();
         
         assertEquals(true, table1.equals(table2));
+        assertEquals(true, table1.equals(table1)); // Same table
+        assertEquals(false, table1.equals(null)); // Null object
+        assertEquals(false, table1.equals("String")); // Other object
     }
     
 
@@ -220,14 +255,11 @@ public class JNITableTest {
         assertEquals(3, t.count(2, 3.0f));
         assertEquals(3, t.count(3, "s1"));
         
-        
         assertEquals(3, t.findAllDouble(1, 2.0d).size());
         assertEquals(3, t.findAllFloat(2, 3.0f).size());
         
-        
         assertEquals(3, t.findFirstDouble(1, 20.0d)); // Find rows index for first double value of 20.0 in column 1
         assertEquals(4, t.findFirstFloat(2, 300.0f)); // Find rows index for first float value of 300.0 in column 2
-        
         
         // Set double and float
         t.setDouble(1, 2, -2.0d);
