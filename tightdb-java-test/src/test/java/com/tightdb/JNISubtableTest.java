@@ -68,12 +68,12 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.ColumnTypeString, "email");
         persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
 
-        TableDefinition addresses = persons.getSubTableDefinition(2);
+        TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.ColumnTypeString, "street");
         addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
         addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
 
-        TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
+        TableSchema phone_numbers = addresses.getSubTableSchema(2);
         phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
 
         // Inserting data
@@ -99,12 +99,12 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.ColumnTypeString, "email");
         persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
 
-        TableDefinition addresses = persons.getSubTableDefinition(2);
+        TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.ColumnTypeString, "street");
         addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
         addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
 
-        TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
+        TableSchema phone_numbers = addresses.getSubTableSchema(2);
         phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
 
         // Inserting data
@@ -126,12 +126,12 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.ColumnTypeString, "email");
         persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
 
-        TableDefinition addresses = persons.getSubTableDefinition(2);
+        TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.ColumnTypeString, "street");
         addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
         addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
 
-        TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
+        TableSchema phone_numbers = addresses.getSubTableSchema(2);
         phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
 
         // Inserting data
@@ -152,12 +152,12 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.ColumnTypeString, "email");
         persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
 
-        TableDefinition addresses = persons.getSubTableDefinition(2);
+        TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.ColumnTypeString, "street");
         addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
         addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
 
-        TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
+        TableSchema phone_numbers = addresses.getSubTableSchema(2);
         phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
 
         // Inserting data
@@ -171,7 +171,7 @@ public class JNISubtableTest {
 
         try {
             // Should throw
-            persons.getSubTable(2,0).getSubTableDefinition(2);
+            persons.getSubTable(2,0).getSubTableSchema(2);
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
 

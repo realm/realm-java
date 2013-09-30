@@ -46,7 +46,7 @@ import com.tightdb.typed.TightDB;
  *
  */
 
-public class Table implements TableOrView, TableDefinition {
+public class Table implements TableOrView, TableSchema {
 
     public static final long INFINITE = -1;
 
@@ -156,13 +156,13 @@ public class Table implements TableOrView, TableDefinition {
     	}    	
     }
 
-    public TableDefinition getSubTableDefinition(long columnIndex) {
+    public TableSchema getSubTableSchema(long columnIndex) {
         if(nativeIsRootTable(nativePtr) == false)
             throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
 
         long[] newPath = new long[1];
         newPath[0] = columnIndex;
-        return new SubTableDefinition(nativePtr, newPath);
+        return new SubTableSchema(nativePtr, newPath);
     }
 
     protected native boolean nativeIsRootTable(long nativeTablePtr);
