@@ -402,7 +402,7 @@ EOF
         dir="tightdb-java-test/src/test"
         echo "Building test suite in '$dir'"
         export CLASSPATH="$devkit_jar:$temp_dir/gen:."
-        (cd "$dir/../main/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestModel.java) || exit 1
+        (cd "$dir/../test/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestTableModel.java) || exit 1
 
         path_list_append "CLASSPATH" "../main" || exit 1
         testing_jars="$(get_config_param "testing-jars")" || exit 1
