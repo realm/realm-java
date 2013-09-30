@@ -32,46 +32,34 @@ public class NumbersTest {
 
     @Test
     public void shouldMatchFloats() {
-        assertEquals(1, numbers.floatNum.equal(30000.6f).findAll().size());
-        assertEquals(1, numbers.floatNum.eq(30000.6f).findAll().size());
+        assertEquals(1, numbers.floatNum.equalTo(30000.6f).findAll().size());
 
-        assertEquals(2, numbers.floatNum.notEqual(30000.6f).findAll().size());
-        assertEquals(2, numbers.floatNum.neq(30000.6f).findAll().size());
+        assertEquals(2, numbers.floatNum.notEqualTo(30000.6f).findAll().size());
 
         assertEquals(2, numbers.floatNum.lessThan(30000.6f).findAll().size());
-        assertEquals(2, numbers.floatNum.lt(30000.6f).findAll().size());
 
         assertEquals(3, numbers.floatNum.lessThanOrEqual(30000.6f).findAll().size());
-        assertEquals(3, numbers.floatNum.lte(30000.6f).findAll().size());
 
         assertEquals(3, numbers.floatNum.greaterThan(5000).findAll().size());
-        assertEquals(3, numbers.floatNum.gt(5000).findAll().size());
 
         assertEquals(3, numbers.floatNum.greaterThanOrEqual(10000.1f).findAll().size());
-        assertEquals(3, numbers.floatNum.gte(10000.1f).findAll().size());
 
         assertEquals(2, numbers.floatNum.between(5000, 15000).findAll().size());
     }
 
     @Test
     public void shouldMatchDoubles() {
-        assertEquals(1, numbers.doubleNum.equal(30000.6).findAll().size());
-        assertEquals(1, numbers.doubleNum.eq(30000.6).findAll().size());
+        assertEquals(1, numbers.doubleNum.equalTo(30000.6).findAll().size());
 
-        assertEquals(2, numbers.doubleNum.notEqual(30000.6).findAll().size());
-        assertEquals(2, numbers.doubleNum.neq(30000.6).findAll().size());
+        assertEquals(2, numbers.doubleNum.notEqualTo(30000.6).findAll().size());
 
         assertEquals(2, numbers.doubleNum.lessThan(30000.6).findAll().size());
-        assertEquals(2, numbers.doubleNum.lt(30000.6).findAll().size());
 
         assertEquals(3, numbers.doubleNum.lessThanOrEqual(30000.6).findAll().size());
-        assertEquals(3, numbers.doubleNum.lte(30000.6).findAll().size());
 
         assertEquals(3, numbers.doubleNum.greaterThan(5000).findAll().size());
-        assertEquals(3, numbers.doubleNum.gt(5000).findAll().size());
 
         assertEquals(3, numbers.doubleNum.greaterThanOrEqual(10000.1).findAll().size());
-        assertEquals(3, numbers.doubleNum.gte(10000.1).findAll().size());
 
         assertEquals(2, numbers.doubleNum.between(5000, 15000).findAll().size());
     }

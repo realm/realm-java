@@ -31,18 +31,17 @@ CATEGORIES :
   - g_dyn_query_equals_string:
   - g_dyn_query_equals_date:
 #todo  - g_dyn_query_equals_binary:
-      TITLE    : equal
-      ALIAS    : eq
-      NAMES    : [ equal, equal, equal, equal, equal, equal] # equal_binary ]
+      TITLE    : equalTo
+      NAMES    : [ equalTo, equalTo, equalTo, equalTo, equalTo, equalTo] # equal_binary ]
       SIGNATURE: |
-                 TableQuery equal(long columnIndex, boolean value);
-                 TableQuery equal(long columnIndex, long value);
-                 TableQuery equal(long columnIndex, float value);
-                 TableQuery equal(long columnIndex, double value);
-                 TableQuery equal(long columnIndex, String value);
-                 TableQuery equal(long columnIndex, String value, boolean caseSensitive);
-                 TableQuery equal(long columnIndex, Date value);
-#                 TableQuery equal(long columnIndex, ByteBuffer value);
+                 TableQuery equalTo(long columnIndex, boolean value);
+                 TableQuery equalTo(long columnIndex, long value);
+                 TableQuery equalTo(long columnIndex, float value);
+                 TableQuery equalTo(long columnIndex, double value);
+                 TableQuery equalTo(long columnIndex, String value);
+                 TableQuery equalTo(long columnIndex, String value, boolean caseSensitive);
+                 TableQuery equalTo(long columnIndex, Date value);
+#                 TableQuery equalTo(long columnIndex, ByteBuffer value);
       SUMMARY  : *g_dyn_query_equals_summary
       DESCR    : *g_dyn_query_equals_descr
       PARAMS:
@@ -68,16 +67,15 @@ CATEGORIES :
   - g_dyn_query_notEquals_string:
   - g_dyn_query_notEquals_date:
 #  - g_dyn_query_notEquals_binary:
-      TITLE    : notEqual
-      ALIAS    : neq
-      NAMES    : [ notEqual, notEqual, notEqual, notEqual, notEqual ] # not_equal_binary ]
+      TITLE    : notEqualTo
+      NAMES    : [ notEqualTo, notEqualTo, notEqualTo, notEqualTo, notEqualTo ] # not_equal_binary ]
       SIGNATURE: |
-                 TableQuery notEqual(long columnIndex, long value);
-                 TableQuery notEqual(long columnIndex, float value);
-                 TableQuery notEqual(long columnIndex, double value);
-                 TableQuery notEqual(long columnIndex, String value);
-                 TableQuery notEqual(long columnIndex, String value, boolean caseSensitive);
-                 TableQuery notEqual(long columnIndex, Date value);
+                 TableQuery notEqualTo(long columnIndex, long value);
+                 TableQuery notEqualTo(long columnIndex, float value);
+                 TableQuery notEqualTo(long columnIndex, double value);
+                 TableQuery notEqualTo(long columnIndex, String value);
+                 TableQuery notEqualTo(long columnIndex, String value, boolean caseSensitive);
+                 TableQuery notEqualTo(long columnIndex, Date value);
 #todo                 TableQuery notEqual(long columnIndex, boolean value);
  #                TableQuery notEqual_binary(long columnIndex, String data, long size);
       SUMMARY  : *g_dyn_query_notEquals_summary
@@ -103,7 +101,6 @@ CATEGORIES :
   - g_dyn_query_greaterThan_double:
   - g_dyn_query_greaterThan_date:
       TITLE    : greaterThan
-      ALIAS    : gt
       NAMES    : [greaterThan, greaterThan, greaterThan, greaterThan]
       SIGNATURE: |
                  TableQuery greaterThan(long columnIndex, long value);
@@ -130,7 +127,6 @@ CATEGORIES :
   - g_dyn_query_greaterThanOrEqual_double:
   - g_dyn_query_greaterThanOrEqual_date:
       TITLE    : greaterThanOrEqual
-      ALIAS    : gte
       NAMES    : [greaterThanOrEqual, greaterThanOrEqual, greaterThanOrEqual, greaterThanOrEqual]
       SIGNATURE: |
                  TableQuery greaterThanOrEqual(long columnIndex, long value);
@@ -158,7 +154,6 @@ CATEGORIES :
   - g_dyn_query_lessThan_double:
   - g_dyn_query_lessThan_date:
       TITLE    : lessThan
-      ALIAS    : lt
       NAMES    : [lessThan, lessThan, lessThan, lessThan]
       SIGNATURE: |
                  TableQuery lessThan(long columnIndex, long value);
@@ -186,7 +181,6 @@ CATEGORIES :
   - g_dyn_query_lessThanOrEqual_double:
   - g_dyn_query_lessThanOrEqual_date:
       TITLE    : lessThanOrEqual
-      ALIAS    : lte
       NAMES    : [lessThanOrEqual, lessThanOrEqual, lessThanOrEqual, lessThanOrEqual]
       SIGNATURE: |
                  TableQuery lessThanOrEqual(long columnIndex, long value);
