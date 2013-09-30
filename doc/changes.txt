@@ -2,6 +2,8 @@
 ==================
 ! BREAKING CHANGE: Removed named column cursors from rows in typed interface. Now only traditional getters/setters are allowed.
 ! BREAKING CHANGE: Because of the above subtables in Mixed columns are not supported, until a better implementation is made.
+! BREAKING CHANGE: Removed shortnames for query methods. (eq, neq, lt, lte, gt, gte).
+! BREAKING CHANGE: Renamed Qurey equal to equalTo, and notEqual to notEqualTo.
 
 24-September-2013:
 ==================

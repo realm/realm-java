@@ -36,7 +36,7 @@ JNIEXPORT jint JNICALL Java_com_tightdb_internal_Util_nativeGetVersion(JNIEnv*, 
 // -------------------------- Testcases for exception handling
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_internal_Util_nativeTestcase(
-    JNIEnv *env, jclass, jint testcase, jboolean dotest, jlong parm1)
+    JNIEnv *env, jclass, jint testcase, jboolean dotest, jlong)
 {
     string expect;
 

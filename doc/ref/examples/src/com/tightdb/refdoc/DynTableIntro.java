@@ -67,7 +67,7 @@ public class DynTableIntro {
         tbl2.add("MyString");
         tbl2.add("MyString2");
         tbl2.add("MyString");
-        TableView view2 = tbl2.distinct(strColumn);   // Get distinct values
+        TableView view2 = tbl2.getDistinctView(strColumn);   // Get distinct values
         Assert(view2.size() == 2);
 
         // Dump table content to json format
@@ -83,7 +83,7 @@ public class DynTableIntro {
         tbl3.addColumn(ColumnType.STRING, "name");
         tbl3.addColumn(ColumnType.TABLE, "subtable");
 
-        TableDefinition subSchema = tbl3.getSubTableDefinition(1);
+        TableSchema subSchema = tbl3.getSubTableSchema(1);
         subSchema.addColumn(ColumnType.STRING, "key");
         subSchema.addColumn(ColumnType.MIXED, "value");
 

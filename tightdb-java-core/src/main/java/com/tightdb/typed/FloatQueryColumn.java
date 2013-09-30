@@ -14,52 +14,28 @@ public class FloatQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, 
         super(types, tableOrView, query, index, name);
     }
 
-    public Query equal(float value) {
-        return query(getQuery().equal(columnIndex, value));
+    public Query equalTo(float value) {
+        return query(getQuery().equalTo(columnIndex, value));
     }
 
-    public Query eq(float value) {
-        return query(getQuery().eq(columnIndex, value));
-    }
-
-    public Query notEqual(float value) {
-        return query(getQuery().notEqual(columnIndex, value));
-    }
-
-    public Query neq(float value) {
-        return query(getQuery().neq(columnIndex, value));
+    public Query notEqualTo(float value) {
+        return query(getQuery().notEqualTo(columnIndex, value));
     }
 
     public Query greaterThan(float value) {
         return query(getQuery().greaterThan(columnIndex, value));
     }
 
-    public Query gt(float value) {
-        return query(getQuery().gt(columnIndex, value));
-    }
-
     public Query greaterThanOrEqual(float value) {
         return query(getQuery().greaterThanOrEqual(columnIndex, value));
-    }
-
-    public Query gte(float value) {
-        return query(getQuery().gte(columnIndex, value));
     }
 
     public Query lessThan(float value) {
         return query(getQuery().lessThan(columnIndex, value));
     }
 
-    public Query lt(float value) {
-        return query(getQuery().lt(columnIndex, value));
-    }
-
     public Query lessThanOrEqual(float value) {
         return query(getQuery().lessThanOrEqual(columnIndex, value));
-    }
-
-    public Query lte(float value) {
-        return query(getQuery().lte(columnIndex, value));
     }
 
     public Query between(float from, float to) {

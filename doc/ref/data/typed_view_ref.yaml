@@ -1,0 +1,36 @@
+#
+# Javareference documentation for TableQuery class
+#
+
+## TODO add tableview(tableview)
+##  TODO add alias names
+##  TODO add Date/binary query - when available
+
+## TODO: Describe limitations about using correct versions of the methods on the right column_types.
+## TODO: Detail what is allowed to pass in parameters (index within size() etc)
+## TODO: Describe start, end index parameters in searches. end is not inclusive.
+
+ID         : class_typed_view
+TITLE      : TableView (typed)
+SUMMARY    : Reference documentation coming soon...
+DESCR      : Reference documentation coming soon...
+SEE        : 
+EXAMPLES   :
+- DESCR:
+  CODE: ex_java_typed_table_view_intro
+IGNORE     : []                   # List of method-ids to ignore
+#  - g_dyn_query_find_all_const:
+
+CATEGORIES :
+- Conditions:
+  METHODS:
+  - g_typed_table_view_size:
+      TITLE    : size
+      NAMES    : size
+      SIGNATURE: long size();
+      SUMMARY  : Returns the number of rows in the TableView.
+      DESCR    : Returns the number of rows in the TableView.
+
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_typed_view_size

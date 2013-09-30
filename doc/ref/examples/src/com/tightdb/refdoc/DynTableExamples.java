@@ -55,7 +55,7 @@ public class DynTableExamples {
         // Searching methods:
         findFirstExamples();
         findAllExample();
-        distinctExample();
+        getDistinctViewExample();
         whereExample();
         
         // Aggregates methods:
@@ -611,8 +611,8 @@ public class DynTableExamples {
     }
     
     
-    public static void distinctExample(){
-        // @@Example: ex_java_dyn_table_distinct @@
+    public static void getDistinctViewExample(){
+        // @@Example: ex_java_dyn_table_get_distinct_view @@
         // @@Show@@
         // Create table with 1 column and add data
         Table table = new Table();
@@ -634,7 +634,7 @@ public class DynTableExamples {
         table.setIndex(0);
         
         // Call distinct on column 0. Method return a table view
-        TableView view = table.distinct(0);
+        TableView view = table.getDistinctView(0);
         
         // Check that resulting view has 3 rows; China, UK and US
         Assert(view.size() == 3);
@@ -664,7 +664,7 @@ public class DynTableExamples {
         TableQuery query = table.where();
         
         // USe the query object to query the table and get a table view with the results
-        TableView view = query.equal(2, false).findAll();
+        TableView view = query.equalTo(2, false).findAll();
         // @@EndShow@@
         // @@EndExample@@
     }
