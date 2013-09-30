@@ -213,7 +213,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeCommit(
-    JNIEnv* env, jobject, jlong nativeGroupPtr)
+    JNIEnv*, jobject, jlong nativeGroupPtr)
 {
     G(nativeGroupPtr)->commit();
 }
