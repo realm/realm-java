@@ -44,6 +44,7 @@ tightdb-java-dev: build
 	dh_installexamples -p$@ $$(pwd)/examples/intro-example
 	dh_installexamples -p$@ $$(pwd)/examples/lib-sqlite
 	dh_installexamples -p$@ $$(pwd)/examples/maven-setup
+	mh_installpom -p$@ -o pom-debian.xml
 	dh_compress -p$@ -s
 	dh_fixperms -p$@ -a
 	dh_installdeb -p$@ -a
