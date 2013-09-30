@@ -49,8 +49,10 @@ public class JNIViewTest {
         TableView view = t.where().findAll();
     
         //Sort without specifying the order, should default to ascending.
-        try { view.upperBoundLong(0, 0); assert(false); } catch (RuntimeException e ) { }
-        try { view.lowerBoundLong(0, 0); assert(false); } catch (RuntimeException e ) { }
+        try { view.upperBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException e ) { }
+        try { view.lowerBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException e ) { }
+        try { view.lookup("Some String"); fail("Not implemented yet"); } catch (RuntimeException e ) { }
+        try { view.count(0, "Some String"); fail("Not implemented yet"); } catch (RuntimeException e ) { }
         
     }
     
