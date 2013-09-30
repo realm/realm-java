@@ -14,52 +14,28 @@ public class DoubleQueryColumn<Cursor, View, Query> extends AbstractColumn<Long,
         super(types, tableOrView, query, index, name);
     }
 
-    public Query equal(double value) {
-        return query(getQuery().equal(columnIndex, value));
+    public Query equalTo(double value) {
+        return query(getQuery().equalTo(columnIndex, value));
     }
 
-    public Query eq(double value) {
-        return query(getQuery().eq(columnIndex, value));
-    }
-
-    public Query notEqual(double value) {
-        return query(getQuery().notEqual(columnIndex, value));
-    }
-
-    public Query neq(double value) {
-        return query(getQuery().neq(columnIndex, value));
+    public Query notEqualTo(double value) {
+        return query(getQuery().notEqualTo(columnIndex, value));
     }
 
     public Query greaterThan(double value) {
         return query(getQuery().greaterThan(columnIndex, value));
     }
 
-    public Query gt(double value) {
-        return query(getQuery().gt(columnIndex, value));
-    }
-
     public Query greaterThanOrEqual(double value) {
         return query(getQuery().greaterThanOrEqual(columnIndex, value));
-    }
-
-    public Query gte(double value) {
-        return query(getQuery().gte(columnIndex, value));
     }
 
     public Query lessThan(double value) {
         return query(getQuery().lessThan(columnIndex, value));
     }
 
-    public Query lt(double value) {
-        return query(getQuery().lt(columnIndex, value));
-    }
-
     public Query lessThanOrEqual(double value) {
         return query(getQuery().lessThanOrEqual(columnIndex, value));
-    }
-
-    public Query lte(double value) {
-        return query(getQuery().lte(columnIndex, value));
     }
 
     public Query between(double from, double to) {

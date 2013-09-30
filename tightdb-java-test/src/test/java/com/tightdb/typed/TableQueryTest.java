@@ -16,25 +16,19 @@ public class TableQueryTest extends AbstractTest {
 
     @Test
     public void shouldMatchOnSimpleNumberCriteria() {
-        assertEquals(1, employees.salary.equal(30000).findAll().size());
-        assertEquals(1, employees.salary.eq(30000).findAll().size());
+        assertEquals(1, employees.salary.equalTo(30000).findAll().size());
 
-        assertEquals(2, employees.salary.notEqual(30000).findAll().size());
-        assertEquals(2, employees.salary.neq(30000).findAll().size());
+        assertEquals(2, employees.salary.notEqualTo(30000).findAll().size());
 
         assertEquals(2, employees.salary.lessThan(30000).findAll().size());
-        assertEquals(2, employees.salary.lt(30000).findAll().size());
 
         assertEquals(3, employees.salary.lessThanOrEqual(30000).findAll()
                 .size());
-        assertEquals(3, employees.salary.lte(30000).findAll().size());
 
         assertEquals(3, employees.salary.greaterThan(5000).findAll().size());
-        assertEquals(3, employees.salary.gt(5000).findAll().size());
 
         assertEquals(3, employees.salary.greaterThanOrEqual(10000).findAll()
                 .size());
-        assertEquals(3, employees.salary.gte(10000).findAll().size());
 
         assertEquals(2, employees.salary.between(5000, 15000).findAll().size());
     }
@@ -42,7 +36,7 @@ public class TableQueryTest extends AbstractTest {
     @Test()
     public void shouldCalculateStatistics() {
 
-        TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
+        TestEmployeeQuery results = employees.firstName.equalTo("John").or().firstName.equalTo("Nikolche");
         assertEquals(2, results.count());
 
         assertEquals(10000, results.salary.minimum());
@@ -69,31 +63,27 @@ public class TableQueryTest extends AbstractTest {
 
     @Test( expectedExceptions = ArrayIndexOutOfBoundsException.class)
     public void shouldCheckWrongParameters() {
-        TestEmployeeQuery results = employees.firstName.eq("John").or().firstName.eq("Nikolche");
+        TestEmployeeQuery results = employees.firstName.equalTo("John").or().firstName.equalTo("Nikolche");
     //  assertEquals(2, results.count());
         assertEquals(10000, results.salary.minimum(0, 5, Table.INFINITE)); // first
     }
 
     @Test
     public void shouldMatchOnSimpleStringCriteria() {
-        assertEquals(1, employees.firstName.eq("John").findAll().size());
-        assertEquals(1, employees.firstName.equal("John").findAll().size());
+        assertEquals(1, employees.firstName.equalTo("John").findAll().size());
+        assertEquals(1, employees.firstName.equalTo("John").findAll().size());
 
-        assertEquals(2, employees.firstName.neq("John").findAll().size());
-        assertEquals(2, employees.firstName.notEqual("John").findAll().size());
-        assertEquals(2, employees.firstName.neq("John", true).findAll().size());
-        assertEquals(2, employees.firstName.notEqual("John", true).findAll().size());
-        
-        assertEquals(2, employees.firstName.neq("johN", false).findAll().size());
-        assertEquals(2, employees.firstName.notEqual("johN", false).findAll().size());
+
+        assertEquals(2, employees.firstName.notEqualTo("John").findAll().size());
+        assertEquals(2, employees.firstName.notEqualTo("John").findAll().size());
 
 
         assertEquals(2, employees.firstName.startsWith("J").findAll().size());
         assertEquals(1, employees.firstName.endsWith("hny").findAll().size());
         assertEquals(2, employees.firstName.contains("ohn").findAll().size());
 
-        assertEquals(1, employees.firstName.eq("john", false).findAll().size());
-        assertEquals(1, employees.firstName.equal("john", false).findAll().size());
+        assertEquals(1, employees.firstName.equalTo("john", false).findAll().size());
+        assertEquals(1, employees.firstName.equalTo("john", false).findAll().size());
         assertEquals(2, employees.firstName.startsWith("j", false).findAll().size());
         assertEquals(1, employees.firstName.endsWith("hnY", false).findAll().size());
         assertEquals(2, employees.firstName.contains("ohN", false).findAll().size());
@@ -102,17 +92,17 @@ public class TableQueryTest extends AbstractTest {
 
     @Test
     public void shouldMatchOnSimpleBooleanCriteria() {
-        assertEquals(2, employees.driver.eq(true).findAll().size());
-        assertEquals(2, employees.driver.equal(true).findAll().size());
+        assertEquals(2, employees.driver.equalTo(true).findAll().size());
+        assertEquals(2, employees.driver.equalTo(true).findAll().size());
 
-        assertEquals(1, employees.driver.neq(true).findAll().size());
+        assertEquals(1, employees.driver.notEqual(true).findAll().size());
         assertEquals(1, employees.driver.notEqual(true).findAll().size());
     }
 
     @Test
     public void shouldMatchOnCombinedAndOrCriteria() {
         TestEmployeeView nikoOrJohn = employees.firstName.startsWith("Nik").lastName
-                .contains("vski").or().firstName.eq("John").findAll();
+                .contains("vski").or().firstName.equalTo("John").findAll();
 
         assertEquals(2, nikoOrJohn.size());
     }
@@ -120,8 +110,8 @@ public class TableQueryTest extends AbstractTest {
     @Test
     public void shouldMatchOnCriteriaEndingWithGroup() {
         TestEmployeeView niko = employees.where().firstName.startsWith("Nik").salary
-                .eq(30000).group().lastName.contains("vski").or().firstName
-                .eq("John").endGroup().findAll();
+                .equalTo(30000).group().lastName.contains("vski").or().firstName
+                .equalTo("John").endGroup().findAll();
 
         assertEquals(1, niko.size());
     }
@@ -129,8 +119,8 @@ public class TableQueryTest extends AbstractTest {
     @Test
     public void shouldMatchOnCriteriaBeginingWithGroup() {
         TestEmployeeView niko = employees.where().group().lastName.contains(
-                "vski").or().firstName.eq("John").endGroup().firstName
-                .startsWith("Nik").salary.eq(30000).findAll();
+                "vski").or().firstName.equalTo("John").endGroup().firstName
+                .startsWith("Nik").salary.equalTo(30000).findAll();
 
         assertEquals(1, niko.size());
     }
@@ -138,8 +128,8 @@ public class TableQueryTest extends AbstractTest {
     @Test
     public void shouldMatchOnCriteriaHavingGroupInMiddle() {
         TestEmployeeView niko = employees.where().firstName.startsWith("Nik")
-                .group().lastName.contains("vski").or().firstName.eq("John")
-                .endGroup().salary.eq(30000).findAll();
+                .group().lastName.contains("vski").or().firstName.equalTo("John")
+                .endGroup().salary.equalTo(30000).findAll();
 
         assertEquals(1, niko.size());
     }
@@ -147,10 +137,10 @@ public class TableQueryTest extends AbstractTest {
     @Test
     public void shouldMatchMultipleQueriesWithoutInterference() {
         TestEmployeeView niko1 = employees.firstName.startsWith("Nik").group().lastName
-                .contains("vski").or().firstName.eq("John").endGroup()
+                .contains("vski").or().firstName.equalTo("John").endGroup()
                 .findAll();
         TestEmployeeView niko2 = employees.where().group().lastName.contains(
-                "vski").or().firstName.eq("John").endGroup().firstName
+                "vski").or().firstName.equalTo("John").endGroup().firstName
                 .startsWith("Nik").findAll();
 
         assertEquals(1, niko1.size());
@@ -161,7 +151,7 @@ public class TableQueryTest extends AbstractTest {
     public void shouldRemoveAllMatchingRows() {
         // Remove all
         TestEmployeeQuery q = employees.where().salary.lessThan(100000000);
-        // EmployeeQuery q = employees.where().firstName.neq("xy");
+        // EmployeeQuery q = employees.where().firstName.notEqual("xy");
 
         assertEquals(3, q.count());
 
@@ -197,28 +187,24 @@ public class TableQueryTest extends AbstractTest {
     @Test
     public void queryOnDates() {
         // Test equal
-        assertEquals(1, employees.birthdate.equal(new Date(2222)).findAll().size());
-        assertEquals(1, employees.birthdate.eq(new Date(2222)).findAll().size());
+        assertEquals(1, employees.birthdate.equalTo(new Date(2222)).findAll().size());
+        assertEquals(1, employees.birthdate.equalTo(new Date(2222)).findAll().size());
 
         // Test not equal
-        assertEquals(2, employees.birthdate.notEqual(new Date(2222)).findAll().size());
-        assertEquals(2, employees.birthdate.neq(new Date(2222)).findAll().size());
+        assertEquals(2, employees.birthdate.notEqualTo(new Date(2222)).findAll().size());
+        assertEquals(2, employees.birthdate.notEqualTo(new Date(2222)).findAll().size());
 
         // Test greater than
         assertEquals(2, employees.birthdate.greaterThan(new Date(2222)).findAll().size());
-        assertEquals(2, employees.birthdate.gt(new Date(2222)).findAll().size());
 
         // Test greater than or equal
         assertEquals(2, employees.birthdate.greaterThanOrEqual(new Date(111111)).findAll().size());
-        assertEquals(2, employees.birthdate.gte(new Date(111111)).findAll().size());
 
         // Test less than
         assertEquals(2, employees.birthdate.lessThan(new Date(333343333)).findAll().size());
-        assertEquals(2, employees.birthdate.lt(new Date(333343333)).findAll().size());
 
         // Test less than or equal
         assertEquals(2, employees.birthdate.lessThanOrEqual(new Date(111111)).findAll().size());
-        assertEquals(2, employees.birthdate.lte(new Date(111111)).findAll().size());
 
         // Test between
         assertEquals(1, employees.birthdate.between(new Date(3222), new Date(333342333)).findAll().size());
