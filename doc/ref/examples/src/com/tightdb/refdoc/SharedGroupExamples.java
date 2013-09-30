@@ -5,7 +5,6 @@ package com.tightdb.refdoc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
@@ -16,10 +15,11 @@ public class SharedGroupExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
         
-        new File("mydatabasefile.tightdb").delete();
-
         // Constructor methods
         constructorStringExample();
+        beginWriteExample();
+        beginReadExample();
+        hasChangedExample();
 
 
     }
@@ -83,11 +83,15 @@ public class SharedGroupExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
-
-    static void Assert(boolean check) {
-        if (!check) {
-            throw new RuntimeException();
-        }
+    
+    
+    public static void hasChangedExample(){
+        // @@Example: ex_java_shared_group_has_changed @@
+        // @@Show@@
+        SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
+        
+        boolean hasChanged = group.hasChanged();
+        // @@EndShow@@
+        // @@EndExample@@
     }
 } 
