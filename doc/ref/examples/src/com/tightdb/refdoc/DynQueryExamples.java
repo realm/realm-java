@@ -1,9 +1,6 @@
 package com.tightdb.refdoc;
 
-import com.tightdb.ColumnType;
-import com.tightdb.Table;
-import com.tightdb.TableDefinition;
-import com.tightdb.TableView;
+import com.tightdb.*;
 
 
 public class DynQueryExamples {
@@ -28,7 +25,7 @@ public class DynQueryExamples {
         //examples.subtable();
 
         examples.findAll();
-        //examples.findNext();
+        examples.findNext();
 
         examples.count();
         examples.sum();
@@ -408,10 +405,12 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Iterates through the table and sets all tasks with a score > 600 to completed
-        long index = table.where().greaterThan(1, 600).findNext();
-        while((index = table.where().greaterThan(1, 600).findNext(index)) != -1) {
+        TableQuery query = table.where().greaterThan(1, 600);
+
+        long index = query.findNext();
+        do {
             table.setBoolean(2, index, true);
-        }
+        } while((index = query.findNext(index)) != -1);
         System.out.println(table);
         // @@EndShow@@
         // @@EndExample@@
@@ -461,7 +460,7 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Query the table
-        long sum = table.where().greaterThan(1, 450).sum(1);
+        long sum = table.where().greaterThan(1, 450).sumInt(1);
 
         // @@EndShow@@
         // @@EndExample@@
@@ -486,7 +485,7 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Query the table
-        double avg = table.where().greaterThan(1, 450).average(1);
+        double avg = table.where().greaterThan(1, 450).averageInt(1);
 
         // @@EndShow@@
         // @@EndExample@@
@@ -511,7 +510,7 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Query the table
-        long max = table.where().greaterThan(1, 450).maximum(1);
+        long max = table.where().greaterThan(1, 450).maximumInt(1);
 
         // @@EndShow@@
         // @@EndExample@@
@@ -536,7 +535,7 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Query the table
-        long min = table.where().greaterThan(1, 450).minimum(1);
+        long min = table.where().greaterThan(1, 450).minimumInt(1);
 
         // @@EndShow@@
         // @@EndExample@@

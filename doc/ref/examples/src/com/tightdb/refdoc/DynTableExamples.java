@@ -634,7 +634,7 @@ public class DynTableExamples {
         table.setIndex(0);
         
         // Call distinct on column 0. Method return a table view
-        TableView view = table.distinct(0);
+        TableView view = table.getDistinctView(0);
         
         // Check that resulting view has 3 rows; China, UK and US
         Assert(view.size() == 3);
