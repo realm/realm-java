@@ -82,7 +82,7 @@ public class JNITableTest {
         try { t.insertBinary(0, 2, nullBuffer); fail("Inserting null array"); } catch(NullPointerException e) { }
         
         assertEquals(new byte[] { 1, 2, 3 }, t.getBinaryByteArray(0, 0));
-        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
+        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[]{1, 2, 3});
         
         byte[] newRow0 = new byte[] { 7, 77, 77 };
         t.setBinaryByteArray(0, 0, newRow0);
@@ -153,7 +153,7 @@ public class JNITableTest {
         String FILENAME = "only-test-file.tightdb";
         String TABLENAME = "tableName";
         
-        new File(FILENAME).delete();
+      //  new File(FILENAME).delete();
 
         SharedGroup group = new SharedGroup(FILENAME);
 
@@ -175,7 +175,7 @@ public class JNITableTest {
         try{
             Table table = rt.getTable(TABLENAME);
             
-            try {  table.insert(1, "NewValue"); fail("Exception excpeted when inserting in read transaction"); } catch (IllegalStateException e) { }
+            try {  table.insert(1, "NewValue"); fail("Exception expected when inserting in read transaction"); } catch (IllegalStateException e) { }
             
         } finally {
             rt.endRead();
