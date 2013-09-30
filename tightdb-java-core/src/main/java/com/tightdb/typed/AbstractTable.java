@@ -169,10 +169,10 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
         return AbstractQuery.createQuery(types.getQueryClass(), table, table.where());
     }
 
-   /* // Experimental
+    // Experimental
     public long lookup(String value) {
         return table.lookup(value);
-    }*/
+    }
 
     public void moveLastOver(long rowIndex) {
         table.moveLastOver(rowIndex);
