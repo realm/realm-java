@@ -1,9 +1,9 @@
 package com.tightdb;
 
 
-public interface TableDefinition {
+public interface TableSchema {
 
-    TableDefinition getSubTableDefinition(long columnIndex);
+    TableSchema getSubTableSchema(long columnIndex);
 
     long addColumn(ColumnType type, String name);
 
