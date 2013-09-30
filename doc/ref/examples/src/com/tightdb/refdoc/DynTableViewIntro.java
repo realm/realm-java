@@ -38,10 +38,10 @@ public class DynTableViewIntro {
         Assert(table.getString(1, 1).equals("London"));
 
         // Simple aggregations
-        Assert(view.sum(0) == 500);
-        Assert(view.maximum(0) == 300);
-        Assert(view.maximum(0) == 300);
-        Assert(view.average(0) == 250);
+        Assert(view.sumInt(0) == 500);
+        Assert(view.maximumInt(0) == 300);
+        Assert(view.maximumInt(0) == 300);
+        Assert(view.averageInt(0) == 250);
 
 
         // Get JSON representation of the data in the view 

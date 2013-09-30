@@ -221,46 +221,52 @@ public class TableQuery {
     // Query for Date values
 
     public TableQuery equalTo(long columnIndex, Date value){
-        nativeEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        nativeEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
-    protected native void nativeEqualDate(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery notEqualTo(long columnIndex, Date value){
-        nativeNotEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        nativeNotEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
-    protected native void nativeNotEqualDate(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeNotEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery greaterThan(long columnIndex, Date value){
-        nativeGreaterDate(nativePtr, columnIndex, value.getTime()/1000);
+        nativeGreaterDateTime(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
-    protected native void nativeGreaterDate(long nativeQueryPtr, long columnIndex, long value);
+
+    protected native void nativeGreaterDateTime(long nativeQueryPtr, long columnIndex, long value);
+
 
     public TableQuery greaterThanOrEqual(long columnIndex, Date value){
-        nativeGreaterEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        nativeGreaterEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
-    protected native void nativeGreaterEqualDate(long nativeQueryPtr, long columnIndex, long value);
+
+    protected native void nativeGreaterEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery lessThan(long columnIndex, Date value){
-        nativeLessDate(nativePtr, columnIndex, value.getTime()/1000);
+        nativeLessDateTime(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
-    protected native void nativeLessDate(long nativeQueryPtr, long columnIndex, long value);
+
+    protected native void nativeLessDateTime(long nativeQueryPtr, long columnIndex, long value);
+
 
     public TableQuery lessThanOrEqual(long columnIndex, Date value){
-        nativeLessEqualDate(nativePtr, columnIndex, value.getTime()/1000);
+        nativeLessEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         return this;
     }
-    protected native void nativeLessEqualDate(long nativeQueryPtr, long columnIndex, long value);
+
+    protected native void nativeLessEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery between(long columnIndex, Date value1, Date value2){
-        nativeBetweenDate(nativePtr, columnIndex, value1.getTime()/1000, value2.getTime()/1000);
+        nativeBetweenDateTime(nativePtr, columnIndex, value1.getTime()/1000, value2.getTime()/1000);
         return this;
     }
-    protected native void nativeBetweenDate(long nativeQueryPtr, long columnIndex, long value1, long value2);
+    protected native void nativeBetweenDateTime(long nativeQueryPtr, long columnIndex, long value1, long value2);
 
     // Query for String values.
 
@@ -345,40 +351,40 @@ public class TableQuery {
 
     // Integer aggregation
 
-    public long sum(long columnIndex, long start, long end, long limit){
-        return nativeSum(nativePtr, columnIndex, start, end, limit);
+    public long sumInt(long columnIndex, long start, long end, long limit){
+        return nativeSumInt(nativePtr, columnIndex, start, end, limit);
     }
-    public long sum(long columnIndex){
-        return nativeSum(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+    public long sumInt(long columnIndex){
+        return nativeSumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native long nativeSum(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    protected native long nativeSumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
-    public long maximum(long columnIndex, long start, long end, long limit){
-        return nativeMaximum(nativePtr, columnIndex, start, end, limit);
+    public long maximumInt(long columnIndex, long start, long end, long limit){
+        return nativeMaximumInt(nativePtr, columnIndex, start, end, limit);
     }
-    public long maximum(long columnIndex){
-        return nativeMaximum(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+    public long maximumInt(long columnIndex){
+        return nativeMaximumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native long nativeMaximum(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    protected native long nativeMaximumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
-    public long minimum(long columnIndex, long start, long end, long limit){
-        return nativeMinimum(nativePtr, columnIndex, start, end, limit);
+    public long minimumInt(long columnIndex, long start, long end, long limit){
+        return nativeMinimumInt(nativePtr, columnIndex, start, end, limit);
     }
-    public long minimum(long columnIndex){
-        return nativeMinimum(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+    public long minimumInt(long columnIndex){
+        return nativeMinimumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native long nativeMinimum(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    protected native long nativeMinimumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
-    public double average(long columnIndex, long start, long end, long limit){
-        return nativeAverage(nativePtr, columnIndex, start, end, limit);
+    public double averageInt(long columnIndex, long start, long end, long limit){
+        return nativeAverageInt(nativePtr, columnIndex, start, end, limit);
     }
-    public double average(long columnIndex){
-        return nativeAverage(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+    public double averageInt(long columnIndex){
+        return nativeAverageInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native double nativeAverage(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    protected native double nativeAverageInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     // float aggregation

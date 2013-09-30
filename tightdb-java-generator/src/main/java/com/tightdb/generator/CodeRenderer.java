@@ -31,7 +31,7 @@ public class CodeRenderer {
 
             // // FIXME: temporary for faster development with auto-loading
             // cfg.setDirectoryForTemplateLoading(new
-            // File("C:/Users/nikuco/tightdb_java2/src/main/resources/codegen-templates"));
+            // File("C:/Users/nikuco/tightdb_java/src/main/resources/codegen-templates"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

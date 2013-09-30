@@ -48,8 +48,8 @@ public class DynTableIntro {
 
         // Do some simple aggregations
         Assert(tbl.maximumDouble(2) == 123.45);
-        Assert(tbl.sum(0) == 24);
-        Assert(tbl.average(0) == 6.0);
+        Assert(tbl.sumInt(0) == 24);
+        Assert(tbl.averageInt(0) == 6.0);
 
         // Simple match search
         Assert(tbl.findFirstLong(0, -15) == 1);       // Search for -15 in column 0. returns rowIndex
@@ -67,7 +67,7 @@ public class DynTableIntro {
         tbl2.add("MyString");
         tbl2.add("MyString2");
         tbl2.add("MyString");
-        TableView view2 = tbl2.distinct(strColumn);   // Get distinct values
+        TableView view2 = tbl2.getDistinctView(strColumn);   // Get distinct values
         Assert(view2.size() == 2);
 
         // Dump table content to json format
