@@ -40,6 +40,7 @@ double avgSalary = table.where().equalTo(1, "Anderson").averageInt(2);
 // Find the total salary of people named Jane and Erik.
 double salary = table.where().group().equalTo(0, "Jane").or().equalTo(0, "Erik").endGroup().sumInt(2);
 
+
 // Find all employees with a last name of Lee and a salary less than 25000.
 view = table.where().equalTo(1, "Lee").lessThan(2, 25000).findAll();
 
