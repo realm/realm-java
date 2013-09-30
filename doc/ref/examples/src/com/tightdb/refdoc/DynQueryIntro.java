@@ -35,10 +35,10 @@ TableView view;
 view = table.where().equal(0, "John").findAll();
 
 // Find the average salary of all employees with the last name Anderson.
-double avgSalary = table.where().equal(1, "Anderson").average(2);
+double avgSalary = table.where().equal(1, "Anderson").averageInt(2);
 
 // Find the total salary of people named Jane and Erik.
-double salary = table.where().group().equal(0, "Jane").or().equal(0, "Erik").endGroup().sum(2);
+double salary = table.where().group().equal(0, "Jane").or().equal(0, "Erik").endGroup().sumInt(2);
 
 // Find all employees with a last name of Lee and a salary less than 25000.
 view = table.where().equal(1, "Lee").lessThan(2, 25000).findAll();

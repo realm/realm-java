@@ -58,8 +58,9 @@ public class TableQuery {
     protected native void nativeEndGroup(long nativeQueryPtr);
 
     public TableQuery subTable(long columnIndex){
-        nativeSubTable(nativePtr, columnIndex);
-        return this;
+        throw new RuntimeException("Query.subTable(), Not implemented yet!");
+        //nativeSubTable(nativePtr, columnIndex);
+        //return this;
     }
     protected native void nativeSubTable(long nativeQueryPtr, long columnIndex);
 
