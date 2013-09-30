@@ -34,6 +34,14 @@ public interface TableOrView {
     void remove(long index);
 
     void removeLast();
+    
+    long getColumnCount();
+    
+    String getColumnName(long columnIndex);
+    
+    long getColumnIndex(String name);
+    
+    ColumnType getColumnType(long columnIndex);
 
     /**
      * Get the long value of a cell of the table/view identified by the

@@ -155,7 +155,7 @@ public class JNITableSpecTest {
         persons.addColumn(ColumnType.TABLE, "addresses");
 
 
-        TableDefinition addresses = persons.getSubTableDefinition(2);
+        TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");

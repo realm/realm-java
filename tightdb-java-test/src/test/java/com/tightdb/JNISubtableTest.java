@@ -68,12 +68,13 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-        TableDefinition addresses = persons.getSubTableDefinition(2);
+
+        TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
+        TableSchema phone_numbers = addresses.getSubTableSchema(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
@@ -88,6 +89,22 @@ public class JNISubtableTest {
         assertEquals(persons.getSubTable(2,0).getString(0,0), "X Street");
         assertEquals(persons.getSubTable(2,0).getSubTable(2,0).getLong(0,0), 12345678);
     }
+    
+    
+    @Test
+    public void SubtableAddColumnsChekcNames() {
+
+        // Table definition
+        Table persons = new Table();
+
+        persons.addColumn(ColumnType.TABLE, "sub");
+
+        TableSchema addresses = persons.getSubTableSchema(0);
+        try { addresses.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
+        
+        addresses.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
+
+    }
 
     @Test
     public void removeColumnFromSubtable() {
@@ -99,12 +116,13 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-        TableDefinition addresses = persons.getSubTableDefinition(2);
+
+        TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
+        TableSchema phone_numbers = addresses.getSubTableSchema(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
@@ -126,12 +144,13 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-        TableDefinition addresses = persons.getSubTableDefinition(2);
+
+        TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
-        addresses.addColumn(ColumnType.TABLE , "phone_numbers");
+        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
+        TableSchema phone_numbers = addresses.getSubTableSchema(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
@@ -152,12 +171,12 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-        TableDefinition addresses = persons.getSubTableDefinition(2);
+        TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        TableDefinition phone_numbers = addresses.getSubTableDefinition(2);
+        TableSchema phone_numbers = addresses.getSubTableSchema(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
@@ -171,7 +190,7 @@ public class JNISubtableTest {
         
         try {
             // Should throw
-            persons.getSubTable(2,0).getSubTableDefinition(2);
+            persons.getSubTable(2,0).getSubTableSchema(2);
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
 
