@@ -2,7 +2,7 @@
 # Java reference documentation for Group class
 #
 
-#UNDOCUMENTED: [  
+#UNDOCUMENTED: [
 # g_group_operator_equal, g_group_operator_not_equal,
 # g_group_is_shared, g_group_tostring,
 # commit, to_json, get_table_typed]
@@ -11,9 +11,9 @@ ID         : class_group
 TITLE      : Group
 SUMMARY    : *g_group_summary
 DESCR      : *g_group_descr
-SEE        : 
-EXAMPLES: 
-- DESCR    : 
+SEE        :
+EXAMPLES:
+- DESCR    :
   CODE     : ex_java_group_intro
 IGNORE     : []                   # List of method-ids to ignore
 CATEGORIES:
@@ -39,7 +39,7 @@ CATEGORIES:
       PARAMS:
       - NAME   : file
         TYPES  : java.io.File
-        DESCR  : A File object. 
+        DESCR  : A File object.
       - NAME   : fileName
         TYPES  : String
         DESCR  : The name of the file.
@@ -78,10 +78,10 @@ CATEGORIES:
       NAMES    : close
       DESCR    : >
                  This method will close the group and release it's resources (memory and files).
-                 Java will do this automatically via garbage collection, but if you want explicit control, 
+                 Java will do this automatically via garbage collection, but if you want explicit control,
                  you have the option with this method.
       SUMMARY  : Close the group and release it's resources.
-      
+
 - Table:
   METHODS:
   - g_group_has_table:
@@ -98,7 +98,7 @@ CATEGORIES:
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_has_table
-  
+
   - g_group_get_table:
       NAMES    : getTable
       SUMMARY  : *g_group_get_table_summary
@@ -110,7 +110,7 @@ CATEGORIES:
       PARAMS:
       - NAME   : name
         TYPES  : String
-        DESCR  : Name of the table you wish to retrieve. 
+        DESCR  : Name of the table you wish to retrieve.
       RETURN:
         TYPES  : Table
         DESCR  : The requested Table object.
@@ -118,7 +118,7 @@ CATEGORIES:
       -  DESCR :
          CODE  : ex_java_group_get_table
       SEE      : "{@link g_group_has_table}"
-      
+
   - g_group_get_table_name:
       NAMES    : getTableName
       DESCR    : *g_group_get_table_name_descr
@@ -150,7 +150,7 @@ CATEGORIES:
       - NAME   : fileName
         TYPES  : String
         DESCR  : File name, possibly a full path.
-      THROWS:      
+      THROWS:
       - EXCEPT : IOException
         DESCR  : Throws exception if file already exists
       EXAMPLES:
@@ -250,11 +250,11 @@ CATEGORIES:
 #      EXAMPLES:
 #      - DESCR  :
 #        CODE   : ex_java_group_is_shared
-        
+
 #  - g_group_tostring:
 #      NAMES    : toString
 #      SUMMARY  : *g_group_to_string_summary
-#      DESCR    : > 
+#      DESCR    : >
 #                 This methods returns textual information about the group.
 #                 It outputs a list of the table names and the number of rows they contain.
 #      RETURN:
@@ -263,4 +263,3 @@ CATEGORIES:
 #      EXAMPLES:
 #      - DESCR  :
 #        CODE   : ex_java_group_tostring
-
