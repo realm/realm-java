@@ -280,7 +280,6 @@ public class TableView implements TableOrView {
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
 
-    //TODO: NEW!!!
     @Override
     public ColumnType getMixedType(long columnIndex, long rowIndex) {
         return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
@@ -456,7 +455,6 @@ public class TableView implements TableOrView {
      * @param columnIndex column index of the cell
      * @param value
      */
-    //!!!TODO: New
     @Override
     public void adjust(long columnIndex, long value) {
         if (immutable) throwImmutable();
@@ -504,7 +502,6 @@ public class TableView implements TableOrView {
 
     protected native long nativeFindFirstInt(long nativeTableViewPtr, long columnIndex, long value);
 
-    //!!!TODO: New
     @Override
     public long findFirstBoolean(long columnIndex, boolean value) {
         return nativeFindFirstBool(nativePtr, columnIndex, value);
@@ -512,7 +509,6 @@ public class TableView implements TableOrView {
 
     protected native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
 
-    //!!!TODO: New
     @Override
     public long findFirstFloat(long columnIndex, float value) {
         return nativeFindFirstFloat(nativePtr, columnIndex, value);
@@ -520,7 +516,6 @@ public class TableView implements TableOrView {
 
     protected native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
 
-    //!!!TODO: New
     @Override
     public long findFirstDouble(long columnIndex, double value) {
         return nativeFindFirstDouble(nativePtr, columnIndex, value);
@@ -528,7 +523,6 @@ public class TableView implements TableOrView {
 
     protected native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
 
-    //!!!TODO: New
     @Override
     public long findFirstDate(long columnIndex, Date date) {
         return nativeFindFirstDate(nativePtr, columnIndex, date.getTime()/1000);
@@ -552,6 +546,7 @@ public class TableView implements TableOrView {
         throw new RuntimeException("Not implemented yet");
     }
     
+    // TODO..
     @Override
     public long upperBoundLong(long columnIndex, long value) {
         throw new RuntimeException("Not implemented yet");
@@ -564,7 +559,6 @@ public class TableView implements TableOrView {
 
     protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
-    //!!!TODO: New
     @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
         return new TableView(this, nativeFindAllBool(nativePtr, columnIndex, value), immutable);
@@ -572,7 +566,6 @@ public class TableView implements TableOrView {
 
     protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
-    //!!!TODO: New
     @Override
     public TableView findAllFloat(long columnIndex, float value) {
         return new TableView(this, nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
@@ -580,7 +573,6 @@ public class TableView implements TableOrView {
 
     protected native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
 
-    //!!!TODO: New
     @Override
     public TableView findAllDouble(long columnIndex, double value) {
         return new TableView(this, nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
@@ -588,7 +580,6 @@ public class TableView implements TableOrView {
 
     protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
-    //!!!TODO: New
     @Override
     public TableView findAllDate(long columnIndex, Date date) {
         return new TableView(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
