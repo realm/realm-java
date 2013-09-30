@@ -5,6 +5,7 @@ import org.testng.annotations.Test;
 
 public class JNISortedLongTest {
     Table table;
+    TableView view;
 
     void init() {
         table = new Table();
@@ -19,11 +20,17 @@ public class JNISortedLongTest {
         table.add(50, "D");
         table.add(60, "D");
         table.add(60, "D");
+        
         assertEquals(8, table.size());
+
+        view = table.where().findAll();
+        
+        assertEquals(view.size(), table.size());
+
     }
 
     @Test
-    public void shouldTestSortedInt() {
+    public void shouldTestSortedIntTable() {
         init();
 
         // before first entry
@@ -47,4 +54,5 @@ public class JNISortedLongTest {
         assertEquals(8, table.upperBoundLong(0, 60));
 
     }
+    
 }

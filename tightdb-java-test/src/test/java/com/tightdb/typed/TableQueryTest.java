@@ -7,6 +7,8 @@ import org.testng.annotations.Test;
 import com.tightdb.Table;
 import com.tightdb.test.TestEmployeeQuery;
 import com.tightdb.test.TestEmployeeView;
+import com.tightdb.test.TestQueryTableQuery;
+import com.tightdb.test.TestQueryTableTable;
 
 public class TableQueryTest extends AbstractTest {
 
@@ -77,6 +79,12 @@ public class TableQueryTest extends AbstractTest {
 
         assertEquals(2, employees.firstName.neq("John").findAll().size());
         assertEquals(2, employees.firstName.notEqual("John").findAll().size());
+        assertEquals(2, employees.firstName.neq("John", true).findAll().size());
+        assertEquals(2, employees.firstName.notEqual("John", true).findAll().size());
+        
+        assertEquals(2, employees.firstName.neq("johN", false).findAll().size());
+        assertEquals(2, employees.firstName.notEqual("johN", false).findAll().size());
+
 
         assertEquals(2, employees.firstName.startsWith("J").findAll().size());
         assertEquals(1, employees.firstName.endsWith("hny").findAll().size());
@@ -87,6 +95,7 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(2, employees.firstName.startsWith("j", false).findAll().size());
         assertEquals(1, employees.firstName.endsWith("hnY", false).findAll().size());
         assertEquals(2, employees.firstName.contains("ohN", false).findAll().size());
+        
     }
 
     @Test
@@ -182,5 +191,35 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(0, n);
         assertEquals(3, employees.size());
     }
-
+    
+    
+    @Test
+    public void queryNumbersTest() {
+       
+        TestQueryTableTable table = new TestQueryTableTable();
+        table.add(10, 10f, 10d, "s10");
+        table.add(20, 20f, 20d, "s20");
+        table.add(20, 20f, 20d, "s20");
+        table.add(100, 100f, 100d, "s100");
+        table.add(1000, 1000f, 1000d, "s1000");
+        
+        TestQueryTableQuery query = table.where();
+        
+        // Average
+        assertEquals(230d, query.floatNum.average() ); // average on float column returns a double
+        assertEquals(230d, query.doubleNum.average() );
+        
+        // maximum
+        assertEquals(1000f, query.floatNum.maximum() );
+        assertEquals(1000d, query.doubleNum.maximum() );
+        
+        // minimum
+        assertEquals(10f, query.floatNum.minimum() );
+        assertEquals(10d, query.doubleNum.minimum() );
+        
+        // sum
+        assertEquals(1150d, query.floatNum.sum() ); // Sum on float column returns a double
+        assertEquals(1150d, query.doubleNum.sum() );
+        
+    }
 }
