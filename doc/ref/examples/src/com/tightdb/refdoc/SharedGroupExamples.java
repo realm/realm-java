@@ -3,13 +3,12 @@
 package com.tightdb.refdoc;
 
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 
-import com.tightdb.*;
-import com.tightdb.Group.OpenMode;
+import com.tightdb.ReadTransaction;
+import com.tightdb.SharedGroup;
+import com.tightdb.Table;
+import com.tightdb.WriteTransaction;
 
 public class SharedGroupExamples {
 
