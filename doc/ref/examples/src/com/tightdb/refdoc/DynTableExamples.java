@@ -612,7 +612,7 @@ public class DynTableExamples {
     
     
     public static void distinctExample(){
-        // @@Example: ex_java_dyn_table_distinct @@
+        // @@Example: ex_java_dyn_table_get_distinct_view @@
         // @@Show@@
         // Create table with 1 column and add data
         Table table = new Table();

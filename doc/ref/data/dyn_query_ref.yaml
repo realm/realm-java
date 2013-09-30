@@ -11,7 +11,7 @@
 ## TODO: Describe start, end index parameters in searches. end is not inclusive.
 
 ID         : class_dyn_query
-TITLE      : TableQuery
+TITLE      : TableQuery (dynamic)
 SUMMARY    : *g_dyn_query_intro_summary
 DESCR      : *g_dyn_query_intro_descr
 SEE        : *g_dyn_query_intro_see
