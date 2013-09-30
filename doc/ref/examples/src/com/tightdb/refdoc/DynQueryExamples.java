@@ -461,7 +461,7 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Query the table
-        long sum = table.where().greaterThan(1, 450).sum(1);
+        long sum = table.where().greaterThan(1, 450).sumInt(1);
 
         // @@EndShow@@
         // @@EndExample@@
@@ -486,7 +486,7 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Query the table
-        double avg = table.where().greaterThan(1, 450).average(1);
+        double avg = table.where().greaterThan(1, 450).averageInt(1);
 
         // @@EndShow@@
         // @@EndExample@@
@@ -511,7 +511,7 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Query the table
-        long max = table.where().greaterThan(1, 450).maximum(1);
+        long max = table.where().greaterThan(1, 450).maximumInt(1);
 
         // @@EndShow@@
         // @@EndExample@@
@@ -536,7 +536,7 @@ public class DynQueryExamples {
         table.add("Janet", 875, false);
 
         // Query the table
-        long min = table.where().greaterThan(1, 450).minimum(1);
+        long min = table.where().greaterThan(1, 450).minimumInt(1);
 
         // @@EndShow@@
         // @@EndExample@@

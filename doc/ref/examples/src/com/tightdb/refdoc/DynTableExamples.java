@@ -612,7 +612,7 @@ public class DynTableExamples {
     
     
     public static void distinctExample(){
-        // @@Example: ex_java_dyn_table_distinct @@
+        // @@Example: ex_java_dyn_table_get_distinct_view @@
         // @@Show@@
         // Create table with 1 column and add data
         Table table = new Table();
@@ -634,7 +634,7 @@ public class DynTableExamples {
         table.setIndex(0);
         
         // Call distinct on column 0. Method return a table view
-        TableView view = table.distinct(0);
+        TableView view = table.getDistinctView(0);
         
         // Check that resulting view has 3 rows; China, UK and US
         Assert(view.size() == 3);

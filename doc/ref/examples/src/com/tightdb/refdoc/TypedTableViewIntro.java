@@ -1,4 +1,4 @@
-
+ // @@Example: ex_java_typed_table_view_intro @@
 package com.tightdb.refdoc;
 
 import java.io.FileNotFoundException;
@@ -15,8 +15,6 @@ public class TypedTableViewIntro {
     }
 
     public static void main(String[] args) throws FileNotFoundException  {
-        // @@Example: ex_java_typed_table_view_intro @@
-        // @@Show@@
         // Create a new table
         CityTable cities = new CityTable();
 
@@ -52,9 +50,8 @@ public class TypedTableViewIntro {
         out.print(view.toJson());
         out.close();
         System.out.println(view.toJson());
-        // @@EndShow@@
-        // @@EndExample@@
     }
+    // @@EndExample@@
 
     static void Assert(boolean check) {
         if (!check) {
@@ -62,4 +59,3 @@ public class TypedTableViewIntro {
         }
     }
 } 
-

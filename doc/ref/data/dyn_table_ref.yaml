@@ -610,7 +610,7 @@ CATEGORIES :
 #      - CODE   : ex_java_dyn_table_get_sorted_view
 #        DESCR  :
   - g_dyn_table_distinct:
-      NAMES    : distinct
+      NAMES    : getDistinctView
       SUMMARY  : *g_dyn_table_distinct_summary
       DESCR    : *g_dyn_table_distinct_desc
       PARAMS:
@@ -624,7 +624,7 @@ CATEGORIES :
       - EXCEPT : UnsupportedOperationException
         DESCR  : Throws exception if column is not indexed
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_distinct
+      - CODE   : ex_java_dyn_table_get_distinct_view
         DESCR  :
   - g_dyn_table_where:
 #  - g_dyn_table_where_const:
