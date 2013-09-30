@@ -70,32 +70,32 @@ public class FloatQueryColumn<Cursor, View, Query> extends AbstractColumn<Long, 
         return getQuery().averageFloat(columnIndex);
     }
 
-    public double average(long start, long end) {
-        return getQuery().averageFloat(columnIndex, start, end);
+    public double average(long start, long end, long limit) {
+        return getQuery().averageFloat(columnIndex, start, end, limit);
     }
 
     public double sum() {
         return getQuery().sumFloat(columnIndex);
     }
 
-    public double sum(long start, long end) {
-        return getQuery().sumFloat(columnIndex, start, end);
+    public double sum(long start, long end, long limit) {
+        return getQuery().sumFloat(columnIndex, start, end, limit);
     }
 
     public float maximum() {
         return getQuery().maximumFloat(columnIndex);
     }
 
-    public float maximum(long start, long end) {
-        return getQuery().maximumFloat(columnIndex, start, end);
+    public float maximum(long start, long end, long limit) {
+        return getQuery().maximumFloat(columnIndex, start, end, limit);
     }
 
     public float minimum() {
         return getQuery().minimumFloat(columnIndex);
     }
 
-    public float minimum(long start, long end) {
-        return getQuery().minimumFloat(columnIndex, start, end);
+    public float minimum(long start, long end, long limit) {
+        return getQuery().minimumFloat(columnIndex, start, end, limit);
     }
 
 }

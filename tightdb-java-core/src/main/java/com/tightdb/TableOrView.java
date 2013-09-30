@@ -186,13 +186,13 @@ public interface TableOrView {
     //Increments all rows in the specified column with the provided value
     void adjust(long columnIndex, long value);
 
-    long sum(long columnIndex);
+    long sumInt(long columnIndex);
 
-    long maximum(long columnIndex);
+    long maximumInt(long columnIndex);
 
-    long minimum(long columnIndex);
+    long minimumInt(long columnIndex);
 
-    double average(long columnIndex);
+    double averageInt(long columnIndex);
 
 
     double sumFloat(long columnIndex);
@@ -252,7 +252,7 @@ public interface TableOrView {
     
 // Experimental:
 
-    long lookup(String value);
+   // long lookup(String value);
 
     long count(long columnIndex, String value);
 

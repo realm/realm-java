@@ -402,7 +402,7 @@ EOF
         dir="tightdb-java-test/src/test"
         echo "Building test suite in '$dir'"
         export CLASSPATH="$devkit_jar:$temp_dir/gen:."
-        (cd "$dir/../main/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestModel.java) || exit 1
+        (cd "$dir/../test/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestTableModel.java) || exit 1
 
         path_list_append "CLASSPATH" "../main" || exit 1
         testing_jars="$(get_config_param "testing-jars")" || exit 1
@@ -573,7 +573,7 @@ EOF
     "dist-remarks")
 cat <<EOF
 To help you get started, a simple example is provided in
-"tightdb_java2/examples/intro-example". First you need to build the
+"tightdb_java/examples/intro-example". First you need to build the
 Java extension as described above. Do NOT run "./build clean", as that
 will prevent the example from running. For further details, please
 consult the README.md file in mentioned directory.

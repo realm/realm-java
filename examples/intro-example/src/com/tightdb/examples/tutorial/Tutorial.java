@@ -50,18 +50,14 @@ public class Tutorial {
     /****************************** GETTERS AND SETTERS **********************/
 
     // @@Example: accessing_rows @@
-    // 2 ways to get the value
+    // Get value
     String name = peopleTable.get(2).getName(); // name => "Mary"
-    // or
-    String name2 = peopleTable.get(2).name.get();
 
-    // 2 ways to set the value
-    peopleTable.get(2).name.set("NewName");
-    // or
+    // Set value
     peopleTable.get(2).setName("NewName"); 
     // @@EndExample@@
 
-    System.out.println("get(2).getName -> " + name + " or " + name2);
+    System.out.println("get(2).getName -> " + name);
     System.out.println("get(2).setName('NewName') -> " + peopleTable.get(2).getName());
 
     // @@Example: last_row @@

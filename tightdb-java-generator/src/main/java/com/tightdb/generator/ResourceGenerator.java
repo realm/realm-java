@@ -30,6 +30,8 @@ public class ResourceGenerator {
                 content = content.replaceAll("\\\\/", "/");
                 String line = String.format(frm, name.toUpperCase(), content);
                 lines.add(line);
+            } else {
+                System.err.println("No such file: " + file);
             }
         }
 

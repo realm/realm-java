@@ -574,11 +574,11 @@ public class TableView implements TableOrView {
      * @param columnIndex column index
      * @return the sum of the values in the column
      */
-    public long sum(long columnIndex){
-        return nativeSum(nativePtr, columnIndex);
+    public long sumInt(long columnIndex){
+        return nativeSumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeSum(long nativeViewPtr, long columnIndex);
+    protected native long nativeSumInt(long nativeViewPtr, long columnIndex);
 
     /**
      * Returns the maximum value of the cells in a column.
@@ -589,11 +589,11 @@ public class TableView implements TableOrView {
      * @param columnIndex column index
      * @return the maximum value
      */
-    public long maximum(long columnIndex){
-        return nativeMaximum(nativePtr, columnIndex);
+    public long maximumInt(long columnIndex){
+        return nativeMaximumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMaximum(long nativeViewPtr, long columnIndex);
+    protected native long nativeMaximumInt(long nativeViewPtr, long columnIndex);
 
     /**
      * Returns the minimum value of the cells in a column.
@@ -604,17 +604,17 @@ public class TableView implements TableOrView {
      * @param columnIndex column index
      * @return the minimum value
      */
-    public long minimum(long columnIndex){
-        return nativeMinimum(nativePtr, columnIndex);
+    public long minimumInt(long columnIndex){
+        return nativeMinimumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMinimum(long nativeViewPtr, long columnIndex);
+    protected native long nativeMinimumInt(long nativeViewPtr, long columnIndex);
 
-    public double average(long columnIndex) {
-        return nativeAverage(nativePtr, columnIndex);
+    public double averageInt(long columnIndex) {
+        return nativeAverageInt(nativePtr, columnIndex);
     }
 
-    protected native double nativeAverage(long nativePtr, long columnIndex);
+    protected native double nativeAverageInt(long nativePtr, long columnIndex);
 
 
     // Float aggregates
@@ -717,11 +717,11 @@ public class TableView implements TableOrView {
     protected boolean immutable = false;
     protected TableView tableView;
 
-    @Override
+   /* @Override
     public long lookup(String value) {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
-    }
+    }*/
 
     @Override
     public long count(long columnIndex, String value) {

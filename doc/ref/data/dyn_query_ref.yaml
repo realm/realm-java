@@ -263,7 +263,7 @@ CATEGORIES :
         DESCR  : The query object.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_startsWith
+        CODE   : ex_java_dyn_query_beginsWith
   - g_dyn_query_endsWith:
 #todo  - g_dyn_query_endsWith_binary:
       NAMES    : endsWith
@@ -347,7 +347,7 @@ CATEGORIES :
         DESCR  : The query object.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_or
+        CODE   : ex_java_dyn_query_group
   - g_dyn_query_subtable:
       NAMES    : subTable
       DESCR    : *g_dyn_query_subtable_descr
@@ -398,7 +398,7 @@ CATEGORIES :
         DESCR  : *g_dyn_query_find_all_return_desc
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_findall
+        CODE   : ex_java_dyn_query_findAll
   - g_dyn_query_find_next:
       NAMES    : findNext
       DESCR    : *g_dyn_query_find_next_descr
@@ -415,7 +415,7 @@ CATEGORIES :
         DESCR  : *g_dyn_query_find_next
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_find_next
+        CODE   : ex_java_dyn_query_findNext
 
   - g_dyn_query_count:
       NAMES    : count
@@ -423,23 +423,23 @@ CATEGORIES :
       SUMMARY  : *g_dyn_query_size_summary
       SIGNATURE: |
                  long count()
-                 long count(long start, long end)
+                 long count(long start, long end, long limit)
       PARAMS:
       - NAME   : start
         TYPES  : long
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
-# TODO     - NAME   : limit
-#        TYPES  : long
-#        DESCR  : "Maximum number of rows to find. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
+      - NAME   : limit
+        TYPES  : long
+        DESCR  : "Maximum number of rows to find. -1 for infinity."
       RETURN:
         TYPES  : long
         DESCR  : The number of matching rows.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_size
+        CODE   : ex_java_dyn_query_count
 
   - g_dyn_query_sum:
   - g_dyn_query_sum_float:
@@ -450,11 +450,11 @@ CATEGORIES :
       SUMMARY  : *g_dyn_query_sum_summary
       SIGNATURE: |
                  long   sum(long columnIndex)
-                 long   sum(long columnIndex, long start, long end)
+                 long   sum(long columnIndex, long start, long end, long limit)
                  double sumFloat(long columnIndex)
-                 double sumFloat(long columnIndex, long start, long end)
+                 double sumFloat(long columnIndex, long start, long end, long limit)
                  double sumDouble(long columnIndex)
-                 double sumDouble(long columnIndex, long start, long end)
+                 double sumDouble(long columnIndex, long start, long end, long limit)
       PARAMS:
       - NAME   : columnIndex
         DESCR  : *g_dyn_query_sum_parm1_desc
@@ -464,10 +464,10 @@ CATEGORIES :
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
-#      - NAME   : limit
-#        TYPES  : long
-#        DESCR  : "Maximum number of rows to search. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
+      - NAME   : limit
+        TYPES  : long
+        DESCR  : "Maximum number of rows to search. -1 for infinity."
       RETURN:
         TYPES  : [long, double, double]
         DESCR  : The sum.
@@ -485,11 +485,11 @@ CATEGORIES :
       SUMMARY  : *g_dyn_query_maximum_summary
       SIGNATURE: |
                  long   maximum(long columnIndex)
-                 long   maximum(long columnIndex, long start, long end)
+                 long   maximum(long columnIndex, long start, long end, long limit)
                  long   maximumFloat(long columnIndex)
-                 float  maximumFloat(long columnIndex, long start, long end)
+                 float  maximumFloat(long columnIndex, long start, long end, long limit)
                  long   maximumDouble(long columnIndex)
-                 double maximumDouble(long columnIndex, long start, long end)
+                 double maximumDouble(long columnIndex, long start, long end, long limit)
 #                 Date  maximumDate(long columnIndex, long start, long end, long limit)
       PARAMS:
       - NAME   : columnIndex
@@ -500,10 +500,10 @@ CATEGORIES :
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
-#TODO      - NAME   : limit
-#        TYPES  : long
-#        DESCR  : "Maximum number of rows to search. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
+      - NAME   : limit
+        TYPES  : long
+        DESCR  : "Maximum number of rows to search. -1 for infinity."
       RETURN:
         TYPES  : [long, float, double] #, Date]
         DESCR  : The highest value.
@@ -520,11 +520,11 @@ CATEGORIES :
       SUMMARY  : *g_dyn_query_minimum_summary
       SIGNATURE: |
                  long   minimum(long columnIndex)
-                 long   minimum(long columnIndex, long start, long end)
+                 long   minimum(long columnIndex, long start, long end, long limit)
                  long   minimumFloat(long columnIndex)
-                 float  minimumFloat(long columnIndex, long start, long end)
+                 float  minimumFloat(long columnIndex, long start, long end, long limit)
                  long   minimumDouble(long columnIndex)
-                 double minimumDouble(long columnIndex, long start, long end)
+                 double minimumDouble(long columnIndex, long start, long end, long limit)
 #                 Date  minimumDate(long columnIndex, long start, long end, long limit)
       PARAMS:
       - NAME   : columnIndex
@@ -535,10 +535,10 @@ CATEGORIES :
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
- #TODO     - NAME   : limit
- #       TYPES  : long
- #       DESCR  : "Maximum number of rows to find. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
+      - NAME   : limit
+        TYPES  : long
+        DESCR  : "Maximum number of rows to find. -1 for infinity."
       RETURN:
         TYPES  : [long, float, double] #, Date]
         DESCR  : The lowest value.
@@ -555,11 +555,11 @@ CATEGORIES :
       DESCR    : *g_dyn_query_average_descr
       SIGNATURE: |
                  double average(long columnIndex)
-                 double average(long columnIndex, long start, long end)
+                 double average(long columnIndex, long start, long end, long limit)
                  double averageFloat(long columnIndex)
-                 double averageFloat(long columnIndex, long start, long end)
+                 double averageFloat(long columnIndex, long start, long end, long limit)
                  double averageDouble(long columnIndex)
-                 double averageDouble(long columnIndex, long start, long end)
+                 double averageDouble(long columnIndex, long start, long end, long limit)
       PARAMS:
       - NAME   : columnIndex
         DESCR  : Column index. The datatype of the column must match the function called. E.g. <code>average_float()</code> can only be used on columns which contains floats.
@@ -569,10 +569,10 @@ CATEGORIES :
         DESCR  : "Row to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Row to stop search. Default: -1 (infinity)."
-#TODO      - NAME   : limit
-#        TYPES  : long
-#        DESCR  : "Maximum number of rows to find. Default: -1 (infinity)."
+        DESCR  : "Row to stop search. -1 for infinity."
+      - NAME   : limit
+        TYPES  : long
+        DESCR  : "Maximum number of rows to find. -1 for infinity."
       RETURN:
         TYPES  : double
         DESCR  : The average.
@@ -592,10 +592,10 @@ CATEGORIES :
         DESCR  : "Row index to begin search. Default: 0."
       - NAME   : end
         TYPES  : long
-        DESCR  : "Last row index to search. Default: -1 (infinity)."
+        DESCR  : "Last row index to search. -1 for infinity."
  #     - NAME   : limit
  #       TYPES  : long
- #       DESCR  : "Maximum number of rows to find. Default: -1 (infinity)."
+ #       DESCR  : "Maximum number of rows to find. -1 for infinity."
       RETURN:
         TYPES  : long
         DESCR  : The number of rows removed.

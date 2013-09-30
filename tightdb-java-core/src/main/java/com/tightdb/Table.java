@@ -592,7 +592,7 @@ public class Table implements TableOrView, TableDefinition {
             if(data != null)
                 nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
             else
-                throw new RuntimeException("byte[] must not be null. Alternatively insert empty array.");
+                throw new NullPointerException("byte[] must not be null. Alternatively insert empty array.");
         }
         
         public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
@@ -634,9 +634,13 @@ public class Table implements TableOrView, TableDefinition {
 
     protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
-   
 
-    //protected native void nativeInsertByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
+   /* public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
+        if (data == null)
+            throw new NullPointerException("Null Array");
+        if (immutable) throwImmutable();
+        nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
+    }*/
 
     
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
@@ -905,29 +909,29 @@ public class Table implements TableOrView, TableDefinition {
     //
 
     // Integers
-    public long sum(long columnIndex) {
-        return nativeSum(nativePtr, columnIndex);
+    public long sumInt(long columnIndex) {
+        return nativeSumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeSum(long nativePtr, long columnIndex);
+    protected native long nativeSumInt(long nativePtr, long columnIndex);
 
-    public long maximum(long columnIndex) {
-        return nativeMaximum(nativePtr, columnIndex);
+    public long maximumInt(long columnIndex) {
+        return nativeMaximumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMaximum(long nativePtr, long columnIndex);
+    protected native long nativeMaximumInt(long nativePtr, long columnIndex);
 
-    public long minimum(long columnIndex) {
-        return nativeMinimum(nativePtr, columnIndex);
+    public long minimumInt(long columnIndex) {
+        return nativeMinimumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMinimum(long nativePtr, long columnnIndex);
+    protected native long nativeMinimumInt(long nativePtr, long columnnIndex);
 
-    public double average(long columnIndex) {
-        return nativeAverage(nativePtr, columnIndex);
+    public double averageInt(long columnIndex) {
+        return nativeAverageInt(nativePtr, columnIndex);
     }
 
-    protected native double nativeAverage(long nativePtr, long columnIndex);
+    protected native double nativeAverageInt(long nativePtr, long columnIndex);
 
     // Floats
     public double sumFloat(long columnIndex) {
@@ -1002,6 +1006,7 @@ public class Table implements TableOrView, TableDefinition {
 
     protected native long nativeCountDouble(long nativePtr, long columnIndex, double value);
 
+    @Override
     public long count(long columnIndex, String value) {
         return nativeCountString(nativePtr, columnIndex, value);
     }
@@ -1092,14 +1097,15 @@ public class Table implements TableOrView, TableDefinition {
 
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
-    // Requires that the first column is a string column with index
+    /*  // Requires that the first column is a string column with unique values. Also index required?
+    @Override
     public long lookup(String value) {
-        if (!this.hasIndex(0) || this.getColumnType(0) != ColumnType.STRING)
-            throw new RuntimeException("lookup() requires index on column 0 which must be a String column.");
+        if (this.getColumnType(0) != ColumnType.STRING)
+            throw new RuntimeException("lookup() requires a String column.");
         return nativeLookup(nativePtr, value);
     }
 
-    protected native long nativeLookup(long nativeTablePtr, String value);
+    protected native long nativeLookup(long nativeTablePtr, String value); */
 
 
     // Experimental feature
@@ -1115,11 +1121,11 @@ public class Table implements TableOrView, TableDefinition {
 
     //
 
-    public TableView distinct(long columnIndex) {
-        return new TableView(nativeDistinct(nativePtr, columnIndex), immutable);
+    public TableView getDistinctView(long columnIndex) {
+        return new TableView(nativeGetDistinctView(nativePtr, columnIndex), immutable);
     }
 
-    protected native long nativeDistinct(long nativePtr, long columnIndex);
+    protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
 
     // Optimize
     public void optimize() {
