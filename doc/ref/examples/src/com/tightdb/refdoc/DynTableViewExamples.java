@@ -318,7 +318,6 @@ public class DynTableViewExamples {
         Assert(user1.equals("user1"));
         Assert(score2 == 770);
 
-
         // Throws exception if column or row index is out of range
         try {
             long score = view.getLong(1, 3);
@@ -362,7 +361,6 @@ public class DynTableViewExamples {
         Assert(view.getString(0, 0).equals("Liquid Droid"));
         Assert(view.getLong(1,1) == 0);
 
-
         // Throws exception if column or row index is out of range
         try {
             view.setLong(1, 50, 200);
@@ -401,13 +399,9 @@ public class DynTableViewExamples {
         table.addColumn(ColumnType.INTEGER, "score");
         table.addColumn(ColumnType.BOOLEAN, "completed");
         table.add("user1", 420, false);
-        table.add("user2", 770, false);
-        table.add("user3", 327, false);
+        table.add("user2", 770, true);
+        table.add("user3", 327, true);
         table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
 
         // Get a view of the complete unfiltered table
         TableView view = table.where().findAll();
@@ -415,7 +409,7 @@ public class DynTableViewExamples {
         // Find first row index where column 2 is true
         long rowIndex = view.findFirstBoolean(2, true);
 
-        Assert(view.getString(0, rowIndex).equals("user5"));
+        Assert(view.getString(0, rowIndex).equals("user2"));
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -465,17 +459,14 @@ public class DynTableViewExamples {
         table.add("user1", 420, false);
         table.add("user2", 770, false);
         table.add("user3", 327, false);
-        table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
 
         // Get a view of the complete unfiltered table
         TableView view = table.where().findAll();
 
         // The sum of all values in column 1
         long totalScore = view.sumInt(1);
+
+        Assert(totalScore == 1517);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -493,17 +484,14 @@ public class DynTableViewExamples {
         table.add("user1", 420, false);
         table.add("user2", 770, false);
         table.add("user3", 327, false);
-        table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
 
         // Get a view of the complete unfiltered table
         TableView view = table.where().findAll();
 
         // The maximum score in column 1
         long maxScore = view.maximumInt(1);
+
+        Assert(maxScore == 770);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -520,17 +508,14 @@ public class DynTableViewExamples {
         table.add("user1", 420, false);
         table.add("user2", 770, false);
         table.add("user3", 327, false);
-        table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
 
         // Get a view of the complete unfiltered table
         TableView view = table.where().findAll();
 
         // The minimum score in column 1
         long minScore = view.minimumInt(1);
+
+        Assert(minScore == 327);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -547,18 +532,15 @@ public class DynTableViewExamples {
         table.addColumn(ColumnType.BOOLEAN, "completed");
         table.add("user1", 420, false);
         table.add("user2", 770, false);
-        table.add("user3", 327, false);
-        table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
+        table.add("user3", 325, false);
 
         // Get a view of the complete unfiltered table
         TableView view = table.where().findAll();
 
         // The average score in column 1
         double avgScore = view.averageInt(1); // Returns a double
+
+        Assert(avgScore == 505);
         // @@EndShow@@
         // @@EndExample@@
     }
