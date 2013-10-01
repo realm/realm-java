@@ -23,6 +23,7 @@
     <ClInclude Include="src\com_tightdb_group.h" />
     <ClInclude Include="src\com_tightdb_internal_Util.h" />
     <ClInclude Include="src\com_tightdb_SharedGroup.h" />
+    <ClInclude Include="src\com_tightdb_SubTableSchema.h" />
     <ClInclude Include="src\com_tightdb_Table.h" />
     <ClInclude Include="src\com_tightdb_tablequery.h" />
     <ClInclude Include="src\com_tightdb_TableView.h" />
@@ -37,7 +38,7 @@
     <ClCompile Include="src\com_tightdb_group.cpp" />
     <ClCompile Include="src\com_tightdb_internal_Util.cpp" />
     <ClCompile Include="src\com_tightdb_SharedGroup.cpp" />
-    <ClCompile Include="src\com_tightdb_SubTableDefinition.cpp" />
+    <ClCompile Include="src\com_tightdb_SubTableSchema.cpp" />
     <ClCompile Include="src\com_tightdb_table.cpp" />
     <ClCompile Include="src\com_tightdb_tablequery.cpp" />
     <ClCompile Include="src\com_tightdb_tableview.cpp" />

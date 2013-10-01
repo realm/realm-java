@@ -1081,7 +1081,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToString(
         return NULL;
     try {
         std::ostringstream ss;
-        table->to_string(ss, maxRows);
+        table->to_string(ss, S(maxRows));
         const std::string str = ss.str();
         return env->NewStringUTF(str.c_str());
     } CATCH_STD()
@@ -1096,7 +1096,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeRowToString(
         return NULL;
     try {
         std::ostringstream ss;
-        table->row_to_string(rowIndex, ss);
+        table->row_to_string(S(rowIndex), ss);
         const std::string str = ss.str();
         return env->NewStringUTF(str.c_str());
     } CATCH_STD()
