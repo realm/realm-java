@@ -62,9 +62,8 @@ CATEGORIES :
       NAME     : getColumnCount
       SUMMARY  : *g_dyn_table_get_column_count_summary
       DESCR    : *g_dyn_table_get_column_count_descr
-      CONST    : True
       RETURN:
-        TYPES  : size_t
+        TYPES  : long
         DESCR  : *g_dyn_view_get_column_count_return1_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_view_get_column_count
@@ -73,13 +72,12 @@ CATEGORIES :
       NAME     : getColumnName
       SUMMARY  : *g_dyn_table_get_column_name_summary
       DESCR    : *g_dyn_table_get_column_name_descr
-      CONST    : True
       PARAMS:
       - NAME   : column_ndx
-        TYPES  : size_t
+        TYPES  : long
         DESCR  : *g_dyn_view_column_index_descr
       RETURN:
-        TYPES  : StringData
+        TYPES  : String
         DESCR  : *g_dyn_view_column_name_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_view_get_column_name
@@ -88,13 +86,12 @@ CATEGORIES :
       NAME     : getColumnIndex
       SUMMARY  : *g_dyn_table_get_column_index_summary
       DESCR    : *g_dyn_table_get_column_index_descr
-      CONST    : True
       PARAMS:
       - NAME   : column_name
-        TYPES  : StringData
+        TYPES  : String
         DESCR  : *g_dyn_view_column_name_descr
       RETURN:
-        TYPES  : size_t
+        TYPES  : long
         DESCR  : *g_dyn_view_column_index_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_view_get_column_index
@@ -116,14 +113,13 @@ CATEGORIES :
                     <li><code>TABLE</code></li>
                     <li><code>MIXED</code></li>
                   </ul>
-      CONST    : True
       PARAMS:
       - NAME   : column_ndx
-        TYPES  : size_t
-        DESCR  : *g_dyn_view_column_index_descr
+        TYPES  : long
+        DESCR  : The column index.
       RETURN:
-        TYPES  : DataType
-        DESCR  : *g_dyn_view_get_column_type_return1_descr
+        TYPES  : ColumnType
+        DESCR  : The column type.
       EXAMPLES:
       - CODE   : ex_java_dyn_view_get_column_type
         DESCR  :
