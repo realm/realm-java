@@ -62,7 +62,6 @@ CATEGORIES :
       NAME     : getColumnCount
       SUMMARY  : *g_dyn_table_get_column_count_summary
       DESCR    : *g_dyn_table_get_column_count_descr
-      CONST    : True
       RETURN:
         TYPES  : long
         DESCR  : *g_dyn_view_get_column_count_return1_descr
@@ -73,7 +72,6 @@ CATEGORIES :
       NAME     : getColumnName
       SUMMARY  : *g_dyn_table_get_column_name_summary
       DESCR    : *g_dyn_table_get_column_name_descr
-      CONST    : True
       PARAMS:
       - NAME   : column_ndx
         TYPES  : long
@@ -88,7 +86,6 @@ CATEGORIES :
       NAME     : getColumnIndex
       SUMMARY  : *g_dyn_table_get_column_index_summary
       DESCR    : *g_dyn_table_get_column_index_descr
-      CONST    : True
       PARAMS:
       - NAME   : column_name
         TYPES  : String
@@ -116,7 +113,6 @@ CATEGORIES :
                     <li><code>TABLE</code></li>
                     <li><code>MIXED</code></li>
                   </ul>
-      CONST    : True
       PARAMS:
       - NAME   : column_ndx
         TYPES  : long
