@@ -153,7 +153,7 @@ public class JNITableTest {
         String FILENAME = "only-test-file.tightdb";
         String TABLENAME = "tableName";
         
-      //  new File(FILENAME).delete();
+        new File(FILENAME).delete();
 
         SharedGroup group = new SharedGroup(FILENAME);
 
