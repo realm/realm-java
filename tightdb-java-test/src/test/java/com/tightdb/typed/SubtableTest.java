@@ -54,7 +54,6 @@ public class SubtableTest extends AbstractTest {
 
         checkPhone(phoneQuery.findFirst(), "mobile", "111");
         checkPhone(phoneQuery.findLast(), "mobile", "111");
-        checkPhone(phoneQuery.findNext(), "mobile", "111");
         assertEquals(null, phoneQuery.findNext());
 
         // make sure the other sub-tables and independent and were not changed

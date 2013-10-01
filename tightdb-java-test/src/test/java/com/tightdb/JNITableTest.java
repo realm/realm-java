@@ -149,6 +149,7 @@ public class JNITableTest {
         String FILENAME = "only-test-file.tightdb";
         String TABLENAME = "tableName";
 
+      //  new File(FILENAME).delete();
         SharedGroup group = new SharedGroup(FILENAME);
 
         // Write transaction must be run so where are sure a db exists with the correct table
