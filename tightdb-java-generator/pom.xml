@@ -13,7 +13,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.tightdb</groupId>
-			<artifactId>tightdb-java-core</artifactId>
+			<artifactId>tightdb</artifactId>
 			<version>0.1.0</version>
 		</dependency>
 		<dependency>
