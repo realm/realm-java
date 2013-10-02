@@ -8,7 +8,7 @@
 		<version>0.1.0</version>
 	</parent>
 
-	<artifactId>tightdb-java-generator</artifactId>
+	<artifactId>tightdb-devkit</artifactId>
 
 	<dependencies>
 		<dependency>
