@@ -553,19 +553,24 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
 // Find --------------------------------------
 
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindNext(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong lastMatch)
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFind(
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong fromTableRow)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
-// TODO: check ranges for lastmatch is correct - being changed now... 08-09-13
-    if (!QUERY_VALID(env, pQuery) ||
-        !ROW_INDEX_VALID(env, pTable, lastMatch))
-        return 0;
+    if (!QUERY_VALID(env, pQuery))
+        return -1;
+    // It's valid to go 1 past the end index
+    if ((fromTableRow < 0) || (S(fromTableRow) > pTable->size())) {
+        // below check will fail with appropriate exception
+        (void) ROW_INDEX_VALID(env, pTable, fromTableRow);
+        return -1;
+    }
+    
     try {
-        return pQuery->find_next(S(lastMatch));
+        return pQuery->find( S(fromTableRow) );
     } CATCH_STD()
-    return 0;
+    return -1;
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
@@ -575,12 +580,12 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
     Table* pTable = get_table_ptr(pQuery);
     if (!QUERY_VALID(env, pQuery) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
+        return -1;
     try {
         TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
         return reinterpret_cast<jlong>(pResultView);
     } CATCH_STD()
-    return 0;
+    return -1;
 }
 
 
@@ -653,6 +658,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage(
     } CATCH_STD()
     return 0;
 }
+
 
 // float Aggregates
 

@@ -281,10 +281,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains
 
 /*
  * Class:     com_tightdb_TableQuery
- * Method:    nativeFindNext
+ * Method:    nativeFind
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindNext
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFind
   (JNIEnv *, jobject, jlong, jlong);
 
 /*

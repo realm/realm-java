@@ -43,15 +43,19 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
         return view(query.findAll());
     }
 
+    public Cursor findFirst() {
+        currPos = null;
+        return findNext();
+    }
+
     public Cursor findNext() {
-        // TODO: needed?
         if (currPos == null) {
             // first time
-            currPos = query.findNext();
+            currPos = query.find();
         } else {
             // next times
             if (currPos < Long.MAX_VALUE) {
-                currPos = query.findNext(currPos);
+                currPos = query.find(currPos+1);
             } else {
                 return null;
             }
@@ -62,16 +66,6 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
             return cursor(table, currPos);
         } else {
             currPos = Long.MAX_VALUE;
-            return null;
-        }
-    }
-
-    public Cursor findFirst() {
-        // TODO: needed
-        TableView viewBase = query.findAll(0, Table.INFINITE, 1);
-        if (viewBase.size() > 0) {
-            return cursor(viewBase, 0);
-        } else {
             return null;
         }
     }

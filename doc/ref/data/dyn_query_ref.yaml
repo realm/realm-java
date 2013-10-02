@@ -399,23 +399,24 @@ CATEGORIES :
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_dyn_query_findall
-  - g_dyn_query_find_next:
-      NAMES    : findNext
-      DESCR    : *g_dyn_query_find_next_descr
-      SUMMARY  : *g_dyn_query_find_next_summary
+
+  - g_dyn_query_find:
+      NAMES    : find
+      DESCR    : *g_dyn_query_find_descr
+      SUMMARY  : *g_dyn_query_find_summary
       SIGNATURE: |
-                 long findNext();
-                 long findNext(long lastRow);
+                 long find();
+                 long find(long fromTableRow);
       PARAMS:
-      - NAME   : lastRow
+      - NAME   : fromTableRow
         TYPES  : long
-        DESCR  : *g_dyn_query_find_next_parm1_descr
+        DESCR  : *g_dyn_query_find_parm1_descr
       RETURN:
         TYPES  : long
-        DESCR  : *g_dyn_query_find_next
+        DESCR  : *g_dyn_query_find_return_descr
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_dyn_query_find_next
+        CODE   : ex_java_dyn_query_find
 
   - g_dyn_query_count:
       NAMES    : count

@@ -47,6 +47,55 @@ public class JNIQueryTest {
     }
 
     @Test
+    public void shouldFind() {
+        // Create a table
+        Table table = new Table();
+
+        table.addColumn(ColumnType.ColumnTypeString, "username");
+        table.addColumn(ColumnType.ColumnTypeInt, "score");
+        table.addColumn(ColumnType.ColumnTypeBool, "completed");
+
+        // Insert some values
+        table.add("Arnold", 420, false);	// 0
+        table.add("Jane", 770, false);		// 1 *
+        table.add("Erik", 600, false);		// 2
+        table.add("Henry", 601, false);		// 3 *
+        table.add("Bill", 564, true);		// 4
+        table.add("Janet", 875, false);		// 5 *
+
+        TableQuery query = table.where().greaterThan(1, 600);
+        
+        // find first match
+        assertEquals(1, query.find());
+        assertEquals(1, query.find());
+        assertEquals(1, query.find(0));
+        assertEquals(1, query.find(1));
+        // find next
+        assertEquals(3, query.find(2));
+        assertEquals(3, query.find(3));
+        // find next
+        assertEquals(5, query.find(4));
+        assertEquals(5, query.find(5));
+
+        // test backwards
+        assertEquals(5, query.find(4));
+        assertEquals(3, query.find(3));
+        assertEquals(3, query.find(2));
+        assertEquals(1, query.find(1));
+        assertEquals(1, query.find(0));
+        
+        // test out of range
+        assertEquals(-1, query.find(6));
+        try {
+            query.find(7);
+            fail("Exception expected");
+        } catch (ArrayIndexOutOfBoundsException e) {
+            // expected
+        } catch (Exception e) {}
+    }
+
+
+    @Test
     public void queryWithWrongDataType() {
 
         Table table = new Table();
@@ -123,8 +172,8 @@ public class JNIQueryTest {
 
         // Compare date
         /* TODO:
-        for(int i = 0; i <= 8; i++) {
-            if(i != 2) {
+        for (int i = 0; i <= 8; i++) {
+            if (i != 2) {
                 try { query.equal(i, new Date());                   assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, new Date());                assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThanOrEqual(i, new Date());         assert(false); } catch(IllegalArgumentException e) {}
@@ -193,7 +242,5 @@ public class JNIQueryTest {
 
         // Out of bounds for boolean
         try { query.equal(9, true);                       assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-
     }
-
 }
