@@ -260,7 +260,6 @@ public class JNITableTest {
         assertEquals(false, table1.equals(null)); // Null object
         assertEquals(false, table1.equals("String")); // Other object
     }
-    
 
     @Test
     public void columnNameTest() {
@@ -268,7 +267,6 @@ public class JNITableTest {
         try { t.addColumn(ColumnType.ColumnTypeString, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
         t.addColumn(ColumnType.ColumnTypeString, "I am 63 chracters.............................................."); 
     }
-    
 
     @Test
     public void tableNumbers() {
