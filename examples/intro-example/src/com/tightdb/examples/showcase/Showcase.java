@@ -71,22 +71,22 @@ public class Showcase {
 
         /****************************** MANIPULATION OF ALL RECORDS *****************************/
 
-        Employee is17 = employees.salary.equal(17).findFirst();
+        Employee is17 = employees.salary.equalTo(17).findFirst();
         System.out.println("**************** Salary 17?: "+ is17);
         if (is17 == null)
             System.out.println("null - (Correct.))");
 
-        Employee is30000 = employees.salary.equal(30000).findFirst();
+        Employee is30000 = employees.salary.equalTo(30000).findFirst();
         System.out.println("**************** With Salary 30000?: " + is30000);
 
         // using explicit OR
-        System.out.println("Search example" + employees.firstName.equal("Johnny")
-                .or().lastName.equal("Mihajlovski").findFirst());
+        System.out.println("Search example" + employees.firstName.equalTo("Johnny")
+                .or().lastName.equalTo("Mihajlovski").findFirst());
 
         // using implicit AND
-        System.out.println("Search example 2" + employees.firstName.eq("Johnny").lastName.startsWith("B").findLast());
+        System.out.println("Search example 2" + employees.firstName.equalTo("Johnny").lastName.startsWith("B").findLast());
 
-        employees.firstName.eq("John").findLast().setSalary(30000);
+        employees.firstName.equalTo("John").findLast().setSalary(30000);
 
         /****************************** ITERATION OF ALL RECORDS *****************************/
 
@@ -108,7 +108,7 @@ public class Showcase {
                 employees
                 .firstName.startsWith("Nik")
                 .lastName.contains("vski")
-                .or().firstName.eq("John")
+                .or().firstName.equalTo("John")
                 .findAll());
 
         System.out.println("Query 2a" +
@@ -116,7 +116,7 @@ public class Showcase {
                 .group()
                     .lastName.contains("vski")
                     .or()
-                    .firstName.eq("John")
+                    .firstName.equalTo("John")
                 .endGroup()
                 .findAll());
 
@@ -125,7 +125,7 @@ public class Showcase {
                 .group()
                     .lastName.contains("vski")
                     .or()
-                    .firstName.eq("John")
+                    .firstName.equalTo("John")
                 .endGroup()
                 .firstName.startsWith("Nik")
                 .findAll());
@@ -195,7 +195,7 @@ public class Showcase {
 
         employees.clear();
 
-        employees.firstName.eq("ff").findAll().salary.minimum();
+        employees.firstName.equalTo("ff").findAll().salary.minimum();
 
         System.out.println(employees);
 

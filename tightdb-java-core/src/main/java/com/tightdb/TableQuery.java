@@ -326,15 +326,15 @@ public class TableQuery {
 
     // Searching methods.
 
-    public long findNext(long lastRow){
-        return nativeFindNext(nativePtr, lastRow);
+    public long find(long fromTableRow){
+        return nativeFind(nativePtr, fromTableRow);
     }
 
-    public long findNext(){
-        return nativeFindNext(nativePtr, Table.INFINITE);
+    public long find(){
+        return nativeFind(nativePtr, 0);
     }
 
-    protected native long nativeFindNext(long nativeQueryPtr, long lastRow);
+    protected native long nativeFind(long nativeQueryPtr, long fromTableRow);
 
     public TableView findAll(long start, long end, long limit){
         return new TableView(nativeFindAll(nativePtr, start, end, limit), immutable);

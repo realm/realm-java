@@ -89,7 +89,7 @@ public class Tutorial {
 
     System.out.println("\nFound: ");
     // @@Example: simple_seach @@
-    PeopleRow p = peopleTable.name.equal("John").findFirst();
+    PeopleRow p = peopleTable.name.equalTo("John").findFirst();
     System.out.println( p );
     // prints: "Employee {name=John, age=20, hired=true}"
     // @@EndExample@@
@@ -102,7 +102,7 @@ public class Tutorial {
                            .age.between(20, 35)    // Implicit AND with below
                            .name.contains("a")     // Implicit AND with below
                            .group()                // "("
-                               .hired.equal(true)
+                               .hired.equalTo(true)
                                .or()               // or
                                .name.endsWith("y")
                            .endGroup();            // ")"

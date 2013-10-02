@@ -50,6 +50,55 @@ public class JNIQueryTest {
     }
 
     @Test
+    public void shouldFind() {
+        // Create a table
+        Table table = new Table();
+
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.addColumn(ColumnType.BOOLEAN, "completed");
+
+        // Insert some values
+        table.add("Arnold", 420, false);	// 0
+        table.add("Jane", 770, false);		// 1 *
+        table.add("Erik", 600, false);		// 2
+        table.add("Henry", 601, false);		// 3 *
+        table.add("Bill", 564, true);		// 4
+        table.add("Janet", 875, false);		// 5 *
+
+        TableQuery query = table.where().greaterThan(1, 600);
+        
+        // find first match
+        assertEquals(1, query.find());
+        assertEquals(1, query.find());
+        assertEquals(1, query.find(0));
+        assertEquals(1, query.find(1));
+        // find next
+        assertEquals(3, query.find(2));
+        assertEquals(3, query.find(3));
+        // find next
+        assertEquals(5, query.find(4));
+        assertEquals(5, query.find(5));
+
+        // test backwards
+        assertEquals(5, query.find(4));
+        assertEquals(3, query.find(3));
+        assertEquals(3, query.find(2));
+        assertEquals(1, query.find(1));
+        assertEquals(1, query.find(0));
+        
+        // test out of range
+        assertEquals(-1, query.find(6));
+        try {
+            query.find(7);
+            fail("Exception expected");
+        } catch (ArrayIndexOutOfBoundsException e) {
+            // expected
+        }
+    }
+
+
+    @Test
     public void queryWithWrongDataType() {
 
         Table table = TestHelper.getTableWithAllColumnTypes();
@@ -58,8 +107,8 @@ public class JNIQueryTest {
         TableQuery query = table.where();
 
         // Compare strings in non string columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 7) {
+        for (int i = 0; i <= 8; i++) {
+            if (i != 7) {
                 try { query.equalTo(i, "string");                 assert(false); } catch(IllegalArgumentException e) {}
                 try { query.notEqualTo(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
                 try { query.beginsWith(i, "string");            assert(false); } catch(IllegalArgumentException e) {}
@@ -69,8 +118,8 @@ public class JNIQueryTest {
         }
 
         // Compare integer in non integer columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 5) {
+        for (int i = 0; i <= 8; i++) {
+            if (i != 5) {
                 try { query.equalTo(i, 123);                      assert(false); } catch(IllegalArgumentException e) {}
                 try { query.notEqualTo(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
@@ -82,8 +131,8 @@ public class JNIQueryTest {
         }
 
         // Compare float in non float columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 4) {
+        for (int i = 0; i <= 8; i++) {
+            if (i != 4) {
                 try { query.equalTo(i, 123F);                     assert(false); } catch(IllegalArgumentException e) {}
                 try { query.notEqualTo(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
@@ -95,8 +144,8 @@ public class JNIQueryTest {
         }
 
         // Compare double in non double columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 3) {
+        for (int i = 0; i <= 8; i++) {
+            if (i != 3) {
                 try { query.equalTo(i, 123D);                     assert(false); } catch(IllegalArgumentException e) {}
                 try { query.notEqualTo(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
@@ -108,16 +157,16 @@ public class JNIQueryTest {
         }
 
         // Compare boolean in non boolean columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 1) {
+        for (int i = 0; i <= 8; i++) {
+            if (i != 1) {
               try { query.equalTo(i, true);                       assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
         // Compare date
         /* TODO:
-        for(int i = 0; i <= 8; i++) {
-            if(i != 2) {
+        for (int i = 0; i <= 8; i++) {
+            if (i != 2) {
                 try { query.equal(i, new Date());                   assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, new Date());                assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThanOrEqual(i, new Date());         assert(false); } catch(IllegalArgumentException e) {}
@@ -251,7 +300,5 @@ public class JNIQueryTest {
 
         // Out of bounds for boolean
         try { query.equalTo(9, true);                       assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-
-    }
-
+  }
 }
