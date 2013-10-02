@@ -91,7 +91,7 @@ public class JNIQueryTest {
             fail("Exception expected");
         } catch (ArrayIndexOutOfBoundsException e) {
             // expected
-        } catch (Exception e) {}
+        }
     }
 
 
