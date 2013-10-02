@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.tightdb</groupId>
 		<artifactId>tightdb-parent</artifactId>
-		<version>1.1.0</version>
+		<version>0.1.0</version>
 	</parent>
 
 	<artifactId>tightdb-java-example</artifactId>
@@ -14,8 +14,38 @@
 		<dependency>
 			<groupId>com.tightdb</groupId>
 			<artifactId>tightdb-java-core</artifactId>
-			<version>1.1.0</version>
+			<version>0.1.0</version>
 		</dependency>
 	</dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.bsc.maven</groupId>
+                <artifactId>maven-processor-plugin</artifactId>
+                <version>2.0.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                        <configuration>
+                            <processors>
+                                <processor>com.tightdb.generator.CodeGenProcessor</processor>
+                            </processors>
+                            <outputDirectory>${project.build.directory}/generated</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.tightdb</groupId>
+                        <artifactId>tightdb-java-generator</artifactId>
+                        <version>0.1.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
