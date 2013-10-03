@@ -70,6 +70,7 @@ public class JNITableTest {
         byte[] row1 = new byte[] { 10, 20, 30 };
         
         t.insertBinary(0, 0, row0);
+        t.insertDone();
         t.insertBinary(0, 1, row1);
         t.insertDone();
         
