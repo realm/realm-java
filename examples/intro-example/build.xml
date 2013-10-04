@@ -108,4 +108,7 @@
         </java>
     </target>
 
+    <target depends="tutorial,showcase,quickbenchmark,performance" name="runall">
+    </target>
+
 </project>

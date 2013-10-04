@@ -441,14 +441,7 @@ EOF
 
     "test-examples")
         cd "examples/intro-example" || exit 1
-        echo "ant build:"
-        ant build || exit 1
-        echo "ant tutorial:"
-        ant tutorial || exit 1
-        echo "ant showcase:"
-        ant showcase || exit 1
-        #echo "ant performance:"
-        #ant performance || exit 1
+        ant runall || exit 1
         echo "Test passed"
         exit 0
         ;;
