@@ -15,10 +15,10 @@ import com.tightdb.TableView;
 @SuppressWarnings("deprecation")
 public class JNIViewTest {
     Table t;
-    Date date1 = new Date(2010, 01, 05);
-    Date date2 = new Date(1999, 12, 01);
-    Date date3 = new Date(1990, 12, 24);
-    Date date4 = new Date(2010, 01, 04);
+    Date date1 = new Date(2010-1900, 01, 05);
+    Date date2 = new Date(1999-1900, 12, 01);
+    Date date3 = new Date(1990-1900, 12, 24);
+    Date date4 = new Date(2010-1900, 01, 04);
 
     @BeforeMethod
 	void init() {
@@ -42,10 +42,7 @@ public class JNIViewTest {
 	    t.add("bb", true,  22, date3, "", 0.0f, 0.0, 0, null);
 	    t.add("aa", false, 22, date4, "", 0.0f, 0.0, 0, null);
 	    
-	    System.err.println("Setting out test date to");
-	    System.err.println(date1.getTime()/1000);
-	    t.setDate(3,0, date1);
-	    assertEquals(date1, t.getDate(3, 0));
+	    assertEquals(date1, t.getDate(3, 0));	    
 	    assertEquals(date2, t.getDate(3, 1));
 	    assertEquals(date3, t.getDate(3, 2));
 	    assertEquals(date4, t.getDate(3, 3));

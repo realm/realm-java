@@ -362,9 +362,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetDateTime(
 {
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_DateTime))
         return 0;
-    time_t r = TBL(nativeTablePtr)->get_datetime( S(columnIndex), S(rowIndex)).get_datetime();
-	std::cerr << "r=" << r << std::endl;
-    return jlong(TBL(nativeTablePtr)->get_datetime( S(columnIndex), S(rowIndex)).get_datetime());  // noexcept
+    return TBL(nativeTablePtr)->get_datetime( S(columnIndex), S(rowIndex)).get_datetime();  // noexcept
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetString(
