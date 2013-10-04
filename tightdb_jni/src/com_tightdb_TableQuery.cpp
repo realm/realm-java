@@ -569,7 +569,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFind(
     }
     
     try {
-        return pQuery->find( S(fromTableRow) );
+        size_t r = pQuery->find( S(fromTableRow) );
+        return (r == not_found) ? jlong(-1) : jlong(r);
     } CATCH_STD()
     return -1;
 }
