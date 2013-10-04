@@ -130,7 +130,7 @@ Building, testing, and installing
     sh build.sh build
     sh build.sh test
     sudo sh build.sh install
-    sh build.sh test-intalled
+    sh build.sh test-installed
 
 This procedure will install the following two native JNI libraries in
 an appropriate system directory (see "Configuration" below):
