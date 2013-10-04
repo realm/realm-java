@@ -41,6 +41,14 @@ public class JNIViewTest {
 	    t.add("dd", false, 35, date2, "", 0.0f, 0.0, 0, null);
 	    t.add("bb", true,  22, date3, "", 0.0f, 0.0, 0, null);
 	    t.add("aa", false, 22, date4, "", 0.0f, 0.0, 0, null);
+	    
+	    System.err.println("Setting out test date to");
+	    System.err.println(date1.getTime()/1000);
+	    t.setDate(3,0, date1);
+	    assertEquals(date1, t.getDate(3, 0));
+	    assertEquals(date2, t.getDate(3, 1));
+	    assertEquals(date3, t.getDate(3, 2));
+	    assertEquals(date4, t.getDate(3, 3));
 	}
     
     @Test

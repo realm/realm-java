@@ -700,6 +700,8 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public Date getDate(long columnIndex, long rowIndex) {
+		System.err.println("----- getDate ");
+		System.err.println(nativeGetDateTime(nativePtr, columnIndex, rowIndex)*1000);
         return new Date(nativeGetDateTime(nativePtr, columnIndex, rowIndex)*1000);
     }
 
@@ -839,6 +841,8 @@ public class Table implements TableOrView, TableSchema {
     @Override
     public void setDate(long columnIndex, long rowIndex, Date date) {
         if (immutable) throwImmutable();
+        System.err.print(" setting date: ");
+        System.err.println(date.getTime() / 1000);
         nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
     }
 
