@@ -1,7 +1,10 @@
 package com.tightdb;
 
 import static org.testng.AssertJUnit.*;
+
+import com.tightdb.test.TestHelper;
 import org.testng.annotations.Test;
+
 
 public class JNIQueryTest {
 
@@ -10,8 +13,8 @@ public class JNIQueryTest {
     void init() {
         table = new Table();
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.INTEGER, "number");
+        tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 
         table.add(10, "A");
@@ -28,19 +31,19 @@ public class JNIQueryTest {
         init();
         TableQuery query = table.where();
 
-        long cnt = query.equal(1, "D").count();
+        long cnt = query.equalTo(1, "D").count();
         assertEquals(2, cnt);
 
-        cnt = query.minimum(0);
+        cnt = query.minimumInt(0);
         assertEquals(14, cnt);
 
-        cnt = query.maximum(0);
+        cnt = query.maximumInt(0);
         assertEquals(16, cnt);
 
-        cnt = query.sum(0);
+        cnt = query.sumInt(0);
         assertEquals(14+16, cnt);
 
-        double avg = query.average(0);
+        double avg = query.averageInt(0);
         assertEquals(15.0, avg);
 
         // TODO: Add tests with all parameters
@@ -51,9 +54,9 @@ public class JNIQueryTest {
         // Create a table
         Table table = new Table();
 
-        table.addColumn(ColumnType.ColumnTypeString, "username");
-        table.addColumn(ColumnType.ColumnTypeInt, "score");
-        table.addColumn(ColumnType.ColumnTypeBool, "completed");
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.addColumn(ColumnType.BOOLEAN, "completed");
 
         // Insert some values
         table.add("Arnold", 420, false);	// 0
@@ -98,26 +101,16 @@ public class JNIQueryTest {
     @Test
     public void queryWithWrongDataType() {
 
-        Table table = new Table();
-
-        table.addColumn(ColumnType.ColumnTypeBinary, "binary");     // 0
-        table.addColumn(ColumnType.ColumnTypeBool, "boolean");      // 1
-        table.addColumn(ColumnType.ColumnTypeDate, "date");         // 2
-        table.addColumn(ColumnType.ColumnTypeDouble, "double");     // 3
-        table.addColumn(ColumnType.ColumnTypeFloat, "float");       // 4
-        table.addColumn(ColumnType.ColumnTypeInt, "long");          // 5
-        table.addColumn(ColumnType.ColumnTypeMixed, "mixed");       // 6
-        table.addColumn(ColumnType.ColumnTypeString, "string");     // 7
-        table.addColumn(ColumnType.ColumnTypeTable, "table");       // 8
+        Table table = TestHelper.getTableWithAllColumnTypes();
 
         // Query the table
         TableQuery query = table.where();
 
         // Compare strings in non string columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 7) {
-                try { query.equal(i, "string");                 assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqual(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
+        for (int i = 0; i <= 8; i++) {
+            if (i != 7) {
+                try { query.equalTo(i, "string");                 assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
                 try { query.beginsWith(i, "string");            assert(false); } catch(IllegalArgumentException e) {}
                 try { query.endsWith(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
                 try { query.contains(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
@@ -125,10 +118,10 @@ public class JNIQueryTest {
         }
 
         // Compare integer in non integer columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 5) {
-                try { query.equal(i, 123);                      assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqual(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
+        for (int i = 0; i <= 8; i++) {
+            if (i != 5) {
+                try { query.equalTo(i, 123);                      assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThanOrEqual(i, 123);            assert(false); } catch(IllegalArgumentException e) {}
                 try { query.greaterThan(i, 123);                assert(false); } catch(IllegalArgumentException e) {}
@@ -138,10 +131,10 @@ public class JNIQueryTest {
         }
 
         // Compare float in non float columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 4) {
-                try { query.equal(i, 123F);                     assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqual(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
+        for (int i = 0; i <= 8; i++) {
+            if (i != 4) {
+                try { query.equalTo(i, 123F);                     assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThanOrEqual(i, 123F);           assert(false); } catch(IllegalArgumentException e) {}
                 try { query.greaterThan(i, 123F);               assert(false); } catch(IllegalArgumentException e) {}
@@ -151,10 +144,10 @@ public class JNIQueryTest {
         }
 
         // Compare double in non double columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 3) {
-                try { query.equal(i, 123D);                     assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqual(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
+        for (int i = 0; i <= 8; i++) {
+            if (i != 3) {
+                try { query.equalTo(i, 123D);                     assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThan(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
                 try { query.lessThanOrEqual(i, 123D);           assert(false); } catch(IllegalArgumentException e) {}
                 try { query.greaterThan(i, 123D);               assert(false); } catch(IllegalArgumentException e) {}
@@ -164,9 +157,9 @@ public class JNIQueryTest {
         }
 
         // Compare boolean in non boolean columns
-        for(int i = 0; i <= 8; i++) {
-            if(i != 1) {
-              try { query.equal(i, true);                       assert(false); } catch(IllegalArgumentException e) {}
+        for (int i = 0; i <= 8; i++) {
+            if (i != 1) {
+              try { query.equalTo(i, true);                       assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
@@ -187,32 +180,97 @@ public class JNIQueryTest {
 
     @Test
     public void columnIndexOutOfBounds() {
-        Table table = new Table();
-
-        table.addColumn(ColumnType.ColumnTypeBinary, "binary");     // 0
-        table.addColumn(ColumnType.ColumnTypeBool, "boolean");      // 1
-        table.addColumn(ColumnType.ColumnTypeDate, "date");         // 2
-        table.addColumn(ColumnType.ColumnTypeDouble, "double");     // 3
-        table.addColumn(ColumnType.ColumnTypeFloat, "float");       // 4
-        table.addColumn(ColumnType.ColumnTypeInt, "long");          // 5
-        table.addColumn(ColumnType.ColumnTypeMixed, "mixed");       // 6
-        table.addColumn(ColumnType.ColumnTypeString, "string");     // 7
-        table.addColumn(ColumnType.ColumnTypeTable, "table");       // 8
+        Table table = TestHelper.getTableWithAllColumnTypes();
 
         // Query the table
         TableQuery query = table.where();
 
+        try { query.minimumInt(0);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(0);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(0);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumInt(1);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(1);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(1);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumInt(2);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumInt(6);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(6);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(6);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumInt(7);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(7);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(7);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumInt(8);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumFloat(8);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.minimumDouble(8);           assert(false); } catch(IllegalArgumentException e) {}
+
+        try { query.maximumInt(0);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(0);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(0);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumInt(1);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(1);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(1);         	assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumInt(2);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumInt(6);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(6);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(6);         	assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumInt(7);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(7);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(7);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumInt(8);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumFloat(8);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(8);           assert(false); } catch(IllegalArgumentException e) {}
+
+        try { query.sumInt(0);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(0);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(0);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumInt(1);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(1);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(1);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumInt(2);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(2);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(2);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumInt(6);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(6);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(6);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumInt(7);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(7);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(7);               assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumInt(8);                     assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumFloat(8);                assert(false); } catch(IllegalArgumentException e) {}
+        try { query.sumDouble(8);               assert(false); } catch(IllegalArgumentException e) {}
+
+        try { query.averageInt(0);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(0);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(0);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageInt(1);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(1);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(1);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageInt(2);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageInt(6);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(6);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(6);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageInt(7);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(7);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(7);           assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageInt(8);                 assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageFloat(8);            assert(false); } catch(IllegalArgumentException e) {}
+        try { query.averageDouble(8);           assert(false); } catch(IllegalArgumentException e) {}
         // Out of bounds for string
-        try { query.equal(9, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqual(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(9, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.beginsWith(9, "string");            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.endsWith(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.contains(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
 
 
         // Out of bounds for integer
-        try { query.equal(9, 123);                      assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqual(9, 123);                   assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(9, 123);                      assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(9, 123);                   assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(9, 123);                   assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(9, 123);            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(9, 123);                assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
@@ -221,8 +279,8 @@ public class JNIQueryTest {
 
 
         // Out of bounds for float
-        try { query.equal(9, 123F);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqual(9, 123F);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(9, 123F);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(9, 123F);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(9, 123F);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(9, 123F);           assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(9, 123F);               assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
@@ -231,8 +289,8 @@ public class JNIQueryTest {
 
 
         // Out of bounds for double
-        try { query.equal(9, 123D);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqual(9, 123D);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(9, 123D);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(9, 123D);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(9, 123D);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(9, 123D);           assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(9, 123D);               assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
@@ -241,6 +299,6 @@ public class JNIQueryTest {
 
 
         // Out of bounds for boolean
-        try { query.equal(9, true);                       assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-    }
+        try { query.equalTo(9, true);                       assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+  }
 }

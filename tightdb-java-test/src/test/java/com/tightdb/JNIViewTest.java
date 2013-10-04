@@ -21,28 +21,28 @@ public class JNIViewTest {
     Date date4 = new Date(2010, 01, 04);
 
     @BeforeMethod
-    void init() {
-        //Specify table		
-        t = new Table();
-        t.addColumn(ColumnType.ColumnTypeString, "Name");
-        t.addColumn(ColumnType.ColumnTypeBool,   "Study");
-        t.addColumn(ColumnType.ColumnTypeInt,    "Age");
-        t.addColumn(ColumnType.ColumnTypeDate,   "Birthday");
-
-        // Add unsupported column types
-        t.addColumn(ColumnType.ColumnTypeString, "Unsupported0");
-        t.addColumn(ColumnType.ColumnTypeFloat,  "Unsupported1");
-        t.addColumn(ColumnType.ColumnTypeDouble, "Unsupported2");
-        t.addColumn(ColumnType.ColumnTypeMixed,  "Unsupported3");
-        t.addColumn(ColumnType.ColumnTypeTable,  "Unsupported4");
-
-        //Add data
-        t.add("cc", true,  24, date1, "", 0.0f, 0.0, 0, null);
-        t.add("dd", false, 35, date2, "", 0.0f, 0.0, 0, null);
-        t.add("bb", true,  22, date3, "", 0.0f, 0.0, 0, null);
-        t.add("aa", false, 22, date4, "", 0.0f, 0.0, 0, null);
-    }
-
+	void init() {
+		//Specify table		
+	    t = new Table();
+	    t.addColumn(ColumnType.STRING, "Name");
+	    t.addColumn(ColumnType.BOOLEAN,   "Study");
+	    t.addColumn(ColumnType.INTEGER,    "Age");
+	    t.addColumn(ColumnType.DATE,   "Birthday");
+	    
+	    // Add unsupported column types
+	    t.addColumn(ColumnType.STRING, "Unsupported0");
+	    t.addColumn(ColumnType.FLOAT,  "Unsupported1");
+	    t.addColumn(ColumnType.DOUBLE, "Unsupported2");
+	    t.addColumn(ColumnType.MIXED,  "Unsupported3");
+	    t.addColumn(ColumnType.TABLE,  "Unsupported4");
+	    
+	    //Add data
+	    t.add("cc", true,  24, date1, "", 0.0f, 0.0, 0, null);
+	    t.add("dd", false, 35, date2, "", 0.0f, 0.0, 0, null);
+	    t.add("bb", true,  22, date3, "", 0.0f, 0.0, 0, null);
+	    t.add("aa", false, 22, date4, "", 0.0f, 0.0, 0, null);
+	}
+    
     @Test
     public void unimplementedMethodsShouldFail() {    
         //Get a view containing all rows in table since you can only sort views currently.
@@ -51,7 +51,7 @@ public class JNIViewTest {
         //Sort without specifying the order, should default to ascending.
         try { view.upperBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException e ) { }
         try { view.lowerBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException e ) { }
-        try { view.lookup("Some String"); fail("Not implemented yet"); } catch (RuntimeException e ) { }
+      //  try { view.lookup("Some String"); fail("Not implemented yet"); } catch (RuntimeException e ) { }
         try { view.count(0, "Some String"); fail("Not implemented yet"); } catch (RuntimeException e ) { }
 
     }
@@ -115,7 +115,7 @@ public class JNIViewTest {
     public void setBinaryTest() {    
 
         Table table = new Table();
-        table.addColumn(ColumnType.ColumnTypeBinary, "binary");
+        table.addColumn(ColumnType.BINARY, "binary");
 
         byte[] arr1 = new byte[] {1,2,3};
         table.add(arr1);
@@ -136,17 +136,17 @@ public class JNIViewTest {
 
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.ColumnTypeString, "name");
-        persons.addColumn(ColumnType.ColumnTypeString, "email");
-        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
+        persons.addColumn(ColumnType.STRING, "name");
+        persons.addColumn(ColumnType.STRING, "email");
+        persons.addColumn(ColumnType.TABLE, "addresses");
 
         TableSchema addresses = persons.getSubTableSchema(2);
-        addresses.addColumn(ColumnType.ColumnTypeString, "street");
-        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
-        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
+        addresses.addColumn(ColumnType.STRING, "street");
+        addresses.addColumn(ColumnType.INTEGER, "zipcode");
+        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
         TableSchema phone_numbers = addresses.getSubTableSchema(2);
-        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
+        phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {
@@ -203,7 +203,7 @@ public class JNIViewTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 
         table.add("Foo");
@@ -221,7 +221,7 @@ public class JNIViewTest {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
         table.updateFromSpec(tableSpec);
 
         table.add("A1");
@@ -244,7 +244,7 @@ public class JNIViewTest {
     @Test
     public void getNonExistingColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeInt, "int");      
+        t.addColumn(ColumnType.INTEGER, "int");      
         TableView view = t.where().findAll();      
         assertEquals(-1, view.getColumnIndex("non-existing column"));
     }
@@ -252,7 +252,7 @@ public class JNIViewTest {
     @Test
     public void getNullColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.ColumnTypeInt, "");
+        t.addColumn(ColumnType.INTEGER, "");
         TableView view = t.where().findAll();
         try { view.getColumnIndex(null); fail("Getting null column"); } catch(NullPointerException e) { }
     }
@@ -261,11 +261,11 @@ public class JNIViewTest {
     @Test
     public void viewToString() {
         Table t = new Table();
-
-        t.addColumn(ColumnType.ColumnTypeString, "stringCol");
-        t.addColumn(ColumnType.ColumnTypeInt, "intCol");
-        t.addColumn(ColumnType.ColumnTypeBool, "boolCol");
-
+        
+        t.addColumn(ColumnType.STRING, "stringCol");
+        t.addColumn(ColumnType.INTEGER, "intCol");
+        t.addColumn(ColumnType.BOOLEAN, "boolCol");
+        
         t.add("s1", 1, true);
         t.add("s2", 2, false);
 

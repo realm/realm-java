@@ -15,52 +15,28 @@ public class LongQueryColumn<Cursor, View, Query> extends
         super(types, tableOrView, query, index, name);
     }
 
-    public Query equal(long value) {
-        return query(getQuery().equal(columnIndex, value));
+    public Query equalTo(long value) {
+        return query(getQuery().equalTo(columnIndex, value));
     }
 
-    public Query eq(long value) {
-        return query(getQuery().eq(columnIndex, value));
-    }
-
-    public Query notEqual(long value) {
-        return query(getQuery().notEqual(columnIndex, value));
-    }
-
-    public Query neq(long value) {
-        return query(getQuery().neq(columnIndex, value));
+    public Query notEqualTo(long value) {
+        return query(getQuery().notEqualTo(columnIndex, value));
     }
 
     public Query greaterThan(long value) {
         return query(getQuery().greaterThan(columnIndex, value));
     }
 
-    public Query gt(long value) {
-        return query(getQuery().gt(columnIndex, value));
-    }
-
     public Query greaterThanOrEqual(long value) {
         return query(getQuery().greaterThanOrEqual(columnIndex, value));
-    }
-
-    public Query gte(long value) {
-        return query(getQuery().gte(columnIndex, value));
     }
 
     public Query lessThan(long value) {
         return query(getQuery().lessThan(columnIndex, value));
     }
 
-    public Query lt(long value) {
-        return query(getQuery().lt(columnIndex, value));
-    }
-
     public Query lessThanOrEqual(long value) {
         return query(getQuery().lessThanOrEqual(columnIndex, value));
-    }
-
-    public Query lte(long value) {
-        return query(getQuery().lte(columnIndex, value));
     }
 
     public Query between(long from, long to) {
@@ -68,31 +44,31 @@ public class LongQueryColumn<Cursor, View, Query> extends
     }
 
     public double average() {
-        return getQuery().average(columnIndex);
+        return getQuery().averageInt(columnIndex);
     }
-    public double average(long start, long end) {
-        return getQuery().average(columnIndex, start, end);
+    public double average(long start, long end, long limit) {
+        return getQuery().averageInt(columnIndex, start, end, limit);
     }
 
     public long sum() {
-        return getQuery().sum(columnIndex);
+        return getQuery().sumInt(columnIndex);
     }
-    public long sum(long start, long end) {
-        return getQuery().sum(columnIndex, start, end);
+    public long sum(long start, long end, long limit) {
+        return getQuery().sumInt(columnIndex, start, end, limit);
     }
 
     public long maximum() {
-        return getQuery().maximum(columnIndex);
+        return getQuery().maximumInt(columnIndex);
     }
-    public long maximum(long start, long end) {
-        return getQuery().maximum(columnIndex, start, end);
+    public long maximum(long start, long end, long limit) {
+        return getQuery().maximumInt(columnIndex, start, end, limit);
     }
 
     public long minimum() {
-        return getQuery().minimum(columnIndex);
+        return getQuery().minimumInt(columnIndex);
     }
-    public long minimum(long start, long end) {
-        return getQuery().minimum(columnIndex, start, end);
+    public long minimum(long start, long end, long limit) {
+        return getQuery().minimumInt(columnIndex, start, end, limit);
     }
 
 }

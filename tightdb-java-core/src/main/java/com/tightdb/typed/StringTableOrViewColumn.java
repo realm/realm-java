@@ -50,8 +50,8 @@ public class StringTableOrViewColumn<Cursor, View, Query> extends StringQueryCol
         return tableOrView.count(columnIndex, value);
     }
 
-    public long lookup(String value) {
+   /* public long lookup(String value) {
         return tableOrView.lookup(value);
-    }
+    }*/
 
 }

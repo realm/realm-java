@@ -12,8 +12,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__(
     return reinterpret_cast<jlong>(ptr);
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2Z(
-    JNIEnv* env, jobject, jstring jFileName, jboolean readOnly)
+JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2I(
+    JNIEnv* env, jobject, jstring jFileName, jint mode)
 {
     TR((env, "Group::createNative(file): "));
     const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
@@ -22,7 +22,18 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
 
     Group* pGroup = 0;
     try {
-        pGroup = new Group(fileNameCharPtr, readOnly != 0 ? Group::mode_ReadOnly : Group::mode_ReadWrite);
+        Group::OpenMode openmode;
+        switch (mode) {
+        case 0: openmode = Group::mode_ReadOnly; break;
+        case 1: openmode = Group::mode_ReadWrite; break;
+        case 2: openmode = Group::mode_ReadWriteNoCreate; break;
+        default:
+            TR((env, "Invalid mode: %d\n", mode));
+            ThrowException(env, IllegalArgument, "Group(): Invalid mode parameter.");
+            return 0;
+        }
+        pGroup = new Group(fileNameCharPtr, openmode);
+    
         TR((env, "%x\n", pGroup));
         return reinterpret_cast<jlong>(pGroup);
     }
@@ -200,6 +211,13 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
     CATCH_STD()
     return NULL;
 }
+
+JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeCommit(
+    JNIEnv*, jobject, jlong nativeGroupPtr)
+{
+    G(nativeGroupPtr)->commit();
+}
+
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_Group_nativeToJson(
     JNIEnv* env, jobject, jlong nativeGroupPtr)

@@ -8,7 +8,7 @@ ID        : java
 TITLE     : 'Java'
 STATUS:
   CODE    : Beta
-  DESCR   : The Java language binding is in preview quality   
+  DESCR   : The Java language binding is fully functional and is used in production code. Complete reference documentation for typed interface is coming soon. 
 DESCR     : >
             The goal of TightDB is to provide a high performance
             data storage for your applications. 
@@ -53,9 +53,9 @@ IMPORTPATH: ../../tightdb/doc/ref_cpp/data
 
 CATEGORIES:                       # list global class-id in order of appearence
 - Typed Table:                    # Category header name
-#  - typed_table                   # Global Class name. File: 'typed_table_ref.yaml'
-#  - typed_view
-#  - typed_query
+  - typed_table                   # Global Class name. File: 'typed_table_ref.yaml'
+  - typed_view
+  - typed_query
 - Dynamic Table:
   - dyn_table
   - dyn_view

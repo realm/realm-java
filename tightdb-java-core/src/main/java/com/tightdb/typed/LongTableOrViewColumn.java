@@ -22,22 +22,22 @@ public class LongTableOrViewColumn<Cursor, View, Query> extends
 
     @Override
     public long sum() {
-        return tableOrView.sum(columnIndex);
+        return tableOrView.sumInt(columnIndex);
     }
 
     @Override
     public long maximum() {
-        return tableOrView.maximum(columnIndex);
+        return tableOrView.maximumInt(columnIndex);
     }
 
     @Override
     public long minimum() {
-        return tableOrView.minimum(columnIndex);
+        return tableOrView.minimumInt(columnIndex);
     }
 
     @Override
     public double average() {
-        return tableOrView.average(columnIndex);
+        return tableOrView.averageInt(columnIndex);
     }
 
     /*
@@ -72,8 +72,8 @@ public class LongTableOrViewColumn<Cursor, View, Query> extends
         setAll(new Long(value));
     }
 
-    public void addLong(long value) {
-        tableOrView.addLong(columnIndex, value);
+    public void adjust(long value) {
+        tableOrView.adjust(columnIndex, value);
     }
 
     public Cursor findFirst(long value) {

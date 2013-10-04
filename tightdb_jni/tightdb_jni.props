@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <tightdb_path>..\..\..\tightdb\</tightdb_path>
+    <tightdb_path>..\..\tightdb\</tightdb_path>
     <outputdir>..\lib\</outputdir>
   </PropertyGroup>
   <PropertyGroup>

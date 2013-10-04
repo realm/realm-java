@@ -264,12 +264,14 @@ public class TableView implements TableOrView {
      * @param rowIndex 0 based index value of the cell row
      * @return value of the particular cell.
      */
+    /*
     @Override
     public ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex){
         return nativeGetBinary(nativePtr, columnIndex, rowIndex);
     }
 
     protected native ByteBuffer nativeGetBinary(long nativeViewPtr, long columnIndex, long rowIndex);
+*/
 
     @Override
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex){
@@ -414,6 +416,7 @@ public class TableView implements TableOrView {
      * @param rowIndex row index of the cell
      * @param data
      */
+    /*
     @Override
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data){
         if (immutable) throwImmutable();
@@ -421,6 +424,7 @@ public class TableView implements TableOrView {
     }
 
     protected native void nativeSetBinary(long nativeViewPtr, long columnIndex, long rowIndex, ByteBuffer data);
+    */
 
     @Override
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
@@ -452,7 +456,7 @@ public class TableView implements TableOrView {
      * @param value
      */
     @Override
-    public void addLong(long columnIndex, long value) {
+    public void adjust(long columnIndex, long value) {
         if (immutable) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }
@@ -607,11 +611,11 @@ public class TableView implements TableOrView {
      * @return the sum of the values in the column
      */
     @Override
-    public long sum(long columnIndex){
-        return nativeSum(nativePtr, columnIndex);
+    public long sumInt(long columnIndex){
+        return nativeSumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeSum(long nativeViewPtr, long columnIndex);
+    protected native long nativeSumInt(long nativeViewPtr, long columnIndex);
 
     /**
      * Returns the maximum value of the cells in a column.
@@ -623,11 +627,11 @@ public class TableView implements TableOrView {
      * @return the maximum value
      */
     @Override
-    public long maximum(long columnIndex){
-        return nativeMaximum(nativePtr, columnIndex);
+    public long maximumInt(long columnIndex){
+        return nativeMaximumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMaximum(long nativeViewPtr, long columnIndex);
+    protected native long nativeMaximumInt(long nativeViewPtr, long columnIndex);
 
     /**
      * Returns the minimum value of the cells in a column.
@@ -639,18 +643,18 @@ public class TableView implements TableOrView {
      * @return the minimum value
      */
     @Override
-    public long minimum(long columnIndex){
-        return nativeMinimum(nativePtr, columnIndex);
+    public long minimumInt(long columnIndex){
+        return nativeMinimumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMinimum(long nativeViewPtr, long columnIndex);
+    protected native long nativeMinimumInt(long nativeViewPtr, long columnIndex);
 
     @Override
-    public double average(long columnIndex) {
-        return nativeAverage(nativePtr, columnIndex);
+    public double averageInt(long columnIndex) {
+        return nativeAverageInt(nativePtr, columnIndex);
     }
 
-    protected native double nativeAverage(long nativePtr, long columnIndex);
+    protected native double nativeAverageInt(long nativePtr, long columnIndex);
 
 
     // Float aggregates
@@ -720,12 +724,12 @@ public class TableView implements TableOrView {
     public enum Order { ascending, descending };
 
     public void sort(long columnIndex, Order order) {
-        if (immutable) throwImmutable();
+        // Don't check for immutable. Sorting does not modify original table
         nativeSort(nativePtr, columnIndex, (order == Order.ascending));
     }
 
     public void sort(long columnIndex) {
-        if (immutable) throwImmutable();
+        // Don't check for immutable. Sorting does not modify original table
         nativeSort(nativePtr, columnIndex, true);
     }
 
@@ -767,11 +771,11 @@ public class TableView implements TableOrView {
     protected boolean immutable = false;
     protected TableView tableView;
 
-    @Override
+   /* @Override
     public long lookup(String value) {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
-    }
+    }*/
 
     @Override
     public long count(long columnIndex, String value) {

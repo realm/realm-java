@@ -1,5 +1,9 @@
 package com.tightdb.examples.performance;
 
+import com.tightdb.internal.Util;
+import com.tightdb.typed.TightDB;
+
+
 public class Performance {
     final public static int SMALL_TEST_VAL = 2;
     final public static int BYTE_TEST_VAL = 214;
@@ -97,12 +101,12 @@ public class Performance {
         int         testNo = 0;
 
         if (pause) Util.waitForEnter();
-        long memBefore = Util.getUsedMemory(); memBefore = Util.getUsedMemory();
+        long memBefore = ExampleHelper.getUsedMemory(); memBefore = ExampleHelper.getUsedMemory();
 
         // Build the test database
         test.buildTable(rows);
 
-        result.javaDBMemUsed = Math.max(Util.getUsedMemory() - memBefore, 1);
+        result.javaDBMemUsed = Math.max(ExampleHelper.getUsedMemory() - memBefore, 1);
         result.nativeDBMemUsed = test.usedNativeMemory();
 
         // Search small integer column

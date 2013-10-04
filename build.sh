@@ -566,7 +566,7 @@ EOF
     "dist-remarks")
 cat <<EOF
 To help you get started, a simple example is provided in
-"tightdb_java2/examples/intro-example". First you need to build the
+"tightdb_java/examples/intro-example". First you need to build the
 Java extension as described above. Do NOT run "./build clean", as that
 will prevent the example from running. For further details, please
 consult the README.md file in mentioned directory.

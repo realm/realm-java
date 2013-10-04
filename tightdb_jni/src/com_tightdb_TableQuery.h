@@ -241,6 +241,62 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJZ
 
 /*
  * Class:     com_tightdb_TableQuery
+ * Method:    nativeEqualDateTime
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqualDateTime
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeNotEqualDateTime
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqualDateTime
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeGreaterDateTime
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterDateTime
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeGreaterEqualDateTime
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqualDateTime
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeLessDateTime
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessDateTime
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeLessEqualDateTime
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqualDateTime
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeBetweenDateTime
+ * Signature: (JJJJ)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetweenDateTime
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableQuery
  * Method:    nativeEqual
  * Signature: (JJLjava/lang/String;Z)V
  */
@@ -297,34 +353,34 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll
 
 /*
  * Class:     com_tightdb_TableQuery
- * Method:    nativeSum
+ * Method:    nativeSumInt
  * Signature: (JJJJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSum
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSumInt
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
- * Method:    nativeMaximum
+ * Method:    nativeMaximumInt
  * Signature: (JJJJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximum
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximumInt
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
- * Method:    nativeMinimum
+ * Method:    nativeMinimumInt
  * Signature: (JJJJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimum
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimumInt
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery
- * Method:    nativeAverage
+ * Method:    nativeAverageInt
  * Signature: (JJJJJ)D
  */
-JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageInt
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*

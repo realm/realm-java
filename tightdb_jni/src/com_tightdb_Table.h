@@ -462,7 +462,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeHasIndex
  * Method:    nativeSum
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSum
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -470,7 +470,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSum
  * Method:    nativeMaximum
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximum
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -478,7 +478,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximum
  * Method:    nativeMinimum
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimum
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -486,7 +486,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimum
  * Method:    nativeAverage
  * Signature: (JJ)D
  */
-JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverage
+JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -715,10 +715,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeUpperBoundInt
 
 /*
  * Class:     com_tightdb_Table
- * Method:    nativeDistinct
+ * Method:    nativeGetDistinctView
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeDistinct
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetDistinctView
   (JNIEnv *, jobject, jlong, jlong);
 
 /*

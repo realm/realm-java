@@ -9,7 +9,7 @@ public class Util {
     public static final long REQUIRED_JNI_VERSION = 19;
 
     static {
-        TightDB.loadLibrary();
+        TightDB.loadLibrary(); 
     }
 
     public static long getNativeMemUsage() {

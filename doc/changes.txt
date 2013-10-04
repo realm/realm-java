@@ -1,3 +1,10 @@
+27-September-2013:
+==================
+! BREAKING CHANGE: Removed named column cursors from rows in typed interface. Now only traditional getters/setters are allowed.
+! BREAKING CHANGE: Because of the above subtables in Mixed columns are not supported, until a better implementation is made.
+! BREAKING CHANGE: Removed shortnames for query methods. (eq, neq, lt, lte, gt, gte).
+! BREAKING CHANGE: Renamed Qurey equal to equalTo, and notEqual to notEqualTo.
+
 24-September-2013:
 ==================
 + Added com.tightdb.Table.equals() and fixed com.tightdb.Group.equals()
@@ -10,6 +17,7 @@
 ==================
 + Added View.getColumnCount(), View.getColumnIndex(colIndex), View.getColumnName(colIndex), View.getColumnType(colIndex) to Dynamic interface
 - Removed Table.getColumnCount(), Table.getColumnIndex(colIndex), Table.getColumnName(colIndex), Table.getColumnType(colIndex) from Typed interface
+! BREAKING CHANGE: Added limit parameter to all query aggregates which already had a start, and stop parameter.
 
 
 19-September-2013:
@@ -17,11 +25,15 @@
 + Multiple tables of same type in typed interface can be added to same group, by specifying a custom name in the constructor.
 
 
+16-September-2013:
+=================
+! BREAKING CHANGE: Removed ByteBuffer as type for Binary. Added byte[] as only type for Binary in both dynamic and typed interface.
+
+
 10-September-2013:
 ==================
 - Deprecated ReadTransaction.close()
 + WriteTransaction.commit() now throws IllegalStateException
-
 
 09-September-2013:
 ==================
@@ -36,9 +48,34 @@
 =================
 ! BUGFIX: Fixed small leak in TableQuery.
 
+04-September-2013
+===============
++ Added TableQuery.equal for Date
++ Added TableQuery.eq for Date
++ Added TableQuery.notEqual for Date
++ Added TableQuery.neq for Date
++ Added TableQuery.greaterThan for Date
++ Added TableQuery.gt for Date
++ Added TableQuery.greaterThanOrEqual for Date
++ Added TableQuery.gte for Date
++ Added TableQuery.lessThan for Date
++ Added TableQuery.lt for Date
++ Added TableQuery.lessThanOrEqual for Date
++ Added TableQuery.lte for Date
++ Added TableQuery.between for Date
+
+02-September-2013
+===============
+! BREAKING CHANGE: ColumnType constants have been renamed, e.g ColumnTypeString is now called STRING etc.
+! BREAKING CHANGE: All insert() methods in Table class working on just 1 column have been hidden from the developer
+
 13-August-2013:
 ===============
-+ Table.add() now returns row index of the added row. 
++ Table.add() now returns row index of the added row.
+! BREAKING CHANGE: Group() now takes a new OpenMode parameter and not a boolean. 
+  It now supports multiple ways to open a group. (ReadOnly, ReadWrite, WriteNoCreate)
++ Added Group.commit()
++ Added Group.equals()
 
 04-August-2013:
 ===============

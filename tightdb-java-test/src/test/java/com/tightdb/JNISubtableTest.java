@@ -12,10 +12,10 @@ public class JNISubtableTest {
         Table table = group.getTable("emp");
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
 
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "num");
+        subspec.addColumn(ColumnType.INTEGER, "num");
 
         table.updateFromSpec(tableSpec);
 
@@ -41,12 +41,12 @@ public class JNISubtableTest {
 
         // Define table
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
+        tableSpec.addColumn(ColumnType.STRING, "name");
 
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
-        subspec.addColumn(ColumnType.ColumnTypeInt, "num");
+        subspec.addColumn(ColumnType.INTEGER, "num");
 
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "Int");
+        tableSpec.addColumn(ColumnType.INTEGER, "Int");
         table.updateFromSpec(tableSpec);
 
         // Insert values
@@ -64,17 +64,18 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.ColumnTypeString, "name");
-        persons.addColumn(ColumnType.ColumnTypeString, "email");
-        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
+        persons.addColumn(ColumnType.STRING, "name");
+        persons.addColumn(ColumnType.STRING, "email");
+        persons.addColumn(ColumnType.TABLE, "addresses");
+
 
         TableSchema addresses = persons.getSubTableSchema(2);
-        addresses.addColumn(ColumnType.ColumnTypeString, "street");
-        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
-        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
+        addresses.addColumn(ColumnType.STRING, "street");
+        addresses.addColumn(ColumnType.INTEGER, "zipcode");
+        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
         TableSchema phone_numbers = addresses.getSubTableSchema(2);
-        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
+        phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
@@ -96,12 +97,12 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.ColumnTypeTable, "sub");
+        persons.addColumn(ColumnType.TABLE, "sub");
 
         TableSchema addresses = persons.getSubTableSchema(0);
-        try { addresses.addColumn(ColumnType.ColumnTypeString, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
+        try { addresses.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
         
-        addresses.addColumn(ColumnType.ColumnTypeString, "I am 63 chracters.............................................."); 
+        addresses.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
 
     }
 
@@ -111,17 +112,18 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.ColumnTypeString, "name");
-        persons.addColumn(ColumnType.ColumnTypeString, "email");
-        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
+        persons.addColumn(ColumnType.STRING, "name");
+        persons.addColumn(ColumnType.STRING, "email");
+        persons.addColumn(ColumnType.TABLE, "addresses");
+
 
         TableSchema addresses = persons.getSubTableSchema(2);
-        addresses.addColumn(ColumnType.ColumnTypeString, "street");
-        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
-        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
+        addresses.addColumn(ColumnType.STRING, "street");
+        addresses.addColumn(ColumnType.INTEGER, "zipcode");
+        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
         TableSchema phone_numbers = addresses.getSubTableSchema(2);
-        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
+        phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
@@ -138,17 +140,18 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.ColumnTypeString, "name");
-        persons.addColumn(ColumnType.ColumnTypeString, "email");
-        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
+        persons.addColumn(ColumnType.STRING, "name");
+        persons.addColumn(ColumnType.STRING, "email");
+        persons.addColumn(ColumnType.TABLE, "addresses");
+
 
         TableSchema addresses = persons.getSubTableSchema(2);
-        addresses.addColumn(ColumnType.ColumnTypeString, "street");
-        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
-        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
+        addresses.addColumn(ColumnType.STRING, "street");
+        addresses.addColumn(ColumnType.INTEGER, "zipcode");
+        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
         TableSchema phone_numbers = addresses.getSubTableSchema(2);
-        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
+        phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
@@ -164,32 +167,33 @@ public class JNISubtableTest {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.ColumnTypeString, "name");
-        persons.addColumn(ColumnType.ColumnTypeString, "email");
-        persons.addColumn(ColumnType.ColumnTypeTable, "addresses");
+        persons.addColumn(ColumnType.STRING, "name");
+        persons.addColumn(ColumnType.STRING, "email");
+        persons.addColumn(ColumnType.TABLE, "addresses");
 
         TableSchema addresses = persons.getSubTableSchema(2);
-        addresses.addColumn(ColumnType.ColumnTypeString, "street");
-        addresses.addColumn(ColumnType.ColumnTypeInt, "zipcode");
-        addresses.addColumn(ColumnType.ColumnTypeTable, "phone_numbers");
+        addresses.addColumn(ColumnType.STRING, "street");
+        addresses.addColumn(ColumnType.INTEGER, "zipcode");
+        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
         TableSchema phone_numbers = addresses.getSubTableSchema(2);
-        phone_numbers.addColumn(ColumnType.ColumnTypeInt, "number");
+        phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
 
         try {
             // Should throw
-            persons.getSubTable(2,0).addColumn(ColumnType.ColumnTypeInt, "i");
+            persons.getSubTable(2,0).addColumn(ColumnType.INTEGER, "i");
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
-
+        
         try {
             // Should throw
             persons.getSubTable(2,0).getSubTableSchema(2);
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
+
 
     }
 

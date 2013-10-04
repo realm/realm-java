@@ -36,16 +36,16 @@ public class SubtableTest extends AbstractTest {
         assertEquals(4, phones2.size());
 
         TestPhoneTable phones3 = employee.getPhones();
-        assertEquals(2, phones3.type.equal("mobile").count());
-        assertEquals(2, phones3.type.equal("home").count());
+        assertEquals(2, phones3.type.equalTo("mobile").count());
+        assertEquals(2, phones3.type.equalTo("home").count());
 
-        assertEquals(1, phones3.number.equal("111").count());
-        assertEquals(1, phones3.number.equal("123").count());
-        assertEquals(0, phones3.number.equal("xxx").count());
-        
+        assertEquals(1, phones3.number.equalTo("111").count());
+        assertEquals(1, phones3.number.equalTo("123").count());
+        assertEquals(0, phones3.number.equalTo("xxx").count());
+
         // check the search operations
-        TestPhoneQuery phoneQuery = phones3.where().number.equal("111").number
-                .notEqual("wrong").type.equal("mobile").type.notEqual("wrong");
+        TestPhoneQuery phoneQuery = phones3.where().number.equalTo("111").number
+                .notEqualTo("wrong").type.equalTo("mobile").type.notEqualTo("wrong");
         assertEquals(1, phoneQuery.count());
 
         TestPhoneView all = phoneQuery.findAll();
@@ -54,7 +54,6 @@ public class SubtableTest extends AbstractTest {
 
         checkPhone(phoneQuery.findFirst(), "mobile", "111");
         checkPhone(phoneQuery.findLast(), "mobile", "111");
-//        checkPhone(phoneQuery.findNext(), "mobile", "111");
         assertEquals(null, phoneQuery.findNext());
 
         // make sure the other sub-tables and independent and were not changed
@@ -79,8 +78,8 @@ public class SubtableTest extends AbstractTest {
     private void checkPhone(TestPhoneRow phone, String type, String number) {
         assertEquals(type, phone.getType());
         assertEquals(number, phone.getNumber());
-        assertEquals(type, phone.type.get());
-        assertEquals(number, phone.number.get());
+        assertEquals(type, phone.getType());
+        assertEquals(number, phone.getNumber());
     }
 
     @Test

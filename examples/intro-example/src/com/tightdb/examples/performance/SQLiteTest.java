@@ -42,10 +42,10 @@ public class SQLiteTest extends PerformanceBase implements IPerformance {
         try {
             stmt = db.prepare("INSERT INTO t1 VALUES(?1, ?2, ?3, ?4, ?5);", true);
             for (int i = 0; i < rows; ++i) {
-                int n = Util.getRandNumber();
+                int n = ExampleHelper.getRandNumber();
                 stmt.reset();
                 stmt.bind(1, n);
-                stmt.bind(2, Util.getNumberString(n));
+                stmt.bind(2, ExampleHelper.getNumberString(n));
                 stmt.bind(3, Performance.BYTE_TEST_VAL);
                 stmt.bind(4, Performance.SMALL_TEST_VAL);
                 stmt.bind(5, Performance.LONG_TEST_VAL);

@@ -23,7 +23,7 @@ public class InsertVsAddPerformance {
         boolean hired3;
         String  name4;
         long     age4;
-        boolean hired5;   
+        boolean hired5;
     }
     
     
@@ -46,18 +46,18 @@ public class InsertVsAddPerformance {
         
         Table t = new Table();
         
-        t.addColumn(ColumnType.ColumnTypeString, "String");
-        t.addColumn(ColumnType.ColumnTypeInt, "Long");
-        t.addColumn(ColumnType.ColumnTypeBool, "Boolean");
-        t.addColumn(ColumnType.ColumnTypeString, "String");
-        t.addColumn(ColumnType.ColumnTypeInt, "Long");
-        t.addColumn(ColumnType.ColumnTypeBool, "Boolean");
-        t.addColumn(ColumnType.ColumnTypeString, "String");
-        t.addColumn(ColumnType.ColumnTypeInt, "Long");
-        t.addColumn(ColumnType.ColumnTypeBool, "Boolean");
-        t.addColumn(ColumnType.ColumnTypeString, "String");
-        t.addColumn(ColumnType.ColumnTypeInt, "Long");
-        t.addColumn(ColumnType.ColumnTypeBool, "Boolean");
+        t.addColumn(ColumnType.STRING, "String");
+        t.addColumn(ColumnType.INTEGER, "Long");
+        t.addColumn(ColumnType.BOOLEAN, "Boolean");
+        t.addColumn(ColumnType.STRING, "String");
+        t.addColumn(ColumnType.INTEGER, "Long");
+        t.addColumn(ColumnType.BOOLEAN, "Boolean");
+        t.addColumn(ColumnType.STRING, "String");
+        t.addColumn(ColumnType.INTEGER, "Long");
+        t.addColumn(ColumnType.BOOLEAN, "Boolean");
+        t.addColumn(ColumnType.STRING, "String");
+        t.addColumn(ColumnType.INTEGER, "Long");
+        t.addColumn(ColumnType.BOOLEAN, "Boolean");
         
         Long dynTimer = System.currentTimeMillis();
         System.out.println("Performance testing DYNAMIC interface on " + ROWS + " rows");
