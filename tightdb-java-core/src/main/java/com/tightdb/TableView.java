@@ -763,6 +763,12 @@ public class TableView implements TableOrView {
 
     protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
+    public TableQuery where() {
+        return new TableQuery(nativeWhere(nativePtr), immutable);
+    }
+
+    protected native long nativeWhere(long nativeViewPtr);
+
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
