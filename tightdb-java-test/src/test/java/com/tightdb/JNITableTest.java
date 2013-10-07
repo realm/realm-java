@@ -92,13 +92,13 @@ public class JNITableTest {
         try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(NullPointerException e) { }
     }
     
-    
+    /*
     @Test
     public void lookupTableTest() {
         Table t = new Table();
       
-        t.addColumn(ColumnType.ColumnTypeString, "col0");
-        t.addColumn(ColumnType.ColumnTypeInt, "col1");
+        t.addColumn(ColumnType.STRING, "col0");
+        t.addColumn(ColumnType.INTEGER, "col1");
         
         t.add("s", 1);
         t.add("s", 2);
@@ -113,8 +113,8 @@ public class JNITableTest {
         
         Table t2 = new Table();
         
-        t2.addColumn(ColumnType.ColumnTypeInt, "col0");
-        t2.addColumn(ColumnType.ColumnTypeInt, "col1");
+        t2.addColumn(ColumnType.INTEGER, "col0");
+        t2.addColumn(ColumnType.INTEGER, "col1");
         
         t2.add(1, 2);
         t2.add(3, 4);
@@ -122,7 +122,7 @@ public class JNITableTest {
         try {  t2.lookup("ss"); fail("Column not String"); } catch (RuntimeException r) { };
     }
     
-
+*/
     @Test
     public void getNonExistingColumn() {
         Table t = new Table();
@@ -260,8 +260,8 @@ public class JNITableTest {
     @Test
     public void columnNameTest() {
         Table t = new Table();
-        try { t.addColumn(ColumnType.ColumnTypeString, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
-        t.addColumn(ColumnType.ColumnTypeString, "I am 63 chracters.............................................."); 
+        try { t.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
+        t.addColumn(ColumnType.STRING, "I am 63 chracters.............................................."); 
     }
 
     @Test
