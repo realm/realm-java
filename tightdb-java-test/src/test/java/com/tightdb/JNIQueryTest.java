@@ -322,7 +322,7 @@ public class JNIQueryTest {
 
         TableView view2 = view.where().equalTo(0, "John").findAll();
 
-        System.out.println(view2);
+        assertEquals(2, view2.size());
     }
 
 }

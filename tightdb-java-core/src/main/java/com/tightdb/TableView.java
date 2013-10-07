@@ -763,6 +763,7 @@ public class TableView implements TableOrView {
 
     protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
+    @Override
     public TableQuery where() {
         return new TableQuery(nativeWhere(nativePtr), immutable);
     }

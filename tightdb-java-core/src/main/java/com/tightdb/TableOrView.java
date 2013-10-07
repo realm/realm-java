@@ -257,6 +257,8 @@ public interface TableOrView {
     String toString(long maxRows);
     
     String rowToString(long rowIndex);
+
+    TableQuery where();
     
 // Experimental:
 
