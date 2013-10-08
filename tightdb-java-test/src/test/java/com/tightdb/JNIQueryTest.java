@@ -323,6 +323,33 @@ public class JNIQueryTest {
         TableView view2 = view.where().equalTo(0, "John").findAll();
 
         assertEquals(2, view2.size());
+
+        TableView view3 = view2.where().equalTo(1, "Anderson").findAll();
+
+        assertEquals(1, view3.size());
+    }
+
+    @Test
+    public void queryOnViewWithalreadyQueriedTable() {
+        Table table = new Table();
+
+        // Specify the column types and names
+        table.addColumn(ColumnType.STRING, "firstName");
+        table.addColumn(ColumnType.STRING, "lastName");
+        table.addColumn(ColumnType.INTEGER, "salary");
+
+        // Add data to the table
+        table.add("John", "Lee", 10000);
+        table.add("Jane", "Lee", 15000);
+        table.add("John", "Anderson", 20000);
+        table.add("Erik", "Lee", 30000);
+        table.add("Henry", "Anderson", 10000);
+
+        TableView view = table.where().equalTo(0, "John").findAll();
+
+        TableView view2 = view.where().equalTo(1, "Anderson").findAll();
+
+        assertEquals(1, view2.size());
     }
 
 }
