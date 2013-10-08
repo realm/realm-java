@@ -258,9 +258,9 @@ public interface TableOrView {
     
     String rowToString(long rowIndex);
     
-// Experimental:
+    // Experimental:
 
-   // long lookup(String value);
+    long lookup(String value);
 
     long count(long columnIndex, String value);
 
