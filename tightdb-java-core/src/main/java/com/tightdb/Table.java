@@ -1158,7 +1158,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
-    /*  // Requires that the first column is a string column with unique values. Also index required?
+    // Requires that the first column is a string column with unique values. Also index required?
 
     @Override
     public long lookup(String value) {
@@ -1167,7 +1167,7 @@ public class Table implements TableOrView, TableSchema {
         return nativeLookup(nativePtr, value);
     }
 
-    protected native long nativeLookup(long nativeTablePtr, String value); */
+    protected native long nativeLookup(long nativeTablePtr, String value);
 
 
     // Experimental feature

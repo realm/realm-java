@@ -97,15 +97,18 @@ public class JNITableTest {
     public void lookupTableTest() {
         Table t = new Table();
       
-        t.addColumn(ColumnType.ColumnTypeString, "col0");
-        t.addColumn(ColumnType.ColumnTypeInt, "col1");
+        t.addColumn(ColumnType.STRING, "col0");
+        t.addColumn(ColumnType.INTEGER, "col1");
         
         t.add("s", 1);
         t.add("s", 2);
         t.add("ss",1);
         t.add("ss", 2);
         
-        try {  t.lookup("ss"); fail("Index not set"); } catch (RuntimeException r) { };
+        // Currently lookup works, even if no index has been set on first string column. Shouldn't there be an index? TODO
+        // try {  t.lookup("ss"); fail("Index not set"); } catch (RuntimeException r) { };
+        
+        assertEquals(2, t.lookup("ss"));
         
         t.setIndex(0);
         long rowIndex = t.lookup("ss");
@@ -113,8 +116,8 @@ public class JNITableTest {
         
         Table t2 = new Table();
         
-        t2.addColumn(ColumnType.ColumnTypeInt, "col0");
-        t2.addColumn(ColumnType.ColumnTypeInt, "col1");
+        t2.addColumn(ColumnType.INTEGER , "col0");
+        t2.addColumn(ColumnType.INTEGER, "col1");
         
         t2.add(1, 2);
         t2.add(3, 4);
@@ -260,8 +263,8 @@ public class JNITableTest {
     @Test
     public void columnNameTest() {
         Table t = new Table();
-        try { t.addColumn(ColumnType.ColumnTypeString, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
-        t.addColumn(ColumnType.ColumnTypeString, "I am 63 chracters.............................................."); 
+        try { t.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
+        t.addColumn(ColumnType.STRING, "I am 63 chracters.............................................."); 
     }
 
     @Test

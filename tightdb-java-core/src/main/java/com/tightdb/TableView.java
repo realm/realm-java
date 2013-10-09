@@ -771,11 +771,11 @@ public class TableView implements TableOrView {
     protected boolean immutable = false;
     protected TableView tableView;
 
-   /* @Override
+    @Override
     public long lookup(String value) {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
-    }*/
+    }
 
     @Override
     public long count(long columnIndex, String value) {
