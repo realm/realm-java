@@ -9,8 +9,35 @@ public class SharedGroup {
         TightDB.loadLibrary();
     }
 
+    enum Durability {
+    	FULL(0),
+    	MEM_ONLY(1),
+    	ASYNC(2);
+        private final int value;
+        private Durability(int value)
+        {
+            this.value = value;
+        }
+        public int getValue() {
+        	return value;
+        }
+    }
+    
     public SharedGroup(String databaseFile) {
-        this.nativePtr = createNative(databaseFile, false);
+        this.nativePtr = createNative(databaseFile, Durability.FULL.getValue(), true, false);
+        checkNativePtr();
+    }
+    public SharedGroup(String databaseFile, Durability durability) {
+        this.nativePtr = createNative(databaseFile, durability.getValue(), true, false);
+        checkNativePtr();
+    }
+    public SharedGroup(String databaseFile, Durability durability, boolean no_create) {
+        this.nativePtr = createNative(databaseFile, durability.getValue(), no_create, false);
+        checkNativePtr();
+    }
+
+    SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
+        this.nativePtr = createNative(databaseFile, durability.getValue(), no_create, enableReplication);
         checkNativePtr();
     }
 
@@ -54,11 +81,6 @@ public class SharedGroup {
                     "Can't close() SharedGroup during an active transaction");
 
         doClose();
-    }
-
-    SharedGroup(String databaseFile, boolean enableReplication) {
-        this.nativePtr = createNative(databaseFile, enableReplication);
-        checkNativePtr();
     }
 
     void commit() {
@@ -106,7 +128,9 @@ public class SharedGroup {
     private native void nativeRollback(long nativePtr);
 
     private native long createNative(String databaseFile,
-            boolean enableReplication);
+    		int durabilityValue, 
+            boolean no_create,
+    		boolean enableReplication);
 
     private void checkNativePtr() {
         if (this.nativePtr == 0)

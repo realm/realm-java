@@ -69,7 +69,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeRollback
  * Signature: (Ljava/lang/String;Z)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative
-  (JNIEnv *, jobject, jstring, jboolean);
+  (JNIEnv *, jobject, jstring, jint, jboolean, jboolean);
 
 /*
  * Class:     com_tightdb_SharedGroup

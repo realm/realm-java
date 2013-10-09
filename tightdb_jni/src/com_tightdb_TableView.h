@@ -100,8 +100,6 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetString
  * Method:    nativeGetBinary
  * Signature: (JJJ)Ljava/nio/ByteBuffer;
  */
-JNIEXPORT jobject JNICALL Java_com_tightdb_TableView_nativeGetBinary
-  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
@@ -204,8 +202,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetString
  * Method:    nativeSetBinary
  * Signature: (JJJLjava/nio/ByteBuffer;)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetBinary
-  (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
  * Class:     com_tightdb_TableView

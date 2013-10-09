@@ -118,9 +118,7 @@ public class Group {
             throw new IllegalStateException("Illegal to call methods on a closed Group.");    		
     }
     
-    
-    protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
-    
+  
     public long size() {
     	verifyGroupIsValid();
 		return nativeSize(nativePtr);
@@ -267,6 +265,8 @@ public class Group {
         return nativeEquals(nativePtr, otherGroup.nativePtr);
     }
 
+    protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
+    
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
