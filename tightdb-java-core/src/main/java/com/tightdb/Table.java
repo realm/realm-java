@@ -1067,7 +1067,7 @@ public class Table implements TableOrView, TableSchema {
     // Searching methods.
     //
 
-    
+    @Override
     public TableQuery where() {
         return new TableQuery(nativeWhere(nativePtr), immutable);
     }
