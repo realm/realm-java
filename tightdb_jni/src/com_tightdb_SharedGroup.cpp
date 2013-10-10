@@ -37,8 +37,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
                 level = SharedGroup::durability_Full;
             else if (durability == 1)
                 level = SharedGroup::durability_MemOnly;
-#ifndef _WIN32
             else if (durability == 2)
+#ifndef _WIN32
+                level = SharedGroup::durability_Full;   // For Windows, use Full instead of Async
+#else
                 level = SharedGroup::durability_Async;
 #endif
             else {

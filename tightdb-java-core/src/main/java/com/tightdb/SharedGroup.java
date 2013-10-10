@@ -12,7 +12,7 @@ public class SharedGroup {
         TightDB.loadLibrary();
     }
 
-    enum Durability {
+    public enum Durability {
     	FULL(0),
     	MEM_ONLY(1),
     	ASYNC(2);
@@ -27,23 +27,23 @@ public class SharedGroup {
     }
     
     public SharedGroup(String databaseFile) {
-        this.nativePtr = createNative(databaseFile, Durability.FULL.getValue(), true, false);
+        this.nativePtr = createNative(databaseFile, Durability.FULL.getValue(), false, false);
         checkNativePtr();
     }
     public SharedGroup(String databaseFile, Durability durability) {
-        this.nativePtr = createNative(databaseFile, durability.getValue(), true, false);
+        this.nativePtr = createNative(databaseFile, durability.getValue(), false, false);
         checkNativePtr();
     }
-    public SharedGroup(String databaseFile, Durability durability, boolean no_create) {
-        this.nativePtr = createNative(databaseFile, durability.getValue(), no_create, false);
+    public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
+        this.nativePtr = createNative(databaseFile, durability.getValue(), fileMustExist, false);
         checkNativePtr();
     }
-
+/*
     SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
         this.nativePtr = createNative(databaseFile, durability.getValue(), no_create, enableReplication);
         checkNativePtr();
     }
-
+*/
     public WriteTransaction beginWrite() {
         if (activeTransaction)
             throw new IllegalStateException(
