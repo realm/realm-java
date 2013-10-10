@@ -410,7 +410,7 @@ public class DynQueryExamples {
         long index = query.find();
         do {
             table.setBoolean(2, index, true);
-        } while((index = query.find(index)) != -1);
+        } while((index = query.find(index+1)) != -1);
         System.out.println(table);
         // @@EndShow@@
         // @@EndExample@@
