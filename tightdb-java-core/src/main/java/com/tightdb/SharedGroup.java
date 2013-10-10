@@ -4,6 +4,9 @@ import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 public class SharedGroup {
+	
+    private long nativePtr;
+    private boolean activeTransaction;
 
     static {
         TightDB.loadLibrary();
@@ -112,10 +115,13 @@ public class SharedGroup {
         return nativeHasChanged(nativePtr);
     }
 
-    protected native boolean nativeHasChanged(long nativePtr);
-
-    private long nativePtr;
-    private boolean activeTransaction;
+    public void reserve(long bytes) {
+    	nativeReserve(nativePtr, bytes);
+    }
+    
+    private native void nativeReserve(long nativePtr, long bytes);
+    
+    private native boolean nativeHasChanged(long nativePtr);
 
     private native long nativeBeginRead(long nativePtr);
 

@@ -57,12 +57,19 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
     return 0;
 }
 
-// TODO: reserve()
-
 JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeClose(
     JNIEnv*, jobject, jlong native_ptr)
 {
     delete SG(native_ptr);
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeReserve(
+   JNIEnv *env, jobject, jlong native_ptr, jlong bytes)
+{
+    try {
+         SG(native_ptr)->reserve(bytes);
+    }
+    CATCH_STD()
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_nativeBeginRead(
