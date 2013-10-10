@@ -463,6 +463,14 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToString
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeRowToString
   (JNIEnv *, jobject, jlong, jlong);
 
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeWhere
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeWhere
+  (JNIEnv *, jobject, jlong);
+
 #ifdef __cplusplus
 }
 #endif

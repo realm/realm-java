@@ -371,6 +371,17 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_view_sort
         DESCR  :
+  - g_dyn_view_where:
+#  - g_dyn_table_where_const:
+      NAMES    : where
+      SUMMARY  : *g_dyn_table_where_summary
+      DESCR    : This method initiates a query in the view.
+      RETURN:
+        TYPES  : Query
+        DESCR  : *g_dyn_table_where_return_descr
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_dyn_view_where
 
 - Aggregates:
   METHODS:
