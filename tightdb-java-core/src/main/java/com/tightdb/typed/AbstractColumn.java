@@ -74,13 +74,12 @@ public abstract class AbstractColumn<Type, Cursor, View, Query> {
     }
 
     protected TableQuery getQuery() {
-        Table table = tableOrNull();
-        return query != null ? query : table.where();
+        return query != null ? query : tableOrView.where();
     }
 
     protected Query query(TableQuery tableQuery) {
         try {
-            return types.getQueryClass().getConstructor(Table.class, TableQuery.class).newInstance(tableOrNull(), tableQuery);
+            return types.getQueryClass().getConstructor(Table.class, TableQuery.class).newInstance(tableOrView, tableQuery);
         } catch (Exception e) {
             throw new RuntimeException("Cannot create a query!", e);
         }
