@@ -97,14 +97,6 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetString
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeGetBinary
- * Signature: (JJJ)Ljava/nio/ByteBuffer;
- */
-JNIEXPORT jobject JNICALL Java_com_tightdb_TableView_nativeGetBinary
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     com_tightdb_TableView
  * Method:    nativeGetByteArray
  * Signature: (JJJ)[B
  */
@@ -198,14 +190,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetDateTimeValue
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetString
   (JNIEnv *, jobject, jlong, jlong, jlong, jstring);
-
-/*
- * Class:     com_tightdb_TableView
- * Method:    nativeSetBinary
- * Signature: (JJJLjava/nio/ByteBuffer;)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetBinary
-  (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
  * Class:     com_tightdb_TableView
@@ -478,6 +462,14 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToString
  */
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeRowToString
   (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeWhere
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeWhere
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }
