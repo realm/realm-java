@@ -1,6 +1,7 @@
 package com.tightdb;
    
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -89,6 +90,39 @@ public class JNITableTest {
         assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
         
         try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(NullPointerException e) { }
+    }
+    
+    
+    @Test
+    public void lookupTableTest() {
+        Table t = new Table();
+      
+        t.addColumn(ColumnType.STRING, "col0");
+        t.addColumn(ColumnType.INTEGER, "col1");
+        
+        t.add("s", 1);
+        t.add("s", 2);
+        t.add("ss",1);
+        t.add("ss", 2);
+        
+        // Currently lookup works, even if no index has been set on first string column. Shouldn't there be an index? TODO
+        // try {  t.lookup("ss"); fail("Index not set"); } catch (RuntimeException r) { };
+        
+        assertEquals(2, t.lookup("ss"));
+        
+        t.setIndex(0);
+        long rowIndex = t.lookup("ss");
+        assertEquals(1, t.getLong(1, rowIndex));
+        
+        Table t2 = new Table();
+        
+        t2.addColumn(ColumnType.INTEGER , "col0");
+        t2.addColumn(ColumnType.INTEGER, "col1");
+        
+        t2.add(1, 2);
+        t2.add(3, 4);
+        
+        try {  t2.lookup("ss"); fail("Column not String"); } catch (RuntimeException r) { };
     }
     
 
@@ -225,7 +259,13 @@ public class JNITableTest {
         assertEquals(false, table1.equals(null)); // Null object
         assertEquals(false, table1.equals("String")); // Other object
     }
-    
+
+    @Test
+    public void columnNameTest() {
+        Table t = new Table();
+        try { t.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
+        t.addColumn(ColumnType.STRING, "I am 63 chracters.............................................."); 
+    }
 
     @Test
     public void tableNumbers() {
