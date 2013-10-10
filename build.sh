@@ -8,6 +8,46 @@ MODE="$1"
 
 DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
+interactive_install_java()
+{
+    echo "Java is not installed on your computer."
+    echo "Do you wish to install Java (y/n)?"
+    read answer
+    if [ "$answer" = "y" ]; then
+        if [ "$OS" = "Darwin" ]; then
+            echo "Downloading and installing PHP v5.4"
+            curl -s http://php-osx.liip.ch/install.sh | bash -s 5.4
+            PATH=/usr/local/php5/bin:$PATH
+        elif [ "$OS" = "Linux" ]; then
+            echo "No interactive installation yet - sorry."
+            exit 0
+        fi
+    else
+        echo "SKIPPING: Cannot proceed without PHP installed."
+        exit 0
+    fi
+}
+
+interactive_install_required_jar()
+{
+    local jar_name
+    jar_name="$1"
+    echo "jar file $jar_name is not installed."
+    echo "Do you wish to install $jar_name (y/n)?"
+    read answer
+    if [ "$answer" = "y" ]; then
+        if [ "$OS" = "Darwin" ]; then
+            sudo -p "[SUDO] password: " install -d /usr/local/share/java
+            sudo -p "[SUDO] password: " install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
+        else
+            echo "No interactive installation yet - sorry."
+            exit 0
+        fi
+    else
+        echo "SKIPPING: cannot proceed without $jar_name"
+        exit 0
+    fi
+}
 
 word_list_append()
 {
@@ -171,6 +211,18 @@ case "$MODE" in
             java_inc="include"
             java_bin="bin"
         fi
+
+        # install java when in interactive mode (Darwin only)
+        if [ -n "$INTERACTIVE" ]; then
+            if [ "$OS" = "Darwin" ]; then
+                while ! java -version > /dev/null 2>&1 ; do
+                    echo "It seems that Java is not installed - attempting to install Java in a pop-up window."
+                    echo "Press any key when Java is installed."
+                    read answer
+                done
+            fi
+        fi
+
         if [ -z "$JAVA_HOME" -o \! -e "$JAVA_HOME/$java_bin/javac" ]; then
             if ! javac_cmd="$(which javac 2>/dev/null)"; then
                 echo "ERROR: No JAVA_HOME and no Java compiler in PATH" 1>&2
@@ -245,8 +297,12 @@ case "$MODE" in
                 fi
             done
             if [ -z "$found" ]; then
-                echo "ERROR: Could not find prerequisite JAR '$x'" 1>&2
-                exit 1
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "ERROR: Could not find prerequisite JAR '$x'" 1>&2
+                    exit 1
+                else
+                    interactive_install_required_jar $x
+                fi
             fi
             word_list_append "required_jars" "$path" || exit 1
         done
