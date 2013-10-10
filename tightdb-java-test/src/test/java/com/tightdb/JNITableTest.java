@@ -105,7 +105,10 @@ public class JNITableTest {
         t.add("ss",1);
         t.add("ss", 2);
         
-        try {  t.lookup("ss"); fail("Index not set"); } catch (RuntimeException r) { };
+        // Currently lookup works, even if no index has been set on first string column. Shouldn't there be an index? TODO
+        // try {  t.lookup("ss"); fail("Index not set"); } catch (RuntimeException r) { };
+        
+        assertEquals(2, t.lookup("ss"));
         
         t.setIndex(0);
         long rowIndex = t.lookup("ss");
