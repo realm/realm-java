@@ -12,9 +12,8 @@ using namespace tightdb;
 
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
-
 JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
-    JNIEnv* env, jobject, jstring file_name, jboolean enable_replication)
+    JNIEnv* env, jobject, jstring file_name, jint durability, jboolean no_create, jboolean enable_replication)
 {
     const char* file_name_ptr = env->GetStringUTFChars(file_name, 0);
     if (!file_name_ptr)
@@ -33,9 +32,27 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
 #endif
         }
         else {
-            db = new SharedGroup(file_name_ptr);
+            SharedGroup::DurabilityLevel level;
+            if (durability == 0)
+                level = SharedGroup::durability_Full;
+            else if (durability == 1)
+                level = SharedGroup::durability_MemOnly;
+            else if (durability == 2)
+#ifndef _WIN32
+                level = SharedGroup::durability_Full;   // For Windows, use Full instead of Async
+#else
+                level = SharedGroup::durability_Async;
+#endif
+            else {
+                ThrowException(env, UnsupportedOperation, "Unsupported durability.");
+                return 0;
+            }
+            db = new SharedGroup(file_name_ptr, no_create!=0, level);
         }
         return reinterpret_cast<jlong>(db);
+    }
+    catch (SharedGroup::PresumablyStaleLockFile& e) {
+        ThrowException(env, FileAccessError, e.what(), " Presumably a stall .lock file is present.");
     }
     CATCH_FILE(file_name_ptr)
     CATCH_STD()
@@ -46,6 +63,15 @@ JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeClose(
     JNIEnv*, jobject, jlong native_ptr)
 {
     delete SG(native_ptr);
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeReserve(
+   JNIEnv *env, jobject, jlong native_ptr, jlong bytes)
+{
+    try {
+         SG(native_ptr)->reserve(bytes);
+    }
+    CATCH_STD()
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_nativeBeginRead(
