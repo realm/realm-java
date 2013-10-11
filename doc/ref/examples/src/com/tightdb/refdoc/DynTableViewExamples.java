@@ -464,11 +464,8 @@ public class DynTableViewExamples {
         // Query the table to get a view of all users with a score above 500
         TableView view = table.where().greaterThan(1, 500).findAll();
         
-        // Get a query from the view
-        TableQuery query = view.where();
-        
         // Use the query object to query the view and get a new view with the results
-        TableView results = query.equalTo(2, false).findAll();
+        TableView results = view.where().equalTo(2, false).findAll();
 
         // Check that resulting view has 5 rows
         Assert(results.size() == 3);
