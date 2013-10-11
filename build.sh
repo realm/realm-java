@@ -8,26 +8,6 @@ MODE="$1"
 
 DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
-interactive_install_java()
-{
-    echo "Java is not installed on your computer."
-    echo "Do you wish to install Java (y/n)?"
-    read answer
-    if [ "$answer" = "y" ]; then
-        if [ "$OS" = "Darwin" ]; then
-            echo "Downloading and installing PHP v5.4"
-            curl -s http://php-osx.liip.ch/install.sh | bash -s 5.4
-            PATH=/usr/local/php5/bin:$PATH
-        elif [ "$OS" = "Linux" ]; then
-            echo "No interactive installation yet - sorry."
-            exit 0
-        fi
-    else
-        echo "SKIPPING: Cannot proceed without PHP installed."
-        exit 0
-    fi
-}
-
 interactive_install_required_jar()
 {
     local jar_name
@@ -37,8 +17,8 @@ interactive_install_required_jar()
     read answer
     if [ "$answer" = "y" ]; then
         if [ "$OS" = "Darwin" ]; then
-            sudo -p "[SUDO] password: " install -d /usr/local/share/java
-            sudo -p "[SUDO] password: " install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
+            sudo install -d /usr/local/share/java
+            sudo install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
         else
             echo "No interactive installation yet - sorry."
             exit 0
@@ -367,6 +347,16 @@ EOF
         echo "Done configuring"
         exit 0
         ;;
+
+    "install-report")
+        jni_install_dir="$(get_config_param "jni-install-dir")"
+        jar_install_dir="$(get_config_param "jar-install-dir")"
+        echo "Installed JNI files:"
+        find $jni_install_dir -name '*tight*jni*'
+        echo "Installed JAR files:"
+        find $jar_install_dir -name '*tightdb*jar'
+        ;;
+
 
     "clean")
         auto_configure || exit 1
