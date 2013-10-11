@@ -19,12 +19,15 @@ public class JNITransactions {
         File f = new File(filename);
         if (f.exists())
             f.delete();
+        f = new File(filename + ".lock");
+        if (f.exists())
+            f.delete();
     }
 
     @BeforeMethod
     public void init() {
         deleteFile(testFile);
-        db = new SharedGroup(testFile);
+        db = new SharedGroup(testFile, SharedGroup.Durability.ASYNC);
     }
 
     @AfterMethod
@@ -36,10 +39,8 @@ public class JNITransactions {
     protected void writeOneTransaction(long rows) {
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.STRING, "name");
-        tableSpec.addColumn(ColumnType.INTEGER, "number");
-        tbl.updateFromSpec(tableSpec);
+        tbl.addColumn(ColumnType.STRING, "name");
+        tbl.addColumn(ColumnType.INTEGER, "number");
 
 
         for (long row=0; row < rows; row++)
@@ -67,7 +68,6 @@ public class JNITransactions {
 
     @Test
     public void mustWriteAndReadEmpty() {
-
         writeOneTransaction(0);
         checkRead(0);
         clear();
@@ -75,12 +75,10 @@ public class JNITransactions {
 
     @Test
     public void mustWriteCommit() {
-
         writeOneTransaction(10);
         checkRead(10);
         clear();
     }
-
 
 
     @Test(expectedExceptions=IllegalStateException.class)
@@ -91,6 +89,7 @@ public class JNITransactions {
             Table tbl = rt.getTable("EmployeeTable");
             rt.endRead();
             tbl.getColumnCount(); //Should throw exception, the table is invalid when transaction has been closed
+            assert(false);
         } finally {
             rt.endRead();
             clear();
@@ -106,6 +105,7 @@ public class JNITransactions {
             Table tbl = rt.getTable("EmployeeTable");
             rt.endRead();
             tbl.addColumn(ColumnType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
+            assert(false);
         } finally {
             rt.endRead();
             clear();
@@ -115,12 +115,12 @@ public class JNITransactions {
 
     @Test(expectedExceptions=IllegalStateException.class)
     public void shouldThrowExceptionWhenWritingInReadTrans() {
-
         ReadTransaction rt = db.beginRead();
 
         try {
             Table tbl = rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
             rt.endRead();
+            assert(false);
         } finally {
             rt.endRead();
             clear();
@@ -132,14 +132,14 @@ public class JNITransactions {
     public void onlyOneCommit() { 
         WriteTransaction trans = db.beginWrite();
 
-        try{
-
+        try {
             Table tbl = trans.getTable("EmployeeTable");
             tbl.addColumn(ColumnType.STRING, "name");
-
             trans.commit();
-
-            try {   trans.commit(); assert(false); } catch (IllegalStateException e){}
+            try { 
+            	trans.commit(); // should throw 
+            	assert(false); 
+            } catch (IllegalStateException e){}
 
         } catch (Throwable t){
             trans.rollback();
@@ -148,9 +148,7 @@ public class JNITransactions {
 
     @Test
     public void mustRollback() {
-
         writeOneTransaction(1);
-
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
 
@@ -197,6 +195,7 @@ public class JNITransactions {
         clear();
     }
 
+    // TODO:
     // Test: exception at all mutable methods in TableBase, TableView,
     // Test: above in custom Typed Tables
     // TableQuery.... in ReadTransactions
@@ -213,7 +212,7 @@ public class JNITransactions {
         try { table.add(0, false);                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRow();                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRows(1);                assert(false);} catch (IllegalStateException e) {}
-        try { table.adjust(0,0);        assert(false);} catch (IllegalStateException e) {}
+        try { table.adjust(0,0);        			assert(false);} catch (IllegalStateException e) {}
         try { table.clear();                        assert(false);} catch (IllegalStateException e) {}
         try { table.clearSubTable(0,0);             assert(false);} catch (IllegalStateException e) {}
         try { table.optimize();                     assert(false);} catch (IllegalStateException e) {}
@@ -233,7 +232,7 @@ public class JNITransactions {
         try { q.remove(0,0);                        assert(false);} catch (IllegalStateException e) {}
 
         TableView v = q.findAll();
-        try { v.adjust(0, 0);           assert(false);} catch (IllegalStateException e) {}
+        try { v.adjust(0, 0);           			assert(false);} catch (IllegalStateException e) {}
         try { v.clear();                            assert(false);} catch (IllegalStateException e) {}
         try { v.clearSubTable(0, 0);                assert(false);} catch (IllegalStateException e) {}
         try { v.remove(0);                          assert(false);} catch (IllegalStateException e) {}
