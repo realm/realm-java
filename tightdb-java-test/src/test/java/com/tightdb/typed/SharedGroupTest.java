@@ -1,6 +1,7 @@
 package com.tightdb.typed;
 
 import java.io.File;
+import java.rmi.UnexpectedException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
@@ -88,26 +89,34 @@ public class SharedGroupTest {
         assert(false);
     }
 
-    @Test(dataProvider = "durabilityProvider")
-    public void noCreateParameter(Durability durability) {
+    @Test(enabled=false, dataProvider = "durabilityProvider")
+    public void fileMustExistParameter(Durability durability) {
     	// test not applicable for MEM_ONLY
     	if (durability == Durability.MEM_ONLY)
     		return;
-    	
-    	deleteFile(testFile);
-        
-    	// First create file
-        db = new SharedGroup(testFile, durability, false);
-        db.close();
 
-        try {
-        	// Then set no_create=true, and it should fail
-            db = new SharedGroup(testFile, durability, true);
-        } catch (IllegalStateException e){
-            clear();
-        	return;
-        }
-        assert(false);
+		String mustExistFile = "mustexistcheck.tightdb";
+
+		// Check that SharedGroup asserts when there is no file
+		deleteFile(mustExistFile);
+		try {
+		    db = new SharedGroup(mustExistFile, durability, true);
+		    assert(false);
+		} catch (com.tightdb.IOException e){
+			// expected
+		} catch (Exception e) {
+			assert(false);
+		}
+		// Don't expect anything to close due to failure.
+
+		// Create file and see that it can be opened now
+		db = new SharedGroup(mustExistFile, durability, false);
+		db.close();
+		// Then set fileMustExist=true, and it should work
+		db = new SharedGroup(mustExistFile, durability, true);
+		db.close();
+
+		deleteFile(mustExistFile);
     }
 
     @Test(dataProvider = "durabilityProvider")

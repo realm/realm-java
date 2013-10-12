@@ -389,6 +389,9 @@ public class TypedTableExamples {
 
         // Get query object from table
         PeopleQuery query = people.where();
+
+        // See Query class for possible operations
+        // with the Query object
         // @@EndShow@@
         // @@EndExample@@
     }
