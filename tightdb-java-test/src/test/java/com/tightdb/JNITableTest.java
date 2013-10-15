@@ -131,7 +131,7 @@ public class JNITableTest {
     
     
     @Test
-    public void getValueFromNonExistingColumn() {
+    public void getValuesFromNonExistingColumn() {
         Table t = TestHelper.getTableWithAllColumnTypes();
         t.addEmptyRows(10);
         
