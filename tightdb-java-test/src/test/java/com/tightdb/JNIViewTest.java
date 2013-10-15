@@ -169,8 +169,18 @@ public class JNIViewTest {
         
         personsView.clearSubTable(2, 0);
         assertEquals(0, personsView.getSubTableSize(2, 0));
+    }
+    
+    @Test
+    public void sortOnNonexistingColumn() {    
+        TableView view = t.where().findAll();
 
+        
+        try { view.sort(-1); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.sort(-100); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.sort(100); fail("Column is 100, column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
 
+        
     }
 
 

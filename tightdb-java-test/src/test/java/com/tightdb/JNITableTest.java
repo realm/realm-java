@@ -126,6 +126,20 @@ public class JNITableTest {
     }
     
 */
+    
+    
+    @Test
+    public void getValueFromNonExistingColumn() {
+        Table t = new Table();
+        t.addColumn(ColumnType.INTEGER, "int");
+        t.add(200);
+        
+        try { t.getLong(-1, 0); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getLong(-10, 0); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getLong(100, 0); fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        
+    }
+    
     @Test
     public void getNonExistingColumn() {
         Table t = new Table();
