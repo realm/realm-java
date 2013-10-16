@@ -200,9 +200,9 @@ public class JNITableTest {
         assertEquals(3, sortedView2.getLong(0, 0));
         
         
-        try { t.getSortedView(-1, Order.descending); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSortedView(-100, Order.descending); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSortedView(100, Order.descending); fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(-1, Order.descending);    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(-100, Order.descending);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(100, Order.descending);   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
     }
     
