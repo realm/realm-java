@@ -240,6 +240,10 @@ inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offse
 template <class T>
 inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
+    if (columnIndex < 0){
+        ThrowException(env, IndexOutOfBounds, "columnIndex is less than 0.");
+        return false;
+    }
     bool colErr = tightdb::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
         TR_ERR((env, "columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()));
