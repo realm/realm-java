@@ -1044,6 +1044,20 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetDistinctView(
     return 0;
 }
 
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSortedView(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jboolean ascending)
+{
+    Table* pTable = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
+        return 0;
+    try {
+        TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
+        return reinterpret_cast<jlong>(pTableView);
+    } CATCH_STD()
+    return 0;
+}
+
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeOptimize(
     JNIEnv* env, jobject, jlong nativeTablePtr)
 {

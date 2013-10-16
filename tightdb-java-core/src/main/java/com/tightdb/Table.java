@@ -475,27 +475,28 @@ public class Table implements TableOrView, TableSchema {
     }
     
     /**
-     * Returns a view sorted by the specified column by the default order
-     * @param columnIndex
-     * @return
-     */
-    public TableView getSortedView(long columnIndex){
-        TableView view = this.where().findAll();
-        view.sort(columnIndex);
-        return view;
-    }
-    
-    /**
      * Returns a view sorted by the specified column and order
      * @param columnIndex
      * @param order
      * @return
      */
     public TableView getSortedView(long columnIndex, Order order){
-        TableView view = this.where().findAll();
-        view.sort(columnIndex, order);
-        return view;
+        return new TableView(nativeGetSortedView(nativePtr, columnIndex, (order == Order.ascending)), immutable);
     }
+    
+    /**
+     * Returns a view sorted by the specified column by the default order
+     * @param columnIndex
+     * @return
+     */
+    public TableView getSortedView(long columnIndex){
+        return new TableView(nativeGetSortedView(nativePtr, columnIndex, true), immutable);
+
+    }
+    
+    protected native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
+
+   
 
     /**
      * Replaces the row at the specified position with the specified row.
