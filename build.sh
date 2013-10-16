@@ -230,7 +230,7 @@ case "$MODE" in
         echo "Examining Java command '$java_cmd'"
         min_ver_major="1"
         min_ver_minor="6"
-        version="$($java_cmd -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\).*"/\1/')"
+        version="$($java_cmd -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\)".*/\1/')"
         major="$(printf "%s\n" "$version" | cut -d. -f1)" || exit 1
         minor="$(printf "%s\n" "$version" | cut -d. -f2)" || exit 1
         if ! printf "%s\n" "$major" | grep -q '^[0-9][0-9]*$' || ! printf "%s\n" "$minor" | grep -q '^[0-9][0-9]*$'; then
