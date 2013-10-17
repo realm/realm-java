@@ -206,27 +206,31 @@ case "$MODE" in
             fi
         fi
 
-        if [ -z "$JAVA_HOME" -o \! -e "$JAVA_HOME/$java_bin/javac" ]; then
+        java_home="$JAVA_HOME"
+        if [ -z "$java_home" -o \! -e "$java_home/$java_bin/javac" ]; then
+            if [ "$java_home" ]; then
+                echo "WARNING: JAVA_HOME set but ignored because '$JAVA_HOME/$java_bin/javac' does not exist"
+            fi
             if ! javac_cmd="$(which javac 2>/dev/null)"; then
                 echo "ERROR: No JAVA_HOME and no Java compiler in PATH" 1>&2
                 exit 1
             fi
             javac_cmd="$(readlink_f "$javac_cmd")" || exit 1
-            JAVA_HOME="$(remove_suffix "$javac_cmd" "/$java_bin/javac")" || exit 1
-            if [ "$JAVA_HOME" = "$javac_cmd" ]; then
+            java_home="$(remove_suffix "$javac_cmd" "/$java_bin/javac")" || exit 1
+            if [ "$java_home" = "$javac_cmd" ]; then
                 echo "ERROR: Could not determine JAVA_HOME from path of 'javac' command" 1>&2
                 exit 1
             fi
         fi
         for x in "$java_inc/jni.h" "$java_bin/java" "$java_bin/javac"; do
-            if ! [ -f "$JAVA_HOME/$x" ]; then
-                echo "ERROR: No '$x' in '$JAVA_HOME'" 1>&2
+            if ! [ -f "$java_home/$x" ]; then
+                echo "ERROR: No '$x' in '$java_home'" 1>&2
                 exit 1
             fi
         done
-        java_cmd="$JAVA_HOME/$java_bin/java"
-        javac_cmd="$JAVA_HOME/$java_bin/javac"
-        include_dir="$JAVA_HOME/$java_inc"
+        java_cmd="$java_home/$java_bin/java"
+        javac_cmd="$java_home/$java_bin/javac"
+        include_dir="$java_home/$java_inc"
         echo "Examining Java command '$java_cmd'"
         min_ver_major="1"
         min_ver_minor="6"
