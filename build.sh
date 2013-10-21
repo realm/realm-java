@@ -200,13 +200,13 @@ case "$MODE" in
             if [ "$OS" = "Darwin" ]; then
                 if ! java -version > /dev/null 2>&1 ; do
                     echo "It seems that Java is not installed."
-                    echo "Do you wish to skip Java bindings (y/n)?"
+                    echo "Do you wish to skip installation of the TightDB Java bindings (y/n)?"
                     read answer
                     if [ "$answer" = "y" ]; then
                         echo "Please consider to abort Java installation pop-up."
                         exit 0
                     else
-                        echo "Press any key when Java is installed."
+                        echo "Press any key to continue when Java is installed."
                         read answer
                     fi
                 fi
