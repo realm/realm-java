@@ -198,11 +198,15 @@ case "$MODE" in
         # install java when in interactive mode (Darwin only)
         if [ -n "$INTERACTIVE" ]; then
             if [ "$OS" = "Darwin" ]; then
-                while ! java -version > /dev/null 2>&1 ; do
-                    echo "It seems that Java is not installed - attempting to install Java in a pop-up window."
-                    echo "Press any key when Java is installed."
+                if ! java -version > /dev/null 2>&1 ; do
+                    echo "It seems that Java is not installed."
+                    echo "Do you wish to skip Java bindings (y/n)?"
                     read answer
-                done
+                    if [ "$answer" = "y" ]; then
+                        echo "Please consider to abort Java installation pop-up."
+                        exit 0
+                    fi
+                fi
             fi
         fi
 
