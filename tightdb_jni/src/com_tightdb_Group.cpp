@@ -199,7 +199,14 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Group_nativeWriteToByteBuffer(
     BinaryData buffer;
     try {
         buffer = G(nativeGroupPtr)->write_to_mem();
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#endif
         if (buffer.size() <= MAX_JLONG) {
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
             return env->NewDirectByteBuffer(const_cast<char*>(buffer.data()), static_cast<jlong>(buffer.size()));
             // Data is now owned by the Java DirectByteBuffer - so we must not free it.
         }

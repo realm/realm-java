@@ -232,8 +232,8 @@ public class JNITableInsertTest {
 
         for (long c=0;c<table.getColumnCount();c++){
 
-            if(table.getColumnType(c).equals(ColumnType.INTEGER) == false){ // Do not check if it is a Long column
-                try{ 
+            if (table.getColumnType(c).equals(ColumnType.INTEGER) == false){ // Do not check if it is a Long column
+                try { 
                     table.adjust(c, 10); 
                     assertTrue(false); //We should never get here, as an exception is thrown above
                 } 

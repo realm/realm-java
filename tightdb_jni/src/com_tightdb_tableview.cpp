@@ -744,3 +744,18 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeRowToString(
     } CATCH_STD()
     return NULL;
 }
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeWhere
+  (JNIEnv *env, jobject, jlong nativeViewPtr)
+{
+    if (!VIEW_VALID(env, nativeViewPtr))
+        return 0;
+    try {
+        TableView* tv = TV(nativeViewPtr);
+        Query query = tv->get_parent().where().tableview(*tv);
+        Query* queryPtr = new Query(query);
+        return reinterpret_cast<jlong>(queryPtr);
+    } CATCH_STD()
+    return 0;
+}
+

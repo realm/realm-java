@@ -8,26 +8,6 @@ MODE="$1"
 
 DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
-interactive_install_java()
-{
-    echo "Java is not installed on your computer."
-    echo "Do you wish to install Java (y/n)?"
-    read answer
-    if [ "$answer" = "y" ]; then
-        if [ "$OS" = "Darwin" ]; then
-            echo "Downloading and installing PHP v5.4"
-            curl -s http://php-osx.liip.ch/install.sh | bash -s 5.4
-            PATH=/usr/local/php5/bin:$PATH
-        elif [ "$OS" = "Linux" ]; then
-            echo "No interactive installation yet - sorry."
-            exit 0
-        fi
-    else
-        echo "SKIPPING: Cannot proceed without PHP installed."
-        exit 0
-    fi
-}
-
 interactive_install_required_jar()
 {
     local jar_name
@@ -37,8 +17,8 @@ interactive_install_required_jar()
     read answer
     if [ "$answer" = "y" ]; then
         if [ "$OS" = "Darwin" ]; then
-            sudo -p "[SUDO] password: " install -d /usr/local/share/java
-            sudo -p "[SUDO] password: " install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
+            sudo install -d /usr/local/share/java
+            sudo install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
         else
             echo "No interactive installation yet - sorry."
             exit 0
@@ -185,7 +165,10 @@ EOF
         return 1
     fi
     if ! line="$(grep "^$name:" "config")"; then
-        echo "ERROR: Failed to read configuration parameter '$name'" 1>&2
+        cat 1>&2 <<EOF
+ERROR: Failed to read configuration parameter '$name'.
+Maybe you need to rerun 'sh build.sh config [PREFIX]'.
+EOF
         return 1
     fi
     value="$(printf "%s\n" "$line" | cut -d: -f2-)" || return 1
@@ -223,31 +206,35 @@ case "$MODE" in
             fi
         fi
 
-        if [ -z "$JAVA_HOME" -o \! -e "$JAVA_HOME/$java_bin/javac" ]; then
+        java_home="$JAVA_HOME"
+        if [ -z "$java_home" -o \! -e "$java_home/$java_bin/javac" ]; then
+            if [ "$java_home" ]; then
+                echo "WARNING: JAVA_HOME set but ignored because '$JAVA_HOME/$java_bin/javac' does not exist"
+            fi
             if ! javac_cmd="$(which javac 2>/dev/null)"; then
                 echo "ERROR: No JAVA_HOME and no Java compiler in PATH" 1>&2
                 exit 1
             fi
             javac_cmd="$(readlink_f "$javac_cmd")" || exit 1
-            JAVA_HOME="$(remove_suffix "$javac_cmd" "/$java_bin/javac")" || exit 1
-            if [ "$JAVA_HOME" = "$javac_cmd" ]; then
+            java_home="$(remove_suffix "$javac_cmd" "/$java_bin/javac")" || exit 1
+            if [ "$java_home" = "$javac_cmd" ]; then
                 echo "ERROR: Could not determine JAVA_HOME from path of 'javac' command" 1>&2
                 exit 1
             fi
         fi
         for x in "$java_inc/jni.h" "$java_bin/java" "$java_bin/javac"; do
-            if ! [ -f "$JAVA_HOME/$x" ]; then
-                echo "ERROR: No '$x' in '$JAVA_HOME'" 1>&2
+            if ! [ -f "$java_home/$x" ]; then
+                echo "ERROR: No '$x' in '$java_home'" 1>&2
                 exit 1
             fi
         done
-        java_cmd="$JAVA_HOME/$java_bin/java"
-        javac_cmd="$JAVA_HOME/$java_bin/javac"
-        include_dir="$JAVA_HOME/$java_inc"
+        java_cmd="$java_home/$java_bin/java"
+        javac_cmd="$java_home/$java_bin/javac"
+        include_dir="$java_home/$java_inc"
         echo "Examining Java command '$java_cmd'"
         min_ver_major="1"
         min_ver_minor="6"
-        version="$($java_cmd -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\).*"/\1/')"
+        version="$($java_cmd -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\)".*/\1/')"
         major="$(printf "%s\n" "$version" | cut -d. -f1)" || exit 1
         minor="$(printf "%s\n" "$version" | cut -d. -f2)" || exit 1
         if ! printf "%s\n" "$major" | grep -q '^[0-9][0-9]*$' || ! printf "%s\n" "$minor" | grep -q '^[0-9][0-9]*$'; then
@@ -367,6 +354,16 @@ EOF
         echo "Done configuring"
         exit 0
         ;;
+
+    "install-report")
+        jni_install_dir="$(get_config_param "jni-install-dir")"
+        jar_install_dir="$(get_config_param "jar-install-dir")"
+        echo "Installed JNI files:"
+        find $jni_install_dir -name '*tight*jni*'
+        echo "Installed JAR files:"
+        find $jar_install_dir -name '*tightdb*jar'
+        ;;
+
 
     "clean")
         auto_configure || exit 1

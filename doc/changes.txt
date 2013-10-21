@@ -1,3 +1,19 @@
+!!!!!!!!!!!!!!!NOTE - NOTE!!!!!!!!!!!!!!!!!!!!!
+Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp and com.tightdb.internal.Util.java
+      when the JNI interface is changed.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+09-October-2013:
+===============
++ Added support for Async durability in SharedGroup.
++ Added ShareGroup.reserve(bytes)
+
+08-October-2013:
+================
++ Added View.where()
++ Added queries on views in the typed interface
+
 27-September-2013:
 ==================
 ! BREAKING CHANGE: Removed named column cursors from rows in typed interface. Now only traditional getters/setters are allowed.

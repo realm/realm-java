@@ -38,6 +38,7 @@ public class DynTableViewExamples {
         // Searching methods:
         findFirstExamples();
         findAllExample();
+        whereExample();
 
         // Aggregates methods:
         sumExample();
@@ -439,6 +440,35 @@ public class DynTableViewExamples {
 
         // Check that resulting view has 3 rows
         Assert(viewResult.size() == 3);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+
+    public static void whereExample(){
+        // @@Example: ex_java_dyn_view_where @@
+        // @@Show@@
+        // Create table with 3 columns and add data
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.addColumn(ColumnType.BOOLEAN, "completed");
+        table.add("user1", 420, false);
+        table.add("user2", 770, false);
+        table.add("user3", 327, false);
+        table.add("user4", 770, false);
+        table.add("user5", 564, true);
+        table.add("user6", 875, false);
+        table.add("user7", 420, true);
+        table.add("user8", 770, true);
+
+        // Query the table to get a view of all users with a score above 500
+        TableView view = table.where().greaterThan(1, 500).findAll();
+        
+        // Use the query object to query the view and get a new view with the results
+        TableView results = view.where().equalTo(2, false).findAll();
+
+        // Check that resulting view has 5 rows
+        Assert(results.size() == 3);
         // @@EndShow@@
         // @@EndExample@@
     }
