@@ -205,6 +205,9 @@ case "$MODE" in
                     if [ "$answer" = "y" ]; then
                         echo "Please consider to abort Java installation pop-up."
                         exit 0
+                    else
+                        echo "Press any key when Java is installed."
+                        read answer
                     fi
                 fi
             fi
