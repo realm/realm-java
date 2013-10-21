@@ -620,6 +620,13 @@ EOF
         exit 0
         ;;
 
+    "dist-deb")
+        codename=$(lsb_release -s -c)
+        (cd debian && sed -e "s/@CODENAME@/$codename/g" changelog.in > changelog) || exit 1
+        dpkg-buildpackage -rfakeroot -us -uc || exit 1
+        exit 0
+        ;;
+
     "dist-remarks")
 cat <<EOF
 To help you get started, a simple example is provided in
