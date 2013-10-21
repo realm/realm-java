@@ -1,5 +1,5 @@
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
-Name: tightdb-php
+Name: tightdb-java
 Maintainer: Kenneth Geisshirt <kg@tightdb.com>
 Source: http://www.tightdb.com/
 
