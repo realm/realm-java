@@ -15,7 +15,7 @@ interactive_install_required_jar()
     echo "jar file $jar_name is not installed."
     echo "Do you wish to install $jar_name (y/n)?"
     read answer
-    if [ "$answer" = "y" ]; then
+    if [ $(echo "$answer" | grep -c ^[Yy]) = 1 ]; then
         if [ "$OS" = "Darwin" ]; then
             sudo install -d /usr/local/share/java
             sudo install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
@@ -202,7 +202,7 @@ case "$MODE" in
                     echo "It seems that Java is not installed."
                     echo "Do you wish to skip installation of the TightDB Java bindings (y/n)?"
                     read answer
-                    if [ "$answer" = "y" ]; then
+                    if [ $(echo "$answer" | grep -c ^[yY]) = 1 ]; then
                         echo "Please consider to abort Java installation pop-up."
                         exit 0
                     else
@@ -296,9 +296,11 @@ case "$MODE" in
                     exit 1
                 else
                     interactive_install_required_jar $x
+                    word_list_append "required_jars" /usr/local/share/java/$x
                 fi
+            else
+                word_list_append "required_jars" "$path" || exit 1
             fi
-            word_list_append "required_jars" "$path" || exit 1
         done
 
         # For testing we need testng.jar. It, in turn, requires
