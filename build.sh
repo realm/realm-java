@@ -198,7 +198,7 @@ case "$MODE" in
         # install java when in interactive mode (Darwin only)
         if [ -n "$INTERACTIVE" ]; then
             if [ "$OS" = "Darwin" ]; then
-                if ! java -version > /dev/null 2>&1 ; do
+                if ! java -version > /dev/null 2>&1 ; then
                     echo "It seems that Java is not installed."
                     echo "Do you wish to skip installation of the TightDB Java bindings (y/n)?"
                     read answer
