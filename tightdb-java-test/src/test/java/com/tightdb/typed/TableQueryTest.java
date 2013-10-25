@@ -318,6 +318,29 @@ public class TableQueryTest extends AbstractTest {
     }
 
     @Test
+    public void queryFindFrom() {
+
+        TestQueryTableTable table = new TestQueryTableTable();
+        table.add(10, 10f, 10d, "s10");
+        table.add(20, 20f, 20d, "s20");
+        table.add(20, 20f, 20d, "s20");
+        table.add(100, 100f, 100d, "s100");
+        table.add(1000, 1000f, 1000d, "s1000");
+
+        TestQueryTableRow res1 = table.where().longNum.equalTo(20).findFirst();
+        assertEquals(1, res1.getPosition() );
+
+        TestQueryTableRow res2 = table.where().longNum.equalTo(20).findFrom(res1.getPosition()+1);
+        assertEquals(2, res2.getPosition() );
+
+        TestQueryTableRow res3 = table.where().doubleNum.equalTo(1000d).findFrom(res2.getPosition()+1);
+        assertEquals(4, res3.getPosition() );
+
+        TestQueryTableRow res4 = table.where().doubleNum.equalTo(1000d).findFrom(res3.getPosition()+1);
+        assertEquals(null, res4);
+    }
+
+    @Test
     public void queryAggregates() {
 
         TestQueryTableTable table = new TestQueryTableTable();
@@ -340,7 +363,6 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(20, res4 );
 
         double res5 = table.where().longNum.greaterThan(10).longNum.average();
-        System.out.println("res: " + res5);
         assertEquals(285d, res5 );
     }
 

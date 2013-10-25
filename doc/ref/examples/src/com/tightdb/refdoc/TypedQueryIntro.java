@@ -58,7 +58,27 @@ public class TypedQueryIntro {
 
         // Search for an existing employee
         EmployeeRow res2 = employees.where().firstName.equalTo("Erik").findFirst();
-        Assert(res1.getSalary() == 30000);
+        Assert(res2.getSalary() == 30000);
+    //@@EndExample@@
+    }
+
+    public static void findFromExample() {
+    // @@Example: ex_java_typed_query_find_from @@
+        // Create a new table
+        EmployeeTable employees = new EmployeeTable();
+        employees.add("John", "Lee", 10000);
+        employees.add("Jane", "Lee", 15000);
+        employees.add("John", "Anderson", 20000);
+        employees.add("Erik", "Lee", 30000);
+        employees.add("Henry", "Anderson", 10000);
+
+        // Search for a employee named Jane
+        EmployeeRow jane = employees.where().firstName.equalTo("Jane").findFirst();
+
+        // Find first employee after Jane with a salary below 15000
+        long jane_pos = jane.getPosition();
+        EmployeeRow res2 = employees.where().salary.lessThan(15000).findFrom(jane_pos+1);
+        Assert(res2.getfirstName() == "Henry");
     //@@EndExample@@
     }
 
