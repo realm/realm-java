@@ -10,6 +10,7 @@ import com.tightdb.test.TestEmployeeView;
 import com.tightdb.test.TestQueryTableQuery;
 import com.tightdb.test.TestQueryTableTable;
 import com.tightdb.test.TestQueryTableView;
+import com.tightdb.test.TestQueryTableRow;
 
 import java.util.Date;
 
@@ -297,6 +298,50 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(1150d, view.floatNum.sum() ); // Sum on float column returns a double
         assertEquals(1150d, view.doubleNum.sum() );
         
+    }
+
+    @Test
+    public void queryFindFirst() {
+
+        TestQueryTableTable table = new TestQueryTableTable();
+        table.add(10, 10f, 10d, "s10");
+        table.add(20, 20f, 20d, "s20");
+        table.add(20, 20f, 20d, "s20");
+        table.add(100, 100f, 100d, "s100");
+        table.add(1000, 1000f, 1000d, "s1000");
+
+        TestQueryTableRow res = table.where().longNum.equalTo(9).findFirst();
+        assertEquals(null, res ); // no match found
+
+        TestQueryTableRow res2 = table.where().longNum.equalTo(100).findFirst();
+        assertEquals("s100", res2.getStringVal() );
+    }
+
+    @Test
+    public void queryAggregates() {
+
+        TestQueryTableTable table = new TestQueryTableTable();
+        table.add(10, 10f, 10d, "s10");
+        table.add(20, 20f, 20d, "s20");
+        table.add(20, 20f, 20d, "s20");
+        table.add(100, 100f, 100d, "s100");
+        table.add(1000, 1000f, 1000d, "s1000");
+
+        long res1 = table.where().longNum.greaterThan(10).count();
+        assertEquals(4, res1 );
+
+        long res2 = table.where().longNum.greaterThan(10).longNum.sum();
+        assertEquals(1140, res2 );
+
+        long res3 = table.where().longNum.greaterThan(10).longNum.maximum();
+        assertEquals(1000, res3 );
+
+        long res4 = table.where().longNum.greaterThan(10).longNum.minimum();
+        assertEquals(20, res4 );
+
+        double res5 = table.where().longNum.greaterThan(10).longNum.average();
+        System.out.println("res: " + res5);
+        assertEquals(285d, res5 );
     }
 
 }
