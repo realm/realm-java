@@ -421,7 +421,7 @@ EOF
 
         # Build libtightdb-jni.so
         # FIXME: On Mac with Oracle JDK 7, 'darwin' must be substituded for 'linux'.
-        TIGHTDB_ENABLE_FAT_BINARIES="1" make -C "tightdb_jni" EXTRA_CFLAGS="-I$include_dir -I$include_dir/linux" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+        TIGHTDB_ENABLE_FAT_BINARIES="1" make -C "tightdb_jni" EXTRA_CFLAGS="-I$include_dir -I$include_dir/linux -I$include_dir/darwin" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
 
         mkdir -p "lib" || exit 1
 
