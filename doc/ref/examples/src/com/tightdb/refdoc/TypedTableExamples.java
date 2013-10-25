@@ -314,8 +314,13 @@ public class TypedTableExamples {
         people.add("John", 40, true);
         people.add("Susan", 50, false); 
 
-        // Use get method to access row
-        Assert(people.get(0).getHired());
+        // Use get method to access rows
+        PeopleRow susan = people.get(1);
+        Assert(susan.GetName() == "Susan");
+
+        // Can be chained to access column values directly
+        Assert(people.get(0).getHired() == true);
+        Assert(people.get(1).getHired() == false);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -387,8 +392,10 @@ public class TypedTableExamples {
         people.add("Susan", 50, false); 
         people.add("Greg", 26, true); 
 
-        // Get query object from table
-        PeopleQuery query = people.where();
+        // Do a query on table
+        PeopleRow susan = people.where().name.equalTo("Susan").findFirst();
+        Assert(susan != null);
+        Assert(susan.getAge() == 50)
 
         // See Query class for possible operations
         // with the Query object

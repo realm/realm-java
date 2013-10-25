@@ -250,7 +250,10 @@ CATEGORIES :
   - g_typed_table_operator_brackets:
       NAMES    : get
       SUMMARY  : *g_typed_table_operator_brackets_summary
-      DESCR    : *g_typed_table_remove_row_descr
+      DESCR    : *g_typed_table_operator_brackets_descr
+      RETURN:
+        TYPES  : Row
+        DESCR  : Row found at position
       PARAMS:
       - NAME   : rowIndex
         TYPES  : long
@@ -296,14 +299,14 @@ CATEGORIES :
 - Searching:
   METHODS:
 # 
-  - g_dyn_table_where:
+  - g_typed_table_where:
 #  - g_dyn_table_where_const:
       NAMES    : where
-      SUMMARY  : *g_dyn_table_where_summary
-      DESCR    : *g_dyn_table_where_descr
+      SUMMARY  : Query table
+      DESCR    : This method initiates a query. See {@link class_typed_query}.
       RETURN:
         TYPES  : Query
-        DESCR  : *g_dyn_table_where_return_descr
+        DESCR  : The query object
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_typed_table_where
