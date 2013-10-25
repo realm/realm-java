@@ -54,7 +54,7 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
     case type_Int:
         {
             jlong longValue = GetMixedIntValue(env, jMixedValue);
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(longValue));
+            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(static_cast<int64_t>(longValue)));
             return;
         }
     case type_Float:
