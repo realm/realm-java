@@ -15,7 +15,7 @@ interactive_install_required_jar()
     echo "jar file $jar_name is not installed."
     echo "Do you wish to install $jar_name (y/n)?"
     read answer
-    if [ "$answer" = "y" ]; then
+    if [ $(echo "$answer" | grep -c ^[Yy]) = 1 ]; then
         if [ "$OS" = "Darwin" ]; then
             sudo install -d /usr/local/share/java
             sudo install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
@@ -186,27 +186,52 @@ case "$MODE" in
             install_prefix="auto"
         fi
 
+        # install java when in interactive mode (Darwin only)
+        if [ -n "$INTERACTIVE" ]; then
+            if [ "$OS" = "Darwin" ]; then
+                if ! java -version > /dev/null 2>&1 ; then
+                    echo "It seems that Java is not installed."
+                    echo "Do you wish to skip installation of the TightDB Java bindings (y/n)?"
+                    read answer
+                    if [ $(echo "$answer" | grep -c ^[yY]) = 1 ]; then
+                        echo "Please consider to abort Java installation pop-up."
+                        exit 0
+                    else
+                        echo "Press any key to continue when Java is installed."
+                        read answer
+                    fi
+                fi
+            fi
+        fi
+
         # Find 'jni.h', 'java' and 'javac'
         if [ "$OS" = "Darwin" ]; then
-            java_inc="Headers"
-            java_bin="Commands"
+            if [ -e /usr/libexec/java_home ]; then
+                jh="$(/usr/libexec/java_home)"  # FIXME: should we have -t JNI?
+                if [ -e "$jh/Headers" ]; then   # Apple Java
+                    java_inc="Headers"
+                    java_bin="Commands"
+                else                            # Oracle Java
+                    java_inc="include"
+                    java_bin="bin"
+                fi
+            else
+                java_inc="Headers"
+                java_bin="Commands"
+            fi
         else
             java_inc="include"
             java_bin="bin"
         fi
 
-        # install java when in interactive mode (Darwin only)
-        if [ -n "$INTERACTIVE" ]; then
-            if [ "$OS" = "Darwin" ]; then
-                while ! java -version > /dev/null 2>&1 ; do
-                    echo "It seems that Java is not installed - attempting to install Java in a pop-up window."
-                    echo "Press any key when Java is installed."
-                    read answer
-                done
-            fi
-        fi
 
-        java_home="$JAVA_HOME"
+        if [ -z "$JAVA_HOME" ]; then
+            if [ "$OS" = "Darwin" ]; then
+                java_home="$(/usr/libexec/java_home)"
+            fi
+        else
+            java_home="$JAVA_HOME"
+        fi
         if [ -z "$java_home" -o \! -e "$java_home/$java_bin/javac" ]; then
             if [ "$java_home" ]; then
                 echo "WARNING: JAVA_HOME set but ignored because '$JAVA_HOME/$java_bin/javac' does not exist"
@@ -289,9 +314,11 @@ case "$MODE" in
                     exit 1
                 else
                     interactive_install_required_jar $x
+                    word_list_append "required_jars" /usr/local/share/java/$x
                 fi
+            else
+                word_list_append "required_jars" "$path" || exit 1
             fi
-            word_list_append "required_jars" "$path" || exit 1
         done
 
         # For testing we need testng.jar. It, in turn, requires
@@ -394,7 +421,7 @@ EOF
 
         # Build libtightdb-jni.so
         # FIXME: On Mac with Oracle JDK 7, 'darwin' must be substituded for 'linux'.
-        TIGHTDB_ENABLE_FAT_BINARIES="1" make -C "tightdb_jni" EXTRA_CFLAGS="-I$include_dir -I$include_dir/linux" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+        TIGHTDB_ENABLE_FAT_BINARIES="1" make -C "tightdb_jni" EXTRA_CFLAGS="-I$include_dir -I$include_dir/linux -I$include_dir/darwin" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
 
         mkdir -p "lib" || exit 1
 
@@ -617,6 +644,13 @@ EOF
         else
             (cd "$TARGET_DIR" && pandoc README.md -o README.pdf) || exit 1
         fi
+        exit 0
+        ;;
+
+    "dist-deb")
+        codename=$(lsb_release -s -c)
+        (cd debian && sed -e "s/@CODENAME@/$codename/g" changelog.in > changelog) || exit 1
+        dpkg-buildpackage -rfakeroot -us -uc || exit 1
         exit 0
         ;;
 

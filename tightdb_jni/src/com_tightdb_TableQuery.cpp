@@ -45,7 +45,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJJ(
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
     try {
-        pQuery->equal(S(columnIndex), value);
+        pQuery->equal(S(columnIndex), static_cast<int64_t>(value));
     } CATCH_STD()
 }
 
@@ -57,7 +57,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJJ(
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
     try {
-        pQuery->not_equal(S(columnIndex), value);
+        pQuery->not_equal(S(columnIndex), static_cast<int64_t>(value));
     } CATCH_STD()
 }
 
@@ -69,7 +69,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJJ(
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
     try {
-        pQuery->greater(S(columnIndex), value);
+        pQuery->greater(S(columnIndex), static_cast<int64_t>(value));
     } CATCH_STD()
 }
 
@@ -81,7 +81,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJJ(
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
     try {
-        pQuery->greater_equal(S(columnIndex), value);
+        pQuery->greater_equal(S(columnIndex), static_cast<int64_t>(value));
     } CATCH_STD()
 }
 
@@ -93,7 +93,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJJ(
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
     try {
-        pQuery->less(S(columnIndex), value);
+        pQuery->less(S(columnIndex), static_cast<int64_t>(value));
     } CATCH_STD()
 }
 
@@ -105,7 +105,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJJ(
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
     try {
-        pQuery->less_equal(S(columnIndex), value);
+        pQuery->less_equal(S(columnIndex), static_cast<int64_t>(value));
     } CATCH_STD()
 }
 
@@ -117,7 +117,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJJJ(
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
     try {
-        pQuery->between(S(columnIndex), value1, value2);
+        pQuery->between(S(columnIndex), static_cast<int64_t>(value1), static_cast<int64_t>(value2));
     } CATCH_STD()
 }
 
