@@ -186,15 +186,6 @@ case "$MODE" in
             install_prefix="auto"
         fi
 
-        # Find 'jni.h', 'java' and 'javac'
-        if [ "$OS" = "Darwin" ]; then
-            java_inc="Headers"
-            java_bin="Commands"
-        else
-            java_inc="include"
-            java_bin="bin"
-        fi
-
         # install java when in interactive mode (Darwin only)
         if [ -n "$INTERACTIVE" ]; then
             if [ "$OS" = "Darwin" ]; then
@@ -213,7 +204,34 @@ case "$MODE" in
             fi
         fi
 
-        java_home="$JAVA_HOME"
+        # Find 'jni.h', 'java' and 'javac'
+        if [ "$OS" = "Darwin" ]; then
+            if [ -e /usr/libexec/java_home ]; then
+                jh="$(/usr/libexec/java_home)"  # FIXME: should we have -t JNI?
+                if [ -e "$jh/Headers" ]; then   # Apple Java
+                    java_inc="Headers"
+                    java_bin="Commands"
+                else                            # Oracle Java
+                    java_inc="include"
+                    java_bin="bin"
+                fi
+            else
+                java_inc="Headers"
+                java_bin="Commands"
+            fi
+        else
+            java_inc="include"
+            java_bin="bin"
+        fi
+
+
+        if [ -z "$JAVA_HOME" ]; then
+            if [ "$OS" = "Darwin" ]; then
+                java_home="$(/usr/libexec/java_home)"
+            fi
+        else
+            java_home="$JAVA_HOME"
+        fi
         if [ -z "$java_home" -o \! -e "$java_home/$java_bin/javac" ]; then
             if [ "$java_home" ]; then
                 echo "WARNING: JAVA_HOME set but ignored because '$JAVA_HOME/$java_bin/javac' does not exist"
