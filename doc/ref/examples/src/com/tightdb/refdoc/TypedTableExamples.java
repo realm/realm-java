@@ -341,6 +341,25 @@ public class TypedTableExamples {
         // @@EndExample@@
     }
 
+    public static void addEmptyRowExample(){
+        // @@Example: ex_java_typed_table_add_empty_row @@
+        // @@Show@@
+        // Create table
+        PeopleTable people = new PeopleTable();
+
+        // Add a row with default values
+        people.addEmptyRow();
+        Assert(people.size() == 1);
+
+        // Add a row and set some values
+        PeopleRow row = people.addEmptyRow();
+        row.setFirstName("John");
+        row.setHired(true);
+
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+
 
     public static void removeExample(){
         // @@Example: ex_java_typed_table_remove @@

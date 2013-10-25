@@ -276,6 +276,19 @@ CATEGORIES :
         DESCR  :
       SEE      : >
                 See {@link g_typed_table_insert} to insert a row into a specific row index.
+  - g_typed_table_add_empty_row:
+      NAMES    : addEmptyRow
+      SUMMARY  : Append one empty row.
+      DESCR    : This method adds one empty row with default values at the end of the table.
+                 The default values are 0, null, or "", as appropriate to the column types.
+      RETURN:
+        TYPES  : Row
+        DESCR  : The new row
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_add_empty_row
+        DESCR  :
+      SEE      : >
+                 See also {@link g_typed_table_add} to add rows with specific values.
   - g_typed_table_remove_row:
       NAMES    : remove
       SUMMARY  : *g_typed_table_remove_row_summary
