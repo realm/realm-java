@@ -225,15 +225,14 @@ check_java_home()
         fi
     fi
 
-    if ! [ "$bin" ] || ! [ "$found_jni_md_h" ]; then
+    if [ "$bin" ] && [ "$found_jni_md_h" ]; then
+        java_home="$cand"
+        java_bindir="$java_home/$bin"
+        java_includedir="$java_home/$inc"
+        java_includedir_arch="$arch"
+    else
         echo "Skipping '$cand'"
-        return 1
     fi
-
-    java_home="$cand"
-    java_bindir="$java_home/$bin"
-    java_includedir="$java_home/$inc"
-    java_includedir_arch="$arch"
     return 0
 }
 
@@ -250,7 +249,7 @@ case "$MODE" in
         # install java when in interactive mode (Darwin only)
         if [ -n "$INTERACTIVE" ]; then
             if [ "$OS" = "Darwin" ]; then
-                # FIXME: Use '/usr/libexec/java_home 2>/dev/null 1>&2' to test for presenece of Java
+                # FIXME: Use exit status of '/usr/libexec/java_home 2>/dev/null 1>&2' to test for presenece of Java
                 # FIXME: Use '/usr/libexec/java_home --request 2>/dev/null 1>&2' to initiate asynchronous interactive installation of Java
                 if ! java -version > /dev/null 2>&1 ; then
                     echo "It seems that Java is not installed."
@@ -284,6 +283,7 @@ case "$MODE" in
             fi
             # FIXME: Should we have added '-t JNI' to /usr/libexec/java_home?
             if path="$(/usr/libexec/java_home -v 1.6+ 2>/dev/null)"; then
+                echo "'/usr/libexec/java_home -v 1.6+' specifies a JAVA_HOME"
                 check_java_home "$path" || exit 1
             fi
         fi
@@ -309,6 +309,7 @@ case "$MODE" in
                     echo "ERROR: Could not determine JAVA_HOME from path of 'javac' command '$path'" 1>&2
                     exit 1
                 fi
+                echo "'javac' found in PATH as '$path'"
                 check_java_home "$cand" || exit 1
             fi
         fi
