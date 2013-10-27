@@ -710,9 +710,7 @@ EOF
         grep -v -f "$TEMP_DIR/exclude.bre" "$TEMP_DIR/files2" >"$TEMP_DIR/files3" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" -T "$TEMP_DIR/files3" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
-        if ! which pandoc 2>/dev/null 1>&2; then
-            echo "pandoc is not installed - not generating README.pdf" 1>&2
-        else
+        if ! [ "$TIGHTDB_DISABLE_MARKDOWN_TO_PDF" ]; then
             (cd "$TARGET_DIR" && pandoc README.md -o README.pdf) || exit 1
         fi
         exit 0
