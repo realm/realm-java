@@ -1,3 +1,4 @@
+// @@Example: ex_java_typed_query_intro @@
 package com.tightdb.refdoc;
 
 import com.tightdb.*;
@@ -12,8 +13,8 @@ public class TypedQueryIntro {
     }
 
     public static void main(String[] args) {
-     // @@Example: ex_java_typed_query_intro @@
-
+        // @@Show@@
+        
         // Create a table with some data
         EmployeeTable employees = new EmployeeTable();
         employees.add("John", "Lee", 10000);
@@ -40,6 +41,9 @@ public class TypedQueryIntro {
 
         // Find all employees with a last name of Lee and a salary less than 25000.
         EmployeeView view2 = employees.lastName.equalTo("Lee").salary.lessThan(25000).findAll();
-      //@@EndExample@@
+        
+        // @@EndShow@@
+
     }   
 }
+//@@EndExample@@

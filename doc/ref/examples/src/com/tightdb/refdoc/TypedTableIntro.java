@@ -17,6 +17,7 @@ public class TypedTableIntro {
     }
 
     public static void main(String[] args) {
+        // @@Show@@
 
         //Create table instance from the generated class
         PeopleTable peopleTable = new PeopleTable();
@@ -164,6 +165,9 @@ public class TypedTableIntro {
         } finally {
             rdTrans.endRead();                          // End transaction 
         }
+        
+        // @@EndShow@@
+
     } 
 }
 //@@EndExample@@
