@@ -126,11 +126,12 @@ public class SharedGroupTest {
     		return;
 
     	// First create file
-    	deleteFile("sizefile");
-        db = new SharedGroup("sizefile", durability);
+    	String fileName = "sizefile.tightdb";
+    	deleteFile(fileName);
+        db = new SharedGroup(fileName, durability);
         db.reserve(50012);
         
-        File f = new File("sizefile");
+        File f = new File(fileName);
         // Not all platforms support this:   assertEquals( 50012, f.length() );
         db.close();
 

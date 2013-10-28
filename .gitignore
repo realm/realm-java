@@ -95,3 +95,7 @@ doc/ref/examples/fromServlet
 /debian/tightdb-java
 /debian/tightdb-java-dev
 /debian/.mh
+
+tightdb_jni/src/java/lib/l*
+
+java/share/java/*.jar

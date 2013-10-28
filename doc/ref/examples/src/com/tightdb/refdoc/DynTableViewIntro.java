@@ -1,4 +1,4 @@
-
+// @@Example: ex_java_dyn_table_view_intro @@
 package com.tightdb.refdoc;
 
 import java.io.FileNotFoundException;
@@ -9,7 +9,6 @@ import com.tightdb.*;
 public class DynTableViewIntro {
 
     public static void main(String[] args) throws FileNotFoundException  {
-        // @@Example: ex_java_dyn_table_view_intro @@
         // @@Show@@
         // Create a new table
         Table table = new Table();
@@ -50,7 +49,6 @@ public class DynTableViewIntro {
         out.print(view.toJson());
         out.close();
         // @@EndShow@@
-        // @@EndExample@@
     }
 
     static void Assert(boolean check) {
@@ -59,4 +57,4 @@ public class DynTableViewIntro {
         }
     }
 } 
-
+// @@EndExample@@
