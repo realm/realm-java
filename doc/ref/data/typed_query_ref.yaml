@@ -24,6 +24,35 @@ IGNORE     : []                   # List of method-ids to ignore
 CATEGORIES :
 - Conditions:
   METHODS:
+  - g_typed_query_find_first:
+      TITLE    : findFirst
+      NAMES    : findFirst
+      SIGNATURE: Row findFirst();
+      SUMMARY  : Executes the query
+      DESCR    : Executes the query. Result is the first matching row.
+      RETURN:
+        TYPES  : Row
+        DESCR  : First matching Row (or 'null' if no match)
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_typed_query_find_first
+
+  - g_typed_query_find_from:
+      TITLE    : findFrom
+      NAMES    : findFrom
+      SUMMARY  : Executes the query starting from the given position.
+      DESCR    : Executes the query. Result is the first matching row from the given position.
+      PARAMS:
+      - NAME   : startPos
+        TYPES  : long
+        DESCR  : Start position (inclusive)
+      RETURN:
+        TYPES  : Row
+        DESCR  : First matching Row (or 'null' if no match)
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_typed_query_find_from
+
   - g_typed_query_find_all:
       TITLE    : findAll
       NAMES    : findAll
