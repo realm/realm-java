@@ -80,7 +80,7 @@ CATEGORIES:
       DESCR    : Creates a write transaction in order to begin writing to a shared group.
       RETURN:
         TYPES  : WriteTransaction
-        DESCR  : A {@link class_write_transaction} object, which extends {@link class_group}
+        DESCR  : A {@link class_write_transaction} object, which extends {@link class_group}.
       EXAMPLES:
       - CODE   : ex_java_shared_group_begin_write
         DESCR  :

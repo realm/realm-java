@@ -6,8 +6,13 @@
 
 ID         : class_typed_table
 TITLE      : Table (typed)
-SUMMARY    : *g_typed_table_summary
-DESCR      : *g_typed_table_descr
+SUMMARY    : >
+             NOTE: Reference documentation for Typed API is work in progress!
+DESCR      : >
+             NOTE: The reference documentation for the "Typed Table" API is
+             "work in progress" and absolutely not complete yet.
+#SUMMARY    : *g_typed_table_summary
+#DESCR      : *g_typed_table_descr
 SEE        : 
 EXAMPLES   :
 - DESCR    : >
@@ -49,7 +54,6 @@ CATEGORIES :
                  Table()
                  Table(Group group)
                  Table(Group group, String tableName)
-                 
       PARAMS:
       - NAME   : group
         TYPES  : com.tight.Group
@@ -252,8 +256,8 @@ CATEGORIES :
       SUMMARY  : *g_typed_table_operator_brackets_summary
       DESCR    : *g_typed_table_operator_brackets_descr
       RETURN:
-        TYPES  : Row
-        DESCR  : Row found at position
+        TYPES  : "*Row"
+        DESCR  : "*Row found at <code>rowIndex</code>."
       PARAMS:
       - NAME   : rowIndex
         TYPES  : long
@@ -261,6 +265,7 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_typed_table_get
         DESCR  :
+
   - g_typed_table_add:
       NAMES    : add
       SUMMARY  : Append a row.
@@ -275,15 +280,16 @@ CATEGORIES :
       - CODE   : ex_java_typed_table_add
         DESCR  :
       SEE      : >
-                See {@link g_typed_table_insert} to insert a row into a specific row index.
+                See {@link g_typed_table_add_empty_row} to insert an empty row.
+#                See {@link g_typed_table_insert} to insert a row into a specific row index.
   - g_typed_table_add_empty_row:
       NAMES    : addEmptyRow
       SUMMARY  : Append one empty row.
       DESCR    : This method adds one empty row with default values at the end of the table.
                  The default values are 0, null, or "", as appropriate to the column types.
       RETURN:
-        TYPES  : Row
-        DESCR  : The new row
+        TYPES  : "*Row"
+        DESCR  : The new row which was inserted.
       EXAMPLES:
       - CODE   : ex_java_typed_table_add_empty_row
         DESCR  :
@@ -315,11 +321,11 @@ CATEGORIES :
   - g_typed_table_where:
 #  - g_dyn_table_where_const:
       NAMES    : where
-      SUMMARY  : Query table
+      SUMMARY  : Query table.
       DESCR    : This method initiates a query. See {@link class_typed_query}.
       RETURN:
         TYPES  : Query
-        DESCR  : The query object
+        DESCR  : The query object.
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_typed_table_where
