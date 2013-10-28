@@ -430,8 +430,8 @@ case "$MODE" in
             fi
         fi
 
-        if [ "$INTERACTIVE" ]; then
-            cat >"config" <<EOF
+
+        cat >"config" <<EOF
 java-version:         $java_version
 java-command:         $java_cmd
 javac-command:        $javac_cmd
@@ -444,6 +444,7 @@ jni-install-dir:      $jni_install_dir
 jar-install-dir:      $jar_install_dir
 jni-suffix:           $jni_suffix
 EOF
+        if [ -z "$INTERACTIVE" ]; then
             echo "New configuration:"
             cat "config" | sed 's/^/    /' || exit 1
             echo "Done configuring"
