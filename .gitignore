@@ -97,3 +97,7 @@ doc/ref/examples/fromServlet
 /debian/.mh
 
 tightdb-java-test/sizefile
+
+java/share/java/*.jar
+
+tightdb_jni/src/java/lib/*
