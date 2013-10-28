@@ -184,7 +184,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     }
 
     public Cursor addEmptyRow() {
-        long row_pos = table.addEmptyRow();
-        return cursor(row_pos);
+        long rowPos = table.addEmptyRow();
+        return cursor(rowPos);
     }
 }

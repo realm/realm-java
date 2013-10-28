@@ -45,6 +45,7 @@ public class TypedTableExamples {
         addExample();
         removeExample();
         removeLastExample();
+        addEmptyRowExample();
 
 
         // Searching methods
@@ -316,7 +317,7 @@ public class TypedTableExamples {
 
         // Use get method to access rows
         PeopleRow susan = people.get(1);
-        Assert(susan.GetName() == "Susan");
+        Assert(susan.getName().equals("Susan"));
 
         // Can be chained to access column values directly
         Assert(people.get(0).getHired() == true);
@@ -353,7 +354,7 @@ public class TypedTableExamples {
 
         // Add a row and set some values
         PeopleRow row = people.addEmptyRow();
-        row.setFirstName("John");
+        row.setName("John");
         row.setHired(true);
 
         // @@EndShow@@
@@ -414,7 +415,7 @@ public class TypedTableExamples {
         // Do a query on table
         PeopleRow susan = people.where().name.equalTo("Susan").findFirst();
         Assert(susan != null);
-        Assert(susan.getAge() == 50)
+        Assert(susan.getAge() == 50);
 
         // See Query class for possible operations
         // with the Query object
