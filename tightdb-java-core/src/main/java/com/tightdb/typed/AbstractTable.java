@@ -182,4 +182,9 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     public long upperBound(long columnIndex, long value) {
         return table.upperBoundLong(columnIndex, value);
     }
+
+    public Cursor addEmptyRow() {
+        long row_pos = table.addEmptyRow();
+        return cursor(row_pos);
+    }
 }
