@@ -483,8 +483,8 @@ EOF
         jni_install_dir="$(get_config_param "jni-install-dir")"
         jar_install_dir="$(get_config_param "jar-install-dir")"
         echo "Java version         : $java_version"
-        echo "Java virtual machine : $java_cmd"
-        echo "Java compiler        : $javac_cmd"
+        echo "Java virtual machine : $java_command"
+        echo "Java compiler        : $javac_command"
         echo "Installed JNI files  :"
         find $jni_install_dir -name '*tight*jni*'
         echo "Installed JAR files  :"
