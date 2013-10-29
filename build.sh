@@ -183,27 +183,37 @@ check_java_home()
 {
     local cand bin inc arch found_jni_md_h os_lc
     cand="$1"
-    echo "Checking '$cand' as candidate for JAVA_HOME"
+    if [ -z "$INTERACTIVE" ]; then
+        echo "Checking '$cand' as candidate for JAVA_HOME"
+    fi
 
     # Locate 'java' 'javac' and 'jni.h'
     bin=""
     inc=""
     if [ "$OS" = "Darwin" ]; then
         if [ -e "$cand/Commands/java" -a -e "$cand/Commands/javac" -a -e "$cand/Headers/jni.h" ]; then
-            echo "Found 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Found 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            fi
             bin="Commands"
             inc="Headers"
         else
-            echo "Could not find 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Could not find 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            fi
         fi
     fi
     if ! [ "$bin" ]; then
         if [ -e "$cand/bin/java" -a -e "$cand/bin/javac" -a -e "$cand/include/jni.h" ]; then
-            echo "Found 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Found 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            fi
             bin="bin"
             inc="include"
         else
-            echo "Could not find 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Could not find 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            fi
         fi
     fi
 
@@ -211,16 +221,22 @@ check_java_home()
     arch="none"
     if [ "$inc" ]; then
         if [ -e "$cand/$inc/jni_md.h" ]; then
-            echo "Found '$inc/jni_md.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Found '$inc/jni_md.h' in '$cand'"
+            fi
             found_jni_md_h="1"
         else
             os_lc="$(printf "%s\n" "$OS" | awk '{print tolower($0)}')" || return 1
             if [ -e "$cand/$inc/$os_lc/jni_md.h" ]; then
-                echo "Found '$inc/$os_lc/jni_md.h' in '$cand'"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "Found '$inc/$os_lc/jni_md.h' in '$cand'"
+                fi
                 found_jni_md_h="1"
                 arch="$cand/$inc/$os_lc"
             else
-                echo "Could not find '$inc/jni_md.h' or '$inc/$os_lc/jni_md.h' in '$cand'"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "Could not find '$inc/jni_md.h' or '$inc/$os_lc/jni_md.h' in '$cand'"
+                fi
             fi
         fi
     fi
@@ -231,7 +247,9 @@ check_java_home()
         java_includedir="$java_home/$inc"
         java_includedir_arch="$arch"
     else
-        echo "Skipping '$cand'"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Skipping '$cand'"
+        fi
     fi
     return 0
 }
@@ -270,7 +288,9 @@ case "$MODE" in
 
         # Check JAVA_HOME when specified
         if ! [ "$java_home" ] && [ "$JAVA_HOME" ]; then
-            echo "JAVA_HOME specified"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "JAVA_HOME specified"
+            fi
             check_java_home "$JAVA_HOME" || exit 1
         fi
 
@@ -322,7 +342,9 @@ case "$MODE" in
         java_cmd="$java_bindir/java"
         javac_cmd="$java_bindir/javac"
 
-        echo "Examining Java command '$java_cmd'"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Examining Java command '$java_cmd'"
+        fi
         min_ver_major="1"
         min_ver_minor="6"
         version="$($java_cmd -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\)".*/\1/')"
@@ -336,7 +358,9 @@ case "$MODE" in
             echo "ERROR: Need Java version $min_ver_major.$min_ver_minor or newer (is '$version')" 1>&2
             exit 1
         fi
-        echo "Using Java command: $java_cmd (version $version)"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Using Java command: $java_cmd (version $version)"
+        fi
         java_version="$version"
 
         if [ "$install_prefix" = "auto" ]; then
@@ -453,11 +477,17 @@ EOF
         ;;
 
     "install-report")
+        java_version="$(get_config_param "java-version")"
+        java_command="$(get_config_param "java-cmd")"
+        javac_command="$(get_config_param "javac-cmd")"
         jni_install_dir="$(get_config_param "jni-install-dir")"
         jar_install_dir="$(get_config_param "jar-install-dir")"
-        echo "Installed JNI files:"
+        echo "Java version         : $java_version"
+        echo "Java virtual machine : $java_cmd"
+        echo "Java compiler        : $javac_cmd"
+        echo "Installed JNI files  :"
         find $jni_install_dir -name '*tight*jni*'
-        echo "Installed JAR files:"
+        echo "Installed JAR files  :"
         find $jar_install_dir -name '*tightdb*jar'
         ;;
 
