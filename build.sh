@@ -478,8 +478,8 @@ EOF
 
     "install-report")
         java_version="$(get_config_param "java-version")"
-        java_command="$(get_config_param "java-cmd")"
-        javac_command="$(get_config_param "javac-cmd")"
+        java_command="$(get_config_param "java-command")"
+        javac_command="$(get_config_param "javac-command")"
         jni_install_dir="$(get_config_param "jni-install-dir")"
         jar_install_dir="$(get_config_param "jar-install-dir")"
         echo "Java version         : $java_version"
