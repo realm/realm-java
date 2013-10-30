@@ -11,6 +11,7 @@ import org.testng.annotations.Test;
 import com.tightdb.Group;
 import com.tightdb.Mixed;
 import com.tightdb.test.TestEmployeeTable;
+import com.tightdb.test.TestEmployeeRow;
 
 public class TableTest {
 
@@ -168,5 +169,15 @@ public class TableTest {
         assertEquals(false, employees.lastName.hasIndex());
         employees.lastName.setIndex();
         assertEquals(true, employees.lastName.hasIndex());
+    }
+
+    @Test
+    public void testAddEmptyRow() {
+        long size = employees.size();
+        TestEmployeeRow new_row = employees.addEmptyRow();
+        assertEquals(size+1, employees.size());
+        assertEquals("", new_row.getFirstName());
+
+        new_row.setFirstName("Jared");
     }
 }
