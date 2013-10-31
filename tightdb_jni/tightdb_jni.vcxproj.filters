@@ -37,6 +37,9 @@
     <ClCompile Include="src\com_tightdb_internal_Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\com_tightdb_SubTableSchema.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\columntypeutil.h">
@@ -73,6 +76,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\com_tightdb_internal_Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\com_tightdb_SubTableSchema.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

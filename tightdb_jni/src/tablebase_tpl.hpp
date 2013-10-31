@@ -12,12 +12,11 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
     if (bin.size() <= MAX_JSIZE) {
         jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
         if (jresult)
-            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));
+            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));  // throws
         return jresult;
     }
     else {
-        //???TODO: More specific exception
-        ThrowException(env, IndexOutOfBounds, "Length of ByteArray is larger than int.");
+        ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
         return NULL;
     }
 }
@@ -55,7 +54,7 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
     case type_Int:
         {
             jlong longValue = GetMixedIntValue(env, jMixedValue);
-            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(longValue));
+            (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(static_cast<int64_t>(longValue)));
             return;
         }
     case type_Float:
@@ -86,10 +85,10 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
             }
             break;
         }
-    case type_Date:
+    case type_DateTime:
         {
             jlong dateTimeValue = GetMixedDateTimeValue(env, jMixedValue);
-            Date date(dateTimeValue);
+            DateTime date(dateTimeValue);
             (pTable->*doMixed)( S(columnIndex), S(rowIndex), Mixed(date));
             return;
         }

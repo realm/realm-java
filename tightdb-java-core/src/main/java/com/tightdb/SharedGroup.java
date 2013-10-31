@@ -4,16 +4,46 @@ import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 public class SharedGroup {
+	
+    private long nativePtr;
+    private boolean activeTransaction;
 
     static {
         TightDB.loadLibrary();
     }
 
+    public enum Durability {
+    	FULL(0),
+    	MEM_ONLY(1),
+    	ASYNC(2);
+        private final int value;
+        private Durability(int value)
+        {
+            this.value = value;
+        }
+        public int getValue() {
+        	return value;
+        }
+    }
+    
     public SharedGroup(String databaseFile) {
-        this.nativePtr = createNative(databaseFile, false);
+        this.nativePtr = createNative(databaseFile, Durability.FULL.getValue(), false, false);
         checkNativePtr();
     }
-
+    public SharedGroup(String databaseFile, Durability durability) {
+        this.nativePtr = createNative(databaseFile, durability.getValue(), false, false);
+        checkNativePtr();
+    }
+    public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
+        this.nativePtr = createNative(databaseFile, durability.getValue(), fileMustExist, false);
+        checkNativePtr();
+    }
+/*
+    SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
+        this.nativePtr = createNative(databaseFile, durability.getValue(), no_create, enableReplication);
+        checkNativePtr();
+    }
+*/
     public WriteTransaction beginWrite() {
         if (activeTransaction)
             throw new IllegalStateException(
@@ -56,11 +86,6 @@ public class SharedGroup {
         doClose();
     }
 
-    SharedGroup(String databaseFile, boolean enableReplication) {
-        this.nativePtr = createNative(databaseFile, enableReplication);
-        checkNativePtr();
-    }
-
     void commit() {
         nativeCommit(nativePtr);
         activeTransaction = false;
@@ -90,10 +115,13 @@ public class SharedGroup {
         return nativeHasChanged(nativePtr);
     }
 
-    protected native boolean nativeHasChanged(long nativePtr);
-
-    private long nativePtr;
-    private boolean activeTransaction;
+    public void reserve(long bytes) {
+    	nativeReserve(nativePtr, bytes);
+    }
+    
+    private native void nativeReserve(long nativePtr, long bytes);
+    
+    private native boolean nativeHasChanged(long nativePtr);
 
     private native long nativeBeginRead(long nativePtr);
 
@@ -106,7 +134,9 @@ public class SharedGroup {
     private native void nativeRollback(long nativePtr);
 
     private native long createNative(String databaseFile,
-            boolean enableReplication);
+    		int durabilityValue, 
+            boolean no_create,
+    		boolean enableReplication);
 
     private void checkNativePtr() {
         if (this.nativePtr == 0)

@@ -1,5 +1,5 @@
 Source: tightdb-java
-Section: unknown
+Section: java
 Priority: extra
 Maintainer: Kenneth Geisshirt <kg@tightdb.com>
 Build-Depends: debhelper (>=7), libtightdb, libtightdb-dev
@@ -15,6 +15,6 @@ Description: Fast, embedded database
 
 Package: tightdb-java-dev
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libtightdb
+Depends: ${shlibs:Depends}, ${misc:Depends}, tightdb-java
 Description: Fast, embedded database [development]
  TightDB is a fast, embedded database. This is the Java interface.

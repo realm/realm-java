@@ -8,35 +8,31 @@ import com.tightdb.TableView;
 import org.testng.annotations.Test;
 import static org.testng.AssertJUnit.*;
 
+// Execute this test with Memory leak detector enabled.
 
 public class MemoryLeakTest {
 
     @Test
-    public void testMemoryManagement() {
+    public void testMemoryManagement() throws Throwable {
 
-        System.out.println("Begin mem test");
-
-        for (int i = 0; i < 1/*00000*/; i++) {
+        //System.out.println("Begin mem test");
+        
+        for (int i = 0; i < 10000; i++) {
 
             Table table = new Table();
-            table.addColumn(ColumnType.ColumnTypeInt, "myint");
+            table.addColumn(ColumnType.INTEGER, "myint");
             table.add(i);
-            if (true) {
-            	TableQuery query = table.where();
-            
-            	if (false) {
-            		TableView view = query.findAll();
-            		assertEquals(i, table.getLong(0,0) );
-            		view.private_debug_close();
-            	}
-            	
-                query.private_debug_close();
-            }
-            table.private_debug_close();
 
+            TableQuery query = table.where();
+            
+            TableView view = query.notEqualTo(0, 2).findAll();
+            assertEquals(i, table.getLong(0,0) );
+            view.finalize();
+            	
+            query.finalize();
+            
+            table.finalize();
         }
-        System.out.println("End mem test");
+        // System.out.println("End mem test");
     }
 }
-
-//TODO: Prøv i C++

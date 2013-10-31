@@ -34,6 +34,14 @@ public interface TableOrView {
     void remove(long index);
 
     void removeLast();
+    
+    long getColumnCount();
+    
+    String getColumnName(long columnIndex);
+    
+    long getColumnIndex(String name);
+    
+    ColumnType getColumnType(long columnIndex);
 
     /**
      * Get the long value of a cell of the table/view identified by the
@@ -186,13 +194,13 @@ public interface TableOrView {
     //Increments all rows in the specified column with the provided value
     void adjust(long columnIndex, long value);
 
-    long sum(long columnIndex);
+    long sumInt(long columnIndex);
 
-    long maximum(long columnIndex);
+    long maximumInt(long columnIndex);
 
-    long minimum(long columnIndex);
+    long minimumInt(long columnIndex);
 
-    double average(long columnIndex);
+    double averageInt(long columnIndex);
 
 
     double sumFloat(long columnIndex);
@@ -249,8 +257,10 @@ public interface TableOrView {
     String toString(long maxRows);
     
     String rowToString(long rowIndex);
+
+    TableQuery where();
     
-// Experimental:
+    // Experimental:
 
     long lookup(String value);
 

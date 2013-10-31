@@ -143,4 +143,32 @@ public class JNITableSpecTest {
         assertEquals("New 4", table.getColumnName(0));
         assertEquals("44", table.getString(0,4));
     }
+
+    @Test
+    public void shouldThrowOnUpdateFromTableSpecOnSubtable() {
+
+        // Table definition
+        Table persons = new Table();
+
+        persons.addColumn(ColumnType.STRING, "name");
+        persons.addColumn(ColumnType.STRING, "email");
+        persons.addColumn(ColumnType.TABLE, "addresses");
+
+
+        TableSchema addresses = persons.getSubTableSchema(2);
+        addresses.addColumn(ColumnType.STRING, "street");
+        addresses.addColumn(ColumnType.INTEGER, "zipcode");
+        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
+
+        persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, null }} });
+
+        Table address = persons.getSubTable(2,0);
+
+        TableSpec spec = new TableSpec();
+        spec.addColumn(ColumnType.INTEGER, "foo");
+
+        
+       try { address.updateFromSpec(spec); fail("Address is subtable. Not allowed to update from spec"); } catch (UnsupportedOperationException e) { }
+    }
+
 }

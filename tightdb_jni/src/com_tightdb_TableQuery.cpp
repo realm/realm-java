@@ -32,12 +32,7 @@ inline bool QueryValid(JNIEnv* env, Query* pQuery)
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose(JNIEnv * env, jobject, jlong nativeQueryPtr) {
     TR((env, "Query nativeClose(ptr %x)\n", nativeQueryPtr));
-    Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (TABLE_VALID(env, pTable))
-        return;
-
-    delete pQuery;
+    delete Q(nativeQueryPtr);
 }
 
 // Integer
@@ -49,8 +44,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJJ(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
-
-    pQuery->equal(S(columnIndex), value);
+    try {
+        pQuery->equal(S(columnIndex), static_cast<int64_t>(value));
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJJ(
@@ -60,8 +56,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJJ(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
-
-    pQuery->not_equal(S(columnIndex), value);
+    try {
+        pQuery->not_equal(S(columnIndex), static_cast<int64_t>(value));
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJJ(
@@ -71,8 +68,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJJ(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
-
-    pQuery->greater(S(columnIndex), value);
+    try {
+        pQuery->greater(S(columnIndex), static_cast<int64_t>(value));
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJJ(
@@ -82,8 +80,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJJ(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
-
-    pQuery->greater_equal(S(columnIndex), value);
+    try {
+        pQuery->greater_equal(S(columnIndex), static_cast<int64_t>(value));
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJJ(
@@ -93,8 +92,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJJ(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
-
-    pQuery->less(S(columnIndex), value);
+    try {
+        pQuery->less(S(columnIndex), static_cast<int64_t>(value));
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJJ(
@@ -104,8 +104,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJJ(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
-
-    pQuery->less_equal(S(columnIndex), value);
+    try {
+        pQuery->less_equal(S(columnIndex), static_cast<int64_t>(value));
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJJJ(
@@ -115,8 +116,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJJJ(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
         return;
-
-    pQuery->between(S(columnIndex), value1, value2);
+    try {
+        pQuery->between(S(columnIndex), static_cast<int64_t>(value1), static_cast<int64_t>(value2));
+    } CATCH_STD()
 }
 
 // Float
@@ -128,8 +130,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJF(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
         return;
-
-    pQuery->equal(S(columnIndex), value);
+    try {
+        pQuery->equal(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJF(
@@ -139,8 +142,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJF(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
         return;
-
-    pQuery->not_equal(S(columnIndex), value);
+    try {
+        pQuery->not_equal(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJF(
@@ -150,8 +154,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJF(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
         return;
-
-    pQuery->greater(S(columnIndex), value);
+    try {
+        pQuery->greater(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJF(
@@ -161,8 +166,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJF(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
         return;
-
-    pQuery->greater_equal(S(columnIndex), value);
+    try {
+        pQuery->greater_equal(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJF(
@@ -172,8 +178,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJF(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
         return;
-
-    pQuery->less(S(columnIndex), value);
+    try {
+        pQuery->less(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJF(
@@ -183,8 +190,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJF(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
         return;
-
-    pQuery->less_equal(S(columnIndex), value);
+    try {
+        pQuery->less_equal(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJFF(
@@ -194,8 +202,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJFF(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
         return;
-
-    pQuery->between(S(columnIndex), value1, value2);
+    try {
+        pQuery->between(S(columnIndex), value1, value2);
+    } CATCH_STD()
 }
 
 // Double
@@ -207,8 +216,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJD(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
         return;
-
-    pQuery->equal(S(columnIndex), value);
+    try {
+        pQuery->equal(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJD(
@@ -218,8 +228,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJD(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
         return;
-
-    pQuery->not_equal(S(columnIndex), value);
+    try {
+        pQuery->not_equal(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJD(
@@ -229,8 +240,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJD(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
         return;
-
-    pQuery->greater(S(columnIndex), value);
+    try {
+        pQuery->greater(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJD(
@@ -240,8 +252,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJD(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
         return;
-
-    pQuery->greater_equal(S(columnIndex), value);
+    try {
+        pQuery->greater_equal(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJD(
@@ -251,8 +264,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJD(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
         return;
-
-    pQuery->less(S(columnIndex), value);
+    try {
+        pQuery->less(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJD(
@@ -262,8 +276,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJD(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
         return;
-
-    pQuery->less_equal(S(columnIndex), value);
+    try {
+        pQuery->less_equal(S(columnIndex), value);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJDD(
@@ -273,89 +288,97 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJDD(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
         return;
-
-    pQuery->between(S(columnIndex), value1, value2);
+    try {
+        pQuery->between(S(columnIndex), value1, value2);
+    } CATCH_STD()
 }
 
 
-// Date
+// DateTime
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqualDate(
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqualDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Date))
+    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
         return;
-
-    Q(nativeQueryPtr)->equal_date(S(columnIndex), Date(static_cast<time_t>(value)));
+    try {
+        Q(nativeQueryPtr)->equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+    } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqualDate(
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqualDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Date))
+    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
         return;
-
-    Q(nativeQueryPtr)->not_equal_date(S(columnIndex), Date(static_cast<time_t>(value)));
+    try {
+        Q(nativeQueryPtr)->not_equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+    } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterDate(
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Date))
+    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
         return;
-
-    Q(nativeQueryPtr)->greater_date(S(columnIndex), Date(static_cast<time_t>(value)));
+    try {
+        Q(nativeQueryPtr)->greater_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+    } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqualDate(
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqualDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Date))
+    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
         return;
-
-    Q(nativeQueryPtr)->greater_equal_date(S(columnIndex), Date(static_cast<time_t>(value)));
+    try {
+        Q(nativeQueryPtr)->greater_equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+    } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessDate(
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Date))
+    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
         return;
-
-    Q(nativeQueryPtr)->less_date(S(columnIndex), Date(static_cast<time_t>(value)));
+    try {
+        Q(nativeQueryPtr)->less_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+    } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqualDate(
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqualDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Date))
+    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
         return;
-
-    Q(nativeQueryPtr)->less_equal_date(S(columnIndex), Date(static_cast<time_t>(value)));
+    try {
+        Q(nativeQueryPtr)->less_equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+    } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetweenDate(
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetweenDateTime(
 
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value1, jlong value2)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Date))
+    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
         return;
-
-    Q(nativeQueryPtr)->between_date(S(columnIndex), Date(static_cast<time_t>(value1)), Date(static_cast<time_t>(value2)));
+    try {
+        Q(nativeQueryPtr)->between_datetime(S(columnIndex), DateTime(static_cast<time_t>(value1)), DateTime(static_cast<time_t>(value2)));
+    } CATCH_STD()
 }
 
 
@@ -368,8 +391,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJZ(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Bool))
         return;
-
-    pQuery->equal(S(columnIndex), value != 0 ? true : false);
+    try {
+        pQuery->equal(S(columnIndex), value != 0 ? true : false);
+    } CATCH_STD()
 }
 
 // String
@@ -384,8 +408,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_Str
     JStringAccessor value2(env, value);
     if (!value2)
         return;
-
-    pQuery->equal(S(columnIndex), value2, caseSensitive ? true : false);
+    try {
+        pQuery->equal(S(columnIndex), value2, caseSensitive ? true : false);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
@@ -398,8 +423,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
     JStringAccessor value2(env, value);
     if (!value2)
         return;
-
-    pQuery->begins_with(S(columnIndex), value2, caseSensitive ? true : false);
+    try {
+        pQuery->begins_with(S(columnIndex), value2, caseSensitive ? true : false);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
@@ -412,8 +438,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
     JStringAccessor value2(env, value);
     if (!value2)
         return;
-
-    pQuery->ends_with(S(columnIndex), value2, caseSensitive ? true : false);
+    try {
+        pQuery->ends_with(S(columnIndex), value2, caseSensitive ? true : false);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
@@ -426,8 +453,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
     JStringAccessor value2(env, value);
     if (!value2)
         return;
-
-    pQuery->contains(S(columnIndex), value2, caseSensitive ? true : false);
+    try {
+        pQuery->contains(S(columnIndex), value2, caseSensitive ? true : false);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_String_2Z(
@@ -440,8 +468,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
     JStringAccessor value2(env, value);
     if (!value2)
         return;
-
-    pQuery->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
+    try {
+        pQuery->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
+    } CATCH_STD()
 }
 
 
@@ -453,8 +482,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable(
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Table))
         return;
-
-    pQuery->subtable(S(columnIndex));
+    try {
+        pQuery->subtable(S(columnIndex));
+    } CATCH_STD()
 }
 
 // General ----------------------------------------------------
@@ -469,8 +499,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeTableview(
     Query* pQuery = Q(nativeQueryPtr);
     if (!QUERY_VALID(env, pQuery))
         return;
-
-    pQuery->tableview(*TV(nativeTableViewPtr));
+    try {
+        pQuery->tableview(*TV(nativeTableViewPtr));
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup(
@@ -479,8 +510,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup(
     Query* pQuery = Q(nativeQueryPtr);
     if (!QUERY_VALID(env, pQuery))
         return;
-
-    pQuery->group();
+    try {
+        pQuery->group();
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup(
@@ -489,8 +521,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup(
     Query* pQuery = Q(nativeQueryPtr);
     if (!QUERY_VALID(env, pQuery))
         return;
-
-    pQuery->end_group();
+    try {
+        pQuery->end_group();
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent(
@@ -500,8 +533,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent(
     Query* pQuery = Q(nativeQueryPtr);
     if (!QUERY_VALID(env, pQuery))
         return;
-
-    pQuery->end_subtable();
+    try {
+        pQuery->end_subtable();
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
@@ -511,25 +545,34 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
     Query* pQuery = Q(nativeQueryPtr);
     if (!QUERY_VALID(env, pQuery))
         return;
-
-    pQuery->Or();
+    try {
+        pQuery->Or();
+    } CATCH_STD()
 }
 
 
 // Find --------------------------------------
 
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindNext(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong lastMatch)
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFind(
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong fromTableRow)
 {
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
-// TODO: check ranges for lastmatch is correct - being changed now... 08-09-13
-    if (!QUERY_VALID(env, pQuery) ||
-        !ROW_INDEX_VALID(env, pTable, lastMatch))
-        return 0;
-
-    return pQuery->find_next(S(lastMatch));
+    if (!QUERY_VALID(env, pQuery))
+        return -1;
+    // It's valid to go 1 past the end index
+    if ((fromTableRow < 0) || (S(fromTableRow) > pTable->size())) {
+        // below check will fail with appropriate exception
+        (void) ROW_INDEX_VALID(env, pTable, fromTableRow);
+        return -1;
+    }
+    
+    try {
+        size_t r = pQuery->find( S(fromTableRow) );
+        return (r == not_found) ? jlong(-1) : jlong(r);
+    } CATCH_STD()
+    return -1;
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
@@ -539,16 +582,18 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
     Table* pTable = get_table_ptr(pQuery);
     if (!QUERY_VALID(env, pQuery) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
-
-    TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
-    return reinterpret_cast<jlong>(pResultView);
+        return -1;
+    try {
+        TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
+        return reinterpret_cast<jlong>(pResultView);
+    } CATCH_STD()
+    return -1;
 }
 
 
 // Integer Aggregates
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSum(
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSumInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -558,11 +603,13 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSum(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->sum(S(columnIndex), NULL, S(start), S(end), S(limit));
+    try {
+        return pQuery->sum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximum(
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximumInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -572,11 +619,13 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximum(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->maximum(S(columnIndex), NULL, S(start), S(end), S(limit));
+    try {
+        return pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimum(
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimumInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -586,11 +635,13 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimum(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->minimum(S(columnIndex), NULL, S(start), S(end), S(limit));
+    try {
+        return pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
-JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage(
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -600,13 +651,16 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverage(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    size_t resultcount;
-//TODO: return resultcount?
-    double avg = pQuery->average(S(columnIndex), &resultcount, S(start), S(end), S(limit));
-    //fprintf(stderr, "!!!Average(%d, %d) = %f (%d results)\n", start, end, avg, resultcount); fflush(stderr);
-    return avg;
+    try {
+        size_t resultcount;
+        //TODO: return resultcount?
+        double avg = pQuery->average_int(S(columnIndex), &resultcount, S(start), S(end), S(limit));
+        //fprintf(stderr, "!!!Average(%d, %d) = %f (%d results)\n", start, end, avg, resultcount); fflush(stderr);
+        return avg;
+    } CATCH_STD()
+    return 0;
 }
+
 
 // float Aggregates
 
@@ -620,8 +674,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeSumFloat(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->sum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
+    try {
+        return pQuery->sum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMaximumFloat(
@@ -634,8 +690,10 @@ JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMaximumFloat(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->maximum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
+    try {
+        return pQuery->maximum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMinimumFloat(
@@ -648,8 +706,10 @@ JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMinimumFloat(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->minimum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
+    try {
+        return pQuery->minimum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageFloat(
@@ -662,10 +722,12 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageFloat(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    size_t resultcount;
-    double avg = pQuery->average_float(S(columnIndex), &resultcount, S(start), S(end), S(limit));
-    return avg;
+    try {
+        size_t resultcount;
+        double avg = pQuery->average_float(S(columnIndex), &resultcount, S(start), S(end), S(limit));
+        return avg;
+    } CATCH_STD()
+    return 0;
 }
 
 // double Aggregates
@@ -680,8 +742,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeSumDouble(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->sum_double(S(columnIndex), NULL, S(start), S(end), S(limit));
+    try {
+        return pQuery->sum_double(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeMaximumDouble(
@@ -694,8 +758,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeMaximumDouble(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->maximum_double(S(columnIndex), NULL, S(start), S(end), S(limit));
+    try {
+        return pQuery->maximum_double(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeMinimumDouble(
@@ -708,8 +774,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeMinimumDouble(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->minimum_double(S(columnIndex), NULL, S(start), S(end), S(limit));
+    try {
+        return pQuery->minimum_double(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageDouble(
@@ -722,11 +790,13 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageDouble(
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    //TODO: Return resultcount
-    size_t resultcount;
-    double avg = pQuery->average_double(S(columnIndex), &resultcount, S(start), S(end), S(limit));
-    return avg;
+    try {
+        //TODO: Return resultcount
+        size_t resultcount;
+        double avg = pQuery->average_double(S(columnIndex), &resultcount, S(start), S(end), S(limit));
+        return avg;
+    } CATCH_STD()
+    return 0;
 }
 
 
@@ -740,8 +810,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(
     if (!QUERY_VALID(env, pQuery) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->count(S(start), S(end), S(limit));
+    try {
+        return pQuery->count(S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove(
@@ -752,6 +824,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove(
     if (!QUERY_VALID(env, pQuery) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return 0;
-
-    return pQuery->remove(S(start), S(end), S(limit));
+    try {
+        return pQuery->remove(S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
 }

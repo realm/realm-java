@@ -35,7 +35,7 @@ public class Tightdb extends PerformanceBase implements IPerformance {
     //--------------- small Int
 
     public void begin_findSmallInt(long value) {
-        //TestQuery q = table.smallInt.eq(value);
+        //TestQuery q = table.smallInt.equalTo(value);
     }
 
     public boolean findSmallInt(long value) {
@@ -61,7 +61,7 @@ public class Tightdb extends PerformanceBase implements IPerformance {
     //---------------- string
 
     public boolean findString(String value) {
-        TestRow res = table.second.eq(value).findFirst();
+        TestRow res = table.second.equalTo(value).findFirst();
         return (res != null);
     }
 

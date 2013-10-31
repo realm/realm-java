@@ -7,9 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #undef com_tightdb_internal_Util_REQUIRED_JNI_VERSION
-#define com_tightdb_internal_Util_REQUIRED_JNI_VERSION 19i64
+#define com_tightdb_internal_Util_REQUIRED_JNI_VERSION 20i64
 /*
  * Class:     com_tightdb_internal_Util
  * Method:    nativeGetMemUsage
@@ -33,6 +32,14 @@ JNIEXPORT jint JNICALL Java_com_tightdb_internal_Util_nativeGetVersion
  */
 JNIEXPORT void JNICALL Java_com_tightdb_internal_Util_nativeSetDebugLevel
   (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     com_tightdb_internal_Util
+ * Method:    nativeTestcase
+ * Signature: (IZJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_internal_Util_nativeTestcase
+  (JNIEnv *, jclass, jint, jboolean, jlong);
 
 #ifdef __cplusplus
 }

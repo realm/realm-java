@@ -17,62 +17,61 @@ CATEGORIES:
   - g_shared_group_constructor:
       NAMES    : SharedGroup
       SUMMARY  : *g_shared_group_constructor_summary
-      DESCR    : >
-                 Open a shared group (will be created if it does not already exist).
-
-                 By default the shared group will be fully durable, so that each commit writes its changes
-                 to disk in an atomic manner that guarantees that the file is always consistent.
-
-#                 If your data is transient, and does not need to persist to disk (like for caching or
-#                 shared state between processes). You can open the shared group in mem-only mode. Then the
-#                 file will just be used for identification and backing and will be removed again when there
-#                 are no more processes using it.
-#
-#                 Note that a shared group can only be opened in the mode it was created in.
-#
-#                 A SharedGroup may also be constructed in an unattached
-#                 state (2). See open() and is_attached() for more on
-#                 this.
+      DESCR    : *g_shared_group_constructor_descr
       SIGNATURE: >
                  SharedGroup(String databaseFile)
-#                 , bool no_create = false, DurabilityLevel dlevel);
-#                 SharedGroup(unattached_tag);
+                 SharedGroup(String databaseFile, Durability durability)
+                 SharedGroup(String databaseFile, Durability durability, boolean fileMustExist)
       PARAMS:
       - NAME   : databaseFile
         TYPES  : String
         DESCR  : Filesystem path of the TightDB database file to be opened.
-#      - NAME   : no_create
-#        TYPES  : bool
-#        DESCR  : If set to <tt>true</tt>, File::NotFound will be thrown
-#                 if the file does not already exist.
-#      - NAME   : dlevel
-#        TYPES  : DurabilityLevel
-#        DESCR  : Durability Level (durability_Full or durability_MemOnly)
+      - NAME   : fileMustExist
+        TYPES  : boolean
+        DESCR  : If set to <tt>true</tt>, an IllegalStateException will be thrown
+                 if the file does not already exist.
+      - NAME   : durability
+        TYPES  : Durability
+        DESCR  : Durability Level (MEM_ONLY, ASYNC or FULL). 
       RETURN:
         TYPES  : SharedGroup
         DESCR  : A shared group.
       THROWS:
-      - EXCEPT : IllegalArgument
-        DESCR  : If the file could not be opened for whatever reason.
+      - EXCEPT : IllegalStateException
+        DESCR  : If the file didn't exist when fileMustExist=true.
+        
 # TODO: more specific exceptions
       EXAMPLES:
-      - CODE   : ex_java_shared_group_constructor
+      - CODE   : ex_java_shared_group_constructor_string
         DESCR  :
 #- Utilities:
 #  METHODS:
 # ??? - g_shared_group_open:
 # ??? - g_shared_group_is_attached:
 
-#  - g_shared_group_has_changed:
-#      NAMES    : hasChanged
-#      SUMMARY  : *g_shared_group_has_changed_summary
-#      DESCR    : *g_shared_group_has_changed_descr
-#      RETURN:
-#        TYPES  : boolean
-#        DESCR  : <code>true</code> if it has changed, <code>false</code> otherwise.
-#      EXAMPLES:
-#      - CODE   : ex_java_shared_group_has_changed
-#        DESCR  :
+  - g_shared_group_has_changed:
+      NAMES    : hasChanged
+      SUMMARY  : *g_shared_group_has_changed_summary
+      DESCR    : *g_shared_group_has_changed_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : *g_shared_group_has_changed_return
+      EXAMPLES:
+      - CODE   : ex_java_shared_group_has_changed
+        DESCR  :
+
+  - g_shared_group_reserve:
+      NAMES    : reserve
+      SUMMARY  : *g_shared_group_reserve_summary
+      DESCR    : *g_shared_group_reserve_descr
+      PARAMS:
+      - NAME   : bytes
+        TYPES  : long
+        DESCR  : *g_shared_group_reserve_parm1
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_shared_group_reserve
+
 - Write transactions:
   METHODS:
   - g_shared_group_begin_write:

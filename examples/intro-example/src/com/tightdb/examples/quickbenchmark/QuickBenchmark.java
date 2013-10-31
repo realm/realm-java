@@ -115,16 +115,16 @@ public class QuickBenchmark {
 
 
         // Add an index and lets try some lookups
-        table.setIndex(0);      // syntax will soon be "table.name.setIndex();"
+        table.name.setIndex();
         timer.Start();
         long tightdbLookups = 0;
         int randLength = randomNames.length;
         for (int n = 0; n < ROUNDS; ++n) {
-            long rowIndex = table.lookup( randomNames[ rand.nextInt(randLength) ] );
+            long rowIndex = table.name.findFirst( randomNames[ rand.nextInt(randLength) ] ).getPosition();
             tightdbLookups += table.get(rowIndex).getAge();
         }
         long tightdbLookupTime = timer.GetTimeInMs();
-        System.out.printf("  lookup (random string): %10d msec\n", tightdbLookupTime);
+        System.out.printf("  find first (random string): %10d msec\n", tightdbLookupTime);
 
 
         /****************************************************************

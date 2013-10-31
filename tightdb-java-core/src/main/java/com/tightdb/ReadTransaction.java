@@ -7,27 +7,23 @@ public class ReadTransaction extends Group {
 
     private SharedGroup db;
 
-    ReadTransaction(SharedGroup db)
-    {
+    ReadTransaction(SharedGroup db) {
         super(db.beginReadGroup(), true);
         this.db = db;
     }
 
-    ReadTransaction(SharedGroup db, long nativePtr)
-    {
+    ReadTransaction(SharedGroup db, long nativePtr) {
         super(nativePtr, true); // make Group immutable
         this.db = db;
     }
 
-    public void endRead()
-    {
+    public void endRead() {
         db.endRead();
     }
 
 //    @Override
     @Deprecated
-    public void close()
-    {
+    public void close() {
         //System.out.println("read-close");
         db.endRead();
     }

@@ -118,14 +118,7 @@ public class Group {
             throw new IllegalStateException("Illegal to call methods on a closed Group.");    		
     }
     
-    public boolean equals(Object group) {
-    	if (!(group instanceof Group))
-    		return false;
-		return nativeEquals(nativePtr, ((Group)group).nativePtr);
-    }
-    
-    protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
-    
+  
     public long size() {
     	verifyGroupIsValid();
 		return nativeSize(nativePtr);
@@ -133,6 +126,12 @@ public class Group {
 
     protected native long nativeSize(long nativeGroupPtr);
 
+    
+    public boolean isEmpty(){
+        return size() == 0;
+    }
+    
+    
     /**
      * Checks whether table exists in the Group.
      *
@@ -253,11 +252,21 @@ public class Group {
     protected native void nativeCommit(long nativeGroupPtr);
 
     protected native String nativeToString(long nativeGroupPtr);
-
-    public boolean equals(Group grp) {
-        return nativeEquals(nativePtr, grp.nativePtr);
+        
+    public boolean equals(Object other) {
+        if (other == null)
+            return false;
+        if (other == this)
+            return true;
+        if (!(other instanceof Group))
+            return false;
+        
+        Group otherGroup = (Group) other;
+        return nativeEquals(nativePtr, otherGroup.nativePtr);
     }
 
+    protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
+    
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }

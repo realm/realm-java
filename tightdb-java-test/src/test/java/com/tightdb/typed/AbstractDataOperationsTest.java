@@ -1,8 +1,6 @@
 package com.tightdb.typed;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
 import java.util.Date;
 
 import org.testng.annotations.AfterMethod;
@@ -50,18 +48,14 @@ public abstract class AbstractDataOperationsTest {
     }
 
     @Test
-    public void shouldHaveTwoWaysToReadCellValues() {
+    public void shouldReadCellValue() {
         assertEquals(NAME0, getEmployees().get(0).getFirstName());
-        assertEquals(NAME0, getEmployees().get(0).firstName.get());
     }
 
     @Test
-    public void shouldHaveTwoWaysToWriteCellValues() {
+    public void shouldWriteCellValue() {
         getEmployees().get(0).setFirstName("FOO");
         assertEquals("FOO", getEmployees().get(0).getFirstName());
-
-        getEmployees().get(0).firstName.set("BAR");
-        assertEquals("BAR", getEmployees().get(0).getFirstName());
     }
 
     @Test
@@ -145,10 +139,11 @@ public abstract class AbstractDataOperationsTest {
 		
 		result = getEmployees().first().toString();
 		assertEquals(expectedRowStr, result);
-        
+        /*
         assertEquals("TestEmployeeTable.birthdate",
-        		getEmployees().first().birthdate.toString());
+        		getEmployees().first().getBirthdate().toString());
         assertEquals("TestEmployeeTable.phones",
-        		getEmployees().first().phones.toString());
+        		getEmployees().first().getPhones().toString());
+        */
     }
 }

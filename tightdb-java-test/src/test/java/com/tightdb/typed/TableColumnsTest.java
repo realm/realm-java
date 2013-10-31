@@ -5,7 +5,6 @@ import static com.tightdb.test.ExtraTests.assertArrayEquals;
 import static com.tightdb.test.ExtraTests.assertDateArrayEquals;
 import static org.testng.AssertJUnit.*;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 import org.testng.annotations.Test;
@@ -135,9 +134,10 @@ public class TableColumnsTest extends AbstractTest {
             PhoneData[] phones = EmployeesFixture.PHONES[i];
             assertEquals(phones.length, phoneTables[i].size());
             for (int j = 0; j < phones.length; j++) {
-                assertEquals(phones[j].type, phoneTables[i].get(j).type.get());
+                assertEquals(phones[j].type, phoneTables[i].get(j).getType()
+                );
                 assertEquals(phones[j].number,
-                        phoneTables[i].get(j).number.get());
+                        phoneTables[i].get(j).getNumber());
             }
         }
     }
@@ -190,15 +190,6 @@ public class TableColumnsTest extends AbstractTest {
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void shouldntSetDirectColumnValue() {
         employees.firstName.set("x");
-    }
-
-    @Test
-    public void shouldGetColumnInformation() {
-        assertEquals(8, employees.getColumnCount());
-        for (int i = 0; i < employees.getColumnCount(); ++i) {
-            assertEquals(EXPECTED_COLUMNS[i], employees.getColumnName(i));
-            assertEquals(EXPECTED_COLUMN_TYPE[i], employees.getColumnType(i));
-        }
     }
 
 }

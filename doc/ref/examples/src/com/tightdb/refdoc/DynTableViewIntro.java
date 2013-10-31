@@ -1,4 +1,4 @@
-
+// @@Example: ex_java_dyn_table_view_intro @@
 package com.tightdb.refdoc;
 
 import java.io.FileNotFoundException;
@@ -9,7 +9,6 @@ import com.tightdb.*;
 public class DynTableViewIntro {
 
     public static void main(String[] args) throws FileNotFoundException  {
-        // @@Example: ex_java_dyn_table_view_intro @@
         // @@Show@@
         // Create a new table
         Table table = new Table();
@@ -38,10 +37,10 @@ public class DynTableViewIntro {
         Assert(table.getString(1, 1).equals("London"));
 
         // Simple aggregations
-        Assert(view.sum(0) == 500);
-        Assert(view.maximum(0) == 300);
-        Assert(view.maximum(0) == 300);
-        Assert(view.average(0) == 250);
+        Assert(view.sumInt(0) == 500);
+        Assert(view.maximumInt(0) == 300);
+        Assert(view.maximumInt(0) == 300);
+        Assert(view.averageInt(0) == 250);
 
 
         // Get JSON representation of the data in the view 
@@ -50,7 +49,6 @@ public class DynTableViewIntro {
         out.print(view.toJson());
         out.close();
         // @@EndShow@@
-        // @@EndExample@@
     }
 
     static void Assert(boolean check) {
@@ -59,4 +57,4 @@ public class DynTableViewIntro {
         }
     }
 } 
-
+// @@EndExample@@
