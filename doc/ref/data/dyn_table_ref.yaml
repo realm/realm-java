@@ -7,7 +7,11 @@
 ID         : class_dyn_table
 TITLE      : Table
 SUMMARY    : *g_dyn_table_intro_summary
-DESCR      : *g_dyn_table_intro_descr
+DESCR      :
+- TEXT     : *g_dyn_table_intro_descr_core
+- TEXT     : *g_dyn_table_intro_descr_dynamic
+- TEXT     : *g_dyn_table_intro_descr_types
+- TEXT     : *g_dyn_table_intro_descr_notice
 SEE        : *g_dyn_table_intro_see
 EXAMPLES   :
 - DESCR    : >
