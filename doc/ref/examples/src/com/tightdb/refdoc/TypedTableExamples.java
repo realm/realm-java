@@ -45,6 +45,7 @@ public class TypedTableExamples {
         addExample();
         removeExample();
         removeLastExample();
+        addEmptyRowExample();
 
 
         // Searching methods
@@ -314,8 +315,13 @@ public class TypedTableExamples {
         people.add("John", 40, true);
         people.add("Susan", 50, false); 
 
-        // Use get method to access row
-        Assert(people.get(0).getHired());
+        // Use get method to access rows
+        PeopleRow susan = people.get(1);
+        Assert(susan.getName().equals("Susan"));
+
+        // Can be chained to access column values directly
+        Assert(people.get(0).getHired() == true);
+        Assert(people.get(1).getHired() == false);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -332,6 +338,25 @@ public class TypedTableExamples {
         people.add("Susan", 50, false); 
 
         Assert(people.size() == 2);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+
+    public static void addEmptyRowExample(){
+        // @@Example: ex_java_typed_table_add_empty_row @@
+        // @@Show@@
+        // Create table
+        PeopleTable people = new PeopleTable();
+
+        // Add a row with default values
+        people.addEmptyRow();
+        Assert(people.size() == 1);
+
+        // Add a row and set some values
+        PeopleRow row = people.addEmptyRow();
+        row.setName("John");
+        row.setHired(true);
+
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -387,8 +412,10 @@ public class TypedTableExamples {
         people.add("Susan", 50, false); 
         people.add("Greg", 26, true); 
 
-        // Get query object from table
-        PeopleQuery query = people.where();
+        // Do a query on table
+        PeopleRow susan = people.where().name.equalTo("Susan").findFirst();
+        Assert(susan != null);
+        Assert(susan.getAge() == 50);
 
         // See Query class for possible operations
         // with the Query object

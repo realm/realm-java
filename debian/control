@@ -1,5 +1,5 @@
 Source: tightdb-java
-Section: unknown
+Section: java
 Priority: extra
 Maintainer: Kenneth Geisshirt <kg@tightdb.com>
 Build-Depends: debhelper (>=7), libtightdb, libtightdb-dev

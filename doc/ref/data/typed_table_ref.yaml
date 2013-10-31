@@ -250,7 +250,10 @@ CATEGORIES :
   - g_typed_table_operator_brackets:
       NAMES    : get
       SUMMARY  : *g_typed_table_operator_brackets_summary
-      DESCR    : *g_typed_table_remove_row_descr
+      DESCR    : *g_typed_table_operator_brackets_descr
+      RETURN:
+        TYPES  : Row
+        DESCR  : Row found at position
       PARAMS:
       - NAME   : rowIndex
         TYPES  : long
@@ -273,6 +276,19 @@ CATEGORIES :
         DESCR  :
       SEE      : >
                 See {@link g_typed_table_insert} to insert a row into a specific row index.
+  - g_typed_table_add_empty_row:
+      NAMES    : addEmptyRow
+      SUMMARY  : Append one empty row.
+      DESCR    : This method adds one empty row with default values at the end of the table.
+                 The default values are 0, null, or "", as appropriate to the column types.
+      RETURN:
+        TYPES  : Row
+        DESCR  : The new row
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_add_empty_row
+        DESCR  :
+      SEE      : >
+                 See also {@link g_typed_table_add} to add rows with specific values.
   - g_typed_table_remove_row:
       NAMES    : remove
       SUMMARY  : *g_typed_table_remove_row_summary
@@ -296,14 +312,14 @@ CATEGORIES :
 - Searching:
   METHODS:
 # 
-  - g_dyn_table_where:
+  - g_typed_table_where:
 #  - g_dyn_table_where_const:
       NAMES    : where
-      SUMMARY  : *g_dyn_table_where_summary
-      DESCR    : *g_dyn_table_where_descr
+      SUMMARY  : Query table
+      DESCR    : This method initiates a query. See {@link class_typed_query}.
       RETURN:
         TYPES  : Query
-        DESCR  : *g_dyn_table_where_return_descr
+        DESCR  : The query object
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_typed_table_where
