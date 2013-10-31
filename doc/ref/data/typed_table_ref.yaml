@@ -11,6 +11,9 @@ DESCR      : *g_typed_table_descr
 SEE        : 
 EXAMPLES   :
 - DESCR    : >
+             Tables in the typed interface are defined using the following syntax:
+  CODE     : ex_java_typed_table_definition
+- DESCR    : >
              Below examples will showcase all the available methods in a typed Table.
              
              More specific examples are (soon) available in the detailed description 
