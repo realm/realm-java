@@ -1,82 +1,89 @@
-// @@Example: ex_java_typed_table_intro @@
+// @@Example: ex_java_typed_table_intro_subtables @@
 package com.tightdb.refdoc;
 import java.io.File;
 import java.io.IOException;
 
 import com.tightdb.*;
 
-public class TypedTableIntro {
+public class TypedTableIntroSubtables {
 
 
-    // Define the TighDB table with columns "name", "age" and "hired"
     @DefineTable
-    class People {
+    class Employees {
         String  name;
         int     age;
         boolean hired;
+        PhoneNumbers phones;
+    }
+    
+    @DefineTable
+    class PhoneNumbers {
+        String  desc;
+        String  number;
     }
 
     public static void main(String[] args) {
         // @@Show@@
 
         //Create table instance from the generated class
-        PeopleTable peopleTable = new PeopleTable();
+        EmployeesTable employeesTable = new EmployeesTable();
 
         // Add data to table
-        peopleTable.add("John", 20, true);
-        peopleTable.add("Mary", 21, false);
-        peopleTable.add("Lars", 32, true);
-        peopleTable.add("Phil", 43, false);
-        peopleTable.add("Anni", 54, true); 
+        employeesTable.add("John", 20, true, null);
         
-        peopleTable.get(0).getAge();  
+        employeesTable.add("Mary", 21, false, null);
+        employeesTable.add("Lars", 32, true);
+        employeesTable.add("Phil", 43, false);
+        employeesTable.add("Anni", 54, true); 
+        
+        employeesTable.get(0).getAge();  
         
         // Insert data at row index 2
-        peopleTable.insert(2, "Frank", 34, true);
+        employeesTable.insert(2, "Frank", 34, true);
 
-        if (!peopleTable.isEmpty()) {
-            long s = peopleTable.size(); // s => 6
+        if (!employeesTable.isEmpty()) {
+            long s = employeesTable.size(); // s => 6
         }
 
-        System.out.println("Size = " + peopleTable.size() + "\n");
+        System.out.println("Size = " + employeesTable.size() + "\n");
 
         /****************************** GETTERS AND SETTERS **********************/
 
         // Get value from row 2 column Name
-        String name = peopleTable.get(2).getName(); // name => "Mary"
+        String name = employeesTable.get(2).getName(); // name => "Mary"
         
         // Set the value from in row 2 column Name
-        peopleTable.get(2).setName("NewName"); 
+        employeesTable.get(2).setName("NewName"); 
 
-        String lastRowName = peopleTable.last().getName();  // retrieve name for last row
+        String lastRowName = employeesTable.last().getName();  // retrieve name for last row
 
         // Replace entire row 4 with new values
-        peopleTable.get(4).set("Eric", 50, true);
+        employeesTable.get(4).set("Eric", 50, true);
 
         /****************************** DATA REMOVAL *****************************/
-        peopleTable.remove(2);
+        employeesTable.remove(2);
 
-        System.out.println("\nRemoved row 2. Down to " + peopleTable.size() + " rows.\n");
+        System.out.println("\nRemoved row 2. Down to " + employeesTable.size() + " rows.\n");
 
         /****************************** ITERATION OF ALL RECORDS *****************/
 
         // lazy iteration over the table
 
-        for (PeopleRow person : peopleTable) {
+        for (PeopleRow person : employeesTable) {
             System.out.println(person.getName() + " is " + person.getAge() + " years old.");
         }
 
         /****************************** SIMPLE QUERY *****************************/
 
         System.out.println("\nFound: ");
-        PeopleRow p = peopleTable.name.equalTo("John").findFirst();
+        PeopleRow p = employeesTable.name.equalTo("John").findFirst();
         System.out.println( p );
         // prints: "Employee {name=John, age=20, hired=true}"
 
         /****************************** COMPLEX QUERY ****************************/
 
         // Define the query
-        PeopleQuery query = peopleTable
+        PeopleQuery query = employeesTable
                 .age.between(20, 35)    // Implicit AND with below
                 .name.contains("a")     // Implicit AND with below
                 .group()                // "("
