@@ -25,9 +25,6 @@
     <ClCompile Include="src\mem_usage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\com_tightdb_internal_util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\com_tightdb_table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -35,6 +32,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\com_tightdb_SharedGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\com_tightdb_internal_Util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\com_tightdb_SubTableSchema.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -51,9 +54,6 @@
     <ClInclude Include="src\mixedutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\tablespecutil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -63,9 +63,6 @@
     <ClInclude Include="src\mem_usage.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\com_tightdb_internal_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\com_tightdb_Table.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -73,6 +70,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\com_tightdb_SharedGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\com_tightdb_internal_Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\com_tightdb_SubTableSchema.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

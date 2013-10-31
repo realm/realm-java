@@ -45,7 +45,7 @@ each of our major platforms:
     sudo apt-get install libcommons-io-java libcommons-lang-java libfreemarker-java
     sudo apt-get install testng libqdox-java bsh ant
 
-### Fedora 17 and 18
+### Fedora 17, 18, 19
 
     sudo yum install gcc gcc-c++ java-1.7.0-openjdk-devel
     sudo yum install apache-commons-io apache-commons-lang freemarker
@@ -130,7 +130,7 @@ Building, testing, and installing
     sh build.sh build
     sh build.sh test
     sudo sh build.sh install
-    sh build.sh test-intalled
+    sh build.sh test-installed
 
 This procedure will install the following two native JNI libraries in
 an appropriate system directory (see "Configuration" below):
@@ -198,6 +198,11 @@ or disable special features during building:
 Set `TIGHTDB_ENABLE_MEM_USAGE` to a nonempty value to enable
 reporting of memory usage.
 
+
+Setting up a project
+--------------------
+For instructions on setting up: Ant, Maven, Eclipse or IntelliJ IDEA, please consult our online documentation:
+http://www.tightdb.com/documentation/Java_misc/1/Tutorial/
 
 Packaging
 ---------

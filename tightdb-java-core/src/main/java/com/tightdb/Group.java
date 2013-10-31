@@ -37,19 +37,30 @@ public class Group {
 
     protected native long createNative();
 
-    public Group(String fileName, boolean readOnly) {
-        this.nativePtr = createNative(fileName, readOnly);
+    public enum OpenMode {
+    	// Below values must match the values in tightdb::group::OpenMode in C++
+    	READ_ONLY(0), 
+    	READ_WRITE(1), 
+    	READ_WRITE_NO_CREATE(2);
+    	private int value;
+    	private OpenMode(int value) {
+    		this.value = value;
+    	}
+    };
+
+    public Group(String filepath, OpenMode mode) {
+        this.nativePtr = createNative(filepath, mode.value);
         checkNativePtr();
     }
 
-    protected native long createNative(String filename, boolean readOnly);
+    protected native long createNative(String filepath, int value);
 
-    public Group(String fileName) {
-        this(fileName, true);
+    public Group(String filepath) {
+        this(filepath, OpenMode.READ_ONLY);
     }
 
     public Group(File file) {
-        this(file.getAbsolutePath(), !file.canWrite());
+        this(file.getAbsolutePath(), file.canWrite() ? OpenMode.READ_WRITE : OpenMode.READ_ONLY);
     }
 
 
@@ -107,7 +118,7 @@ public class Group {
             throw new IllegalStateException("Illegal to call methods on a closed Group.");    		
     }
     
-
+  
     public long size() {
     	verifyGroupIsValid();
 		return nativeSize(nativePtr);
@@ -115,6 +126,12 @@ public class Group {
 
     protected native long nativeSize(long nativeGroupPtr);
 
+    
+    public boolean isEmpty(){
+        return size() == 0;
+    }
+    
+    
     /**
      * Checks whether table exists in the Group.
      *
@@ -153,6 +170,8 @@ public class Group {
      */
     public Table getTable(String name) {
     	verifyGroupIsValid();
+    	if (name == null || name == "")
+    		throw new IllegalArgumentException("Invalid name. Name must be a non-empty string.");
         if (immutable)
             if (!hasTable(name))
                 throwImmutable();
@@ -178,7 +197,7 @@ public class Group {
 
     protected native void nativeWriteToFile(long nativeGroupPtr, String fileName)
             throws IOException;
-
+    
     /**
      * Serialize the group to the specific file on the disk.
      *
@@ -215,6 +234,39 @@ public class Group {
     protected native ByteBuffer nativeWriteToByteBuffer(long nativeGroupPtr);
 */
 
+    public void commit() {
+        verifyGroupIsValid();
+        nativeCommit(nativePtr);
+    }
+
+    public String toJson() {
+        return nativeToJson(nativePtr);
+    }
+
+    protected native String nativeToJson(long nativeGroupPtr);
+
+    public String toString() {
+        return nativeToString(nativePtr);
+    }
+    
+    protected native void nativeCommit(long nativeGroupPtr);
+
+    protected native String nativeToString(long nativeGroupPtr);
+        
+    public boolean equals(Object other) {
+        if (other == null)
+            return false;
+        if (other == this)
+            return true;
+        if (!(other instanceof Group))
+            return false;
+        
+        Group otherGroup = (Group) other;
+        return nativeEquals(nativePtr, otherGroup.nativePtr);
+    }
+
+    protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
+    
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }

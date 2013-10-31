@@ -32,45 +32,45 @@ public class JNIMixedTypeTest {
     @Test(expectedExceptions = IllegalAccessException.class, dataProvider = "columnTypesProvider")
     public void shouldFailOnWrongTypeRetrieval(ColumnType columnType)
             throws Exception {
-        Object value = columnType != ColumnType.ColumnTypeString ? "abc" : 123;
+        Object value = columnType != ColumnType.STRING ? "abc" : 123;
         Mixed mixed = Mixed.mixedValue(value);
 
         switch (columnType) {
-        case ColumnTypeBinary:
+        case BINARY:
             mixed.getBinaryByteArray();
             break;
-        case ColumnTypeDate:
+        case DATE:
             mixed.getDateValue();
             break;
-        case ColumnTypeBool:
+        case BOOLEAN:
             mixed.getBooleanValue();
             break;
-        case ColumnTypeInt:
+        case INTEGER:
             mixed.getLongValue();
             break;
-        case ColumnTypeFloat:
+        case FLOAT:
             mixed.getFloatValue();
             break;
-        case ColumnTypeDouble:
+        case DOUBLE:
             mixed.getDoubleValue();
             break;
-        case ColumnTypeString:
+        case STRING:
             mixed.getStringValue();
             break;
 
         default:
-            assertTrue(false);
+            fail("wrong type");
             break;
         }
     }
 
     @Test(dataProvider = "mixedValuesProvider")
     public void shouldStoreValuesOfMixedType(MixedData value1,
-            MixedData value2, MixedData value3) throws Exception {
+            MixedData value2, MixedData value3) throws Throwable {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeMixed, "mix");
+        tableSpec.addColumn(ColumnType.MIXED, "mix");
         table.updateFromSpec(tableSpec);
 
         table.add(value1.value);
@@ -84,7 +84,7 @@ public class JNIMixedTypeTest {
         table.setMixed(0, 0, Mixed.mixedValue(value3.value));
 
         checkMixedCell(table, 0, 0, value3.type, value3.value);
-        table.close();
+        table.finalize();
     }
 
     private void checkMixedCell(Table table, long col, long row,
@@ -93,7 +93,7 @@ public class JNIMixedTypeTest {
         assertEquals(columnType, mixedType);
 
         Mixed mixed = table.getMixed(col, row);
-        if (columnType == ColumnType.ColumnTypeBinary) {
+        if (columnType == ColumnType.BINARY) {
             if (mixed.getBinaryType() == Mixed.BINARY_TYPE_BYTE_ARRAY) {
                 // NOTE: We never get here because we always "get" a ByteBuffer.
                 byte[] bin = mixed.getBinaryByteArray();
@@ -115,13 +115,13 @@ public class JNIMixedTypeTest {
     @DataProvider(name = "mixedValuesProvider")
     public Iterator<Object[]> mixedValuesProvider() {
         Object[] values = {
-                new MixedData(ColumnType.ColumnTypeBool, true),
-                new MixedData(ColumnType.ColumnTypeString, "abc"),
-                new MixedData(ColumnType.ColumnTypeInt, 123L),
-                new MixedData(ColumnType.ColumnTypeFloat, 987.123f),
-                new MixedData(ColumnType.ColumnTypeDouble, 1234567.898d),
-                new MixedData(ColumnType.ColumnTypeDate, new Date(645342)),
-                new MixedData(ColumnType.ColumnTypeBinary, new byte[] { 1, 2,
+                new MixedData(ColumnType.BOOLEAN, true),
+                new MixedData(ColumnType.STRING, "abc"),
+                new MixedData(ColumnType.INTEGER, 123L),
+                new MixedData(ColumnType.FLOAT, 987.123f),
+                new MixedData(ColumnType.DOUBLE, 1234567.898d),
+                new MixedData(ColumnType.DATE, new Date(645342)),
+                new MixedData(ColumnType.BINARY, new byte[] { 1, 2,
                         3, 4, 5 }) };
 
         List<?> mixedValues = Arrays.asList(values);
@@ -131,10 +131,10 @@ public class JNIMixedTypeTest {
 
     @DataProvider(name = "columnTypesProvider")
     public Object[][] columnTypesProvider() {
-        Object[][] values = { {ColumnType.ColumnTypeBool},
-                {ColumnType.ColumnTypeString}, {ColumnType.ColumnTypeInt},
-                {ColumnType.ColumnTypeFloat}, {ColumnType.ColumnTypeDouble},
-                {ColumnType.ColumnTypeDate}, {ColumnType.ColumnTypeBinary} };
+        Object[][] values = { {ColumnType.BOOLEAN},
+                {ColumnType.STRING}, {ColumnType.INTEGER},
+                {ColumnType.FLOAT}, {ColumnType.DOUBLE},
+                {ColumnType.DATE}, {ColumnType.BINARY} };
 
         return values;
     }

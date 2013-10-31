@@ -5,7 +5,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
-import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import org.testng.annotations.AfterMethod;
@@ -28,10 +27,10 @@ public abstract class AbstractTest {
             "phones" };
 
     protected static final ColumnType[] EXPECTED_COLUMN_TYPE = {
-            ColumnType.ColumnTypeString, ColumnType.ColumnTypeString,
-            ColumnType.ColumnTypeInt, ColumnType.ColumnTypeBool,
-            ColumnType.ColumnTypeBinary, ColumnType.ColumnTypeDate,
-            ColumnType.ColumnTypeMixed, ColumnType.ColumnTypeTable };
+            ColumnType.STRING, ColumnType.STRING,
+            ColumnType.INTEGER, ColumnType.BOOLEAN,
+            ColumnType.BINARY, ColumnType.DATE,
+            ColumnType.MIXED, ColumnType.TABLE };
 
     protected TestEmployeeTable employees;
 
@@ -58,6 +57,8 @@ public abstract class AbstractTest {
         employees.clear();
         assertEquals(0, employees.size());
         employeesView.clear();
+        employees = null;
+        employeesView = null;
     }
 
     protected void addEmployee(TestEmployeeTable employees, EmployeeData emp) {
@@ -75,44 +76,39 @@ public abstract class AbstractTest {
 
     private void addPhones(EmployeeData emp, TestEmployeeRow e) {
         for (PhoneData phone : emp.phones) {
-            e.phones.get().add(phone.type, phone.number);
+            e.getPhones().add(phone.type, phone.number);
         }
     }
 
     protected void updateEmployee(TestEmployeeRow employee, EmployeeData data) {
-        employee.firstName.set(data.firstName);
-        employee.lastName.set(data.lastName);
-        employee.salary.set(data.salary);
-        employee.driver.set(data.driver);
-        // FIXME: NOTE: This is just a hack. photo.set should take a byte[] as
-        // parameter.
-        // using wrap() doesn't create a Direct allocated buffer as expected.
-        ByteBuffer buf = ByteBuffer.allocateDirect(data.photo.length);
-        buf.put(data.photo);
-        employee.photo.set(buf);
+        employee.setFirstName(data.firstName);
+        employee.setLastName(data.lastName);
+        employee.setSalary(data.salary);
+        employee.setDriver(data.driver);
+        employee.setPhoto(data.photo);
         // employee.photo.set(ByteBuffer.wrap(data.photo));
-        employee.birthdate.set(data.birthdate);
-        employee.extra.set(Mixed.mixedValue(data.extra));
+        employee.setBirthdate(data.birthdate);
+        employee.setExtra(Mixed.mixedValue(data.extra));
     }
 
     protected void checkCursorValues(EmployeeData expected,
             TestEmployeeRow employee) {
         try {
-            assertEquals(expected.firstName, employee.firstName.get());
-            assertEquals(expected.lastName, employee.lastName.get());
-            assertEquals(expected.salary, employee.salary.get().longValue());
-            assertEquals(expected.driver, employee.driver.get().booleanValue());
-            assertEquals(ByteBuffer.wrap(expected.photo), employee.photo.get());
-            assertEquals(expected.birthdate.getTime()/1000, employee.birthdate.get().getTime()/1000);
-            assertEquals(Mixed.mixedValue(expected.extra), employee.extra.get());
+            assertEquals(expected.firstName, employee.getFirstName());
+            assertEquals(expected.lastName, employee.getLastName());
+            assertEquals(expected.salary, employee.getSalary());
+            assertEquals(expected.driver, employee.getDriver());
+            assertEquals(expected.photo, employee.getPhoto());
+            assertEquals(expected.birthdate.getTime()/1000, employee.getBirthdate().getTime()/1000);
+            assertEquals(Mixed.mixedValue(expected.extra), employee.getExtra());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     protected void checkCursorValues(PhoneData expected, TestPhoneRow phone) {
-        assertEquals(expected.type, phone.type.get());
-        assertEquals(expected.number, phone.number.get());
+        assertEquals(expected.type, phone.getType());
+        assertEquals(expected.number, phone.getNumber());
     }
 
     protected void checkCursorColumns(TestEmployeeRow employee) {

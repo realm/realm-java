@@ -1,8 +1,7 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+VERSION              := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
 
 override_dh_usrlocal:
 
@@ -22,7 +21,7 @@ tightdb-java: build
 	dh_testroot -a
 	dh_installdocs -a
 	dh_installchangelogs -p$@ -a
-	dh_strip -p$@ .a
+	dh_strip -p$@ -a
 	dh_compress -p$@ -s
 	dh_fixperms -p$@ -a
 	dh_installdeb -p$@ -a
@@ -31,6 +30,8 @@ tightdb-java: build
 	dh_md5sums -p$@ -a
 	dh_builddeb -p$@ -a
 	dh_installdirs
+	mh_installpoms -p$@
+	mh_installjar -p$@ -l pom.xml lib/tightdb.jar
 
 tightdb-java-dev: build
 	DESTDIR=$$(pwd)/debian/tightdb-java-dev sh build.sh install
@@ -38,7 +39,12 @@ tightdb-java-dev: build
 	dh_testroot -a
 	dh_installdocs -a
 	dh_installchangelogs -p$@ -a
-	dh_strip -p$@ .a
+	dh_strip -p$@ -a
+	dh_installexamples -p$@ $$(pwd)/examples/ant-setup
+	dh_installexamples -p$@ $$(pwd)/examples/intro-example
+	dh_installexamples -p$@ $$(pwd)/examples/lib-sqlite
+	dh_installexamples -p$@ $$(pwd)/examples/maven-setup
+	mh_installpom -p$@ -o pom-debian.xml
 	dh_compress -p$@ -s
 	dh_fixperms -p$@ -a
 	dh_installdeb -p$@ -a

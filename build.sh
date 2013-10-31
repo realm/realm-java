@@ -8,6 +8,26 @@ MODE="$1"
 
 DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
+interactive_install_required_jar()
+{
+    local jar_name
+    jar_name="$1"
+    echo "jar file $jar_name is not installed."
+    echo "Do you wish to install $jar_name (y/n)?"
+    read answer
+    if [ $(echo "$answer" | grep -c ^[Yy]) = 1 ]; then
+        if [ "$OS" = "Darwin" ]; then
+            sudo install -d /usr/local/share/java
+            sudo install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
+        else
+            echo "No interactive installation yet - sorry."
+            exit 0
+        fi
+    else
+        echo "SKIPPING: cannot proceed without $jar_name"
+        exit 0
+    fi
+}
 
 word_list_append()
 {
@@ -145,7 +165,10 @@ EOF
         return 1
     fi
     if ! line="$(grep "^$name:" "config")"; then
-        echo "ERROR: Failed to read configuration parameter '$name'" 1>&2
+        cat 1>&2 <<EOF
+ERROR: Failed to read configuration parameter '$name'.
+Maybe you need to rerun 'sh build.sh config [PREFIX]'.
+EOF
         return 1
     fi
     value="$(printf "%s\n" "$line" | cut -d: -f2-)" || return 1
@@ -154,48 +177,177 @@ EOF
 }
 
 
+# Sets 'java_home', 'java_bindir', 'java_includedir' and
+# 'java_includedir_arch' on success
+check_java_home()
+{
+    local cand bin inc arch found_jni_md_h os_lc
+    cand="$1"
+    if [ -z "$INTERACTIVE" ]; then
+        echo "Checking '$cand' as candidate for JAVA_HOME"
+    fi
+
+    # Locate 'java' 'javac' and 'jni.h'
+    bin=""
+    inc=""
+    if [ "$OS" = "Darwin" ]; then
+        if [ -e "$cand/Commands/java" -a -e "$cand/Commands/javac" -a -e "$cand/Headers/jni.h" ]; then
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Found 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            fi
+            bin="Commands"
+            inc="Headers"
+        else
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Could not find 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            fi
+        fi
+    fi
+    if ! [ "$bin" ]; then
+        if [ -e "$cand/bin/java" -a -e "$cand/bin/javac" -a -e "$cand/include/jni.h" ]; then
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Found 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            fi
+            bin="bin"
+            inc="include"
+        else
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Could not find 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            fi
+        fi
+    fi
+
+    # Do we need to add a platform dependent include directory?
+    arch="none"
+    if [ "$inc" ]; then
+        if [ -e "$cand/$inc/jni_md.h" ]; then
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Found '$inc/jni_md.h' in '$cand'"
+            fi
+            found_jni_md_h="1"
+        else
+            os_lc="$(printf "%s\n" "$OS" | awk '{print tolower($0)}')" || return 1
+            if [ -e "$cand/$inc/$os_lc/jni_md.h" ]; then
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "Found '$inc/$os_lc/jni_md.h' in '$cand'"
+                fi
+                found_jni_md_h="1"
+                arch="$cand/$inc/$os_lc"
+            else
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "Could not find '$inc/jni_md.h' or '$inc/$os_lc/jni_md.h' in '$cand'"
+                fi
+            fi
+        fi
+    fi
+
+    if [ "$bin" ] && [ "$found_jni_md_h" ]; then
+        java_home="$cand"
+        java_bindir="$java_home/$bin"
+        java_includedir="$java_home/$inc"
+        java_includedir_arch="$arch"
+    else
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Skipping '$cand'"
+        fi
+    fi
+    return 0
+}
+
+
 
 case "$MODE" in
 
     "config")
         install_prefix="$1"
-        if [ -z "$install_prefix" ]; then
+        if ! [ "$install_prefix" ]; then
             install_prefix="auto"
         fi
 
-        # Find 'jni.h', 'java' and 'javac'
-        if [ "$OS" = "Darwin" ]; then
-            java_inc="Headers"
-            java_bin="Commands"
-        else
-            java_inc="include"
-            java_bin="bin"
+        # install java when in interactive mode (Darwin only)
+        if [ -n "$INTERACTIVE" ]; then
+            if [ "$OS" = "Darwin" ]; then
+                # FIXME: Use exit status of '/usr/libexec/java_home 2>/dev/null 1>&2' to test for presenece of Java
+                # FIXME: Use '/usr/libexec/java_home --request 2>/dev/null 1>&2' to initiate asynchronous interactive installation of Java
+                if ! java -version > /dev/null 2>&1 ; then
+                    echo "It seems that Java is not installed."
+                    echo "Do you wish to skip installation of the TightDB Java bindings (y/n)?"
+                    read answer
+                    if [ $(echo "$answer" | grep -c ^[yY]) = 1 ]; then
+                        echo "Please consider to abort Java installation pop-up."
+                        exit 0
+                    else
+                        echo "Press any key to continue when Java is installed."
+                        read answer
+                    fi
+                fi
+            fi
         fi
-        if [ -z "$JAVA_HOME" -o \! -e "$JAVA_HOME/$java_bin/javac" ]; then
-            if ! javac_cmd="$(which javac 2>/dev/null)"; then
-                echo "ERROR: No JAVA_HOME and no Java compiler in PATH" 1>&2
-                exit 1
+
+        java_home=""
+
+        # Check JAVA_HOME when specified
+        if ! [ "$java_home" ] && [ "$JAVA_HOME" ]; then
+            if [ -z "$INTERACTIVE" ]; then
+                echo "JAVA_HOME specified"
             fi
-            javac_cmd="$(readlink_f "$javac_cmd")" || exit 1
-            JAVA_HOME="$(remove_suffix "$javac_cmd" "/$java_bin/javac")" || exit 1
-            if [ "$JAVA_HOME" = "$javac_cmd" ]; then
-                echo "ERROR: Could not determine JAVA_HOME from path of 'javac' command" 1>&2
-                exit 1
+            check_java_home "$JAVA_HOME" || exit 1
+        fi
+
+        # On Darwin, check output of '/usr/libexec/java_home'
+        if ! [ "$java_home" ] && [ "$OS" = "Darwin" ]; then
+            # See also http://blog.hgomez.net/blog/2012/07/20/understanding-java-from-command-line-on-osx
+            if ! [ -x "/usr/libexec/java_home" ]; then
+                echo "ERROR: '/usr/libexec/java_home' not found or not executable" 1>&2
+                exti 1
+            fi
+            # FIXME: Should we have added '-t JNI' to /usr/libexec/java_home?
+            if path="$(/usr/libexec/java_home -v 1.6+ 2>/dev/null)"; then
+                echo "'/usr/libexec/java_home -v 1.6+' specifies a JAVA_HOME"
+                check_java_home "$path" || exit 1
             fi
         fi
-        for x in "$java_inc/jni.h" "$java_bin/java" "$java_bin/javac"; do
-            if ! [ -f "$JAVA_HOME/$x" ]; then
-                echo "ERROR: No '$x' in '$JAVA_HOME'" 1>&2
-                exit 1
+
+        # As a last resort, try to find 'javac' in PATH
+        if ! [ "$java_home" ]; then
+            if path="$(which javac 2>/dev/null)"; then
+                path="$(readlink_f "$path")" || exit 1
+                cand=""
+                if [ "$OS" = "Darwin" ]; then
+                    dir="$(remove_suffix "$path" "/Commands/javac")" || exit 1
+                    if [ "$dir" != "$path" ]; then
+                        cand="$dir"
+                    fi
+                fi
+                if ! [ "$cand" ]; then
+                    dir="$(remove_suffix "$path" "/bin/javac")" || exit 1
+                    if [ "$dir" != "$path" ]; then
+                        cand="$dir"
+                    fi
+                fi
+                if ! [ "$cand" ]; then
+                    echo "ERROR: Could not determine JAVA_HOME from path of 'javac' command '$path'" 1>&2
+                    exit 1
+                fi
+                echo "'javac' found in PATH as '$path'"
+                check_java_home "$cand" || exit 1
             fi
-        done
-        java_cmd="$JAVA_HOME/$java_bin/java"
-        javac_cmd="$JAVA_HOME/$java_bin/javac"
-        include_dir="$JAVA_HOME/$java_inc"
-        echo "Examining Java command '$java_cmd'"
+        fi
+
+        if ! [ "$java_home" ]; then
+            echo "ERROR: No JAVA_HOME and no Java compiler in PATH" 1>&2
+            exit 1
+        fi
+
+        java_cmd="$java_bindir/java"
+        javac_cmd="$java_bindir/javac"
+
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Examining Java command '$java_cmd'"
+        fi
         min_ver_major="1"
         min_ver_minor="6"
-        version="$($java_cmd -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\).*"/\1/')"
+        version="$($java_cmd -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\)".*/\1/')"
         major="$(printf "%s\n" "$version" | cut -d. -f1)" || exit 1
         minor="$(printf "%s\n" "$version" | cut -d. -f2)" || exit 1
         if ! printf "%s\n" "$major" | grep -q '^[0-9][0-9]*$' || ! printf "%s\n" "$minor" | grep -q '^[0-9][0-9]*$'; then
@@ -206,7 +358,9 @@ case "$MODE" in
             echo "ERROR: Need Java version $min_ver_major.$min_ver_minor or newer (is '$version')" 1>&2
             exit 1
         fi
-        echo "Using Java command: $java_cmd (version $version)"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Using Java command: $java_cmd (version $version)"
+        fi
         java_version="$version"
 
         if [ "$install_prefix" = "auto" ]; then
@@ -244,11 +398,17 @@ case "$MODE" in
                     break
                 fi
             done
-            if [ -z "$found" ]; then
-                echo "ERROR: Could not find prerequisite JAR '$x'" 1>&2
-                exit 1
+            if ! [ "$found" ]; then
+                if ! [ "$INTERACTIVE" ]; then
+                    echo "ERROR: Could not find prerequisite JAR '$x'" 1>&2
+                    exit 1
+                else
+                    interactive_install_required_jar $x
+                    word_list_append "required_jars" /usr/local/share/java/$x
+                fi
+            else
+                word_list_append "required_jars" "$path" || exit 1
             fi
-            word_list_append "required_jars" "$path" || exit 1
         done
 
         # For testing we need testng.jar. It, in turn, requires
@@ -276,7 +436,7 @@ case "$MODE" in
                         break;
                     fi
                 done
-                if [ -z "$found" ]; then
+                if ! [ "$found" ]; then
                     break
                 fi
                 word_list_append "jar_paths" "$path" || exit 1
@@ -294,23 +454,43 @@ case "$MODE" in
             fi
         fi
 
+
         cat >"config" <<EOF
-java-version:    $java_version
-java-command:    $java_cmd
-javac-command:   $javac_cmd
-include-dir:     $include_dir
-required-jars:   $required_jars
-testing-jars:    $testing_jars
-install-prefix:  $install_prefix
-jni-install-dir: $jni_install_dir
-jar-install-dir: $jar_install_dir
-jni-suffix:      $jni_suffix
+java-version:         $java_version
+java-command:         $java_cmd
+javac-command:        $javac_cmd
+java-includedir:      $java_includedir
+java-includedir-arch: $java_includedir_arch
+required-jars:        $required_jars
+testing-jars:         $testing_jars
+install-prefix:       $install_prefix
+jni-install-dir:      $jni_install_dir
+jar-install-dir:      $jar_install_dir
+jni-suffix:           $jni_suffix
 EOF
-        echo "New configuration:"
-        cat "config" | sed 's/^/    /' || exit 1
-        echo "Done configuring"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "New configuration:"
+            cat "config" | sed 's/^/    /' || exit 1
+            echo "Done configuring"
+        fi
         exit 0
         ;;
+
+    "install-report")
+        java_version="$(get_config_param "java-version")"
+        java_command="$(get_config_param "java-command")"
+        javac_command="$(get_config_param "javac-command")"
+        jni_install_dir="$(get_config_param "jni-install-dir")"
+        jar_install_dir="$(get_config_param "jar-install-dir")"
+        echo "Java version         : $java_version"
+        echo "Java virtual machine : $java_command"
+        echo "Java compiler        : $javac_command"
+        echo "Installed JNI files  :"
+        find $jni_install_dir -name '*tight*jni*'
+        echo "Installed JAR files  :"
+        find $jar_install_dir -name '*tightdb*jar'
+        ;;
+
 
     "clean")
         auto_configure || exit 1
@@ -336,12 +516,16 @@ EOF
     "build")
         auto_configure || exit 1
         javac_cmd="$(get_config_param "javac-command")" || exit 1
-        include_dir="$(get_config_param "include-dir")" || exit 1
+        java_includedir="$(get_config_param "java-includedir")" || exit 1
+        java_includedir_arch="$(get_config_param "java-includedir-arch")" || exit 1
         jni_suffix="$(get_config_param "jni-suffix")"   || exit 1
 
         # Build libtightdb-jni.so
-        # FIXME: On Mac with Oracle JDK 7, 'darwin' must be substituded for 'linux'.
-        TIGHTDB_ENABLE_FAT_BINARIES="1" make -C "tightdb_jni" EXTRA_CFLAGS="-I$include_dir -I$include_dir/linux" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+        extra_cflags="-I$java_includedir"
+        if [ "$java_includedir_arch" != "none" ]; then
+            extra_cflags="$extra_cflags -I$java_includedir_arch"
+        fi
+        TIGHTDB_ENABLE_FAT_BINARIES="1" make -C "tightdb_jni" EXTRA_CFLAGS="$extra_cflags" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
 
         mkdir -p "lib" || exit 1
 
@@ -402,7 +586,7 @@ EOF
         dir="tightdb-java-test/src/test"
         echo "Building test suite in '$dir'"
         export CLASSPATH="$devkit_jar:$temp_dir/gen:."
-        (cd "$dir/../main/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestModel.java) || exit 1
+        (cd "$dir/../test/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestTableModel.java) || exit 1
 
         path_list_append "CLASSPATH" "../main" || exit 1
         testing_jars="$(get_config_param "testing-jars")" || exit 1
@@ -441,14 +625,7 @@ EOF
 
     "test-examples")
         cd "examples/intro-example" || exit 1
-        echo "ant build:"
-        ant build || exit 1
-        echo "ant tutorial:"
-        ant tutorial || exit 1
-        echo "ant showcase:"
-        ant showcase || exit 1
-        #echo "ant performance:"
-        #ant performance || exit 1
+        ant runall || exit 1
         echo "Test passed"
         exit 0
         ;;
@@ -456,7 +633,7 @@ EOF
     "install")
         require_config || exit 1
 
-        if [ -z "$DESTDIR" ]; then
+        if ! [ "$DESTDIR" ]; then
             jar_list="tightdb-devkit.jar tightdb.jar"
             full_install="yes"
         else
@@ -566,14 +743,23 @@ EOF
         grep -v -f "$TEMP_DIR/exclude.bre" "$TEMP_DIR/files2" >"$TEMP_DIR/files3" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" -T "$TEMP_DIR/files3" || exit 1
         (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
-        (cd "$TARGET_DIR" && pandoc README.md -o README.pdf) || exit 1
+        if ! [ "$TIGHTDB_DISABLE_MARKDOWN_TO_PDF" ]; then
+            (cd "$TARGET_DIR" && pandoc README.md -o README.pdf) || exit 1
+        fi
+        exit 0
+        ;;
+
+    "dist-deb")
+        codename=$(lsb_release -s -c)
+        (cd debian && sed -e "s/@CODENAME@/$codename/g" changelog.in > changelog) || exit 1
+        dpkg-buildpackage -rfakeroot -us -uc || exit 1
         exit 0
         ;;
 
     "dist-remarks")
 cat <<EOF
 To help you get started, a simple example is provided in
-"tightdb_java2/examples/intro-example". First you need to build the
+"tightdb_java/examples/intro-example". First you need to build the
 Java extension as described above. Do NOT run "./build clean", as that
 will prevent the example from running. For further details, please
 consult the README.md file in mentioned directory.

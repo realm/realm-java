@@ -9,11 +9,43 @@ extern "C" {
 #endif
 /*
  * Class:     com_tightdb_TableView
+ * Method:    nativeClose
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
  * Method:    nativeSize
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSize
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnCount
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnCount
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnName
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetColumnName
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnType
+ * Signature: (JJ)I
+ */
+JNIEXPORT jint JNICALL Java_com_tightdb_TableView_nativeGetColumnType
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
@@ -61,14 +93,6 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetDateTimeValue
  * Signature: (JJJ)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetString
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     com_tightdb_TableView
- * Method:    nativeGetBinary
- * Signature: (JJJ)Ljava/nio/ByteBuffer;
- */
-JNIEXPORT jobject JNICALL Java_com_tightdb_TableView_nativeGetBinary
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -166,14 +190,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetDateTimeValue
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetString
   (JNIEnv *, jobject, jlong, jlong, jlong, jstring);
-
-/*
- * Class:     com_tightdb_TableView
- * Method:    nativeSetBinary
- * Signature: (JJJLjava/nio/ByteBuffer;)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetBinary
-  (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
 
 /*
  * Class:     com_tightdb_TableView
@@ -313,34 +329,34 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindAllString
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeSum
+ * Method:    nativeSumInt
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSum
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeMaximum
+ * Method:    nativeMaximumInt
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMaximum
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMaximumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeMinimum
+ * Method:    nativeMinimumInt
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMinimum
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMinimumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeAverage
+ * Method:    nativeAverageInt
  * Signature: (JJ)D
  */
-JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeAverage
+JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeAverageInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -425,18 +441,34 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_createNativeTableView
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeClose
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     com_tightdb_TableView
  * Method:    nativeToJson
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToJson
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToString
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeRowToString
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeRowToString
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeWhere
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeWhere
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus

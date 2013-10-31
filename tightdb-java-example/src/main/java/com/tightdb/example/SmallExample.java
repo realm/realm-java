@@ -3,7 +3,6 @@ package com.tightdb.example;
 import java.util.Date;
 
 import com.tightdb.*;
-import com.tightdb.typed.TightDB;
 
 public class SmallExample {
 
@@ -17,7 +16,7 @@ public class SmallExample {
         Employee johny = employees.add("Johny", "Goe", 20000, true, new byte[] {2,3,4}, new Date(), true, null);
         Employee nikolche = employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
 
-        TightDB.print("Employees", employees);
+        System.out.println(employees.toString());
     }
 
 

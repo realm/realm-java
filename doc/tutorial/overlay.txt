@@ -30,15 +30,13 @@ Anni is 54 years old.
 @@EndOverlay@@
 
 @@Overlay: execute_tutorial @@
-Assuming that you have <tt>ant</tt> installed, you can execute the tutorial like this:
-
-<pre>
-$ cd tightdb_java2/examples/intro-example
-$ ant build
-$ ant tutorial
-</pre>
-
-If you don't have <tt>ant</tt> installed, or wish to use Eclipse, please read the <a href="http://www.tightdb.com/documentation/Java_misc/30/Examples/">Java Examples</a> instructions.
+Depending on how you manage your project there are different ways to setup annotation processing:
+<ul>
+    <li><a href="http://www.tightdb.com/documentation/Java_misc/40/Eclipse%20Setup">Eclipse Setup</a></li>
+    <li><a href="http://www.tightdb.com/documentation/Java_misc/41/IntelliJ%20IDEA%20Setup">IntelliJ IDEA Setup</a></li>
+    <li><a href="http://www.tightdb.com/documentation/Java_misc/60/Maven%20Setup">Maven Setup</a></li>
+    <li><a href="http://www.tightdb.com/documentation/Java_misc/50/Ant%20Setup">Ant Setup</a></li>
+</ul>
 @@EndOverlay@@
 
 @@Overlay: examples @@

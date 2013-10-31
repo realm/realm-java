@@ -1,7 +1,7 @@
 package com.tightdb.examples.performance;
 
 import com.tightdb.DefineTable;
-import com.tightdb.internal.util;
+import com.tightdb.internal.Util;
 
 public class Tightdb extends PerformanceBase implements IPerformance {
 
@@ -22,20 +22,20 @@ public class Tightdb extends PerformanceBase implements IPerformance {
     }
 
     public long usedNativeMemory() {
-        return util.getNativeMemUsage();
+        return Util.getNativeMemUsage();
     }
 
     public void buildTable(int rows) {
         for (int i = 0; i < rows; ++i) {
-            int n = Util.getRandNumber();
-            table.add(n, Util.getNumberString(n), Performance.BYTE_TEST_VAL, Performance.SMALL_TEST_VAL, Performance.LONG_TEST_VAL);
+            int n = ExampleHelper.getRandNumber();
+            table.add(n, ExampleHelper.getNumberString(n), Performance.BYTE_TEST_VAL, Performance.SMALL_TEST_VAL, Performance.LONG_TEST_VAL);
         }
     }
 
     //--------------- small Int
 
     public void begin_findSmallInt(long value) {
-        //TestQuery q = table.smallInt.eq(value);
+        //TestQuery q = table.smallInt.equalTo(value);
     }
 
     public boolean findSmallInt(long value) {
@@ -61,7 +61,7 @@ public class Tightdb extends PerformanceBase implements IPerformance {
     //---------------- string
 
     public boolean findString(String value) {
-        TestRow res = table.second.eq(value).findFirst();
+        TestRow res = table.second.equalTo(value).findFirst();
         return (res != null);
     }
 

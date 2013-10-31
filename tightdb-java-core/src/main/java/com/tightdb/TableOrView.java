@@ -34,6 +34,14 @@ public interface TableOrView {
     void remove(long index);
 
     void removeLast();
+    
+    long getColumnCount();
+    
+    String getColumnName(long columnIndex);
+    
+    long getColumnIndex(String name);
+    
+    ColumnType getColumnType(long columnIndex);
 
     /**
      * Get the long value of a cell of the table/view identified by the
@@ -103,7 +111,7 @@ public interface TableOrView {
      * @param rowIndex
      * @return
      */
-    ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
+    //ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
 
     byte[] getBinaryByteArray(long columnIndex, long rowIndex);
 
@@ -175,7 +183,7 @@ public interface TableOrView {
      * @param rowIndex
      * @param data
      */
-    void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
+    //void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
 
     void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data);
 
@@ -183,16 +191,16 @@ public interface TableOrView {
 
     void setMixed(long columnIndex, long rowIndex, Mixed data);
 
+    //Increments all rows in the specified column with the provided value
+    void adjust(long columnIndex, long value);
 
-    void addLong(long columnIndex, long value);
+    long sumInt(long columnIndex);
 
-    long sum(long columnIndex);
+    long maximumInt(long columnIndex);
 
-    long maximum(long columnIndex);
+    long minimumInt(long columnIndex);
 
-    long minimum(long columnIndex);
-
-    double average(long columnIndex);
+    double averageInt(long columnIndex);
 
 
     double sumFloat(long columnIndex);
@@ -243,8 +251,16 @@ public interface TableOrView {
     TableView findAllString(long columnIndex, String value);
 
     String toJson();
+    
+    String toString();
 
-// Experimental:
+    String toString(long maxRows);
+    
+    String rowToString(long rowIndex);
+
+    TableQuery where();
+    
+    // Experimental:
 
     long lookup(String value);
 

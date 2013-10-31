@@ -1,7 +1,7 @@
 package com.tightdb.typed;
 
 import com.tightdb.TableOrView;
-import com.tightdb.TableQuery;
+//import com.tightdb.TableQuery;
 
 /**
  * Type of the fields that represent a boolean column in the generated XyzView
@@ -13,9 +13,9 @@ public class BooleanViewColumn<Cursor, View, Query> extends BooleanTableOrViewCo
         super(types, view, index, name);
     }
 
-    public BooleanViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
+    /*public BooleanViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
             String name) {
         super(types, view, query, index, name);
-    }
+    }*/
 
 }

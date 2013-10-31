@@ -14,7 +14,7 @@ public class TableSpec {
         public ColumnInfo(ColumnType type, String name) {
             this.name = name;
             this.type = type;
-            this.tableSpec = (type == ColumnType.ColumnTypeTable) ? new TableSpec() : null;
+            this.tableSpec = (type == ColumnType.TABLE) ? new TableSpec() : null;
         }
 
         @Override
@@ -59,6 +59,9 @@ public class TableSpec {
     }
 
     public void addColumn(ColumnType type, String name) {
+    	if (name.length() > 63) {
+    		throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
+    	}
         columnInfos.add(new ColumnInfo(type, name));
     }
 
@@ -67,7 +70,10 @@ public class TableSpec {
     }
 
     public TableSpec addSubtableColumn(String name) {
-        ColumnInfo columnInfo = new ColumnInfo(ColumnType.ColumnTypeTable, name);
+    	if (name.length() > 63) {
+    		throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
+    	}
+        ColumnInfo columnInfo = new ColumnInfo(ColumnType.TABLE, name);
         columnInfos.add(columnInfo);
         return columnInfo.tableSpec;
     }

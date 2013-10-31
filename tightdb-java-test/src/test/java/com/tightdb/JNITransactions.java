@@ -4,10 +4,10 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.util.Date;
+
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import com.tightdb.typed.TightDB;
 
 public class JNITransactions {
 
@@ -15,37 +15,33 @@ public class JNITransactions {
 
     protected String testFile = "transact.tightdb";
 
-    protected void deleteFile(String filename)
-    {
+    protected void deleteFile(String filename) {
         File f = new File(filename);
+        if (f.exists())
+            f.delete();
+        f = new File(filename + ".lock");
         if (f.exists())
             f.delete();
     }
 
     @BeforeMethod
     public void init() {
-        if (TightDB.osIsWindows())
-            return;
         deleteFile(testFile);
-        db = new SharedGroup(testFile);
+        db = new SharedGroup(testFile, SharedGroup.Durability.ASYNC);
     }
 
-    //@AfterMethod
+    @AfterMethod
     public void clear() {
-        if (TightDB.osIsWindows())
-            return;
         db.close();
         deleteFile(testFile);
     }
 
-    protected void writeOneTransaction(long rows)
-    {
+    protected void writeOneTransaction(long rows) {
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.ColumnTypeString, "name");
-        tableSpec.addColumn(ColumnType.ColumnTypeInt, "number");
-        tbl.updateFromSpec(tableSpec);
+        tbl.addColumn(ColumnType.STRING, "name");
+        tbl.addColumn(ColumnType.INTEGER, "number");
+
 
         for (long row=0; row < rows; row++)
             tbl.add("Hi", 1);
@@ -56,13 +52,12 @@ public class JNITransactions {
         try {
             assertEquals(1, tbl.size());
             assert(false);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException e) {
         }
 
     }
 
-    protected void checkRead(int rows)
-    {
+    protected void checkRead(int rows) {
         // Read transaction
         ReadTransaction trans = db.beginRead();
         Table tbl = trans.getTable("EmployeeTable");
@@ -73,9 +68,6 @@ public class JNITransactions {
 
     @Test
     public void mustWriteAndReadEmpty() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(0);
         checkRead(0);
         clear();
@@ -83,21 +75,80 @@ public class JNITransactions {
 
     @Test
     public void mustWriteCommit() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(10);
         checkRead(10);
         clear();
     }
 
+
+    @Test(expectedExceptions=IllegalStateException.class)
+    public void shouldThrowExceptionAfterClosedReadTransaction() {
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            Table tbl = rt.getTable("EmployeeTable");
+            rt.endRead();
+            tbl.getColumnCount(); //Should throw exception, the table is invalid when transaction has been closed
+            assert(false);
+        } finally {
+            rt.endRead();
+            clear();
+        }
+    }
+
+
+    @Test(expectedExceptions=IllegalStateException.class)
+    public void shouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            Table tbl = rt.getTable("EmployeeTable");
+            rt.endRead();
+            tbl.addColumn(ColumnType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
+            assert(false);
+        } finally {
+            rt.endRead();
+            clear();
+        }
+    }
+
+
+    @Test(expectedExceptions=IllegalStateException.class)
+    public void shouldThrowExceptionWhenWritingInReadTrans() {
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            Table tbl = rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
+            rt.endRead();
+            assert(false);
+        } finally {
+            rt.endRead();
+            clear();
+        }
+    }
+
+
+    @Test
+    public void onlyOneCommit() { 
+        WriteTransaction trans = db.beginWrite();
+
+        try {
+            Table tbl = trans.getTable("EmployeeTable");
+            tbl.addColumn(ColumnType.STRING, "name");
+            trans.commit();
+            try { 
+            	trans.commit(); // should throw 
+            	assert(false); 
+            } catch (IllegalStateException e){}
+
+        } catch (Throwable t){
+            trans.rollback();
+        }
+    }
+
     @Test
     public void mustRollback() {
-        if (TightDB.osIsWindows())
-            return;
-
         writeOneTransaction(1);
-
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
 
@@ -110,32 +161,64 @@ public class JNITransactions {
         clear();
     }
 
+    @Test()
+    public void mustAllowDoubleCommitAndRollback() {
+        {
+            WriteTransaction trans = db.beginWrite();
+            Table tbl = trans.getTable("EmployeeTable");
+            tbl.addColumn(ColumnType.STRING, "name");
+            tbl.addColumn(ColumnType.INTEGER, "number");
+
+            // allow commit before any changes
+            assertEquals(0, tbl.size());
+            tbl.add("Hello", 1);
+            trans.commit();
+        }
+        {
+            WriteTransaction trans = db.beginWrite();
+            Table tbl = trans.getTable("EmployeeTable");
+            // allow double rollback
+            tbl.add("Hello", 2);
+            assertEquals(2, tbl.size());
+            trans.rollback();
+            trans.rollback();
+            trans.rollback();
+            trans.rollback();
+        }
+        {
+            ReadTransaction trans = db.beginRead();
+            Table tbl = trans.getTable("EmployeeTable");
+            assertEquals(1, tbl.size());
+            trans.endRead();
+        }
+
+        clear();
+    }
+
+    // TODO:
     // Test: exception at all mutable methods in TableBase, TableView,
     // Test: above in custom Typed Tables
     // TableQuery.... in ReadTransactions
 
     @Test
     public void mustFailOnWriteInReadTransactions() {
-        if (TightDB.osIsWindows())
-            return;
 
         writeOneTransaction(1);
 
         ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
 
-        try { table.insert(0, 0, false);        assert(false);} catch (IllegalStateException e) {}
-        try { table.add(0, false);              assert(false);} catch (IllegalStateException e) {}
+        try { table.addAt(0, 0, false);             assert(false);} catch (IllegalStateException e) {}
+        try { table.add(0, false);                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRow();                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRows(1);                assert(false);} catch (IllegalStateException e) {}
-        try { table.addLong(0,0);                   assert(false);} catch (IllegalStateException e) {}
+        try { table.adjust(0,0);        			assert(false);} catch (IllegalStateException e) {}
         try { table.clear();                        assert(false);} catch (IllegalStateException e) {}
         try { table.clearSubTable(0,0);             assert(false);} catch (IllegalStateException e) {}
         try { table.optimize();                     assert(false);} catch (IllegalStateException e) {}
         try { table.remove(0);                      assert(false);} catch (IllegalStateException e) {}
         try { table.removeLast();                   assert(false);} catch (IllegalStateException e) {}
         try { table.setBinaryByteArray(0,0,null);   assert(false);} catch (IllegalStateException e) {}
-        try { table.setBinaryByteBuffer(0,0,null);  assert(false);} catch (IllegalStateException e) {}
         try { table.setBoolean(0,0,false);          assert(false);} catch (IllegalStateException e) {}
         try { table.setDate(0,0,new Date(0));       assert(false);} catch (IllegalStateException e) {}
         try { table.setIndex(0);                    assert(false);} catch (IllegalStateException e) {}
@@ -145,17 +228,16 @@ public class JNITransactions {
         try { table.updateFromSpec(null);           assert(false);} catch (IllegalStateException e) {}
 
         TableQuery q = table.where();
-        try { q.remove();       assert(false);} catch (IllegalStateException e) {}
-        try { q.remove(0,0);    assert(false);} catch (IllegalStateException e) {}
+        try { q.remove();                           assert(false);} catch (IllegalStateException e) {}
+        try { q.remove(0,0);                        assert(false);} catch (IllegalStateException e) {}
 
         TableView v = q.findAll();
-        try { v.addLong(0, 0);                      assert(false);} catch (IllegalStateException e) {}
+        try { v.adjust(0, 0);           			assert(false);} catch (IllegalStateException e) {}
         try { v.clear();                            assert(false);} catch (IllegalStateException e) {}
         try { v.clearSubTable(0, 0);                assert(false);} catch (IllegalStateException e) {}
         try { v.remove(0);                          assert(false);} catch (IllegalStateException e) {}
         try { v.removeLast();                       assert(false);} catch (IllegalStateException e) {}
         try { v.setBinaryByteArray(0, 0, null);     assert(false);} catch (IllegalStateException e) {}
-        try { v.setBinaryByteBuffer(0, 0, null);    assert(false);} catch (IllegalStateException e) {}
         try { v.setBoolean(0, 0, false);            assert(false);} catch (IllegalStateException e) {}
         try { v.setDate(0, 0, new Date());          assert(false);} catch (IllegalStateException e) {}
         try { v.setLong(0, 0, 0);                   assert(false);} catch (IllegalStateException e) {}
@@ -167,7 +249,7 @@ public class JNITransactions {
     }
 
 
-/*  ARM Only works for Java 1.7 - NOT available in Android.
+    /*  ARM Only works for Java 1.7 - NOT available in Android.
 
     @Test(enabled=true)
     public void mustReadARM() {
@@ -184,5 +266,5 @@ public class JNITransactions {
 
         }
     }
-*/
+     */
 }

@@ -1,1 +1,0 @@
-../../examples/intro-example/src/com/tightdb/examples/tutorial/tutorial.java

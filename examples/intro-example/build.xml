@@ -65,7 +65,7 @@
 	</target>
 
     <target depends="build" name="tutorial">
-        <java classname="com.tightdb.examples.tutorial.tutorial" failonerror="true" fork="yes">
+        <java classname="com.tightdb.examples.tutorial.Tutorial" failonerror="true" fork="yes">
 <!--
             <env key="LD_LIBRARY_PATH" path="${libpath}"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
@@ -106,6 +106,9 @@
             <sysproperty key="java.library.path" path="${libpath}"/>
             <classpath refid="samples-classpath"/>
         </java>
+    </target>
+
+    <target depends="tutorial,showcase,quickbenchmark,performance" name="runall">
     </target>
 
 </project>
