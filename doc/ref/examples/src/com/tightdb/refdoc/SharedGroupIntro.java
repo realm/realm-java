@@ -1,4 +1,4 @@
-
+// @@Example: ex_java_shared_group_intro @@
 package com.tightdb.refdoc;
 
 import com.tightdb.*;
@@ -7,7 +7,6 @@ public class SharedGroupIntro {
 
     public static void main(String[] args) {
 
-        // @@Example: ex_java_shared_group_intro @@
         // @@Show@@
         // Opens an existing database file or creates a new database file and opens it into a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
