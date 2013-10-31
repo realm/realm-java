@@ -303,7 +303,9 @@ case "$MODE" in
             fi
             # FIXME: Should we have added '-t JNI' to /usr/libexec/java_home?
             if path="$(/usr/libexec/java_home -v 1.6+ 2>/dev/null)"; then
-                echo "'/usr/libexec/java_home -v 1.6+' specifies a JAVA_HOME"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "'/usr/libexec/java_home -v 1.6+' specifies a JAVA_HOME"
+                fi
                 check_java_home "$path" || exit 1
             fi
         fi
@@ -329,7 +331,9 @@ case "$MODE" in
                     echo "ERROR: Could not determine JAVA_HOME from path of 'javac' command '$path'" 1>&2
                     exit 1
                 fi
-                echo "'javac' found in PATH as '$path'"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "'javac' found in PATH as '$path'"
+                fi
                 check_java_home "$cand" || exit 1
             fi
         fi
@@ -571,7 +575,9 @@ EOF
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
         done
-        echo "Done building"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Done building"
+        fi
         exit 0
         ;;
 
@@ -661,8 +667,9 @@ EOF
             install -m 644 "lib/$x" "$jar_install_dir" || exit 1
         done
 
-
-        echo "Done installing"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Done installing"
+        fi
         exit 0
         ;;
 
