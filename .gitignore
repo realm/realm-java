@@ -88,3 +88,7 @@ doc/ref/examples/generated/com/tightdb/refdoc/*.java
 
 # generated json output in ref doc json example
 doc/ref/examples/fromServlet
+
+java/share/java/*.jar
+
+tightdb_jni/src/java/lib/l*.jnilib
