@@ -74,10 +74,6 @@ public class DynTableExamples {
 
         // Dump methods:
         toJsonExample();
-
-
-
-
     }
     
     
