@@ -1,7 +1,4 @@
-
-
 package com.tightdb.refdoc;
-
 
 import java.io.FileNotFoundException;
 
@@ -14,20 +11,15 @@ public class SharedGroupExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
         
-        // Constructor methods
         constructorStringExample();
         beginWriteExample();
         beginReadExample();
         hasChangedExample();
-
-
     }
-
 
     // **********************
     // Constructor methods
     // **********************
-
 
     public static void constructorStringExample(){
         // @@Example: ex_java_shared_group_constructor_string @@
