@@ -123,7 +123,6 @@ public class DynTableExamples {
         table2.addColumn(ColumnType.BINARY, "colName6");
         table2.addColumn(ColumnType.TABLE, "colName7"); // Subtables
         table2.addColumn(ColumnType.MIXED, "colName8"); // Any of the above values
-
         // @@EndExample@@
 
         // @@Example: ex_java_dyn_table_add_column_3 @@
@@ -139,8 +138,6 @@ public class DynTableExamples {
         subtableSchema.addColumn(ColumnType.STRING, "desc");
         subtableSchema.addColumn(ColumnType.DATE, "date");
         // @@EndExample@@
-
-
 
         // @@Example: ex_java_dyn_table_add_column_4 @@
         Table table4 = new Table();
@@ -167,9 +164,7 @@ public class DynTableExamples {
             table5.addColumn(ColumnType.STRING, "notNullName"); 
         } 
         // @@EndExample@@
-
     }
-
 
     public static void removeColumnExample(){
         // @@Example: ex_java_dyn_table_remove_column_1 @@

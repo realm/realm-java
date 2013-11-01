@@ -90,7 +90,6 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_dyn_table_add_column_return_descr
       EXAMPLES:
-<<<<<<< HEAD
       - CODE   : ex_java_dyn_table_add_column_1
         DESCR  : Adding columns to a table
       - CODE   : ex_java_dyn_table_add_column_2
@@ -101,15 +100,6 @@ CATEGORIES :
         DESCR  : Tightdb handles very large number of columns
       - CODE   : ex_java_dyn_table_add_column_5
         DESCR  : Duplicate and empty string column names are allowed
-=======
-      - CODE   : ex_java_dyn_table_add_column
-        DESCR  :
-#TODO: add_subtable_column
-      SEE      : >
-                 NOTICE: Currently adding subtable-columns are not supported yet.
-                 If that is needed create the tables via a TableSpec.
-# TODO                 {@link class_table_spec}.
->>>>>>> 54b18e1aec06e8e463fa2bb8ac1005fe68e95ec0
   - g_dyn_table_remove_column:
       NAMES    : removeColumn
       SUMMARY  : *g_dyn_table_remove_column_summary
