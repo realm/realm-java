@@ -91,15 +91,11 @@ remove_suffix()
 # Setup OS specific stuff
 OS="$(uname)" || exit 1
 ARCH="$(uname -m)" || exit 1
-STAT_FORMAT_SWITCH="-c"
 NUM_PROCESSORS=""
 if [ "$OS" = "Darwin" ]; then
-    STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
-else
-    if [ -r /proc/cpuinfo ]; then
-        NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
-    fi
+elif [ -r /proc/cpuinfo ]; then
+    NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
 fi
 if [ "$NUM_PROCESSORS" ]; then
     word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
@@ -653,7 +649,7 @@ EOF
         install -d "$jar_install_dir" || exit 1
 
         if [ "$full_install" = "yes" ]; then
-            make -C "tightdb_jni" install DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+            make -C "tightdb_jni" install-only DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
         fi
 
         for x in $jar_list; do
