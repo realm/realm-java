@@ -36,97 +36,8 @@ IGNORE     : [g_dyn_table_where_const,
 
 CATEGORIES :
 
-- Table:
-  METHODS:
-  - g_dyn_table_is_attached:
-      NAMES    : isValid
-      SUMMARY  : *java_dyn_table_is_attached_summary
-      DESCR    : *java_dyn_table_is_attached_descr
-      RETURN:
-        TYPES  : boolean
-        DESCR  : *g_dyn_table_is_attached_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_is_valid
-        DESCR  :
-  - g_dyn_table_size:
-      NAMES    : size
-      SUMMARY  : *g_dyn_table_size_summary
-      DESCR    : *g_dyn_table_size_descr
-      RETURN:
-        TYPES  : long
-        DESCR  : *g_dyn_table_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_size
-        DESCR  :
-  - g_dyn_table_is_empty:
-      NAMES    : isEmpty
-      SUMMARY  : *g_dyn_table_is_empty_summary
-      DESCR    : *g_dyn_table_is_empty_descr
-      RETURN:
-        TYPES  : boolean
-        DESCR  : *g_dyn_table_is_empty_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_is_empty
-        DESCR  :
-  - g_dyn_table_clear:
-      NAMES    : clear
-      SUMMARY  : *g_dyn_table_clear_summary
-      DESCR    : *g_dyn_table_clear_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_clear
-        DESCR  :
-      SEE      : >
-                See also {@link g_dyn_table_is_empty}.
-  - g_dyn_table_optimize:
-      NAMES    : optimize
-      SUMMARY  : *g_dyn_table_optimize_summary
-      DESCR    : *g_dyn_table_optimize_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_optimize
-        DESCR  :
-  - g_dyn_table_set_index:
-      NAMES    : setIndex
-      SUMMARY  : *g_dyn_table_set_index_summary
-      DESCR    : *g_dyn_table_set_index_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_set_index
-        DESCR  :
-  - g_dyn_table_has_index:
-      NAMES    : hasIndex
-      SUMMARY  : *g_dyn_table_has_index_summary
-      DESCR    : *g_dyn_table_has_index_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      RETURN:
-        TYPES  : boolean
-        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_has_index
-        DESCR  :
 
-# TODO: add
-#  - g_dyn_table_opertator==:
-#      NAMES    : operator==
-#      SUMMARY  : *g_dyn_table_operator_eq_summary
-#      PARAMS:
-#      - NAME   : table
-#        TYPES  : Table
-#        DESCR  : *g_dyn_table_operator_eq_table_descr
-#      RETURN:
-#        TYPES  : boolean
-#        DESCR  : *g_dyn_table_operator_eq_return_descr
-#      EXAMPLES:
-#      - CODE   : ex_java_dyn_table_operator==
-#        DESCR  :
-
-
-- Columns:
+- Table Schema:
   METHODS:
   - g_dyn_table_add_column:
       NAMES    : addColumn
@@ -160,12 +71,17 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_dyn_table_add_column_return_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_add_column
-        DESCR  :
+      - CODE   : ex_java_dyn_table_add_column_1
+        DESCR  : Adding columns to a table
+      - CODE   : ex_java_dyn_table_add_column_2
+        DESCR  : Tightdb has 9 different column types
+      - CODE   : ex_java_dyn_table_add_column_3
+        DESCR  : Working with subtables
+      - CODE   : ex_java_dyn_table_add_column_4
+        DESCR  : Tightdb handles very large number of columns
+      - CODE   : ex_java_dyn_table_add_column_5
+        DESCR  : Duplicate and empty string column names are allowed
 #TODO: add_subtable_column
-      SEE      : >
-                 NOTICE: Currently adding subtable-columns are not supported yet.
-                 If that is needed create the tables via {@link class_table_spec}.
   - g_dyn_table_remove_column:
       NAMES    : removeColumn
       SUMMARY  : *g_dyn_table_remove_column_summary
@@ -264,6 +180,114 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_get_column_type
         DESCR  :
+  - g_dyn_table_add_int:
+      NAMES    : adjust
+      SUMMARY  : *g_dyn_table_add_int_summary
+      DESCR    : *g_dyn_table_add_int_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_add_int_parm1_descr
+      - NAME   : value
+        TYPES  : long
+        DESCR  : *g_dyn_table_add_int_parm2_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_adjust
+        DESCR  :
+
+
+- Table:
+  METHODS:
+  - g_dyn_table_is_attached:
+      NAMES    : isValid
+      SUMMARY  : *java_dyn_table_is_attached_summary
+      DESCR    : *java_dyn_table_is_attached_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : *g_dyn_table_is_attached_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_is_valid
+        DESCR  :
+  - g_dyn_table_size:
+      NAMES    : size
+      SUMMARY  : *g_dyn_table_size_summary
+      DESCR    : *g_dyn_table_size_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : *g_dyn_table_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_size
+        DESCR  :
+  - g_dyn_table_is_empty:
+      NAMES    : isEmpty
+      SUMMARY  : *g_dyn_table_is_empty_summary
+      DESCR    : *g_dyn_table_is_empty_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : *g_dyn_table_is_empty_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_is_empty
+        DESCR  :
+  - g_dyn_table_clear:
+      NAMES    : clear
+      SUMMARY  : *g_dyn_table_clear_summary
+      DESCR    : *g_dyn_table_clear_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_clear
+        DESCR  :
+      SEE      : >
+                See also {@link g_dyn_table_is_empty}.
+  - g_dyn_table_optimize:
+      NAMES    : optimize
+      SUMMARY  : *g_dyn_table_optimize_summary
+      DESCR    : *g_dyn_table_optimize_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_optimize
+        DESCR  :
+  - g_dyn_table_set_index:
+      NAMES    : setIndex
+      SUMMARY  : *g_dyn_table_set_index_summary
+      DESCR    : *g_dyn_table_set_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_set_index
+        DESCR  :
+  - g_dyn_table_has_index:
+      NAMES    : hasIndex
+      SUMMARY  : *g_dyn_table_has_index_summary
+      DESCR    : *g_dyn_table_has_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_has_index
+        DESCR  :
+
+# TODO: add
+#  - g_dyn_table_opertator==:
+#      NAMES    : operator==
+#      SUMMARY  : *g_dyn_table_operator_eq_summary
+#      PARAMS:
+#      - NAME   : table
+#        TYPES  : Table
+#        DESCR  : *g_dyn_table_operator_eq_table_descr
+#      RETURN:
+#        TYPES  : boolean
+#        DESCR  : *g_dyn_table_operator_eq_return_descr
+#      EXAMPLES:
+#      - CODE   : ex_java_dyn_table_operator==
+#        DESCR  :
+
+
+- Columns:
+  METHODS:
   - g_dyn_table_add_int:
       NAMES    : adjust
       SUMMARY  : *g_dyn_table_add_int_summary
