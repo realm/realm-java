@@ -11,6 +11,10 @@ import com.tightdb.*;
 public class DynTableExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
+        
+        
+        // Constructor
+        
 
 
         //Table schema methods
@@ -75,6 +79,27 @@ public class DynTableExamples {
 
 
     }
+    
+    
+    // ******************************************
+    // Constructor methods
+    // ******************************************
+    
+
+    public static void constrcutorExample(){
+        // @@Example: ex_java_dyn_table_constructor_plain @@
+        // Create new table in memory
+        Table table = new Table();
+        // @@EndExample@@
+        
+        
+        Group group = new Group();
+        // @@Example: ex_java_dyn_table_constructor_group @@
+        // Get table from group. If table does not exist in the group, it is created
+        Table table2 = group.getTable("tableName");
+        // @@EndExample@@
+    }
+    
 
     // ******************************************
     // Table schema methods
@@ -151,21 +176,33 @@ public class DynTableExamples {
 
 
     public static void removeColumnExample(){
-        // @@Example: ex_java_dyn_table_remove_column @@
-        // @@Show@@
+        // @@Example: ex_java_dyn_table_remove_column_1 @@
         // Create new table and add 3 columns
-        Table table = new Table();
-        table.addColumn(ColumnType.INTEGER, "id");
-        table.addColumn(ColumnType.STRING, "name");
-        table.addColumn(ColumnType.STRING, "extra");
+        Table table1 = new Table();
+        table1.addColumn(ColumnType.INTEGER, "id");
+        table1.addColumn(ColumnType.STRING, "name");
+        table1.addColumn(ColumnType.STRING, "extra");
 
         // Remove column 'extra'
-        table.removeColumn(2);
-
+        table1.removeColumn(2);
 
         // Column count should be 2
-        Assert(table.getColumnCount() == 2);
-        // @@EndShow@@
+        Assert(table1.getColumnCount() == 2);
+        // @@EndExample@@
+        
+        
+     // @@Example: ex_java_dyn_table_remove_column_2" @@
+        // Create table, with subtable and add columns
+        Table table2 = new Table();
+        table2.addColumn(ColumnType.INTEGER, "id");
+        long subtableColIndex = table2.addColumn(ColumnType.TABLE, "events");
+        
+        TableSchema subtableSchema = table2.getSubTableSchema(subtableColIndex);
+        subtableSchema.addColumn(ColumnType.STRING, "desc");
+        long subDateColIndex = subtableSchema.addColumn(ColumnType.DATE, "date");
+        
+        // Remove column 'extra'
+        subtableSchema.removeColumn(subDateColIndex);
         // @@EndExample@@
     }
 

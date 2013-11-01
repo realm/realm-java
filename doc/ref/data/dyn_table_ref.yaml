@@ -37,6 +37,25 @@ IGNORE     : [g_dyn_table_where_const,
 CATEGORIES :
 
 
+- Constructor:
+  METHODS:
+  - g_dyn_table_constructor_plain:
+      NAMES    : Table
+      SUMMARY  : Creates a new Table object.
+      DESCR    : This method creates a table, which is the basic structure in tightdb.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_constructor_plain
+        DESCR  : A table can be created as free form 
+      - CODE   : ex_java_dyn_table_constructor_group
+        DESCR  : A table can be retrieved or created from a group
+      SEE      : >
+                See {@link class_group} to learn about Group. <br>
+                See also {@link g_dyn_table_add_column} on how to add columns to a table. <br>
+                See also {@link g_dyn_table_add} on how to add data to a table.
+
+
+
+
 - Table Schema:
   METHODS:
   - g_dyn_table_add_column:
@@ -81,7 +100,6 @@ CATEGORIES :
         DESCR  : Tightdb handles very large number of columns
       - CODE   : ex_java_dyn_table_add_column_5
         DESCR  : Duplicate and empty string column names are allowed
-#TODO: add_subtable_column
   - g_dyn_table_remove_column:
       NAMES    : removeColumn
       SUMMARY  : *g_dyn_table_remove_column_summary
@@ -91,11 +109,10 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_dyn_table_remove_column_param1_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_remove_column
+      - CODE   : ex_java_dyn_table_remove_column_1
         DESCR  :
-#TODO remove_subtable_column
-      SEE      : >
-                 NOTICE: Currently deleting subtable-columns are not supported yet.
+      - CODE   : ex_java_dyn_table_remove_column_2
+        DESCR  : Columns can also be removed from subtables
   - g_dyn_table_rename_column:
       NAMES    : renameColumn
       SUMMARY  : *g_dyn_table_rename_column_summary
@@ -109,7 +126,7 @@ CATEGORIES :
         DESCR  : *g_dyn_table_rename_column_param2_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_table_rename_column
-        DESCR  :
+        DESCR  : 
   
   - g_dyn_table_get_column_count:
       NAMES    : getColumnCount
@@ -180,21 +197,6 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_get_column_type
         DESCR  :
-  - g_dyn_table_add_int:
-      NAMES    : adjust
-      SUMMARY  : *g_dyn_table_add_int_summary
-      DESCR    : *g_dyn_table_add_int_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_add_int_parm1_descr
-      - NAME   : value
-        TYPES  : long
-        DESCR  : *g_dyn_table_add_int_parm2_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_adjust
-        DESCR  :
-
 
 - Table:
   METHODS:
