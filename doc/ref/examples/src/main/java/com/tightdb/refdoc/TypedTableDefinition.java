@@ -30,7 +30,6 @@ public class TypedTableDefinition {
         java.util.Date dateCol;
         double doubleCol;
         int intCol;
-        long longCol;
         float floatCol;
         String stringCol;
         byte[] byteCol;
