@@ -160,8 +160,6 @@ public class TableTest {
     
     @Test
     public void lookupTest() {
-        
-        
         assertEquals(0,employees.firstName.lookup("John"));
         assertEquals(2,employees.firstName.lookup("Johny"));
 
@@ -172,13 +170,7 @@ public class TableTest {
 
         // Not implemented on view yet
         try { employees.where().driver.equalTo(true).findAll().firstName.lookup("John"); fail("Not implemented on views"); } catch (RuntimeException e ) { };
-
-        
     }
-    
-    
-
-
 
     @Test
     public void shouldConvertToJson() {
