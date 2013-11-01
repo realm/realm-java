@@ -149,38 +149,38 @@ public class Mixed {
 
     public long getLongValue() {
         if (!(value instanceof Long)) {
-            throw new WrongMixedTypeException("The type is not a long");
+            throw new IllegalMixedTypeException("The type is not a long");
         }
         return ((Long)value).longValue();
     }
 
     public boolean getBooleanValue() {
         if (!(value instanceof Boolean))
-            throw new WrongMixedTypeException("The type is not a boolean");
+            throw new IllegalMixedTypeException("The type is not a boolean");
         return ((Boolean) value).booleanValue();
     }
 
     public float getFloatValue() {
         if (!(value instanceof Float))
-            throw new WrongMixedTypeException("The type is not a float");
+            throw new IllegalMixedTypeException("The type is not a float");
         return ((Float) value).floatValue();
     }
 
     public double getDoubleValue() {
         if (!(value instanceof Double))
-            throw new WrongMixedTypeException("The type is not a double");
+            throw new IllegalMixedTypeException("The type is not a double");
         return ((Double) value).doubleValue();
     }
 
     public String getStringValue() {
         if (!(value instanceof String))
-            throw new WrongMixedTypeException("The type is not a String");
+            throw new IllegalMixedTypeException("The type is not a String");
         return (String) value;
     }
 
     public Date getDateValue() {
         if (!(value instanceof Date)) {
-            throw new WrongMixedTypeException("The type is not a Date");
+            throw new IllegalMixedTypeException("The type is not a Date");
         }
         return (Date) value;
     }
@@ -191,14 +191,14 @@ public class Mixed {
 
     public ByteBuffer getBinaryValue() {
         if (!(value instanceof ByteBuffer)) {
-            throw new WrongMixedTypeException("The type is not a ByteBuffer");
+            throw new IllegalMixedTypeException("The type is not a ByteBuffer");
         }
         return (ByteBuffer) value;
     }
 
     public byte[] getBinaryByteArray() {
         if (!(value instanceof byte[])) {
-            throw new WrongMixedTypeException("The type is not a byte[]");
+            throw new IllegalMixedTypeException("The type is not a byte[]");
         }
         return (byte[]) value;
     }

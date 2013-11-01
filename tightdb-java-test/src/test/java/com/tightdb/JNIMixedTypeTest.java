@@ -29,7 +29,7 @@ public class JNIMixedTypeTest {
         }
     }
 
-    @Test(expectedExceptions = WrongMixedTypeException.class, dataProvider = "columnTypesProvider")
+    @Test(expectedExceptions = IllegalMixedTypeException.class, dataProvider = "columnTypesProvider")
     public void shouldFailOnWrongTypeRetrieval(ColumnType columnType)
             throws Exception {
         Object value = columnType != ColumnType.STRING ? "abc" : 123;
@@ -87,7 +87,7 @@ public class JNIMixedTypeTest {
         table.finalize();
     }
 
-    private void checkMixedCell(Table table, long col, long row, ColumnType columnType, Object value) throws WrongMixedTypeException {
+    private void checkMixedCell(Table table, long col, long row, ColumnType columnType, Object value) throws IllegalMixedTypeException {
         ColumnType mixedType = table.getMixedType(col, row);
         assertEquals(columnType, mixedType);
 
