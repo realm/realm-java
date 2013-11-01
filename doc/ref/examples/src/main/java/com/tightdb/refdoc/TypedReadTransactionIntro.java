@@ -11,6 +11,7 @@ public class TypedReadTransactionIntro {
         {
             // Delete file to start from scratch
             (new File("mydatabase.tightdb")).delete();
+            (new File("mydatabase.tightdb.lock")).delete();
             // Create table, add columns and add row with data
             SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
             WriteTransaction wt = group.beginWrite(); 
