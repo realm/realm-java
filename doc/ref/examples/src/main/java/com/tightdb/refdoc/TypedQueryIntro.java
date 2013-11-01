@@ -14,7 +14,7 @@ public class TypedQueryIntro {
 
     public static void main(String[] args) {
         // @@Show@@
-        
+
         // Create a table with some data
         EmployeeTable employees = new EmployeeTable();
         employees.add("John", "Lee", 10000);
@@ -43,7 +43,6 @@ public class TypedQueryIntro {
         EmployeeView view2 = employees.lastName.equalTo("Lee").salary.lessThan(25000).findAll();
         
         // @@EndShow@@
-
     }   
 }
 //@@EndExample@@

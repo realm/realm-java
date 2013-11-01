@@ -90,6 +90,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_dyn_table_add_column_return_descr
       EXAMPLES:
+<<<<<<< HEAD
       - CODE   : ex_java_dyn_table_add_column_1
         DESCR  : Adding columns to a table
       - CODE   : ex_java_dyn_table_add_column_2
@@ -100,6 +101,15 @@ CATEGORIES :
         DESCR  : Tightdb handles very large number of columns
       - CODE   : ex_java_dyn_table_add_column_5
         DESCR  : Duplicate and empty string column names are allowed
+=======
+      - CODE   : ex_java_dyn_table_add_column
+        DESCR  :
+#TODO: add_subtable_column
+      SEE      : >
+                 NOTICE: Currently adding subtable-columns are not supported yet.
+                 If that is needed create the tables via a TableSpec.
+# TODO                 {@link class_table_spec}.
+>>>>>>> 54b18e1aec06e8e463fa2bb8ac1005fe68e95ec0
   - g_dyn_table_remove_column:
       NAMES    : removeColumn
       SUMMARY  : *g_dyn_table_remove_column_summary
@@ -145,14 +155,14 @@ CATEGORIES :
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
-        DESCR  : The column index (starting from 0)
+        DESCR  : The column index (starting from 0).
       RETURN:
         TYPES  : String
         DESCR  : The column name.
       THROWS:      
       - EXCEPT : ArrayIndexOutOfBoundsException
         DESCR  : &java_array_out_of_bounds_exception_text
-                 Throws exception if column index is out of range
+                 Throws exception if column index is out of range.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_get_column_name
         DESCR  :
@@ -448,7 +458,8 @@ CATEGORIES :
       - EXCEPT : ArrayIndexOutOfBoundsException
         DESCR  : *java_array_out_of_bounds_exception_text
       - EXCEPT : IllegalArgumentException
-        DESCR  : Throws exception if column type does not match the method used to access the value
+        DESCR  : Throws exception if column type does not match the method used
+                 to access the value.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_get
         DESCR  :
@@ -575,7 +586,8 @@ CATEGORIES :
         DESCR  : The row index or -1 if there is no match.
       THROWS:    
       - EXCEPT : IllegalArgumentException
-        DESCR  : Throws exception if used method does not match the column type
+        DESCR  : &java_no_column_match_exception
+                 Throws exception if used method does not match the column type.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_find_first
         DESCR  :
@@ -609,7 +621,7 @@ CATEGORIES :
         DESCR  : *g_dyn_table_find_all_xxx_return_descr
       THROWS:    
       - EXCEPT : IllegalArgumentException
-        DESCR  : Throws exception if used method does not match the column type
+        DESCR  : *java_no_column_match_exception
       EXAMPLES:
       - CODE   : ex_java_dyn_table_find_all
         DESCR  :
@@ -647,7 +659,7 @@ CATEGORIES :
         DESCR  : *g_dyn_table_distinct_return_desc
       THROWS:    
       - EXCEPT : UnsupportedOperationException
-        DESCR  : Throws exception if column is not indexed
+        DESCR  : Throws exception if column is not indexed.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_get_distinct_view
         DESCR  :

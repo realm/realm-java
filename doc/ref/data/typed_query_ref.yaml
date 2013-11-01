@@ -12,54 +12,58 @@
 
 ID         : class_typed_query
 TITLE      : TableQuery (typed)
-SUMMARY    : Reference documentation coming soon...
-DESCR      : Reference documentation coming soon...
+SUMMARY    : >
+             NOTE: Reference documentation for Typed API is work in progress!
+DESCR      : >
+             NOTE: The reference documentation for the "Typed Table" API is
+             "work in progress" and absolutely not complete yet.
 SEE        : 
 EXAMPLES   :
 - DESCR:
   CODE: ex_java_typed_query_intro
 IGNORE     : []                   # List of method-ids to ignore
-#  - g_dyn_query_find_all_const:
 
 CATEGORIES :
 - Conditions:
   METHODS:
-  - g_typed_query_find_first:
-      TITLE    : findFirst
-      NAMES    : findFirst
-      SIGNATURE: Row findFirst();
-      SUMMARY  : Executes the query
-      DESCR    : Executes the query. Result is the first matching row.
+  - g_typed_query_find:
+      NAME     : findFirst
+      SUMMARY  : *g_typed_query_find_summary
+      DESCR    : *g_typed_query_find_descr
       RETURN:
-        TYPES  : Row
-        DESCR  : First matching Row (or 'null' if no match)
+        TYPES  : <type>Row
+        DESCR  : First matching <type>Row (or 'null' if no match).
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_typed_query_find_first
 
-  - g_typed_query_find_from:
-      TITLE    : findFrom
-      NAMES    : findFrom
+  - g_typed_query_find_2:
+      NAME     : findFrom
       SUMMARY  : Executes the query starting from the given position.
       DESCR    : Executes the query. Result is the first matching row from the given position.
       PARAMS:
       - NAME   : startPos
         TYPES  : long
-        DESCR  : Start position (inclusive)
+        DESCR  : Start position (inclusive).
       RETURN:
-        TYPES  : Row
-        DESCR  : First matching Row (or 'null' if no match)
+        TYPES  : <type>Row
+        DESCR  : First matching <type>Row (or 'null' if no match).
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_typed_query_find_from
 
+  - g_typed_query_find_all_const:
+      IGNORE   : ""      
   - g_typed_query_find_all:
-      TITLE    : findAll
-      NAMES    : findAll
-      SIGNATURE: TableView findAll();
-      SUMMARY  : Executes the query
+      NAME     : findAll
+      SUMMARY  : Executes the query.
       DESCR    : Executes the query. Result is returned in a TableView.
-
+# TODO: Add findAll with parameters
+#      DESCR    : *g_typed_query_find_all_descr
+#      SUMMARY  : *g_typed_query_find_all_summary
+      RETURN:
+        TYPES  : <type>View
+        DESCR  : *g_typed_query_find_all_return_descr
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_typed_query_find_all

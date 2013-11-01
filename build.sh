@@ -623,13 +623,25 @@ EOF
         exit 0
         ;;
 
-    "test-examples")
-        cd "examples/intro-example" || exit 1
-        ant runall || exit 1
+    "test-doc")
+        echo "Testind ref-doc:"
+        cd "doc/ref/examples" || exit 1
+        ant refdoc || exit 1
         echo "Test passed"
+
+        echo "Testing intro examples:"
+        cd "../../../examples/intro-example" || exit 1
+        ant runall || exit 1
         exit 0
         ;;
-
+        
+    "test-examples")
+        echo "Testing intro examples:"
+        cd "examples/intro-example" || exit 1
+        ant runall || exit 1
+        exit 0
+        ;;
+    
     "install")
         require_config || exit 1
 
