@@ -2,7 +2,10 @@ package com.tightdb;
 
 import static org.testng.AssertJUnit.*;
 
+import java.util.Date;
+
 import com.tightdb.test.TestHelper;
+
 import org.testng.annotations.Test;
 
 
@@ -49,6 +52,49 @@ public class JNIQueryTest {
         // TODO: Add tests with all parameters
     }
 
+    
+    @Test
+    public void testNegativeColumnIndex() {
+        Table table = TestHelper.getTableWithAllColumnTypes();
+        TableQuery query = table.where();
+        
+        // Boolean
+        try { query.equalTo(-1, true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-10, true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-100, true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        
+        // Date
+        try { query.equalTo(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        
+        // Double
+        try { query.equalTo(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        
+        
+        // Float
+        try { query.equalTo(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        
+        // Int / long
+        try { query.equalTo(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        
+        // String
+        try { query.equalTo(-1, "a").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-10, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-100, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        
+        // String case
+        try { query.equalTo(-1, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-10, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-100, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+    }
+    
     @Test
     public void shouldFind() {
         // Create a table
