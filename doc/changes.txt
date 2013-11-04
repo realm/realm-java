@@ -5,6 +5,10 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 25-October-2013:
 ================
++ Added lookup(String val) method to typed table.
+
+25-October-2013:
+================
 + Added addEmptyRow() method to typed table.
 + Added findFrom() method to typed query
 

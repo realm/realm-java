@@ -1162,6 +1162,8 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public long lookup(String value) {
+        if (value == null)
+            throw new RuntimeException("String must not be null");
         if (this.getColumnType(0) != ColumnType.STRING)
             throw new RuntimeException("lookup() requires a String column.");
         return nativeLookup(nativePtr, value);

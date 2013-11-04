@@ -8,8 +8,8 @@ import com.tightdb.*;
 public class TypedTableIntro {
 
     // Define the TighDB table with columns "name", "age" and "hired"
-    @DefineTable(table = "PeopleTable")
-    class people {
+    @DefineTable
+    class People {
         String  name;
         int     age;
         boolean hired;

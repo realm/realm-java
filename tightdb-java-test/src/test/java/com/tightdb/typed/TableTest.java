@@ -1,6 +1,8 @@
 package com.tightdb.typed;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
+
 
 import java.util.Date;
 
@@ -155,7 +157,20 @@ public class TableTest {
 
         employees.optimize();
     }
+    
+    @Test
+    public void lookupTest() {
+        assertEquals(0,employees.firstName.lookup("John"));
+        assertEquals(2,employees.firstName.lookup("Johny"));
 
+        assertEquals(-1,employees.firstName.lookup("non-existing"));
+        assertEquals(-1,employees.firstName.lookup(""));
+        
+        try { assertEquals(-1,employees.firstName.lookup(null)); fail("Must not be null"); } catch (RuntimeException e ) { };
+
+        // Not implemented on view yet
+        try { employees.where().driver.equalTo(true).findAll().firstName.lookup("John"); fail("Not implemented on views"); } catch (RuntimeException e ) { };
+    }
 
     @Test
     public void shouldConvertToJson() {

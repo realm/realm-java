@@ -21,6 +21,9 @@ EXAMPLES   :
              More specific examples are (soon) available in the detailed description 
              of each method above.
   CODE     : ex_java_typed_table_intro
+- DESCR    : >
+             Below examples show how to use subtables in typed tables
+  CODE     : ex_java_typed_table_intro_subtables
 IGNORE     : [g_dyn_table_where_const, 
               g_dyn_table_find_all_bool_const,
               g_dyn_table_find_all_int_const,

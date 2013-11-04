@@ -91,15 +91,11 @@ remove_suffix()
 # Setup OS specific stuff
 OS="$(uname)" || exit 1
 ARCH="$(uname -m)" || exit 1
-STAT_FORMAT_SWITCH="-c"
 NUM_PROCESSORS=""
 if [ "$OS" = "Darwin" ]; then
-    STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
-else
-    if [ -r /proc/cpuinfo ]; then
-        NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
-    fi
+elif [ -r /proc/cpuinfo ]; then
+    NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
 fi
 if [ "$NUM_PROCESSORS" ]; then
     word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
@@ -183,27 +179,37 @@ check_java_home()
 {
     local cand bin inc arch found_jni_md_h os_lc
     cand="$1"
-    echo "Checking '$cand' as candidate for JAVA_HOME"
+    if [ -z "$INTERACTIVE" ]; then
+        echo "Checking '$cand' as candidate for JAVA_HOME"
+    fi
 
     # Locate 'java' 'javac' and 'jni.h'
     bin=""
     inc=""
     if [ "$OS" = "Darwin" ]; then
         if [ -e "$cand/Commands/java" -a -e "$cand/Commands/javac" -a -e "$cand/Headers/jni.h" ]; then
-            echo "Found 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Found 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            fi
             bin="Commands"
             inc="Headers"
         else
-            echo "Could not find 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Could not find 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
+            fi
         fi
     fi
     if ! [ "$bin" ]; then
         if [ -e "$cand/bin/java" -a -e "$cand/bin/javac" -a -e "$cand/include/jni.h" ]; then
-            echo "Found 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Found 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            fi
             bin="bin"
             inc="include"
         else
-            echo "Could not find 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Could not find 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
+            fi
         fi
     fi
 
@@ -211,16 +217,22 @@ check_java_home()
     arch="none"
     if [ "$inc" ]; then
         if [ -e "$cand/$inc/jni_md.h" ]; then
-            echo "Found '$inc/jni_md.h' in '$cand'"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "Found '$inc/jni_md.h' in '$cand'"
+            fi
             found_jni_md_h="1"
         else
             os_lc="$(printf "%s\n" "$OS" | awk '{print tolower($0)}')" || return 1
             if [ -e "$cand/$inc/$os_lc/jni_md.h" ]; then
-                echo "Found '$inc/$os_lc/jni_md.h' in '$cand'"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "Found '$inc/$os_lc/jni_md.h' in '$cand'"
+                fi
                 found_jni_md_h="1"
                 arch="$cand/$inc/$os_lc"
             else
-                echo "Could not find '$inc/jni_md.h' or '$inc/$os_lc/jni_md.h' in '$cand'"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "Could not find '$inc/jni_md.h' or '$inc/$os_lc/jni_md.h' in '$cand'"
+                fi
             fi
         fi
     fi
@@ -231,7 +243,9 @@ check_java_home()
         java_includedir="$java_home/$inc"
         java_includedir_arch="$arch"
     else
-        echo "Skipping '$cand'"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Skipping '$cand'"
+        fi
     fi
     return 0
 }
@@ -270,7 +284,9 @@ case "$MODE" in
 
         # Check JAVA_HOME when specified
         if ! [ "$java_home" ] && [ "$JAVA_HOME" ]; then
-            echo "JAVA_HOME specified"
+            if [ -z "$INTERACTIVE" ]; then
+                echo "JAVA_HOME specified"
+            fi
             check_java_home "$JAVA_HOME" || exit 1
         fi
 
@@ -283,7 +299,9 @@ case "$MODE" in
             fi
             # FIXME: Should we have added '-t JNI' to /usr/libexec/java_home?
             if path="$(/usr/libexec/java_home -v 1.6+ 2>/dev/null)"; then
-                echo "'/usr/libexec/java_home -v 1.6+' specifies a JAVA_HOME"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "'/usr/libexec/java_home -v 1.6+' specifies a JAVA_HOME"
+                fi
                 check_java_home "$path" || exit 1
             fi
         fi
@@ -309,7 +327,9 @@ case "$MODE" in
                     echo "ERROR: Could not determine JAVA_HOME from path of 'javac' command '$path'" 1>&2
                     exit 1
                 fi
-                echo "'javac' found in PATH as '$path'"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "'javac' found in PATH as '$path'"
+                fi
                 check_java_home "$cand" || exit 1
             fi
         fi
@@ -322,7 +342,9 @@ case "$MODE" in
         java_cmd="$java_bindir/java"
         javac_cmd="$java_bindir/javac"
 
-        echo "Examining Java command '$java_cmd'"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Examining Java command '$java_cmd'"
+        fi
         min_ver_major="1"
         min_ver_minor="6"
         version="$($java_cmd -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\)".*/\1/')"
@@ -336,7 +358,9 @@ case "$MODE" in
             echo "ERROR: Need Java version $min_ver_major.$min_ver_minor or newer (is '$version')" 1>&2
             exit 1
         fi
-        echo "Using Java command: $java_cmd (version $version)"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Using Java command: $java_cmd (version $version)"
+        fi
         java_version="$version"
 
         if [ "$install_prefix" = "auto" ]; then
@@ -430,6 +454,7 @@ case "$MODE" in
             fi
         fi
 
+
         cat >"config" <<EOF
 java-version:         $java_version
 java-command:         $java_cmd
@@ -443,18 +468,26 @@ jni-install-dir:      $jni_install_dir
 jar-install-dir:      $jar_install_dir
 jni-suffix:           $jni_suffix
 EOF
-        echo "New configuration:"
-        cat "config" | sed 's/^/    /' || exit 1
-        echo "Done configuring"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "New configuration:"
+            cat "config" | sed 's/^/    /' || exit 1
+            echo "Done configuring"
+        fi
         exit 0
         ;;
 
     "install-report")
+        java_version="$(get_config_param "java-version")"
+        java_command="$(get_config_param "java-command")"
+        javac_command="$(get_config_param "javac-command")"
         jni_install_dir="$(get_config_param "jni-install-dir")"
         jar_install_dir="$(get_config_param "jar-install-dir")"
-        echo "Installed JNI files:"
+        echo "Java version         : $java_version"
+        echo "Java virtual machine : $java_command"
+        echo "Java compiler        : $javac_command"
+        echo "Installed JNI files  :"
         find $jni_install_dir -name '*tight*jni*'
-        echo "Installed JAR files:"
+        echo "Installed JAR files  :"
         find $jar_install_dir -name '*tightdb*jar'
         ;;
 
@@ -538,7 +571,9 @@ EOF
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
         done
-        echo "Done building"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Done building"
+        fi
         exit 0
         ;;
 
@@ -632,7 +667,7 @@ EOF
         install -d "$jar_install_dir" || exit 1
 
         if [ "$full_install" = "yes" ]; then
-            make -C "tightdb_jni" install DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+            make -C "tightdb_jni" install-only DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
         fi
 
         for x in $jar_list; do
@@ -640,8 +675,9 @@ EOF
             install -m 644 "lib/$x" "$jar_install_dir" || exit 1
         done
 
-
-        echo "Done installing"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Done installing"
+        fi
         exit 0
         ;;
 
@@ -721,7 +757,7 @@ EOF
         grep -f "$TEMP_DIR/include.bre" "$TEMP_DIR/files1" >"$TEMP_DIR/files2" || exit 1
         grep -v -f "$TEMP_DIR/exclude.bre" "$TEMP_DIR/files2" >"$TEMP_DIR/files3" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" -T "$TEMP_DIR/files3" || exit 1
-        (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
+        (cd "$TARGET_DIR" && tar xzmf "$TEMP_DIR/archive.tar.gz") || exit 1
         if ! [ "$TIGHTDB_DISABLE_MARKDOWN_TO_PDF" ]; then
             (cd "$TARGET_DIR" && pandoc README.md -o README.pdf) || exit 1
         fi
