@@ -91,15 +91,11 @@ remove_suffix()
 # Setup OS specific stuff
 OS="$(uname)" || exit 1
 ARCH="$(uname -m)" || exit 1
-STAT_FORMAT_SWITCH="-c"
 NUM_PROCESSORS=""
 if [ "$OS" = "Darwin" ]; then
-    STAT_FORMAT_SWITCH="-f"
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
-else
-    if [ -r /proc/cpuinfo ]; then
-        NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
-    fi
+elif [ -r /proc/cpuinfo ]; then
+    NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
 fi
 if [ "$NUM_PROCESSORS" ]; then
     word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
@@ -303,7 +299,9 @@ case "$MODE" in
             fi
             # FIXME: Should we have added '-t JNI' to /usr/libexec/java_home?
             if path="$(/usr/libexec/java_home -v 1.6+ 2>/dev/null)"; then
-                echo "'/usr/libexec/java_home -v 1.6+' specifies a JAVA_HOME"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "'/usr/libexec/java_home -v 1.6+' specifies a JAVA_HOME"
+                fi
                 check_java_home "$path" || exit 1
             fi
         fi
@@ -329,7 +327,9 @@ case "$MODE" in
                     echo "ERROR: Could not determine JAVA_HOME from path of 'javac' command '$path'" 1>&2
                     exit 1
                 fi
-                echo "'javac' found in PATH as '$path'"
+                if [ -z "$INTERACTIVE" ]; then
+                    echo "'javac' found in PATH as '$path'"
+                fi
                 check_java_home "$cand" || exit 1
             fi
         fi
@@ -571,7 +571,9 @@ EOF
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
         done
-        echo "Done building"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Done building"
+        fi
         exit 0
         ;;
 
@@ -665,7 +667,7 @@ EOF
         install -d "$jar_install_dir" || exit 1
 
         if [ "$full_install" = "yes" ]; then
-            make -C "tightdb_jni" install DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+            make -C "tightdb_jni" install-only DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
         fi
 
         for x in $jar_list; do
@@ -673,8 +675,9 @@ EOF
             install -m 644 "lib/$x" "$jar_install_dir" || exit 1
         done
 
-
-        echo "Done installing"
+        if [ -z "$INTERACTIVE" ]; then
+            echo "Done installing"
+        fi
         exit 0
         ;;
 
@@ -754,7 +757,7 @@ EOF
         grep -f "$TEMP_DIR/include.bre" "$TEMP_DIR/files1" >"$TEMP_DIR/files2" || exit 1
         grep -v -f "$TEMP_DIR/exclude.bre" "$TEMP_DIR/files2" >"$TEMP_DIR/files3" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" -T "$TEMP_DIR/files3" || exit 1
-        (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
+        (cd "$TARGET_DIR" && tar xzmf "$TEMP_DIR/archive.tar.gz") || exit 1
         if ! [ "$TIGHTDB_DISABLE_MARKDOWN_TO_PDF" ]; then
             (cd "$TARGET_DIR" && pandoc README.md -o README.pdf) || exit 1
         fi
