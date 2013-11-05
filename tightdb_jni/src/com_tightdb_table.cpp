@@ -170,10 +170,15 @@ JNIEXPORT jint JNICALL Java_com_tightdb_Table_nativeGetColumnType(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddEmptyRow(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong rows)
 {
-    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
+    Table* pTable = TBL(nativeTablePtr);
+    if (!TABLE_VALID(env, pTable))
         return 0;
+    if(pTable->get_column_count() < 1){
+        ThrowException(env, IndexOutOfBounds, "Table has no columns");
+        return 0;
+    }
     try {
-        return static_cast<jlong>( TBL(nativeTablePtr)->add_empty_row( S(rows)) );
+        return static_cast<jlong>( pTable->add_empty_row( S(rows)) );
     } CATCH_STD()
     return 0;
 }
