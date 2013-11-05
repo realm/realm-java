@@ -11,7 +11,7 @@ public class DynTableExamples {
         
         
         // Constructor
-        
+        constrcutorExample();
 
 
         //Table schema methods
