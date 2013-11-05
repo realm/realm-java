@@ -20,7 +20,7 @@
 	
 	
 	
-	   <build>
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.bsc.maven</groupId>
