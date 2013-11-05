@@ -1,26 +1,28 @@
 package com.tightdb.typed;
 
 import java.io.File;
+import java.io.IOException;
 import java.rmi.UnexpectedException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.*;
 
 import org.testng.annotations.DataProvider;
 //import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.tightdb.Group;
 import com.tightdb.ReadTransaction;
 import com.tightdb.SharedGroup;
+import com.tightdb.Table;
 import com.tightdb.SharedGroup.Durability;
 import com.tightdb.WriteTransaction;
 
 public class SharedGroupTest {
-    
+
     protected SharedGroup db;
 
     protected String testFile = "transact.tightdb";
@@ -42,6 +44,46 @@ public class SharedGroupTest {
     public void clear() {
         db.close();
         deleteFile(testFile);
+    }
+
+
+    String uniqueName = "test991UniqueName.tightdb";
+
+
+    @Test 
+    public void testExistingLockFile() throws IOException {
+        System.out.print("Hej1");
+        SharedGroup sg = new SharedGroup(uniqueName);
+
+        WriteTransaction wt = sg.beginWrite();
+        try {
+            wt.getTable("tableName");
+            wt.commit();
+        } catch (Throwable t){
+            wt.rollback();
+        }
+
+        wt = sg.beginWrite();
+         wt.getTable("tableName");
+         
+         
+         sg = null;
+         wt = null;
+         System.gc();
+
+        // Delete tightdb file, but NOT .lock file
+        new File(uniqueName).delete();
+    }
+    
+    @Test 
+    public void testExistingLockFile2() throws IOException {
+        System.out.print("Hej2");
+
+
+        if(new File(uniqueName + ".lock").exists()){
+         // Try creating new shared group, while lock file is still there
+            SharedGroup sg2 = new SharedGroup(uniqueName);
+        }
     }
 
     @Test(dataProvider = "durabilityProvider")
@@ -73,7 +115,7 @@ public class SharedGroupTest {
         }
         assert(false);        
     }
-    
+
     @Test(dataProvider = "durabilityProvider")
     public void noCloseSharedGroupDuringTransaction(Durability durability) {
         init(durability);
@@ -91,54 +133,54 @@ public class SharedGroupTest {
 
     @Test(enabled=false, dataProvider = "durabilityProvider")
     public void fileMustExistParameter(Durability durability) {
-    	// test not applicable for MEM_ONLY
-    	if (durability == Durability.MEM_ONLY)
-    		return;
+        // test not applicable for MEM_ONLY
+        if (durability == Durability.MEM_ONLY)
+            return;
 
-		String mustExistFile = "mustexistcheck.tightdb";
+        String mustExistFile = "mustexistcheck.tightdb";
 
-		// Check that SharedGroup asserts when there is no file
-		deleteFile(mustExistFile);
-		try {
-		    db = new SharedGroup(mustExistFile, durability, true);
-		    assert(false);
-		} catch (com.tightdb.IOException e){
-			// expected
-		} catch (Exception e) {
-			assert(false);
-		}
-		// Don't expect anything to close due to failure.
+        // Check that SharedGroup asserts when there is no file
+        deleteFile(mustExistFile);
+        try {
+            db = new SharedGroup(mustExistFile, durability, true);
+            assert(false);
+        } catch (com.tightdb.IOException e){
+            // expected
+        } catch (Exception e) {
+            assert(false);
+        }
+        // Don't expect anything to close due to failure.
 
-		// Create file and see that it can be opened now
-		db = new SharedGroup(mustExistFile, durability, false);
-		db.close();
-		// Then set fileMustExist=true, and it should work
-		db = new SharedGroup(mustExistFile, durability, true);
-		db.close();
+        // Create file and see that it can be opened now
+        db = new SharedGroup(mustExistFile, durability, false);
+        db.close();
+        // Then set fileMustExist=true, and it should work
+        db = new SharedGroup(mustExistFile, durability, true);
+        db.close();
 
-		deleteFile(mustExistFile);
+        deleteFile(mustExistFile);
     }
 
     @Test(dataProvider = "durabilityProvider")
     public void shouldReserve(Durability durability) {
-    	// test not applicable for MEM_ONLY
-    	if (durability == Durability.MEM_ONLY)
-    		return;
+        // test not applicable for MEM_ONLY
+        if (durability == Durability.MEM_ONLY)
+            return;
 
-    	// First create file
-    	String fileName = "sizefile.tightdb";
-    	deleteFile(fileName);
+        // First create file
+        String fileName = "sizefile.tightdb";
+        deleteFile(fileName);
         db = new SharedGroup(fileName, durability);
         db.reserve(50012);
-        
+
         File f = new File(fileName);
         // Not all platforms support this:   assertEquals( 50012, f.length() );
         db.close();
 
         deleteFile(testFile);
     }
-    
-    
+
+
     @DataProvider(name = "durabilityProvider")
     public Object[][] durabilityProvider() {
         return new Object[][] {
