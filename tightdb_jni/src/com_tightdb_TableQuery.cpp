@@ -27,6 +27,11 @@ inline bool QueryValid(JNIEnv* env, Query* pQuery)
     return TABLE_VALID(env, pTable);
 }
 
+// Flag is updates each time the query object is updated.
+// The flag is cheked when the query is executed
+bool valid_flag = true;
+String invalid_message = "";
+
 
 //-------------------------------------------------------
 
@@ -508,6 +513,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup(
     JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
     Query* pQuery = Q(nativeQueryPtr);
+    if( ( invalid_message = pQuery->validate() )!= "")
+        valid_flag = false;
     if (!QUERY_VALID(env, pQuery))
         return;
     try {
@@ -519,6 +526,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup(
     JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
     Query* pQuery = Q(nativeQueryPtr);
+    if( ( invalid_message = pQuery->validate() )!= "")
+        valid_flag = false;
     if (!QUERY_VALID(env, pQuery))
         return;
     try {
@@ -543,6 +552,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
 {
     // No verification of parameters needed?
     Query* pQuery = Q(nativeQueryPtr);
+    if( ( invalid_message = pQuery->validate() )!= "")
+        valid_flag = false;
     if (!QUERY_VALID(env, pQuery))
         return;
     try {
@@ -557,6 +568,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFind(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong fromTableRow)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return -1;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
     if (!QUERY_VALID(env, pQuery))
@@ -578,6 +593,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFind(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return -1;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
     if (!QUERY_VALID(env, pQuery) ||
@@ -597,6 +616,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSumInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = get_table_ptr(pQuery);
     if (!QUERY_VALID(env, pQuery) ||
@@ -613,6 +636,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximumInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -629,6 +656,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimumInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -645,6 +676,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -668,6 +703,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeSumFloat(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -684,6 +723,10 @@ JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMaximumFloat(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -700,6 +743,10 @@ JNIEXPORT jfloat JNICALL Java_com_tightdb_TableQuery_nativeMinimumFloat(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -716,6 +763,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageFloat(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -736,6 +787,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeSumDouble(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -752,6 +807,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeMaximumDouble(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -768,6 +827,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeMinimumDouble(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -784,6 +847,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageDouble(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -805,6 +872,10 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageDouble(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
@@ -819,6 +890,10 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeRemove(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
+    if(!valid_flag){
+        ThrowException(env, UnsupportedOperation, invalid_message);
+        return 0;
+    }
     Query* pQuery = Q(nativeQueryPtr);
     Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||

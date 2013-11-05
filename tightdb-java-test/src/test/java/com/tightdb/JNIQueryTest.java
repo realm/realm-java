@@ -56,11 +56,11 @@ public class JNIQueryTest {
         TableQuery query = table.where();
 
         // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
-        try { query.equalTo(0,1).or().findAll();        fail("messing a second filter"); }      catch (UnsupportedOperationException e) { }
-        try { query.group().equalTo(0,1).findAll();     fail("messing a clsong group"); }       catch (UnsupportedOperationException e) { }
-        try { query.endGroup().equalTo(0,1).findAll();  fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { query.equalTo(0,1).endGroup().findAll();  fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { query.or().findAll();                     fail("just an or()"); }                 catch (UnsupportedOperationException e) { }
+        try { query.equalTo(0,1).or().findAll();        fail("missing a second filter"); }      catch (UnsupportedOperationException e) { } // CRASHES CORE
+       // try { query.or().findAll();                     fail("just an or()"); }                 catch (UnsupportedOperationException e) { e.printStackTrace(); } // Fixed!
+        try { query.group().equalTo(0,1).findAll();     fail("messing a clsong group"); }       catch (UnsupportedOperationException e) { } // Do not throw exception
+        try { query.endGroup().equalTo(0,1).findAll();  fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }   // Do not throw exception
+        try { query.equalTo(0,1).endGroup().findAll();  fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } // Do not throw exception
     }
 
     @Test
