@@ -1,5 +1,15 @@
 # NOTE: THIS SCRIPT IS SUPPOSED TO RUN IN A POSIX SHELL
 
+# Enable tracing if DEBUG is set
+if [ -e $HOME/.tightdb ]; then
+    . $HOME/.tightdb
+fi
+if [ -z "$DEBUG" ]; then
+    set +x
+else
+    set -x
+fi
+
 cd "$(dirname "$0")"
 TIGHTDB_JAVA_HOME="$(pwd)"
 
@@ -103,6 +113,9 @@ else
 fi
 if [ "$NUM_PROCESSORS" ]; then
     word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
+fi
+if [ "$DEBUG" ]; then
+    word_list_prepend MAKEFLAGS "-d" || exit 1
 fi
 export MAKEFLAGS
 
