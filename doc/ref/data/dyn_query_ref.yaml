@@ -389,7 +389,7 @@ CATEGORIES :
         DESCR  : "Maximum number of rows to search (-1  means infinity)."
       RETURN:
         TYPES  : TableView
-        DESCR  : *g_dyn_query_find_all_return_desc
+        DESCR  : *g_dyn_query_find_all_return_descr
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_dyn_query_findall

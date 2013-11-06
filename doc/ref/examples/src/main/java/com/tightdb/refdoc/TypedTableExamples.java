@@ -1,5 +1,3 @@
-
-
 package com.tightdb.refdoc;
 
 import java.io.FileNotFoundException;
@@ -9,19 +7,14 @@ import com.tightdb.Group;
 import com.tightdb.SharedGroup;
 import com.tightdb.WriteTransaction;
 
-
-
 public class TypedTableExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
-
 
         // Constructor methods
         constructorPlainExample();
         constructorGroupExample();
         constructorGroupNameExample();
-
-
 
         // Table methods:
         isValidExample();
@@ -31,7 +24,6 @@ public class TypedTableExamples {
         optimizeExample();
         setIndexExample();
         hasIndexExample();
-
 
         // Column methods:
         /* getColumnCountExample();
@@ -47,14 +39,11 @@ public class TypedTableExamples {
         removeLastExample();
         addEmptyRowExample();
 
-
         // Searching methods
         whereExample();
 
-
         // Dump methods:
         toJSONExample();
-
     }
 
 
@@ -107,11 +96,9 @@ public class TypedTableExamples {
     }
 
 
-
     // ******************************************
     // Table methods
     // ******************************************
-
 
 
     public static void isValidExample(){
@@ -249,7 +236,6 @@ public class TypedTableExamples {
     }
 
 
-
     // ******************************************
     // Column methods
     // ******************************************
@@ -299,8 +285,6 @@ public class TypedTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }*/
-
-
 
 
     // ******************************************
@@ -422,8 +406,6 @@ public class TypedTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
-
 
 
     // ******************************************

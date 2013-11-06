@@ -1,17 +1,11 @@
 package com.tightdb.refdoc;
 
-
 public class TypedQueryExamples {
 
-
     public static void main(String[] args) {
-        
         findFirstExample();
         findFromExample();
         findAllExample();
-        
-        
-        
     }
 
     public static void findFirstExample() {

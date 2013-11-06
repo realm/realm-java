@@ -1,16 +1,15 @@
 // @@Example: ex_java_typed_table_intro @@
 package com.tightdb.refdoc;
+
 import java.io.File;
 import java.io.IOException;
-
 import com.tightdb.*;
 
 public class TypedTableIntro {
 
-
     // Define the TighDB table with columns "name", "age" and "hired"
-    @DefineTable(table = "PeopleTable")
-    class people {
+    @DefineTable
+    class People {
         String  name;
         int     age;
         boolean hired;
@@ -80,9 +79,9 @@ public class TypedTableIntro {
                 .age.between(20, 35)    // Implicit AND with below
                 .name.contains("a")     // Implicit AND with below
                 .group()                // "("
-                .hired.equalTo(true)
-                .or()               // or
-                .name.endsWith("y")
+                    .hired.equalTo(true)
+                    .or()               // or
+                    .name.endsWith("y")
                 .endGroup();            // ")"
         // Count matches
         PeopleView match = query.findAll();
@@ -167,7 +166,6 @@ public class TypedTableIntro {
         }
         
         // @@EndShow@@
-
     } 
 }
 //@@EndExample@@

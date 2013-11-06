@@ -14,10 +14,10 @@ public class DynTableIntro {
         //
         // Add, delete and set whole Rows
         //
-        // Add some data
+        
         tbl.add(12, "hello", 2);
         tbl.add(-15, "World", "I can be different types...");
-        tbl.addAt(0, 53, "I'm now first", true);     // data in order of columns
+        tbl.addAt(0, 53, "I'm now first", true);      // insert at row 0. data in order of columns
         tbl.addEmptyRow();                            // append row at end of table - default values
         tbl.set(3, 198, "TightDB", 12.345);           // set values in row 3
         tbl.remove(0);                                // remove row 0
@@ -28,13 +28,14 @@ public class DynTableIntro {
         tbl.setMixed(2,  0, new Mixed("changed Long value to String"));
         // Inspect the type of Mixed value that was just added:
         Assert(tbl.getMixedType(2, 0) == ColumnType.STRING);
+   //TODO:     Assert(tbl.getMixed(2, 0).getStringValue().equals("changed Long value to String"));
 
         // Inspect table
         Assert(tbl.size() == 2);
         Assert(tbl.isEmpty() == false);
 
         // Update columns
-        tbl.renameColumn(0,  "myLong");               // Rename the first column
+        tbl.renameColumn(0, "myLong");                // Rename the first column
         tbl.removeColumn(1);                          // Remove the string column
         tbl.add(42, "this is the mixed column");      // We now got two columns left
         tbl.addColumn(ColumnType.DOUBLE, "myDouble");
