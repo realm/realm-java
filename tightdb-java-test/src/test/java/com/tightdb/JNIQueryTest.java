@@ -128,7 +128,12 @@ public class JNIQueryTest {
         try { query.notEqualTo(-10, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-100, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         
-        // String case
+        // String case true
+        try { query.notEqualTo(-1, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(-10, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(-100, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}      
+        
+        // String case false
         try { query.notEqualTo(-1, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-10, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-100, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
@@ -272,6 +277,30 @@ public class JNIQueryTest {
         try { query.between(-10, 1, 10).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.between(-100, 1, 10).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
+    
+    
+    @Test
+    public void testNegativeColumnIndexContains() {
+        Table table = TestHelper.getTableWithAllColumnTypes();
+        TableQuery query = table.where();
+        
+        // String
+        try { query.contains(-1, "hey").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(-1, "hey").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(-1, "hey").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        
+        // String case true
+        try { query.contains(-1, "hey", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(-1, "hey", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(-1, "hey", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        
+        // String case false
+        try { query.contains(-1, "hey", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(-1, "hey", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(-1, "hey", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+    }
+    
+    
     
     @Test
     public void shouldFind() {
