@@ -16,7 +16,7 @@ DESCR      : >
 SEE        : 
 EXAMPLES   :
 - DESCR    : >
-             Tables in the typed interface are defined using the following syntax:
+             Tables in the typed interface are defined using the following syntax.
   CODE     : ex_java_typed_table_definition
 - DESCR    : >
              Below examples will showcase all the available methods in a typed Table.
@@ -25,7 +25,7 @@ EXAMPLES   :
              of each method above.
   CODE     : ex_java_typed_table_intro
 - DESCR    : >
-             Below examples show how to use subtables in typed tables
+             Below examples show how to use subtables in typed tables.
   CODE     : ex_java_typed_table_intro_subtables
 IGNORE     : [g_dyn_table_where_const, 
               g_dyn_table_find_all_bool_const,

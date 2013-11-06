@@ -11,7 +11,7 @@ public class DynTableExamples {
         
         
         // Constructor
-        
+        constrcutorExample();
 
 
         //Table schema methods
@@ -90,17 +90,11 @@ public class DynTableExamples {
         Table table2 = group.getTable("tableName");
         // @@EndExample@@
     }
-    
-
-
-    
-    
 
     
     // ******************************************
     // Table schema methods
     // ******************************************
-
 
     public static void addColumnExample(){
         // @@Example: ex_java_dyn_table_add_column_1 @@
@@ -134,7 +128,7 @@ public class DynTableExamples {
         // To add columns to the subtable use TableSchema
         TableSchema subtableSchema = table3.getSubTableSchema(subtableColIndex);
 
-        // Now simply add columns using addColumn on the TableSchame object
+        // Now simply add columns using addColumn on the TableSchema object
         subtableSchema.addColumn(ColumnType.STRING, "desc");
         subtableSchema.addColumn(ColumnType.DATE, "date");
         // @@EndExample@@
@@ -147,10 +141,12 @@ public class DynTableExamples {
         }
         // @@EndExample@@
 
-
         // @@Example: ex_java_dyn_table_add_column_5 @@
         Table table5 = new Table();
-
+        
+        // Although it's possible to have empty names or the same names multiple times, 
+        // looking up columns based on the name, will only give you the first column with that name. 
+        // But if you don't care about looking up columns by name, you don't have to set a name.
         table5.addColumn(ColumnType.STRING, "val");
         table5.addColumn(ColumnType.INTEGER, "val");
         table5.addColumn(ColumnType.DOUBLE, "val");
@@ -174,15 +170,14 @@ public class DynTableExamples {
         table1.addColumn(ColumnType.STRING, "name");
         table1.addColumn(ColumnType.STRING, "extra");
 
-        // Remove column 'extra'
-        table1.removeColumn(2);
+        // Remove column 'name'
+        table1.removeColumn(1);
 
-        // Column count should be 2
-        Assert(table1.getColumnCount() == 2);
+        // The column index of 'extra' has been changed
+        Assert(table1.getColumnIndex("extra") == 1);
         // @@EndExample@@
         
-        
-     // @@Example: ex_java_dyn_table_remove_column_2" @@
+        // @@Example: ex_java_dyn_table_remove_column_2" @@
         // Create table, with subtable and add columns
         Table table2 = new Table();
         table2.addColumn(ColumnType.INTEGER, "id");
@@ -215,7 +210,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
 
-
     public static void getColumnCountExample(){
         // @@Example: ex_java_dyn_table_get_column_count @@
         // @@Show@@
@@ -230,7 +224,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void getColumnNameExample(){
         // @@Example: ex_java_dyn_table_get_column_name @@
@@ -247,7 +240,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
 
-
     public static void getColumnIndexExample(){
         // @@Example: ex_java_dyn_table_get_column_index @@
         // @@Show@@
@@ -262,7 +254,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void getColumnTypeExample(){
         // @@Example: ex_java_dyn_table_get_column_type @@
@@ -283,8 +274,6 @@ public class DynTableExamples {
     // ******************************************
     // Table methods
     // ******************************************
-
-
 
     public static void isValidExample(){
         // @@Example: ex_java_dyn_table_is_valid @@
@@ -307,7 +296,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
 
-
     public static void sizeExample(){
         // @@Example: ex_java_dyn_table_size @@
         // @@Show@@
@@ -325,7 +313,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void isEmptyExample(){
         // @@Example: ex_java_dyn_table_is_empty @@
@@ -366,9 +353,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
 
-
-
-
     // ******************************************
     // Columns methods
     // ******************************************
@@ -393,8 +377,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
-
 
 
     // ******************************************
@@ -497,7 +479,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
 
-
     public static void removeExample(){
         // @@Example: ex_java_dyn_table_remove @@
         // @@Show@@
@@ -516,7 +497,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void removeLastExample(){
         // @@Example: ex_java_dyn_table_remove_last_row @@
@@ -538,9 +518,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
-
-
 
 
     // ******************************************
@@ -587,7 +564,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void setExamples(){
         // @@Example: ex_java_dyn_table_set @@

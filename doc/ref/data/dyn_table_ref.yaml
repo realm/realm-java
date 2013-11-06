@@ -49,9 +49,9 @@ CATEGORIES :
       DESCR    : This method creates a table, which is the basic structure in tightdb.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_constructor_plain
-        DESCR  : A table can be created as free form 
+        DESCR  : A table can be created as free form.
       - CODE   : ex_java_dyn_table_constructor_group
-        DESCR  : A table can be retrieved or created from a group
+        DESCR  : A table can be retrieved or created from a group.
       SEE      : >
                 See {@link class_group} to learn about Group. <br>
                 See also {@link g_dyn_table_add_column} on how to add columns to a table. <br>
@@ -95,15 +95,15 @@ CATEGORIES :
         DESCR  : *g_dyn_table_add_column_return_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_table_add_column_1
-        DESCR  : Adding columns to a table
+        DESCR  : Adding columns to a table.
       - CODE   : ex_java_dyn_table_add_column_2
-        DESCR  : Tightdb has 9 different column types
+        DESCR  : Tightdb has 9 different column types.
       - CODE   : ex_java_dyn_table_add_column_3
-        DESCR  : Working with subtables
+        DESCR  : Working with subtables.
       - CODE   : ex_java_dyn_table_add_column_4
-        DESCR  : Tightdb handles very large number of columns
+        DESCR  : Tightdb handles very large number of columns.
       - CODE   : ex_java_dyn_table_add_column_5
-        DESCR  : Duplicate and empty string column names are allowed
+        DESCR  : Duplicate and empty string column names are allowed.
   - g_dyn_table_remove_column:
       NAMES    : removeColumn
       SUMMARY  : *g_dyn_table_remove_column_summary
@@ -116,7 +116,7 @@ CATEGORIES :
       - CODE   : ex_java_dyn_table_remove_column_1
         DESCR  :
       - CODE   : ex_java_dyn_table_remove_column_2
-        DESCR  : Columns can also be removed from subtables
+        DESCR  : Columns can also be removed from subtables.
   - g_dyn_table_rename_column:
       NAMES    : renameColumn
       SUMMARY  : *g_dyn_table_rename_column_summary
