@@ -626,7 +626,7 @@ EOF
         ;;
 
     "test-doc")
-        echo "Testind ref-doc:"
+        echo "Testing ref-doc:"
         cd "doc/ref/examples" || exit 1
         ant refdoc || exit 1
         echo "Test passed"

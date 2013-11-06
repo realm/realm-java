@@ -40,6 +40,168 @@ IGNORE     : [g_dyn_table_where_const,
 
 CATEGORIES :
 
+
+- Constructor:
+  METHODS:
+  - g_dyn_table_constructor_plain:
+      NAMES    : Table
+      SUMMARY  : Creates a new Table object.
+      DESCR    : This method creates a table, which is the basic structure in tightdb.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_constructor_plain
+        DESCR  : A table can be created as free form.
+      - CODE   : ex_java_dyn_table_constructor_group
+        DESCR  : A table can be retrieved or created from a group.
+      SEE      : >
+                See {@link class_group} to learn about Group. <br>
+                See also {@link g_dyn_table_add_column} on how to add columns to a table. <br>
+                See also {@link g_dyn_table_add} on how to add data to a table.
+
+
+
+
+- Table Schema:
+  METHODS:
+  - g_dyn_table_add_column:
+      NAMES    : addColumn
+      SUMMARY  : *g_dyn_table_add_column_summary
+      DESCR    : >
+                 This method appends a column of the specified type and name to the table.
+                 If it's used in a table which already has rows, the new column will just get
+                 default values (0, "", null) in those rows.
+                 
+                 Currently, the following types are supported from the <code>ColumnType</code> class:
+                 <ul>
+                   <li><code>BOOLEAN</code> (default false)</li>
+                   <li><code>INTEGER</code> (default 0. Equivalent to long in java)</li>
+                   <li><code>FLOAT</code> (default 0.0)</li>
+                   <li><code>DOUBLE</code> (default 0.0)</li>
+                   <li><code>STRING</code> (default "")</li>
+                   <li><code>BINARY</code> (default (""))</li>
+                   <li><code>DATE</code> (default 0 - 1970-01-01 00:00:00. Milliseconds are capped)</li>
+                   <li><code>TABLE</code> (default NULL)</li>
+                   <li><code>MIXED</code> (default NULL)</li>
+                 </ul>
+
+      PARAMS:
+      - NAME   : type
+        TYPES  : ColumnType
+        DESCR  : *g_dyn_table_add_column_param1_descr
+      - NAME   : name
+        TYPES  : String
+        DESCR  : *g_dyn_table_add_column_param2_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : *g_dyn_table_add_column_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_add_column_1
+        DESCR  : Adding columns to a table.
+      - CODE   : ex_java_dyn_table_add_column_2
+        DESCR  : Tightdb has 9 different column types.
+      - CODE   : ex_java_dyn_table_add_column_3
+        DESCR  : Working with subtables.
+      - CODE   : ex_java_dyn_table_add_column_4
+        DESCR  : Tightdb handles very large number of columns.
+      - CODE   : ex_java_dyn_table_add_column_5
+        DESCR  : Duplicate and empty string column names are allowed.
+  - g_dyn_table_remove_column:
+      NAMES    : removeColumn
+      SUMMARY  : *g_dyn_table_remove_column_summary
+      DESCR    : *g_dyn_table_remove_column_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_remove_column_param1_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_remove_column_1
+        DESCR  :
+      - CODE   : ex_java_dyn_table_remove_column_2
+        DESCR  : Columns can also be removed from subtables.
+  - g_dyn_table_rename_column:
+      NAMES    : renameColumn
+      SUMMARY  : *g_dyn_table_rename_column_summary
+      DESCR    : *g_dyn_table_rename_column_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_rename_column_param1_descr
+      - NAME   : newName
+        TYPES  : String
+        DESCR  : *g_dyn_table_rename_column_param2_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_rename_column
+        DESCR  : 
+  
+  - g_dyn_table_get_column_count:
+      NAMES    : getColumnCount
+      SUMMARY  : *g_dyn_table_get_column_count_summary
+      DESCR    : *g_dyn_table_get_column_count_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_column_count_return_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_column_count
+        DESCR  :
+  - g_dyn_table_get_column_name:
+      NAMES    : getColumnName
+      SUMMARY  : *g_dyn_table_get_column_name_summary
+      DESCR    : *g_dyn_table_get_column_name_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index (starting from 0).
+      RETURN:
+        TYPES  : String
+        DESCR  : The column name.
+      THROWS:      
+      - EXCEPT : ArrayIndexOutOfBoundsException
+        DESCR  : &java_array_out_of_bounds_exception_text
+                 Throws exception if column index is out of range.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_column_name
+        DESCR  :
+  - g_dyn_table_get_column_index:
+      NAMES    : getColumnIndex
+      SUMMARY  : *g_dyn_table_get_column_index_summary
+      DESCR    : *g_dyn_table_get_column_index_descr
+      PARAMS:
+      - NAME   : columnName
+        TYPES  : String
+        DESCR  : The name of the column to find.
+      RETURN:
+        TYPES  : long
+        DESCR  : The column index or -1 if there is no column with the specified name.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_column_index
+        DESCR  :
+  - g_dyn_table_get_column_type:
+      NAMES    : getColumnType
+      SUMMARY  : *g_dyn_table_get_column_type_summary
+      DESCR    : >
+                 This method returns the type of a column using the column index. Currently,
+                 the following types are supported from the <code>ColumnType</code> class:
+                 <ul>
+                   <li><code>BOOLEAN</code></li>
+                   <li><code>LONG</code></li>
+                   <li><code>FLOAT</code></li>
+                   <li><code>DOUBLE</code></li>
+                   <li><code>STRING</code></li>
+                   <li><code>BINARY</code></li>
+                   <li><code>DATE</code></li>
+                   <li><code>TABLE</code></li>
+                   <li><code>MIXED</code></li>
+                 </ul>
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index.
+      RETURN:
+        TYPES  : ColumnType
+        DESCR  : The column type.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_column_type
+        DESCR  :
+
 - Table:
   METHODS:
   - g_dyn_table_is_attached:
@@ -132,143 +294,6 @@ CATEGORIES :
 
 - Columns:
   METHODS:
-  - g_dyn_table_add_column:
-      NAMES    : addColumn
-      SUMMARY  : *g_dyn_table_add_column_summary
-      DESCR    : >
-                 This method appends a column of the specified type and name to the table.
-                 If it's used in a table which already has rows, the new column will just get
-                 default values (0, "", null) in those rows.
-                 
-                 Currently, the following types are supported from the <code>ColumnType</code> class:
-                 <ul>
-                   <li><code>BOOLEAN</code> (default false)</li>
-                   <li><code>INTEGER</code> (default 0. Equivalent to long in java)</li>
-                   <li><code>FLOAT</code> (default 0.0)</li>
-                   <li><code>DOUBLE</code> (default 0.0)</li>
-                   <li><code>STRING</code> (default "")</li>
-                   <li><code>BINARY</code> (default (""))</li>
-                   <li><code>DATE</code> (default 0 - 1970-01-01 00:00:00. Milliseconds are capped)</li>
-                   <li><code>TABLE</code> (default NULL)</li>
-                   <li><code>MIXED</code> (default NULL)</li>
-                 </ul>
-
-      PARAMS:
-      - NAME   : type
-        TYPES  : ColumnType
-        DESCR  : *g_dyn_table_add_column_type_descr
-      - NAME   : name
-        TYPES  : String
-        DESCR  : *g_dyn_table_add_column_name_descr
-      RETURN:
-        TYPES  : long
-        DESCR  : *g_dyn_table_add_column_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_add_column
-        DESCR  :
-#TODO: add_subtable_column
-      SEE      : >
-                 NOTICE: Currently adding subtable-columns are not supported yet.
-                 If that is needed create the tables via a TableSpec.
-# TODO                 {@link class_table_spec}.
-  - g_dyn_table_remove_column:
-      NAMES    : removeColumn
-      SUMMARY  : *g_dyn_table_remove_column_summary
-      DESCR    : *g_dyn_table_remove_column_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_remove_column_param1_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_remove_column
-        DESCR  :
-#TODO remove_subtable_column
-      SEE      : >
-                 NOTICE: Currently deleting subtable-columns are not supported yet.
-  - g_dyn_table_rename_column:
-      NAMES    : renameColumn
-      SUMMARY  : *g_dyn_table_rename_column_summary
-      DESCR    : *g_dyn_table_rename_column_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_rename_column_param1_descr
-      - NAME   : newName
-        TYPES  : String
-        DESCR  : *g_dyn_table_rename_column_param2_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_rename_column
-        DESCR  :
-  
-  - g_dyn_table_get_column_count:
-      NAMES    : getColumnCount
-      SUMMARY  : *g_dyn_table_get_column_count_summary
-      DESCR    : *g_dyn_table_get_column_count_descr
-      RETURN:
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_column_count_return_descr
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_column_count
-        DESCR  :
-  - g_dyn_table_get_column_name:
-      NAMES    : getColumnName
-      SUMMARY  : *g_dyn_table_get_column_name_summary
-      DESCR    : *g_dyn_table_get_column_name_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : The column index (starting from 0).
-      RETURN:
-        TYPES  : String
-        DESCR  : The column name.
-      THROWS:      
-      - EXCEPT : ArrayIndexOutOfBoundsException
-        DESCR  : &java_array_out_of_bounds_exception_text
-                 Throws exception if column index is out of range.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_column_name
-        DESCR  :
-  - g_dyn_table_get_column_index:
-      NAMES    : getColumnIndex
-      SUMMARY  : *g_dyn_table_get_column_index_summary
-      DESCR    : *g_dyn_table_get_column_index_descr
-      PARAMS:
-      - NAME   : columnName
-        TYPES  : String
-        DESCR  : The name of the column to find.
-      RETURN:
-        TYPES  : long
-        DESCR  : The column index or -1 if there is no column with the specified name.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_column_index
-        DESCR  :
-  - g_dyn_table_get_column_type:
-      NAMES    : getColumnType
-      SUMMARY  : *g_dyn_table_get_column_type_summary
-      DESCR    : >
-                 This method returns the type of a column using the column index. Currently,
-                 the following types are supported from the <code>ColumnType</code> class:
-                 <ul>
-                   <li><code>BOOLEAN</code></li>
-                   <li><code>LONG</code></li>
-                   <li><code>FLOAT</code></li>
-                   <li><code>DOUBLE</code></li>
-                   <li><code>STRING</code></li>
-                   <li><code>BINARY</code></li>
-                   <li><code>DATE</code></li>
-                   <li><code>TABLE</code></li>
-                   <li><code>MIXED</code></li>
-                 </ul>
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : The column index.
-      RETURN:
-        TYPES  : ColumnType
-        DESCR  : The column type.
-      EXAMPLES:
-      - CODE   : ex_java_dyn_table_get_column_type
-        DESCR  :
   - g_dyn_table_add_int:
       NAMES    : adjust
       SUMMARY  : *g_dyn_table_add_int_summary
