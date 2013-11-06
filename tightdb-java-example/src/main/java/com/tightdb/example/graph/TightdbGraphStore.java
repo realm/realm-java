@@ -171,7 +171,7 @@ public class TightdbGraphStore {
 			// check if link already exists
             // we don't want to search over all links, so we go through the source node
             LinktypeQuery query = nodes.at(link.id1).getLink_out().
-            						where().type.eq(link.link_type);
+            						where().type.equalTo(link.link_type);
             for (LinktypeRow ref : query.findAll()) {
             	LinkRow l = links.at(ref.getLink());
             	if (l.getId2() == link.id2) {
@@ -225,15 +225,15 @@ public class TightdbGraphStore {
             
             // we don't want to search over all links, so we go through the source node
             NodeRow srcNode = nodes.at(id1);
-			LinktypeQuery query = srcNode.getLink_out().where().type.eq(link_type);
+			LinktypeQuery query = srcNode.getLink_out().where().type.equalTo(link_type);
             for (LinktypeRow ref : query.findAll()) {
             	long refLink = ref.getLink();
             	LinkRow l = links.at(refLink);
             	if (l.getId2() == id2) {
             		l.setDeleted(true);
             		deleted_links.add((int) refLink);
-            		srcNode.getLink_out().where().type.eq(refLink).remove();
-            		nodes.at(id2).getLink_in().where().type.eq(link_type).link.eq(refLink).remove();
+            		srcNode.getLink_out().where().type.equalTo(refLink).remove();
+            		nodes.at(id2).getLink_in().where().type.equalTo(link_type).link.equalTo(refLink).remove();
             		tr.commit();
             		return true;
             	}
@@ -252,7 +252,7 @@ public class TightdbGraphStore {
 		NodeTable nodes = new NodeTable(tr);
 		LinkTable links = new LinkTable(tr);
 		
-		LinktypeView view = nodes.at(id1).getLink_out().where().type.eq(link_type).findAll();
+		LinktypeView view = nodes.at(id1).getLink_out().where().type.equalTo(link_type).findAll();
 		for (LinktypeRow r : view) {
 			LinkRow link = links.at(r.getLink()); 
 			link_list.add(clone_link(link));
@@ -266,7 +266,7 @@ public class TightdbGraphStore {
     long countLinks(int id1, int link_type) {
     	ReadTransaction tr = db.beginRead();
     	NodeTable nodes = new NodeTable(tr);
-    	long cnt = nodes.at(id1).getLink_out().where().type.eq(link_type).count();
+    	long cnt = nodes.at(id1).getLink_out().where().type.equalTo(link_type).count();
     	tr.endRead();
     	return cnt;
     }
@@ -279,7 +279,7 @@ public class TightdbGraphStore {
 		NodeTable nodes = new NodeTable(tr);
 		LinkTable links = new LinkTable(tr);
 
-		LinktypeView view = nodes.at(id1).getLink_in().where().type.eq(link_type).findAll();
+		LinktypeView view = nodes.at(id1).getLink_in().where().type.equalTo(link_type).findAll();
 		for (LinktypeRow r : view) {
 			LinkRow link = links.at(r.getLink()); 
 			link_list.add(clone_link(link));
