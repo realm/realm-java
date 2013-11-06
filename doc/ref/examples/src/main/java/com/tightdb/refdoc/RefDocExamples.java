@@ -22,8 +22,8 @@ public class RefDocExamples {
             DynQueryIntro.main(null);
             DynQueryExamples.main(null);
             
-   // Err: "unknow host"         GroupIntro.main(null);
-   // Has undefined 'outputstream'         GroupExamples.main(null);
+            GroupIntro.main(null);
+            GroupExamples.main(null);
    
             SharedGroupIntro.main(null);
             SharedGroupExamples.main(null);
@@ -31,9 +31,10 @@ public class RefDocExamples {
             WriteTransactionIntro.main(null);
             WriteTransactionExamples.main(null);
          
-   // fails:     ReadTransactionExamples.main(null);
+            ReadTransactionExamples.main(null);
 
-    // FAILS    ReadTransactionIntro.main(null);
+            DynamicReadTransactionIntro.main(null);
+            TypedReadTransactionIntro.main(null);
             
             System.out.println("------ Successfully executed all ref-doc examples ------");
             

@@ -209,7 +209,7 @@ public class GroupExamples {
         try {
             outputStream.write(array);
         } catch (Exception e) {
-            e.printStackTrace();
+            
         }
         // @@EndShow@@
         // @@EndExample@@
