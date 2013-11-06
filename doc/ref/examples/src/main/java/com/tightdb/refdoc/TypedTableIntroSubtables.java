@@ -31,7 +31,7 @@ public class TypedTableIntroSubtables {
         // Multiple approaches to add data to subtables
         
         // First approach:
-        // Add a row with values but insert null in the subtables column. An EmployeeRow is returned
+        // Add a row with values but insert null in the subtables column
         EmployeesRow row = employeesTable.add("John", 20, true, null);
         
         // Then retrieve the subtable from  EmployeeRow and add data
@@ -51,8 +51,6 @@ public class TypedTableIntroSubtables {
                                                              {"work", "676-676-676"},
                                                              {"home", "787-787-787"}});
         
-        
-
         /****************************** GETTERS AND SETTERS **********************/
 
         // Get phone number from row 0 in subtable in row 2 in parent table

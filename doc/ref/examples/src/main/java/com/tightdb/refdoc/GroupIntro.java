@@ -23,7 +23,7 @@ public class GroupIntro {
         table.add(1, "Lion");
         table.add(2, "Monkey");
         table.add(3, "Elephant");
- 
+
         // -------------------------------------------------------------------
         // Serialization of the group
         // -------------------------------------------------------------------
@@ -91,12 +91,11 @@ public class GroupIntro {
             Assert(value.equals("Elephant")); 
 
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            // handle the exception...
         }
         // @@EndShow@@
     }
-    
+
     static void Assert(boolean check) {
         if (!check) {
             throw new RuntimeException();

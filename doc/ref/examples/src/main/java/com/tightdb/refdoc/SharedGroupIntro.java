@@ -8,7 +8,7 @@ public class SharedGroupIntro {
 
     public static void main(String[] args) {
         // Delete file to start from scratch
-        (new File("mydatabase.tightdb")).delete();
+        (new File("mydatabase.tightdb")).delete();     
 
         // @@Show@@
         // Opens an existing database file or creates a
