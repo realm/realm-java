@@ -89,7 +89,12 @@ public class JNIQueryTest {
         try { query.equalTo(-10, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         
-        // String case
+        // String case true
+        try { query.equalTo(-1, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-10, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(-100, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        
+        // String case false
         try { query.equalTo(-1, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-10, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
