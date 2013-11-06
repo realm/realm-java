@@ -254,7 +254,7 @@ public class JNIViewTest {
     
     
     @Test
-    public void testGetSourceRowNoRwos() {
+    public void testGetSourceRowNoRows() {
         Table t = new Table();
         
         t.addColumn(ColumnType.STRING, "");

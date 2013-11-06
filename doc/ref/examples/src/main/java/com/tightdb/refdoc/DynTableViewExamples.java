@@ -1,7 +1,10 @@
 package com.tightdb.refdoc;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+
 import com.tightdb.*;
 
 public class DynTableViewExamples {
@@ -18,11 +21,12 @@ public class DynTableViewExamples {
         getColumnNameExample();
         getColumnIndexExample();
         getColumnTypeExample();
+        adjustExample();
 
         // Rows methods:
         removeExample();
         removeLastExample();
-        adjustExample();
+        getSourceRowExample();
 
         // Cells methods:
         getExamples();
@@ -193,6 +197,29 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
+    
+    public static void adjustExample() {
+        // @@Example: ex_java_dyn_view_adjust @@
+        // @@Show@@
+        // Create table with 2 columns and add data
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.add("user1", 420);
+        table.add("user2", 770);
+
+        // Get a view of the complete unfiltered table
+        TableView view = table.where().findAll();
+
+        // Reward all users 100 extra points using the adjust method
+        view.adjust(1, 100);
+
+        // Check that all scores are increased by 100
+        Assert(view.getLong(1, 0) == 520);
+        Assert(view.getLong(1, 1) == 870);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
 
     // ******************************************
     // Rows methods
@@ -243,29 +270,31 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
-    public static void adjustExample() {
-        // @@Example: ex_java_dyn_view_adjust @@
+    
+    
+    public static void getSourceRowExample() {
+        // @@Example: ex_java_dyn_view_get_source_row @@
         // @@Show@@
-        // Create table with 2 columns and add data
+        // Create table with 3 columns and add data
         Table table = new Table();
-        table.addColumn(ColumnType.STRING, "username");
-        table.addColumn(ColumnType.INTEGER, "score");
-        table.add("user1", 420);
-        table.add("user2", 770);
-
-        // Get a view of the complete unfiltered table
-        TableView view = table.where().findAll();
-
-        // Reward all users 100 extra points using the adjust method
-        view.adjust(1, 100);
-
-        // Check that all scores are increased by 100
-        Assert(view.getLong(1, 0) == 520);
-        Assert(view.getLong(1, 1) == 870);
+        table.addColumn(ColumnType.STRING, "name");
+        table.addColumn(ColumnType.INTEGER, "age");
+        table.addColumn(ColumnType.BOOLEAN, "hired");
+        table.add("John", 51, false);
+        table.add("Peter", 35, false);
+        table.add("Susan", 29, true);
+        table.add("Greg", 33, true);
+        
+        // Create and execute query
+        TableView v = table.where().equalTo(2, true).findAll();
+        
+        // Translate the view row indexes to the source table row indexes
+        Assert(v.getSourceRow(0) == 2);
+        Assert(v.getSourceRow(1) == 3);
         // @@EndShow@@
         // @@EndExample@@
     }
+
 
     // ******************************************
     // Cells methods
