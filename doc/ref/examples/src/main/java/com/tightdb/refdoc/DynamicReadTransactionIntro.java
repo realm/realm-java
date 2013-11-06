@@ -11,7 +11,6 @@ public class DynamicReadTransactionIntro {
         {
             // Delete file to start from scratch
             (new File("mydatabase.tightdb")).delete();
-            (new File("mydatabase.tightdb.lock")).delete();
             // Create table, add columns and add row with data
             SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
             WriteTransaction wt = group.beginWrite(); 
@@ -24,6 +23,9 @@ public class DynamicReadTransactionIntro {
             } catch(Throwable t){
                 wt.rollback();
             }
+            
+            // Remember to close the shared group
+            group.close();
         }
 
         dynamicReadTransactionIntro();
@@ -53,6 +55,9 @@ public class DynamicReadTransactionIntro {
             // closed, a new one cannot be started using the same SharedGroup instance.
             rt.endRead();
         }  
+        
+        // Remember to close the shared group
+        group.close();
     } // @@EndShow@@ 
 } 
 // @@EndExample@@

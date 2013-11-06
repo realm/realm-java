@@ -49,6 +49,9 @@ public class SharedGroupExamples {
         } catch (Throwable t){
             wt.rollback(); // If an error occurs, always rollback
         }
+        
+        // Remember to close the shared group
+        group.close();
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -71,6 +74,9 @@ public class SharedGroupExamples {
         } finally{
             rt.endRead(); // Always end read transaction in finally block
         }
+        
+        // Remember to close the shared group
+        group.close();
         // @@EndShow@@
         // @@EndExample@@
     }

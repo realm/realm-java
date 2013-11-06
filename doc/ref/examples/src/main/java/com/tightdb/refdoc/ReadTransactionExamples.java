@@ -30,6 +30,9 @@ public class ReadTransactionExamples {
             } catch (Throwable t){
                 wt.rollback();
             }
+            
+            // Remember to close the shared group
+            group.close();
         }
 
         // @@Show@@
@@ -48,6 +51,9 @@ public class ReadTransactionExamples {
         } finally {
             rt.endRead(); // End read transaction in finally
         }
+        
+        // Remember to close the shared group
+        group.close();
         // @@EndShow@@
         // @@EndExample@@
     }
