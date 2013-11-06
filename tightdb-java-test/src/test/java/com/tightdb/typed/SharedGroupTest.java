@@ -1,23 +1,15 @@
 package com.tightdb.typed;
 
-import java.io.File;
-import java.io.IOException;
-import java.rmi.UnexpectedException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import static org.testng.AssertJUnit.fail;
 
-import static org.testng.AssertJUnit.*;
+import java.io.File;
 
 import org.testng.annotations.DataProvider;
 //import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.tightdb.Group;
 import com.tightdb.ReadTransaction;
 import com.tightdb.SharedGroup;
-import com.tightdb.Table;
 import com.tightdb.SharedGroup.Durability;
 import com.tightdb.WriteTransaction;
 
@@ -47,12 +39,12 @@ public class SharedGroupTest {
     }
 
 
-    String uniqueName = "test991UniqueName.tightdb";
 
 
     @Test 
-    public void testExistingLockFile() throws IOException {
-        System.out.print("Hej1");
+    public void testExistingLockFileWithDeletedDb() {
+        String uniqueName = "test991UniqueName.tightdb";
+
         SharedGroup sg = new SharedGroup(uniqueName);
 
         WriteTransaction wt = sg.beginWrite();
@@ -64,27 +56,18 @@ public class SharedGroupTest {
         }
 
         wt = sg.beginWrite();
-         wt.getTable("tableName");
-         
-         
-         sg = null;
-         wt = null;
-         System.gc();
-
+        wt.getTable("tableName");
+        // Do not end the write transaction - leaving the .lock file there
         // Delete tightdb file, but NOT .lock file
         new File(uniqueName).delete();
-    }
-    
-    @Test 
-    public void testExistingLockFile2() throws IOException {
-        System.out.print("Hej2");
 
-
+        // If the lock file still exist (which it does until garbage collector has been run)
         if(new File(uniqueName + ".lock").exists()){
-         // Try creating new shared group, while lock file is still there
-            SharedGroup sg2 = new SharedGroup(uniqueName);
+            // Try creating new shared group, while lock file is still there
+            try { SharedGroup sg2 = new SharedGroup(uniqueName); fail("The database file is missing, but a .lock file is present."); } catch(com.tightdb.IOException e) { }
         }
     }
+
 
     @Test(dataProvider = "durabilityProvider")
     public void expectExceptionWhenMultipleBeginWrite(Durability durability) {
