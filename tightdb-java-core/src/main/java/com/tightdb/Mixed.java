@@ -147,58 +147,58 @@ public class Mixed {
         }
     }
 
-    public long getLongValue() throws IllegalAccessException {
+    public long getLongValue() {
         if (!(value instanceof Long)) {
-            throw new IllegalAccessException("Tryng to access an different type from mixed");
+            throw new IllegalMixedTypeException("The type is not a long");
         }
         return ((Long)value).longValue();
     }
 
-    public boolean getBooleanValue() throws IllegalAccessException {
+    public boolean getBooleanValue() {
         if (!(value instanceof Boolean))
-            throw new IllegalAccessException("Trying to access an different type from mixed");
+            throw new IllegalMixedTypeException("The type is not a boolean");
         return ((Boolean) value).booleanValue();
     }
 
-    public float getFloatValue() throws IllegalAccessException {
+    public float getFloatValue() {
         if (!(value instanceof Float))
-            throw new IllegalAccessException("Trying to access an different type from mixed");
+            throw new IllegalMixedTypeException("The type is not a float");
         return ((Float) value).floatValue();
     }
 
-    public double getDoubleValue() throws IllegalAccessException {
+    public double getDoubleValue() {
         if (!(value instanceof Double))
-            throw new IllegalAccessException("Trying to access an different type from mixed");
+            throw new IllegalMixedTypeException("The type is not a double");
         return ((Double) value).doubleValue();
     }
 
-    public String getStringValue() throws IllegalAccessException {
+    public String getStringValue() {
         if (!(value instanceof String))
-            throw new IllegalAccessException("Trying to access an different type from mixed");
+            throw new IllegalMixedTypeException("The type is not a String");
         return (String) value;
     }
 
-    public Date getDateValue() throws IllegalAccessException {
+    public Date getDateValue() {
         if (!(value instanceof Date)) {
-            throw new IllegalAccessException("Trying to access a different type from mixed");
+            throw new IllegalMixedTypeException("The type is not a Date");
         }
         return (Date) value;
     }
 
-    protected long getDateTimeValue() throws IllegalAccessException {
+    protected long getDateTimeValue() {
         return getDateValue().getTime();
     }
 
-    public ByteBuffer getBinaryValue() throws IllegalAccessException {
+    public ByteBuffer getBinaryValue() {
         if (!(value instanceof ByteBuffer)) {
-            throw new IllegalAccessException("Trying to access a different type from mixed");
+            throw new IllegalMixedTypeException("The type is not a ByteBuffer");
         }
         return (ByteBuffer) value;
     }
 
-    public byte[] getBinaryByteArray() throws IllegalAccessException {
+    public byte[] getBinaryByteArray() {
         if (!(value instanceof byte[])) {
-            throw new IllegalAccessException("Tryng to access a different type from Mixed");
+            throw new IllegalMixedTypeException("The type is not a byte[]");
         }
         return (byte[]) value;
     }

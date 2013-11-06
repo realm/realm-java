@@ -91,6 +91,7 @@ public class GroupIntro {
             Assert(value.equals("Elephant")); 
 
         } catch (IOException e) {
+            // handle the exception...
         }
         // @@EndShow@@
     }
