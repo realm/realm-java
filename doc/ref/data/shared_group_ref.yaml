@@ -110,3 +110,13 @@ CATEGORIES:
       EXAMPLES:
       - CODE   : ex_java_shared_group_has_changed
         DESCR  :
+  - g_shared_group_close:
+      NAMES    : close
+      SUMMARY  : Closes a shared group.
+      DESCR    : Closes a shared group and frees up all related resources including .lock files.
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if it has changed, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_shared_group_close
+        DESCR  :
