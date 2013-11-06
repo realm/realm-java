@@ -225,7 +225,59 @@ public class JNIViewTest {
         try { view.getSubTable(-1, 0); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.getSubTable(-10, 0); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.getSubTable(100, 0); fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+    }
+    
+    
+    @Test
+    public void testGetSourceRow() {
+        Table t = new Table();
         
+        t.addColumn(ColumnType.STRING, "");
+        t.addColumn(ColumnType.INTEGER, "");
+        t.addColumn(ColumnType.BOOLEAN, "");
+        
+        t.add("1", 1, true);
+        t.add("2", 2, true);
+        t.add("3", 3, false);
+        t.add("4", 5, false);
+        
+        TableView v = t.where().equalTo(2, false).findAll();
+        
+        assertEquals(2, v.getSourceRow(0));
+        assertEquals(3, v.getSourceRow(1));
+        
+        // Out of bound
+        try { assertEquals(0, v.getSourceRow(100)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRow(-1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRow(-100)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+    }
+    
+    
+    @Test
+    public void testGetSourceRowNoRwos() {
+        Table t = new Table();
+        
+        t.addColumn(ColumnType.STRING, "");
+        t.addColumn(ColumnType.INTEGER, "");
+        t.addColumn(ColumnType.BOOLEAN, "");
+        // No data is added
+        TableView v = t.where().findAll();
+        
+        // Out of bound
+        try { assertEquals(0, v.getSourceRow(0)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRow(1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+    }
+    
+    
+    @Test
+    public void testGetSourceRowEmptyTable() {
+        Table t = new Table();
+        // No columns 
+        TableView v = t.where().findAll();
+        
+        // Out of bound
+        try { assertEquals(0, v.getSourceRow(0)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRow(1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
     }
 
 
