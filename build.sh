@@ -625,13 +625,25 @@ EOF
         exit 0
         ;;
 
-    "test-examples")
-        cd "examples/intro-example" || exit 1
-        ant runall || exit 1
+    "test-doc")
+        echo "Testind ref-doc:"
+        cd "doc/ref/examples" || exit 1
+        ant refdoc || exit 1
         echo "Test passed"
+
+        echo "Testing intro examples:"
+        cd "../../../examples/intro-example" || exit 1
+        ant runall || exit 1
         exit 0
         ;;
-
+        
+    "test-examples")
+        echo "Testing intro examples:"
+        cd "examples/intro-example" || exit 1
+        ant runall || exit 1
+        exit 0
+        ;;
+    
     "install")
         require_config || exit 1
 
@@ -745,7 +757,7 @@ EOF
         grep -f "$TEMP_DIR/include.bre" "$TEMP_DIR/files1" >"$TEMP_DIR/files2" || exit 1
         grep -v -f "$TEMP_DIR/exclude.bre" "$TEMP_DIR/files2" >"$TEMP_DIR/files3" || exit 1
         tar czf "$TEMP_DIR/archive.tar.gz" -T "$TEMP_DIR/files3" || exit 1
-        (cd "$TARGET_DIR" && tar xzf "$TEMP_DIR/archive.tar.gz") || exit 1
+        (cd "$TARGET_DIR" && tar xzmf "$TEMP_DIR/archive.tar.gz") || exit 1
         if ! [ "$TIGHTDB_DISABLE_MARKDOWN_TO_PDF" ]; then
             (cd "$TARGET_DIR" && pandoc README.md -o README.pdf) || exit 1
         fi

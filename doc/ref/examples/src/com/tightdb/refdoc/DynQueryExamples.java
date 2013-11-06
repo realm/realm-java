@@ -2,9 +2,7 @@ package com.tightdb.refdoc;
 
 import com.tightdb.*;
 
-
 public class DynQueryExamples {
-
 
     public static void main(String[] args) {
 
@@ -40,8 +38,6 @@ public class DynQueryExamples {
     // ******************************************
     // Table methods
     // ******************************************
-
-
 
     public void equal() {
         // @@Example: ex_java_dyn_query_equals @@
@@ -565,5 +561,4 @@ public class DynQueryExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 }
