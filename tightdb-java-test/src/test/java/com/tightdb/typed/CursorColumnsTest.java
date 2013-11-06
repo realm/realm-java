@@ -68,7 +68,7 @@ public class CursorColumnsTest extends AbstractTest {
         employee.setExtra(new Mixed(arr));
         // FIXME: shouldn't be BINARY_TYPE_BYTE_ARRAY an expected type here?
         assertEquals(Mixed.BINARY_TYPE_BYTE_BUFFER, employee.getExtra().getBinaryType());
-        //assertEquals(ByteBuffer.wrap(arr), employee.getExtra().getBinaryValue());
+        assertEquals(ByteBuffer.wrap(arr), employee.getExtra().getBinaryValue());
         assertEquals(ColumnType.BINARY, employee.getExtra().getType());
 
 
