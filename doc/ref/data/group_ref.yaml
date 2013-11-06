@@ -73,7 +73,7 @@ CATEGORIES:
         CODE   : ex_java_group_constructor_string_mode
       - DESCR  :
         CODE   : ex_java_group_constructor_memory
-      SEE      : "{@link g_group_is_valid}"
+ # TODO     SEE      : "{@link g_group_is_valid}"
   - g_group_destructor:
       NAMES    : close
       DESCR    : >
@@ -146,13 +146,13 @@ CATEGORIES:
       PARAMS:
       - NAME   : file
         TYPES  : java.io.File
-        DESCR  : File object
+        DESCR  : File object.
       - NAME   : fileName
         TYPES  : String
         DESCR  : File name, possibly a full path.
       THROWS:
       - EXCEPT : IOException
-        DESCR  : Throws exception if file already exists
+        DESCR  : Throws exception if file already exists.
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_group_write_to_file
@@ -181,7 +181,7 @@ CATEGORIES:
       DESCR    : *g_group_to_string_descr
       SUMMARY  : *g_group_to_string_summary
       RETURN:
-        DESCR  : String summary of the Group
+        DESCR  : String summary of the Group.
         TYPES  : String
       EXAMPLES:
       - DESCR  :
@@ -191,7 +191,7 @@ CATEGORIES:
       DESCR    : *g_group_to_json_descr
       SUMMARY  : *g_group_to_json_summary
       RETURN:
-        DESCR  : JSON representation of the Group
+        DESCR  : JSON representation of the Group.
         TYPES  : String
       EXAMPLES:
       - DESCR  :

@@ -4,7 +4,7 @@
 
 ID         : class_write_transaction
 TITLE      : WriteTransaction
-SUMMARY    : Write transactions
+SUMMARY    : Write transactions.
 DESCR      : >
              Write transactions are created from {@link class_shared_group} objects with <code>startWrite()</code>.
              A WriteTransaction object extends {@link class_group} with two methods to commit or rollback
@@ -16,9 +16,9 @@ DESCR      : >
 
 SEE        : 
 EXAMPLES: 
-- DESCR    : Typed interface
+- DESCR    : Typed interface example.
   CODE     : ex_java_typed_write_transaction_intro
-- DESCR    : Dynamic interface
+- DESCR    : Dynamic interface example.
   CODE     : ex_java_dyn_write_transaction_intro  
 IGNORE     : []
 CATEGORIES:

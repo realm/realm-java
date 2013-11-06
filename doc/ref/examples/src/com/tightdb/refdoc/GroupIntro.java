@@ -28,8 +28,9 @@ public class GroupIntro {
         // Serialization of the group
         // -------------------------------------------------------------------
 
-        // A new file pointing to the location of the database
+        // A _new_ file pointing to the location of the database
         File file = new File("mydatabase.tightdb");
+        file.delete();
 
         // Serializing to a file that already exists is an error
         // and would cause undefined behavior
@@ -45,14 +46,14 @@ public class GroupIntro {
         // Initialize a group object from file
         group = new Group(file);
 
-        // Get the number of tables in the group. In this case, only 1 table has been added
+        // Check the number of tables in the group is 1.
         Assert(group.size() == 1);
 
-        // Returns the name of the first (zero-indexed) table in the group. 
+        // Get the name of the first (zero-indexed) table in the group. 
         // In this case 'table1'
         String tableName = group.getTableName(0);
 
-        // Checks if the group contains the specified table name
+        // Check if the group contains the specified table name
         Assert(group.hasTable(tableName));
 
         // -------------------------------------------------------------------
@@ -92,7 +93,8 @@ public class GroupIntro {
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }  // @@EndShow@@
+        }
+        // @@EndShow@@
     }
     
     static void Assert(boolean check) {

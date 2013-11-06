@@ -1,20 +1,32 @@
-
 package com.tightdb.refdoc;
+// @@Example: ex_java_typed_read_transaction_intro @@
+
+import java.io.File;
 
 import com.tightdb.*;
 
 public class ReadTransactionIntro {
 
     public static void main(String[] args) {
+        {
+            // Delete file to start from scratch
+            (new File("mydatabase.tightdb")).delete();
+            // Create table, add columns and add row with data
+            SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
+            WriteTransaction wt = group.beginWrite(); 
+            Table users = wt.getTable("myTable");
+            users.addColumn(ColumnType.STRING, "username");
+            users.addColumn(ColumnType.INTEGER, "level");
+            users.add("tarzan", 45);
+            wt.commit();
+        }
 
         typedReadTransactionIntro();
         dynamicReadTransactionIntro();
-
     }
 
-    // @@Example: ex_java_typed_read_transaction_intro @@
     // @@Show@@
-    public static void typedReadTransactionIntro(){
+    public static void typedReadTransactionIntro() {
         // Open existing database file in a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
 
@@ -41,7 +53,7 @@ public class ReadTransactionIntro {
 
     // @@Example: ex_java_dyn_read_transaction_intro @@
     // @@Show@@
-    public static void dynamicReadTransactionIntro(){
+    public static void dynamicReadTransactionIntro() {
         // Open existing database file in a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
@@ -64,5 +76,5 @@ public class ReadTransactionIntro {
             rt.endRead();
         }  
     } // @@EndShow@@ 
-    // @@EndExample@@
 } 
+// @@EndExample@@

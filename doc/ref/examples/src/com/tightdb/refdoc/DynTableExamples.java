@@ -1,7 +1,4 @@
-
-
 package com.tightdb.refdoc;
-
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -22,7 +19,6 @@ public class DynTableExamples {
         //TODO setIndexExample();
         //TODO hasIndexExample();
         
-        
         // Columns methods: 
         addColumnExample();
         removeColumnExample();
@@ -31,8 +27,6 @@ public class DynTableExamples {
         getColumnNameExample();
         getColumnIndexExample();
         getColumnTypeExample();
-        
-        
         
         // Rows methods:
         addAtExample();
@@ -44,13 +38,11 @@ public class DynTableExamples {
         addEmptyRowsExample();
         adjustExample();
         
-        
         // Cells methods:
         getExamples();
         setExamples();
         //TODO getSubtableSize();
         //TODO clearSubtable
-        
         
         // Searching methods:
         findFirstExamples();
@@ -66,17 +58,11 @@ public class DynTableExamples {
         
         // Dump methods:
         toJsonExample();
-        
-        
-        
-
     }
     
     // ******************************************
     // Table methods
     // ******************************************
-    
-    
     
     public static void isValidExample(){
         // @@Example: ex_java_dyn_table_is_valid @@
@@ -157,9 +143,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
-    
     
     // ******************************************
     // Columns methods
@@ -290,8 +273,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
     
-   
-    
     // ******************************************
     // Rows methods
     // ******************************************
@@ -310,7 +291,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
     
     public static void addEmptyRowExample(){
         // @@Example: ex_java_dyn_table_add_empty_row @@
@@ -335,7 +315,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
     
-    
     public static void addEmptyRowsExample(){
         // @@Example: ex_java_dyn_table_add_empty_rows @@
         // @@Show@@
@@ -359,8 +338,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
 
-
-
     public static void addAtExample(){
         // @@Example: ex_java_dyn_table_add_at @@
         // @@Show@@
@@ -377,7 +354,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
     
     public static void setRowExample(){
         // @@Example: ex_java_dyn_table_set_row @@
@@ -547,13 +523,9 @@ public class DynTableExamples {
         // @@EndExample@@
     }
     
-  
-    
     /*public static void getSubtableSizeExample(){ }*/
 
     /*public static void clearSubtableExample(){ }*/
-
-    
     
     // ******************************************
     // Searching methods
@@ -609,8 +581,7 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
+
     public static void getDistinctViewExample(){
         // @@Example: ex_java_dyn_table_get_distinct_view @@
         // @@Show@@
@@ -642,7 +613,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
     
-    
     public static void whereExample(){
         // @@Example: ex_java_dyn_table_where @@
         // @@Show@@
@@ -650,26 +620,28 @@ public class DynTableExamples {
         Table table = new Table();
         table.addColumn(ColumnType.STRING, "username");
         table.addColumn(ColumnType.INTEGER, "score");
-        table.addColumn(ColumnType.BOOLEAN, "completed");
+        table.addColumn(ColumnType.BOOLEAN, "completed"); // column 2
         table.add("user1", 420, false);
-        table.add("user2", 770, false);
+        table.add("user2", 770, true);
         table.add("user3", 327, false);
-        table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
         
-        // Get a query from the table
+        // where() returns a Query
         TableQuery query = table.where();
         
-        // USe the query object to query the table and get a table view with the results
-        TableView view = query.equalTo(2, false).findAll();
+        // You can continue to build the query
+        // Here you want all the rows where
+        // column 2 contains false, and column 1 > 400
+        query = query.equalTo(2, false);
+        query = query.greaterThan(1, 400);
+        // Now execute the query, and get the results in a TableView
+        TableView view = query.findAll();
+
+        // Expect 1 match
+        Assert(view.size() == 1);
+        Assert(view.getString(0,0).equals("user3"));
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
     
     // ******************************************
     // Aggregates methods
@@ -686,19 +658,12 @@ public class DynTableExamples {
         table.add("user1", 420, false);
         table.add("user2", 770, false);
         table.add("user3", 327, false);
-        table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
-        
+
         // The sum of all values in column 1
         long totalScore = table.sumInt(1);
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
     
     public static void maximumExample(){
         // @@Example: ex_java_dyn_table_maximum @@
@@ -711,18 +676,12 @@ public class DynTableExamples {
         table.add("user1", 420, false);
         table.add("user2", 770, false);
         table.add("user3", 327, false);
-        table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
         
         // The maximum score in column 1
         long maxScore = table.maximumInt(1);
         // @@EndShow@@
         // @@EndExample@@
     }
-    
     
     public static void minimumExample(){
         // @@Example: ex_java_dyn_table_minimum @@
@@ -735,19 +694,12 @@ public class DynTableExamples {
         table.add("user1", 420, false);
         table.add("user2", 770, false);
         table.add("user3", 327, false);
-        table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
         
         // The minimum score in column 1
         long minScore = table.minimumInt(1);
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
     
     public static void averageExample(){
         // @@Example: ex_java_dyn_table_average @@
@@ -760,11 +712,6 @@ public class DynTableExamples {
         table.add("user1", 420, false);
         table.add("user2", 770, false);
         table.add("user3", 327, false);
-        table.add("user4", 770, false);
-        table.add("user5", 564, true);
-        table.add("user6", 875, false);
-        table.add("user7", 420, true);
-        table.add("user8", 770, true);
         
         // The average score in column 1
         double avgScore = table.averageInt(1); // Returns a double
@@ -772,9 +719,6 @@ public class DynTableExamples {
         // @@EndExample@@
     }
    
-
-    
-    
     // ******************************************
     // Dump methods
     // ******************************************
@@ -801,7 +745,6 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
 
     static void Assert(boolean check) {
         if (!check) {

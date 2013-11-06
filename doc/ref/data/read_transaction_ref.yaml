@@ -4,7 +4,7 @@
 
 ID         : class_read_transaction
 TITLE      : ReadTransaction
-SUMMARY    : Read transactions
+SUMMARY    : Read transactions.
 DESCR      : >
              Read transactions are created from {@link class_shared_group} objects 
              with <code>startRead()</code>.
@@ -17,9 +17,9 @@ DESCR      : >
              an exception will be thrown.
 SEE        : 
 EXAMPLES: 
-- DESCR    : Typed interface
+- DESCR    : Typed interface example.
   CODE     : ex_java_typed_read_transaction_intro
-- DESCR    : Dynamic interface
+- DESCR    : Dynamic interface example.
   CODE     : ex_java_dyn_read_transaction_intro  
 IGNORE     : []
 CATEGORIES:
