@@ -20,6 +20,10 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 + Added addEmptyRow() method to typed table.
 + Added findFrom() method to typed query
 
+15-October-2013:
+================
++ Trying to get a value from column with column index no longer breaks core, but throws exception instead.
+
 13-October-2013:
 ================
 + dist-deb target in build.sh, updating debian/changelog.in.
@@ -31,7 +35,8 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 08-October-2013:
 ================
-+ Added View.where()
++ Added where() on TableOrView interface
++ Added where() in TableView
 + Added queries on views in the typed interface
 
 30-September-2013:
@@ -46,6 +51,8 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 ! BREAKING CHANGE: Because of the above subtables in Mixed columns are not supported, until a better implementation is made.
 ! BREAKING CHANGE: Removed shortnames for query methods. (eq, neq, lt, lte, gt, gte).
 ! BREAKING CHANGE: Renamed Qurey equal to equalTo, and notEqual to notEqualTo.
++ Added getDistinctView() method on Table.
++ added getSortedView() method on Table.
 
 24-September-2013:
 ==================
