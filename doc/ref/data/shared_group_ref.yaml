@@ -49,17 +49,6 @@ CATEGORIES:
 # ??? - g_shared_group_open:
 # ??? - g_shared_group_is_attached:
 
-  - g_shared_group_has_changed:
-      NAMES    : hasChanged
-      SUMMARY  : *g_shared_group_has_changed_summary
-      DESCR    : *g_shared_group_has_changed_descr
-      RETURN:
-        TYPES  : boolean
-        DESCR  : *g_shared_group_has_changed_return
-      EXAMPLES:
-      - CODE   : ex_java_shared_group_has_changed
-        DESCR  :
-
   - g_shared_group_reserve:
       NAMES    : reserve
       SUMMARY  : *g_shared_group_reserve_summary
@@ -109,4 +98,16 @@ CATEGORIES:
         DESCR  : <code>true</code> if it has changed, <code>false</code> otherwise.
       EXAMPLES:
       - CODE   : ex_java_shared_group_has_changed
+        DESCR  :
+  - g_shared_group_close:
+      NAMES    : close
+      SUMMARY  : Closes a shared group.
+      DESCR    : Closes a shared group. When the last shared group pointing to the same .tightdb file is closed, the .lock file will be removed. <br><br>
+                 In Async mode, the .lock file will not be deleted until the database is fully updated and the commit daemon exits.
+
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if it has changed, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_shared_group_close
         DESCR  :
