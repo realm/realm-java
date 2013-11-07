@@ -51,7 +51,10 @@ public class TypedReadTransactionIntro {
             // End the read transaction in a finally block. If the read-transaction is not
             // closed, a new one cannot be started using the same SharedGroup instance.
             rt.endRead();
-        }  
+        } 
+        
+        // Remember to close the shared group
+        group.close();
     } // @@EndShow@@ 
 
 } 
