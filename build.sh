@@ -374,11 +374,11 @@ case "$MODE" in
                 # We choose /usr/lib over /usr/local/lib because the
                 # latter is not in the default runtime library search
                 # path on RedHat and RedHat derived systems.
-                jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_DYN_MK="1" $MAKE prefix="/usr" get-libdir)" || exit 1
+                jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_DYN_MK="1" $MAKE --no-print-directory prefix="/usr" get-libdir)" || exit 1
             fi
             jar_install_dir="/usr/local/share/java"
         else
-            jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_DYN_MK="1" $MAKE prefix="$install_prefix" get-libdir)" || exit 1
+            jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_DYN_MK="1" $MAKE --no-print-directory prefix="$install_prefix" get-libdir)" || exit 1
             jar_install_dir="$install_prefix/share/java"
         fi
 
@@ -584,11 +584,11 @@ EOF
         echo "Setting up library symlinks in 'lib' to make examples work"
         mkdir -p "lib" || exit 1
         core_dir="../tightdb"
-        core_library_aliases="$(cd "$core_dir/src/tightdb" && $MAKE get-inst-libraries)" || exit 1
+        core_library_aliases="$(cd "$core_dir/src/tightdb" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
         for x in $core_library_aliases; do
             (cd "lib" && ln -s -f "../$core_dir/src/tightdb/$x") || exit 1
         done
-        library_aliases="$(cd "tightdb_jni/src" && $MAKE get-inst-libraries)" || exit 1
+        library_aliases="$(cd "tightdb_jni/src" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
         done
