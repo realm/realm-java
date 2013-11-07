@@ -247,6 +247,7 @@ public class JNIViewTest {
         assertEquals(3, v.getSourceRowIndex(1));
         
         // Out of bound
+        try { assertEquals(0, v.getSourceRowIndex(2)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
         try { assertEquals(0, v.getSourceRowIndex(100)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
         try { assertEquals(0, v.getSourceRowIndex(-1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
         try { assertEquals(0, v.getSourceRowIndex(-100)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
