@@ -1,6 +1,7 @@
 Setting up a project
 ====================
-For instructions on setting up: Ant, Maven, Eclipse or IntelliJ IDEA, please consult our online documentation:
+For instructions on setting up: Ant, Maven, Eclipse or IntelliJ IDEA,
+please consult our online documentation:
 http://www.tightdb.com/documentation/Java_misc/1/Tutorial/
 
 
@@ -13,6 +14,10 @@ If you have a complete Java development kit installed, you can build
 all examples by executing the command:
 
         ant
+
+If you copy any TightDB related jar file, you must update `build.xml`
+to be able to compile and run the examples. In particular, you must
+update `libpath` and `java.library.path`.
 
 
 Tutorial

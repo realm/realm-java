@@ -9,6 +9,10 @@ endif
 endif
 endif
 
+ifeq ($(OS),Darwin)
+CFLAGS_ARCH += -mmacosx-version-min=10.7
+endif
+
 # FIXME: '-fno-elide-constructors' currently causes TightDB to fail
 #CFLAGS_DEBUG   += -fno-elide-constructors
 CFLAGS_PTHREAD += -pthread

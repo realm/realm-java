@@ -41,7 +41,7 @@ public class SharedGroupTest {
 
 
 
-    @Test 
+    @Test(enabled=false)
     public void testExistingLockFileWithDeletedDb() {
         String uniqueName = "test991UniqueName.tightdb";
 
