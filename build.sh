@@ -477,18 +477,18 @@ EOF
         ;;
 
     "install-report")
-        java_version="$(get_config_param "java-version")"
-        java_command="$(get_config_param "java-command")"
-        javac_command="$(get_config_param "javac-command")"
+        has_installed=0
         jni_install_dir="$(get_config_param "jni-install-dir")"
         jar_install_dir="$(get_config_param "jar-install-dir")"
-        echo "Java version         : $java_version"
-        echo "Java virtual machine : $java_command"
-        echo "Java compiler        : $javac_command"
-        echo "Installed JNI files  :"
-        find $jni_install_dir -name '*tight*jni*'
-        echo "Installed JAR files  :"
-        find $jar_install_dir -name '*tightdb*jar'
+        find $jni_install_dir -name '*tight*jni*' | while read f; do
+            has_installed=1
+            echo "  $f"
+        done
+        find $jar_install_dir -name '*tightdb*jar' | while read f; do
+            has_installed=1
+            echo "  $f"
+        done
+        exit $has_installed
         ;;
 
 
