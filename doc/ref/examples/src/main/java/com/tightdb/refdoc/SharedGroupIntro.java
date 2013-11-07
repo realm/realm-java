@@ -64,6 +64,10 @@ public class SharedGroupIntro {
             // Always end the read transaction
             rt.endRead();
         }  // @@EndShow@@
+        
+        
+        // Remember to close the shared group
+        group.close();
     }
 
     static void Assert(boolean check) {
