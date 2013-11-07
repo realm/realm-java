@@ -186,6 +186,15 @@ example:
 
     JAVA_HOME=/opt/jdk-1.7 sh build.sh config
 
+By default, the configuration step uses `which tightdb-config` to
+locate the installation of the TightDB core library. If this is not
+appropriate, because you have multiple versions of the TightDB core
+library installed, or `tightdb-config` is not available in your
+`PATH`, set the environment variable `TIGHTDB_CONFIG` before calling
+`sh build.sh config`. For example:
+
+    TIGHTDB_CONFIG=/opt/tightdb-v0.1.2/bin/tightdb-config build.sh config
+
 To use a nondefault compiler, or a compiler in a nondefault location,
 set the environment variable `CC` before calling `sh build.sh build`,
 as in the following example:
@@ -195,8 +204,8 @@ as in the following example:
 There are also a number of environment variables that serve to enable
 or disable special features during building:
 
-Set `TIGHTDB_ENABLE_MEM_USAGE` to a nonempty value to enable
-reporting of memory usage.
+Set `TIGHTDB_ENABLE_MEM_USAGE` to a nonempty value during the build
+step to enable reporting of memory usage.
 
 
 Setting up a project

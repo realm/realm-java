@@ -63,7 +63,7 @@ _ReSharper*/
 /doc/ref/html
 
 # sh build.sh config
-/config
+/tightdb_jni/config-dyn.mk
 
 # sh build.sh build
 /lib
