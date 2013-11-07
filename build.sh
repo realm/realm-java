@@ -630,21 +630,23 @@ EOF
         exit 0
         ;;
 
-    "install")
+    "install"|"install-devel"|"install-prod")
         require_config || exit 1
 
-        if ! [ "$DESTDIR" ]; then
-            jar_list="tightdb-devkit.jar tightdb.jar"
-            full_install="yes"
-        else
-            if [ $(echo $DESTDIR | grep -c "dev$") = 1 ]; then
+        case "$MODE" in
+            "install")
+                jar_list="tightdb-devkit.jar tightdb.jar"
+                full_install="yes"
+            ;;
+            "install-devel")
                 jar_list="tightdb-devkit.jar"
                 full_install="no"
-            else
+            ;;
+            "install-prod")
                 jar_list="tightdb.jar"
                 full_install="yes"
-            fi
-        fi
+            ;;
+        esac
 
         jni_install_dir="$(get_config_param "jni-install-dir")" || exit 1
         jni_suffix="$(get_config_param "jni-suffix")"           || exit 1
