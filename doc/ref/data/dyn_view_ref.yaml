@@ -140,21 +140,20 @@ CATEGORIES :
 
 - Rows:
   METHODS:
-# TODO...
-#  - g_dyn_view_get_source_ndx:
-#      NAMES    : get_source_ndx
-#      SUMMARY  : *g_dyn_view_get_source_ndx_summary
-#      DESCR    : *g_dyn_view_get_source_ndx_descr
-#      PARAMS:
-#      - NAME   : rowIndex
-#        TYPES  : long
-#        DESCR  : The row index in the view
-#      RETURN:
-#        TYPES  : long
-#        DESCR  : The row index in the table.
-#      EXAMPLES:
-#      - CODE   : ex_java_dyn_view_get_source_ndx
-#        DESCR  :
+  - g_dyn_view_get_source_ndx:
+      NAMES    : getSourceRowIndex
+      SUMMARY  : *g_dyn_view_get_source_ndx_summary
+      DESCR    : *g_dyn_view_get_source_ndx_descr
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : The row index in the view.
+      RETURN:
+        TYPES  : long
+        DESCR  : The row index in the source table.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_view_get_source_row_index
+        DESCR  :
   - g_dyn_view_remove_row:
       NAMES    : remove
       SUMMARY  : *g_dyn_table_remove_row_summary
