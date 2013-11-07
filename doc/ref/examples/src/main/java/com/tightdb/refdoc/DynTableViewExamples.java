@@ -26,7 +26,7 @@ public class DynTableViewExamples {
         // Rows methods:
         removeExample();
         removeLastExample();
-        getSourceRowExample();
+        getSourceRowIndexExample();
 
         // Cells methods:
         getExamples();
@@ -272,8 +272,8 @@ public class DynTableViewExamples {
     }
     
     
-    public static void getSourceRowExample() {
-        // @@Example: ex_java_dyn_view_get_source_row @@
+    public static void getSourceRowIndexExample() {
+        // @@Example: ex_java_dyn_view_get_source_row_index @@
         // @@Show@@
         // Create table with 3 columns and add data
         Table table = new Table();

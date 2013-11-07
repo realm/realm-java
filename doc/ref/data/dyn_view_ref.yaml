@@ -141,7 +141,7 @@ CATEGORIES :
 - Rows:
   METHODS:
   - g_dyn_view_get_source_ndx:
-      NAMES    : getSourceRow
+      NAMES    : getSourceRowIndex
       SUMMARY  : *g_dyn_view_get_source_ndx_summary
       DESCR    : *g_dyn_view_get_source_ndx_descr
       PARAMS:
@@ -150,9 +150,9 @@ CATEGORIES :
         DESCR  : The row index in the view.
       RETURN:
         TYPES  : long
-        DESCR  : The row index in the table.
+        DESCR  : The row index in the source table.
       EXAMPLES:
-      - CODE   : ex_java_dyn_view_get_source_row
+      - CODE   : ex_java_dyn_view_get_source_row_index
         DESCR  :
   - g_dyn_view_remove_row:
       NAMES    : remove
