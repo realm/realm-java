@@ -5,6 +5,7 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 07-November-2013:
 ================
++ Avoiding more namespace issues when defining typed tables.
 + Added com.tightdb.IllegalMixedTypeException as a runtime exception. Is thrown when getting a wrong type from a Mixed object.
 
 06-November-2013:

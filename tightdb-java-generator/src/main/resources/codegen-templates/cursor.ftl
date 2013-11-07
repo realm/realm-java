@@ -15,8 +15,8 @@ public class ${name} extends AbstractCursor<${name}> {
 <#else>    private final ${f.type}CursorColumn<${cursorName}, ${viewName}, ${queryName}> ${f.name};
 </#if></#foreach>
 
-	public ${cursorName}(TableOrView tableOrView, long position) {
-		super(${tableName}.TYPES, tableOrView, position);
+	public ${cursorName}(TableOrView tableOrView, long _rowIndex) {
+		super(${tableName}.TYPES, tableOrView, _rowIndex);
 
 <#foreach f in columns><#if f.isSubtable>        ${f.name} = new ${f.type}CursorColumn<${cursorName}, ${viewName}, ${queryName}, ${f.subCursorName}, ${f.subTableName}>(${tableName}.TYPES, this, ${f.index}, "${f.name}", ${f.subTableName}.class);
 <#else>        ${f.name} = new ${f.type}CursorColumn<${cursorName}, ${viewName}, ${queryName}>(${tableName}.TYPES, this, ${f.index}, "${f.name}");
