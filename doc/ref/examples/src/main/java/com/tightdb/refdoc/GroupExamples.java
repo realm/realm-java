@@ -1,7 +1,4 @@
-
-
 package com.tightdb.refdoc;
-
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,7 +22,6 @@ public class GroupExamples {
         constructorStringModeExample();
         constructorByteArrayExample();
 
-
         // Table methods
         getTableExample();
         getTableNameExample();
@@ -41,8 +37,6 @@ public class GroupExamples {
         sizeExample();
         isEmptyExample();
         equalsExample();
-
-
     }
 
 
@@ -120,7 +114,6 @@ public class GroupExamples {
         // @@EndExample@@
     }
 
-
     // **********************
     // Table methods
     // **********************
@@ -143,7 +136,6 @@ public class GroupExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void hasTableExample(){
         // @@Example: ex_java_group_has_table @@
@@ -177,8 +169,6 @@ public class GroupExamples {
         // @@EndExample@@
     }
 
-
-
     // **********************
     // Serialization methods
     // **********************   
@@ -202,7 +192,6 @@ public class GroupExamples {
         // @@EndExample@@
     }
 
-
     public static void writeToMemExample() {
         OutputStream outputStream = null; 
 
@@ -220,12 +209,11 @@ public class GroupExamples {
         try {
             outputStream.write(array);
         } catch (Exception e) {
-            e.printStackTrace();
+            
         }
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void toStringExample(){
         // @@Example: ex_java_group_to_string @@
@@ -240,7 +228,6 @@ public class GroupExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void toJSONExample() throws FileNotFoundException{
         // @@Example: ex_java_group_to_json @@
@@ -261,11 +248,9 @@ public class GroupExamples {
         // @@EndExample@@
     }
 
-
     // **********************
     // Group methods
     // **********************   
-
 
     public static void sizeExample(){
         // @@Example: ex_java_group_size @@
@@ -281,7 +266,6 @@ public class GroupExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void isEmptyExample(){
         // @@Example: ex_java_group_is_empty @@
@@ -302,7 +286,6 @@ public class GroupExamples {
         // @@EndExample@@
     }
 
-
     public static void equalsExample(){
         // @@Example: ex_java_group_operator_equal @@
         // @@Show@@
@@ -311,7 +294,6 @@ public class GroupExamples {
         Table table1 = group1.getTable("mytable1"); 
         table1.addColumn(ColumnType.STRING, "stringCol");
         table1.add("StringVal");
-
 
         // Group2 with 1 table with 1 row of data
         Group group2 = new Group();

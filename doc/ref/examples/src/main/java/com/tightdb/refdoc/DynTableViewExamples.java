@@ -1,7 +1,10 @@
 package com.tightdb.refdoc;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+
 import com.tightdb.*;
 
 public class DynTableViewExamples {
@@ -13,27 +16,23 @@ public class DynTableViewExamples {
         isEmptyExample();
         clearExample();
 
-
-        // Columns methods: 
+        // Columns methods:
         getColumnCountExample();
         getColumnNameExample();
         getColumnIndexExample();
         getColumnTypeExample();
-
-
+        adjustExample();
 
         // Rows methods:
         removeExample();
         removeLastExample();
-        adjustExample();
-
+        getSourceRowIndexExample();
 
         // Cells methods:
         getExamples();
         setExamples();
         //TODO getSubtableSize();
         //TODO clearSubtable
-
 
         // Searching methods:
         findFirstExamples();
@@ -48,10 +47,6 @@ public class DynTableViewExamples {
 
         // Dump methods:
         toJsonExample();
-
-
-
-
     }
 
     // ******************************************
@@ -127,13 +122,9 @@ public class DynTableViewExamples {
         // @@EndExample@@
     }
 
-
-
-
     // ******************************************
     // Columns methods
     // ******************************************
-
 
     public static void getColumnCountExample() {
         // @@Example: ex_java_dyn_view_get_column_count @@
@@ -153,7 +144,6 @@ public class DynTableViewExamples {
         // @@EndExample@@
     }
 
-
     public static void getColumnNameExample() {
         // @@Example: ex_java_dyn_view_get_column_name @@
         // @@Show@@
@@ -171,7 +161,6 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void getColumnIndexExample() {
         // @@Example: ex_java_dyn_view_get_column_index @@
@@ -191,7 +180,6 @@ public class DynTableViewExamples {
         // @@EndExample@@
     }
 
-
     public static void getColumnTypeExample() {
         // @@Example: ex_java_dyn_view_get_column_type @@
         // @@Show@@
@@ -209,13 +197,33 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
+    
+    public static void adjustExample() {
+        // @@Example: ex_java_dyn_view_adjust @@
+        // @@Show@@
+        // Create table with 2 columns and add data
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.INTEGER, "score");
+        table.add("user1", 420);
+        table.add("user2", 770);
 
+        // Get a view of the complete unfiltered table
+        TableView view = table.where().findAll();
 
+        // Reward all users 100 extra points using the adjust method
+        view.adjust(1, 100);
+
+        // Check that all scores are increased by 100
+        Assert(view.getLong(1, 0) == 520);
+        Assert(view.getLong(1, 1) == 870);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
 
     // ******************************************
     // Rows methods
     // ******************************************
-
 
     public static void removeExample() {
         // @@Example: ex_java_dyn_view_remove @@
@@ -238,7 +246,6 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void removeLastExample() {
         // @@Example: ex_java_dyn_view_remove_last_row @@
@@ -263,27 +270,27 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
-
-    public static void adjustExample() {
-        // @@Example: ex_java_dyn_view_adjust @@
+    
+    
+    public static void getSourceRowIndexExample() {
+        // @@Example: ex_java_dyn_view_get_source_row_index @@
         // @@Show@@
-        // Create table with 2 columns and add data
+        // Create table with 3 columns and add data
         Table table = new Table();
-        table.addColumn(ColumnType.STRING, "username");
-        table.addColumn(ColumnType.INTEGER, "score");
-        table.add("user1", 420);
-        table.add("user2", 770);
-
-        // Get a view of the complete unfiltered table
-        TableView view = table.where().findAll();
-
-        // Reward all users 100 extra points using the adjust method
-        view.adjust(1, 100);
-
-        // Check that all scores are increased by 100
-        Assert(view.getLong(1, 0) == 520);
-        Assert(view.getLong(1, 1) == 870);
+        table.addColumn(ColumnType.STRING, "name");
+        table.addColumn(ColumnType.INTEGER, "age");
+        table.addColumn(ColumnType.BOOLEAN, "hired");
+        table.add("John", 51, false);
+        table.add("Peter", 35, false);
+        table.add("Susan", 29, true);
+        table.add("Greg", 33, true);
+        
+        // Create and execute query
+        TableView v = table.where().equalTo(2, true).findAll();
+        
+        // Translate the view row indexes to the source table row indexes
+        Assert(v.getSourceRowIndex(0) == 2);
+        Assert(v.getSourceRowIndex(1) == 3);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -292,7 +299,6 @@ public class DynTableViewExamples {
     // ******************************************
     // Cells methods
     // ******************************************
-
 
     public static void getExamples() {
         // @@Example: ex_java_dyn_view_get @@
@@ -336,7 +342,6 @@ public class DynTableViewExamples {
         // @@EndExample@@
     }
 
-
     public static void setExamples() {
         // @@Example: ex_java_dyn_view_set @@
         // @@Show@@
@@ -379,12 +384,10 @@ public class DynTableViewExamples {
         // @@EndExample@@
     }
     
-  
     
-    /*public static void getSubtableSizeExample(){ }*/
+    /* TODO: public static void getSubtableSizeExample(){ }*/
 
-    /*public static void clearSubtableExample(){ }*/
-
+    /* TODO: public static void clearSubtableExample(){ }*/
 
 
     // ******************************************
@@ -501,8 +504,6 @@ public class DynTableViewExamples {
         // @@EndExample@@
     }
 
-
-
     public static void maximumExample() {
         // @@Example: ex_java_dyn_view_maximum @@
         // @@Show@@
@@ -525,7 +526,6 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     public static void minimumExample() {
         // @@Example: ex_java_dyn_view_minimum @@
@@ -550,8 +550,6 @@ public class DynTableViewExamples {
         // @@EndExample@@
     }
 
-
-
     public static void averageExample() {
         // @@Example: ex_java_dyn_view_average @@
         // @@Show@@
@@ -575,13 +573,9 @@ public class DynTableViewExamples {
         // @@EndExample@@
     }
 
-
-
-
     // ******************************************
     // Dump methods
     // ******************************************
-
 
     public static void toJsonExample() throws FileNotFoundException {
         // @@Example: ex_java_dyn_view_to_json @@
@@ -607,7 +601,6 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
 
     static void Assert(boolean check) {
         if (!check) {

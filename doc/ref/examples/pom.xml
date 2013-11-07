@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
+	<parent> 
 		<groupId>com.tightdb</groupId>
 		<artifactId>tightdb-parent</artifactId>
-		<version>0.1.0</version>
+		<version>0.1.1</version>
 	</parent>
 
 	<artifactId>tightdb-java-refdoc</artifactId>
@@ -14,13 +14,14 @@
 		<dependency>
 			<groupId>com.tightdb</groupId>
 			<artifactId>tightdb</artifactId>
-			<version>0.1.0</version>
+			<version>0.1.1</version>
 		</dependency>
-	</dependencies>
+	</dependencies> 
+
 	
 	
 	
-	   <build>
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.bsc.maven</groupId>
@@ -45,7 +46,7 @@
                     <dependency>
                         <groupId>com.tightdb</groupId>
                         <artifactId>tightdb-devkit</artifactId>
-                        <version>0.1.0</version>
+                        <version>0.1.1</version>
                     </dependency>
                 </dependencies>
             </plugin>

@@ -58,17 +58,28 @@ public class JNISubtableTest {
         assertEquals(1, table.size());
     }
 
+    @Test()
+    public void shouldReturnSubtableIfNullIsInsertedAsSubtable() {
+        Group group = new Group();
+        Table table = group.getTable("emp");
+
+        table.addColumn(ColumnType.STRING, "string");
+        long subtableColIndex = table.addColumn(ColumnType.TABLE, "table");
+
+        table.add("val", null);
+        assertEquals(0,  table.getSubTable(subtableColIndex, 0).getColumnCount());
+    }
+
     @Test
     public void addColumnsToSubtables() {
 
         // Table definition
         Table persons = new Table();
-
         persons.addColumn(ColumnType.STRING, "name");
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-
+        // Add a subtable
         TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
@@ -89,8 +100,8 @@ public class JNISubtableTest {
         assertEquals(persons.getSubTable(2,0).getString(0,0), "X Street");
         assertEquals(persons.getSubTable(2,0).getSubTable(2,0).getLong(0,0), 12345678);
     }
-    
-    
+
+
     @Test
     public void SubtableAddColumnsChekcNames() {
 
@@ -101,7 +112,7 @@ public class JNISubtableTest {
 
         TableSchema addresses = persons.getSubTableSchema(0);
         try { addresses.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
-        
+
         addresses.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
 
     }
@@ -111,11 +122,9 @@ public class JNISubtableTest {
 
         // Table definition
         Table persons = new Table();
-
         persons.addColumn(ColumnType.STRING, "name");
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
-
 
         TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
@@ -139,12 +148,11 @@ public class JNISubtableTest {
 
         // Table definition
         Table persons = new Table();
-
         persons.addColumn(ColumnType.STRING, "name");
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-
+        // Define subtable
         TableSchema addresses = persons.getSubTableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
@@ -166,7 +174,6 @@ public class JNISubtableTest {
     public void shouldThrowOnGetSubtableDefinitionFromSubtable() {
         // Table definition
         Table persons = new Table();
-
         persons.addColumn(ColumnType.STRING, "name");
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
@@ -187,13 +194,12 @@ public class JNISubtableTest {
             persons.getSubTable(2,0).addColumn(ColumnType.INTEGER, "i");
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
-        
+
         try {
             // Should throw
             persons.getSubTable(2,0).getSubTableSchema(2);
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
-
 
     }
 

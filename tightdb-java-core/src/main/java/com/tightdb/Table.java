@@ -53,6 +53,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected long nativePtr;
     protected boolean immutable = false;
+    protected Object parent = null;
 
     // test:
     protected int tableNo;
@@ -86,6 +87,7 @@ public class Table implements TableOrView, TableSchema {
     protected Table(Object parent, long nativePtr, boolean immutable) {
         this.immutable = immutable;
         this.nativePtr = nativePtr;
+        this.parent = parent;
         if (DEBUG) {
             tableNo = ++TableCount;
             System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
@@ -620,30 +622,17 @@ public class Table implements TableOrView, TableSchema {
         }
     }
 
-
-    
-
     protected native void nativeInsertFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
-
     
-
     protected native void nativeInsertDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
-
     
     protected native void nativeInsertLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
-
     
-
     protected native void nativeInsertBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
-
     
-
     protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
-
    
     protected native void nativeInsertString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
-
-   
 
     protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
@@ -654,15 +643,10 @@ public class Table implements TableOrView, TableSchema {
         if (immutable) throwImmutable();
         nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
     }*/
-
     
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
 
-   
-
     protected native void nativeInsertSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
-
-   
 
     protected native void nativeInsertDone(long nativeTablePtr);
 
@@ -1162,6 +1146,8 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public long lookup(String value) {
+        if (value == null)
+            throw new RuntimeException("String must not be null");
         if (this.getColumnType(0) != ColumnType.STRING)
             throw new RuntimeException("lookup() requires a String column.");
         return nativeLookup(nativePtr, value);
