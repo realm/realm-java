@@ -54,6 +54,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
     catch (SharedGroup::PresumablyStaleLockFile& e) {
         ThrowException(env, FileAccessError, e.what(), " Presumably a stall .lock file is present.");
     }
+    catch (SharedGroup::LockFileButNoData& e) {
+        ThrowException(env, FileAccessError, e.what(), "The database file is missing, but a .lock file is present.");
+    }
     CATCH_FILE(file_name_ptr)
     CATCH_STD()
     return 0;
