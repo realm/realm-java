@@ -62,7 +62,7 @@ public class SharedGroupTest {
         new File(uniqueName).delete();
 
         // If the lock file still exist (which it does until garbage collector has been run)
-        if(new File(uniqueName + ".lock").exists()){
+        if(new File(uniqueName + ".lock").exists()) {
             // Try creating new shared group, while lock file is still there
             try { SharedGroup sg2 = new SharedGroup(uniqueName); fail("The database file is missing, but a .lock file is present."); } catch(com.tightdb.IOException e) { }
         }
@@ -91,7 +91,7 @@ public class SharedGroupTest {
         ReadTransaction rt = db.beginRead();
         try {
             db.beginRead(); // Expect exception. Only 1 begibRead() is allowed
-        } catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
             rt.endRead();
             clear();
             return;
@@ -127,7 +127,7 @@ public class SharedGroupTest {
         try {
             db = new SharedGroup(mustExistFile, durability, true);
             assert(false);
-        } catch (com.tightdb.IOException e){
+        } catch (com.tightdb.IOException e) {
             // expected
         } catch (Exception e) {
             assert(false);
