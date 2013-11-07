@@ -243,13 +243,13 @@ public class JNIViewTest {
         
         TableView v = t.where().equalTo(2, false).findAll();
         
-        assertEquals(2, v.getSourceRow(0));
-        assertEquals(3, v.getSourceRow(1));
+        assertEquals(2, v.getSourceRowIndex(0));
+        assertEquals(3, v.getSourceRowIndex(1));
         
         // Out of bound
-        try { assertEquals(0, v.getSourceRow(100)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
-        try { assertEquals(0, v.getSourceRow(-1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
-        try { assertEquals(0, v.getSourceRow(-100)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(100)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(-1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(-100)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
     }
     
     
@@ -264,8 +264,8 @@ public class JNIViewTest {
         TableView v = t.where().findAll();
         
         // Out of bound
-        try { assertEquals(0, v.getSourceRow(0)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
-        try { assertEquals(0, v.getSourceRow(1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(0)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
     }
     
     
@@ -276,8 +276,8 @@ public class JNIViewTest {
         TableView v = t.where().findAll();
         
         // Out of bound
-        try { assertEquals(0, v.getSourceRow(0)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
-        try { assertEquals(0, v.getSourceRow(1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(0)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
+        try { assertEquals(0, v.getSourceRowIndex(1)); fail("index ot of bounds"); } catch (IndexOutOfBoundsException e) { }
     }
 
 

@@ -289,8 +289,8 @@ public class DynTableViewExamples {
         TableView v = table.where().equalTo(2, true).findAll();
         
         // Translate the view row indexes to the source table row indexes
-        Assert(v.getSourceRow(0) == 2);
-        Assert(v.getSourceRow(1) == 3);
+        Assert(v.getSourceRowIndex(0) == 2);
+        Assert(v.getSourceRowIndex(1) == 3);
         // @@EndShow@@
         // @@EndExample@@
     }

@@ -48,7 +48,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSize(
     return TV(nativeViewPtr)->size();   // noexcept
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetSourceRow
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetSourceRowIndex
 (JNIEnv *env, jobject, jlong nativeViewPtr, jlong rowIndex)
 {
     if (!VIEW_VALID(env, nativeViewPtr))

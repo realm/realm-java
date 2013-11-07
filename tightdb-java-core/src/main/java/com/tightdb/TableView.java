@@ -121,11 +121,11 @@ public class TableView implements TableOrView {
      * @param rowIndex in the TableView
      * @return the translated row number in the source table
      */
-    public long getSourceRow(long rowIndex) {
-        return nativeGetSourceRow(nativePtr, rowIndex);
+    public long getSourceRowIndex(long rowIndex) {
+        return nativeGetSourceRowIndex(nativePtr, rowIndex);
     }
 
-    protected native long nativeGetSourceRow(long nativeViewPtr, long rowIndex);
+    protected native long nativeGetSourceRowIndex(long nativeViewPtr, long rowIndex);
 
     /**
      * Returns the number of columns in the table.
