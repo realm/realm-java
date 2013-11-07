@@ -216,10 +216,15 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
 template <class T>
 inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0)
 {
+    bool rowErr = rowIndex < 0;
+    if(rowErr){
+        ThrowException(env, IndexOutOfBounds, "rowIndex < 0.");
+        return !rowErr;
+    }
     size_t size = pTable->size();
     if (size > 0)
         size += offset;
-    bool rowErr = tightdb::int_greater_than_or_equal(rowIndex, size);
+    rowErr = tightdb::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), size));
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");

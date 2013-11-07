@@ -53,13 +53,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetSourceRowIndex
 {
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
-    if(rowIndex < 0){
-        ThrowException(env, IndexOutOfBounds, "rowIndex < 0.");
-        return 0;
-    }
-    bool rowErr = tightdb::int_greater_than_or_equal(rowIndex, TV(nativeViewPtr)->size());
-    if (rowErr) {
-        ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
+    if (!ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex)) {
         return 0;
     }
     return TV(nativeViewPtr)->get_source_ndx(rowIndex);
