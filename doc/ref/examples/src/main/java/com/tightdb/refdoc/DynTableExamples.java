@@ -145,8 +145,10 @@ public class DynTableExamples {
         Table table5 = new Table();
         
         // Although it's possible to have empty names or the same names multiple times, 
-        // looking up columns based on the name, will only give you the first column with that name. 
-        // But if you don't care about looking up columns by name, you don't have to set a name.
+        // looking up columns based on the name, will only give you the first column 
+        // with that name. 
+        // But if you don't care about looking up columns by name, 
+        // you don't have to set a name.
         table5.addColumn(ColumnType.STRING, "val");
         table5.addColumn(ColumnType.INTEGER, "val");
         table5.addColumn(ColumnType.DOUBLE, "val");
