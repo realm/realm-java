@@ -41,10 +41,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSize(
     JNIEnv* env, jobject, jlong nativeViewPtr)
 {
-    if (!VIEW_VALID(env, nativeViewPtr)) {
+    if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
-    }
-
     return TV(nativeViewPtr)->size();   // noexcept
 }
 
@@ -53,10 +51,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetSourceRowIndex
 {
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
-    if (!ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex)) {
+    if (!ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex))
         return 0;
-    }
-    return TV(nativeViewPtr)->get_source_ndx(rowIndex);
+    return TV(nativeViewPtr)->get_source_ndx(rowIndex);   // noexcept
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnCount
