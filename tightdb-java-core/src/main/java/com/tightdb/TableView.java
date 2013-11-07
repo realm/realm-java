@@ -115,6 +115,17 @@ public class TableView implements TableOrView {
     }
 
     protected native long nativeSize(long nativeViewPtr);
+    
+    /**
+     * Returns the index of the row in the source table
+     * @param rowIndex in the TableView
+     * @return the translated row number in the source table
+     */
+    public long getSourceRowIndex(long rowIndex) {
+        return nativeGetSourceRowIndex(nativePtr, rowIndex);
+    }
+
+    protected native long nativeGetSourceRowIndex(long nativeViewPtr, long rowIndex);
 
     /**
      * Returns the number of columns in the table.

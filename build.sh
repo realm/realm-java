@@ -1,5 +1,15 @@
 # NOTE: THIS SCRIPT IS SUPPOSED TO RUN IN A POSIX SHELL
 
+# Enable tracing if DEBUG is set
+if [ -e $HOME/.tightdb ]; then
+    . $HOME/.tightdb
+fi
+if [ -z "$DEBUG" ]; then
+    set +x
+else
+    set -x
+fi
+
 cd "$(dirname "$0")"
 TIGHTDB_JAVA_HOME="$(pwd)"
 
@@ -100,6 +110,9 @@ elif [ -r /proc/cpuinfo ]; then
 fi
 if [ "$NUM_PROCESSORS" ]; then
     word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
+fi
+if [ "$DEBUG" ]; then
+    word_list_prepend MAKEFLAGS "-d" || exit 1
 fi
 export MAKEFLAGS
 
@@ -502,18 +515,18 @@ EOF
         ;;
 
     "install-report")
-        java_version="$(get_config_param "JAVA_VERSION")"
-        java_command="$(get_config_param "JAVA_COMMAND")"
-        javac_command="$(get_config_param "JAVAC_COMMAND")"
-        jni_install_dir="$(get_config_param "JNI_INSTALL_DIR")"
-        jar_install_dir="$(get_config_param "JAR_INSTALL_DIR")"
-        echo "Java version         : $java_version"
-        echo "Java virtual machine : $java_command"
-        echo "Java compiler        : $javac_command"
-        echo "Installed JNI files  :"
-        find $jni_install_dir -name '*tight*jni*'
-        echo "Installed JAR files  :"
-        find $jar_install_dir -name '*tightdb*jar'
+        has_installed=0
+        jni_install_dir="$(get_config_param "jni-install-dir")"
+        jar_install_dir="$(get_config_param "jar-install-dir")"
+        find $jni_install_dir -name '*tight*jni*' | while read f; do
+            has_installed=1
+            echo "  $f"
+        done
+        find $jar_install_dir -name '*tightdb*jar' | while read f; do
+            has_installed=1
+            echo "  $f"
+        done
+        exit $has_installed
         ;;
 
 
@@ -665,21 +678,23 @@ EOF
         exit 0
         ;;
 
-    "install")
+    "install"|"install-devel"|"install-prod")
         require_config || exit 1
 
-        if ! [ "$DESTDIR" ]; then
-            jar_list="tightdb-devkit.jar tightdb.jar"
-            full_install="yes"
-        else
-            if [ $(echo $DESTDIR | grep -c "dev$") = 1 ]; then
+        case "$MODE" in
+            "install")
+                jar_list="tightdb-devkit.jar tightdb.jar"
+                full_install="yes"
+            ;;
+            "install-devel")
                 jar_list="tightdb-devkit.jar"
                 full_install="no"
-            else
+            ;;
+            "install-prod")
                 jar_list="tightdb.jar"
                 full_install="yes"
-            fi
-        fi
+            ;;
+        esac
 
         jar_install_dir="$DESTDIR$(get_config_param "JAR_INSTALL_DIR")" || exit 1
 
