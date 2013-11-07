@@ -9,7 +9,7 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 06-November-2013:
 ================
-+ Added getSourceRowIndex() method on TableView
++ Added getSourceRowIndex() method on TableView.
 
 25-October-2013:
 ================
@@ -18,7 +18,7 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 25-October-2013:
 ================
 + Added addEmptyRow() method to typed table.
-+ Added findFrom() method to typed query
++ Added findFrom() method to typed query.
 
 15-October-2013:
 ================
@@ -35,9 +35,9 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 08-October-2013:
 ================
-+ Added where() on TableOrView interface
-+ Added where() in TableView
-+ Added queries on views in the typed interface
++ Added where() on TableOrView interface.
++ Added where() in TableView.
++ Added queries on views in the typed interface.
 
 30-September-2013:
 ==================
@@ -56,7 +56,7 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 24-September-2013:
 ==================
-+ Added com.tightdb.Table.equals() and fixed com.tightdb.Group.equals()
++ Added com.tightdb.Table.equals() and fixed com.tightdb.Group.equals().
 
 23-September-2013:
 ==================
@@ -64,8 +64,8 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 20-September-2013:
 ==================
-+ Added View.getColumnCount(), View.getColumnIndex(colIndex), View.getColumnName(colIndex), View.getColumnType(colIndex) to Dynamic interface
-- Removed Table.getColumnCount(), Table.getColumnIndex(colIndex), Table.getColumnName(colIndex), Table.getColumnType(colIndex) from Typed interface
++ Added View.getColumnCount(), View.getColumnIndex(colIndex), View.getColumnName(colIndex), View.getColumnType(colIndex) to Dynamic interface.
+- Removed Table.getColumnCount(), Table.getColumnIndex(colIndex), Table.getColumnName(colIndex), Table.getColumnType(colIndex) from Typed interface.
 ! BREAKING CHANGE: Added limit parameter to all query aggregates which already had a start, and stop parameter.
 
 
@@ -82,15 +82,15 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 10-September-2013:
 ==================
 - Deprecated ReadTransaction.close()
-+ WriteTransaction.commit() now throws IllegalStateException
++ WriteTransaction.commit() now throws IllegalStateException.
 
 09-September-2013:
 ==================
-+ Added Table.toString(), Table.toString(maxRows), Table.rowToString(row)
-+ Added TableView.toString(), TableView.toString(maxRows), TableView.rowToString(row)
-+ Added Group.toString(), toJson(), equals()
-+ Added Mixed.getReadableValue()
-+ Added SharedGroup.hasChanged()
++ Added Table.toString(), Table.toString(maxRows), Table.rowToString(row).
++ Added TableView.toString(), TableView.toString(maxRows), TableView.rowToString(row).
++ Added Group.toString(), toJson(), equals().
++ Added Mixed.getReadableValue().
++ Added SharedGroup.hasChanged().
 + Added validation of parameters in all methods. Exceptions are now thrown if invalid parameters are passed. 
 
 06-September-2013:
@@ -99,36 +99,36 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 04-September-2013
 ===============
-+ Added TableQuery.equal for Date
-+ Added TableQuery.eq for Date
-+ Added TableQuery.notEqual for Date
-+ Added TableQuery.neq for Date
-+ Added TableQuery.greaterThan for Date
-+ Added TableQuery.gt for Date
-+ Added TableQuery.greaterThanOrEqual for Date
-+ Added TableQuery.gte for Date
-+ Added TableQuery.lessThan for Date
-+ Added TableQuery.lt for Date
-+ Added TableQuery.lessThanOrEqual for Date
-+ Added TableQuery.lte for Date
-+ Added TableQuery.between for Date
++ Added TableQuery.equal for Date.
++ Added TableQuery.eq for Date.
++ Added TableQuery.notEqual for Date.
++ Added TableQuery.neq for Date.
++ Added TableQuery.greaterThan for Date.
++ Added TableQuery.gt for Date.
++ Added TableQuery.greaterThanOrEqual for Date.
++ Added TableQuery.gte for Date.
++ Added TableQuery.lessThan for Date.
++ Added TableQuery.lt for Date.
++ Added TableQuery.lessThanOrEqual for Date.
++ Added TableQuery.lte for Date.
++ Added TableQuery.between for Date.
 
 02-September-2013
 ===============
 ! BREAKING CHANGE: ColumnType constants have been renamed, e.g ColumnTypeString is now called STRING etc.
-! BREAKING CHANGE: All insert() methods in Table class working on just 1 column have been hidden from the developer
+! BREAKING CHANGE: All insert() methods in Table class working on just 1 column have been hidden from the developer.
 
 13-August-2013:
 ===============
 + Table.add() now returns row index of the added row.
 ! BREAKING CHANGE: Group() now takes a new OpenMode parameter and not a boolean. 
-  It now supports multiple ways to open a group. (ReadOnly, ReadWrite, WriteNoCreate)
-+ Added Group.commit()
-+ Added Group.equals()
+  It now supports multiple ways to open a group. (ReadOnly, ReadWrite, WriteNoCreate).
++ Added Group.commit().
++ Added Group.equals().
 
 04-August-2013:
 ===============
-+ Experimental Table.findSortedLong() replaced by Table.lowerBoundLong() and Table.upperBoundLong() because these provide more flexibility, and it follows similar changes in the core library. (Kristian Spangsege)
++ Experimental Table.findSortedLong() replaced by Table.lowerBoundLong() and Table.upperBoundLong() because these provide more flexibility, and it follows similar changes in the core library. (Kristian Spangsege).
 
 05-July-2013:
 ============
@@ -153,17 +153,17 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 03-05-2013:
 ===========
 + Added Table::count() methods and Table::lookup() (still missing documentation..)
-+ Added QuickBenchmark example
++ Added QuickBenchmark example.
 
 03-03-2013:
 ===========
-+ Added Table::addColumn(), renameColumn(), removeColumn()
++ Added Table::addColumn(), renameColumn(), removeColumn().
 
 ??
 ==
-- Renamed Group::getTableCount() to size()
-- Renamed TableBase to Table, TableViewBase to TableView
-+ Added support for Float and Double
+- Renamed Group::getTableCount() to size().
+- Renamed TableBase to Table, TableViewBase to TableView.
++ Added support for Float and Double.
 
 18-12-2012:
 ===========
@@ -172,8 +172,8 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 27-11-2012:
 ===========
-+ Added ReadTransactions class and testcases for WriteTransactions
-+ Added TableViewBase:Average support
++ Added ReadTransactions class and testcases for WriteTransactions.
++ Added TableViewBase:Average support.
 
 15-11-2012:
 ===========
@@ -182,7 +182,7 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 8-10-2012:
 ==========
-+	Added 'TableQuery: tableview(TableViewBase tv)' for querying TableViews
++	Added 'TableQuery: tableview(TableViewBase tv)' for querying TableViews.
 +	average() fixed to return correct double.
 +	Added 'TableBase: distinct()' to return a distinct TableView.
 
