@@ -681,33 +681,32 @@ EOF
     "install"|"install-devel"|"install-prod")
         require_config || exit 1
 
+        install_jni=""
         case "$MODE" in
-            "install")
-                jar_list="tightdb-devkit.jar tightdb.jar"
-                full_install="yes"
-            ;;
             "install-devel")
                 jar_list="tightdb-devkit.jar"
-                full_install="no"
-            ;;
+                ;;
             "install-prod")
                 jar_list="tightdb.jar"
-                full_install="yes"
-            ;;
+                install_jni="yes"
+                ;;
+            *)
+                jar_list="tightdb-devkit.jar tightdb.jar"
+                install_jni="yes"
+                ;;
         esac
 
         jar_install_dir="$DESTDIR$(get_config_param "JAR_INSTALL_DIR")" || exit 1
-
         install -d "$jar_install_dir" || exit 1
-
-        if [ "$full_install" = "yes" ]; then
-            $MAKE -C "tightdb_jni" install-only DESTDIR="$DESTDIR" || exit 1
-        fi
 
         for x in $jar_list; do
             echo "Installing '$jar_install_dir/$x'"
             install -m 644 "lib/$x" "$jar_install_dir" || exit 1
         done
+
+        if [ "$install_jni" ]; then
+            $MAKE -C "tightdb_jni" install-only DESTDIR="$DESTDIR" || exit 1
+        fi
 
         if ! [ "$INTERACTIVE" ]; then
             echo "Done installing"
