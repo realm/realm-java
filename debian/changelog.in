@@ -1,3 +1,10 @@
+tightdb-java (0.1.2~@CODENAME@-1) UNRELEASED; urgency=low
+
+  * Tracking upstream release. (Closes: #00001)
+
+ -- Kenneth Geisshirt <kg@tightdb.com>  Fri,  8 Nov 2013 16:49:24 +0200
+
+
 tightdb-java (0.1.1~@CODENAME@-1) UNRELEASED; urgency=low
 
   * Tracking upstream release. (Closes: #00001)

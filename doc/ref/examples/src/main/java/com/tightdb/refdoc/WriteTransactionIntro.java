@@ -35,6 +35,9 @@ public class WriteTransactionIntro {
             // In case of an error, rollback to close the transaction and discard all changes
             wt.rollback();
         }
+        
+        // Remember to close the shared group
+        group.close();
     } // @@EndShow@@  
     // @@EndExample@@
 
@@ -60,6 +63,9 @@ public class WriteTransactionIntro {
             // In case of an error, rollback to close the transaction and discard all changes
             wt.rollback();
         }
+        
+        // Remember to close the shared group
+        group.close();
     }   // @@EndShow@@  
     // @@EndExample@@
 } 

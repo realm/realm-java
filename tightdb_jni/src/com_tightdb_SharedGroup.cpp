@@ -38,7 +38,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
             else if (durability == 1)
                 level = SharedGroup::durability_MemOnly;
             else if (durability == 2)
-#ifndef _WIN32
+#ifdef _WIN32
                 level = SharedGroup::durability_Full;   // For Windows, use Full instead of Async
 #else
                 level = SharedGroup::durability_Async;
@@ -53,6 +53,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
     }
     catch (SharedGroup::PresumablyStaleLockFile& e) {
         ThrowException(env, FileAccessError, e.what(), " Presumably a stall .lock file is present.");
+    }
+    catch (SharedGroup::LockFileButNoData& e) {
+        ThrowException(env, FileAccessError, e.what(), "The database file is missing, but a .lock file is present.");
     }
     CATCH_FILE(file_name_ptr)
     CATCH_STD()

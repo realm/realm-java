@@ -29,17 +29,19 @@ table.add("Henry", "Anderson", 10000);
 // Create a query object from the table.
 TableQuery query = table.where();
 
-TableView view;
-
 // Find all employees with a first name of John.
-view = table.where().equalTo(0, "John").findAll();
+TableView view = table.where().equalTo(0, "John").findAll();
 
 // Find the average salary of all employees with the last name Anderson.
 double avgSalary = table.where().equalTo(1, "Anderson").averageInt(2);
 
 // Find the total salary of people named Jane and Erik.
-double salary = table.where().group().equalTo(0, "Jane").or().equalTo(0, "Erik").endGroup().sumInt(2);
-
+double salary = table.where().group()
+                                .equalTo(0, "Jane")
+                                .or()
+                                .equalTo(0, "Erik")
+                             .endGroup()
+                             .sumInt(2);
 
 // Find all employees with a last name of Lee and a salary less than 25000.
 view = table.where().equalTo(1, "Lee").lessThan(2, 25000).findAll();

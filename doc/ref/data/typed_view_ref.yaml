@@ -10,10 +10,13 @@
 ## TODO: Detail what is allowed to pass in parameters (index within size() etc)
 ## TODO: Describe start, end index parameters in searches. end is not inclusive.
 
-ID         : class_typed_view
+ID         : class_typed_tableview
 TITLE      : TableView (typed)
-SUMMARY    : Reference documentation coming soon...
-DESCR      : Reference documentation coming soon...
+SUMMARY    : >
+             NOTE: Reference documentation for Typed API is work in progress!
+DESCR      : >
+             NOTE: The reference documentation for the "Typed Table" API is
+             "work in progress" and absolutely not complete yet.
 SEE        : 
 EXAMPLES   :
 - DESCR:

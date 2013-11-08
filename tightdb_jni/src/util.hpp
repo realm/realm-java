@@ -216,6 +216,10 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
 template <class T>
 inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0)
 {
+    if(rowIndex < 0) {
+        ThrowException(env, IndexOutOfBounds, "rowIndex is less than 0.");
+        return false;
+    }
     size_t size = pTable->size();
     if (size > 0)
         size += offset;
@@ -240,7 +244,7 @@ inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offse
 template <class T>
 inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
-    if (columnIndex < 0){
+    if (columnIndex < 0) {
         ThrowException(env, IndexOutOfBounds, "columnIndex is less than 0.");
         return false;
     }

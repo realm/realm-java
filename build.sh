@@ -1,5 +1,15 @@
 # NOTE: THIS SCRIPT IS SUPPOSED TO RUN IN A POSIX SHELL
 
+# Enable tracing if DEBUG is set
+if [ -e $HOME/.tightdb ]; then
+    . $HOME/.tightdb
+fi
+if [ -z "$DEBUG" ]; then
+    set +x
+else
+    set -x
+fi
+
 cd "$(dirname "$0")"
 TIGHTDB_JAVA_HOME="$(pwd)"
 
@@ -91,6 +101,7 @@ remove_suffix()
 # Setup OS specific stuff
 OS="$(uname)" || exit 1
 ARCH="$(uname -m)" || exit 1
+MAKE="make"
 NUM_PROCESSORS=""
 if [ "$OS" = "Darwin" ]; then
     NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
@@ -99,6 +110,9 @@ elif [ -r /proc/cpuinfo ]; then
 fi
 if [ "$NUM_PROCESSORS" ]; then
     word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
+fi
+if [ "$DEBUG" ]; then
+    word_list_prepend MAKEFLAGS "-d" || exit 1
 fi
 export MAKEFLAGS
 
@@ -123,27 +137,29 @@ readlink_f()
     readlink_f "$TARGET"
 }
 
+CONFIG_MK="tightdb_jni/config-dyn.mk"
+
 require_config()
 {
     cd "$TIGHTDB_JAVA_HOME" || return 1
-    if ! [ -e "config" ]; then
+    if ! [ -e "$CONFIG_MK" ]; then
         cat 1>&2 <<EOF
 ERROR: Found no configuration!
 You need to run 'sh build.sh config [PREFIX]'.
 EOF
         return 1
     fi
-    echo "Using existing configuration:"
-    cat "config" | sed 's/^/    /' || return 1
+    echo "Using existing configuration in $CONFIG_MK:"
+    cat "$CONFIG_MK" | sed 's/^/    /' || return 1
 }
 
 auto_configure()
 {
     cd "$TIGHTDB_JAVA_HOME" || return 1
-    if [ -e "config" ]; then
+    if [ -e "$CONFIG_MK" ]; then
         require_config || return 1
     else
-        echo "No configuration found. Running 'sh build.sh config'"
+        echo "No configuration found. Running 'sh build.sh config' for you."
         sh build.sh config || return 1
     fi
 }
@@ -151,35 +167,34 @@ auto_configure()
 get_config_param()
 {
     local name line value
-    cd "$TIGHTDB_JAVA_HOME" || return 1
     name="$1"
-    if ! [ -e "config" ]; then
+    cd "$TIGHTDB_JAVA_HOME" || return 1
+    if ! [ -e "$CONFIG_MK" ]; then
         cat 1>&2 <<EOF
 ERROR: Found no configuration!
 You need to run 'sh build.sh config [PREFIX]'.
 EOF
         return 1
     fi
-    if ! line="$(grep "^$name:" "config")"; then
+    if ! line="$(grep "^$name *=" "$CONFIG_MK")"; then
         cat 1>&2 <<EOF
 ERROR: Failed to read configuration parameter '$name'.
 Maybe you need to rerun 'sh build.sh config [PREFIX]'.
 EOF
         return 1
     fi
-    value="$(printf "%s\n" "$line" | cut -d: -f2-)" || return 1
+    value="$(printf "%s\n" "$line" | cut -d= -f2-)" || return 1
     value="$(printf "%s\n" "$value" | sed 's/^ *//')" || return 1
     printf "%s\n" "$value"
 }
 
 
-# Sets 'java_home', 'java_bindir', 'java_includedir' and
-# 'java_includedir_arch' on success
+# Sets 'java_home', 'java_bindir', and 'java_cflags' on success
 check_java_home()
 {
     local cand bin inc arch found_jni_md_h os_lc
     cand="$1"
-    if [ -z "$INTERACTIVE" ]; then
+    if ! [ "$INTERACTIVE" ]; then
         echo "Checking '$cand' as candidate for JAVA_HOME"
     fi
 
@@ -188,49 +203,49 @@ check_java_home()
     inc=""
     if [ "$OS" = "Darwin" ]; then
         if [ -e "$cand/Commands/java" -a -e "$cand/Commands/javac" -a -e "$cand/Headers/jni.h" ]; then
-            if [ -z "$INTERACTIVE" ]; then
+            if ! [ "$INTERACTIVE" ]; then
                 echo "Found 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
             fi
             bin="Commands"
             inc="Headers"
         else
-            if [ -z "$INTERACTIVE" ]; then
+            if ! [ "$INTERACTIVE" ]; then
                 echo "Could not find 'Commands/java', 'Commands/javac' and 'Headers/jni.h' in '$cand'"
             fi
         fi
     fi
     if ! [ "$bin" ]; then
         if [ -e "$cand/bin/java" -a -e "$cand/bin/javac" -a -e "$cand/include/jni.h" ]; then
-            if [ -z "$INTERACTIVE" ]; then
+            if ! [ "$INTERACTIVE" ]; then
                 echo "Found 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
             fi
             bin="bin"
             inc="include"
         else
-            if [ -z "$INTERACTIVE" ]; then
+            if ! [ "$INTERACTIVE" ]; then
                 echo "Could not find 'bin/java', 'bin/javac' and 'include/jni.h' in '$cand'"
             fi
         fi
     fi
 
     # Do we need to add a platform dependent include directory?
-    arch="none"
+    arch=""
     if [ "$inc" ]; then
         if [ -e "$cand/$inc/jni_md.h" ]; then
-            if [ -z "$INTERACTIVE" ]; then
+            if ! [ "$INTERACTIVE" ]; then
                 echo "Found '$inc/jni_md.h' in '$cand'"
             fi
             found_jni_md_h="1"
         else
             os_lc="$(printf "%s\n" "$OS" | awk '{print tolower($0)}')" || return 1
             if [ -e "$cand/$inc/$os_lc/jni_md.h" ]; then
-                if [ -z "$INTERACTIVE" ]; then
+                if ! [ "$INTERACTIVE" ]; then
                     echo "Found '$inc/$os_lc/jni_md.h' in '$cand'"
                 fi
                 found_jni_md_h="1"
-                arch="$cand/$inc/$os_lc"
+                arch="$os_lc"
             else
-                if [ -z "$INTERACTIVE" ]; then
+                if ! [ "$INTERACTIVE" ]; then
                     echo "Could not find '$inc/jni_md.h' or '$inc/$os_lc/jni_md.h' in '$cand'"
                 fi
             fi
@@ -240,10 +255,12 @@ check_java_home()
     if [ "$bin" ] && [ "$found_jni_md_h" ]; then
         java_home="$cand"
         java_bindir="$java_home/$bin"
-        java_includedir="$java_home/$inc"
-        java_includedir_arch="$arch"
+        java_cflags="-I$java_home/$inc"
+        if [ "$arch" ]; then
+            java_cflags="$java_cflags -I$java_home/$inc/$arch"
+        fi
     else
-        if [ -z "$INTERACTIVE" ]; then
+        if ! [ "$INTERACTIVE" ]; then
             echo "Skipping '$cand'"
         fi
     fi
@@ -261,7 +278,7 @@ case "$MODE" in
         fi
 
         # install java when in interactive mode (Darwin only)
-        if [ -n "$INTERACTIVE" ]; then
+        if [ "$INTERACTIVE" ]; then
             if [ "$OS" = "Darwin" ]; then
                 # FIXME: Use exit status of '/usr/libexec/java_home 2>/dev/null 1>&2' to test for presenece of Java
                 # FIXME: Use '/usr/libexec/java_home --request 2>/dev/null 1>&2' to initiate asynchronous interactive installation of Java
@@ -284,7 +301,7 @@ case "$MODE" in
 
         # Check JAVA_HOME when specified
         if ! [ "$java_home" ] && [ "$JAVA_HOME" ]; then
-            if [ -z "$INTERACTIVE" ]; then
+            if ! [ "$INTERACTIVE" ]; then
                 echo "JAVA_HOME specified"
             fi
             check_java_home "$JAVA_HOME" || exit 1
@@ -299,7 +316,7 @@ case "$MODE" in
             fi
             # FIXME: Should we have added '-t JNI' to /usr/libexec/java_home?
             if path="$(/usr/libexec/java_home -v 1.6+ 2>/dev/null)"; then
-                if [ -z "$INTERACTIVE" ]; then
+                if ! [ "$INTERACTIVE" ]; then
                     echo "'/usr/libexec/java_home -v 1.6+' specifies a JAVA_HOME"
                 fi
                 check_java_home "$path" || exit 1
@@ -327,7 +344,7 @@ case "$MODE" in
                     echo "ERROR: Could not determine JAVA_HOME from path of 'javac' command '$path'" 1>&2
                     exit 1
                 fi
-                if [ -z "$INTERACTIVE" ]; then
+                if ! [ "$INTERACTIVE" ]; then
                     echo "'javac' found in PATH as '$path'"
                 fi
                 check_java_home "$cand" || exit 1
@@ -342,7 +359,7 @@ case "$MODE" in
         java_cmd="$java_bindir/java"
         javac_cmd="$java_bindir/javac"
 
-        if [ -z "$INTERACTIVE" ]; then
+        if ! [ "$INTERACTIVE" ]; then
             echo "Examining Java command '$java_cmd'"
         fi
         min_ver_major="1"
@@ -358,7 +375,7 @@ case "$MODE" in
             echo "ERROR: Need Java version $min_ver_major.$min_ver_minor or newer (is '$version')" 1>&2
             exit 1
         fi
-        if [ -z "$INTERACTIVE" ]; then
+        if ! [ "$INTERACTIVE" ]; then
             echo "Using Java command: $java_cmd (version $version)"
         fi
         java_version="$version"
@@ -370,11 +387,11 @@ case "$MODE" in
                 # We choose /usr/lib over /usr/local/lib because the
                 # latter is not in the default runtime library search
                 # path on RedHat and RedHat derived systems.
-                jni_install_dir="$(cd "tightdb_jni" && make -s prefix="/usr" get-libdir)" || exit 1
+                jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_DYN_MK="1" $MAKE --no-print-directory prefix="/usr" get-libdir)" || exit 1
             fi
             jar_install_dir="/usr/local/share/java"
         else
-            jni_install_dir="$(cd "tightdb_jni" && make -s prefix="$install_prefix" get-libdir)" || exit 1
+            jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_DYN_MK="1" $MAKE --no-print-directory prefix="$install_prefix" get-libdir)" || exit 1
             jar_install_dir="$install_prefix/share/java"
         fi
 
@@ -454,48 +471,68 @@ case "$MODE" in
             fi
         fi
 
+        # Find TightDB
+        if [ -z "$TIGHTDB_CONFIG" ]; then
+            TIGHTDB_CONFIG="tightdb-config"
+        fi
+        if printf "%s\n" "$TIGHTDB_CONFIG" | grep -q '^/'; then
+            if ! [ -x "$TIGHTDB_CONFIG" ]; then
+                echo "ERROR: TightDB config-program '$TIGHTDB_CONFIG' does not exist" 1>&2
+                exit 1
+            fi
+            tightdb_config_cmd="$TIGHTDB_CONFIG"
+        elif ! tightdb_config_cmd="$(which "$TIGHTDB_CONFIG" 2>/dev/null)"; then
+            echo "ERROR: TightDB config-program '$TIGHTDB_CONFIG' not found in PATH" 1>&2
+            exit 1
+        fi
+        tightdb_config_dbg_cmd="$tightdb_config_cmd-dbg"
+        if ! [ -x "$tightdb_config_dbg_cmd" ]; then
+            echo "ERROR: TightDB config-program '$tightdb_config_dbg_cmd' not found" 1>&2
+            exit 1
+        fi
 
-        cat >"config" <<EOF
-java-version:         $java_version
-java-command:         $java_cmd
-javac-command:        $javac_cmd
-java-includedir:      $java_includedir
-java-includedir-arch: $java_includedir_arch
-required-jars:        $required_jars
-testing-jars:         $testing_jars
-install-prefix:       $install_prefix
-jni-install-dir:      $jni_install_dir
-jar-install-dir:      $jar_install_dir
-jni-suffix:           $jni_suffix
+
+        cat >"$CONFIG_MK" <<EOF
+JAVA_VERSION       = $java_version
+JAVA_COMMAND       = $java_cmd
+JAVAC_COMMAND      = $javac_cmd
+JAVA_CFLAGS        = $java_cflags
+REQUIRED_JARS      = $required_jars
+TESTING_JARS       = $testing_jars
+INSTALL_PREFIX     = $install_prefix
+JNI_INSTALL_DIR    = $jni_install_dir
+JAR_INSTALL_DIR    = $jar_install_dir
+JNI_SUFFIX         = $jni_suffix
+TIGHTDB_CONFIG     = $tightdb_config_cmd
+TIGHTDB_CONFIG_DBG = $tightdb_config_dbg_cmd
 EOF
-        if [ -z "$INTERACTIVE" ]; then
-            echo "New configuration:"
-            cat "config" | sed 's/^/    /' || exit 1
+        if ! [ "$INTERACTIVE" ]; then
+            echo "New configuration in $CONFIG_MK:"
+            cat "$CONFIG_MK" | sed 's/^/    /' || exit 1
             echo "Done configuring"
         fi
         exit 0
         ;;
 
     "install-report")
-        java_version="$(get_config_param "java-version")"
-        java_command="$(get_config_param "java-command")"
-        javac_command="$(get_config_param "javac-command")"
+        has_installed=0
         jni_install_dir="$(get_config_param "jni-install-dir")"
         jar_install_dir="$(get_config_param "jar-install-dir")"
-        echo "Java version         : $java_version"
-        echo "Java virtual machine : $java_command"
-        echo "Java compiler        : $javac_command"
-        echo "Installed JNI files  :"
-        find $jni_install_dir -name '*tight*jni*'
-        echo "Installed JAR files  :"
-        find $jar_install_dir -name '*tightdb*jar'
+        find $jni_install_dir -name '*tight*jni*' | while read f; do
+            has_installed=1
+            echo "  $f"
+        done
+        find $jar_install_dir -name '*tightdb*jar' | while read f; do
+            has_installed=1
+            echo "  $f"
+        done
+        exit $has_installed
         ;;
 
 
     "clean")
         auto_configure || exit 1
-        jni_suffix="$(get_config_param "jni-suffix")" || exit 1
-        make -C "tightdb_jni" clean LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+        $MAKE -C "tightdb_jni" clean || exit 1
         for x in core generator test; do
             echo "Removing class files in 'tightdb-java-$x'"
             (cd "tightdb-java-$x" && find src/ -type f -name '*.class' -delete) || exit 1
@@ -515,17 +552,7 @@ EOF
 
     "build")
         auto_configure || exit 1
-        javac_cmd="$(get_config_param "javac-command")" || exit 1
-        java_includedir="$(get_config_param "java-includedir")" || exit 1
-        java_includedir_arch="$(get_config_param "java-includedir-arch")" || exit 1
-        jni_suffix="$(get_config_param "jni-suffix")"   || exit 1
-
-        # Build libtightdb-jni.so
-        extra_cflags="-I$java_includedir"
-        if [ "$java_includedir_arch" != "none" ]; then
-            extra_cflags="$extra_cflags -I$java_includedir_arch"
-        fi
-        TIGHTDB_ENABLE_FAT_BINARIES="1" make -C "tightdb_jni" EXTRA_CFLAGS="$extra_cflags" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+        javac_cmd="$(get_config_param "JAVAC_COMMAND")" || exit 1
 
         mkdir -p "lib" || exit 1
 
@@ -539,7 +566,7 @@ EOF
 
         # Build tightdb-devkit.jar
         echo "Building 'lib/tightdb-devkit.jar'"
-        required_jars="$(get_config_param "required-jars")" || exit 1
+        required_jars="$(get_config_param "REQUIRED_JARS")" || exit 1
         manifest_jars="$required_jars"
         word_list_prepend "manifest_jars" "tightdb.jar" || exit 1
         temp_dir="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
@@ -559,19 +586,26 @@ EOF
         (cd "$dir/java" && jar uf "$devkit_jar" com/tightdb/generator/*.class) || exit 1
         (cd "lib" && jar i "tightdb-devkit.jar") || exit 1
 
+        # FIXME: Consider whether we should call `javah
+        # PACKAGE_QUALIFIED_CLASSES` here to recreate the JNI header
+        # files before building the JNI library.
+
+        # Build libtightdb-jni.so
+        TIGHTDB_ENABLE_FAT_BINARIES="1" $MAKE -C "tightdb_jni" || exit 1
+
         # Setup links to libraries to make the examples work
         echo "Setting up library symlinks in 'lib' to make examples work"
         mkdir -p "lib" || exit 1
         core_dir="../tightdb"
-        core_library_aliases="$(cd "$core_dir/src/tightdb" && make -s get-inst-libraries)" || exit 1
+        core_library_aliases="$(cd "$core_dir/src/tightdb" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
         for x in $core_library_aliases; do
             (cd "lib" && ln -s -f "../$core_dir/src/tightdb/$x") || exit 1
         done
-        library_aliases="$(cd "tightdb_jni/src" && make -s get-inst-libraries LIB_SUFFIX_SHARED="$jni_suffix")" || exit 1
+        library_aliases="$(cd "tightdb_jni/src" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
         done
-        if [ -z "$INTERACTIVE" ]; then
+        if ! [ "$INTERACTIVE" ]; then
             echo "Done building"
         fi
         exit 0
@@ -579,7 +613,7 @@ EOF
 
     "test")
         require_config || exit 1
-        javac_cmd="$(get_config_param "javac-command")" || exit 1
+        javac_cmd="$(get_config_param "JAVAC_COMMAND")" || exit 1
         devkit_jar="$TIGHTDB_JAVA_HOME/lib/tightdb-devkit.jar"
         temp_dir="$(mktemp -d /tmp/tightdb.java.test-debug.XXXX)" || exit 1
         mkdir "$temp_dir/out" || exit 1
@@ -591,7 +625,7 @@ EOF
         (cd "$dir/../test/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestTableModel.java) || exit 1
 
         path_list_append "CLASSPATH" "../main" || exit 1
-        testing_jars="$(get_config_param "testing-jars")" || exit 1
+        testing_jars="$(get_config_param "TESTING_JARS")" || exit 1
         for x in $testing_jars; do
             path_list_append "CLASSPATH" "$x" || exit 1
         done
@@ -615,7 +649,7 @@ EOF
         cat >>"$testng_xml" <<EOF
 </classes></test></suite>
 EOF
-        java_cmd="$(get_config_param "java-command")" || exit 1
+        java_cmd="$(get_config_param "JAVA_COMMAND")" || exit 1
         (cd "$temp_dir/out" && $java_cmd -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" "$testng_xml") || exit 1
         exit 0
         ;;
@@ -625,45 +659,56 @@ EOF
         exit 0
         ;;
 
-    "test-examples")
-        cd "examples/intro-example" || exit 1
-        ant runall || exit 1
+    "test-doc")
+        echo "Testing ref-doc:"
+        cd "doc/ref/examples" || exit 1
+        ant refdoc || exit 1
         echo "Test passed"
+
+        echo "Testing intro examples:"
+        cd "../../../examples/intro-example" || exit 1
+        ant runall || exit 1
         exit 0
         ;;
 
-    "install")
+    "test-examples")
+        echo "Testing intro examples:"
+        cd "examples/intro-example" || exit 1
+        ant runall || exit 1
+        exit 0
+        ;;
+
+    "install"|"install-devel"|"install-prod")
         require_config || exit 1
 
-        if ! [ "$DESTDIR" ]; then
-            jar_list="tightdb-devkit.jar tightdb.jar"
-            full_install="yes"
-        else
-            if [ $(echo $DESTDIR | grep -c "dev$") = 1 ]; then
+        install_jni=""
+        case "$MODE" in
+            "install-devel")
                 jar_list="tightdb-devkit.jar"
-                full_install="no"
-            else
+                ;;
+            "install-prod")
                 jar_list="tightdb.jar"
-                full_install="yes"
-            fi
-        fi
+                install_jni="yes"
+                ;;
+            *)
+                jar_list="tightdb-devkit.jar tightdb.jar"
+                install_jni="yes"
+                ;;
+        esac
 
-        jni_install_dir="$(get_config_param "jni-install-dir")" || exit 1
-        jni_suffix="$(get_config_param "jni-suffix")"           || exit 1
-        jar_install_dir="$DESTDIR$(get_config_param "jar-install-dir")" || exit 1
-
+        jar_install_dir="$DESTDIR$(get_config_param "JAR_INSTALL_DIR")" || exit 1
         install -d "$jar_install_dir" || exit 1
-
-        if [ "$full_install" = "yes" ]; then
-            make -C "tightdb_jni" install-only DESTDIR="$DESTDIR" libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
-        fi
 
         for x in $jar_list; do
             echo "Installing '$jar_install_dir/$x'"
             install -m 644 "lib/$x" "$jar_install_dir" || exit 1
         done
 
-        if [ -z "$INTERACTIVE" ]; then
+        if [ "$install_jni" ]; then
+            $MAKE -C "tightdb_jni" install-only DESTDIR="$DESTDIR" || exit 1
+        fi
+
+        if ! [ "$INTERACTIVE" ]; then
             echo "Done installing"
         fi
         exit 0
@@ -672,15 +717,13 @@ EOF
     "uninstall")
         require_config || exit 1
 
-        jar_install_dir="$(get_config_param "jar-install-dir")" || exit 1
+        jar_install_dir="$(get_config_param "JAR_INSTALL_DIR")" || exit 1
         for x in "tightdb-devkit.jar" "tightdb.jar"; do
             echo "Uninstalling '$jar_install_dir/$x'"
             rm -f "$jar_install_dir/$x" || exit 1
         done
 
-        jni_install_dir="$(get_config_param "jni-install-dir")" || exit 1
-        jni_suffix="$(get_config_param "jni-suffix")"           || exit 1
-        make -C "tightdb_jni" uninstall libdir="$jni_install_dir" LIB_SUFFIX_SHARED="$jni_suffix" || exit 1
+        $MAKE -C "tightdb_jni" uninstall || exit 1
 
         echo "Done uninstalling"
         exit 0
@@ -689,17 +732,17 @@ EOF
     "test-installed")
         require_config || exit 1
 
-        jar_install_dir="$(get_config_param "jar-install-dir")" || exit 1
+        jar_install_dir="$(get_config_param "JAR_INSTALL_DIR")" || exit 1
         devkit_jar="$jar_install_dir/tightdb-devkit.jar"
         export CLASSPATH="$devkit_jar:."
-        javac_cmd="$(get_config_param "javac-command")" || exit 1
+        javac_cmd="$(get_config_param "JAVAC_COMMAND")" || exit 1
         temp_dir="$(mktemp -d /tmp/tightdb.java.test-installed.XXXX)" || exit 1
         (cd "test-installed" && $javac_cmd -d "$temp_dir" -s "$temp_dir" java/my/app/Test.java) || exit 1
 
-        install_prefix="$(get_config_param "install-prefix")" || exit 1
-        java_cmd="$(get_config_param "java-command")"         || exit 1
+        install_prefix="$(get_config_param "INSTALL_PREFIX")" || exit 1
+        java_cmd="$(get_config_param "JAVA_COMMAND")"         || exit 1
         if [ "$install_prefix" != "auto" ]; then
-            jni_install_dir="$(get_config_param "jni-install-dir")" || exit 1
+            jni_install_dir="$(get_config_param "JNI_INSTALL_DIR")" || exit 1
             java_cmd="$java_cmd -Djava.library.path=$jni_install_dir"
         fi
         (cd "$temp_dir" && $java_cmd my.app.Test) || exit 1
@@ -720,7 +763,8 @@ EOF
         cat >"$TEMP_DIR/include" <<EOF
 /README.md
 /build.sh
-/*.mk
+/tightdb_jni/generic.mk
+/tightdb_jni/config.mk
 /tightdb_jni/Makefile
 /tightdb_jni/src
 /tightdb-java-core
