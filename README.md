@@ -76,19 +76,24 @@ If you intend to run the optional test-suite, you also need this one:
 
     sudo install -m 644 prerequisite_jars/testng.jar /usr/local/share/java
 
-### Mac OS X 10.7 and 10.8
+### Mac OS X 10.7, 10.8, and 10.9
 
-On Mac OS X, the build procedure uses Clang as the C/C++
-compiler. Clang comes with Xcode, so install Xcode if it is not
-already installed. If you have a version that preceeds 4.2, we
-recommend that you upgrade. This will ensure that the Clang version is
-at least 3.0. Run the following command in the command prompt to see
-if you have Xcode installed, and, if so, what version it is:
+On Mac OS X, the build procedure uses Clang as the C/C++ compiler by
+default. It needs at least Clang 3.0 which comes with Xcode 4.2. On OS
+X 10.9 (Mavericks) we recommend at least Xcode 5.0, since in some
+cases when a previous version of OS X is upgraded to 10.9, you will be
+left with a malfunctioning set of command line tools (in particular
+the `lipo` command), and this is most easily fixed by upgrading to
+Xcode 5. Run the following command in the command prompt to see if you
+have Xcode installed, and, if so, what version it is:
 
     xcodebuild -version
 
-Make sure you also install "Command line tools" found under the
-preferences pane "Downloads" in Xcode.
+If you have Xcode 5 or later, you will already have the required
+command line tools installed. In Xcode 4, however, the "Command line
+tools" is an optional Xcode add-on that you must install. You can find
+it under the "Downloads" pane of the "Preferences" dialog in the Xcode
+4 menu.
 
 Run the following command on the command prompt to see if Java is
 already ínstalled:
@@ -186,6 +191,15 @@ example:
 
     JAVA_HOME=/opt/jdk-1.7 sh build.sh config
 
+By default, the configuration step uses `which tightdb-config` to
+locate the installation of the TightDB core library. If this is not
+appropriate, because you have multiple versions of the TightDB core
+library installed, or `tightdb-config` is not available in your
+`PATH`, set the environment variable `TIGHTDB_CONFIG` before calling
+`sh build.sh config`. For example:
+
+    TIGHTDB_CONFIG=/opt/tightdb-v0.1.2/bin/tightdb-config build.sh config
+
 To use a nondefault compiler, or a compiler in a nondefault location,
 set the environment variable `CC` before calling `sh build.sh build`,
 as in the following example:
@@ -195,8 +209,8 @@ as in the following example:
 There are also a number of environment variables that serve to enable
 or disable special features during building:
 
-Set `TIGHTDB_ENABLE_MEM_USAGE` to a nonempty value to enable
-reporting of memory usage.
+Set `TIGHTDB_ENABLE_MEM_USAGE` to a nonempty value during the build
+step to enable reporting of memory usage.
 
 
 Setting up a project

@@ -1,7 +1,4 @@
-
-
 package com.tightdb.refdoc;
-
 
 import java.io.FileNotFoundException;
 
@@ -14,20 +11,16 @@ public class SharedGroupExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
         
-        // Constructor methods
         constructorStringExample();
         beginWriteExample();
         beginReadExample();
+        closeExample();
         hasChangedExample();
-
-
     }
-
 
     // **********************
     // Constructor methods
     // **********************
-
 
     public static void constructorStringExample(){
         // @@Example: ex_java_shared_group_constructor_string @@
@@ -57,6 +50,9 @@ public class SharedGroupExamples {
         } catch (Throwable t){
             wt.rollback(); // If an error occurs, always rollback
         }
+        
+        // Remember to close the shared group
+        group.close();
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -79,6 +75,35 @@ public class SharedGroupExamples {
         } finally{
             rt.endRead(); // Always end read transaction in finally block
         }
+        
+        // Remember to close the shared group
+        group.close();
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void closeExample(){
+        // @@Example: ex_java_shared_group_close @@
+        // @@Show@@
+        SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
+        
+        // Starts a write transaction
+        WriteTransaction wt = group.beginWrite();
+        
+        // Use try / catch when using transactions
+        try {
+            Table table = wt.getTable("mytable");
+            // Do table write operations on table here
+            // ...
+            
+            wt.commit(); // Changes are saved to file, when commit() is called
+        } catch (Throwable t){
+            wt.rollback(); // If an error occurs, always rollback
+        }
+        
+        // Remember to close the shared group
+        group.close();
         // @@EndShow@@
         // @@EndExample@@
     }

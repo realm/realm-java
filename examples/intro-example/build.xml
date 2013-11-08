@@ -9,6 +9,7 @@
 	<property name="gendir" value="generated" />
 	<property name="bindir" value="bin" />
 	<property name="libpath" value="../../lib" />
+    <property name="jnipath" value="${libpath}" />
 	<property name="libpath-sqlite" value="../lib-sqlite" />
 
     <path id="build-classpath">
@@ -70,7 +71,7 @@
             <env key="LD_LIBRARY_PATH" path="${libpath}"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
 -->
-            <sysproperty key="java.library.path" path="${libpath}"/>
+            <sysproperty key="java.library.path" path="${jnipath}"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
@@ -81,7 +82,7 @@
             <env key="LD_LIBRARY_PATH" path="${libpath}"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
 -->
-            <sysproperty key="java.library.path" path="${libpath}"/>
+            <sysproperty key="java.library.path" path="${jnipath}"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
@@ -92,7 +93,7 @@
             <env key="LD_LIBRARY_PATH" path="${libpath}"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
 -->
-            <sysproperty key="java.library.path" path="${libpath}"/>
+            <sysproperty key="java.library.path" path="${jnipath}"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>
@@ -103,7 +104,7 @@
             <env key="LD_LIBRARY_PATH" path="${libpath}"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
 -->
-            <sysproperty key="java.library.path" path="${libpath}"/>
+            <sysproperty key="java.library.path" path="${jnipath}"/>
             <classpath refid="samples-classpath"/>
         </java>
     </target>

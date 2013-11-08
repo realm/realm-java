@@ -49,12 +49,12 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
     }
 
     public Cursor findFrom(long start) {
-        long res_ndx = query.find(start);
-        if (res_ndx == -1) {
+        long resIndex = query.find(start);
+        if (resIndex == -1) {
             return null; // no match
         }
         else {
-            return cursor(table, res_ndx);
+            return cursor(table, resIndex);
         }
     }
 

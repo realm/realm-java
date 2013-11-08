@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
+	<parent> 
 		<groupId>com.tightdb</groupId>
 		<artifactId>tightdb-parent</artifactId>
-		<version>1.1.0</version>
+		<version>0.1.2</version>
 	</parent>
 
 	<artifactId>tightdb-java-refdoc</artifactId>
@@ -13,9 +13,44 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.tightdb</groupId>
-			<artifactId>tightdb-java-core</artifactId>
-			<version>1.1.0</version>
+			<artifactId>tightdb</artifactId>
+			<version>0.1.2</version>
 		</dependency>
-	</dependencies>
+	</dependencies> 
+
+	
+	
+	
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.bsc.maven</groupId>
+                <artifactId>maven-processor-plugin</artifactId>
+                <version>2.0.5</version>
+                <executions>
+                    <execution>
+                        <id>process-test</id>
+                        <goals>
+                            <goal>process-test</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <processors>
+                                <processor>com.tightdb.generator.CodeGenProcessor</processor>
+                            </processors>
+                            <outputDirectory>${project.build.directory}/generated-test</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.tightdb</groupId>
+                        <artifactId>tightdb-devkit</artifactId>
+                        <version>0.1.2</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
