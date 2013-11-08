@@ -1,12 +1,10 @@
 # NOTE: THIS SCRIPT IS SUPPOSED TO RUN IN A POSIX SHELL
 
-# Enable tracing if DEBUG is set
+# Enable tracing if TIGHTDB_SCRIPT_DEBUG is set
 if [ -e $HOME/.tightdb ]; then
     . $HOME/.tightdb
 fi
-if [ -z "$DEBUG" ]; then
-    set +x
-else
+if [ "$TIGHTDB_SCRIPT_DEBUG" ]; then
     set -x
 fi
 
