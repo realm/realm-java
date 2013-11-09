@@ -541,8 +541,8 @@ EOF
 
     "install-report")
         has_installed=0
-        jni_install_dir="$(get_config_param "jni-install-dir")"
-        jar_install_dir="$(get_config_param "jar-install-dir")"
+        jni_install_dir="$(get_config_param "JNI_INSTALL_DIR")"
+        jar_install_dir="$(get_config_param "JAR_INSTALL_DIR")"
         find $jni_install_dir -name '*tight*jni*' | while read f; do
             has_installed=1
             echo "  $f"
