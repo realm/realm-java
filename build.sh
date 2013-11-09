@@ -109,9 +109,6 @@ fi
 if [ "$NUM_PROCESSORS" ]; then
     word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
 fi
-if [ "$DEBUG" ]; then
-    word_list_prepend MAKEFLAGS "-d" || exit 1
-fi
 export MAKEFLAGS
 
 
@@ -397,8 +394,8 @@ case "$MODE" in
 
         if [ "$OS" = "Darwin" ]; then
             jni_suffix=".jnilib"
-            word_list_append jar_dirs "/Library/Java/Extensions"
-            word_list_append jar_dirs "/System/Library/Java/Extensions"
+            word_list_append jar_dirs "/Library/Java/Extensions" || exit 1
+            word_list_append jar_dirs "/System/Library/Java/Extensions" || exit 1
         else
             jni_suffix=".so"
         fi
@@ -418,8 +415,8 @@ case "$MODE" in
                     echo "ERROR: Could not find prerequisite JAR '$x'" 1>&2
                     exit 1
                 else
-                    interactive_install_required_jar $x
-                    word_list_append "required_jars" /usr/local/share/java/$x
+                    interactive_install_required_jar "$x"
+                    word_list_append "required_jars" "/usr/local/share/java/$x" || exit 1
                 fi
             else
                 word_list_append "required_jars" "$path" || exit 1
@@ -488,21 +485,51 @@ case "$MODE" in
             echo "ERROR: TightDB config-program '$tightdb_config_dbg_cmd' not found" 1>&2
             exit 1
         fi
+        tightdb_version="$($tightdb_config_cmd --version)" || exit 1
 
+        tightdb_cflags="$($tightdb_config_cmd --cflags)"         || exit 1
+        tightdb_cflags_dbg="$($tightdb_config_dbg_cmd --cflags)" || exit 1
+        tightdb_ldflags="$($tightdb_config_cmd --libs)"          || exit 1
+        tightdb_ldflags_dbg="$($tightdb_config_dbg_cmd --libs)"  || exit 1
+
+        tightdb_includedir="$($tightdb_config_cmd --includedir)" || exit 1
+        tightdb_libdir="$($tightdb_config_cmd --libdir)"         || exit 1
+        tightdb_rpath="$tightdb_libdir"
+
+        # `TIGHTDB_DIST_INCLUDEDIR` and `TIGHTDB_DIST_LIBDIR` are set
+        # when configuration occurs in the context of a distribution
+        # package.
+        if [ "$TIGHTDB_DIST_INCLUDEDIR" ] && [ "$TIGHTDB_DIST_LIBDIR" ]; then
+            tightdb_includedir="$TIGHTDB_DIST_INCLUDEDIR"
+            tightdb_libdir="$TIGHTDB_DIST_LIBDIR"
+        else
+            tightdb_includedir="$($tightdb_config_cmd --includedir)" || exit 1
+            tightdb_libdir="$($tightdb_config_cmd --libdir)"         || exit 1
+        fi
+        tightdb_rpath="$($tightdb_config_cmd --libdir)" || exit 1
+
+        extra_cflags="-I$tightdb_includedir"
+        extra_ldflags="-L$tightdb_libdir -Wl,-rpath,$tightdb_rpath"
 
         cat >"$CONFIG_MK" <<EOF
-JAVA_VERSION       = $java_version
-JAVA_COMMAND       = $java_cmd
-JAVAC_COMMAND      = $javac_cmd
-JAVA_CFLAGS        = $java_cflags
-REQUIRED_JARS      = $required_jars
-TESTING_JARS       = $testing_jars
-INSTALL_PREFIX     = $install_prefix
-JNI_INSTALL_DIR    = $jni_install_dir
-JAR_INSTALL_DIR    = $jar_install_dir
-JNI_SUFFIX         = $jni_suffix
-TIGHTDB_CONFIG     = $tightdb_config_cmd
-TIGHTDB_CONFIG_DBG = $tightdb_config_dbg_cmd
+JAVA_COMMAND        = $java_cmd
+JAVAC_COMMAND       = $javac_cmd
+JAVA_VERSION        = $java_version
+JAVA_CFLAGS         = $java_cflags
+REQUIRED_JARS       = $required_jars
+TESTING_JARS        = $testing_jars
+JNI_INSTALL_DIR     = $jni_install_dir
+JAR_INSTALL_DIR     = $jar_install_dir
+JNI_SUFFIX          = $jni_suffix
+TIGHTDB_VERSION     = $tightdb_version
+TIGHTDB_CONFIG      = $tightdb_config_cmd
+TIGHTDB_CFLAGS      = $tightdb_cflags
+TIGHTDB_CFLAGS_DBG  = $tightdb_cflags_dbg
+TIGHTDB_LDFLAGS     = $tightdb_ldflags
+TIGHTDB_LDFLAGS_DBG = $tightdb_ldflags_dbg
+EXTRA_CFLAGS        = $extra_cflags
+EXTRA_LDFLAGS       = $extra_ldflags
+INSTALL_PREFIX      = $install_prefix
 EOF
         if ! [ "$INTERACTIVE" ]; then
             echo "New configuration in $CONFIG_MK:"
