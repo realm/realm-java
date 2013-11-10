@@ -1,5 +1,6 @@
 # NOTE: THIS SCRIPT IS SUPPOSED TO RUN IN A POSIX SHELL
 
+
 # Enable tracing if TIGHTDB_SCRIPT_DEBUG is set
 if [ -e $HOME/.tightdb ]; then
     . $HOME/.tightdb
@@ -8,34 +9,15 @@ if [ "$TIGHTDB_SCRIPT_DEBUG" ]; then
     set -x
 fi
 
-cd "$(dirname "$0")"
-TIGHTDB_JAVA_HOME="$(pwd)"
+
+cd "$(dirname "$0")" || exit 1
+TIGHTDB_JAVA_HOME="$(pwd)" || exit 1
 
 MODE="$1"
 [ $# -gt 0 ] && shift
 
-DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
-interactive_install_required_jar()
-{
-    local jar_name
-    jar_name="$1"
-    echo "jar file $jar_name is not installed."
-    echo "Do you wish to install $jar_name (y/n)?"
-    read answer
-    if [ $(echo "$answer" | grep -c ^[Yy]) = 1 ]; then
-        if [ "$OS" = "Darwin" ]; then
-            sudo install -d /usr/local/share/java
-            sudo install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
-        else
-            echo "No interactive installation yet - sorry."
-            exit 0
-        fi
-    else
-        echo "SKIPPING: cannot proceed without $jar_name"
-        exit 0
-    fi
-}
+DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
 word_list_append()
 {
@@ -94,25 +76,6 @@ remove_suffix()
     return 0
 }
 
-
-
-# Setup OS specific stuff
-OS="$(uname)" || exit 1
-ARCH="$(uname -m)" || exit 1
-MAKE="make"
-NUM_PROCESSORS=""
-if [ "$OS" = "Darwin" ]; then
-    NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
-elif [ -r /proc/cpuinfo ]; then
-    NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
-fi
-if [ "$NUM_PROCESSORS" ]; then
-    word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
-fi
-export MAKEFLAGS
-
-
-
 readlink_f()
 {
     local LINK TARGET
@@ -131,6 +94,45 @@ readlink_f()
     fi
     readlink_f "$TARGET"
 }
+
+
+# Setup OS specific stuff
+OS="$(uname)" || exit 1
+ARCH="$(uname -m)" || exit 1
+MAKE="make"
+NUM_PROCESSORS=""
+if [ "$OS" = "Darwin" ]; then
+    NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
+elif [ -r "/proc/cpuinfo" ]; then
+    NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
+fi
+if [ "$NUM_PROCESSORS" ]; then
+    word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
+    export MAKEFLAGS
+fi
+
+
+interactive_install_required_jar()
+{
+    local jar_name
+    jar_name="$1"
+    echo "jar file $jar_name is not installed."
+    echo "Do you wish to install $jar_name (y/n)?"
+    read answer
+    if [ $(echo "$answer" | grep -c ^[Yy]) = 1 ]; then
+        if [ "$OS" = "Darwin" ]; then
+            sudo install -d /usr/local/share/java
+            sudo install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
+        else
+            echo "No interactive installation yet - sorry."
+            exit 0
+        fi
+    else
+        echo "SKIPPING: cannot proceed without $jar_name"
+        exit 0
+    fi
+}
+
 
 CONFIG_MK="tightdb_jni/config-dyn.mk"
 
