@@ -508,8 +508,12 @@ case "$MODE" in
         fi
         tightdb_rpath="$($tightdb_config_cmd --libdir)" || exit 1
 
-        extra_cflags="-I$tightdb_includedir"
-        extra_ldflags="-L$tightdb_libdir -Wl,-rpath,$tightdb_rpath"
+        cflags="-I$tightdb_includedir"
+        ldflags="-L$tightdb_libdir -Wl,-rpath,$tightdb_rpath"
+        word_list_prepend "tightdb_cflags"      "$cflags"  || exit 1
+        word_list_prepend "tightdb_cflags_dbg"  "$cflags"  || exit 1
+        word_list_prepend "tightdb_ldflags"     "$ldflags" || exit 1
+        word_list_prepend "tightdb_ldflags_dbg" "$ldflags" || exit 1
 
         cat >"$CONFIG_MK" <<EOF
 JAVA_COMMAND        = $java_cmd
@@ -527,8 +531,6 @@ TIGHTDB_CFLAGS      = $tightdb_cflags
 TIGHTDB_CFLAGS_DBG  = $tightdb_cflags_dbg
 TIGHTDB_LDFLAGS     = $tightdb_ldflags
 TIGHTDB_LDFLAGS_DBG = $tightdb_ldflags_dbg
-EXTRA_CFLAGS        = $extra_cflags
-EXTRA_LDFLAGS       = $extra_ldflags
 INSTALL_PREFIX      = $install_prefix
 EOF
         if ! [ "$INTERACTIVE" ]; then
@@ -703,6 +705,18 @@ EOF
         exit 0
         ;;
 
+    "show-install")
+        temp_dir="$(mktemp -d /tmp/tightdb.java.show-install.XXXX)" || exit 1
+        mkdir "$temp_dir/fake-root" || exit 1
+        DESTDIR="$temp_dir/fake-root" sh build.sh install >/dev/null || exit 1
+        (cd "$temp_dir/fake-root" && find * \! -type d >"$temp_dir/list") || exit 1
+        sed 's|^|/|' <"$temp_dir/list" || exit 1
+        rm -fr "$temp_dir/fake-root" || exit 1
+        rm "$temp_dir/list" || exit 1
+        rmdir "$temp_dir" || exit 1
+        exit 0
+        ;;
+
     "install"|"install-devel"|"install-prod")
         require_config || exit 1
 
@@ -841,7 +855,7 @@ EOF
 
     *)
         echo "Unspecified or bad mode '$MODE'" 1>&2
-        echo "Available modes are: config clean build test test-debug test-examples install uninstall test-installed" 1>&2
+        echo "Available modes are: config clean build test test-debug test-examples show-install install uninstall test-installed" 1>&2
         echo "As well as: dist-copy dist-remarks" 1>&2
         exit 1
         ;;
