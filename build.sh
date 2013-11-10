@@ -516,6 +516,7 @@ case "$MODE" in
         word_list_prepend "tightdb_ldflags_dbg" "$ldflags" || exit 1
 
         cat >"$CONFIG_MK" <<EOF
+INSTALL_PREFIX      = $install_prefix
 JAVA_COMMAND        = $java_cmd
 JAVAC_COMMAND       = $javac_cmd
 JAVA_VERSION        = $java_version
@@ -525,13 +526,12 @@ TESTING_JARS        = $testing_jars
 JNI_INSTALL_DIR     = $jni_install_dir
 JAR_INSTALL_DIR     = $jar_install_dir
 JNI_SUFFIX          = $jni_suffix
-TIGHTDB_VERSION     = $tightdb_version
 TIGHTDB_CONFIG      = $tightdb_config_cmd
+TIGHTDB_VERSION     = $tightdb_version
 TIGHTDB_CFLAGS      = $tightdb_cflags
 TIGHTDB_CFLAGS_DBG  = $tightdb_cflags_dbg
 TIGHTDB_LDFLAGS     = $tightdb_ldflags
 TIGHTDB_LDFLAGS_DBG = $tightdb_ldflags_dbg
-INSTALL_PREFIX      = $install_prefix
 EOF
         if ! [ "$INTERACTIVE" ]; then
             echo "New configuration in $CONFIG_MK:"
