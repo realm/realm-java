@@ -620,12 +620,12 @@ EOF
 
         # Setup links to libraries to make the examples work
         echo "Setting up library symlinks in 'lib' to make examples work"
-        mkdir -p "lib" || exit 1
-        core_dir="../tightdb"
-        core_library_aliases="$(cd "$core_dir/src/tightdb" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
-        for x in $core_library_aliases; do
-            (cd "lib" && ln -s -f "../$core_dir/src/tightdb/$x") || exit 1
-        done
+        if [ "$TIGHTDB_HOME" ]; then
+            library_aliases="$(cd "$TIGHTDB_HOME/src/tightdb" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
+            for x in $library_aliases; do
+                (cd "lib" && ln -s -f "$TIGHTDB_HOME/src/tightdb/$x") || exit 1
+            done
+        fi
         library_aliases="$(cd "tightdb_jni/src" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
