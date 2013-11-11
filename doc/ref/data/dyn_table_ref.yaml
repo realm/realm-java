@@ -535,21 +535,20 @@ CATEGORIES :
         
 - Searching:
   METHODS:
-# TODO: Add lookup()
-#  - g_dyn_table_lookup:
-#      NAMES    : lookup
-#      SUMMARY  : *g_dyn_table_lookup_summary
-#      DESCR    : *g_dyn_table_lookup_descr
-#      PARAMS:
-#      - NAME   : value
-#        TYPES  : String
-#        DESCR  : The value to search for.
-#      RETURN:
-#        TYPES  : long
-#        DESCR  : The row index or -1 if there is no match.
-#      EXAMPLES:
-#      - CODE   : ex_java_dyn_table_lookup
-#        DESCR  :
+  - g_dyn_table_lookup:
+      NAMES    : lookup
+      SUMMARY  : *g_dyn_table_lookup_summary
+      DESCR    : *g_dyn_table_lookup_descr
+      PARAMS:
+      - NAME   : value
+        TYPES  : String
+        DESCR  : The value to search for.
+      RETURN:
+        TYPES  : long
+        DESCR  : The row index or -1 if there is no match.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_lookup
+        DESCR  :
   - g_dyn_table_find_first_int:
   - g_dyn_table_find_first_float:
   - g_dyn_table_find_first_double:  
