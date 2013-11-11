@@ -362,7 +362,7 @@ public class DynTableExamples {
         // @@Show@@
         Table table = new Table();
         long USERNAME_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "username");
-        long SCOEW_COLUMN_INDEX = table.addColumn(ColumnType.INTEGER, "score");
+        long SCOEW_COLUMN_INDEX    = table.addColumn(ColumnType.INTEGER, "score");
         table.add("tarzan", 420);
         table.add("ultra88", 80);
         table.add("mongo-beat", 130);
