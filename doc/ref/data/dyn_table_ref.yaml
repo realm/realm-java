@@ -535,21 +535,20 @@ CATEGORIES :
         
 - Searching:
   METHODS:
-# TODO: Add lookup()
-#  - g_dyn_table_lookup:
-#      NAMES    : lookup
-#      SUMMARY  : *g_dyn_table_lookup_summary
-#      DESCR    : *g_dyn_table_lookup_descr
-#      PARAMS:
-#      - NAME   : value
-#        TYPES  : String
-#        DESCR  : The value to search for.
-#      RETURN:
-#        TYPES  : long
-#        DESCR  : The row index or -1 if there is no match.
-#      EXAMPLES:
-#      - CODE   : ex_java_dyn_table_lookup
-#        DESCR  :
+  - g_dyn_table_lookup:
+      NAMES    : lookup
+      SUMMARY  : *g_dyn_table_lookup_summary
+      DESCR    : *g_dyn_table_lookup_descr
+      PARAMS:
+      - NAME   : value
+        TYPES  : String
+        DESCR  : The value to search for.
+      RETURN:
+        TYPES  : long
+        DESCR  : The row index or -1 if there is no match.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_lookup
+        DESCR  :
   - g_dyn_table_find_first_int:
   - g_dyn_table_find_first_float:
   - g_dyn_table_find_first_double:  
@@ -619,27 +618,26 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_find_all
         DESCR  :
- 
-# - g_dyn_table_get_sorted_view:
-#      NAMES    : get_sorted_view
-#      SUMMARY  : *g_dyn_table_get_sorted_view_summary
-#      DESCR    : *g_dyn_table_get_sorted_view_desc
-#      SIGNATURE: |
-#                 TableView      get_sorted_view(long columnIndex, bool ascending=true);
-#                 ConstTableView get_sorted_view(long columnIndex, bool ascending=true) const;
-#      PARAMS:
-#      - NAME   : columnIndex
-#        TYPES  : long
-#        DESCR  : The column index (starting from 0).
-#      - NAME   : ascending
-#        TYPES  : boolean
-#        DESCR  : *cpp_dyn_table_get_sorted_view_param
-#      RETURN:
-#        TYPES  : TableView
-#        DESCR  : A view.
-#      EXAMPLES:
-#      - CODE   : ex_java_dyn_table_get_sorted_view
-#        DESCR  :
+  - g_dyn_table_get_sorted_view:
+      NAMES    : getSortedView
+      SUMMARY  : *g_dyn_table_get_sorted_view_summary
+      DESCR    : *g_dyn_table_get_sorted_view_desc
+      SIGNATURE: |
+                 TableView      get_sorted_view(long columnIndex, bool ascending=true);
+                 ConstTableView get_sorted_view(long columnIndex, bool ascending=true) const;
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : The column index (starting from 0).
+      - NAME   : ascending
+        TYPES  : boolean
+        DESCR  : *cpp_dyn_table_get_sorted_view_parm2_descr
+      RETURN:
+        TYPES  : TableView
+        DESCR  : A view.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_get_sorted_view
+        DESCR  :
   - g_dyn_table_distinct:
       NAMES    : getDistinctView
       SUMMARY  : *g_dyn_table_distinct_summary

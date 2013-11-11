@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 import com.tightdb.*;
+import com.tightdb.TableView.Order;
 
 public class DynTableExamples {
 
@@ -28,7 +29,7 @@ public class DynTableExamples {
         sizeExample();
         isEmptyExample();
         clearExample();
-        //TODO getSortedViewExample();
+        getSortedViewExample();
         //TODO optimizeExample();
         //TODO setIndexExample();
         //TODO hasIndexExample();
@@ -351,6 +352,31 @@ public class DynTableExamples {
         Assert(table.size() == 0);
         // Table is empty
         Assert(table.isEmpty());
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void getSortedViewExample(){
+        // @@Example: ex_java_dyn_table_get_sorted_view @@
+        // @@Show@@
+        Table table = new Table();
+        long USERNAME_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "username");
+        long SCOEW_COLUMN_INDEX = table.addColumn(ColumnType.INTEGER, "score");
+        table.add("tarzan", 420);
+        table.add("ultra88", 80);
+        table.add("mongo-beat", 130);
+        table.add("fatbrain", 390);
+
+        // Sorting is only supported on Integer, Boolean and Date columns!
+        
+        // Get a sorted table view sorted by score. Ascending by default
+        TableView view = table.getSortedView(SCOEW_COLUMN_INDEX);
+        Assert(view.getString(USERNAME_COLUMN_INDEX, 0).equals("ultra88"));
+        
+        // Sort descending
+        view = table.getSortedView(SCOEW_COLUMN_INDEX, Order.descending);
+        Assert(view.getString(USERNAME_COLUMN_INDEX, 0).equals("tarzan"));
         // @@EndShow@@
         // @@EndExample@@
     }

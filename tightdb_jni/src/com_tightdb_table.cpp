@@ -1056,6 +1056,11 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSortedView(
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return 0;
+    int colType = pTable->get_column_type( S(columnIndex) );
+    if (colType != type_Int && colType != type_Bool && colType != type_DateTime) {
+        ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
+        return 0;
+    }
     try {
         TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
         return reinterpret_cast<jlong>(pTableView);
