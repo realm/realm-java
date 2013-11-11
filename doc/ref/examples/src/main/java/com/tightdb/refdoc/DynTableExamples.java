@@ -362,8 +362,8 @@ public class DynTableExamples {
         // @@Example: ex_java_dyn_table_set_index @@
         // @@Show@@
         Table table = new Table();
-        long ID_COLUMN_INDEX = table.addColumn(ColumnType.INTEGER, "ID");
-        long CITY_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "City");
+        long ID_COLUMN_INDEX    = table.addColumn(ColumnType.INTEGER, "ID");
+        long CITY_COLUMN_INDEX  = table.addColumn(ColumnType.STRING, "City");
         long STATE_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "State");
         
         // Index can be set before data is added to table.
@@ -389,8 +389,8 @@ public class DynTableExamples {
         // @@Example: ex_java_dyn_table_has_index @@
         // @@Show@@
         Table table = new Table();
-        long ID_COLUMN_INDEX = table.addColumn(ColumnType.INTEGER, "ID");
-        long CITY_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "City");
+        long ID_COLUMN_INDEX    = table.addColumn(ColumnType.INTEGER, "ID");
+        long CITY_COLUMN_INDEX  = table.addColumn(ColumnType.STRING, "City");
         long STATE_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "State");
         
         // As default no columns in table are indexed
