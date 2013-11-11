@@ -824,7 +824,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeLookup(
     if (!value2)
         return 0;
     try {
-        return TBL(nativeTablePtr)->lookup(value2);
+        size_t res = TBL(nativeTablePtr)->lookup(value2);
+        return (res == not_found) ? jlong(-1) : jlong(res);
     } CATCH_STD()
     return 0;
 }
