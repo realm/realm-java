@@ -3,6 +3,10 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
       when the JNI interface is changed.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+11-November-2013:
+================
++ table.getSortedView now uses native method - making it faster.
+
 07-November-2013:
 ================
 + Avoiding more namespace issues when defining typed tables.

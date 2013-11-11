@@ -215,18 +215,53 @@ public class JNITableTest {
         Table t = new Table();
         t.addColumn(ColumnType.INTEGER, "");
         t.addColumn(ColumnType.STRING, "");
+        t.addColumn(ColumnType.DOUBLE, "");
         
-        t.add(1, "s");
-        t.add(2, "ss");
-        t.add(3,"sss");
+        t.add(1, "s", 1000d);
+        t.add(2, "ss", 100d);
+        t.add(3,"sss", 10d);
         
-        TableView sortedView1 = t.getSortedView(0);
-        assertEquals(1, sortedView1.getLong(0, 0));
+        // Check the order is as it is added
+        assertEquals(1, t.getLong(0, 0));
+        assertEquals(2, t.getLong(0, 1));
+        assertEquals(3, t.getLong(0, 2));
+        assertEquals("s", t.getString(1, 0));
+        assertEquals("ss", t.getString(1, 1));
+        assertEquals("sss", t.getString(1, 2));
+        assertEquals(1000d, t.getDouble(2, 0));
+        assertEquals(100d, t.getDouble(2, 1));
+        assertEquals(10d, t.getDouble(2, 2));
         
-        TableView sortedView2 = t.getSortedView(0, Order.descending);
-        assertEquals(3, sortedView2.getLong(0, 0));
+        // Get the sorted view on first column
+        TableView v = t.getSortedView(0);
         
+        // Check the new order
+        assertEquals(1, v.getLong(0, 0));
+        assertEquals(2, v.getLong(0, 1));
+        assertEquals(3, v.getLong(0, 2));
+        assertEquals("s", v.getString(1, 0));
+        assertEquals("ss", v.getString(1, 1));
+        assertEquals("sss", v.getString(1, 2));
+        assertEquals(1000d, v.getDouble(2, 0));
+        assertEquals(100d, v.getDouble(2, 1));
+        assertEquals(10d, v.getDouble(2, 2));
         
+        // Get the sorted view on first column
+        v = t.getSortedView(0, Order.descending);
+        
+        // Check the new order
+        assertEquals(3, v.getLong(0, 0));
+        assertEquals(2, v.getLong(0, 1));
+        assertEquals(1, v.getLong(0, 2));
+        assertEquals("sss", v.getString(1, 0));
+        assertEquals("ss", v.getString(1, 1));
+        assertEquals("s", v.getString(1, 2));
+        assertEquals(10d, v.getDouble(2, 0));
+        assertEquals(100d, v.getDouble(2, 1));
+        assertEquals(1000d, v.getDouble(2, 2));
+        
+     
+        // Some out of bounds test cases
         try { t.getSortedView(-1, Order.descending);    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getSortedView(-100, Order.descending);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getSortedView(100, Order.descending);   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
