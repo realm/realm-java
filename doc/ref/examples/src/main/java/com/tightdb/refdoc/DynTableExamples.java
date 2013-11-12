@@ -31,8 +31,8 @@ public class DynTableExamples {
         clearExample();
         getSortedViewExample();
         //TODO optimizeExample();
-        //TODO setIndexExample();
-        //TODO hasIndexExample();
+        setIndexExample();
+        hasIndexExample();
 
 
         // Columns methods: 
@@ -57,6 +57,7 @@ public class DynTableExamples {
 
         
         // Searching methods:
+        lookupExample();
         findFirstExamples();
         findAllExample();
         getDistinctViewExample();
@@ -124,10 +125,10 @@ public class DynTableExamples {
         Table table3 = new Table();
 
         table3.addColumn(ColumnType.INTEGER, "id");
-        long subtableColIndex = table3.addColumn(ColumnType.TABLE, "events");
+        long SUBTABLE_COL_INDEX = table3.addColumn(ColumnType.TABLE, "events");
 
         // To add columns to the subtable use TableSchema
-        TableSchema subtableSchema = table3.getSubTableSchema(subtableColIndex);
+        TableSchema subtableSchema = table3.getSubTableSchema(SUBTABLE_COL_INDEX);
 
         // Now simply add columns using addColumn on the TableSchema object
         subtableSchema.addColumn(ColumnType.STRING, "desc");
@@ -342,7 +343,7 @@ public class DynTableExamples {
         Table table = new Table();
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "City");
-        table.add(100, "Washington");
+        table.add(100, "Washington DC");
         table.add(200, "Los Angeles");
 
         // Remove all rows in table
@@ -377,6 +378,51 @@ public class DynTableExamples {
         // Sort descending
         view = table.getSortedView(SCOEW_COLUMN_INDEX, Order.descending);
         Assert(view.getString(USERNAME_COLUMN_INDEX, 0).equals("tarzan"));
+    }
+
+    public static void setIndexExample(){
+        // @@Example: ex_java_dyn_table_set_index @@
+        // @@Show@@
+        Table table = new Table();
+        long ID_COLUMN_INDEX    = table.addColumn(ColumnType.INTEGER, "ID");
+        long CITY_COLUMN_INDEX  = table.addColumn(ColumnType.STRING, "City");
+        long STATE_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "State");
+        
+        // Index can be set before data is added to table.
+        // Insert operations will be a little slower from this point
+        table.setIndex(CITY_COLUMN_INDEX);
+        
+        // Add data
+        table.add(100, "Washington DC", "District of Columbia");
+        table.add(200, "Los Angeles", "California");
+
+        // Index can also be set after data has been added. 
+        // This might take a while if the dataset is very large
+        table.setIndex(STATE_COLUMN_INDEX);
+
+        Assert(table.hasIndex(CITY_COLUMN_INDEX));
+        Assert(table.hasIndex(STATE_COLUMN_INDEX));
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void hasIndexExample(){
+        // @@Example: ex_java_dyn_table_has_index @@
+        // @@Show@@
+        Table table = new Table();
+        long ID_COLUMN_INDEX    = table.addColumn(ColumnType.INTEGER, "ID");
+        long CITY_COLUMN_INDEX  = table.addColumn(ColumnType.STRING, "City");
+        long STATE_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "State");
+        
+        // As default no columns in table are indexed
+        Assert(table.hasIndex(CITY_COLUMN_INDEX) == false);
+        
+        // An index can easily be set on string columns
+        table.setIndex(CITY_COLUMN_INDEX);
+        
+        // hasIndex returns true if an index has been set
+        Assert(table.hasIndex(CITY_COLUMN_INDEX) == true);
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -405,7 +451,7 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
+    
 
     // ******************************************
     // Rows methods
@@ -641,6 +687,33 @@ public class DynTableExamples {
     // ******************************************
     // Searching methods
     // ******************************************
+    
+    
+    
+    
+    public static void lookupExample(){
+        // @@Example: ex_java_dyn_table_lookup @@
+        // @@Show@@
+        // Create a table with 2 column, the first being a String column containing map keys
+        Table tableMap = new Table();
+        long KEY_COLUMN_INDEX   = tableMap.addColumn(ColumnType.STRING, "key");
+        long VALUE_COLUMN_INDEX = tableMap.addColumn(ColumnType.INTEGER, "value");
+        
+        // Put some values into the table map
+        for (long i=0; i<1000;i++){
+            String key = "key" + i;
+            long value = i*1000;
+            tableMap.add(key, value);
+        }
+        
+        // Lookup returns the row index of the matched key
+        long keyIndex = tableMap.lookup("key49");
+        
+        // Use the row index to retrieve the value from other columns
+        Assert(tableMap.getLong(VALUE_COLUMN_INDEX, keyIndex) == 49000);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
 
     public static void findFirstExamples(){
         // @@Example: ex_java_dyn_table_find_first @@

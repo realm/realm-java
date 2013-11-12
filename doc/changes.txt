@@ -27,7 +27,7 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 
 15-October-2013:
 ================
-+ Trying to get a value from column with column index no longer breaks core, but throws exception instead.
++ Table.get*() with negative column index no longer breaks core, but throws exception instead.
 
 13-October-2013:
 ================
