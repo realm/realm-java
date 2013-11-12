@@ -33,7 +33,6 @@ inline bool QueryValid(JNIEnv* env, Query* pQuery)
     return TABLE_VALID(env, pTable);
 }
 
-
 // The flag is cheked when the query is executed
 bool dirty = false;
 
@@ -57,9 +56,6 @@ inline bool IsQuerySyntaxValid(JNIEnv* env, Query* pQuery)
     } else
         return true; // if not dirty, then query syntax is valid
 }
-
-
-
 
 //-------------------------------------------------------
 
@@ -630,7 +626,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFind(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong fromTableRow)
 {
-
     Query* pQuery = Q(nativeQueryPtr);
     if(!IS_QUERY_SYNTAX_VALID(env, pQuery))
         return -1;
