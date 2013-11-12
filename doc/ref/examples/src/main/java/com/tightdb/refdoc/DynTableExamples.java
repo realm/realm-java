@@ -674,7 +674,7 @@ public class DynTableExamples {
         // @@Show@@
         // Create a table with 2 column, the first being a String column containing map keys
         Table tableMap = new Table();
-        long KEY_COLUMN_INDEX = tableMap.addColumn(ColumnType.STRING, "key");
+        long KEY_COLUMN_INDEX   = tableMap.addColumn(ColumnType.STRING, "key");
         long VALUE_COLUMN_INDEX = tableMap.addColumn(ColumnType.INTEGER, "value");
         
         // Put some values into the table map

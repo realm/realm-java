@@ -126,8 +126,8 @@ public class JNITableTest {
     public void lookupTableTest() {
         Table t = new Table();
       
-        long STRING_COL_INDEX = t.addColumn(ColumnType.STRING, "col0");
-        long INT_COL_INDEX = t.addColumn(ColumnType.INTEGER, "col1");
+        long STRING_COL_INDEX   = t.addColumn(ColumnType.STRING, "col0");
+        long INT_COL_INDEX      = t.addColumn(ColumnType.INTEGER, "col1");
         
         t.add("s", 1);
         t.add("s", 2);

@@ -1148,7 +1148,7 @@ public class Table implements TableOrView, TableSchema {
         if (value == null)
             throw new NullPointerException("String must not be null.");
         if (this.getColumnType(0) != ColumnType.STRING)
-            throw new UnsupportedOperationException("lookup() requires a String column.");
+            throw new UnsupportedOperationException("lookup() requires column 0 is a String column.");
         return nativeLookup(nativePtr, value);
     }
 
