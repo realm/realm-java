@@ -13,8 +13,6 @@ using namespace tightdb;
 #define QUERY_VALID(env, pQuery)            true
 #define SET_DIRTY_FLAG()                    void
 #define IS_QUERY_SYNTAX_VALID(env, pQuery)  true
-
-
 #endif
 
 inline tightdb::Table* Ref2Ptr(tightdb::TableRef tableref)
