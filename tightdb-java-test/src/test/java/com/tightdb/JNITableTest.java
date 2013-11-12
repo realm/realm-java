@@ -121,40 +121,45 @@ public class JNITableTest {
         try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(NullPointerException e) { }
     }
     
-    /*
+    
     @Test
     public void lookupTableTest() {
         Table t = new Table();
       
-        t.addColumn(ColumnType.STRING, "col0");
-        t.addColumn(ColumnType.INTEGER, "col1");
+        long STRING_COL_INDEX   = t.addColumn(ColumnType.STRING, "col0");
+        long INT_COL_INDEX      = t.addColumn(ColumnType.INTEGER, "col1");
         
         t.add("s", 1);
         t.add("s", 2);
         t.add("ss",1);
         t.add("ss", 2);
+        t.add("", 2);
         
-        // Currently lookup works, even if no index has been set on first string column. Shouldn't there be an index? TODO
-        // try {  t.lookup("ss"); fail("Index not set"); } catch (RuntimeException r) { };
-        
+        assertEquals(0, t.lookup("s"));
         assertEquals(2, t.lookup("ss"));
+        assertEquals(4, t.lookup(""));
         
+        assertEquals(false, t.hasIndex(STRING_COL_INDEX));
+        
+        //try setting an index
         t.setIndex(0);
-        long rowIndex = t.lookup("ss");
-        assertEquals(1, t.getLong(1, rowIndex));
+        assertEquals(0, t.lookup("s"));
+        assertEquals(2, t.lookup("ss"));
+        assertEquals(4, t.lookup(""));
         
+        // null lookup value
+        try {  t.lookup(null); fail("lookup value is null"); } catch (NullPointerException r) { };
+
+        
+        // Try with non string column
         Table t2 = new Table();
-        
         t2.addColumn(ColumnType.INTEGER, "col0");
         t2.addColumn(ColumnType.INTEGER, "col1");
-        
         t2.add(1, 2);
         t2.add(3, 4);
         
-        try {  t2.lookup("ss"); fail("Column not String"); } catch (RuntimeException r) { };
+        try {  t2.lookup("ss"); fail("Column not String"); } catch (UnsupportedOperationException r) { };
     }
-    
-*/
     
     
     @Test

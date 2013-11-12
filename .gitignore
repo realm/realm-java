@@ -104,3 +104,5 @@ tightdb_jni/src/java/lib/l*
 java/share/java/*.jar
 
 
+# when building lib on mac
+tightdb_jni/src/*.dylib
