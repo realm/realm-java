@@ -103,4 +103,5 @@ doc/ref/examples/fromServlet
 tightdb_jni/src/java/lib/l*
 java/share/java/*.jar
 
-
+# generated jni native libs
+tightdb_jni/src/*.dylib
