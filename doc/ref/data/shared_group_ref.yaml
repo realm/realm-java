@@ -17,11 +17,13 @@ CATEGORIES:
   - g_shared_group_constructor:
       NAMES    : SharedGroup
       SUMMARY  : *g_shared_group_constructor_summary
-      DESCR    : *g_shared_group_constructor_descr
-      SIGNATURE: >
-                 SharedGroup(String databaseFile)
-                 SharedGroup(String databaseFile, Durability durability)
-                 SharedGroup(String databaseFile, Durability durability, boolean fileMustExist)
+      DESCR    : 
+      - TEXT   : *g_shared_group_constructor_descr
+      - TEXT   : *g_shared_group_durability_modes
+      ENUM_SIG :
+      - SIG    : SharedGroup(String databaseFile)
+      - SIG    : SharedGroup(String databaseFile, Durability durability)
+      - SIG    : SharedGroup(String databaseFile, Durability durability, boolean fileMustExist)
       PARAMS:
       - NAME   : databaseFile
         TYPES  : String
