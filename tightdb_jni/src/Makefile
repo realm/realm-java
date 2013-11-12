@@ -2,6 +2,8 @@ EXTRA_PRIMARY_PREFIXES = jni
 jni_LIBRARIES   = libtightdb-jni.a
 jni_INSTALL_DIR = $(JNI_INSTALL_DIR)
 
+LIB_SUFFIX_SHARED = $(JNI_SUFFIX)
+
 JNI_SOURCES := $(wildcard *.cpp)
 libtightdb_jni_a_SOURCES = $(JNI_SOURCES)
 
@@ -19,14 +21,12 @@ libtightdb_jni_a_LDFLAGS += -lproc
 endif
 endif
 
-libtightdb_jni_a_CFLAGS        += -I$(TIGHTDB_INCLUDEDIR)
-libtightdb_jni_a_CFLAGS_OPTIM   = $(TIGHTDB_CFLAGS)
-libtightdb_jni_a_CFLAGS_DEBUG   = $(TIGHTDB_CFLAGS_DEBUG)
-libtightdb_jni_a_CFLAGS_COVER   = $(TIGHTDB_CFLAGS_DEBUG)
-libtightdb_jni_a_LDFLAGS       += -L$(TIGHTDB_LIBDIR) -Wl,-rpath,$(TIGHTDB_LIBDIR)
-libtightdb_jni_a_LDFLAGS_OPTIM  = $(TIGHTDB_LDFLAGS)
-libtightdb_jni_a_LDFLAGS_DEBUG  = $(TIGHTDB_LDFLAGS_DEBUG)
-libtightdb_jni_a_LDFLAGS_COVER  = $(TIGHTDB_LDFLAGS_DEBUG)
+libtightdb_jni_a_CFLAGS_OPTIM  = $(TIGHTDB_CFLAGS)
+libtightdb_jni_a_CFLAGS_DEBUG  = $(TIGHTDB_CFLAGS_DBG)
+libtightdb_jni_a_CFLAGS_COVER  = $(TIGHTDB_CFLAGS_DBG)
+libtightdb_jni_a_LDFLAGS_OPTIM = $(TIGHTDB_LDFLAGS)
+libtightdb_jni_a_LDFLAGS_DEBUG = $(TIGHTDB_LDFLAGS_DBG)
+libtightdb_jni_a_LDFLAGS_COVER = $(TIGHTDB_LDFLAGS_DBG)
 
 include ../generic.mk
 
