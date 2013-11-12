@@ -1142,14 +1142,13 @@ public class Table implements TableOrView, TableSchema {
 
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
 
-    // Requires that the first column is a string column with unique values. Also index required?
-
+    // Requires that the first column is a string column with unique values. Index is not required, but will result in better performance
     @Override
     public long lookup(String value) {
         if (value == null)
-            throw new RuntimeException("String must not be null");
+            throw new NullPointerException("String must not be null.");
         if (this.getColumnType(0) != ColumnType.STRING)
-            throw new RuntimeException("lookup() requires a String column.");
+            throw new UnsupportedOperationException("lookup() requires column 0 is a String column.");
         return nativeLookup(nativePtr, value);
     }
 
