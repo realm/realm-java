@@ -127,15 +127,16 @@ If you intend to run the optional test-suite, you also need these:
     sudo install -m 644 prerequisite_jars/bsh.jar /usr/local/share/java
 
 
-Building, testing, and installing
----------------------------------
+
+Configure, build, install
+-------------------------
+
+Run the following commands to configure, build, and install the
+language binding:
 
     sh build.sh config
-    sh build.sh clean
     sh build.sh build
-    sh build.sh test
     sudo sh build.sh install
-    sh build.sh test-installed
 
 This procedure will install the following two native JNI libraries in
 an appropriate system directory (see "Configuration" below):
@@ -165,10 +166,18 @@ following example:
 
     TIGHTDB_JAVA_DEBUG=1 CLASSPATH=/path/to/tightdb.jar:. java foo.MyApp
 
-After building, you might want to see exactly what will be installed,
-without actually instyalling anything. This can be done as follows:
+Here is the complete set of build-related commands:
 
-    DESTDIR=/tmp/check sh build.sh install && find /tmp/check -type f
+    sh build.sh config
+    sh build.sh clean
+    sh build.sh build
+    sh build.sh test
+    sh build.sh test-debug
+    sh build.sh show-install
+    sudo sh build.sh install
+    sh build.sh test-intalled
+    sudo sh build.sh uninstall
+
 
 
 Configuration
@@ -213,10 +222,15 @@ Set `TIGHTDB_ENABLE_MEM_USAGE` to a nonempty value during the build
 step to enable reporting of memory usage.
 
 
+
 Setting up a project
 --------------------
-For instructions on setting up: Ant, Maven, Eclipse or IntelliJ IDEA, please consult our online documentation:
+
+For instructions on setting up: Ant, Maven, Eclipse or IntelliJ IDEA,
+please consult our online documentation:
 http://www.tightdb.com/documentation/Java_misc/1/Tutorial/
+
+
 
 Packaging
 ---------

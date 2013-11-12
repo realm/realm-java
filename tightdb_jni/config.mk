@@ -23,11 +23,4 @@ ifeq ($(NO_CONFIG_DYN_MK),)
 CONFIG_DYN_MK = $(GENERIC_MK_DIR)/config-dyn.mk
 DEP_MAKEFILES += $(CONFIG_DYN_MK)
 include $(CONFIG_DYN_MK)
-TIGHTDB_INCLUDEDIR    := $(shell $(TIGHTDB_CONFIG)     --includedir)
-TIGHTDB_CFLAGS        := $(shell $(TIGHTDB_CONFIG)     --cflags)
-TIGHTDB_CFLAGS_DEBUG  := $(shell $(TIGHTDB_CONFIG_DBG) --cflags)
-TIGHTDB_LIBDIR        := $(shell $(TIGHTDB_CONFIG)     --libdir)
-TIGHTDB_LDFLAGS       := $(shell $(TIGHTDB_CONFIG)     --libs)
-TIGHTDB_LDFLAGS_DEBUG := $(shell $(TIGHTDB_CONFIG_DBG) --libs)
-LIB_SUFFIX_SHARED = $(JNI_SUFFIX)
 endif

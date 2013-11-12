@@ -1,43 +1,23 @@
 # NOTE: THIS SCRIPT IS SUPPOSED TO RUN IN A POSIX SHELL
 
-# Enable tracing if DEBUG is set
+
+# Enable tracing if TIGHTDB_SCRIPT_DEBUG is set
 if [ -e $HOME/.tightdb ]; then
     . $HOME/.tightdb
 fi
-if [ -z "$DEBUG" ]; then
-    set +x
-else
+if [ "$TIGHTDB_SCRIPT_DEBUG" ]; then
     set -x
 fi
 
-cd "$(dirname "$0")"
-TIGHTDB_JAVA_HOME="$(pwd)"
+
+cd "$(dirname "$0")" || exit 1
+TIGHTDB_JAVA_HOME="$(pwd)" || exit 1
 
 MODE="$1"
 [ $# -gt 0 ] && shift
 
-DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
-interactive_install_required_jar()
-{
-    local jar_name
-    jar_name="$1"
-    echo "jar file $jar_name is not installed."
-    echo "Do you wish to install $jar_name (y/n)?"
-    read answer
-    if [ $(echo "$answer" | grep -c ^[Yy]) = 1 ]; then
-        if [ "$OS" = "Darwin" ]; then
-            sudo install -d /usr/local/share/java
-            sudo install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
-        else
-            echo "No interactive installation yet - sorry."
-            exit 0
-        fi
-    else
-        echo "SKIPPING: cannot proceed without $jar_name"
-        exit 0
-    fi
-}
+DEP_JARS="commons-io.jar commons-lang.jar freemarker.jar"
 
 word_list_append()
 {
@@ -96,28 +76,6 @@ remove_suffix()
     return 0
 }
 
-
-
-# Setup OS specific stuff
-OS="$(uname)" || exit 1
-ARCH="$(uname -m)" || exit 1
-MAKE="make"
-NUM_PROCESSORS=""
-if [ "$OS" = "Darwin" ]; then
-    NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
-elif [ -r /proc/cpuinfo ]; then
-    NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
-fi
-if [ "$NUM_PROCESSORS" ]; then
-    word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
-fi
-if [ "$DEBUG" ]; then
-    word_list_prepend MAKEFLAGS "-d" || exit 1
-fi
-export MAKEFLAGS
-
-
-
 readlink_f()
 {
     local LINK TARGET
@@ -136,6 +94,45 @@ readlink_f()
     fi
     readlink_f "$TARGET"
 }
+
+
+# Setup OS specific stuff
+OS="$(uname)" || exit 1
+ARCH="$(uname -m)" || exit 1
+MAKE="make"
+NUM_PROCESSORS=""
+if [ "$OS" = "Darwin" ]; then
+    NUM_PROCESSORS="$(sysctl -n hw.ncpu)" || exit 1
+elif [ -r "/proc/cpuinfo" ]; then
+    NUM_PROCESSORS="$(cat /proc/cpuinfo | grep -E 'processor[[:space:]]*:' | wc -l)" || exit 1
+fi
+if [ "$NUM_PROCESSORS" ]; then
+    word_list_prepend MAKEFLAGS "-j$NUM_PROCESSORS" || exit 1
+    export MAKEFLAGS
+fi
+
+
+interactive_install_required_jar()
+{
+    local jar_name
+    jar_name="$1"
+    echo "jar file $jar_name is not installed."
+    echo "Do you wish to install $jar_name (y/n)?"
+    read answer
+    if [ $(echo "$answer" | grep -c ^[Yy]) = 1 ]; then
+        if [ "$OS" = "Darwin" ]; then
+            sudo install -d /usr/local/share/java
+            sudo install -m 644 prerequisite_jars/$jar_name /usr/local/share/java
+        else
+            echo "No interactive installation yet - sorry."
+            exit 0
+        fi
+    else
+        echo "SKIPPING: cannot proceed without $jar_name"
+        exit 0
+    fi
+}
+
 
 CONFIG_MK="tightdb_jni/config-dyn.mk"
 
@@ -399,8 +396,8 @@ case "$MODE" in
 
         if [ "$OS" = "Darwin" ]; then
             jni_suffix=".jnilib"
-            word_list_append jar_dirs "/Library/Java/Extensions"
-            word_list_append jar_dirs "/System/Library/Java/Extensions"
+            word_list_append jar_dirs "/Library/Java/Extensions" || exit 1
+            word_list_append jar_dirs "/System/Library/Java/Extensions" || exit 1
         else
             jni_suffix=".so"
         fi
@@ -420,8 +417,8 @@ case "$MODE" in
                     echo "ERROR: Could not find prerequisite JAR '$x'" 1>&2
                     exit 1
                 else
-                    interactive_install_required_jar $x
-                    word_list_append "required_jars" /usr/local/share/java/$x
+                    interactive_install_required_jar "$x"
+                    word_list_append "required_jars" "/usr/local/share/java/$x" || exit 1
                 fi
             else
                 word_list_append "required_jars" "$path" || exit 1
@@ -490,21 +487,53 @@ case "$MODE" in
             echo "ERROR: TightDB config-program '$tightdb_config_dbg_cmd' not found" 1>&2
             exit 1
         fi
+        tightdb_version="$($tightdb_config_cmd --version)" || exit 1
 
+        tightdb_cflags="$($tightdb_config_cmd --cflags)"         || exit 1
+        tightdb_cflags_dbg="$($tightdb_config_dbg_cmd --cflags)" || exit 1
+        tightdb_ldflags="$($tightdb_config_cmd --libs)"          || exit 1
+        tightdb_ldflags_dbg="$($tightdb_config_dbg_cmd --libs)"  || exit 1
+
+        tightdb_includedir="$($tightdb_config_cmd --includedir)" || exit 1
+        tightdb_libdir="$($tightdb_config_cmd --libdir)"         || exit 1
+        tightdb_rpath="$tightdb_libdir"
+
+        # `TIGHTDB_DIST_INCLUDEDIR` and `TIGHTDB_DIST_LIBDIR` are set
+        # when configuration occurs in the context of a distribution
+        # package.
+        if [ "$TIGHTDB_DIST_INCLUDEDIR" ] && [ "$TIGHTDB_DIST_LIBDIR" ]; then
+            tightdb_includedir="$TIGHTDB_DIST_INCLUDEDIR"
+            tightdb_libdir="$TIGHTDB_DIST_LIBDIR"
+        else
+            tightdb_includedir="$($tightdb_config_cmd --includedir)" || exit 1
+            tightdb_libdir="$($tightdb_config_cmd --libdir)"         || exit 1
+        fi
+        tightdb_rpath="$($tightdb_config_cmd --libdir)" || exit 1
+
+        cflags="-I$tightdb_includedir"
+        ldflags="-L$tightdb_libdir -Wl,-rpath,$tightdb_rpath"
+        word_list_prepend "tightdb_cflags"      "$cflags"  || exit 1
+        word_list_prepend "tightdb_cflags_dbg"  "$cflags"  || exit 1
+        word_list_prepend "tightdb_ldflags"     "$ldflags" || exit 1
+        word_list_prepend "tightdb_ldflags_dbg" "$ldflags" || exit 1
 
         cat >"$CONFIG_MK" <<EOF
-JAVA_VERSION       = $java_version
-JAVA_COMMAND       = $java_cmd
-JAVAC_COMMAND      = $javac_cmd
-JAVA_CFLAGS        = $java_cflags
-REQUIRED_JARS      = $required_jars
-TESTING_JARS       = $testing_jars
-INSTALL_PREFIX     = $install_prefix
-JNI_INSTALL_DIR    = $jni_install_dir
-JAR_INSTALL_DIR    = $jar_install_dir
-JNI_SUFFIX         = $jni_suffix
-TIGHTDB_CONFIG     = $tightdb_config_cmd
-TIGHTDB_CONFIG_DBG = $tightdb_config_dbg_cmd
+INSTALL_PREFIX      = $install_prefix
+JAVA_COMMAND        = $java_cmd
+JAVAC_COMMAND       = $javac_cmd
+JAVA_VERSION        = $java_version
+JAVA_CFLAGS         = $java_cflags
+REQUIRED_JARS       = $required_jars
+TESTING_JARS        = $testing_jars
+JNI_INSTALL_DIR     = $jni_install_dir
+JAR_INSTALL_DIR     = $jar_install_dir
+JNI_SUFFIX          = $jni_suffix
+TIGHTDB_CONFIG      = $tightdb_config_cmd
+TIGHTDB_VERSION     = $tightdb_version
+TIGHTDB_CFLAGS      = $tightdb_cflags
+TIGHTDB_CFLAGS_DBG  = $tightdb_cflags_dbg
+TIGHTDB_LDFLAGS     = $tightdb_ldflags
+TIGHTDB_LDFLAGS_DBG = $tightdb_ldflags_dbg
 EOF
         if ! [ "$INTERACTIVE" ]; then
             echo "New configuration in $CONFIG_MK:"
@@ -516,8 +545,8 @@ EOF
 
     "install-report")
         has_installed=0
-        jni_install_dir="$(get_config_param "jni-install-dir")"
-        jar_install_dir="$(get_config_param "jar-install-dir")"
+        jni_install_dir="$(get_config_param "JNI_INSTALL_DIR")"
+        jar_install_dir="$(get_config_param "JAR_INSTALL_DIR")"
         find $jni_install_dir -name '*tight*jni*' | while read f; do
             has_installed=1
             echo "  $f"
@@ -595,12 +624,12 @@ EOF
 
         # Setup links to libraries to make the examples work
         echo "Setting up library symlinks in 'lib' to make examples work"
-        mkdir -p "lib" || exit 1
-        core_dir="../tightdb"
-        core_library_aliases="$(cd "$core_dir/src/tightdb" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
-        for x in $core_library_aliases; do
-            (cd "lib" && ln -s -f "../$core_dir/src/tightdb/$x") || exit 1
-        done
+        if [ "$TIGHTDB_HOME" ]; then
+            library_aliases="$(cd "$TIGHTDB_HOME/src/tightdb" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
+            for x in $library_aliases; do
+                (cd "lib" && ln -s -f "$TIGHTDB_HOME/src/tightdb/$x") || exit 1
+            done
+        fi
         library_aliases="$(cd "tightdb_jni/src" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
@@ -675,6 +704,18 @@ EOF
         echo "Testing intro examples:"
         cd "examples/intro-example" || exit 1
         ant runall || exit 1
+        exit 0
+        ;;
+
+    "show-install")
+        temp_dir="$(mktemp -d /tmp/tightdb.java.show-install.XXXX)" || exit 1
+        mkdir "$temp_dir/fake-root" || exit 1
+        DESTDIR="$temp_dir/fake-root" sh build.sh install >/dev/null || exit 1
+        (cd "$temp_dir/fake-root" && find * \! -type d >"$temp_dir/list") || exit 1
+        sed 's|^|/|' <"$temp_dir/list" || exit 1
+        rm -fr "$temp_dir/fake-root" || exit 1
+        rm "$temp_dir/list" || exit 1
+        rmdir "$temp_dir" || exit 1
         exit 0
         ;;
 
@@ -816,7 +857,7 @@ EOF
 
     *)
         echo "Unspecified or bad mode '$MODE'" 1>&2
-        echo "Available modes are: config clean build test test-debug test-examples install uninstall test-installed" 1>&2
+        echo "Available modes are: config clean build test test-debug test-examples show-install install uninstall test-installed" 1>&2
         echo "As well as: dist-copy dist-remarks" 1>&2
         exit 1
         ;;
