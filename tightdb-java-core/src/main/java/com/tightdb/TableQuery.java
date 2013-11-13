@@ -7,13 +7,13 @@ public class TableQuery {
 
     protected long nativePtr;
     protected boolean immutable = false;
-    
+
     private boolean dirty = false;
 
-// TODO: Can we protect this?
+    // TODO: Can we protect this?
     public TableQuery(long nativeQueryPtr, boolean immutable){
         if (DEBUG)
-        	System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
+            System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
         this.immutable = immutable;
         this.nativePtr = nativeQueryPtr;
     }
@@ -29,7 +29,7 @@ public class TableQuery {
 
     private synchronized void close() {
         if (DEBUG)
-        	System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
+            System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
         if (nativePtr == 0) {
             return;
         }
@@ -37,6 +37,21 @@ public class TableQuery {
         nativePtr = 0;
     }
     protected native void nativeClose(long nativeQueryPtr);
+
+    /**
+     * Checks in core if query syntax is valid. Throws exception, if not.
+     */
+    private void validateQuery(){
+        if(dirty){ // If dirty, check if syntax is valid
+            String invalidMessage = nativeValidateQuery(nativePtr);
+            if(invalidMessage.equals("")) 
+                dirty = false; // If no error message, query is valid. Set dirty flag to false
+            else // Otherwise throw exception
+                throw new UnsupportedOperationException(invalidMessage);
+        }
+    }
+
+    protected native String nativeValidateQuery(long nativeQueryPtr);
 
     // Query TableView
     public TableQuery tableview(TableView tv){
@@ -369,21 +384,6 @@ public class TableQuery {
 
 
     // Searching methods.
-    
-    private void validateQuery(){
-        // If query has not been checked yet
-        if(dirty){ // If dirty, check if syntax is valid
-            String invalidMessage = nativeValidateQuery(nativePtr);
-            if(invalidMessage.equals("")) {
-                dirty = false; // If no error message, then set dirt to false
-            } else { // Otherwise throw exception and return false
-                throw new UnsupportedOperationException(invalidMessage);
-            }
-        }
-    }
-    
-    protected native String nativeValidateQuery(long nativeQueryPtr);
-
 
     public long find(long fromTableRow){
         validateQuery();
@@ -557,12 +557,12 @@ public class TableQuery {
         validateQuery();
         return nativeCount(nativePtr, start, end, limit);
     }
-    
+
     public long count(){
         validateQuery();
         return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
-    
+
     protected native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
 
 
