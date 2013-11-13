@@ -165,6 +165,7 @@ public class TableQuery {
 
     public TableQuery lessThan(long columnIndex, float value){
         nativeLess(nativePtr, columnIndex, value);
+        dirty = true;
         return this;
     }
     protected native void nativeLess(long nativeQueryPtr, long columnIndex, float value);
@@ -369,7 +370,7 @@ public class TableQuery {
 
     // Searching methods.
     
-    private void checkQuerySyntax(){
+    private void validateQuery(){
         // If query has not been checked yet
         if(dirty){ // If dirty, check if syntax is valid
             String invalidMessage = nativeValidateQuery(nativePtr);
@@ -385,24 +386,24 @@ public class TableQuery {
 
 
     public long find(long fromTableRow){
-        checkQuerySyntax();
+        validateQuery();
         return nativeFind(nativePtr, fromTableRow);
     }
 
     public long find(){
-        checkQuerySyntax();
+        validateQuery();
         return nativeFind(nativePtr, 0);
     }
 
     protected native long nativeFind(long nativeQueryPtr, long fromTableRow);
 
     public TableView findAll(long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return new TableView(nativeFindAll(nativePtr, start, end, limit), immutable);
     }
 
     public TableView findAll(){
-        checkQuerySyntax();
+        validateQuery();
         return new TableView(nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE), immutable);
     }
 
@@ -415,44 +416,44 @@ public class TableQuery {
     // Integer aggregation
 
     public long sumInt(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeSumInt(nativePtr, columnIndex, start, end, limit);
     }
     public long sumInt(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeSumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native long nativeSumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public long maximumInt(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMaximumInt(nativePtr, columnIndex, start, end, limit);
     }
     public long maximumInt(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMaximumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native long nativeMaximumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public long minimumInt(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMinimumInt(nativePtr, columnIndex, start, end, limit);
     }
     public long minimumInt(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMinimumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native long nativeMinimumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double averageInt(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeAverageInt(nativePtr, columnIndex, start, end, limit);
     }
     public double averageInt(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeAverageInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native double nativeAverageInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
@@ -461,44 +462,44 @@ public class TableQuery {
     // float aggregation
 
     public double sumFloat(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeSumFloat(nativePtr, columnIndex, start, end, limit);
     }
     public double sumFloat(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeSumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native double nativeSumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public float maximumFloat(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMaximumFloat(nativePtr, columnIndex, start, end, limit);
     }
     public float maximumFloat(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMaximumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native float nativeMaximumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public float minimumFloat(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMinimumFloat(nativePtr, columnIndex, start, end, limit);
     }
     public float minimumFloat(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMinimumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native float nativeMinimumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double averageFloat(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeAverageFloat(nativePtr, columnIndex, start, end, limit);
     }
     public double averageFloat(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeAverageFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native double nativeAverageFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
@@ -507,44 +508,44 @@ public class TableQuery {
     // double aggregation
 
     public double sumDouble(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeSumDouble(nativePtr, columnIndex, start, end, limit);
     }
     public double sumDouble(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeSumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native double nativeSumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double maximumDouble(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMaximumDouble(nativePtr, columnIndex, start, end, limit);
     }
     public double maximumDouble(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMaximumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native double nativeMaximumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double minimumDouble(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMinimumDouble(nativePtr, columnIndex, start, end, limit);
     }
     public double minimumDouble(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeMinimumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native double nativeMinimumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double averageDouble(long columnIndex, long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeAverageDouble(nativePtr, columnIndex, start, end, limit);
     }
     public double averageDouble(long columnIndex){
-        checkQuerySyntax();
+        validateQuery();
         return nativeAverageDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
     protected native double nativeAverageDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
@@ -553,12 +554,12 @@ public class TableQuery {
 
     // TODO: Rename all start, end parameter names to firstRow, lastRow
     public long count(long start, long end, long limit){
-        checkQuerySyntax();
+        validateQuery();
         return nativeCount(nativePtr, start, end, limit);
     }
     
     public long count(){
-        checkQuerySyntax();
+        validateQuery();
         return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
     
@@ -567,13 +568,13 @@ public class TableQuery {
 
     // Deletion.
     public long remove(long start, long end){
-        checkQuerySyntax();
+        validateQuery();
         if (immutable) throwImmutable();
         return nativeRemove(nativePtr, start, end, Table.INFINITE);
     }
 
     public long remove(){
-        checkQuerySyntax();
+        validateQuery();
         if (immutable) throwImmutable();
         return nativeRemove(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
