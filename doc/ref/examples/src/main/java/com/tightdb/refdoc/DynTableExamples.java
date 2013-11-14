@@ -166,10 +166,9 @@ public class DynTableExamples {
         
         // @@Example: ex_java_dyn_table_add_column_6 @@
         Table table6 = new Table();
-        
         table6.addColumn(ColumnType.STRING, "StringCol");
         
-        // Adding 1.000.000 rows to the table
+        // Adding 1.000.000 rows with string values to the table
         for (long l=0;l<1000000;l++){
             table6.add("s" + l);
         }
@@ -178,7 +177,6 @@ public class DynTableExamples {
         table6.addColumn(ColumnType.INTEGER, "IntCol");
         
         Assert(table6.getLong(1, 5000) == 0);
-        
         // @@EndExample@@
     }
 
