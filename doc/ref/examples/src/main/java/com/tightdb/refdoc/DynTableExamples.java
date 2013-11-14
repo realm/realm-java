@@ -163,6 +163,23 @@ public class DynTableExamples {
             table5.addColumn(ColumnType.STRING, "notNullName"); 
         } 
         // @@EndExample@@
+        
+        // @@Example: ex_java_dyn_table_add_column_6 @@
+        Table table6 = new Table();
+        
+        table6.addColumn(ColumnType.STRING, "StringCol");
+        
+        // Adding 1.000.000 rows to the table
+        for (long l=0;l<1000000;l++){
+            table6.add("s" + l);
+        }
+        
+        // Adding a new int column. Default values in all 1.000.000 rows for that column is 0
+        table6.addColumn(ColumnType.INTEGER, "IntCol");
+        
+        Assert(table6.getLong(1, 5000) == 0);
+        
+        // @@EndExample@@
     }
 
     public static void removeColumnExample(){
