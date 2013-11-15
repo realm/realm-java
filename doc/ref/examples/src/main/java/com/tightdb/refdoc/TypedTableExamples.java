@@ -215,6 +215,28 @@ public class TypedTableExamples {
     // Column methods
     // ******************************************
     
+    
+    public static void setAllExample(){
+        // @@Example: ex_java_typed_table_set_all @@
+        // @@Show@@
+        // Create table and add 3 rows of data
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+
+        // Make sure all people in the table are hired
+        people.hired.setAll(true);
+        
+        // Make all people the same young age
+        people.age.setAll(22);
+        
+        Assert(people.get(3).getHired() == true && people.get(3).getAge() == 22);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
     public static void setIndexExample(){
         // @@Example: ex_java_typed_table_set_index @@
         // @@Show@@

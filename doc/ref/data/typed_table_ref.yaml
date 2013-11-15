@@ -209,8 +209,8 @@ CATEGORIES :
   - g_typed_table_column_set_all:
       TITLE    : .&#39;columnName&#39;.setAll
       NAMES    : columnName.sum
-      SUMMARY  : Descccc
-      DESCR    : Descs
+      SUMMARY  : Set a value to all rows in a column.
+      DESCR    : Set a value to all rows in a column.
       RETURN:
         TYPES  : double
         DESCR  : The sum number of the values in the column.
@@ -444,8 +444,8 @@ CATEGORIES :
       SUMMARY  : Get a value from a named column in a specific row.
       DESCR    : This method initiates a query. See {@link class_typed_query}.
       RETURN:
-        TYPES  : Query
-        DESCR  : The query object.
+        TYPES  : Depends on the column name.
+        DESCR  : The value in the cell.
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_typed_table_column_get_value
