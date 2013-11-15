@@ -26,6 +26,8 @@ public class TypedTableExamples {
         hasIndexExample();
 
         // Column methods:
+        columnAverageExample();
+        
         /* getColumnCountExample();
         getColumnNameExample();
         getColumnIndexExample();
@@ -239,6 +241,59 @@ public class TypedTableExamples {
     // ******************************************
     // Column methods
     // ******************************************
+    
+    public static void columnSumExample(){
+        // @@Example: ex_java_typed_table_column_sum @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 30, false); 
+        people.add("Greg", 20, true); 
+        
+        Assert(people.age.sum() == 90);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    public static void columnAverageExample(){
+        // @@Example: ex_java_typed_table_column_average @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 30, false); 
+        people.add("Greg", 20, true); 
+        
+        Assert(people.age.average() == 30.0d);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    public static void columnMinimumExample(){
+        // @@Example: ex_java_typed_table_column_minimum @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 30, false); 
+        people.add("Greg", 20, true); 
+        
+        Assert(people.age.minimum() == 20);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void columnMaximumExample(){
+        // @@Example: ex_java_typed_table_column_maximum @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 30, false); 
+        people.add("Greg", 20, true); 
+        
+        Assert(people.age.maximum() == 40);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
 
     /*  public static void getColumnCountExample(){
         // @@Example: ex_java_typed_table_get_column_count @@
