@@ -74,7 +74,7 @@ public class SharedGroup {
     }
 
     void endRead() {
-        if(isClosed())
+        if (isClosed())
             throw new IllegalStateException(
                     "Can't endRead() on closed group. ReadTransaction is invalid.");
         nativeEndRead(nativePtr);
@@ -90,7 +90,7 @@ public class SharedGroup {
     }
 
     void commit() {
-        if(isClosed())
+        if (isClosed())
             throw new IllegalStateException(
                     "Can't commit() on closed group. WriteTransaction is invalid.");
         nativeCommit(nativePtr);
@@ -98,7 +98,7 @@ public class SharedGroup {
     }
 
     void rollback() {
-        if(isClosed())
+        if (isClosed())
             throw new IllegalStateException(
                     "Can't rollback() on closed group. WriteTransaction is invalid.");
         nativeRollback(nativePtr);
@@ -115,10 +115,7 @@ public class SharedGroup {
     }
     
     private boolean isClosed(){
-        if(nativePtr == 0){
-            return true;
-        }
-        return false;
+        return nativePtr == 0;
     }
 
     static native String nativeGetDefaultReplicationDatabaseFileName();
