@@ -399,6 +399,50 @@ public class TypedTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
+    
+
+    // ******************************************
+    // Cell methods
+    // ******************************************
+    
+    public static void getValueExample(){
+        // @@Example: ex_java_typed_table_get_value @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+
+        // Get the Name from row 2
+        Assert(people.get(2).getName().equals("Greg"));
+        
+        // A row can also be extracted
+        PeopleRow row0 = people.get(0);
+        Assert(row0.getHired() == true);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void setValueExample(){
+        // @@Example: ex_java_typed_table_set_value @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+
+        // Set the Name from row 2
+        people.get(2).setName("Peter");
+        Assert(people.get(2).getName().equals("Peter"));
+        
+        // A row can also be extracted
+        PeopleRow row0 = people.get(0);
+        row0.setHired(false);
+        Assert(row0.getHired() == false);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
 
 
     // ******************************************
