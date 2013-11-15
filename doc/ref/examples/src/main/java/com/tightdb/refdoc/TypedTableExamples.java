@@ -405,8 +405,6 @@ public class TypedTableExamples {
     // Searching methods
     // ******************************************
 
-    
-
     public static void whereExample(){
         // @@Example: ex_java_typed_table_where @@
         // @@Show@@
@@ -416,7 +414,7 @@ public class TypedTableExamples {
         people.add("Greg", 26, true); 
 
         // Get a typed query from the table
-        PeopleQuery susan = people.where();
+        PeopleQuery query = people.where();
         // @@EndShow@@
         // @@EndExample@@
     }
