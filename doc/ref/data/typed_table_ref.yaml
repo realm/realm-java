@@ -463,6 +463,17 @@ CATEGORIES :
 
 - Searching:
   METHODS:
+
+  - g_dyn_table_where:
+      NAMES    : where
+      SUMMARY  : *g_typed_table_where_summary
+      DESCR    : *g_dyn_table_to_where_descr
+      RETURN:
+        TYPES  : String
+        DESCR  : A string with the JSON representation of the table.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_where
+        DESCR  :   
   - g_dyn_table_column_find_all:
       NAMES    : .'columnName'.findAll
       SUMMARY  : *g_dyn_table_to_json_summary
