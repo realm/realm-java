@@ -4,8 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 import com.tightdb.Group;
-import com.tightdb.SharedGroup;
-import com.tightdb.WriteTransaction;
 
 public class TypedTableExamples {
 
@@ -22,17 +20,17 @@ public class TypedTableExamples {
         isEmptyExample();
         clearExample();
         optimizeExample();
-        setIndexExample();
-        hasIndexExample();
+        
 
         // Column methods:
+        setAllExample();
+        setIndexExample();
+        hasIndexExample();
+        columnSumExample();
         columnAverageExample();
+        columnMinimumExample();
+        columnMaximumExample();
         
-        /* getColumnCountExample();
-        getColumnNameExample();
-        getColumnIndexExample();
-        getColumnTypeExample();*/
-
 
         // Row methods:
         getExample();
@@ -40,9 +38,19 @@ public class TypedTableExamples {
         removeExample();
         removeLastExample();
         addEmptyRowExample();
+        
+        // Cell methods
+        getValueExamples();
+        setValueExample()
 
         // Searching methods
         whereExample();
+        findAllExample();
+        findFirstExample();
+        lookupExample();
+        equalToExample();
+        containsExample();
+        endsWithExample();
 
         // Dump methods:
         toJSONExample();
@@ -201,6 +209,12 @@ public class TypedTableExamples {
     }
 
 
+
+
+    // ******************************************
+    // Column methods
+    // ******************************************
+    
     public static void setIndexExample(){
         // @@Example: ex_java_typed_table_set_index @@
         // @@Show@@
@@ -236,11 +250,6 @@ public class TypedTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-
-
-    // ******************************************
-    // Column methods
-    // ******************************************
     
     public static void columnSumExample(){
         // @@Example: ex_java_typed_table_column_sum @@
@@ -295,51 +304,6 @@ public class TypedTableExamples {
         // @@EndExample@@
     }
 
-    /*  public static void getColumnCountExample(){
-        // @@Example: ex_java_typed_table_get_column_count @@
-        // @@Show@@
-        PeopleTable people = new PeopleTable();
-
-        // Get column count. This example uses the table from Table (typed) intro
-        //Assert(people.getColumnCount() == 3);
-        // @@EndShow@@
-        // @@EndExample@@
-    }
-
-
-    public static void getColumnNameExample(){
-        // @@Example: ex_java_typed_table_get_column_name @@
-        // @@Show@@
-        PeopleTable people = new PeopleTable();
-
-        // Get column name. This example uses the table from Table (typed) intro
-        //Assert(people.getColumnName(1).equals("age"));
-        // @@EndShow@@
-        // @@EndExample@@
-    }
-
-
-    public static void getColumnIndexExample(){
-        // @@Example: ex_java_typed_table_get_column_index @@
-        // @@Show@@
-        PeopleTable people = new PeopleTable();
-
-        // Get column index. This example uses the table from Table (typed) intro
-        //Assert(people.getColumnIndex("age") == 1);
-        // @@EndShow@@
-        // @@EndExample@@
-    }
-
-    public static void getColumnTypeExample(){
-        // @@Example: ex_java_typed_table_get_column_type @@
-        // @@Show@@
-        PeopleTable people = new PeopleTable();
-
-        // Get column index. This example uses the table from Table (typed) intro
-        //Assert(people.getColumnType(1).equals(ColumnType.INTEGER));
-        // @@EndShow@@
-        // @@EndExample@@
-    }*/
 
 
     // ******************************************
@@ -441,23 +405,18 @@ public class TypedTableExamples {
     // Searching methods
     // ******************************************
 
+    
 
     public static void whereExample(){
         // @@Example: ex_java_typed_table_where @@
         // @@Show@@
-        // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
         people.add("Susan", 50, false); 
         people.add("Greg", 26, true); 
 
-        // Do a query on table
-        PeopleRow susan = people.where().name.equalTo("Susan").findFirst();
-        Assert(susan != null);
-        Assert(susan.getAge() == 50);
-
-        // See Query class for possible operations
-        // with the Query object
+        // Get a typed query from the table
+        PeopleQuery susan = people.where();
         // @@EndShow@@
         // @@EndExample@@
     }

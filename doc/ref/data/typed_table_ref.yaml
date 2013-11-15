@@ -467,10 +467,10 @@ CATEGORIES :
   - g_dyn_table_where:
       NAMES    : where
       SUMMARY  : *g_typed_table_where_summary
-      DESCR    : *g_dyn_table_to_where_descr
+      DESCR    : *g_typed_table_where_descr
       RETURN:
-        TYPES  : String
-        DESCR  : A string with the JSON representation of the table.
+        TYPES  : Typed Query
+        DESCR  : A generated query object corresponding to the typed table.
       EXAMPLES:
       - CODE   : ex_java_typed_table_where
         DESCR  :   
