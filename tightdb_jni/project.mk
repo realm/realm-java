@@ -23,4 +23,5 @@ ifeq ($(NO_CONFIG_MK),)
 CONFIG_MK = $(GENERIC_MK_DIR)/config.mk
 DEP_MAKEFILES += $(CONFIG_MK)
 include $(CONFIG_MK)
+LIB_SUFFIX_SHARED = $(JNI_SUFFIX)
 endif

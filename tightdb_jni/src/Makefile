@@ -2,8 +2,6 @@ EXTRA_PRIMARY_PREFIXES = jni
 jni_LIBRARIES   = libtightdb-jni.a
 jni_INSTALL_DIR = $(JNI_INSTALL_DIR)
 
-LIB_SUFFIX_SHARED = $(JNI_SUFFIX)
-
 JNI_SOURCES := $(wildcard *.cpp)
 libtightdb_jni_a_SOURCES = $(JNI_SOURCES)
 
