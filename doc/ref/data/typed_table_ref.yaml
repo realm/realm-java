@@ -161,31 +161,7 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_typed_table_optimize
         DESCR  :
-  - g_typed_table_set_index:
-      NAMES    : setIndex
-      SUMMARY  : *g_dyn_table_set_index_summary
-      DESCR    : *g_dyn_table_set_index_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      EXAMPLES:
-      - CODE   : ex_java_typed_table_set_index
-        DESCR  :
-  - g_typed_table_has_index:
-      NAMES    : hasIndex
-      SUMMARY  : *g_dyn_table_has_index_summary
-      DESCR    : *g_dyn_table_has_index_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      RETURN:
-        TYPES  : boolean
-        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
-      EXAMPLES:
-      - CODE   : ex_java_typed_table_has_index
-        DESCR  :
+
 
 # TODO: add
 #  - g_dyn_table_opertator==:
@@ -207,7 +183,7 @@ CATEGORIES :
   METHODS:
 
   - g_typed_table_column_set_all:
-      TITLE    : .&#39;columnName&#39;.setAll
+      TITLE    : columnName.setAll
       NAMES    : columnName.sum
       SUMMARY  : Set a value to all rows in a column.
       DESCR    : Set a value to all rows in a column.
@@ -218,32 +194,34 @@ CATEGORIES :
       - CODE   : ex_java_typed_table_column_set_all
         DESCR  :
 
-  - g_typed_table_column_set_index:
-      TITLE    : .&#39;columnName&#39;.setIndex
-      NAMES    : columnName.sum
-      SUMMARY  : Descccc
-      DESCR    : Descs
-      RETURN:
-        TYPES  : double
-        DESCR  : The sum number of the values in the column.
+  - g_typed_table_set_index:
+      NAMES    : columnName.setIndex
+      SUMMARY  : *g_dyn_table_set_index_summary
+      DESCR    : *g_dyn_table_set_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
       EXAMPLES:
-      - CODE   : ex_java_typed_table_column_set_all
+      - CODE   : ex_java_typed_table_set_index
         DESCR  :
-
-  - g_typed_table_column_has_index:
-      TITLE    : .&#39;columnName&#39;.hasIndex
-      NAMES    : columnName.sum
-      SUMMARY  : Descccc
-      DESCR    : Descs
+  - g_typed_table_has_index:
+      NAMES    : columnName.hasIndex
+      SUMMARY  : *g_dyn_table_has_index_summary
+      DESCR    : *g_dyn_table_has_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
       RETURN:
-        TYPES  : double
-        DESCR  : The sum number of the values in the column.
+        TYPES  : boolean
+        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
       EXAMPLES:
-      - CODE   : ex_java_typed_table_column_set_all
+      - CODE   : ex_java_typed_table_has_index
         DESCR  :
 
   - g_typed_table_column_sum:
-      TITLE    : .&#39;columnName&#39;.sum
+      TITLE    : columnName.sum
       NAMES    : columnName.sum
       SUMMARY  : Perform a sum operation on the column.
       DESCR    : Perform a sum operation on the column. <br> <br>NB! Only accessible on int, long, double and float columns.
@@ -255,7 +233,7 @@ CATEGORIES :
         DESCR  :
   
   - g_typed_table_column_average:
-      TITLE    : .&#39;columnName&#39;.average
+      TITLE    : columnName.average
       NAMES    : columnName.average
       SUMMARY  : Perform an average operation on the column.
       DESCR    : Perform an average operation on the column. <br> <br>NB! Only accessible on int, long, double and float columns.
@@ -267,7 +245,7 @@ CATEGORIES :
         DESCR  :
 
   - g_typed_table_column_minimum:
-      TITLE    : .&#39;columnName&#39;.minimum
+      TITLE    : columnName.minimum
       NAMES    : columnName.minimum
       SUMMARY  : Perform a minimum operation on the column.
       DESCR    : Perform a minimum operation on the column. <br> <br>NB! Only accessible on int, long, double and float columns.
@@ -279,7 +257,7 @@ CATEGORIES :
         DESCR  :
 
   - g_typed_table_column_maximum:
-      TITLE    : .&#39;columnName&#39;.maximum
+      TITLE    : columnName.maximum
       NAMES    : columnName.maximum
       SUMMARY  : Perform a maximum operation on the column.
       DESCR    : Perform a maximum operation on the column. <br> <br>NB! Only accessible on int, long, double and float columns.
@@ -365,7 +343,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_typed_table_operator_brackets_descr
       EXAMPLES:
-      - CODE   : ex_java_typed_table_get
+      - CODE   : ex_java_typed_table_get_row
         DESCR  :
 
   - g_typed_table_add:
@@ -440,9 +418,9 @@ CATEGORIES :
   METHODS:
 # 
   - g_typed_table_column_get_value:
-      NAMES    : get(rowIndex).get&#39;ColumnName&#39;
+      NAMES    : get(rowIndex).getColumnName
       SUMMARY  : Get a value from a named column in a specific row.
-      DESCR    : This method initiates a query. See {@link class_typed_query}.
+      DESCR    : Get a value from a named column in a specific row.
       RETURN:
         TYPES  : Depends on the column name.
         DESCR  : The value in the cell.
@@ -450,15 +428,12 @@ CATEGORIES :
       - DESCR  :
         CODE   : ex_java_typed_table_column_get_value
   - g_typed_table_column_set_value:
-      NAMES    : get(rowIndex).set&#39;ColumnName&#39;
-      SUMMARY  : Get a value from a named column in a specific row.
-      DESCR    : This method initiates a query. See {@link class_typed_query}.
-      RETURN:
-        TYPES  : Query
-        DESCR  : The query object.
+      NAMES    : set(rowIndex).setColumnName
+      SUMMARY  : Set a value from a named column in a specific row.
+      DESCR    : Set a value from a named column in a specific row.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_typed_table_column_get_value
+        CODE   : ex_java_typed_table_column_set_value
 
 
 - Searching:
@@ -475,68 +450,68 @@ CATEGORIES :
       - CODE   : ex_java_typed_table_where
         DESCR  :   
   - g_dyn_table_column_find_all:
-      NAMES    : .'columnName'.findAll
-      SUMMARY  : *g_dyn_table_to_json_summary
-      DESCR    : *g_dyn_table_to_json_descr
+      NAMES    : columnName.findAll
+      SUMMARY  : *g_typed_table_find_all_xxx_summary
+      DESCR    : *g_typed_table_find_all_xxx_descr
       RETURN:
-        TYPES  : String
-        DESCR  : A string with the JSON representation of the table.
+        TYPES  : TableView
+        DESCR  : *g_typed_table_find_all_return1_descr
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_to_json
+      - CODE   : ex_java_dyn_table_find_all
         DESCR  :        
   - g_dyn_table_column_find_first:
-      NAMES    : .'columnName'.findFirst
-      SUMMARY  : *g_dyn_table_to_json_summary
-      DESCR    : *g_dyn_table_to_json_descr
+      NAMES    : columnName.findFirst
+      SUMMARY  : *g_typed_table_find_first_xxx_summary
+      DESCR    : *g_typed_table_find_first_xxx_descr
       RETURN:
-        TYPES  : String
-        DESCR  : A string with the JSON representation of the table.
+        TYPES  : long
+        DESCR  : Row index of the first matching row.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_to_json
+      - CODE   : ex_java_dyn_table_find_first
         DESCR  :    
 
 
   - g_dyn_table_column_lookup:
-      NAMES    : .'columnName'.lookup
+      NAMES    : columnName.lookup
       SUMMARY  : *g_dyn_table_to_json_summary
       DESCR    : *g_dyn_table_to_json_descr
       RETURN:
         TYPES  : String
         DESCR  : A string with the JSON representation of the table.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_to_json
+      - CODE   : ex_java_typed_table_lookup
         DESCR  :   
 
   - g_dyn_table_column_equal_to:
-      NAMES    : .'columnName'.equalTo
+      NAMES    : columnName.equalTo
       SUMMARY  : *g_dyn_table_to_json_summary
       DESCR    : *g_dyn_table_to_json_descr
       RETURN:
         TYPES  : String
         DESCR  : A string with the JSON representation of the table.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_to_json
+      - CODE   : ex_java_dyn_table_equal_to
         DESCR  : 
 
   - g_dyn_table_column_contains:
-      NAMES    : .'columnName'.contains
-      SUMMARY  : *g_dyn_table_to_json_summary
-      DESCR    : *g_dyn_table_to_json_descr
+      NAMES    : columnName.contains
+      SUMMARY  : Finds all rows with Strings containing the specified String.
+      DESCR    : Finds all rows with Strings containing the specified String. <br><br> NB! Only works on String columns.
       RETURN:
-        TYPES  : String
-        DESCR  : A string with the JSON representation of the table.
+        TYPES  : TableQuery
+        DESCR  : A typed query.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_to_json
+      - CODE   : ex_java_typed_table_contains
         DESCR  : 
   - g_dyn_table_column_ends_with:
-      NAMES    : .'columnName'.endsWith
-      SUMMARY  : *g_dyn_table_to_json_summary
-      DESCR    : *g_dyn_table_to_json_descr
+      NAMES    : columnName.endsWith
+      SUMMARY  : Finds all rows with Strings ending with the specified String.
+      DESCR    : Finds all rows with Strings ending with the specified String. <br><br> NB! Only works on String columns.
       RETURN:
-        TYPES  : String
-        DESCR  : A string with the JSON representation of the table.
+        TYPES  : TableQuery
+        DESCR  : A typed query.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_to_json
+      - CODE   : ex_java_typed_table_ends_with
         DESCR  : 
         
 - Dump:
@@ -549,7 +524,7 @@ CATEGORIES :
         TYPES  : String
         DESCR  : A string with the JSON representation of the table.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_to_json
+      - CODE   : ex_java_typed_table_to_json
         DESCR  :
 # TODO  - g_dyn_table_to_string:
 #      NAMES    : to_string

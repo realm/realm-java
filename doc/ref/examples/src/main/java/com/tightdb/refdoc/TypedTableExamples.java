@@ -3,6 +3,7 @@ package com.tightdb.refdoc;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
+import com.tightdb.DefineTable;
 import com.tightdb.Group;
 
 public class TypedTableExamples {
@@ -33,15 +34,15 @@ public class TypedTableExamples {
         
 
         // Row methods:
-        getExample();
+        getRowExample();
         addExample();
         removeExample();
         removeLastExample();
         addEmptyRowExample();
         
         // Cell methods
-        getValueExamples();
-        setValueExample()
+        getValueExample();
+        setValueExample();
 
         // Searching methods
         whereExample();
@@ -126,7 +127,7 @@ public class TypedTableExamples {
         if( people.isValid()) {
             long size = people.size();
         } else {
-            System.out.println("Group has been closed, table is no longer valid");
+            // Group has been closed, table is no longer valid
         }
         // @@EndShow@@
         // @@EndExample@@
@@ -217,7 +218,7 @@ public class TypedTableExamples {
     
     
     public static void setAllExample(){
-        // @@Example: ex_java_typed_table_set_all @@
+        // @@Example: ex_java_typed_table_column_set_all @@
         // @@Show@@
         // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
@@ -332,8 +333,8 @@ public class TypedTableExamples {
     // Row methods
     // ******************************************
 
-    public static void getExample(){
-        // @@Example: ex_java_typed_table_get @@
+    public static void getRowExample(){
+        // @@Example: ex_java_typed_table_get_row @@
         // @@Show@@
         // Create table and add 2 rows of data
         PeopleTable people = new PeopleTable();
@@ -428,7 +429,7 @@ public class TypedTableExamples {
     // ******************************************
     
     public static void getValueExample(){
-        // @@Example: ex_java_typed_table_get_value @@
+        // @@Example: ex_java_typed_table_column_get_value @@
         // @@Show@@
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
@@ -447,7 +448,7 @@ public class TypedTableExamples {
     
     
     public static void setValueExample(){
-        // @@Example: ex_java_typed_table_set_value @@
+        // @@Example: ex_java_typed_table_column_set_value @@
         // @@Show@@
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
@@ -481,6 +482,131 @@ public class TypedTableExamples {
 
         // Get a typed query from the table
         PeopleQuery query = people.where();
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    
+    public static void findAllExample(){
+        // @@Example: ex_java_typed_table_find_all @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+        people.add("Eddie", 29, true); 
+        
+        // find all returns a view with the matching results
+        PeopleView notHired = people.hired.findAll(false);
+
+        Assert(notHired.size() == 2);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void findFirstExample(){
+        // @@Example: ex_java_typed_table_find_first @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+        people.add("Eddie", 29, true); 
+        
+        // Returns a row with the first matching result
+        PeopleRow firstInLine = people.hired.findFirst(false);
+
+        Assert(firstInLine.getName().equals("Susan"));
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    // @@Example: ex_java_typed_table_lookup @@
+    // @@Show@@
+    // Define a key-value table
+    @DefineTable(table="KeyValStore")
+    class KeyVal {
+      String  key;
+      long value;
+    }
+    
+    public static void lookupExample(){
+        // Create instance of KeyValStore
+        KeyValStore kvs = new KeyValStore();
+        // Put some values into the store
+        for (long i=0; i<10000;i++){
+            String key = "key" + i;
+            long value = i*1000;
+            kvs.add(key, value);
+        }
+        
+        // Lookup row index for key49
+        long rowIndex = kvs.key.lookup("key49");
+        
+        // Get the row and retrieve the value
+        Assert(kvs.get(rowIndex).getValue() == 49000);
+    }
+    // @@EndShow@@
+    // @@EndExample@@
+    
+    public static void equalToExample(){
+        // @@Example: ex_java_typed_table_equal_to @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+        people.add("Eddie", 29, true); 
+        
+        // Returns a PeopleQuery
+        PeopleQuery query = people.age.equalTo(26);
+        PeopleRow result = query.findFirst();
+
+        Assert(result.getName().equals("Greg"));
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    public static void containsExample(){
+        // @@Example: ex_java_typed_table_contains @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+        people.add("Eddie", 29, true); 
+        
+        // Returns a PeopleQuery
+        PeopleQuery query = people.name.contains("a");
+        PeopleView results = query.findAll();
+
+        Assert(results.size() == 2);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    
+    public static void endsWithExample(){
+        // @@Example: ex_java_typed_table_ends_with @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+        people.add("Eddie", 29, true); 
+        
+        // Returns a PeopleQuery
+        PeopleQuery query = people.name.endsWith("n");
+        PeopleView results = query.findAll();
+
+        Assert(results.size() == 2);
         // @@EndShow@@
         // @@EndExample@@
     }
