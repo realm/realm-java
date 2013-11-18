@@ -39,12 +39,13 @@ public class TypedTableViewExamples {
         equalToExample();
         containsExample();
         endsWithExample();
+        
+        // sort
+        //sortExample();
 
         // Dump methods:
         toJSONExample();
     }
-
-
 
     // ******************************************
     // Table methods
@@ -327,20 +328,22 @@ public class TypedTableViewExamples {
     // ******************************************
 
     public static void whereExample(){
-        // @@Example: ex_java_typed_table_where @@
+        // @@Example: ex_java_typed_table_view_where @@
         // @@Show@@
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
+        people.add("Susan", 50, false);
+        people.add("Greg", 26, true);
+        people.add("Laura", 31, false);
+        people.add("Eddie", 29, true);
+        
+        PeopleView hiredPeople = people.hired.equalTo(true).findAll();
 
-        // Get a typed query from the table
-        PeopleQuery query = people.where();
+        // Get a new typed query from the table
+        // PeopleQuery query = hiredPeople.where();
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
     
     public static void findAllExample(){
         // @@Example: ex_java_typed_table_find_all @@
@@ -354,12 +357,12 @@ public class TypedTableViewExamples {
         
         // find all returns a view with the matching results
         PeopleView notHired = people.hired.findAll(false);
+        
 
         Assert(notHired.size() == 2);
         // @@EndShow@@
         // @@EndExample@@
     }
-    
     
     public static void findFirstExample(){
         // @@Example: ex_java_typed_table_find_first @@

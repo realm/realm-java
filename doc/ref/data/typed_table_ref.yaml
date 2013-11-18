@@ -473,24 +473,56 @@ CATEGORIES :
 
   - g_dyn_table_column_lookup:
       NAMES    : columnName.lookup
-      SUMMARY  : *g_dyn_table_to_json_summary
-      DESCR    : *g_dyn_table_to_json_descr
+      SUMMARY  : *g_typed_table_lookup_summary
+      DESCR    : *g_typed_table_lookup_descr
       RETURN:
-        TYPES  : String
-        DESCR  : A string with the JSON representation of the table.
+        TYPES  : long
+        DESCR  : Row index pointing to the matched key.
       EXAMPLES:
       - CODE   : ex_java_typed_table_lookup
         DESCR  :   
 
   - g_dyn_table_column_equal_to:
       NAMES    : columnName.equalTo
-      SUMMARY  : *g_dyn_table_to_json_summary
-      DESCR    : *g_dyn_table_to_json_descr
+      SUMMARY  : equalTo
+      DESCR    : equalTo
       RETURN:
-        TYPES  : String
-        DESCR  : A string with the JSON representation of the table.
+        TYPES  : Typed query.
+        DESCR  : Typed query.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_equal_to
+      - CODE   : ex_java_typed_table_equal_to
+        DESCR  : 
+
+  - g_dyn_table_column_not_equal_to:
+      NAMES    : columnName.notEqualTo
+      SUMMARY  : notEqualTo
+      DESCR    : notEqualTo
+      RETURN:
+        TYPES  : Typed query.
+        DESCR  : Typed query.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_not_equal_to
+        DESCR  : 
+
+  - g_dyn_table_column_greater_than:
+      NAMES    : columnName.greaterThan
+      SUMMARY  : Finds all rows with number greater than the specified.
+      DESCR    : Finds all rows with number greater than the specified. <br><br> NB! Only works on int, float and double columns.
+      RETURN:
+        TYPES  : Typed query.
+        DESCR  : Typed query.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_greater_than
+
+  - g_dyn_table_column_less_than:
+      NAMES    : columnName.lessThan
+      SUMMARY  : Finds all rows with number less than the specified.
+      DESCR    : Finds all rows with number less than the specified. <br><br> NB! Only works on int, float and double columns.
+      RETURN:
+        TYPES  : Typed query.
+        DESCR  : Typed query.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_less_than
         DESCR  : 
 
   - g_dyn_table_column_contains:

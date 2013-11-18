@@ -50,8 +50,15 @@ public class TypedTableExamples {
         findFirstExample();
         lookupExample();
         equalToExample();
+        notEqualToExample();
+        greaterThanExample();
+        lessThanExample();
+        betweenExample();
         containsExample();
         endsWithExample();
+        
+        // Sort
+        //getSortedViewExample();
 
         // Dump methods:
         toJSONExample();
@@ -568,6 +575,82 @@ public class TypedTableExamples {
         PeopleRow result = query.findFirst();
 
         Assert(result.getName().equals("Greg"));
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    public static void notEqualToExample(){
+        // @@Example: ex_java_typed_table_not_equal_to @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+        people.add("Eddie", 29, true); 
+        
+        // Returns a PeopleQuery
+        PeopleQuery query = people.age.notEqualTo(26);
+        PeopleView result = query.findAll();
+
+        Assert(result.size() == 4);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    public static void greaterThanExample(){
+        // @@Example: ex_java_typed_table_greater_than @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+        people.add("Eddie", 29, true); 
+        
+        // Returns a PeopleQuery
+        PeopleQuery query = people.age.greaterThan(30);
+        PeopleView result = query.findAll();
+
+        Assert(result.size() == 3);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    public static void lessThanExample(){
+        // @@Example: ex_java_typed_table_less_than @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+        people.add("Eddie", 29, true); 
+        
+        // Returns a PeopleQuery
+        PeopleQuery query = people.age.lessThan(40);
+        PeopleView result = query.findAll();
+
+        Assert(result.size() == 3);
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+    
+    public static void betweenExample(){
+        // @@Example: ex_java_typed_table_between @@
+        // @@Show@@
+        PeopleTable people = new PeopleTable();
+        people.add("John", 40, true);
+        people.add("Susan", 50, false); 
+        people.add("Greg", 26, true); 
+        people.add("Laura", 31, false); 
+        people.add("Eddie", 29, true); 
+        
+        // Returns a PeopleQuery
+        PeopleQuery query = people.age.between(30, 40);
+        PeopleView result = query.findAll();
+
+        Assert(result.size() == 2);
         // @@EndShow@@
         // @@EndExample@@
     }
