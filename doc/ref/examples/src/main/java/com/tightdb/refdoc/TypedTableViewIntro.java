@@ -1,4 +1,4 @@
- // @@Example: ex_java_typed_table_view_intro @@
+// @@Example: ex_java_typed_table_view_intro @@
 package com.tightdb.refdoc;
 
 import java.io.FileNotFoundException;
@@ -20,7 +20,7 @@ public class TypedTableViewIntro {
         CityTable cities = new CityTable();
 
         // Add data to the table
-        cities.add(100, "Washington");
+        cities.add(100, "Washington DC");
         cities.add(200, "Los Angeles");
         cities.add(300, "New York");
 
