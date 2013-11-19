@@ -104,6 +104,8 @@ CATEGORIES :
         DESCR  : Tightdb handles very large number of columns.
       - CODE   : ex_java_dyn_table_add_column_5
         DESCR  : Duplicate and empty string column names are allowed.
+      - CODE   : ex_java_dyn_table_add_column_6
+        DESCR  : Adding columns to a table that already contains rows, will insert default values in all rows in the new column. This operation is extremely fast even when the table contains many rows.
   - g_dyn_table_remove_column:
       NAMES    : removeColumn
       SUMMARY  : *g_dyn_table_remove_column_summary

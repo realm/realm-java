@@ -47,6 +47,28 @@ IGNORE     : [g_dyn_table_where_const,
 
 CATEGORIES :
 
+- Table Schema:
+  METHODS:
+  - g_typed_table_schema:
+      NAMES    : '@DefineTable'
+      DESCR    : Define a typed table including it's columns and subtables.<br><br> The Column Types can be any of the following&#58;<br> boolean, java.util.Date, double, int. long, float, String, byte[], other defined tables and Object.
+      SUMMARY  : Define a typed table.
+      SIGNATURE: |
+                  @DefineTable
+                  class TableName {
+                    ColumnType  columnName;
+                    ColumnType  columnName;
+                    etc...
+                  }
+
+
+      RETURN:
+        TYPES  : Table
+        DESCR  : Generates 4 classes for each defined table&#58;<br> 'TableName'Table, 'TableName'Query, 'TableName'View and 'TableName'Row.
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_typed_table_definition
+
 - Constructor:
   METHODS:
   - g_typed_table_constructor_plain:
@@ -139,31 +161,7 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_typed_table_optimize
         DESCR  :
-  - g_typed_table_set_index:
-      NAMES    : setIndex
-      SUMMARY  : *g_dyn_table_set_index_summary
-      DESCR    : *g_dyn_table_set_index_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      EXAMPLES:
-      - CODE   : ex_java_typed_table_set_index
-        DESCR  :
-  - g_typed_table_has_index:
-      NAMES    : hasIndex
-      SUMMARY  : *g_dyn_table_has_index_summary
-      DESCR    : *g_dyn_table_has_index_descr
-      PARAMS:
-      - NAME   : columnIndex
-        TYPES  : long
-        DESCR  : *g_dyn_table_get_xxx_parm1_descr
-      RETURN:
-        TYPES  : boolean
-        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
-      EXAMPLES:
-      - CODE   : ex_java_typed_table_has_index
-        DESCR  :
+
 
 # TODO: add
 #  - g_dyn_table_opertator==:
@@ -181,20 +179,96 @@ CATEGORIES :
 #        DESCR  :
 
 
-# - Columns:
-#   METHODS:
+- Columns:
+  METHODS:
+
+  - g_typed_table_column_set_all:
+      TITLE    : columnName.setAll
+      NAMES    : columnName.sum
+      SUMMARY  : Set a value to all rows in a column.
+      DESCR    : Set a value to all rows in a column.
+      RETURN:
+        TYPES  : double
+        DESCR  : The sum number of the values in the column.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_column_set_all
+        DESCR  :
+
+  - g_typed_table_set_index:
+      NAMES    : columnName.setIndex
+      SUMMARY  : *g_dyn_table_set_index_summary
+      DESCR    : *g_dyn_table_set_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_set_index
+        DESCR  :
+  - g_typed_table_has_index:
+      NAMES    : columnName.hasIndex
+      SUMMARY  : *g_dyn_table_has_index_summary
+      DESCR    : *g_dyn_table_has_index_descr
+      PARAMS:
+      - NAME   : columnIndex
+        TYPES  : long
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
+      RETURN:
+        TYPES  : boolean
+        DESCR  : <code>true</code> if column is indexed, <code>false</code> otherwise.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_has_index
+        DESCR  :
+
+  - g_typed_table_column_sum:
+      TITLE    : columnName.sum
+      NAMES    : columnName.sum
+      SUMMARY  : Perform a sum operation on the column.
+      DESCR    : Perform a sum operation on the column. <br> <br>NB! Only accessible on int, long, double and float columns.
+      RETURN:
+        TYPES  : double
+        DESCR  : The sum number of the values in the column.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_column_sum
+        DESCR  :
   
- 
-#   - g_typed_table_get_column_count:
-#       NAMES    : getColumnCount
-#       SUMMARY  : *g_dyn_table_get_column_count_summary
-#       DESCR    : *g_dyn_table_get_column_count_descr
-#       RETURN:
-#         TYPES  : long
-#         DESCR  : *g_dyn_table_get_column_count_return_descr
-#       EXAMPLES:
-#       - CODE   : ex_java_typed_table_get_column_count
-#         DESCR  :
+  - g_typed_table_column_average:
+      TITLE    : columnName.average
+      NAMES    : columnName.average
+      SUMMARY  : Perform an average operation on the column.
+      DESCR    : Perform an average operation on the column. <br> <br>NB! Only accessible on int, long, double and float columns.
+      RETURN:
+        TYPES  : double
+        DESCR  : The average number of the values in the column.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_column_average
+        DESCR  :
+
+  - g_typed_table_column_minimum:
+      TITLE    : columnName.minimum
+      NAMES    : columnName.minimum
+      SUMMARY  : Perform a minimum operation on the column.
+      DESCR    : Perform a minimum operation on the column. <br> <br>NB! Only accessible on int, long, double and float columns.
+      RETURN:
+        TYPES  : double
+        DESCR  : The minimum number of the values in the column.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_column_minimum
+        DESCR  :
+
+  - g_typed_table_column_maximum:
+      TITLE    : columnName.maximum
+      NAMES    : columnName.maximum
+      SUMMARY  : Perform a maximum operation on the column.
+      DESCR    : Perform a maximum operation on the column. <br> <br>NB! Only accessible on int, long, double and float columns.
+      RETURN:
+        TYPES  : double
+        DESCR  : The maximum number of the values in the column.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_column_maximum
+        DESCR  :
+
+
 #   - g_typed_table_get_column_name:
 #       NAMES    : getColumnName
 #       SUMMARY  : *g_dyn_table_get_column_name_summary
@@ -269,7 +343,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_typed_table_operator_brackets_descr
       EXAMPLES:
-      - CODE   : ex_java_typed_table_get
+      - CODE   : ex_java_typed_table_get_row
         DESCR  :
 
   - g_typed_table_add:
@@ -320,22 +394,157 @@ CATEGORIES :
       - CODE   : ex_java_typed_table_remove_last_row
         DESCR  :
 
+- Rows:
+  METHODS:
+  - g_typed_table_operator_brackets:
+      NAMES    : get
+      SUMMARY  : *g_typed_table_operator_brackets_summary
+      DESCR    : *g_typed_table_operator_brackets_descr
+      RETURN:
+        TYPES  : "*Row"
+        DESCR  : "*Row found at <code>rowIndex</code>."
+      PARAMS:
+      - NAME   : rowIndex
+        TYPES  : long
+        DESCR  : *g_typed_table_operator_brackets_descr
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_get
+        DESCR  :
+
+
+
   
-- Searching:
+- Cell:
   METHODS:
 # 
-  - g_typed_table_where:
-#  - g_dyn_table_where_const:
-      NAMES    : where
-      SUMMARY  : Query table.
-      DESCR    : This method initiates a query. See {@link class_typed_query}.
+  - g_typed_table_column_get_value:
+      NAMES    : get(rowIndex).getColumnName
+      SUMMARY  : Get a value from a named column in a specific row.
+      DESCR    : Get a value from a named column in a specific row.
       RETURN:
-        TYPES  : Query
-        DESCR  : The query object.
+        TYPES  : Depends on the column name.
+        DESCR  : The value in the cell.
       EXAMPLES:
       - DESCR  :
-        CODE   : ex_java_typed_table_where
-        
+        CODE   : ex_java_typed_table_column_get_value
+  - g_typed_table_column_set_value:
+      NAMES    : set(rowIndex).setColumnName
+      SUMMARY  : Set a value from a named column in a specific row.
+      DESCR    : Set a value from a named column in a specific row.
+      EXAMPLES:
+      - DESCR  :
+        CODE   : ex_java_typed_table_column_set_value
+
+
+- Searching:
+  METHODS:
+
+  - g_dyn_table_where:
+      NAMES    : where
+      SUMMARY  : *g_typed_table_where_summary
+      DESCR    : *g_typed_table_where_descr
+      RETURN:
+        TYPES  : Typed Query
+        DESCR  : A generated query object corresponding to the typed table.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_where
+        DESCR  :   
+  - g_dyn_table_column_find_all:
+      NAMES    : columnName.findAll
+      SUMMARY  : *g_typed_table_find_all_xxx_summary
+      DESCR    : *g_typed_table_find_all_xxx_descr
+      RETURN:
+        TYPES  : TableView
+        DESCR  : *g_typed_table_find_all_return1_descr
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_find_all
+        DESCR  :        
+  - g_dyn_table_column_find_first:
+      NAMES    : columnName.findFirst
+      SUMMARY  : *g_typed_table_find_first_xxx_summary
+      DESCR    : *g_typed_table_find_first_xxx_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : Row index of the first matching row.
+      EXAMPLES:
+      - CODE   : ex_java_dyn_table_find_first
+        DESCR  :    
+
+
+  - g_dyn_table_column_lookup:
+      NAMES    : columnName.lookup
+      SUMMARY  : *g_typed_table_lookup_summary
+      DESCR    : *g_typed_table_lookup_descr
+      RETURN:
+        TYPES  : long
+        DESCR  : Row index pointing to the matched key.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_lookup
+        DESCR  :   
+
+  - g_dyn_table_column_equal_to:
+      NAMES    : columnName.equalTo
+      SUMMARY  : equalTo
+      DESCR    : equalTo
+      RETURN:
+        TYPES  : Typed query.
+        DESCR  : Typed query.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_equal_to
+        DESCR  : 
+
+  - g_dyn_table_column_not_equal_to:
+      NAMES    : columnName.notEqualTo
+      SUMMARY  : notEqualTo
+      DESCR    : notEqualTo
+      RETURN:
+        TYPES  : Typed query.
+        DESCR  : Typed query.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_not_equal_to
+        DESCR  : 
+
+  - g_dyn_table_column_greater_than:
+      NAMES    : columnName.greaterThan
+      SUMMARY  : Finds all rows with number greater than the specified.
+      DESCR    : Finds all rows with number greater than the specified. <br><br> NB! Only works on int, float and double columns.
+      RETURN:
+        TYPES  : Typed query.
+        DESCR  : Typed query.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_greater_than
+
+  - g_dyn_table_column_less_than:
+      NAMES    : columnName.lessThan
+      SUMMARY  : Finds all rows with number less than the specified.
+      DESCR    : Finds all rows with number less than the specified. <br><br> NB! Only works on int, float and double columns.
+      RETURN:
+        TYPES  : Typed query.
+        DESCR  : Typed query.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_less_than
+        DESCR  : 
+
+  - g_dyn_table_column_contains:
+      NAMES    : columnName.contains
+      SUMMARY  : Finds all rows with Strings containing the specified String.
+      DESCR    : Finds all rows with Strings containing the specified String. <br><br> NB! Only works on String columns.
+      RETURN:
+        TYPES  : TableQuery
+        DESCR  : A typed query.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_contains
+        DESCR  : 
+  - g_dyn_table_column_ends_with:
+      NAMES    : columnName.endsWith
+      SUMMARY  : Finds all rows with Strings ending with the specified String.
+      DESCR    : Finds all rows with Strings ending with the specified String. <br><br> NB! Only works on String columns.
+      RETURN:
+        TYPES  : TableQuery
+        DESCR  : A typed query.
+      EXAMPLES:
+      - CODE   : ex_java_typed_table_ends_with
+        DESCR  : 
         
 - Dump:
   METHODS:
@@ -347,7 +556,7 @@ CATEGORIES :
         TYPES  : String
         DESCR  : A string with the JSON representation of the table.
       EXAMPLES:
-      - CODE   : ex_java_dyn_table_to_json
+      - CODE   : ex_java_typed_table_to_json
         DESCR  :
 # TODO  - g_dyn_table_to_string:
 #      NAMES    : to_string
