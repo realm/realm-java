@@ -63,6 +63,13 @@ public class Table implements TableOrView, TableSchema {
     static {
         TightDB.loadLibrary();
     }
+    
+    
+    public void pivot(long stringCol, long intCol, Table result){
+         nativePivot(nativePtr, stringCol, intCol, result.nativePtr);
+    }
+    
+    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, long result);
 
     /**
      * Construct a Table base object. It can be used to register columns in this

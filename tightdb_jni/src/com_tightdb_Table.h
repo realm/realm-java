@@ -24,6 +24,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_createNative
  */
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClose
   (JNIEnv *, jobject, jlong);
+    
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativePivot
+ * Signature: (J)Z
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativePivot
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_Table

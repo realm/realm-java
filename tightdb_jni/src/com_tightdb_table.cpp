@@ -33,6 +33,15 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
     return 0;
 }
 
+
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativePivot
+(JNIEnv *, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jlong resultTablePtr)
+{
+    Table* dataTable = TBL(dataTablePtr);
+    Table* resultTable = TBL(resultTablePtr);
+    dataTable->pivot(S(stringCol), S(intCol), *resultTable);
+}
+
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
