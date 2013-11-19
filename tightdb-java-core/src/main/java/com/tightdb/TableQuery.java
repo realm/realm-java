@@ -42,10 +42,10 @@ public class TableQuery {
      * Checks in core if query syntax is valid. Throws exception, if not.
      */
     private void validateQuery(){
-        if (! queryValidated) { // If dirty, check if syntax is valid
+        if (! queryValidated) { // If not yet validated, check if syntax is valid
             String invalidMessage = nativeValidateQuery(nativePtr);
             if (invalidMessage.equals("")) 
-                queryValidated = true; // If no error message, query is valid. Set dirty flag to false
+                queryValidated = true; // If no error message, query is valid. Set queryValidated to true
             else // Otherwise throw exception
                 throw new UnsupportedOperationException(invalidMessage);
         }
