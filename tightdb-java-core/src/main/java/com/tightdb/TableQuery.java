@@ -8,7 +8,7 @@ public class TableQuery {
     protected long nativePtr;
     protected boolean immutable = false;
 
-    private boolean dirty = false;
+    private boolean queryValidated = true;
 
     // TODO: Can we protect this?
     public TableQuery(long nativeQueryPtr, boolean immutable){
@@ -42,10 +42,10 @@ public class TableQuery {
      * Checks in core if query syntax is valid. Throws exception, if not.
      */
     private void validateQuery(){
-        if(dirty){ // If dirty, check if syntax is valid
+        if (! queryValidated) { // If dirty, check if syntax is valid
             String invalidMessage = nativeValidateQuery(nativePtr);
-            if(invalidMessage.equals("")) 
-                dirty = false; // If no error message, query is valid. Set dirty flag to false
+            if (invalidMessage.equals("")) 
+                queryValidated = true; // If no error message, query is valid. Set dirty flag to false
             else // Otherwise throw exception
                 throw new UnsupportedOperationException(invalidMessage);
         }
@@ -70,7 +70,7 @@ public class TableQuery {
 
     public TableQuery endGroup(){
         nativeEndGroup(nativePtr);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeEndGroup(long nativeQueryPtr);
@@ -84,14 +84,14 @@ public class TableQuery {
 
     public TableQuery endSubTable(){
         nativeParent(nativePtr);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeParent(long nativeQueryPtr);
 
     public TableQuery or(){
         nativeOr(nativePtr);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeOr(long nativeQueryPtr);
@@ -100,49 +100,49 @@ public class TableQuery {
 
     public TableQuery equalTo(long columnIndex, long value){
         nativeEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery notEqualTo(long columnIndex, long value){
         nativeNotEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery greaterThan(long columnIndex, long value){
         nativeGreater(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeGreater(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery greaterThanOrEqual(long columnIndex, long value){
         nativeGreaterEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery lessThan(long columnIndex, long value){
         nativeLess(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeLess(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery lessThanOrEqual(long columnIndex, long value){
         nativeLessEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery between(long columnIndex, long value1, long value2){
         nativeBetween(nativePtr, columnIndex, value1, value2);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeBetween(long nativeQueryPtr, long columnIndex, long value1, long value2);
@@ -152,49 +152,49 @@ public class TableQuery {
 
     public TableQuery equalTo(long columnIndex, float value){
         nativeEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, float value);
 
     public TableQuery notEqualTo(long columnIndex, float value){
         nativeNotEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, float value);
 
     public TableQuery greaterThan(long columnIndex, float value){
         nativeGreater(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeGreater(long nativeQueryPtr, long columnIndex, float value);
 
     public TableQuery greaterThanOrEqual(long columnIndex, float value){
         nativeGreaterEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex, float value);
 
     public TableQuery lessThan(long columnIndex, float value){
         nativeLess(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeLess(long nativeQueryPtr, long columnIndex, float value);
 
     public TableQuery lessThanOrEqual(long columnIndex, float value){
         nativeLessEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex, float value);
 
     public TableQuery between(long columnIndex, float value1, float value2){
         nativeBetween(nativePtr, columnIndex, value1, value2);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeBetween(long nativeQueryPtr, long columnIndex, float value1, float value2);
@@ -204,49 +204,49 @@ public class TableQuery {
 
     public TableQuery equalTo(long columnIndex, double value){
         nativeEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, double value);
 
     public TableQuery notEqualTo(long columnIndex, double value){
         nativeNotEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, double value);
 
     public TableQuery greaterThan(long columnIndex, double value){
         nativeGreater(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeGreater(long nativeQueryPtr, long columnIndex, double value);
 
     public TableQuery greaterThanOrEqual(long columnIndex, double value){
         nativeGreaterEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex, double value);
 
     public TableQuery lessThan(long columnIndex, double value){
         nativeLess(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeLess(long nativeQueryPtr, long columnIndex, double value);
 
     public TableQuery lessThanOrEqual(long columnIndex, double value){
         nativeLessEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex, double value);
 
     public TableQuery between(long columnIndex, double value1, double value2){
         nativeBetween(nativePtr, columnIndex, value1, value2);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeBetween(long nativeQueryPtr, long columnIndex, double value1, double value2);
@@ -256,7 +256,7 @@ public class TableQuery {
 
     public TableQuery equalTo(long columnIndex, boolean value){
         nativeEqual(nativePtr, columnIndex, value);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, boolean value);
@@ -265,21 +265,21 @@ public class TableQuery {
 
     public TableQuery equalTo(long columnIndex, Date value){
         nativeEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery notEqualTo(long columnIndex, Date value){
         nativeNotEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeNotEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery greaterThan(long columnIndex, Date value){
         nativeGreaterDateTime(nativePtr, columnIndex, value.getTime()/1000);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
 
@@ -288,7 +288,7 @@ public class TableQuery {
 
     public TableQuery greaterThanOrEqual(long columnIndex, Date value){
         nativeGreaterEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
 
@@ -296,7 +296,7 @@ public class TableQuery {
 
     public TableQuery lessThan(long columnIndex, Date value){
         nativeLessDateTime(nativePtr, columnIndex, value.getTime()/1000);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
 
@@ -305,7 +305,7 @@ public class TableQuery {
 
     public TableQuery lessThanOrEqual(long columnIndex, Date value){
         nativeLessEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
 
@@ -313,7 +313,7 @@ public class TableQuery {
 
     public TableQuery between(long columnIndex, Date value1, Date value2){
         nativeBetweenDateTime(nativePtr, columnIndex, value1.getTime()/1000, value2.getTime()/1000);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeBetweenDateTime(long nativeQueryPtr, long columnIndex, long value1, long value2);
@@ -323,12 +323,12 @@ public class TableQuery {
     // Equal
     public TableQuery equalTo(long columnIndex, String value, boolean caseSensitive){
         nativeEqual(nativePtr, columnIndex, value, caseSensitive);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     public TableQuery equalTo(long columnIndex, String value){
         nativeEqual(nativePtr, columnIndex, value, true);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
@@ -336,48 +336,48 @@ public class TableQuery {
     // Not Equal
     public TableQuery notEqualTo(long columnIndex, String value, boolean caseSensitive){
         nativeNotEqual(nativePtr, columnIndex, value, caseSensitive);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     public TableQuery notEqualTo(long columnIndex, String value){
         nativeNotEqual(nativePtr, columnIndex, value, true);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
 
     public TableQuery beginsWith(long columnIndex, String value, boolean caseSensitive){
         nativeBeginsWith(nativePtr, columnIndex, value, caseSensitive);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     public TableQuery beginsWith(long columnIndex, String value){
         nativeBeginsWith(nativePtr, columnIndex, value, true);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeBeginsWith(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
 
     public TableQuery endsWith(long columnIndex, String value, boolean caseSensitive){
         nativeEndsWith(nativePtr, columnIndex, value, caseSensitive);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     public TableQuery endsWith(long columnIndex, String value){
         nativeEndsWith(nativePtr, columnIndex, value, true);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeEndsWith(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
 
     public TableQuery contains(long columnIndex, String value, boolean caseSensitive){
         nativeContains(nativePtr, columnIndex, value, caseSensitive);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     public TableQuery contains(long columnIndex, String value){
         nativeContains(nativePtr, columnIndex, value, true);
-        dirty = true;
+        queryValidated = false;
         return this;
     }
     protected native void nativeContains(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
