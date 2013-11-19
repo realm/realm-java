@@ -134,7 +134,7 @@ interactive_install_required_jar()
 }
 
 
-CONFIG_MK="tightdb_jni/config-dyn.mk"
+CONFIG_MK="tightdb_jni/config.mk"
 
 require_config()
 {
@@ -384,11 +384,11 @@ case "$MODE" in
                 # We choose /usr/lib over /usr/local/lib because the
                 # latter is not in the default runtime library search
                 # path on RedHat and RedHat derived systems.
-                jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_DYN_MK="1" $MAKE --no-print-directory prefix="/usr" get-libdir)" || exit 1
+                jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_MK="1" $MAKE --no-print-directory prefix="/usr" get-libdir)" || exit 1
             fi
             jar_install_dir="/usr/local/share/java"
         else
-            jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_DYN_MK="1" $MAKE --no-print-directory prefix="$install_prefix" get-libdir)" || exit 1
+            jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_MK="1" $MAKE --no-print-directory prefix="$install_prefix" get-libdir)" || exit 1
             jar_install_dir="$install_prefix/share/java"
         fi
 
@@ -805,7 +805,7 @@ EOF
 /README.md
 /build.sh
 /tightdb_jni/generic.mk
-/tightdb_jni/config.mk
+/tightdb_jni/project.mk
 /tightdb_jni/Makefile
 /tightdb_jni/src
 /tightdb-java-core

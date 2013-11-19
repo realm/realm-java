@@ -19,8 +19,9 @@ CFLAGS_PTHREAD += -pthread
 CFLAGS_GENERAL += -Wextra -ansi -pedantic -Wno-long-long
 
 # Load dynamic configuration
-ifeq ($(NO_CONFIG_DYN_MK),)
-CONFIG_DYN_MK = $(GENERIC_MK_DIR)/config-dyn.mk
-DEP_MAKEFILES += $(CONFIG_DYN_MK)
-include $(CONFIG_DYN_MK)
+ifeq ($(NO_CONFIG_MK),)
+CONFIG_MK = $(GENERIC_MK_DIR)/config.mk
+DEP_MAKEFILES += $(CONFIG_MK)
+include $(CONFIG_MK)
+LIB_SUFFIX_SHARED = $(JNI_SUFFIX)
 endif

@@ -186,6 +186,21 @@ public class JNIViewTest {
     
     
     @Test
+    public void findFirstNonExisting() {
+        Table tt = TestHelper.getTableWithAllColumnTypes();
+        tt.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        TableView v = tt.where().findAll();
+        
+        assertEquals(-1, v.findFirstBoolean(1, false));
+        assertEquals(-1, v.findFirstDate(2, new Date(138442314986l)));
+        assertEquals(-1, v.findFirstDouble(3, 1.0d));
+        assertEquals(-1, v.findFirstFloat(4, 1.0f));
+        assertEquals(-1, v.findFirstLong(5, 50));
+        assertEquals(-1, v.findFirstString(7, "other string"));
+    }
+    
+    
+    @Test
     public void getValuesFromNonExistingColumn() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableView view = table.where().findAll();
