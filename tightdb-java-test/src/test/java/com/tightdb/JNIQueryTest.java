@@ -347,12 +347,21 @@ public class JNIQueryTest {
         
         // test out of range
         assertEquals(-1, query.find(6));
-        try {
-            query.find(7);
-            fail("Exception expected");
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // expected
-        }
+        try {  query.find(7);  fail("Exception expected");  } catch (ArrayIndexOutOfBoundsException e) {  }
+    }
+    
+    
+    @Test
+    public void queryTestForNoMatches() {
+        Table t = new Table();
+        t = TestHelper.getTableWithAllColumnTypes();
+        
+        t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        
+        TableQuery q = t.where().greaterThan(5, 1000); // No matches
+        
+        assertEquals(-1, q.find());
+        assertEquals(-1, q.find(1));
     }
 
 

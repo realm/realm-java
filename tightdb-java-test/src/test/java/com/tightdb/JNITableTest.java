@@ -3,6 +3,8 @@ package com.tightdb;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
+import java.util.Date;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -149,6 +151,8 @@ public class JNITableTest {
         
         // null lookup value
         try {  t.lookup(null); fail("lookup value is null"); } catch (NullPointerException r) { };
+        
+        assertEquals(-1, t.lookup("I dont exist"));
 
         
         // Try with non string column
@@ -159,6 +163,20 @@ public class JNITableTest {
         t2.add(3, 4);
         
         try {  t2.lookup("ss"); fail("Column not String"); } catch (UnsupportedOperationException r) { };
+    }
+    
+    
+    @Test
+    public void findFirstNonExisting() {
+        Table t = TestHelper.getTableWithAllColumnTypes();
+        t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        
+        assertEquals(-1, t.findFirstBoolean(1, false));
+        assertEquals(-1, t.findFirstDate(2, new Date(138442314986l)));
+        assertEquals(-1, t.findFirstDouble(3, 1.0d));
+        assertEquals(-1, t.findFirstFloat(4, 1.0f));
+        assertEquals(-1, t.findFirstLong(5, 50));
+        assertEquals(-1, t.findFirstString(7, "other string"));
     }
     
     
