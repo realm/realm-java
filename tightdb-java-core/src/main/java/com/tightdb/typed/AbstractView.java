@@ -1,6 +1,7 @@
 package com.tightdb.typed;
 
 import com.tightdb.TableView;
+import com.tightdb.TableView.Order;
 
 /**
  * Super-type of the generated XyzView classes for the Xyz entity, having
@@ -26,5 +27,13 @@ public abstract class AbstractView<Cursor, View, Query> extends AbstractTableOrV
         } catch (Exception e) {
             throw new RuntimeException("Cannot create a view!", e);
         }
+    }
+    
+    public void sort(long columnIndex, Order order) {
+        viewBase.sort(columnIndex, order);
+    }
+
+    public void sort(long columnIndex) {
+        viewBase.sort(columnIndex);
     }
 }
