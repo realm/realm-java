@@ -60,7 +60,7 @@ public class PivotTest {
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }
         
-       result = new Table();
+    //   result = new Table();
         
         data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.SUM, result);
         System.out.println("SUM");
@@ -68,7 +68,7 @@ public class PivotTest {
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }
         
-        result = new Table();
+       // result = new Table();
         data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.AVG, result);
         System.out.println("AVG");
         for (long i=0;i<result.size();i++){
