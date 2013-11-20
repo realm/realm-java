@@ -28,12 +28,4 @@ public abstract class AbstractView<Cursor, View, Query> extends AbstractTableOrV
             throw new RuntimeException("Cannot create a view!", e);
         }
     }
-    
-    public void sort(long columnIndex, Order order) {
-        viewBase.sort(columnIndex, order);
-    }
-
-    public void sort(long columnIndex) {
-        viewBase.sort(columnIndex);
-    }
 }

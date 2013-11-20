@@ -2,6 +2,8 @@ package com.tightdb.typed;
 
 import com.tightdb.TableOrView;
 //import com.tightdb.TableQuery;
+import com.tightdb.TableView;
+import com.tightdb.TableView.Order;
 
 /**
  * Type of the fields that represent a long column in the generated XyzView
@@ -17,5 +19,12 @@ public class LongViewColumn<Cursor, View, Query> extends LongTableOrViewColumn<C
             String name) {
         super(types, view, query, index, name);
     }*/
+    
+    public void sort(long columnIndex, Order order) {
+        ((TableView)this.tableOrView).sort(columnIndex, order);
+    }
 
+    public void sort(long columnIndex) {
+        ((TableView)this.tableOrView).sort(columnIndex);
+    }
 }
