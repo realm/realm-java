@@ -38,6 +38,33 @@ public class SharedGroupTest {
         deleteFile(testFile);
     }
 
+    @Test
+    public void endReadTransactionOnClosedGroup() {
+        SharedGroup g = new SharedGroup("closeTest.tightdb");
+        ReadTransaction rt = g.beginRead();
+        rt.endRead(); // Close transaction
+        g.close(); // then close group, possible only if no active transactions exist
+        try { rt.endRead(); fail("Group is closed, illegal read transaction"); } catch (IllegalStateException e ) { } // try closing the transaction again
+    }
+
+    @Test
+    public void endWriteTransactionRollbackOnClosedGroup() {
+        SharedGroup g = new SharedGroup("closeTest.tightdb");
+        WriteTransaction wt = g.beginWrite();
+        wt.rollback(); // Close transaction
+        g.close(); // then close group, possible only if no active transactions exist
+        try { wt.rollback(); fail("Group is closed, illegal write transaction"); } catch (IllegalStateException e ) { } // try closing the transaction again
+    }
+
+    @Test
+    public void endWriteTransactionCommitOnClosedGroup() {
+        SharedGroup g = new SharedGroup("closeTest.tightdb");
+        WriteTransaction wt = g.beginWrite();
+        wt.commit(); // Close transaction
+        g.close(); // then close group, possible only if no active transactions exist
+        try { wt.commit(); fail("Group is closed, illegal write transaction"); } catch (IllegalStateException e ) { } // try closing the transaction again
+    }
+
 
 
 

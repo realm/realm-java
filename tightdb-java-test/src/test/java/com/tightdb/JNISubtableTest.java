@@ -114,7 +114,6 @@ public class JNISubtableTest {
         try { addresses.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
 
         addresses.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
-
     }
 
     @Test
