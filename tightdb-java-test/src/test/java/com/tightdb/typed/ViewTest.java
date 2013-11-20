@@ -39,15 +39,15 @@ public class ViewTest {
     
     @Test
     public void sortViewEmployees(){
-      /*  TestEmployeeView view = employees.where().findAll();
-        view.sort(2);
+        TestEmployeeView view = employees.where().findAll();
+        view.salary.sort(2);
         assertEquals(1, view.get(0).getSalary());
         
-        view.sort(2, Order.ascending);
+        view.salary.sort(2, Order.ascending);
         assertEquals(1, view.get(0).getSalary());
         
-        view.sort(2, Order.descending);
-        assertEquals(10000, view.get(1).getSalary());*/
+        view.salary.sort(2, Order.descending);
+        assertEquals(10000, view.get(1).getSalary());
     }
     
     @Test
@@ -78,7 +78,7 @@ public class ViewTest {
         // Date supported
         v.dateCol.sort(1); 
         assertEquals(cal1.getTime().getTime()/1000, v.get(0).getDateCol().getTime()/1000);
-        v.dateCol.sort(1, Order.ascending); 
+        v.dateCol.sort(1, Order.ascending);
         assertEquals(cal1.getTime().getTime()/1000, v.get(0).getDateCol().getTime()/1000);
         v.dateCol.sort(1, Order.descending); 
         assertEquals(cal3.getTime().getTime()/1000, v.get(0).getDateCol().getTime()/1000);
