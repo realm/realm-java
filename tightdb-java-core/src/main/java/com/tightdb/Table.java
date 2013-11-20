@@ -65,11 +65,26 @@ public class Table implements TableOrView, TableSchema {
     }
     
     
-    public void pivot(long stringCol, long intCol, Table result){
-         nativePivot(nativePtr, stringCol, intCol, result.nativePtr);
+    public enum PivotType {
+        COUNT(0),
+        SUM(1),
+        AVG(2);
+        private final int value;
+        private PivotType(int value)
+        {
+            this.value = value;
+        }
+        public int getValue() {
+            return value;
+        }
     }
     
-    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, long result);
+    
+    public void pivot(long stringCol, long intCol, PivotType pivotType, Table result){
+         nativePivot(nativePtr, stringCol, intCol, pivotType.getValue(), result.nativePtr);
+    }
+    
+    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
 
     /**
      * Construct a Table base object. It can be used to register columns in this

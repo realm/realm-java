@@ -35,11 +35,24 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
 
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativePivot
-(JNIEnv *, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jlong resultTablePtr)
+(JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
 {
     Table* dataTable = TBL(dataTablePtr);
     Table* resultTable = TBL(resultTablePtr);
-    dataTable->pivot(S(stringCol), S(intCol), *resultTable);
+    Table::PivotType pivotOp;
+    if (operation == 0)
+        pivotOp = Table::pivot_count;
+    else if (operation == 1)
+        pivotOp = Table::pivot_sum;
+    else if (operation == 2)
+        pivotOp = Table::pivot_avg;
+    else {
+        ThrowException(env, UnsupportedOperation, "No pivot operation specified.");
+        return;
+    }
+    try {
+        dataTable->pivot(S(stringCol), S(intCol), pivotOp, *resultTable);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
