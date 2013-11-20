@@ -8,6 +8,7 @@ import java.util.Date;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.tightdb.TableView.Order;
 import com.tightdb.test.TestHelper;
 
 public class JNITableTest {
@@ -229,6 +230,70 @@ public class JNITableTest {
         t.addColumn(ColumnType.INTEGER, "int");
         
         assertEquals(-1, t.getColumnIndex("non-existing column"));
+    }
+    
+    
+    @Test
+    public void getSortedView() {
+        Table t = new Table();
+        t.addColumn(ColumnType.INTEGER, "");
+        t.addColumn(ColumnType.STRING, "");
+        t.addColumn(ColumnType.DOUBLE, "");
+        
+        t.add(1, "s", 1000d);
+        t.add(3,"sss", 10d);
+        t.add(2, "ss", 100d);
+
+        
+        // Check the order is as it is added
+        assertEquals(1, t.getLong(0, 0));
+        assertEquals(3, t.getLong(0, 1));
+        assertEquals(2, t.getLong(0, 2));
+        assertEquals("s", t.getString(1, 0));
+        assertEquals("sss", t.getString(1, 1));
+        assertEquals("ss", t.getString(1, 2));
+        assertEquals(1000d, t.getDouble(2, 0));
+        assertEquals(10d, t.getDouble(2, 1));
+        assertEquals(100d, t.getDouble(2, 2));
+        
+        // Get the sorted view on first column
+        TableView v = t.getSortedView(0);
+        
+        // Check the new order
+        assertEquals(1, v.getLong(0, 0));
+        assertEquals(2, v.getLong(0, 1));
+        assertEquals(3, v.getLong(0, 2));
+        assertEquals("s", v.getString(1, 0));
+        assertEquals("ss", v.getString(1, 1));
+        assertEquals("sss", v.getString(1, 2));
+        assertEquals(1000d, v.getDouble(2, 0));
+        assertEquals(100d, v.getDouble(2, 1));
+        assertEquals(10d, v.getDouble(2, 2));
+        
+        // Get the sorted view on first column descending
+        v = t.getSortedView(0, Order.descending);
+        
+        // Check the new order
+        assertEquals(3, v.getLong(0, 0));
+        assertEquals(2, v.getLong(0, 1));
+        assertEquals(1, v.getLong(0, 2));
+        assertEquals("sss", v.getString(1, 0));
+        assertEquals("ss", v.getString(1, 1));
+        assertEquals("s", v.getString(1, 2));
+        assertEquals(10d, v.getDouble(2, 0));
+        assertEquals(100d, v.getDouble(2, 1));
+        assertEquals(1000d, v.getDouble(2, 2));
+        
+        // Try on unsupported column types
+        try { t.getSortedView(1, Order.descending);    fail("unsupported column"); } catch (IllegalArgumentException e) { }
+        try { t.getSortedView(2, Order.descending);    fail("unsupported column"); } catch (IllegalArgumentException e) { }
+
+     
+        // Some out of bounds test cases
+        try { t.getSortedView(-1, Order.descending);    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(-100, Order.descending);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(100, Order.descending);   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
