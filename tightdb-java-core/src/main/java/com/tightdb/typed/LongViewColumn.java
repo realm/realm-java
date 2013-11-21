@@ -21,10 +21,10 @@ public class LongViewColumn<Cursor, View, Query> extends LongTableOrViewColumn<C
     }*/
     
     public void sort(long columnIndex, Order order) {
-        ((TableView)this.tableOrView).sort(columnIndex, order);
+        ( (TableView) this.tableOrView).sort(columnIndex, order);
     }
 
     public void sort(long columnIndex) {
-        ((TableView)this.tableOrView).sort(columnIndex);
+        ( (TableView) this.tableOrView).sort(columnIndex);
     }
 }
