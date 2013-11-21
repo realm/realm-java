@@ -61,22 +61,19 @@ public class PivotTest {
     @Test
     public void testPivotTable(){
 
-        Table result = new Table();
 
         long current = System.currentTimeMillis();
-        data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.COUNT, result);
+        Table result = data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.COUNT);
         System.out.println("COUNT");
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }
-        result = new Table();
-        data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.SUM, result);
+        result = data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.SUM);
         System.out.println("SUM");
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }
-        result = new Table();
-        data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.AVG, result);
+        result = data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.AVG);
         System.out.println("AVG");
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
@@ -92,26 +89,23 @@ public class PivotTest {
     @Test
     public void testPivotTableView(){
 
-        Table result = new Table();
 
         TableView dataView = data.where().equalTo(BOOLEAN_COL_INDEX, true ).findAll();
 
         long current = System.currentTimeMillis();
-        dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.COUNT, result);
+        Table result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.COUNT);
         System.out.println("COUNT");
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }
-        result = new Table();
-        dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.SUM, result);
+        result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.SUM);
         System.out.println("SUM");
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }
         assertEquals(true, result.size() > 0);
 
-        result = new Table();
-        dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.AVG, result);
+        result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.AVG);
         System.out.println("AVG");
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));

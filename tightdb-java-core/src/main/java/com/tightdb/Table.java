@@ -130,8 +130,8 @@ public class Table implements TableOrView, TableSchema {
      */
 
     public boolean isValid(){
-    	if (nativePtr == 0)
-    		return false;
+        if (nativePtr == 0)
+            return false;
         return nativeIsValid(nativePtr);
     }
 
@@ -154,9 +154,9 @@ public class Table implements TableOrView, TableSchema {
     protected native boolean nativeEquals(long nativeTablePtr, long nativeTableToComparePtr);
 
     private void verifyColumnName(String name) {
-    	if (name.length() > 63) {
-    		throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
-    	}    	
+        if (name.length() > 63) {
+            throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
+        }    	
     }
 
     @Override
@@ -170,15 +170,15 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native boolean nativeIsRootTable(long nativeTablePtr);
-    
+
     /**
      * Add a column to the table dynamically.
      * @return Index of the new column.
      */
     @Override
     public long addColumn (ColumnType type, String name) {
-    	verifyColumnName(name);
-    	return nativeAddColumn(nativePtr, type.getValue(), name);
+        verifyColumnName(name);
+        return nativeAddColumn(nativePtr, type.getValue(), name);
     }
 
     protected native long nativeAddColumn(long nativeTablePtr, int type, String name);
@@ -198,7 +198,7 @@ public class Table implements TableOrView, TableSchema {
      */
     @Override
     public void renameColumn(long columnIndex, String newName) {
-    	verifyColumnName(newName);
+        verifyColumnName(newName);
         nativeRenameColumn(nativePtr, columnIndex, newName);
     }
 
@@ -269,7 +269,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native long nativeGetColumnCount(long nativeTablePtr);
 
-    
+
     public TableSpec getTableSpec(){
         return nativeGetTableSpec(nativePtr);
     }
@@ -363,13 +363,13 @@ public class Table implements TableOrView, TableSchema {
     public long addEmptyRows(long rows) {
         if (immutable) throwImmutable();
         if (rows < 1)
-        	throw new IllegalArgumentException("'rows' must be > 0.");
+            throw new IllegalArgumentException("'rows' must be > 0.");
         return nativeAddEmptyRow(nativePtr, rows);
     }
 
     protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
 
-    
+
     /**
      * Appends the specified row to the end of the table
      * @param values
@@ -377,8 +377,8 @@ public class Table implements TableOrView, TableSchema {
      */
     public long add(Object... values) {
         long rowIndex = size();
-    	addAt(rowIndex, values);
-    	return rowIndex;
+        addAt(rowIndex, values);
+        return rowIndex;
     }
 
 
@@ -417,7 +417,7 @@ public class Table implements TableOrView, TableSchema {
                     providedType = "null";
                 else
                     providedType = value.getClass().toString();
-                
+
                 throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
                         ". Expected a value compatible with column type " + colType + ", but got " + providedType + ".");
             }
@@ -475,7 +475,7 @@ public class Table implements TableOrView, TableSchema {
             }
         }
     }
-    
+
     /**
      * Returns a view sorted by the specified column by the default order
      * @param columnIndex
@@ -486,7 +486,7 @@ public class Table implements TableOrView, TableSchema {
         view.sort(columnIndex);
         return view;
     }
-    
+
     /**
      * Returns a view sorted by the specified column and order
      * @param columnIndex
@@ -539,50 +539,50 @@ public class Table implements TableOrView, TableSchema {
         remove(rowIndex);
         addAt(rowIndex, values);
     }
-    
+
     //Instance of the inner class InternalMethods.
     private InternalMethods internal = new InternalMethods();
-    
+
     //Returns InternalMethods instance with public internal methods. Should only be called by AbstractTable
     public InternalMethods getInternalMethods(){
         return this.internal;
     }
-    
-    
+
+
     //Holds methods that must be publicly available for AbstractClass.
     //Should not be called when using the dynamic interface. The methods can be accessed by calling getInternalMethods() in Table class
     public class InternalMethods{
-        
+
         public void insertLong(long columnIndex, long rowIndex, long value) {
             if (immutable) throwImmutable();
             nativeInsertLong(nativePtr, columnIndex, rowIndex, value);
         }
-        
+
         public void insertDouble(long columnIndex, long rowIndex, double value) {
             if (immutable) throwImmutable();
             nativeInsertDouble(nativePtr, columnIndex, rowIndex, value);
         }
-        
+
         public void insertFloat(long columnIndex, long rowIndex, float value) {
             if (immutable) throwImmutable();
             nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
         }
-        
+
         public void insertBoolean(long columnIndex, long rowIndex, boolean value) { 
             if (immutable) throwImmutable();
             nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
         }
-        
+
         public void insertDate(long columnIndex, long rowIndex, Date date) {
             if (immutable) throwImmutable();
             nativeInsertDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
         }
-        
+
         public void insertString(long columnIndex, long rowIndex, String value) {
             if (immutable) throwImmutable();
             nativeInsertString(nativePtr, columnIndex, rowIndex, value);
         }
-        
+
         public void insertMixed(long columnIndex, long rowIndex, Mixed data) {
             if (immutable) throwImmutable();
             nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
@@ -600,8 +600,8 @@ public class Table implements TableOrView, TableSchema {
                 throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");   // FIXME: support other than allocateDirect
         }
 
-        */
-        
+         */
+
         public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
             if (immutable) throwImmutable();
             if(data != null)
@@ -609,13 +609,13 @@ public class Table implements TableOrView, TableSchema {
             else
                 throw new NullPointerException("byte[] must not be null. Alternatively insert empty array.");
         }
-        
+
         public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
             if (immutable) throwImmutable();
             nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
             insertSubtableValues(rowIndex, columnIndex, values);
         }
-        
+
         public void insertDone() {
             if (immutable) throwImmutable();
             nativeInsertDone(nativePtr);
@@ -623,27 +623,27 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native void nativeInsertFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
-    
+
     protected native void nativeInsertDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
-    
+
     protected native void nativeInsertLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
-    
+
     protected native void nativeInsertBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
-    
+
     protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
-   
+
     protected native void nativeInsertString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
 
     protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
 
-   /* public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
+    /* public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
         if (data == null)
             throw new NullPointerException("Null Array");
         if (immutable) throwImmutable();
         nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
     }*/
-    
+
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
 
     protected native void nativeInsertSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
@@ -721,7 +721,7 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native ByteBuffer nativeGetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex);
-    */
+     */
 
     @Override
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex) {
@@ -763,7 +763,7 @@ public class Table implements TableOrView, TableSchema {
 
     // Below version will allow to getSubTable when number of available rows are not updated yet -
     // which happens before an insertDone().
-    
+
     private Table getSubTableDuringInsert(long columnIndex, long rowIndex) {
         return new Table(this, nativeGetSubTableDuringInsert(nativePtr, columnIndex, rowIndex), immutable);
     }
@@ -860,7 +860,7 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native void nativeSetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
-    */
+     */
 
 
     @Override
@@ -907,7 +907,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
-    
+
     public void setIndex(long columnIndex) {
         if (immutable) throwImmutable();
         if (getColumnType(columnIndex) != ColumnType.STRING)
@@ -917,7 +917,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeSetIndex(long nativePtr, long columnIndex);
 
-    
+
     public boolean hasIndex(long columnIndex) {
         return nativeHasIndex(nativePtr, columnIndex);
     }
@@ -1019,14 +1019,14 @@ public class Table implements TableOrView, TableSchema {
     //
     // Count
     //
-    
+
     public long count(long columnIndex, long value) {
         return nativeCountLong(nativePtr, columnIndex, value);
     }
 
     protected native long nativeCountLong(long nativePtr, long columnIndex, long value);
 
-    
+
     public long count(long columnIndex, float value) {
         return nativeCountFloat(nativePtr, columnIndex, value);
     }
@@ -1175,25 +1175,27 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
-    
-    
+
+
     public enum PivotType {
         COUNT(0),
         SUM(1),
         AVG(2);
-        
+
         final int value; // Package protected, accessible from TableView
-        
+
         private PivotType(int value) {
             this.value = value;
         }
     }
-    
+
     @Override
-    public void pivot(long stringCol, long intCol, PivotType pivotType, Table result){
-         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
+    public Table pivot(long stringCol, long intCol, PivotType pivotType){
+        Table result = new Table();
+        nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
+        return result;
     }
-    
+
     protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
 
     // Optimize

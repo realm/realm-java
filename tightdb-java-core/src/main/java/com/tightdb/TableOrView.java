@@ -268,7 +268,7 @@ public interface TableOrView {
 
     long count(long columnIndex, String value);
     
-    public void pivot(long stringCol, long intCol, PivotType pivotType, Table result);
+    public Table pivot(long stringCol, long intCol, PivotType pivotType);
 
 
 }

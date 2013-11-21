@@ -804,8 +804,10 @@ public class TableView implements TableOrView {
     }
     
     @Override
-    public void pivot(long stringCol, long intCol, PivotType pivotType, Table result){
+    public Table pivot(long stringCol, long intCol, PivotType pivotType){
+        Table result = new Table();
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
+        return result;
    }
    
    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
