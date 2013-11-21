@@ -3,7 +3,6 @@ package com.tightdb.typed;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-
 import java.util.Date;
 
 import org.testng.annotations.AfterMethod;
@@ -12,6 +11,7 @@ import org.testng.annotations.Test;
 
 import com.tightdb.Group;
 import com.tightdb.Mixed;
+import com.tightdb.Table;
 import com.tightdb.test.TestEmployeeTable;
 import com.tightdb.test.TestEmployeeRow;
 
@@ -66,6 +66,36 @@ public class TableTest {
 
         TestEmployeeTable t2Out = new TestEmployeeTable(group, "t2");
         assertEquals("NoName", t2Out.get(0).getFirstName());
+    }
+    
+    
+    @Test
+    public void mixedMinMaxTest()  {
+
+       TestEmployeeTable t = new TestEmployeeTable();
+       // Min and Max from Integer
+       TestEmployeeRow row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Integer.MIN_VALUE, null);
+       assertEquals(Integer.MIN_VALUE, row.getExtra().getLongValue());
+       row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Integer.MAX_VALUE, null);
+       assertEquals(Integer.MAX_VALUE, row.getExtra().getLongValue());
+       
+       // Min and Max from Long
+       row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Long.MIN_VALUE, null);
+       assertEquals(Long.MIN_VALUE, row.getExtra().getLongValue());
+       row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Long.MAX_VALUE, null);
+       assertEquals(Long.MAX_VALUE, row.getExtra().getLongValue());
+       
+       // Min and Max from Float
+       row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Float.MIN_VALUE, null);
+       assertEquals(Float.MIN_VALUE, row.getExtra().getFloatValue());
+       row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Float.MAX_VALUE, null);
+       assertEquals(Float.MAX_VALUE, row.getExtra().getFloatValue());
+       
+       // Min and Max from Dobule
+       row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Double.MIN_VALUE, null);
+       assertEquals(Double.MIN_VALUE, row.getExtra().getDoubleValue());
+       row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Double.MAX_VALUE, null);
+       assertEquals(Double.MAX_VALUE, row.getExtra().getDoubleValue());
     }
 
     @Test
