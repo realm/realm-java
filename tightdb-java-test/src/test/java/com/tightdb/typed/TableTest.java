@@ -68,7 +68,6 @@ public class TableTest {
         assertEquals("NoName", t2Out.get(0).getFirstName());
     }
     
-    
     @Test
     public void mixedMinMaxTest()  {
 
