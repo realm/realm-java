@@ -1189,6 +1189,7 @@ public class Table implements TableOrView, TableSchema {
         }
     }
     
+    @Override
     public void pivot(long stringCol, long intCol, PivotType pivotType, Table result){
          nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
     }

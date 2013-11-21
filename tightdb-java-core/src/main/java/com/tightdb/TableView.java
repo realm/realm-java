@@ -803,6 +803,7 @@ public class TableView implements TableOrView {
         throw new RuntimeException("Not implemented yet.");
     }
     
+    @Override
     public void pivot(long stringCol, long intCol, PivotType pivotType, Table result){
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
    }

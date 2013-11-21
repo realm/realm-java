@@ -3,6 +3,8 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.tightdb.Table.PivotType;
+
 /**
  * Specification of the common operations for the low-level table and view API.
  */
@@ -265,6 +267,8 @@ public interface TableOrView {
     long lookup(String value);
 
     long count(long columnIndex, String value);
+    
+    public void pivot(long stringCol, long intCol, PivotType pivotType, Table result);
 
 
 }
