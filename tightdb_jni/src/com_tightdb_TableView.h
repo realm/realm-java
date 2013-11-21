@@ -14,6 +14,14 @@ extern "C" {
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose
   (JNIEnv *, jobject, jlong);
+    
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativePivot
+ * Signature: (J)Z
+ */
+JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativePivot
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
 
 /*
  * Class:     com_tightdb_TableView

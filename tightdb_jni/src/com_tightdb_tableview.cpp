@@ -29,6 +29,27 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_createNativeTableView(
     return 0;
 }
 
+JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativePivot
+(JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
+{
+    TableView* dataTable = TV(dataTablePtr);
+    Table* resultTable = TBL(resultTablePtr);
+    Table::PivotType pivotOp;
+    if (operation == 0)
+        pivotOp = Table::pivot_count;
+    else if (operation == 1)
+        pivotOp = Table::pivot_sum;
+    else if (operation == 2)
+        pivotOp = Table::pivot_avg;
+    else {
+        ThrowException(env, UnsupportedOperation, "No pivot operation specified.");
+        return;
+    }
+    try {
+        dataTable->pivot(S(stringCol), S(intCol), pivotOp, *resultTable);
+    } CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose(
     JNIEnv*, jobject, jlong nativeViewPtr)
 {

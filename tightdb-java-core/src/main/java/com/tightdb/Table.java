@@ -63,28 +63,6 @@ public class Table implements TableOrView, TableSchema {
     static {
         TightDB.loadLibrary();
     }
-    
-    
-    public enum PivotType {
-        COUNT(0),
-        SUM(1),
-        AVG(2);
-        private final int value;
-        private PivotType(int value)
-        {
-            this.value = value;
-        }
-        public int getValue() {
-            return value;
-        }
-    }
-    
-    
-    public void pivot(long stringCol, long intCol, PivotType pivotType, Table result){
-         nativePivot(nativePtr, stringCol, intCol, pivotType.getValue(), result.nativePtr);
-    }
-    
-    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
 
     /**
      * Construct a Table base object. It can be used to register columns in this
@@ -1197,6 +1175,25 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
+    
+    
+    public enum PivotType {
+        COUNT(0),
+        SUM(1),
+        AVG(2);
+        
+        final int value; // Package protected, accessible from TableView
+        
+        private PivotType(int value) {
+            this.value = value;
+        }
+    }
+    
+    public void pivot(long stringCol, long intCol, PivotType pivotType, Table result){
+         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
+    }
+    
+    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
 
     // Optimize
     public void optimize() {

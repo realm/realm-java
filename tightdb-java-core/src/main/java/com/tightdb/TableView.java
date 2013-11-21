@@ -3,6 +3,8 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import com.tightdb.Table.PivotType;
+
 
 /**
  * This class represents a view of a particular table. We can think of
@@ -800,4 +802,10 @@ public class TableView implements TableOrView {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
     }
+    
+    public void pivot(long stringCol, long intCol, PivotType pivotType, Table result){
+        nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
+   }
+   
+   protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
 }
