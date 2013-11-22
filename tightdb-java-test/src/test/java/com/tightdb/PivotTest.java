@@ -49,7 +49,7 @@ public class PivotTest {
 
         Random random = new Random(7357);
 
-        for(long i = 0; i < 100000; i++) {
+        for(long i = 0; i < 1000000; i++) {
             if(i % 100000 == 0){
                 System.out.println("Done with : "+ i);
             }
@@ -64,7 +64,7 @@ public class PivotTest {
 
         long current = System.currentTimeMillis();
         Table result = data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.COUNT);
-        System.out.println("COUNT");
+        /*System.out.println("COUNT");
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }
@@ -93,49 +93,32 @@ public class PivotTest {
         System.out.println("Time for pivot : " + ( System.currentTimeMillis() - current) );
         System.out.println("column in results " + result.getColumnCount());
         System.out.println("Names: " + result.getColumnName(0) + result.getColumnName(1));
-        System.out.println("rows in results " + result.size());
+        System.out.println("rows in results " + result.size());*/
         assertEquals(true, result.size() > 0);
     }
 
     @Test
     public void testPivotTableView(){
 
-
-        TableView dataView = data.where().equalTo(INTEGER_COL_INDEX, 20).findAll();
-
-        long current = System.currentTimeMillis();
-        Table result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.COUNT);
-        System.out.println("COUNT");
-        for (long i=0;i<result.size();i++){
-            System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
-        }
-        result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.SUM);
-        System.out.println("SUM");
-        for (long i=0;i<result.size();i++){
-            System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
-        }
-        result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.AVG);
-        System.out.println("AVG");
-        for (long i=0;i<result.size();i++){
-            System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
-        }
+        // Smallest value is 0
+        TableView dataView = data.where().lessThan(INTEGER_COL_INDEX, 20).findAll();
+        Table res = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MIN);
+        assertEquals(0, res.minimumInt(1));
         
-        result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MIN);
-        System.out.println("MIN");
-        for (long i=0;i<result.size();i++){
-            System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
-        }
+        // Largest value is 19
+        dataView = data.where().lessThan(INTEGER_COL_INDEX, 20).findAll();
+        res = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MAX);
+        assertEquals(19, res.maximumInt(1));
         
-        result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MAX);
-        System.out.println("MAX");
-        for (long i=0;i<result.size();i++){
-            System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
-        }
+        // Largest and smallest value is 20
+        dataView = data.where().equalTo(INTEGER_COL_INDEX, 20).findAll();
+        res = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MAX);
+        assertEquals(20, res.minimumInt(1));
+        assertEquals(20, res.maximumInt(1));
+        res = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MIN);
+        assertEquals(20, res.minimumInt(1));
+        assertEquals(20, res.maximumInt(1));
         
-        System.out.println("Time for pivot : " + ( System.currentTimeMillis() - current) );
-        System.out.println("column in results " + result.getColumnCount());
-        System.out.println("Names: " + result.getColumnName(0) + result.getColumnName(1));
-        System.out.println("rows in results " + result.size());
 
     }
 }
