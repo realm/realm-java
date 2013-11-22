@@ -41,6 +41,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativePivot
         pivotOp = Table::pivot_sum;
     else if (operation == 2)
         pivotOp = Table::pivot_avg;
+    else if (operation == 3)
+        pivotOp = Table::pivot_min;
+    else if (operation == 4)
+        pivotOp = Table::pivot_max;
     else {
         ThrowException(env, UnsupportedOperation, "No pivot operation specified.");
         return;

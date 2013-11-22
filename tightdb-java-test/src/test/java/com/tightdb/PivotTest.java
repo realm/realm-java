@@ -11,7 +11,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.tightdb.Table.PivotType;
+import com.tightdb.TableOrView.PivotType;
 import com.tightdb.test.TestHelper;
 
 public class PivotTest {
@@ -78,6 +78,17 @@ public class PivotTest {
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }
+        result = data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MIN);
+        System.out.println("MIN");
+        for (long i=0;i<result.size();i++){
+            System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
+        }
+        
+        result = data.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MAX);
+        System.out.println("MAX");
+        for (long i=0;i<result.size();i++){
+            System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
+        }
 
         System.out.println("Time for pivot : " + ( System.currentTimeMillis() - current) );
         System.out.println("column in results " + result.getColumnCount());
@@ -90,7 +101,7 @@ public class PivotTest {
     public void testPivotTableView(){
 
 
-        TableView dataView = data.where().equalTo(BOOLEAN_COL_INDEX, true ).findAll();
+        TableView dataView = data.where().equalTo(INTEGER_COL_INDEX, 20).findAll();
 
         long current = System.currentTimeMillis();
         Table result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.COUNT);
@@ -103,10 +114,20 @@ public class PivotTest {
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }
-        assertEquals(true, result.size() > 0);
-
         result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.AVG);
         System.out.println("AVG");
+        for (long i=0;i<result.size();i++){
+            System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
+        }
+        
+        result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MIN);
+        System.out.println("MIN");
+        for (long i=0;i<result.size();i++){
+            System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
+        }
+        
+        result = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.MAX);
+        System.out.println("MAX");
         for (long i=0;i<result.size();i++){
             System.out.println(result.getString(0, i) + " " + result.getLong(1, i));
         }

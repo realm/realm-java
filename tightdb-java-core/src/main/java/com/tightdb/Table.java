@@ -1177,17 +1177,7 @@ public class Table implements TableOrView, TableSchema {
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
 
 
-    public enum PivotType {
-        COUNT(0),
-        SUM(1),
-        AVG(2);
 
-        final int value; // Package protected, accessible from TableView
-
-        private PivotType(int value) {
-            this.value = value;
-        }
-    }
 
     @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType){
