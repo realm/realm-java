@@ -49,7 +49,7 @@ public class PivotTest {
 
         Random random = new Random(7357);
 
-        for(long i = 0; i < 1000000; i++) {
+        for(long i = 0; i < 100000; i++) {
             if(i % 100000 == 0){
                 System.out.println("Done with : "+ i);
             }
@@ -119,6 +119,8 @@ public class PivotTest {
         assertEquals(20, res.minimumInt(1));
         assertEquals(20, res.maximumInt(1));
         
-
+        
+        res = dataView.pivot(STRING_COL_INDEX, INTEGER_COL_INDEX, PivotType.COUNT);
+        res.getColumnName(1).contains("COUNT:");
     }
 }
