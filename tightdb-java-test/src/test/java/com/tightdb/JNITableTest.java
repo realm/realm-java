@@ -314,8 +314,8 @@ public class JNITableTest {
         t.addColumn(ColumnType.BINARY, "");
         t.add("String val", new Date(), new Mixed(""), new byte[] { 1,2,3} );
         
-        try { t.setString(0, 0, null); fail("null string not allowed"); } catch (NullPointerException e) { }
-        try { t.setDate(1, 0, null); fail("null Date not allowed"); } catch (NullPointerException e) { }
+        try { t.setString(0, 0, null);  fail("null string not allowed"); } catch (NullPointerException e) { }
+        try { t.setDate(1, 0, null);    fail("null Date not allowed"); } catch (NullPointerException e) { }
     }
     
     @Test
