@@ -67,12 +67,12 @@ public class JNITableTest {
         
         Table t = new Table();
         // Remove rows without columns
-        try { t.remove(0); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { t.remove(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { t.remove(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
         
         // Column added, remove rows again
         t.addColumn(ColumnType.STRING, "");
-        try { t.remove(0); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { t.remove(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { t.remove(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
 
     }
@@ -82,16 +82,16 @@ public class JNITableTest {
         Table tableZeroCols = new Table();
         
         // Add rows
-        try { tableZeroCols.add("val"); fail("No columns in table"); } catch (IllegalArgumentException e) {}
-        try { tableZeroCols.addEmptyRow(); fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
-        try { tableZeroCols.addEmptyRows(10); fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
+        try { tableZeroCols.add("val");         fail("No columns in table"); } catch (IllegalArgumentException e) {}
+        try { tableZeroCols.addEmptyRow();      fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
+        try { tableZeroCols.addEmptyRows(10);   fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
         
         
         // Col operations
-        try { tableZeroCols.removeColumn(0); fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { tableZeroCols.renameColumn(0, "newName"); fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { tableZeroCols.removeColumn(10); fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { tableZeroCols.renameColumn(10, "newName"); fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { tableZeroCols.removeColumn(0);                fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { tableZeroCols.renameColumn(0, "newName");     fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { tableZeroCols.removeColumn(10);               fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { tableZeroCols.renameColumn(10, "newName");    fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
     
     @Test
