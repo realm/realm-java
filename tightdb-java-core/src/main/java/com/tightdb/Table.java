@@ -831,6 +831,8 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
+        if (value == null) 
+            throw new NullPointerException("Null String is not allowed.");
         if (immutable) throwImmutable();
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
