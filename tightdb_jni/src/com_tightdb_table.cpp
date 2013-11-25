@@ -39,23 +39,23 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativePivot
 {
     Table* dataTable = TBL(dataTablePtr);
     Table* resultTable = TBL(resultTablePtr);
-    Table::PivotType pivotOp;
+    Table::AggrType pivotOp;
     if (operation == 0)
-        pivotOp = Table::pivot_count;
+        pivotOp = Table::aggr_count;
     else if (operation == 1)
-        pivotOp = Table::pivot_sum;
+        pivotOp = Table::aggr_sum;
     else if (operation == 2)
-        pivotOp = Table::pivot_avg;
+        pivotOp = Table::aggr_avg;
     else if (operation == 3)
-        pivotOp = Table::pivot_min;
+        pivotOp = Table::aggr_min;
     else if (operation == 4)
-        pivotOp = Table::pivot_max;
+        pivotOp = Table::aggr_max;
     else {
         ThrowException(env, UnsupportedOperation, "No pivot operation specified.");
         return;
     }
     try {
-        dataTable->pivot(S(stringCol), S(intCol), pivotOp, *resultTable);
+        dataTable->aggregate(S(stringCol), S(intCol), pivotOp, *resultTable);
     } CATCH_STD()
 }
 
