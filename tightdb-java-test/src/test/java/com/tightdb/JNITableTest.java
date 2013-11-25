@@ -188,39 +188,39 @@ public class JNITableTest {
         
         try { t.getBinaryByteArray(-1, 0);          fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getBinaryByteArray(-10, 0);         fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getBinaryByteArray(100, 0);         fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getBinaryByteArray(9, 0);           fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
         try { t.getBoolean(-1, 0);                  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getBoolean(-10, 0);                 fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getBoolean(100, 0);                 fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getBoolean(9, 0);                   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
         try { t.getDate(-1, 0);                     fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getDate(-10, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getDate(100, 0);                    fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getDate(9, 0);                      fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
         try { t.getDouble(-1, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getDouble(-10, 0);                  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getDouble(100, 0);                  fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getDouble(9, 0);                    fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
         try { t.getFloat(-1, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getFloat(-10, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getFloat(100, 0);                   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getFloat(9, 0);                     fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
         try { t.getLong(-1, 0);                     fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getLong(-10, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getLong(100, 0);                    fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getLong(9, 0);                      fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
         try { t.getMixed(-1, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getMixed(-10, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getMixed(100, 0);                   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getMixed(9, 0);                     fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
         try { t.getString(-1, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getString(-10, 0);                  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getString(100, 0);                  fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getString(9, 0);                    fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
         try { t.getSubTable(-1, 0);                 fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getSubTable(-10, 0);                fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSubTable(100, 0);                fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSubTable(9, 0);                  fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
         
     }
     
@@ -301,7 +301,7 @@ public class JNITableTest {
         t.addColumn(ColumnType.STRING, "colName");
         t.add("String val");
         
-        try { t.set(7, "new string val"); fail("Row 7 does not exist"); } catch (IllegalArgumentException e) { }
+        try { t.set(1, "new string val"); fail("Row 1 does not exist"); } catch (IllegalArgumentException e) { }
     }
     
     
