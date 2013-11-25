@@ -3,13 +3,22 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
       when the JNI interface is changed.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-19-November-2013:
+25-November-2013:
 ================
 + Query objects are now validated when executed to avoid breaking core.
 
+19-November-2013:
+================
++ Added sort() to views in typed interface on bool, date and int columns.
++ Check for returning -1 on 32-bit machines, when e.g. column name not found.
+
 14-November-2013:
 ================
-+ SQLite examples now runs on JDK 7
++ SQLite examples now runs on JDK 7.
+
+11-November-2013:
+================
++ table.getSortedView now uses native method - making it faster.
 
 07-November-2013:
 ================

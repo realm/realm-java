@@ -1,7 +1,9 @@
 package com.tightdb.typed;
 
 import com.tightdb.TableOrView;
+import com.tightdb.TableView;
 //import com.tightdb.TableQuery;
+import com.tightdb.TableView.Order;
 
 /**
  * Type of the fields that represent a boolean column in the generated XyzView
@@ -16,6 +18,13 @@ public class BooleanViewColumn<Cursor, View, Query> extends BooleanTableOrViewCo
     /*public BooleanViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
             String name) {
         super(types, view, query, index, name);
-    }*/
+    }*/    
+    
+    public void sort(Order order) {
+        ( (TableView) this.tableOrView).sort(columnIndex, order);
+    }
 
+    public void sort() {
+        ( (TableView) this.tableOrView).sort(this.columnIndex);
+    }
 }
