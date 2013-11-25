@@ -100,4 +100,6 @@ _ReSharper*/
 # generated json output in ref doc json example
 /doc/ref/examples/fromServlet
 
+# generated lib files
 /java/share/java/*.jar
+tightdb_jni/src/*.dylib
