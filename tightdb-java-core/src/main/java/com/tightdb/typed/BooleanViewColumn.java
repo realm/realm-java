@@ -20,11 +20,11 @@ public class BooleanViewColumn<Cursor, View, Query> extends BooleanTableOrViewCo
         super(types, view, query, index, name);
     }*/    
     
-    public void sort(long columnIndex, Order order) {
+    public void sort(Order order) {
         ( (TableView) this.tableOrView).sort(columnIndex, order);
     }
 
-    public void sort(long columnIndex) {
-        ( (TableView) this.tableOrView).sort(columnIndex);
+    public void sort() {
+        ( (TableView) this.tableOrView).sort(this.columnIndex);
     }
 }

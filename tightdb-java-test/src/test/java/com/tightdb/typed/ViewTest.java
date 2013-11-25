@@ -40,13 +40,13 @@ public class ViewTest {
     @Test
     public void sortViewEmployees(){
         TestEmployeeView view = employees.where().findAll();
-        view.salary.sort(2);
+        view.salary.sort();
         assertEquals(1, view.get(0).getSalary());
         
-        view.salary.sort(2, Order.ascending);
+        view.salary.sort(Order.ascending);
         assertEquals(1, view.get(0).getSalary());
         
-        view.salary.sort(2, Order.descending);
+        view.salary.sort(Order.descending);
         assertEquals(10000, view.get(1).getSalary());
     }
     
@@ -68,19 +68,19 @@ public class ViewTest {
         AllTypesView v = t.where().findAll();
         
         // boolean supported
-        v.boolCol.sort(0); 
+        v.boolCol.sort(); 
         assertEquals(false, v.get(0).getBoolCol());
-        v.boolCol.sort(0, Order.ascending); 
+        v.boolCol.sort(Order.ascending); 
         assertEquals(false, v.get(0).getBoolCol());
-        v.boolCol.sort(0, Order.descending); 
+        v.boolCol.sort(Order.descending); 
         assertEquals(true, v.get(0).getBoolCol());
         
         // Date supported
-        v.dateCol.sort(1); 
+        v.dateCol.sort(); 
         assertEquals(cal1.getTime().getTime()/1000, v.get(0).getDateCol().getTime()/1000);
-        v.dateCol.sort(1, Order.ascending);
+        v.dateCol.sort(Order.ascending);
         assertEquals(cal1.getTime().getTime()/1000, v.get(0).getDateCol().getTime()/1000);
-        v.dateCol.sort(1, Order.descending); 
+        v.dateCol.sort(Order.descending); 
         assertEquals(cal3.getTime().getTime()/1000, v.get(0).getDateCol().getTime()/1000);
            
         /*
@@ -92,19 +92,19 @@ public class ViewTest {
 
         
         // int column supported
-        v.intCol.sort(3); 
+        v.intCol.sort(); 
         assertEquals(1, v.get(0).getIntCol());
-        v.intCol.sort(1, Order.ascending); 
+        v.intCol.sort(Order.ascending); 
         assertEquals(1, v.get(0).getIntCol());
-        v.intCol.sort(1, Order.descending); 
+        v.intCol.sort(Order.descending); 
         assertEquals(3, v.get(0).getIntCol());
         
         // long supported
-        v.intCol.sort(4); 
+        v.intCol.sort(); 
         assertEquals(1l, v.get(0).getLongCol());
-        v.intCol.sort(1, Order.ascending); 
+        v.intCol.sort(Order.ascending); 
         assertEquals(1l, v.get(0).getLongCol());
-        v.intCol.sort(1, Order.descending); 
+        v.intCol.sort(Order.descending); 
         assertEquals(3l, v.get(0).getLongCol());
         
         /*      
