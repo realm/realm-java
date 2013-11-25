@@ -35,6 +35,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose(JNIEnv * env, job
     delete Q(nativeQueryPtr);
 }
 
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableQuery_nativeValidateQuery
+(JNIEnv * env, jobject, jlong nativeQueryPtr)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    return to_jstring(env, pQuery->validate());
+}
+
 // Integer
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJJ(
