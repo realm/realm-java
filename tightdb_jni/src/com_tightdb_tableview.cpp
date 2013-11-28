@@ -721,7 +721,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSort(
         return;
     int colType = TV(nativeViewPtr)->get_column_type( S(columnIndex) );
     if (colType != type_Int && colType != type_Bool && colType != type_DateTime) {
-        ThrowException(env, IllegalArgument, "Sort is currently not supported on this ColumnType.");
+        ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
         return;
     }
     try {

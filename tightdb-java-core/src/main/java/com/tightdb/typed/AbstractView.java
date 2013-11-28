@@ -1,6 +1,7 @@
 package com.tightdb.typed;
 
 import com.tightdb.TableView;
+import com.tightdb.TableView.Order;
 
 /**
  * Super-type of the generated XyzView classes for the Xyz entity, having

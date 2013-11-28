@@ -704,6 +704,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeUpperBoundInt
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetDistinctView
   (JNIEnv *, jobject, jlong, jlong);
+    
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeGetSortedView
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSortedView
+  (JNIEnv *, jobject, jlong, jlong, jboolean);
 
 /*
  * Class:     com_tightdb_Table
