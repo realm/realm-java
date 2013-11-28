@@ -3,6 +3,7 @@ package com.tightdb;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.tightdb.TableOrView.PivotType;
@@ -14,7 +15,9 @@ public class PivotTest {
     long colIndexAge;
     long colIndexHired;
     
-    PivotTest(){
+    @BeforeTest
+    public void setup(){
+    
         colIndexSex = t.addColumn(ColumnType.STRING, "sex");
         colIndexAge = t.addColumn(ColumnType.INTEGER, "age");
         colIndexHired = t.addColumn(ColumnType.BOOLEAN, "hired");

@@ -1,6 +1,5 @@
 package com.tightdb;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 

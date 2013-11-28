@@ -1,9 +1,7 @@
 package com.tightdb;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
 
-import javax.naming.OperationNotSupportedException;
 
 import com.tightdb.TableView.Order;
 import com.tightdb.internal.CloseMutex;
