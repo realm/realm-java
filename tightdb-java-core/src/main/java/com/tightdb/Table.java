@@ -3,6 +3,8 @@ package com.tightdb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import javax.naming.OperationNotSupportedException;
+
 import com.tightdb.TableView.Order;
 import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
@@ -1170,6 +1172,20 @@ public class Table implements TableOrView, TableSchema {
 
     protected native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
     protected native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
+    
+    
+    @Override
+    public Table pivot(long stringCol, long intCol, PivotType pivotType){
+        if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
+            throw new UnsupportedOperationException("Group by column must be of type String");
+        if (! this.getColumnType(intCol).equals(ColumnType.INTEGER ))
+            throw new UnsupportedOperationException("Aggregeation column must be of type Int");
+        Table result = new Table();
+        nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
+        return result;
+    }
+
+    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
 
     //
 
@@ -1179,17 +1195,6 @@ public class Table implements TableOrView, TableSchema {
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
 
-
-
-
-    @Override
-    public Table pivot(long stringCol, long intCol, PivotType pivotType){
-        Table result = new Table();
-        nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
-        return result;
-    }
-
-    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
 
     // Optimize
     public void optimize() {

@@ -274,7 +274,7 @@ public interface TableOrView {
         MIN(3),
         MAX(4);
 
-        final int value; // Package protected, accessible from TableView
+        final int value; // Package protected, accessible from Table and TableView
 
         private PivotType(int value) {
             this.value = value;

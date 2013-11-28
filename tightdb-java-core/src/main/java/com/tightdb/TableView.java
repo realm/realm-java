@@ -1,6 +1,5 @@
 package com.tightdb;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 
@@ -789,6 +788,8 @@ public class TableView implements TableOrView {
     protected long nativePtr;
     protected boolean immutable = false;
     protected TableView tableView;
+    
+    // Experimental features
 
     @Override
     public long lookup(String value) {
@@ -802,8 +803,13 @@ public class TableView implements TableOrView {
         throw new RuntimeException("Not implemented yet.");
     }
     
+    
     @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType){
+        if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
+            throw new UnsupportedOperationException("Group by column must be of type String");
+        if (! this.getColumnType(intCol).equals(ColumnType.INTEGER ))
+            throw new UnsupportedOperationException("Aggregeation column must be of type Int");
         Table result = new Table();
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
         return result;
