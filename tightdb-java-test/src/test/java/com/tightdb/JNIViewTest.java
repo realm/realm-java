@@ -54,17 +54,15 @@ public class JNIViewTest {
         //Get a view containing all rows in table since you can only sort views currently.
         TableView view = t.where().findAll();
 
-        //Sort without specifying the order, should default to ascending.
         try { view.upperBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException e ) { }
         try { view.lowerBoundLong(0, 0); fail("Not implemented yet"); } catch (RuntimeException e ) { }
       //  try { view.lookup("Some String"); fail("Not implemented yet"); } catch (RuntimeException e ) { }
         try { view.count(0, "Some String"); fail("Not implemented yet"); } catch (RuntimeException e ) { }
-
     }
 
 
     @Test
-    public void shouldSortViewDate() {    
+    public void shouldSortViewDate() {
         //Get a view containing all rows in table since you can only sort views currently.
         TableView view = t.where().findAll();
 
