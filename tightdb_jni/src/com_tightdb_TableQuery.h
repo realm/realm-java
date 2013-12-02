@@ -14,6 +14,14 @@ extern "C" {
  */
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose
   (JNIEnv *, jobject, jlong);
+    
+/*
+ * Class:     com_tightdb_TableQuery
+ * Method:    nativeValidateQuery
+ * Signature: (J)V
+ */
+JNIEXPORT jstring JNICALL Java_com_tightdb_TableQuery_nativeValidateQuery
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     com_tightdb_TableQuery

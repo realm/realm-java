@@ -63,7 +63,7 @@ _ReSharper*/
 /doc/ref/html
 
 # sh build.sh config
-/tightdb_jni/config-dyn.mk
+/tightdb_jni/config.mk
 
 # sh build.sh build
 /lib
@@ -78,17 +78,17 @@ _ReSharper*/
 
 *.lock
 
-tightdb-java-test/testng.xml
+/tightdb-java-test/testng.xml
 
 *.prefs
 
 # Ref doc generated classes
 
-doc/ref/examples/generated/com/tightdb/refdoc/*.java
+/doc/ref/examples/generated/com/tightdb/refdoc/*.java
 
 # generated json output in ref doc json example
 
-doc/ref/examples/fromServlet
+/doc/ref/examples/fromServlet
 
 
 # debian packaging
@@ -98,11 +98,8 @@ doc/ref/examples/fromServlet
 
 
 # generated json output in ref doc json example
-doc/ref/examples/fromServlet
+/doc/ref/examples/fromServlet
 
-tightdb_jni/src/java/lib/l*
-java/share/java/*.jar
-
-
-# when building lib on mac
+# generated lib files
+/java/share/java/*.jar
 tightdb_jni/src/*.dylib

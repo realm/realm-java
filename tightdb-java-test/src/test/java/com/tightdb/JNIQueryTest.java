@@ -51,6 +51,36 @@ public class JNIQueryTest {
 
         // TODO: Add tests with all parameters
     }
+    
+    
+    @Test
+    public void testNonCompleteQuery() {
+        init();
+
+        // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
+        try { table.where().equalTo(0,1).or().findAll();                    fail("missing a second filter"); }      catch (UnsupportedOperationException e) { }
+        try { table.where().or().findAll();                                 fail("just an or()"); }                 catch (UnsupportedOperationException e) { } 
+        try { table.where().group().equalTo(0,1).findAll();                 fail("messing a clsong group"); }       catch (UnsupportedOperationException e) { } 
+        try { table.where().endGroup().equalTo(0,1).findAll();              fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(0,1).endGroup().findAll();              fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
+
+        try { table.where().equalTo(0,1).endGroup().find();                 fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
+        try { table.where().equalTo(0,1).endGroup().find(0);                fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
+        try { table.where().equalTo(0,1).endGroup().find(1);                fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
+        
+        try { table.where().equalTo(0,1).endGroup().findAll(0, -1, -1);     fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
+
+        
+        // step by step buildup
+        TableQuery q = table.where().equalTo(0,1);              // valid
+        q.findAll();
+        q.or();                                                 // not valid
+        try { q.findAll();     fail("no start group"); }         catch (UnsupportedOperationException e) { } 
+        q.equalTo(0, 100);                                      // valid again
+        q.findAll();
+        q.equalTo(0, 200);                                      // still valid
+        q.findAll();
+    }
 
     
     @Test
@@ -347,12 +377,21 @@ public class JNIQueryTest {
         
         // test out of range
         assertEquals(-1, query.find(6));
-        try {
-            query.find(7);
-            fail("Exception expected");
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // expected
-        }
+        try {  query.find(7);  fail("Exception expected");  } catch (ArrayIndexOutOfBoundsException e) {  }
+    }
+    
+    
+    @Test
+    public void queryTestForNoMatches() {
+        Table t = new Table();
+        t = TestHelper.getTableWithAllColumnTypes();
+        
+        t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        
+        TableQuery q = t.where().greaterThan(5, 1000); // No matches
+        
+        assertEquals(-1, q.find());
+        assertEquals(-1, q.find(1));
     }
 
 

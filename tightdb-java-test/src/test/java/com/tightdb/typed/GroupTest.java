@@ -230,14 +230,14 @@ public class GroupTest {
         Group group = new Group(file); // File is deleted, should not be able to open group on non-existing file using a file object
     }
 
-    @Test(expectedExceptions = com.tightdb.IOException.class)
+    @Test
     public void groupNoOverwrite1() throws IOException {
         new File(FILENAME).delete();
 
         Group group = new Group();
         group.writeToFile(FILENAME);
         // writing to the same file should throw exception
-        group.writeToFile(FILENAME);
+        try { group.writeToFile(FILENAME); fail("writing to same file"); } catch (com.tightdb.IOException e) { }
     }
 
     @Test
@@ -287,32 +287,22 @@ public class GroupTest {
         group2.close();
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void groupByteBufferChecksForNull() {
-        ByteBuffer data = null;
-        Group group = new Group(data);
-        // Expect to throw exception
-    }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void groupByteBufferChecksForDatabaseFormat() {
-        ByteBuffer data = ByteBuffer.allocateDirect(5);
-        Group group = new Group(data);
-        // Expect to throw exception
-    }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void groupByteArrayChecksForNull() {
-        byte[] data = null;
-        Group group = new Group(data);
-        // Expect to throw exception
-    }
-
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void groupByteArrayChecksForDatabaseFormat() {
-        byte[] data = {1,2,3,4,5};
-        Group group = new Group(data);
-        // Expect to throw exception
+        
+        ByteBuffer nullBugger = null;
+        try { Group group = new Group(nullBugger); fail("null buffer"); } catch (IllegalArgumentException e) { }
+        
+        ByteBuffer wrongBuffer = ByteBuffer.allocateDirect(5);
+        try { Group group = new Group(wrongBuffer); fail("wrong buffer format"); } catch (IllegalArgumentException e) { }
+        
+        byte[] nullByte = null;
+        try { Group group = new Group(nullByte); fail("null byte array"); } catch (IllegalArgumentException e) { }
+        
+        byte[] wrongByteArray = new byte[] {1,2,3,4,5};
+        try { Group group = new Group(wrongByteArray); fail("wrong byte array format"); } catch (IllegalArgumentException e) { }
     }
 
 
@@ -370,7 +360,7 @@ public class GroupTest {
     }
 
     
-    @Test(expectedExceptions = IllegalStateException.class)
+    @Test
     public void shouldFailWhenAddingTablesToClosedGroup() {
         Group group = new Group();
         Table tbl = group.getTable("test");
@@ -381,11 +371,11 @@ public class GroupTest {
         group.close();
 
         //Try to add data to table in group
-        Table newTable = group.getTable("test2");
+        try { Table newTable = group.getTable("test2"); fail("Group closed"); } catch (IllegalStateException e) { }
     }
 
 
-    @Test(expectedExceptions = IllegalStateException.class)
+    @Test
     public void shouldFailWhenGettingValuesFromTablesInClosedGroup() {
         Group group = new Group();
         Table tbl = group.getTable("test");
@@ -395,7 +385,6 @@ public class GroupTest {
         //Close the group
         group.close();
 
-        tbl.getLong(0, 0);
+        try { tbl.getLong(0, 0); fail("group closed"); } catch (IllegalStateException e) { }
     }
-
 }
