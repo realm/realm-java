@@ -148,8 +148,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetColumnCount(
 JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetColumnName(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
-    if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
-        return NULL;
+    //   if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
+    //    return NULL;
     return to_jstring(env, TBL(nativeTablePtr)->get_column_name( S(columnIndex))); // noexcept
 }
 
@@ -330,7 +330,6 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetLong(
 {
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Int))
         return 0;
-
     return TBL(nativeTablePtr)->get_int( S(columnIndex), S(rowIndex));  // noexcept
 }
 
