@@ -293,19 +293,18 @@ public class Table implements TableOrView, TableSchema {
     /**
      * Returns the 0-based index of a column based on the name.
      *
-     * @param name column name
+     * @param columnName column name
      * @return the index, -1 if not found
      */
     @Override
-    public long getColumnIndex(String name) {
-        long columnCount = getColumnCount();
-        for (long i = 0; i < columnCount; i++) {
-            if (name.equals(getColumnName(i))) {
-                return i;
-            }
-        }
-        return -1;
+    public long getColumnIndex(String columnName) {
+        if (columnName == null)
+            throw new NullPointerException("Column name can not be null.");
+        return nativeGetColumnIndex(nativePtr, columnName);
     }
+    
+    protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
+
 
     /**
      * Get the type of a column identified by the columnIdex.

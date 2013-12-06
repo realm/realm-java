@@ -230,6 +230,7 @@ public class JNITableTest {
         t.addColumn(ColumnType.INTEGER, "int");
         
         assertEquals(-1, t.getColumnIndex("non-existing column"));
+        try { t.getColumnIndex(null); fail("column name null"); } catch (NullPointerException e) { }
     }
     
     
