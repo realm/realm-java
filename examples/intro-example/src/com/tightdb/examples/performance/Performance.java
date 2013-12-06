@@ -1,7 +1,6 @@
 package com.tightdb.examples.performance;
 
 import com.tightdb.internal.Util;
-import com.tightdb.typed.TightDB;
 
 
 public class Performance {
@@ -11,7 +10,7 @@ public class Performance {
 
     final static boolean pause      = false;
     final static int REPEAT_SEARCH  = 100;      // Number of times to repeat the search to get a measurable number
-    final static int TESTS          = 4;
+    final static int TESTS          = 5;
 
     static class TestResult {
         long testTime[];
@@ -33,8 +32,10 @@ public class Performance {
                 + REPEAT_SEARCH + " times.");
 
         System.out.print("Performance testing TightDB: ");
-
         TestResult tightdb = TestPerformance(new Tightdb(), numOfValues);
+
+        System.out.print("\nPerformance testing TightDB iterate: ");
+        TestResult tightdb2 = TestPerformance(new TightdbIterate(), numOfValues);
 
         System.out.print("\nPerformance testing Java ArrayList: ");
         TestResult javaArray = TestPerformance(new JavaArrayList(), numOfValues);
@@ -52,10 +53,16 @@ public class Performance {
                 "Search for byte (indexed):    \t"
         };
 
-        System.out.println("\t\t\t\t\t   TightDB\tArrayList\tSQLite");
+        System.out.println("\t\t\t\t\t   TightDB\tTightdb2\tArrayList\tSQLite");
         for (int test = 0; test < TESTS; ++test) {
             System.out.print( testText[test] );
             printTime(tightdb.testTime[test], " ms (x1)", "\t");
+
+            printTime(tightdb2.testTime[test], " ms ", "");
+            if (tightdb.testTime[test] > 0)
+                System.out.print( "(x" + tightdb2.testTime[test] / tightdb.testTime[test] + ")\t");
+            else
+                System.out.print("\t");
 
             printTime(javaArray.testTime[test], " ms ", "");
             if (tightdb.testTime[test] > 0)
