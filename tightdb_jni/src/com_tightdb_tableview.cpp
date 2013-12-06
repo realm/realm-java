@@ -78,7 +78,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnIndex
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
     JStringAccessor columnName2(env, columnName);
-    return TV(nativeViewPtr)->get_column_index(columnName2);
+    return TV(nativeViewPtr)->get_column_index(columnName2); // noexcept
 }
 
 JNIEXPORT jint JNICALL Java_com_tightdb_TableView_nativeGetColumnType
