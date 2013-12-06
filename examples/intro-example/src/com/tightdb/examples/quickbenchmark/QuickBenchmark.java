@@ -41,7 +41,7 @@ public class QuickBenchmark {
 
         System.out.println("\n\nPerformance tests with " + ROW_COUNT + " rows. Test is repeated "
                 + ROUNDS + " times.");
-
+        for (int _i=0; _i<1000; _i++) {
         // We need some random names that we know are present for lookups
         Random rand = new Random();
         String[] randomNames = new String[100];
@@ -232,6 +232,8 @@ public class QuickBenchmark {
         if (tightdbLookupTime > 0)
             System.out.printf("lookup: tightdb is %d times faster than HashMap\n", javaLookupTime / tightdbLookupTime);
         System.out.println("\nDONE.");
+
+        }
     }
 }
 
