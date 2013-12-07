@@ -85,7 +85,7 @@ public class TableView implements TableOrView {
     }
 
     private synchronized void close(){
-        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);       
+        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
         if (nativePtr == 0)
             return;
         nativeClose(nativePtr);
@@ -115,7 +115,7 @@ public class TableView implements TableOrView {
     }
 
     protected native long nativeSize(long nativeViewPtr);
-    
+
     /**
      * Returns the index of the row in the source table
      * @param rowIndex in the TableView
@@ -556,7 +556,7 @@ public class TableView implements TableOrView {
     public long lowerBoundLong(long columnIndex, long value) {
         throw new RuntimeException("Not implemented yet");
     }
-    
+
     // TODO..
     @Override
     public long upperBoundLong(long columnIndex, long value) {
@@ -674,14 +674,14 @@ public class TableView implements TableOrView {
     public double sumFloat(long columnIndex){
         return nativeSumFloat(nativePtr, columnIndex);
     }
-    
+
     protected native double nativeSumFloat(long nativeViewPtr, long columnIndex);
 
     @Override
     public float maximumFloat(long columnIndex){
         return nativeMaximumFloat(nativePtr, columnIndex);
     }
-    
+
     protected native float nativeMaximumFloat(long nativeViewPtr, long columnIndex);
 
     @Override
@@ -705,14 +705,14 @@ public class TableView implements TableOrView {
     public double sumDouble(long columnIndex){
         return nativeSumDouble(nativePtr, columnIndex);
     }
-    
+
     protected native double nativeSumDouble(long nativeViewPtr, long columnIndex);
 
     @Override
     public double maximumDouble(long columnIndex){
         return nativeMaximumDouble(nativePtr, columnIndex);
     }
-    
+
     protected native double nativeMaximumDouble(long nativeViewPtr, long columnIndex);
 
     @Override
@@ -759,7 +759,7 @@ public class TableView implements TableOrView {
     public String toString() {
         return nativeToString(nativePtr, 500);
     }
-    
+
     @Override
     public String toString(long maxRows) {
         return nativeToString(nativePtr, maxRows);

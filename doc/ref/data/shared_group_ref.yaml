@@ -6,9 +6,9 @@ ID         : class_shared_group
 TITLE      : SharedGroup
 SUMMARY    : *g_shared_group_summary
 DESCR      : *g_shared_group_descr
-SEE        : 
-EXAMPLES: 
-- DESCR    : 
+SEE        :
+EXAMPLES:
+- DESCR    :
   CODE     : ex_java_shared_group_intro
 IGNORE     : []
 CATEGORIES:
@@ -17,7 +17,7 @@ CATEGORIES:
   - g_shared_group_constructor:
       NAMES    : SharedGroup
       SUMMARY  : *g_shared_group_constructor_summary
-      DESCR    : 
+      DESCR    :
       - TEXT   : *g_shared_group_constructor_descr
       - TEXT   : *g_shared_group_durability_modes
       ENUM_SIG :
@@ -34,14 +34,14 @@ CATEGORIES:
                  if the file does not already exist.
       - NAME   : durability
         TYPES  : Durability
-        DESCR  : Durability Level (MEM_ONLY, ASYNC or FULL). 
+        DESCR  : Durability Level (MEM_ONLY, ASYNC or FULL).
       RETURN:
         TYPES  : SharedGroup
         DESCR  : A shared group.
       THROWS:
       - EXCEPT : IllegalStateException
         DESCR  : If the file didn't exist when fileMustExist=true.
-        
+
 # TODO: more specific exceptions
       EXAMPLES:
       - CODE   : ex_java_shared_group_constructor_string
@@ -75,7 +75,7 @@ CATEGORIES:
       EXAMPLES:
       - CODE   : ex_java_shared_group_begin_write
         DESCR  :
- 
+
 - Read transactions:
   METHODS:
   - g_shared_group_begin_read:

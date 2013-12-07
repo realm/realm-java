@@ -21,7 +21,7 @@ inline Table* get_table_ptr(Query* queryPtr)
     return Ref2Ptr( queryPtr->get_table() );
 }
 
-inline bool QueryValid(JNIEnv* env, Query* pQuery) 
+inline bool QueryValid(JNIEnv* env, Query* pQuery)
 {
     Table* pTable = get_table_ptr(pQuery);
     return TABLE_VALID(env, pTable);
@@ -574,7 +574,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFind(
         (void) ROW_INDEX_VALID(env, pTable, fromTableRow);
         return -1;
     }
-    
+
     try {
         size_t r = pQuery->find( S(fromTableRow) );
         return (r == not_found) ? jlong(-1) : jlong(r);

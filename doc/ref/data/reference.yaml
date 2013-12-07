@@ -8,10 +8,10 @@ ID        : java
 TITLE     : 'Java'
 STATUS:
   CODE    : Beta
-  DESCR   : The Java language binding is fully functional and is used in production code. Complete reference documentation for typed interface is coming soon. 
+  DESCR   : The Java language binding is fully functional and is used in production code. Complete reference documentation for typed interface is coming soon.
 DESCR     : >
             The goal of TightDB is to provide a high performance
-            data storage for your applications. 
+            data storage for your applications.
 
             TightDB integrates seamless in your programming language, making it
             fast to learn and easy to use.  You can replace your traditional data
@@ -47,7 +47,7 @@ DESCR     : >
             use the {@link class_shared_group}.
 
 
-IMPORT    : [reference, typed_table_ref, dyn_table_ref, typed_query_ref, 
+IMPORT    : [reference, typed_table_ref, dyn_table_ref, typed_query_ref,
              dyn_query_ref, group_ref, typed_view_ref, dyn_view_ref, shared_group_ref]
 IMPORTPATH: ../../tightdb/doc/ref_cpp/data
 
@@ -70,8 +70,8 @@ CATEGORIES:                       # list global class-id in order of appearence
 #  - mixed
 #  - cursor
 
-#EXAMPLES  : 
-#- DESCR   : 
+#EXAMPLES  :
+#- DESCR   :
 #TODO:  CODE    : #ex_java_intro           # id to example code
 
 IGNORE: []

@@ -197,7 +197,7 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
+
     public static void adjustExample() {
         // @@Example: ex_java_dyn_view_adjust @@
         // @@Show@@
@@ -270,8 +270,8 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
+
+
     public static void getSourceRowIndexExample() {
         // @@Example: ex_java_dyn_view_get_source_row_index @@
         // @@Show@@
@@ -284,10 +284,10 @@ public class DynTableViewExamples {
         table.add("Peter", 35, false);
         table.add("Susan", 29, true);
         table.add("Greg", 33, true);
-        
+
         // Create and execute query
         TableView v = table.where().equalTo(2, true).findAll();
-        
+
         // Translate the view row indexes to the source table row indexes
         Assert(v.getSourceRowIndex(0) == 2);
         Assert(v.getSourceRowIndex(1) == 3);
@@ -383,8 +383,8 @@ public class DynTableViewExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
+
+
     /* TODO: public static void getSubtableSizeExample(){ }*/
 
     /* TODO: public static void clearSubtableExample(){ }*/
@@ -466,7 +466,7 @@ public class DynTableViewExamples {
 
         // Query the table to get a view of all users with a score above 500
         TableView view = table.where().greaterThan(1, 500).findAll();
-        
+
         // Use the query object to query the view and get a new view with the results
         TableView results = view.where().equalTo(2, false).findAll();
 
@@ -607,4 +607,4 @@ public class DynTableViewExamples {
             throw new RuntimeException();
         }
     }
-} 
+}

@@ -6,17 +6,17 @@ import com.tightdb.Table;
 
 public class Experiment {
     public static void main(String[] args) {
-    
+
         System.out.println("Start experiment");
         test3();
     }
-    
+
     public static Table getTable() {
         Group g = new Group();
         Table t = g.getTable("testTable");
         t.addColumn(ColumnType.STRING, "test");
         g.close();
-        
+
         return t;
     }
 
@@ -24,10 +24,10 @@ public class Experiment {
         Table t = getTable();
         //g.close();
         t.add("hej");
-        
+
         System.out.println(t);
     }
-    
+
     public static void test1() {
         insert(new Object[] {1, "txt"});
         insert("hmm", 2, "hej");

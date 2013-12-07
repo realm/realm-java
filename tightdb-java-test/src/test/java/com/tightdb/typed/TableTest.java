@@ -43,7 +43,7 @@ public class TableTest {
         employees.clear();
         assertEquals(true, employees.isEmpty());
     }
-    
+
     @SuppressWarnings("unused")
     @Test
     public void multipleTablesOfSameTypeInGroup() {
@@ -67,7 +67,7 @@ public class TableTest {
         TestEmployeeTable t2Out = new TestEmployeeTable(group, "t2");
         assertEquals("NoName", t2Out.get(0).getFirstName());
     }
-    
+
     @Test
     public void mixedMinMaxTest()  {
 
@@ -77,19 +77,19 @@ public class TableTest {
        assertEquals(Integer.MIN_VALUE, row.getExtra().getLongValue());
        row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Integer.MAX_VALUE, null);
        assertEquals(Integer.MAX_VALUE, row.getExtra().getLongValue());
-       
+
        // Min and Max from Long
        row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Long.MIN_VALUE, null);
        assertEquals(Long.MIN_VALUE, row.getExtra().getLongValue());
        row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Long.MAX_VALUE, null);
        assertEquals(Long.MAX_VALUE, row.getExtra().getLongValue());
-       
+
        // Min and Max from Float
        row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Float.MIN_VALUE, null);
        assertEquals(Float.MIN_VALUE, row.getExtra().getFloatValue());
        row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Float.MAX_VALUE, null);
        assertEquals(Float.MAX_VALUE, row.getExtra().getFloatValue());
-       
+
        // Min and Max from Dobule
        row = t.add("", "", 1, false, new byte[] { 1, 2, 3 }, new Date(), Double.MIN_VALUE, null);
        assertEquals(Double.MIN_VALUE, row.getExtra().getDoubleValue());
@@ -103,8 +103,8 @@ public class TableTest {
         assertEquals(NAME1, employees.get(1).getFirstName());
         assertEquals(NAME2, employees.get(2).getFirstName());
     }
-    
-    
+
+
     /**
      * Helper method, return a new TestEmployeeTable filled with some rows of data
      */
@@ -112,10 +112,10 @@ public class TableTest {
         TestEmployeeTable table = new TestEmployeeTable();
         table.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, new Date(), "extra", null);
         table.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, new Date(), true, null);
-        
+
         return table;
     }
-    
+
     @Test
     public void tableEquals() {
         TestEmployeeTable t1 = getFilledTestEmployeeTable();
@@ -124,9 +124,9 @@ public class TableTest {
         assertEquals(true, t1.equals(t1)); // Same object
         assertEquals(false, t1.equals(null)); // Null object
         assertEquals(false, t1.equals("String")); // Other type of object
-        
-        
-        
+
+
+
         t1.add(NAME2, "B. Good", 10000, true, new byte[] { 1 }, new Date(), true, null); // t1 is changed, but t2 is the same
         assertEquals(false, t1.equals(t2));
     }
@@ -186,7 +186,7 @@ public class TableTest {
 
         employees.optimize();
     }
-    
+
     @Test
     public void lookupTest() {
         assertEquals(0,employees.firstName.lookup("John"));
@@ -194,7 +194,7 @@ public class TableTest {
 
         assertEquals(-1,employees.firstName.lookup("non-existing"));
         assertEquals(-1,employees.firstName.lookup(""));
-        
+
         try { assertEquals(-1,employees.firstName.lookup(null)); fail("Must not be null"); } catch (RuntimeException e ) { };
 
         // Not implemented on view yet
@@ -207,7 +207,7 @@ public class TableTest {
         String expect = "[{\"firstName\":\"John\",\"lastName\":\"Doe\",\"salary\":10000,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":\"extra\",\"phones\":[]},{\"firstName\":\"Nikolche\",\"lastName\":\"Mihajlovski\",\"salary\":30000,\"driver\":false,\"photo\":\"01\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":1234,\"phones\":[]},{\"firstName\":\"Johny\",\"lastName\":\"B. Good\",\"salary\":10000,\"driver\":true,\"photo\":\"01\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":true,\"phones\":[]},{\"firstName\":\"NoName\",\"lastName\":\"Test Mixed Date\",\"salary\":1,\"driver\":true,\"photo\":\"01\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":\"1973-11-29 21:33:09\",\"phones\":[]},{\"firstName\":\"NoName\",\"lastName\":\"Test Mixed Binary\",\"salary\":1,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-15 06:56:07\",\"extra\":\"030201\",\"phones\":[]}]";
         assertEquals(json, expect);
     }
-    
+
     @Test
     public void shouldSetIndexOnStringColumn() {
         assertEquals(false, employees.lastName.hasIndex());

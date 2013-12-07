@@ -23,7 +23,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     public AbstractTable(EntityTypes<?, View, Cursor, Query> types) {
         this(types, new Table());
     }
-    
+
     /**
      * Can be used to specify a different name than the class. Allows for more of same type in typed interface
      * @param types
@@ -60,7 +60,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
             return table.equals(((AbstractTable<?, ?, ?>) other).table);
         return false;
     }
-    
+
     @Override
     public String getName() {
         return getClass().getSimpleName();

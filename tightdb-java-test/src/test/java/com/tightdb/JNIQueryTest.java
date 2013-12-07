@@ -51,292 +51,292 @@ public class JNIQueryTest {
 
         // TODO: Add tests with all parameters
     }
-    
-    
+
+
     @Test
     public void testNonCompleteQuery() {
         init();
 
         // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
         try { table.where().equalTo(0,1).or().findAll();                    fail("missing a second filter"); }      catch (UnsupportedOperationException e) { }
-        try { table.where().or().findAll();                                 fail("just an or()"); }                 catch (UnsupportedOperationException e) { } 
-        try { table.where().group().equalTo(0,1).findAll();                 fail("messing a clsong group"); }       catch (UnsupportedOperationException e) { } 
+        try { table.where().or().findAll();                                 fail("just an or()"); }                 catch (UnsupportedOperationException e) { }
+        try { table.where().group().equalTo(0,1).findAll();                 fail("messing a clsong group"); }       catch (UnsupportedOperationException e) { }
         try { table.where().endGroup().equalTo(0,1).findAll();              fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(0,1).endGroup().findAll();              fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
+        try { table.where().equalTo(0,1).endGroup().findAll();              fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
 
-        try { table.where().equalTo(0,1).endGroup().find();                 fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
-        try { table.where().equalTo(0,1).endGroup().find(0);                fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
-        try { table.where().equalTo(0,1).endGroup().find(1);                fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
-        
-        try { table.where().equalTo(0,1).endGroup().findAll(0, -1, -1);     fail("ends group, no start"); }         catch (UnsupportedOperationException e) { } 
+        try { table.where().equalTo(0,1).endGroup().find();                 fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(0,1).endGroup().find(0);                fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(0,1).endGroup().find(1);                fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
 
-        
+        try { table.where().equalTo(0,1).endGroup().findAll(0, -1, -1);     fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+
+
         // step by step buildup
         TableQuery q = table.where().equalTo(0,1);              // valid
         q.findAll();
         q.or();                                                 // not valid
-        try { q.findAll();     fail("no start group"); }         catch (UnsupportedOperationException e) { } 
+        try { q.findAll();     fail("no start group"); }         catch (UnsupportedOperationException e) { }
         q.equalTo(0, 100);                                      // valid again
         q.findAll();
         q.equalTo(0, 200);                                      // still valid
         q.findAll();
     }
 
-    
+
     @Test
     public void testNegativeColumnIndexEqualTo() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
-        
+
         // Boolean
         try { query.equalTo(-1, true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-10, true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Date
         try { query.equalTo(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Double
         try { query.equalTo(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
-        
+
+
         // Float
         try { query.equalTo(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Int / long
         try { query.equalTo(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // String
         try { query.equalTo(-1, "a").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-10, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // String case true
         try { query.equalTo(-1, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-10, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // String case false
         try { query.equalTo(-1, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-10, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.equalTo(-100, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
-    
-    
+
+
     @Test
     public void testNegativeColumnIndexNotEqualTo() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
-        
-        
+
+
         // Date
         try { query.notEqualTo(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Double
         try { query.notEqualTo(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
-        
+
+
         // Float
         try { query.notEqualTo(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Int / long
         try { query.notEqualTo(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // String
         try { query.notEqualTo(-1, "a").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-10, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-100, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // String case true
         try { query.notEqualTo(-1, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-10, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-100, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}      
-        
+        try { query.notEqualTo(-100, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+
         // String case false
         try { query.notEqualTo(-1, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-10, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(-100, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
-    
-    
+
+
     @Test
     public void testNegativeColumnIndexGreaterThan() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
-        
+
         // Date
         try { query.greaterThan(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Double
         try { query.greaterThan(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
-        
+
+
         // Float
         try { query.greaterThan(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Int / long
         try { query.greaterThan(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThan(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
-    
-    
+
+
     @Test
     public void testNegativeColumnIndexGreaterThanOrEqual() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
-        
+
         // Date
         try { query.greaterThanOrEqual(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThanOrEqual(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThanOrEqual(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Double
         try { query.greaterThanOrEqual(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThanOrEqual(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThanOrEqual(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
-        
+
+
         // Float
         try { query.greaterThanOrEqual(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThanOrEqual(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThanOrEqual(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Int / long
         try { query.greaterThanOrEqual(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThanOrEqual(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.greaterThanOrEqual(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
-    
-    
+
+
     @Test
     public void testNegativeColumnIndexLessThan() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
-        
+
         // Date
         try { query.lessThan(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Double
         try { query.lessThan(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
-        
+
+
         // Float
         try { query.lessThan(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Int / long
         try { query.lessThan(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThan(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
-    
+
     @Test
     public void testNegativeColumnIndexLessThanOrEqual() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
-        
+
         // Date
         try { query.lessThanOrEqual(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Double
         try { query.lessThanOrEqual(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
-        
+
+
         // Float
         try { query.lessThanOrEqual(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Int / long
         try { query.lessThanOrEqual(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.lessThanOrEqual(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
-    
-    
+
+
     @Test
     public void testNegativeColumnIndexBetween() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
-        
+
         // Date
         try { query.between(-1, new Date(), new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.between(-10, new Date(), new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.between(-100, new Date(), new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Double
         try { query.between(-1, 4.5d, 6.0d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.between(-10, 4.5d, 6.0d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.between(-100, 4.5d, 6.0d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
-        
+
+
         // Float
         try { query.between(-1, 1.4f, 5.8f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.between(-10, 1.4f, 5.8f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.between(-100, 1.4f, 5.8f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // Int / long
         try { query.between(-1, 1, 10).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.between(-10, 1, 10).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.between(-100, 1, 10).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
-    
-    
+
+
     @Test
     public void testNegativeColumnIndexContains() {
         Table table = TestHelper.getTableWithAllColumnTypes();
         TableQuery query = table.where();
-        
+
         // String
         try { query.contains(-1, "hey").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.contains(-1, "hey").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.contains(-1, "hey").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // String case true
         try { query.contains(-1, "hey", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.contains(-1, "hey", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.contains(-1, "hey", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        
+
         // String case false
         try { query.contains(-1, "hey", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.contains(-1, "hey", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { query.contains(-1, "hey", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
-    
-    
-    
+
+
+
     @Test
     public void shouldFind() {
         // Create a table
@@ -355,7 +355,7 @@ public class JNIQueryTest {
         table.add("Janet", 875, false);     // 5 *
 
         TableQuery query = table.where().greaterThan(1, 600);
-        
+
         // find first match
         assertEquals(1, query.find());
         assertEquals(1, query.find());
@@ -374,22 +374,22 @@ public class JNIQueryTest {
         assertEquals(3, query.find(2));
         assertEquals(1, query.find(1));
         assertEquals(1, query.find(0));
-        
+
         // test out of range
         assertEquals(-1, query.find(6));
         try {  query.find(7);  fail("Exception expected");  } catch (ArrayIndexOutOfBoundsException e) {  }
     }
-    
-    
+
+
     @Test
     public void queryTestForNoMatches() {
         Table t = new Table();
         t = TestHelper.getTableWithAllColumnTypes();
-        
+
         t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
-        
+
         TableQuery q = t.where().greaterThan(5, 1000); // No matches
-        
+
         assertEquals(-1, q.find());
         assertEquals(-1, q.find(1));
     }

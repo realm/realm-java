@@ -107,7 +107,7 @@ public class JNITableInsertTest {
         Table t = new Table();
         t.addColumn(ColumnType.STRING, "col1");
         t.addColumn(ColumnType.INTEGER, "col2");
-        
+
         t.add("s1",1);
         t.add("s2",2);
 
@@ -233,13 +233,13 @@ public class JNITableInsertTest {
         for (long c=0;c<table.getColumnCount();c++){
 
             if (table.getColumnType(c).equals(ColumnType.INTEGER) == false){ // Do not check if it is a Long column
-                try { 
-                    table.adjust(c, 10); 
+                try {
+                    table.adjust(c, 10);
                     assertTrue(false); //We should never get here, as an exception is thrown above
-                } 
-                catch (IllegalArgumentException e){ 
+                }
+                catch (IllegalArgumentException e){
                     assertTrue(true); // All other column types than long will throw exception
-                } 
+                }
             }
         }
     }
@@ -282,12 +282,12 @@ public class JNITableInsertTest {
     @DataProvider(name = "columnTypesProvider")
     public Iterator<Object[]> mixedValuesProvider() {
         Object[] values = {
-                true, 
-                "abc", 
+                true,
+                "abc",
                 123L,
-                987.123f, 
-                1234567.898d, 
-                new Date(645342), 
+                987.123f,
+                1234567.898d,
+                new Date(645342),
                 new byte[] { 1, 2, 3, 4, 5 }
         };
 

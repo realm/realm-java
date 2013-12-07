@@ -10,28 +10,28 @@ import com.tightdb.*;
 public class PerformanceTestJNI {
     final static int ROWS = 100000;
     final static int LOOPS = 20;
-    
+
     public static void main(String[] args) {
         long dur;
-        
+
         Table tbl = setup_getLong(ROWS);
         for (int i=0; i<LOOPS; i++) {
             dur = time_getLong(tbl, ROWS);
             System.out.printf("Time for %d tbl.getLong():  %d us.\n", ROWS, dur);
         }
-        
+
         long[] tbl2 = setup_arrayGet(ROWS);
         for (int i=0; i<LOOPS; i++) {
             dur = time_arrayGet(tbl2, ROWS);
             System.out.printf("Time for %d Array.get():    %d us.\n", ROWS, dur);
         }
-        
+
         ArrayList<Long> tbl3 = setup_arrayListGet(ROWS);
         for (int i=0; i<LOOPS; i++) {
             dur = time_arrayListGet(tbl3, ROWS);
             System.out.printf("Time for %d ArrayList.get(): %d us.\n", ROWS, dur);
         }
-        
+
         //test_getName();
     }
 
@@ -42,7 +42,7 @@ public class PerformanceTestJNI {
         tbl.addColumn(ColumnType.INTEGER, "myInt");
         tbl.addEmptyRows(rows);
         for (long idx=0; idx<rows; idx++) {
-            tbl.setLong(0, idx, 2); 
+            tbl.setLong(0, idx, 2);
         }
         return tbl;
     }
@@ -58,7 +58,7 @@ public class PerformanceTestJNI {
         return dur;
     }
 
-    
+
     static long[] setup_arrayGet(int rows) {
         // Create table with 1 Long column and a number of rows
         long[] tbl = new long[rows];
@@ -67,7 +67,7 @@ public class PerformanceTestJNI {
         }
         return tbl;
     }
-    static long time_arrayGet(long[] tbl, int rows) {   
+    static long time_arrayGet(long[] tbl, int rows) {
         // Loop through the table
         Timer time = new Timer();
         for (int idx = 0; idx < rows; idx++) {
@@ -79,7 +79,7 @@ public class PerformanceTestJNI {
         return dur;
     }
 
-    static ArrayList<Long> setup_arrayListGet(int rows) {   
+    static ArrayList<Long> setup_arrayListGet(int rows) {
         // Create table with 1 Long column and a number of rows
         ArrayList<Long> tbl = new ArrayList<Long>(rows);
         for (Long idx = (long)0; idx < rows; idx++) {
@@ -87,8 +87,8 @@ public class PerformanceTestJNI {
         }
         return tbl;
     }
-    
-    static long time_arrayListGet(ArrayList<Long> tbl, int rows) {      
+
+    static long time_arrayListGet(ArrayList<Long> tbl, int rows) {
         // Loop through the table
         Timer time = new Timer();
         for (int idx = 0; idx < rows; idx++) {
@@ -99,13 +99,13 @@ public class PerformanceTestJNI {
         long dur = time.GetTimeInMicroSec();
         return dur;
     }
-    
+
 
     static void test_getName() {
         final int COLUMNS = 1000;
         final int ROWS = 1000;
         final int LOOPS = 100000;
-        
+
         Table tbl = new Table();
         Map<String, Long> map = new HashMap<String, Long>();
 
@@ -115,7 +115,7 @@ public class PerformanceTestJNI {
             map.put(name, i);
         }
         tbl.addEmptyRows(ROWS);
-        
+
         long columns = tbl.getColumnCount();
         boolean bool = false;
         Object col = (Object)0L;
@@ -134,11 +134,11 @@ public class PerformanceTestJNI {
 
 class Timer {
     static long startTime;
-    
+
     public Timer() {
         Start();
     }
-    
+
     public void Start() {
         startTime = System.nanoTime();
     }

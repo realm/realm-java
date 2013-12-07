@@ -13,34 +13,34 @@ DESCR      : >
              "work in progress" and absolutely not complete yet.
 #SUMMARY    : *g_typed_table_summary
 #DESCR      : *g_typed_table_descr
-SEE        : 
+SEE        :
 EXAMPLES   :
 - DESCR    : >
              Tables in the typed interface are defined using the following syntax.
   CODE     : ex_java_typed_table_definition
 - DESCR    : >
              Below examples will showcase all the available methods in a typed Table.
-             
-             More specific examples are (soon) available in the detailed description 
+
+             More specific examples are (soon) available in the detailed description
              of each method above.
   CODE     : ex_java_typed_table_intro
 - DESCR    : >
              Below examples show how to use subtables in typed tables.
   CODE     : ex_java_typed_table_intro_subtables
-IGNORE     : [g_dyn_table_where_const, 
+IGNORE     : [g_dyn_table_where_const,
               g_dyn_table_find_all_bool_const,
               g_dyn_table_find_all_int_const,
-              g_dyn_table_find_all_date_const, 
-              g_dyn_table_find_all_string_const, 
+              g_dyn_table_find_all_date_const,
+              g_dyn_table_find_all_string_const,
               g_dyn_table_find_all_float_const,
-              g_dyn_table_find_all_double_const, 
+              g_dyn_table_find_all_double_const,
               g_dyn_table_find_all_binary_const,
               g_dyn_table_get_sorted_view_const,
               g_dyn_table_get_subtable_const,
               g_dyn_table_distinct_const,
               g_dyn_table_set_enum,
-              g_dyn_table_insert_bool, g_dyn_table_insert_int, g_dyn_table_insert_enum, 
-              g_dyn_table_insert_float, g_dyn_table_insert_double, g_dyn_table_insert_date, 
+              g_dyn_table_insert_bool, g_dyn_table_insert_int, g_dyn_table_insert_enum,
+              g_dyn_table_insert_float, g_dyn_table_insert_double, g_dyn_table_insert_date,
               g_dyn_table_insert_string, g_dyn_table_insert_binary, g_dyn_table_insert_mixed,
               g_dyn_table_insert_subtable, g_dyn_table_insert_done
               ]
@@ -63,7 +63,7 @@ CATEGORIES :
       PARAMS:
       - NAME   : group
         TYPES  : com.tight.Group
-        DESCR  : A tightdb group. 
+        DESCR  : A tightdb group.
       - NAME   : tableName
         TYPES  : String
         DESCR  : The name of the table in the group.
@@ -183,8 +183,8 @@ CATEGORIES :
 
 # - Columns:
 #   METHODS:
-  
- 
+
+
 #   - g_typed_table_get_column_count:
 #       NAMES    : getColumnCount
 #       SUMMARY  : *g_dyn_table_get_column_count_summary
@@ -320,10 +320,10 @@ CATEGORIES :
       - CODE   : ex_java_typed_table_remove_last_row
         DESCR  :
 
-  
+
 - Searching:
   METHODS:
-# 
+#
   - g_typed_table_where:
 #  - g_dyn_table_where_const:
       NAMES    : where
@@ -335,8 +335,8 @@ CATEGORIES :
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_typed_table_where
-        
-        
+
+
 - Dump:
   METHODS:
   - g_dyn_table_to_json:

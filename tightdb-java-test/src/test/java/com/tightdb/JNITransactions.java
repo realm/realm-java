@@ -129,16 +129,16 @@ public class JNITransactions {
 
 
     @Test
-    public void onlyOneCommit() { 
+    public void onlyOneCommit() {
         WriteTransaction trans = db.beginWrite();
 
         try {
             Table tbl = trans.getTable("EmployeeTable");
             tbl.addColumn(ColumnType.STRING, "name");
             trans.commit();
-            try { 
-                trans.commit(); // should throw 
-                assert(false); 
+            try {
+                trans.commit(); // should throw
+                assert(false);
             } catch (IllegalStateException e){}
 
         } catch (Throwable t){

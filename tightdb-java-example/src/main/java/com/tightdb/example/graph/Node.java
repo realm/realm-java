@@ -8,7 +8,7 @@ public class Node {
     int         version;
     Date        time;
     String  data;
-    
+
     Node(int id, int node_type, int version, Date time, String data) {
         this.id = id;
         this.node_type = node_type;

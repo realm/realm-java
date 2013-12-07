@@ -9,7 +9,7 @@ public class WriteTransaction extends Group {
         if (!committed) {
             db.commit();
             committed = true;
-        } 
+        }
         else {
             throw new IllegalStateException("You can only commit once after a WriteTransaction has been made.");
         }
@@ -20,7 +20,7 @@ public class WriteTransaction extends Group {
     }
 
     public void close() {
-        if (!committed) {           
+        if (!committed) {
             rollback();
         }
     }

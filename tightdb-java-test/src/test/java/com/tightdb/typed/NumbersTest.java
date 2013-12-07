@@ -146,7 +146,7 @@ public class NumbersTest {
         assertEquals(1 , view.floatNum.findFirst(30000.6f).getPosition() );
 
         // Double get and set all
-        { 
+        {
             Double[] excpected = new Double[(int) 3];
             excpected[0] = 10000.1d;
             excpected[1] = 30000.6d;
@@ -163,9 +163,9 @@ public class NumbersTest {
                 assertEquals(999d, view.get(row).getDoubleNum());
             }
         }
-        
+
         // Float get and set all
-        { 
+        {
             Float[] excpected = new Float[(int) 3];
             excpected[0] = 10000.1f;
             excpected[1] = 30000.6f;
@@ -191,16 +191,16 @@ public class NumbersTest {
         assertEquals(50000.8d / 3, view.doubleNum.average(), 0.000001);
         assertEquals(50000.8d / 3, view.floatNum.average(), 0.01);
     }
-    
+
     @Test
     public void setAndGetNumbers() {
 
         // Integer set all columns
         view.longNum.setAll(400);
         assertEquals(400, view.get(0).getLongNum());
-        view.longNum.setAll(-1); 
+        view.longNum.setAll(-1);
         assertEquals(-1, view.get(1).getLongNum());
-        
+
         // Double columns
         view.get(0).setDoubleNum(400d);
         assertEquals(400d, view.get(0).getDoubleNum());

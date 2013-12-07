@@ -36,7 +36,7 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
     public void shouldPrint() {
         super.shouldPrintData("TestEmployeeTable");
     }
-    
+
     @Test
     public void shouldStoreValues() {
         setAndTestValue(Integer.MAX_VALUE);

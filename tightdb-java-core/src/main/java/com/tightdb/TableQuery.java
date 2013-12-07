@@ -44,7 +44,7 @@ public class TableQuery {
     private void validateQuery(){
         if (! queryValidated) { // If not yet validated, check if syntax is valid
             String invalidMessage = nativeValidateQuery(nativePtr);
-            if (invalidMessage.equals("")) 
+            if (invalidMessage.equals(""))
                 queryValidated = true; // If empty string error message, query is valid
             else
                 throw new UnsupportedOperationException(invalidMessage);

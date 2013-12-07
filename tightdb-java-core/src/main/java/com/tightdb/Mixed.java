@@ -218,7 +218,7 @@ public class Mixed {
     public Object getValue() {
         return value;
     }
-    
+
     public String getReadableValue() {
         ColumnType type = getType();
         try {

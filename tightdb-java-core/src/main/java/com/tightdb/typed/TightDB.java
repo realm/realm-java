@@ -104,7 +104,7 @@ public class TightDB {
 
     private static void initTightDB() {
         // Guarantee gc is done on JVM exit to clean up any native resources
-        gcOnExit();     
+        gcOnExit();
     }
 
     public static void loadLibrary() {

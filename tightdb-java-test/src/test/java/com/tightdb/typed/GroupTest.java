@@ -73,7 +73,7 @@ public class GroupTest {
 
     }
 
-    @Test 
+    @Test
     public void testHasTable() {
         Group group = new Group();
         assertEquals(group.hasTable(null), false);
@@ -97,22 +97,22 @@ public class GroupTest {
     }
 
 
-    @Test 
+    @Test
     public void testGroupGetWrongTableIndex() {
         Group group = getGroupWithTable();
-        try { 
-            group.getTableName(-1); 
-            fail("Should have thrown"); 
+        try {
+            group.getTableName(-1);
+            fail("Should have thrown");
         } catch (IndexOutOfBoundsException e ) { }
-        
-        try { 
-            group.getTableName(1000); 
-            fail("Should have thrown"); 
-        } 
+
+        try {
+            group.getTableName(1000);
+            fail("Should have thrown");
+        }
         catch (IndexOutOfBoundsException e ) { }
     }
 
-    @Test 
+    @Test
     public void testGroupEquals() {
         Group group1 = getGroupWithTable();
         Group group2 = getGroupWithTable();
@@ -120,11 +120,11 @@ public class GroupTest {
         Table t = group1.getTable("table");
         t.add("hej");
         assertEquals(false, group1.equals(group2));
-        
+
         assertEquals(true, group1.equals(group1)); // Compare to itself
         assertEquals(false, group1.equals(null)); // Compare to null
         assertEquals(false, group1.equals("String")); // Compare to other object
-        
+
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
@@ -139,19 +139,19 @@ public class GroupTest {
         group.getTable("");
         // Expect to throw exception
     }
-    
+
     //
     // Open Group with file
     //
-    
-    @Test 
+
+    @Test
     public void shouldOpenExistingGroupFile() throws IOException {
         new File(FILENAME).delete();
-        
+
         Group group = new Group();
         group.writeToFile(FILENAME);
         group.close();
-        
+
         Group group2 = new Group(FILENAME);
         group2.close();
 
@@ -164,15 +164,15 @@ public class GroupTest {
         Group group5 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE);
         group5.close();
     }
-    
+
 
     @Test
     public void shouldThrowExceptionOnGroupReadOnly() throws IOException {
         new File(FILENAME).delete();
         // Throw when opening non-existing file
-        try { Group group = new Group(FILENAME, OpenMode.READ_ONLY); fail("Group is read only"); } catch (com.tightdb.IOException e) { }    
+        try { Group group = new Group(FILENAME, OpenMode.READ_ONLY); fail("Group is read only"); } catch (com.tightdb.IOException e) { }
     }
-    
+
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void shouldThrowExceptionOnOpenWrongFileReadOnly() throws IOException {
         File file = new File(FILENAME);
@@ -181,10 +181,10 @@ public class GroupTest {
         // Throw when opening non-TightDB file
         Group group = new Group(FILENAME, OpenMode.READ_ONLY);
     }
-    
+
     @Test
     public void ThrowExceptionOnGroupNoCreate() throws IOException {
-        new File(FILENAME).delete();      
+        new File(FILENAME).delete();
         try { Group group2 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE); fail("Exception excpected"); } catch (com.tightdb.IOException e) { }
     }
 
@@ -247,18 +247,18 @@ public class GroupTest {
         // Write a DB to file
         Group group = new Group(FILENAME, OpenMode.READ_WRITE);
         group.commit();
-    
+
         Table tbl = group.getTable("test");
         tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
         group.commit();
         assertEquals(tbl.getLong(0, 0), 1);
-        
+
         // Update, commit and close file.
         tbl.set(0, 27);
         group.commit();
         group.close();
-        
+
         // Open file again and verify content
         Group readGrp = new Group(FILENAME);
         Table tbl2 = readGrp.getTable("test");
@@ -291,16 +291,16 @@ public class GroupTest {
 
     @Test
     public void groupByteArrayChecksForDatabaseFormat() {
-        
+
         ByteBuffer nullBugger = null;
         try { Group group = new Group(nullBugger); fail("null buffer"); } catch (IllegalArgumentException e) { }
-        
+
         ByteBuffer wrongBuffer = ByteBuffer.allocateDirect(5);
         try { Group group = new Group(wrongBuffer); fail("wrong buffer format"); } catch (IllegalArgumentException e) { }
-        
+
         byte[] nullByte = null;
         try { Group group = new Group(nullByte); fail("null byte array"); } catch (IllegalArgumentException e) { }
-        
+
         byte[] wrongByteArray = new byte[] {1,2,3,4,5};
         try { Group group = new Group(wrongByteArray); fail("wrong byte array format"); } catch (IllegalArgumentException e) { }
     }
@@ -324,7 +324,7 @@ public class GroupTest {
 
         if (failed)
             fail("Didn't throw exception");
-    }    
+    }
 
     @Test
     public void shouldCompareGroups() {
@@ -337,14 +337,14 @@ public class GroupTest {
         Table tbl2 = group2.getTable("test");
         tbl2.addColumn(ColumnType.INTEGER, "number");
         tbl2.add(1);
-        
+
         assertEquals(true, group1.equals(group2));
-        
+
         tbl2.add(2);
-        assertEquals(false, group1.equals(group2));     
+        assertEquals(false, group1.equals(group2));
     }
-    
-    
+
+
     @Test
     public void shouldFailWhenModifyingTablesOnClosedGroup() {
         Group group = new Group();
@@ -359,7 +359,7 @@ public class GroupTest {
         try{ tbl.add(2); fail("Group is closed"); } catch (IllegalStateException e) { }
     }
 
-    
+
     @Test
     public void shouldFailWhenAddingTablesToClosedGroup() {
         Group group = new Group();

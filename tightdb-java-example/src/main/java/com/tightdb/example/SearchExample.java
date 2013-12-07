@@ -14,10 +14,10 @@ public class SearchExample {
         Employee nikolche = Employees.insert(1, "Nikolche", "Mihajlovski", 30000, false, new byte[] { 4, 5 }, new Date(), 1234, null);
 
         System.out.println(Employees);
-        
+
         EmployeeQuery q1 = Employees.firstName.startsWith("J").lastName.endsWith("e");
         EmployeeView results = q1.findAll();
-        
+
         System.out.println(results);
 
         System.out.println("First names: " + Arrays.toString(results.firstName.getAll()));

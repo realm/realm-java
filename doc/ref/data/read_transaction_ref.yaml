@@ -6,21 +6,21 @@ ID         : class_read_transaction
 TITLE      : ReadTransaction
 SUMMARY    : Read transactions.
 DESCR      : >
-             Read transactions are created from {@link class_shared_group} objects 
+             Read transactions are created from {@link class_shared_group} objects
              with <code>startRead()</code>.
-             A ReadTransaction object extends {@link class_group} with a single 
+             A ReadTransaction object extends {@link class_group} with a single
              method: <code>endRead()</code>, which terminates the read transaction.
-             During the read transaction, you will have a fully consistent, 
-             non mutable view of the group. 
-             
-             If you use any methods that would normally change the content of the group, 
+             During the read transaction, you will have a fully consistent,
+             non mutable view of the group.
+
+             If you use any methods that would normally change the content of the group,
              an exception will be thrown.
-SEE        : 
-EXAMPLES: 
+SEE        :
+EXAMPLES:
 - DESCR    : Typed interface example.
   CODE     : ex_java_typed_read_transaction_intro
 - DESCR    : Dynamic interface example.
-  CODE     : ex_java_dyn_read_transaction_intro  
+  CODE     : ex_java_dyn_read_transaction_intro
 IGNORE     : []
 CATEGORIES:
 - -:

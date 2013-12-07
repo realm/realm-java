@@ -20,7 +20,7 @@ public class JNICloseTest {
 
         @SuppressWarnings("unused")
         long s = table.size();
-        
+
         // TODO: Test all methods...
     }
 
@@ -31,12 +31,12 @@ public class JNICloseTest {
 
     @Test (enabled=false)
     public void shouldCloseGroup() { // TODO!
-        
+
         //Group group = new Group();
 
         //  EmployeeTable employees = new EmployeeTable(group);
     }
-    
+
     /**
      * Make sure, that it's possible to use the query on a closed table
      */
@@ -46,7 +46,7 @@ public class JNICloseTest {
         table.addEmptyRows(10);
         for (long i=0; i<table.size(); i++)
             table.setLong(5, i, i);
-        TableQuery query = table.where(); 
+        TableQuery query = table.where();
         // Closes the table, it _should_ be allowed to access the query thereafter
         table.finalize();
         table = null;
@@ -55,25 +55,25 @@ public class JNICloseTest {
         for (int i=0; i<table2.size(); i++)
             table2.setLong(5, i, 117+i);
 
-        TableView tv = query.findAll(); 
+        TableView tv = query.findAll();
         assertEquals(10, tv.size());
 
         // TODO: add a lot of methods
-    }  
+    }
 
     @Test()
     public void accessingViewMethodsAfterTableClose() throws Throwable{
         Table table = TestHelper.getTableWithAllColumnTypes();
         table.addEmptyRows(10);
-        TableQuery query = table.where(); 
+        TableQuery query = table.where();
         TableView view = query.findAll();
         //Closes the table, it should be allowed to access the view thereafter (table is ref-counted)
         table.finalize();
         table = null;
-        
+
         // Accessing methods should be ok.
         view.size();
-        view.getBinaryByteArray(0, 0); 
+        view.getBinaryByteArray(0, 0);
         view.getBoolean(1, 0);
         view.getDate(2, 0);
         view.getDouble(3, 0);
@@ -81,10 +81,10 @@ public class JNICloseTest {
         view.getLong(5, 0);
         view.getMixed(6, 0);
         view.getString(7, 0);
-        
+
         // TODO - add all methods from view
     }
-    
+
 
     public void shouldThrowWhenAccessingViewAfterTableIsDetached()
     {
@@ -100,13 +100,13 @@ public class JNICloseTest {
         tbl.addColumn(ColumnType.STRING, "name");
         tbl.addColumn(ColumnType.INTEGER, "number");
         TableView view = tbl.where().findAll();
-        
+
         trans.commit();
 
         //methods below should throw exception, as table is invalid after commit
         try{ view.size();                       assert(false); } catch (IllegalStateException e){}
         try{ view.getBinaryByteArray(0, 0);     assert(false); } catch (IllegalStateException e){}
-        try{ view.getBoolean(1, 0);             assert(false); } catch (IllegalStateException e){}        
+        try{ view.getBoolean(1, 0);             assert(false); } catch (IllegalStateException e){}
         try{ view.getDate(2, 0);                assert(false); } catch (IllegalStateException e){}
         try{ view.getDouble(3, 0);              assert(false); } catch (IllegalStateException e){}
         try{ view.getFloat(4, 0);               assert(false); } catch (IllegalStateException e){}
@@ -114,7 +114,7 @@ public class JNICloseTest {
         try{ view.getMixed(6, 0);               assert(false); } catch (IllegalStateException e){}
         try{ view.getString(7, 0);              assert(false); } catch (IllegalStateException e){}
 // TODO: Add more methods
-        
+
         db.close();
         f.delete();
     }

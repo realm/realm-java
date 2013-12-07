@@ -25,7 +25,7 @@ public class Tutorial {
         int     age;
         boolean hired;
     }
-    
+
     public static void tutorial() {
         PeopleTable peopleTable = new PeopleTable();
         //@@EndExample@@
@@ -59,7 +59,7 @@ public class Tutorial {
         String name = peopleTable.get(2).getName(); // name => "Mary"
 
         // Set value
-        peopleTable.get(2).setName("NewName"); 
+        peopleTable.get(2).setName("NewName");
         // @@EndExample@@
 
         System.out.println("get(2).getName -> " + name);
@@ -129,8 +129,8 @@ public class Tutorial {
 
         System.out.println("Serialize to file:");
         // remove file if there - can't write to the same file
-        new File("people.tightdb").delete(); 
-        
+        new File("people.tightdb").delete();
+
         // @@Example: serialisation @@
         // Create Table in Group
         Group group = new Group();
@@ -164,7 +164,7 @@ public class Tutorial {
         PeopleTable people3 = new PeopleTable(fromMem);
 
         for (PeopleRow person : people3) {
-            System.out.println(person.getName() + 
+            System.out.println(person.getName() +
                                " is " + person.getAge() + " years old");
         }
         // @@EndExample@@
@@ -197,7 +197,7 @@ public class Tutorial {
                                    person2.getAge() + " years old");
             }
         } finally {
-            rdTrans.endRead();                          // End transaction 
+            rdTrans.endRead();                          // End transaction
         }
         // @@EndExample@@
 

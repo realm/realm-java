@@ -9,7 +9,7 @@ public class Util {
     public static final long REQUIRED_JNI_VERSION = 21;
 
     static {
-        TightDB.loadLibrary(); 
+        TightDB.loadLibrary();
     }
 
     public static long getNativeMemUsage() {
@@ -33,12 +33,12 @@ public class Util {
         nativeSetDebugLevel(level);
     }
     static native void nativeSetDebugLevel(int level);
-    
+
     // Called by JNI. Do not remove
     static void javaPrint(String txt) {
         System.out.print(txt);
     }
-    
+
     public static void waitForEnter() {
         System.out.println("Press Enter to continue...");
         Scanner sc = new Scanner(System.in);
@@ -61,7 +61,7 @@ public class Util {
         Exception_OutOfMemory(10),
         Exception_Unspecified(11),
         Exception_RuntimeError(12);
-        
+
         private final int nativeTestcase;
         private Testcase(int nativeValue)
         {
@@ -70,12 +70,12 @@ public class Util {
 
         public String expectedResult(long parm1) {
             return nativeTestcase(nativeTestcase, false, parm1);
-        }        
+        }
         public String execute(long parm1) {
             return nativeTestcase(nativeTestcase, true, parm1);
-        }        
+        }
     }
-    
+
     static native String nativeTestcase(int testcase, boolean dotest, long parm1);
-    
+
 }

@@ -26,7 +26,7 @@ public class JNIBinaryTypeTest {
         tableSpec.addColumn(ColumnType.BINARY, "bin");
         table.updateFromSpec(tableSpec);
     }
-    
+
     @AfterMethod
     public void close() {
         //table.close();

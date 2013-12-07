@@ -14,7 +14,7 @@ public class DynTableIntro {
         //
         // Add, delete and set whole Rows
         //
-        
+
         tbl.add(12, "hello", 2);
         tbl.add(-15, "World", "I can be different types...");
         tbl.addAt(0, 53, "I'm now first", true);      // insert at row 0. data in order of columns

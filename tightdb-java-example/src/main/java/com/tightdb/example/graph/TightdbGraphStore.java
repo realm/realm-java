@@ -14,7 +14,7 @@ import com.tightdb.*;
 public class TightdbGraphStore {
 
     SharedGroup db;
-    
+
     @DefineTable(table = "NodeTable")
     class node {
         int         node_type;
@@ -30,7 +30,7 @@ public class TightdbGraphStore {
         int type;
         int link;
     }
-    
+
     @DefineTable(table = "LinkTable")
     class link {
         int         id1;
@@ -46,14 +46,14 @@ public class TightdbGraphStore {
     class nodeDeleted {
         int id;
     }
-    
+
     @DefineTable()
     class linkDeleted {
         int id;
     }
 
     static Link clone_link(LinkRow l) {
-        return new Link((int)l.getId1(), (int)l.getLink_type(), (int)l.getId2(), 0, l.getData(), 
+        return new Link((int)l.getId1(), (int)l.getLink_type(), (int)l.getId2(), 0, l.getData(),
                 (int)l.getVersion(), l.getTime());
     }
 
@@ -70,18 +70,18 @@ public class TightdbGraphStore {
                 new LinkDeletedTable(tr);
                 for (int i=0; i<tr.size(); i++)
                     System.out.println(" Table: '" + tr.getTableName(i) + "' created.");
-                tr.commit();        
+                tr.commit();
             }
         } catch (Exception e) {
             tr.rollback();
             System.err.println("Exception");
         }
     }
-    
+
     long addNode(Node node) {
         long free_row_ndx = 0;
         WriteTransaction tr = db.beginWrite();
-        try {                       
+        try {
             NodeTable nodes = new NodeTable(tr);
             NodeDeletedTable deleted_nodes = new NodeDeletedTable(tr);
             if (deleted_nodes.isEmpty()) {
@@ -97,7 +97,7 @@ public class TightdbGraphStore {
                  nodes.at(free_row_ndx).setDeleted(false);
                  nodes.at(free_row_ndx).setLink_in(null);
                  nodes.at(free_row_ndx).setLink_out(null);
-                 
+
                  deleted_nodes.remove(0);
             }
             tr.commit();
@@ -107,20 +107,20 @@ public class TightdbGraphStore {
         }
         return free_row_ndx;
     }
-    
+
     Node getNode(int node_type, int node_id) {
         ReadTransaction tr = db.beginRead();
         NodeTable nodes = new NodeTable(tr);
         NodeRow row = nodes.at(node_id);
         assert(row.getNode_type() == node_type);
         tr.endRead();
-        return new Node(node_id, node_type, (int)row.getVersion(), row.getTime(), 
+        return new Node(node_id, node_type, (int)row.getVersion(), row.getTime(),
                         row.getData());
     }
-    
+
     boolean updateNode(Node node) {
         WriteTransaction tr = db.beginWrite();
-        try {                       
+        try {
             NodeTable nodes = new NodeTable(tr);
             NodeRow row = nodes.at(node.id);
             if (row.getDeleted() == false && row.getNode_type() == node.node_type) {
@@ -136,10 +136,10 @@ public class TightdbGraphStore {
         tr.rollback();
         return false;
     }
-    
+
     boolean deleteNode(int node_type, int node_id) {
         WriteTransaction tr = db.beginWrite();
-        try {                       
+        try {
             NodeTable nodes = new NodeTable(tr);
             NodeDeletedTable deleted_nodes = new NodeDeletedTable(tr);
             NodeRow row = nodes.at(node_id);
@@ -148,26 +148,26 @@ public class TightdbGraphStore {
                 tr.commit();
                 deleted_nodes.add(node_id);
                 return true;
-            }           
+            }
         } catch (Exception e) {
             System.err.println("Exception");
         }
         tr.rollback();
         return false;
     }
-    
-    
+
+
     /////////////////////////////////////////////////////
     // Links
     /////////////////////////////////////////////////////
-    
+
     boolean addLink(Link link) {
         WriteTransaction tr = db.beginWrite();
-        try {                       
+        try {
             NodeTable nodes = new NodeTable(tr);
             LinkTable links = new LinkTable(tr);
             LinkDeletedTable deleted_links = new LinkDeletedTable(tr);
-            
+
             // check if link already exists
             // we don't want to search over all links, so we go through the source node
             LinktypeQuery query = nodes.at(link.id1).getLink_out().
@@ -182,11 +182,11 @@ public class TightdbGraphStore {
                     return false;   // updated existing link
                 }
             }
-            
+
             // create new link
             int link_id;
             if (deleted_links.isEmpty()) {
-                links.add(link.id1, link.link_type, link.id2, link.data, 
+                links.add(link.id1, link.link_type, link.id2, link.data,
                           link.version, link.time, false);
                 link_id = (int) (links.size()-1);       // inserted at end
             } else {
@@ -201,7 +201,7 @@ public class TightdbGraphStore {
                 deleted_links.remove(0);
                 link_id = free_row_ndx;
             }
-            
+
             // update refs in nodes
             nodes.at(link.id1).getLink_out().add(link.link_type, link_id);
             nodes.at(link.id2).getLink_in().add(link.link_type, link_id);
@@ -218,11 +218,11 @@ public class TightdbGraphStore {
     // you would always have a link id, so that you could delete directly
     boolean deleteLink(int id1, int link_type, int id2) {
         WriteTransaction tr = db.beginWrite();
-        try {                       
+        try {
             NodeTable nodes = new NodeTable(tr);
             LinkTable links = new LinkTable(tr);
             LinkDeletedTable deleted_links = new LinkDeletedTable(tr);
-            
+
             // we don't want to search over all links, so we go through the source node
             NodeRow srcNode = nodes.at(id1);
             LinktypeQuery query = srcNode.getLink_out().where().type.equalTo(link_type);
@@ -237,7 +237,7 @@ public class TightdbGraphStore {
                     tr.commit();
                     return true;
                 }
-            }   
+            }
         } catch (Exception e) {
             System.err.println("Exception");
         }
@@ -247,21 +247,21 @@ public class TightdbGraphStore {
 
     ArrayList<Link> getLinkList(int id1, int link_type) {
         ArrayList<Link> link_list = new ArrayList<Link>();
-        
+
         ReadTransaction tr = db.beginRead();
         NodeTable nodes = new NodeTable(tr);
         LinkTable links = new LinkTable(tr);
-        
+
         LinktypeView view = nodes.at(id1).getLink_out().where().type.equalTo(link_type).findAll();
         for (LinktypeRow r : view) {
-            LinkRow link = links.at(r.getLink()); 
+            LinkRow link = links.at(r.getLink());
             link_list.add(clone_link(link));
         }
         tr.endRead();
         return link_list;
     }
 
-    
+
     // This is a bonus method (not in linkbench)
     long countLinks(int id1, int link_type) {
         ReadTransaction tr = db.beginRead();
@@ -274,19 +274,19 @@ public class TightdbGraphStore {
     // This is a bonus method (not in linkbench)
     ArrayList<Link> getBacklinkList(int id1, int link_type) {
         ArrayList<Link> link_list = new ArrayList<Link>();
-        
+
         ReadTransaction tr = db.beginRead();
         NodeTable nodes = new NodeTable(tr);
         LinkTable links = new LinkTable(tr);
 
         LinktypeView view = nodes.at(id1).getLink_in().where().type.equalTo(link_type).findAll();
         for (LinktypeRow r : view) {
-            LinkRow link = links.at(r.getLink()); 
+            LinkRow link = links.at(r.getLink());
             link_list.add(clone_link(link));
         }
-        
+
         tr.endRead();
-        return link_list;       
+        return link_list;
     }
 
 

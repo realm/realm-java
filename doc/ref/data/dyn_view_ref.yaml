@@ -9,7 +9,7 @@ SUMMARY    : *g_dyn_view_intro_summary
 DESCR      : *g_dyn_view_intro_descr
 SEE        :
 EXAMPLES   :
-- DESCR    : The methods available in a TableView is a subset of those in 
+- DESCR    : The methods available in a TableView is a subset of those in
              {@link class_dyn_table}, so you can check the examples there.
   CODE:      ex_java_dyn_table_view_intro
 IGNORE     : [g_dyn_view_get_subtable_const,
@@ -45,7 +45,7 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_view_is_empty
         DESCR  :
-        
+
 - View:
   METHODS:
   - g_dyn_view_clear:
@@ -55,7 +55,7 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_view_clear
         DESCR  :
-        
+
 - Columns:
   METHODS:
   - g_dyn_view_get_column_count:
@@ -210,7 +210,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : The row index.
       RETURN:
-        TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, 
+        TYPES  : [long, float, double, boolean, Date, String, ByteBuffer,
                   "byte[]", Mixed, ColumnType, Table]
         DESCR  : The value.
       EXAMPLES:
@@ -293,10 +293,10 @@ CATEGORIES :
   - g_dyn_view_find_first_bool:
   - g_dyn_view_find_first_int:
   - g_dyn_view_find_first_float:
-  - g_dyn_view_find_first_double:  
+  - g_dyn_view_find_first_double:
   - g_dyn_view_find_first_date:
   - g_dyn_view_find_first_string:
-      NAMES    : [findFirstBoolean, findFirstLong, findFirstFloat, findFirstDouble, 
+      NAMES    : [findFirstBoolean, findFirstLong, findFirstFloat, findFirstDouble,
                   findFirstDate, findFirstString]
       TITLE    : findFirst*
       SUMMARY  : *g_dyn_table_find_first_xxx_summary
@@ -328,8 +328,8 @@ CATEGORIES :
   - g_dyn_view_find_all_double:
   - g_dyn_view_find_all_date:
   - g_dyn_view_find_all_string:
-      NAMES    : [findAllBoolean, findAllLong, findAllFloat, findAllDouble, 
-                  findAllDate, findAllString] 
+      NAMES    : [findAllBoolean, findAllLong, findAllFloat, findAllDouble,
+                  findAllDate, findAllString]
       TITLE    : findAll*
       SUMMARY  : *g_dyn_table_find_all_xxx_summary
       DESCR    : *g_dyn_table_find_all_xxx_descr
@@ -360,7 +360,7 @@ CATEGORIES :
       SIGNATURE: |
                  void sort(long columnIndex)
                  void sort(long columnIndex, Order order)
-      PARAMS:    
+      PARAMS:
       - NAME   : columnIndex
         TYPES  : long
         DESCR  : The column index to sort by.

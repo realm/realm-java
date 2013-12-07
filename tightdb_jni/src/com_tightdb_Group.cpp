@@ -33,7 +33,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
             return 0;
         }
         pGroup = new Group(fileNameCharPtr, openmode);
-    
+
         TR((env, "%x\n", pGroup));
         return reinterpret_cast<jlong>(pGroup);
     }
@@ -41,7 +41,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_lang_String_2
     CATCH_STD()
 
     // Failed - cleanup
-    if (pGroup) 
+    if (pGroup)
         delete pGroup;
     return 0;
 }
@@ -152,10 +152,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeWriteToFile(
     if (fileNameCharPtr) {
         try {
             G(nativeGroupPtr)->write(fileNameCharPtr);
-        } 
+        }
         CATCH_FILE(fileNameCharPtr)
         CATCH_STD()
-        
+
         env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
     }
     // (exception is thrown by GetStringUTFChars if it fails.)
@@ -185,7 +185,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_tightdb_Group_nativeWriteToMem(
         }
         free(bufPtr);
         return jArray;
-    } 
+    }
     CATCH_STD()
     if (bufPtr)
         free(bufPtr);

@@ -117,26 +117,26 @@ public abstract class AbstractDataOperationsTest {
         String json = getEmployees().toJson();
         assertEquals(expected, json);
     }
-    
+
     public void shouldPrintData(String header) {
-        String expectedTableStr1 = header + ":\n" + 
+        String expectedTableStr1 = header + ":\n" +
 "    firstName     lastName  salary  driver      photo            birthdate   extra  phones\n"+
 "0:  John       Doe           10000    true    3 bytes  1970-01-02 10:17:36  Extra!     [0]\n"+
 "1:  Nikolche   Mihajlovski   30000   false    2 bytes  1970-01-02 10:17:36    1234     [0]\n";
         String expectedTableStr2 =
 "2:  Johny      B. Good       10000    true    3 bytes  1970-01-02 10:17:36    true     [0]\n"+
 "3:  James      Bond         150000    true    1 bytes  1970-01-02 10:17:36  x          [2]\n";
-        
+
         String result = getEmployees().toString(2);
         assertEquals(expectedTableStr1 + "... and 2 more rows (total 4)", result);
 
         result = getEmployees().toString();
         assertEquals(expectedTableStr1 + expectedTableStr2, result);
 
-        String expectedRowStr = 
+        String expectedRowStr =
                 "    firstName     lastName  salary  driver      photo            birthdate   extra  phones\n" +
                 "0:  John       Doe           10000    true    3 bytes  1970-01-02 10:17:36  Extra!     [0]\n";
-        
+
         result = getEmployees().first().toString();
         assertEquals(expectedRowStr, result);
         /*

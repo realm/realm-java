@@ -56,7 +56,7 @@ public abstract class AbstractCursor<Cursor> {
     @Override
     public String toString() {
         return tableOrView.rowToString(position);
-    }    
+    }
 /*
      public String toString() {
         StringBuffer sb = new StringBuffer();
@@ -74,7 +74,7 @@ public abstract class AbstractCursor<Cursor> {
         return types.getCursorClass().getSimpleName() + " {" + sb + "}";
     }
 */
-    
+
     public AbstractColumn<?, ?, ?, ?>[] columns() {
         return null;
     }

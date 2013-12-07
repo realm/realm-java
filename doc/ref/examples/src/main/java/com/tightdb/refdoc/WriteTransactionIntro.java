@@ -16,15 +16,15 @@ public class WriteTransactionIntro {
     class User {
         String username;
         int level;
-    } 
-   
+    }
+
     public static void typedWriteTransactionIntro(){
         // Open existing database file in a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
- 
-        // Begin write transaction 
-        WriteTransaction wt = group.beginWrite(); 
-        try { 
+
+        // Begin write transaction
+        WriteTransaction wt = group.beginWrite();
+        try {
             // Create table and add row with data
             UserTable users = new UserTable(wt);
             users.add("tarzan", 45);
@@ -35,22 +35,22 @@ public class WriteTransactionIntro {
             // In case of an error, rollback to close the transaction and discard all changes
             wt.rollback();
         }
-        
+
         // Remember to close the shared group
         group.close();
-    } // @@EndShow@@  
+    } // @@EndShow@@
     // @@EndExample@@
 
 
-    // @@Example: ex_java_dyn_write_transaction_intro @@ 
+    // @@Example: ex_java_dyn_write_transaction_intro @@
     // @@Show@@
     public static void dynamicWriteTransactionIntro(){
         // Open existing database file in a shared group
         SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
         // Begin write transaction
-        WriteTransaction wt = group.beginWrite(); 
-        try { 
+        WriteTransaction wt = group.beginWrite();
+        try {
             // Create table, add columns and add row with data
             Table users = wt.getTable("users");
             users.addColumn(ColumnType.STRING, "username");
@@ -63,9 +63,9 @@ public class WriteTransactionIntro {
             // In case of an error, rollback to close the transaction and discard all changes
             wt.rollback();
         }
-        
+
         // Remember to close the shared group
         group.close();
-    }   // @@EndShow@@  
+    }   // @@EndShow@@
     // @@EndExample@@
-} 
+}

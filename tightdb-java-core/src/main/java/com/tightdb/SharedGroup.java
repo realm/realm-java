@@ -4,7 +4,7 @@ import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 public class SharedGroup {
-    
+
     private long nativePtr;
     private boolean activeTransaction;
 
@@ -25,7 +25,7 @@ public class SharedGroup {
             return value;
         }
     }
-    
+
     public SharedGroup(String databaseFile) {
         this.nativePtr = createNative(databaseFile, Durability.FULL.getValue(), false, false);
         checkNativePtr();
@@ -113,7 +113,7 @@ public class SharedGroup {
             nativePtr = 0;
         }
     }
-    
+
     private boolean isClosed(){
         return nativePtr == 0;
     }
@@ -131,9 +131,9 @@ public class SharedGroup {
     public void reserve(long bytes) {
         nativeReserve(nativePtr, bytes);
     }
-    
+
     private native void nativeReserve(long nativePtr, long bytes);
-    
+
     private native boolean nativeHasChanged(long nativePtr);
 
     private native long nativeBeginRead(long nativePtr);
@@ -147,7 +147,7 @@ public class SharedGroup {
     private native void nativeRollback(long nativePtr);
 
     private native long createNative(String databaseFile,
-            int durabilityValue, 
+            int durabilityValue,
             boolean no_create,
             boolean enableReplication);
 

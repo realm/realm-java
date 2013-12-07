@@ -20,7 +20,7 @@ public class Group {
     //
     // Group construction and destruction
     //
-    
+
     private void checkNativePtr() {
         if (this.nativePtr == 0)
             // FIXME: It is wrong to assume that a null pointer means 'out
@@ -39,8 +39,8 @@ public class Group {
 
     public enum OpenMode {
         // Below values must match the values in tightdb::group::OpenMode in C++
-        READ_ONLY(0), 
-        READ_WRITE(1), 
+        READ_ONLY(0),
+        READ_WRITE(1),
         READ_WRITE_NO_CREATE(2);
         private int value;
         private OpenMode(int value) {
@@ -115,10 +115,10 @@ public class Group {
 
     private void verifyGroupIsValid() {
         if (nativePtr == 0)
-            throw new IllegalStateException("Illegal to call methods on a closed Group.");          
+            throw new IllegalStateException("Illegal to call methods on a closed Group.");
     }
-    
-  
+
+
     public long size() {
         verifyGroupIsValid();
         return nativeSize(nativePtr);
@@ -126,12 +126,12 @@ public class Group {
 
     protected native long nativeSize(long nativeGroupPtr);
 
-    
+
     public boolean isEmpty(){
         return size() == 0;
     }
-    
-    
+
+
     /**
      * Checks whether table exists in the Group.
      *
@@ -197,13 +197,13 @@ public class Group {
 
     protected native void nativeWriteToFile(long nativeGroupPtr, String fileName)
             throws IOException;
-    
+
     /**
      * Serialize the group to the specific file on the disk.
      *
      * @param file
      *            A File object representing the file.
-     * @throws IOException 
+     * @throws IOException
      */
     public void writeToFile(File file) throws IOException {
         verifyGroupIsValid();
@@ -248,11 +248,11 @@ public class Group {
     public String toString() {
         return nativeToString(nativePtr);
     }
-    
+
     protected native void nativeCommit(long nativeGroupPtr);
 
     protected native String nativeToString(long nativeGroupPtr);
-        
+
     public boolean equals(Object other) {
         if (other == null)
             return false;
@@ -260,13 +260,13 @@ public class Group {
             return true;
         if (!(other instanceof Group))
             return false;
-        
+
         Group otherGroup = (Group) other;
         return nativeEquals(nativePtr, otherGroup.nativePtr);
     }
 
     protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
-    
+
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
