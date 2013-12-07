@@ -24,7 +24,7 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
 
     @BeforeMethod
     public void init() {
-    	employees = getEmployeeTable();
+        employees = getEmployeeTable();
     }
 
     private void setAndTestValue(long val) {
@@ -34,7 +34,7 @@ public class TableDataOperationsTest extends AbstractDataOperationsTest {
 
     @Test
     public void shouldPrint() {
-    	super.shouldPrintData("TestEmployeeTable");
+        super.shouldPrintData("TestEmployeeTable");
     }
     
     @Test

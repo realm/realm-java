@@ -29,8 +29,8 @@ public class JNIBinaryTypeTest {
     
     @AfterMethod
     public void close() {
-    	//table.close();
-    	table = null;
+        //table.close();
+        table = null;
     }
 
 

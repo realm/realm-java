@@ -33,7 +33,7 @@ public class JNITableTest {
     void init() {       
         t = createTestTable(); 
     }
-	
+    
     @Test
     public void tableToString() {
         Table t = new Table();

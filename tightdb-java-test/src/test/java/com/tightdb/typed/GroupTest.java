@@ -146,46 +146,46 @@ public class GroupTest {
     
     @Test 
     public void shouldOpenExistingGroupFile() throws IOException {
-    	new File(FILENAME).delete();
-    	
-    	Group group = new Group();
+        new File(FILENAME).delete();
+        
+        Group group = new Group();
         group.writeToFile(FILENAME);
         group.close();
         
-    	Group group2 = new Group(FILENAME);
-    	group2.close();
+        Group group2 = new Group(FILENAME);
+        group2.close();
 
-    	Group group3 = new Group(FILENAME, OpenMode.READ_ONLY);
-    	group3.close();
+        Group group3 = new Group(FILENAME, OpenMode.READ_ONLY);
+        group3.close();
 
-    	Group group4 = new Group(FILENAME, OpenMode.READ_WRITE);
-    	group4.close();
+        Group group4 = new Group(FILENAME, OpenMode.READ_WRITE);
+        group4.close();
 
-    	Group group5 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE);
-    	group5.close();
+        Group group5 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE);
+        group5.close();
     }
     
 
     @Test
     public void shouldThrowExceptionOnGroupReadOnly() throws IOException {
-    	new File(FILENAME).delete();
-    	// Throw when opening non-existing file
-    	try { Group group = new Group(FILENAME, OpenMode.READ_ONLY); fail("Group is read only"); } catch (com.tightdb.IOException e) { } 	
+        new File(FILENAME).delete();
+        // Throw when opening non-existing file
+        try { Group group = new Group(FILENAME, OpenMode.READ_ONLY); fail("Group is read only"); } catch (com.tightdb.IOException e) { }    
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void shouldThrowExceptionOnOpenWrongFileReadOnly() throws IOException {
-    	File file = new File(FILENAME);
-    	file.delete();
-    	file.createNewFile();
-    	// Throw when opening non-TightDB file
-    	Group group = new Group(FILENAME, OpenMode.READ_ONLY);
+        File file = new File(FILENAME);
+        file.delete();
+        file.createNewFile();
+        // Throw when opening non-TightDB file
+        Group group = new Group(FILENAME, OpenMode.READ_ONLY);
     }
     
     @Test
     public void ThrowExceptionOnGroupNoCreate() throws IOException {
-    	new File(FILENAME).delete();      
-    	try { Group group2 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE); fail("Exception excpected"); } catch (com.tightdb.IOException e) { }
+        new File(FILENAME).delete();      
+        try { Group group2 = new Group(FILENAME, OpenMode.READ_WRITE_NO_CREATE); fail("Exception excpected"); } catch (com.tightdb.IOException e) { }
     }
 
     @Test
@@ -242,28 +242,28 @@ public class GroupTest {
 
     @Test
     public void shouldCommitToDisk() throws IOException {
-    	new File(FILENAME).delete();
+        new File(FILENAME).delete();
 
-    	// Write a DB to file
-    	Group group = new Group(FILENAME, OpenMode.READ_WRITE);
-    	group.commit();
-  	
-      	Table tbl = group.getTable("test");
-    	tbl.addColumn(ColumnType.INTEGER, "number");
-    	tbl.add(1);
-    	group.commit();
-    	assertEquals(tbl.getLong(0, 0), 1);
-    	
-    	// Update, commit and close file.
-    	tbl.set(0, 27);
-    	group.commit();
-    	group.close();
-    	
-    	// Open file again and verify content
-    	Group readGrp = new Group(FILENAME);
-    	Table tbl2 = readGrp.getTable("test");
-    	assertEquals(tbl2.getLong(0, 0), 27);
-    	readGrp.close();
+        // Write a DB to file
+        Group group = new Group(FILENAME, OpenMode.READ_WRITE);
+        group.commit();
+    
+        Table tbl = group.getTable("test");
+        tbl.addColumn(ColumnType.INTEGER, "number");
+        tbl.add(1);
+        group.commit();
+        assertEquals(tbl.getLong(0, 0), 1);
+        
+        // Update, commit and close file.
+        tbl.set(0, 27);
+        group.commit();
+        group.close();
+        
+        // Open file again and verify content
+        Group readGrp = new Group(FILENAME);
+        Table tbl2 = readGrp.getTable("test");
+        assertEquals(tbl2.getLong(0, 0), 27);
+        readGrp.close();
     }
 
     /* TODO: Enable when implemented "free" method for the data
@@ -328,20 +328,20 @@ public class GroupTest {
 
     @Test
     public void shouldCompareGroups() {
-    	Group group1 = new Group();
-      	Table tbl = group1.getTable("test");
-    	tbl.addColumn(ColumnType.INTEGER, "number");
-    	tbl.add(1);
+        Group group1 = new Group();
+        Table tbl = group1.getTable("test");
+        tbl.addColumn(ColumnType.INTEGER, "number");
+        tbl.add(1);
 
-    	Group group2 = new Group();
-      	Table tbl2 = group2.getTable("test");
-    	tbl2.addColumn(ColumnType.INTEGER, "number");
-    	tbl2.add(1);
-    	
-    	assertEquals(true, group1.equals(group2));
-    	
-    	tbl2.add(2);
-    	assertEquals(false, group1.equals(group2));    	
+        Group group2 = new Group();
+        Table tbl2 = group2.getTable("test");
+        tbl2.addColumn(ColumnType.INTEGER, "number");
+        tbl2.add(1);
+        
+        assertEquals(true, group1.equals(group2));
+        
+        tbl2.add(2);
+        assertEquals(false, group1.equals(group2));     
     }
     
     

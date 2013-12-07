@@ -32,7 +32,7 @@ public class JNICloseTest {
     @Test (enabled=false)
     public void shouldCloseGroup() { // TODO!
         
-    	//Group group = new Group();
+        //Group group = new Group();
 
         //  EmployeeTable employees = new EmployeeTable(group);
     }
@@ -45,7 +45,7 @@ public class JNICloseTest {
         Table table = TestHelper.getTableWithAllColumnTypes();
         table.addEmptyRows(10);
         for (long i=0; i<table.size(); i++)
-        	table.setLong(5, i, i);
+            table.setLong(5, i, i);
         TableQuery query = table.where(); 
         // Closes the table, it _should_ be allowed to access the query thereafter
         table.finalize();
@@ -53,7 +53,7 @@ public class JNICloseTest {
         Table table2 = TestHelper.getTableWithAllColumnTypes();
         table2.addEmptyRows(10);
         for (int i=0; i<table2.size(); i++)
-        	table2.setLong(5, i, 117+i);
+            table2.setLong(5, i, 117+i);
 
         TableView tv = query.findAll(); 
         assertEquals(10, tv.size());
@@ -88,7 +88,7 @@ public class JNICloseTest {
 
     public void shouldThrowWhenAccessingViewAfterTableIsDetached()
     {
-    	final String testFile = "closetest.tightdb";
+        final String testFile = "closetest.tightdb";
         SharedGroup db;
         File f = new File(testFile);
         if (f.exists())
@@ -104,7 +104,7 @@ public class JNICloseTest {
         trans.commit();
 
         //methods below should throw exception, as table is invalid after commit
-        try{ view.size();  						assert(false); } catch (IllegalStateException e){}
+        try{ view.size();                       assert(false); } catch (IllegalStateException e){}
         try{ view.getBinaryByteArray(0, 0);     assert(false); } catch (IllegalStateException e){}
         try{ view.getBoolean(1, 0);             assert(false); } catch (IllegalStateException e){}        
         try{ view.getDate(2, 0);                assert(false); } catch (IllegalStateException e){}

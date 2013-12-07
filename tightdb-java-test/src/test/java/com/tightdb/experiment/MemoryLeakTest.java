@@ -28,7 +28,7 @@ public class MemoryLeakTest {
             TableView view = query.notEqualTo(0, 2).findAll();
             assertEquals(i, table.getLong(0,0) );
             view.finalize();
-            	
+                
             query.finalize();
             
             table.finalize();

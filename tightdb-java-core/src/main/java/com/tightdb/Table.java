@@ -130,8 +130,8 @@ public class Table implements TableOrView, TableSchema {
      */
 
     public boolean isValid(){
-    	if (nativePtr == 0)
-    		return false;
+        if (nativePtr == 0)
+            return false;
         return nativeIsValid(nativePtr);
     }
 
@@ -154,9 +154,9 @@ public class Table implements TableOrView, TableSchema {
     protected native boolean nativeEquals(long nativeTablePtr, long nativeTableToComparePtr);
 
     private void verifyColumnName(String name) {
-    	if (name.length() > 63) {
-    		throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
-    	}    	
+        if (name.length() > 63) {
+            throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
+        }       
     }
 
     @Override
@@ -177,8 +177,8 @@ public class Table implements TableOrView, TableSchema {
      */
     @Override
     public long addColumn (ColumnType type, String name) {
-    	verifyColumnName(name);
-    	return nativeAddColumn(nativePtr, type.getValue(), name);
+        verifyColumnName(name);
+        return nativeAddColumn(nativePtr, type.getValue(), name);
     }
 
     protected native long nativeAddColumn(long nativeTablePtr, int type, String name);
@@ -198,7 +198,7 @@ public class Table implements TableOrView, TableSchema {
      */
     @Override
     public void renameColumn(long columnIndex, String newName) {
-    	verifyColumnName(newName);
+        verifyColumnName(newName);
         nativeRenameColumn(nativePtr, columnIndex, newName);
     }
 
@@ -363,7 +363,7 @@ public class Table implements TableOrView, TableSchema {
     public long addEmptyRows(long rows) {
         if (immutable) throwImmutable();
         if (rows < 1)
-        	throw new IllegalArgumentException("'rows' must be > 0.");
+            throw new IllegalArgumentException("'rows' must be > 0.");
         return nativeAddEmptyRow(nativePtr, rows);
     }
 
@@ -377,8 +377,8 @@ public class Table implements TableOrView, TableSchema {
      */
     public long add(Object... values) {
         long rowIndex = size();
-    	addAt(rowIndex, values);
-    	return rowIndex;
+        addAt(rowIndex, values);
+        return rowIndex;
     }
 
 

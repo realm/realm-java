@@ -20,7 +20,7 @@ public class TightDB {
 
 ///*
     private static final String FILE_SEP = File.separator;
-    private static final String PATH_SEP = File.pathSeparator;			// On Windows ";"
+    private static final String PATH_SEP = File.pathSeparator;          // On Windows ";"
     private static final String BINARIES_PATH = "lib" + PATH_SEP + ".." + FILE_SEP + "lib";
     private static final String JAVA_LIBRARY_PATH = "java.library.path";
 //*/
@@ -103,14 +103,14 @@ public class TightDB {
     }
 
     private static void initTightDB() {
-    	// Guarantee gc is done on JVM exit to clean up any native resources
-        gcOnExit();		
+        // Guarantee gc is done on JVM exit to clean up any native resources
+        gcOnExit();     
     }
 
     public static void loadLibrary() {
         if (libraryIsLoaded.get())
-        	// only load library once
-        	return;
+            // only load library once
+            return;
 
         initTightDB();
 

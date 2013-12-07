@@ -222,28 +222,28 @@ public class Mixed {
     public String getReadableValue() {
         ColumnType type = getType();
         try {
-	        switch (type) {
-			case BINARY:
-				return "Binary";
-			case BOOLEAN:
-				return String.valueOf(getBooleanValue());
-			case DATE:
-				return String.valueOf(getDateValue());
-			case DOUBLE:
-				return String.valueOf(getDoubleValue());
-			case FLOAT:
-				return String.valueOf(getFloatValue());
-			case INTEGER:
-				return String.valueOf(getLongValue());
-			case STRING:
-				return String.valueOf(getStringValue());
-			case TABLE:
-				return "Subtable";
-			case MIXED:
-				break; // error
-	        }
+            switch (type) {
+            case BINARY:
+                return "Binary";
+            case BOOLEAN:
+                return String.valueOf(getBooleanValue());
+            case DATE:
+                return String.valueOf(getDateValue());
+            case DOUBLE:
+                return String.valueOf(getDoubleValue());
+            case FLOAT:
+                return String.valueOf(getFloatValue());
+            case INTEGER:
+                return String.valueOf(getLongValue());
+            case STRING:
+                return String.valueOf(getStringValue());
+            case TABLE:
+                return "Subtable";
+            case MIXED:
+                break; // error
+            }
         } catch (Exception e) {
         }
-		return "ERROR";
+        return "ERROR";
     }
 }

@@ -20,7 +20,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 
     @Override
     public String getReadableValue() {
-    	return get().getReadableValue();
+        return get().getReadableValue();
     }
 
     @Override

@@ -29,9 +29,9 @@ public class ColumnTypeViewTest {
     
     @AfterMethod
     public void after() throws Throwable {
-    	t.finalize();
-    	t = null;
-    	v = null;
+        t.finalize();
+        t = null;
+        v = null;
     }
 
     //On date Column________________________________

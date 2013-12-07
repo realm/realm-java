@@ -347,12 +347,12 @@ public class JNIQueryTest {
         table.addColumn(ColumnType.BOOLEAN, "completed");
 
         // Insert some values
-        table.add("Arnold", 420, false);	// 0
-        table.add("Jane", 770, false);		// 1 *
-        table.add("Erik", 600, false);		// 2
-        table.add("Henry", 601, false);		// 3 *
-        table.add("Bill", 564, true);		// 4
-        table.add("Janet", 875, false);		// 5 *
+        table.add("Arnold", 420, false);    // 0
+        table.add("Jane", 770, false);      // 1 *
+        table.add("Erik", 600, false);      // 2
+        table.add("Henry", 601, false);     // 3 *
+        table.add("Bill", 564, true);       // 4
+        table.add("Janet", 875, false);     // 5 *
 
         TableQuery query = table.where().greaterThan(1, 600);
         
@@ -506,13 +506,13 @@ public class JNIQueryTest {
         try { query.maximumDouble(0);           assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumInt(1);                 assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumFloat(1);            assert(false); } catch(IllegalArgumentException e) {}
-        try { query.maximumDouble(1);         	assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(1);           assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumInt(2);                 assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumFloat(2);            assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumDouble(2);           assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumInt(6);                 assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumFloat(6);            assert(false); } catch(IllegalArgumentException e) {}
-        try { query.maximumDouble(6);         	assert(false); } catch(IllegalArgumentException e) {}
+        try { query.maximumDouble(6);           assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumInt(7);                 assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumFloat(7);            assert(false); } catch(IllegalArgumentException e) {}
         try { query.maximumDouble(7);           assert(false); } catch(IllegalArgumentException e) {}

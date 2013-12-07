@@ -55,7 +55,7 @@ public abstract class AbstractCursor<Cursor> {
 
     @Override
     public String toString() {
-    	return tableOrView.rowToString(position);
+        return tableOrView.rowToString(position);
     }    
 /*
      public String toString() {
