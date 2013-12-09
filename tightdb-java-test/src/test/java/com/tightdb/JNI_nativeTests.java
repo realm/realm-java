@@ -20,7 +20,7 @@ public class JNI_nativeTests {
             } catch (Error e) {
                 assertEquals(expect, e.toString());
             }
-            
+
         }
     }
 }

@@ -22,7 +22,7 @@ public class DynTableViewIntro {
         table.add(200, "Los Angeles");
         table.add(300, "New York");
 
-        // Create a query object from the table without any filters 
+        // Create a query object from the table without any filters
         // and execute it to retrieve a table view
         TableView view = table.where().findAll();
 
@@ -31,7 +31,7 @@ public class DynTableViewIntro {
         view.remove(0);
         Assert(table.size() == 2);
 
-        // Change the value of column 1, row 1 to 'London'. 
+        // Change the value of column 1, row 1 to 'London'.
         // The changes are reflected in the original table
         view.setString(1, 1, "London");
         Assert(table.getString(1, 1).equals("London"));
@@ -43,7 +43,7 @@ public class DynTableViewIntro {
         Assert(view.averageInt(0) == 250);
 
 
-        // Get JSON representation of the data in the view 
+        // Get JSON representation of the data in the view
         // and print it using e.g. a PrintWriter object
         PrintWriter out = new PrintWriter("fromServlet");
         out.print(view.toJson());
@@ -56,5 +56,5 @@ public class DynTableViewIntro {
             throw new RuntimeException();
         }
     }
-} 
+}
 // @@EndExample@@

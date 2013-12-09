@@ -68,8 +68,8 @@ public class TypedQueryExamples {
         }
     //@@EndExample@@
     }
-    
-    
+
+
     static void Assert(boolean check) {
         if (!check) {
             throw new RuntimeException();

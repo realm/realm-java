@@ -17,7 +17,7 @@ SUMMARY    : >
 DESCR      : >
              NOTE: The reference documentation for the "Typed Table" API is
              "work in progress" and absolutely not complete yet.
-SEE        : 
+SEE        :
 EXAMPLES   :
 - DESCR:
   CODE: ex_java_typed_table_view_intro

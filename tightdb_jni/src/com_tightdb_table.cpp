@@ -11,7 +11,7 @@
 
 using namespace tightdb;
 
-// Note: Don't modify spec on a table which has a shared_spec. 
+// Note: Don't modify spec on a table which has a shared_spec.
 // A spec is shared on subtables that are not in Mixed columns.
 //
 
@@ -69,7 +69,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsRootTable
   (JNIEnv *, jobject, jlong nativeTablePtr)
 {
     //If the spec is shared, it is a subtable, and this method will return false
-    return !TBL(nativeTablePtr)->has_shared_spec(); 
+    return !TBL(nativeTablePtr)->has_shared_spec();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
@@ -291,7 +291,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertString(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertMixed(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
 {
-    if (!TBL_AND_INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) 
+    if (!TBL_AND_INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex))
         return;
     try {
         tbl_nativeDoMixed(&Table::insert_mixed, TBL(nativeTablePtr), env, columnIndex, rowIndex, jMixedValue);
@@ -301,7 +301,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertMixed(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetMixed(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
 {
-    if (!TBL_AND_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) 
+    if (!TBL_AND_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex))
         return;
     try {
         tbl_nativeDoMixed(&Table::set_mixed, TBL(nativeTablePtr), env, columnIndex, rowIndex, jMixedValue);
@@ -430,7 +430,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetMixed(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTable(
     JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table)) 
+    if (!TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
         return 0;
     try {
         Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr),
@@ -460,7 +460,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableDuringInsert(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableSize(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table)) 
+    if (!TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
         return 0;
 
     return TBL(nativeTablePtr)->get_subtable_size( S(columnIndex), S(rowIndex)); // noexcept
@@ -482,7 +482,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetLong(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetBoolean(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jboolean value)
 {
-    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Bool)) 
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Bool))
         return;
     try {
         TBL(nativeTablePtr)->set_bool( S(columnIndex), S(rowIndex), value == JNI_TRUE ? true : false);
@@ -595,7 +595,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeAddInt(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClearSubTable(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
-    if (!TBL_AND_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex)) 
+    if (!TBL_AND_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex))
         return;
     try {
         TBL(nativeTablePtr)->clear_subtable( S(columnIndex), S(rowIndex));
@@ -622,7 +622,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetIndex(
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeHasIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
-    if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex)) 
+    if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return false;
     try {
         return TBL(nativeTablePtr)->has_index( S(columnIndex));
@@ -635,7 +635,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeHasIndex(
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSumInt(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int)) 
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_Int))
         return 0;
     try {
         return TBL(nativeTablePtr)->sum_int( S(columnIndex));

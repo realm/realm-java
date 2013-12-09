@@ -108,7 +108,7 @@ public class SharedGroupTest {
             clear();
             return;
         }
-        assert(false);        
+        assert(false);
     }
 
     @Test(dataProvider = "durabilityProvider")
@@ -123,7 +123,7 @@ public class SharedGroupTest {
             clear();
             return;
         }
-        assert(false);        
+        assert(false);
     }
 
     @Test(dataProvider = "durabilityProvider")

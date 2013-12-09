@@ -20,7 +20,7 @@ public class Group {
     //
     // Group construction and destruction
     //
-    
+
     private void checkNativePtr() {
         if (this.nativePtr == 0)
             // FIXME: It is wrong to assume that a null pointer means 'out
@@ -38,14 +38,14 @@ public class Group {
     protected native long createNative();
 
     public enum OpenMode {
-    	// Below values must match the values in tightdb::group::OpenMode in C++
-    	READ_ONLY(0), 
-    	READ_WRITE(1), 
-    	READ_WRITE_NO_CREATE(2);
-    	private int value;
-    	private OpenMode(int value) {
-    		this.value = value;
-    	}
+        // Below values must match the values in tightdb::group::OpenMode in C++
+        READ_ONLY(0),
+        READ_WRITE(1),
+        READ_WRITE_NO_CREATE(2);
+        private int value;
+        private OpenMode(int value) {
+            this.value = value;
+        }
     };
 
     public Group(String filepath, OpenMode mode) {
@@ -114,24 +114,24 @@ public class Group {
     //
 
     private void verifyGroupIsValid() {
-    	if (nativePtr == 0)
-            throw new IllegalStateException("Illegal to call methods on a closed Group.");    		
+        if (nativePtr == 0)
+            throw new IllegalStateException("Illegal to call methods on a closed Group.");
     }
-    
-  
+
+
     public long size() {
-    	verifyGroupIsValid();
-		return nativeSize(nativePtr);
+        verifyGroupIsValid();
+        return nativeSize(nativePtr);
     }
 
     protected native long nativeSize(long nativeGroupPtr);
 
-    
+
     public boolean isEmpty(){
         return size() == 0;
     }
-    
-    
+
+
     /**
      * Checks whether table exists in the Group.
      *
@@ -140,8 +140,8 @@ public class Group {
      * @return true if the table exists, otherwise false.
      */
     public boolean hasTable(String name) {
-    	verifyGroupIsValid();
-    	if (name == null)
+        verifyGroupIsValid();
+        if (name == null)
             return false;
         return nativeHasTable(nativePtr, name);
     }
@@ -149,7 +149,7 @@ public class Group {
     protected native boolean nativeHasTable(long nativeGroupPtr, String name);
 
     public String getTableName(int index) {
-    	verifyGroupIsValid();
+        verifyGroupIsValid();
         long cnt = size();
         if (index < 0 || index >= cnt) {
             throw new IndexOutOfBoundsException(
@@ -169,9 +169,9 @@ public class Group {
      * @return The table if it exists, otherwise create it.
      */
     public Table getTable(String name) {
-    	verifyGroupIsValid();
-    	if (name == null || name == "")
-    		throw new IllegalArgumentException("Invalid name. Name must be a non-empty string.");
+        verifyGroupIsValid();
+        if (name == null || name == "")
+            throw new IllegalArgumentException("Invalid name. Name must be a non-empty string.");
         if (immutable)
             if (!hasTable(name))
                 throwImmutable();
@@ -188,7 +188,7 @@ public class Group {
      * @throws IOException
      */
     public void writeToFile(String fileName) throws IOException {
-    	verifyGroupIsValid();
+        verifyGroupIsValid();
         if (fileName == null)
             throw new IllegalArgumentException("fileName is null");
         File file = new File(fileName);
@@ -197,16 +197,16 @@ public class Group {
 
     protected native void nativeWriteToFile(long nativeGroupPtr, String fileName)
             throws IOException;
-    
+
     /**
      * Serialize the group to the specific file on the disk.
      *
      * @param file
      *            A File object representing the file.
-     * @throws IOException 
+     * @throws IOException
      */
     public void writeToFile(File file) throws IOException {
-    	verifyGroupIsValid();
+        verifyGroupIsValid();
         nativeWriteToFile(nativePtr, file.getAbsolutePath());
     }
 
@@ -218,7 +218,7 @@ public class Group {
      * @return Binary array of the serialized group.
      */
     public byte[] writeToMem() {
-    	verifyGroupIsValid();
+        verifyGroupIsValid();
         return nativeWriteToMem(nativePtr);
     }
 
@@ -227,7 +227,7 @@ public class Group {
  * TODO: Find a way to release the malloc'ed native memory automatically
 
     public ByteBuffer writeToByteBuffer() {
-    	verifyGroupIsValid();
+        verifyGroupIsValid();
         return nativeWriteToByteBuffer(nativePtr);
     }
 
@@ -248,11 +248,11 @@ public class Group {
     public String toString() {
         return nativeToString(nativePtr);
     }
-    
+
     protected native void nativeCommit(long nativeGroupPtr);
 
     protected native String nativeToString(long nativeGroupPtr);
-        
+
     public boolean equals(Object other) {
         if (other == null)
             return false;
@@ -260,13 +260,13 @@ public class Group {
             return true;
         if (!(other instanceof Group))
             return false;
-        
+
         Group otherGroup = (Group) other;
         return nativeEquals(nativePtr, otherGroup.nativePtr);
     }
 
     protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
-    
+
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }

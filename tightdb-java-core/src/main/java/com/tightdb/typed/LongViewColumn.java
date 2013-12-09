@@ -19,7 +19,7 @@ public class LongViewColumn<Cursor, View, Query> extends LongTableOrViewColumn<C
             String name) {
         super(types, view, query, index, name);
     }*/
-    
+
     public void sort(Order order) {
         ( (TableView) this.tableOrView).sort(this.columnIndex, order);
     }

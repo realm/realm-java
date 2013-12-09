@@ -24,7 +24,7 @@ public class GroupToStringTest {
         table2.add(true);
 
         assertEquals("     tables        rows  \n" +
-                     "   0 testTable     1     \n" +  
+                     "   0 testTable     1     \n" +
                      "   1 another-table 1     \n", group.toString());
     }
 
@@ -45,7 +45,7 @@ public class GroupToStringTest {
 
         table.add(new byte[] {0,2,3}, true, new Date(0), 123, new Mixed(123), "TestString", null);
 
-        assertEquals("{\"testTable\":[{\"binary\":\"000203\",\"boolean\":true,\"date\":\"1970-01-01 00:00:00\",\"long\":123,\"mixed\":123,\"string\":\"TestString\",\"table\":[]}]}", group.toJson());    	
+        assertEquals("{\"testTable\":[{\"binary\":\"000203\",\"boolean\":true,\"date\":\"1970-01-01 00:00:00\",\"long\":123,\"mixed\":123,\"string\":\"TestString\",\"table\":[]}]}", group.toJson());
     }
 
 

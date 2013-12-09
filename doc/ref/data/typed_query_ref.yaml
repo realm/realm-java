@@ -17,7 +17,7 @@ SUMMARY    : >
 DESCR      : >
              NOTE: The reference documentation for the "Typed Table" API is
              "work in progress" and absolutely not complete yet.
-SEE        : 
+SEE        :
 EXAMPLES   :
 - DESCR:
   CODE: ex_java_typed_query_intro
@@ -53,7 +53,7 @@ CATEGORIES :
         CODE   : ex_java_typed_query_find_from
 
   - g_typed_query_find_all_const:
-      IGNORE   : ""      
+      IGNORE   : ""
   - g_typed_query_find_all:
       NAME     : findAll
       SUMMARY  : Executes the query.

@@ -26,10 +26,10 @@ public class TypedTableIntro {
         peopleTable.add("Mary", 21, false);
         peopleTable.add("Lars", 32, true);
         peopleTable.add("Phil", 43, false);
-        peopleTable.add("Anni", 54, true); 
-        
-        peopleTable.get(0).getAge();  
-        
+        peopleTable.add("Anni", 54, true);
+
+        peopleTable.get(0).getAge();
+
         // Insert data at row index 2
         peopleTable.insert(2, "Frank", 34, true);
 
@@ -43,9 +43,9 @@ public class TypedTableIntro {
 
         // Get value from row 2 column Name
         String name = peopleTable.get(2).getName(); // name => "Mary"
-        
+
         // Set the value from in row 2 column Name
-        peopleTable.get(2).setName("NewName"); 
+        peopleTable.get(2).setName("NewName");
 
         String lastRowName = peopleTable.last().getName();  // retrieve name for last row
 
@@ -162,10 +162,10 @@ public class TypedTableIntro {
                         person2.getAge() + " years old");
             }
         } finally {
-            rdTrans.endRead();                          // End transaction 
+            rdTrans.endRead();                          // End transaction
         }
-        
+
         // @@EndShow@@
-    } 
+    }
 }
 //@@EndExample@@

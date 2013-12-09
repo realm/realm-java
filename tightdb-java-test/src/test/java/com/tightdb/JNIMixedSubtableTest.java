@@ -7,15 +7,15 @@ import java.util.Date;
 import org.testng.annotations.Test;
 
 public class JNIMixedSubtableTest {
-    
-    
+
+
     @Test
     public void getSubtableFromMixedColumnTest() {
         Table table = new Table();
 
         table.addColumn(ColumnType.INTEGER, "num");
         table.addColumn(ColumnType.MIXED, "mix");
-        
+
         // No rows added yet
         try { Table subtable = table.getSubTable(1, 0); fail("No rows added, index out of bounds"); } catch (ArrayIndexOutOfBoundsException e) { }
 
@@ -23,37 +23,37 @@ public class JNIMixedSubtableTest {
         table.addEmptyRow();
         // Getting a subtable on a mixed with a 0 int value should not work
         try { Table subtable = table.getSubTable(1, 0); fail("Mixed contains an int, not a subtable"); } catch (IllegalArgumentException e) { }
-        
+
         // Now we set the Mixed value to a binary
         table.setMixed(1, 0, new Mixed(new byte[] {1,2,3}));
         // Getting a subtable on a mixed with a date value should not work
         try { Table subtable = table.getSubTable(1, 0); fail("Mixed contains an binary, not a subtable"); } catch (IllegalArgumentException e) { }
-        
+
         // Now we set the Mixed value to a bool
         table.setMixed(1, 0, new Mixed(true));
         // Getting a subtable on a mixed with a String value should not work
         try { Table subtable = table.getSubTable(1, 0); fail("Mixed contains a bool, not a subtable"); } catch (IllegalArgumentException e) { }
-        
+
         // Now we set the Mixed value to a date
         table.setMixed(1, 0, new Mixed(new Date()));
         // Getting a subtable on a mixed with a date value should not work
         try { Table subtable = table.getSubTable(1, 0); fail("Mixed contains a date, not a subtable"); } catch (IllegalArgumentException e) { }
-        
+
         // Now we set the Mixed value to a double
         table.setMixed(1, 0, new Mixed(3.0d));
         // Getting a subtable on a mixed with a date value should not work
         try { Table subtable = table.getSubTable(1, 0); fail("Mixed contains a double, not a subtable"); } catch (IllegalArgumentException e) { }
-        
+
         // Now we set the Mixed value to a float
         table.setMixed(1, 0, new Mixed(3.0f));
         // Getting a subtable on a mixed with a date value should not work
         try { Table subtable = table.getSubTable(1, 0); fail("Mixed contains a float, not a subtable"); } catch (IllegalArgumentException e) { }
-        
+
         // Now we set the Mixed value to a int
         table.setMixed(1, 0, new Mixed(300));
         // Getting a subtable on a mixed with a date value should not work
         try { Table subtable = table.getSubTable(1, 0); fail("Mixed contains an int, not a subtable"); } catch (IllegalArgumentException e) { }
-        
+
         // Now we set the Mixed value to a String
         table.setMixed(1, 0, new Mixed("s"));
         // Getting a subtable on a mixed with a String value should not work

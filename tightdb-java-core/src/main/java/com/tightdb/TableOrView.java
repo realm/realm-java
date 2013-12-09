@@ -34,13 +34,13 @@ public interface TableOrView {
     void remove(long index);
 
     void removeLast();
-    
+
     long getColumnCount();
-    
+
     String getColumnName(long columnIndex);
-    
+
     long getColumnIndex(String name);
-    
+
     ColumnType getColumnType(long columnIndex);
 
     /**
@@ -251,15 +251,15 @@ public interface TableOrView {
     TableView findAllString(long columnIndex, String value);
 
     String toJson();
-    
+
     String toString();
 
     String toString(long maxRows);
-    
+
     String rowToString(long rowIndex);
 
     TableQuery where();
-    
+
     // Experimental:
 
     long lookup(String value);

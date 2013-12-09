@@ -24,7 +24,7 @@ public class TestTableModel {
     @DefineTable
     class TestPhone {
         String type;
-        String number; 
+        String number;
     }
 
     @DefineTable
@@ -33,7 +33,7 @@ public class TestTableModel {
         float floatNum;
         double doubleNum;
     }
-    
+
     @DefineTable
     class TestQueryTable {
         long longNum;
@@ -41,7 +41,7 @@ public class TestTableModel {
         double doubleNum;
         String stringVal;
     }
-    
+
     @DefineTable
     class AllTypes {
         boolean  boolCol;
@@ -54,8 +54,8 @@ public class TestTableModel {
         byte[] byteCol;
         Car carTableCol; // Subtable of the type Car defined as a typed table
         Object mixedCol; // Can hold any of the types
-    } 
-    
+    }
+
     @DefineTable
     class Car {
         String  brand;

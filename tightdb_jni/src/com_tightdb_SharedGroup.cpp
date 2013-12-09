@@ -81,7 +81,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_nativeBeginRead(
     JNIEnv* env, jobject, jlong native_ptr)
 {
     try {
-        const Group& group = SG(native_ptr)->begin_read();  
+        const Group& group = SG(native_ptr)->begin_read();
         return reinterpret_cast<jlong>(&group);
     }
     CATCH_STD()

@@ -1,10 +1,8 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include <tightdb/unique_ptr.hpp>
-#include <tightdb/safe_int_ops.hpp>
-#include <tightdb/assert.hpp>
-#include <tightdb/utf8.hpp>
+#include <tightdb/util/assert.hpp>
+#include <tightdb/util/utf8.hpp>
 
 #include "util.hpp"
 #include "com_tightdb_internal_Util.h"
@@ -12,6 +10,7 @@
 
 using namespace std;
 using namespace tightdb;
+using namespace tightdb::util;
 
 namespace {
 

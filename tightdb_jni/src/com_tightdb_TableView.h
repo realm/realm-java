@@ -22,7 +22,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClose
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSize
   (JNIEnv *, jobject, jlong);
-    
+
 /*
  * Class:     com_tightdb_TableView
  * Method:    Java_com_tightdb_TableView_nativeGetSourceRowIndex

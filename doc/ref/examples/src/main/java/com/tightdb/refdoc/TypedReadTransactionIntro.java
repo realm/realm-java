@@ -13,8 +13,8 @@ public class TypedReadTransactionIntro {
             (new File("mydatabase.tightdb")).delete();
             (new File("mydatabase.tightdb.lock")).delete();
             // Create table, add columns and add row with data
-            SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
-            WriteTransaction wt = group.beginWrite(); 
+            SharedGroup group = new SharedGroup("mydatabase.tightdb");
+            WriteTransaction wt = group.beginWrite();
             try {
                 Table users = wt.getTable("PeopleTable");
                 users.addColumn(ColumnType.STRING, "username");
@@ -32,7 +32,7 @@ public class TypedReadTransactionIntro {
     // @@Show@@
     public static void typedReadTransactionIntro() {
         // Open existing database file in a shared group
-        SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
+        SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
         // Create read transaction from the shared group
         ReadTransaction rt = group.beginRead();
@@ -51,11 +51,11 @@ public class TypedReadTransactionIntro {
             // End the read transaction in a finally block. If the read-transaction is not
             // closed, a new one cannot be started using the same SharedGroup instance.
             rt.endRead();
-        } 
-        
+        }
+
         // Remember to close the shared group
         group.close();
-    } // @@EndShow@@ 
+    } // @@EndShow@@
 
-} 
+}
 // @@EndExample@@

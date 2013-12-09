@@ -167,7 +167,7 @@ public class JNITableSpecTest {
         TableSpec spec = new TableSpec();
         spec.addColumn(ColumnType.INTEGER, "foo");
 
-        
+
        try { address.updateFromSpec(spec); fail("Address is subtable. Not allowed to update from spec"); } catch (UnsupportedOperationException e) { }
     }
 

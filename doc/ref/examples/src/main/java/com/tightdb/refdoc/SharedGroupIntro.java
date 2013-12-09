@@ -8,7 +8,7 @@ public class SharedGroupIntro {
 
     public static void main(String[] args) {
         // Delete file to start from scratch
-        (new File("mydatabase.tightdb")).delete();     
+        (new File("mydatabase.tightdb")).delete();
 
         // @@Show@@
         // Opens an existing database file or creates a
@@ -20,8 +20,8 @@ public class SharedGroupIntro {
         // -------------------------------------------------------------------
 
         // Begins a write transaction
-        WriteTransaction wt = group.beginWrite(); 
-        try { 
+        WriteTransaction wt = group.beginWrite();
+        try {
             // Get the table (or create it if it's not there)
             Table table = wt.getTable("people");
             // Define the table schema if the table is new
@@ -35,7 +35,7 @@ public class SharedGroupIntro {
             table.add("Peter", 14);
             table.add("Oldie", 117);
 
-            // Close the transaction. 
+            // Close the transaction.
             // All changes are written to the shared group.
             wt.commit();
         } catch (Throwable t) {
@@ -64,8 +64,8 @@ public class SharedGroupIntro {
             // Always end the read transaction
             rt.endRead();
         }  // @@EndShow@@
-        
-        
+
+
         // Remember to close the shared group
         group.close();
     }
@@ -75,5 +75,5 @@ public class SharedGroupIntro {
             throw new RuntimeException();
         }
     }
-} 
+}
 // @@EndExample@@
