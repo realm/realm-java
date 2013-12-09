@@ -69,23 +69,33 @@ public class JNISubtableTest {
         table.add("val", null);
         assertEquals(0,  table.getSubTable(subtableColIndex, 0).getColumnCount());
     }
-    
+
     @Test
     public void getSubtableOutOfRange() {
         Group group = new Group();
         Table table = group.getTable("emp");
 
         table.addColumn(ColumnType.TABLE, "table");
-        
+
         // No rows added
-        try { table.getSubTable(0, 0); fail("rowIndex > available rows."); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { table.getSubTable(1, 0); fail("columnIndex > available columns."); } catch (ArrayIndexOutOfBoundsException e) { }
-        
+        try { 
+            table.getSubTable(0, 0); 
+            fail("rowIndex > available rows."); 
+        } catch (ArrayIndexOutOfBoundsException e) { }
+
+        try { 
+            table.getSubTable(1, 0); 
+            fail("columnIndex > available columns."); 
+        } catch (ArrayIndexOutOfBoundsException e) { }
+
         table.addEmptyRow();
-        
-        try { table.getSubTable(1, 0); fail("columnIndex > available columns."); } catch (ArrayIndexOutOfBoundsException e) { }
+
+        try { 
+            table.getSubTable(1, 0); 
+            fail("columnIndex > available columns."); 
+        } catch (ArrayIndexOutOfBoundsException e) { }
     }
-    
+
     @Test
     public void subtableSort() {
         Group group = new Group();
@@ -95,21 +105,21 @@ public class JNISubtableTest {
         TableSchema subSchema = table.getSubTableSchema(0);
         long subtableIntColIndex = subSchema.addColumn(ColumnType.INTEGER, "int col");
         long subtableStringColIndex = subSchema.addColumn(ColumnType.STRING, "string col");
-        
+
         table.addEmptyRow();
-        
+
         Table subtable = table.getSubTable(0, 0);
         subtable.add(10, "s");
         subtable.add(100, "ss");
         subtable.add(1000, "sss");
-        
+
         TableView subView = subtable.where().findAll();
         subView.sort(subtableIntColIndex);
-        
+
         assertEquals(10, subView.getLong(0, 0));
         assertEquals(100, subView.getLong(0, 1));
         assertEquals(1000, subView.getLong(0, 2));
-        
+
         try { subView.sort(subtableStringColIndex); fail("Sort not supported on String columns"); } catch (IllegalArgumentException e) { }
     }
 
