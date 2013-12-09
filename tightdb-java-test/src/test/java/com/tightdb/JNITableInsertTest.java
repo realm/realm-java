@@ -61,8 +61,8 @@ public class JNITableInsertTest {
 
         // Check subtable
         Object[][] subTblData = new Object[][] {{234, "row0"},
-                                                {345, "row1"},
-                                                {456, "row2"} };
+                {345, "row1"},
+                {456, "row2"} };
         Object[] rowData0 = new Object[] {false, (short)2, "hi", buf, date, mixed, subTblData};
         long index = table.add(rowData0);
         assertEquals(0, index);
@@ -85,8 +85,8 @@ public class JNITableInsertTest {
 
         // Same test - but a one-liner...
         table.add(new Object[] {false, (short)2, "hi", buf, date, mixed, new Object[][] {{234, "row0"},
-                                                                                         {345, "row1"},
-                                                                                         {456, "row2"} }});
+            {345, "row1"},
+            {456, "row2"} }});
         verifyRow(table, 4, rowData0);
 
         // Test set()
@@ -131,31 +131,72 @@ public class JNITableInsertTest {
 
         // Wrong number of parameters
         byte[] buf = new byte[23];
-        try { table.addAt(0, false); fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(0, false); fail("expected exception."); 
+            } catch (IllegalArgumentException e) {}
 
         // wrong row index
         long mix = 123;
-        try { table.addAt(1, false, 1, "hi", buf, new Date(), mix, null);                           fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(1, false, 1, "hi", buf, new Date(), mix, null);                           
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
+        
         // wrong row index
         table.addAt(0, false, 1, "hi", buf, new Date(), 123, null);
         table.addAt(1, false, 1, "hi", buf, new Date(), 123, null);
-        try { table.addAt(3, false, 1, "hi", buf, new Date(), mix, null);                           fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(3, false, 1, "hi", buf, new Date(), mix, null);                           
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
+        
         // Wrong type of parameter (999 instead of bool)
-        try { table.addAt(0, 999, 1, "hi", buf, new Date(), mix, null);                             fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(0, 999, 1, "hi", buf, new Date(), mix, null);                             
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
+        
         // Wrong type of parameter (bool instead of 1)
-        try { table.addAt(0, true, false, "hi", buf, new Date(), mix, null);                        fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(0, true, false, "hi", buf, new Date(), mix, null);                        
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
+        
         // Wrong type of parameter (999 instead of string)
-        try { table.addAt(0, false, 1, 999, buf, new Date(), mix, null);                            fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(0, false, 1, 999, buf, new Date(), mix, null);                            
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
+        
         // Wrong type of parameter (999 instead of Binary)
-        try { table.addAt(0, false, 1, "hi", 999, new Date(), mix, null);                           fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(0, false, 1, "hi", 999, new Date(), mix, null);                           
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
+        
         // Wrong type of parameter (999 instead of Date)
-        try { table.addAt(0, false, 1, "hi", buf, 999, mix, null);                                  fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(0, false, 1, "hi", buf, 999, mix, null);                                  
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
+        
         // Wrong type of parameter (999 instead of subtable)
-        try { table.addAt(0, false, 1, "hi", buf, new Date(), mix, 999);                            fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(0, false, 1, "hi", buf, new Date(), mix, 999);                            
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
+        
         // Wrong type of parameter (String instead of subtable-Int)
-        try { table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[][] { {"err",2,3}} ); fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[][] { {"err",2,3}} ); 
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
+        
         // Wrong type of parameter (String instead of subtable-Int)
-        try { table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[] {1,2,3} );          fail("expected exception."); } catch (IllegalArgumentException e) {}
+        try { 
+            table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[] {1,2,3} );          
+            fail("expected exception."); 
+        } catch (IllegalArgumentException e) {}
     }
 
 
@@ -206,7 +247,10 @@ public class JNITableInsertTest {
     public void shouldThrowExceptionWhenColumnNameIsTooLong() {
 
         Table table = new Table();
-        try { table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, LONGER THAN THE MAX 63 CHARACTERS"); fail("Too long name"); } catch (IllegalArgumentException e) { }
+        try { 
+            table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, LONGER THAN THE MAX 63 CHARACTERS"); 
+            fail("Too long name"); } 
+        catch (IllegalArgumentException e) { }
     }
 
     @Test
@@ -218,7 +262,8 @@ public class JNITableInsertTest {
 
 
 
-    //Generates a table with a a column with column typed determined from the first parameter, and then puts in a value from the second parameter.
+    //Generates a table with a a column with column typed determined from the first parameter, 
+    // and then puts in a value from the second parameter.
     //In cases, where the 2 parameter types do not match, we expect an IllegalArgumentException
     @Test(dataProvider = "columnTypesProvider")
     public void testGenericAddOnTable(Object colTypeObject, Object value) {
