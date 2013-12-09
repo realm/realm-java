@@ -160,15 +160,14 @@ public class TableView implements TableOrView {
      * @return the index, -1 if not found
      */
     @Override
-    public long getColumnIndex(String name) {
-        long columnCount = getColumnCount();
-        for (long i = 0; i < columnCount; i++) {
-            if (name.equals(getColumnName(i))) {
-                return i;
-            }
-        }
-        return -1;
+    public long getColumnIndex(String columnName) {
+        if (columnName == null)
+            throw new NullPointerException("Column name can not be null.");
+        return nativeGetColumnIndex(nativePtr, columnName);
     }
+    
+    protected native long nativeGetColumnIndex(long nativeViewPtr, String columnName);
+
 
     /**
      * Get the type of a column identified by the columnIdex.

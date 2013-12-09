@@ -153,6 +153,15 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetColumnName(
     return to_jstring(env, TBL(nativeTablePtr)->get_column_name( S(columnIndex))); // noexcept
 }
 
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetColumnIndex(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jstring columnName)
+{
+    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
+        return 0;
+    JStringAccessor columnName2(env, columnName);
+    return TBL(nativeTablePtr)->get_column_index(columnName2); // noexcept
+}
+
 JNIEXPORT jint JNICALL Java_com_tightdb_Table_nativeGetColumnType(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
