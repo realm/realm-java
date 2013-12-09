@@ -120,7 +120,10 @@ public class JNISubtableTest {
         assertEquals(100, subView.getLong(0, 1));
         assertEquals(1000, subView.getLong(0, 2));
 
-        try { subView.sort(subtableStringColIndex); fail("Sort not supported on String columns"); } catch (IllegalArgumentException e) { }
+        try { 
+            subView.sort(subtableStringColIndex); 
+            fail("Sort not supported on String columns"); 
+        } catch (IllegalArgumentException e) { }
     }
 
     @Test
