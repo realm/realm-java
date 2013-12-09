@@ -36,25 +36,46 @@ public class JNIMixedTypeTest {
 
         switch (columnType) {
         case BINARY:
-            try { mixed.getBinaryByteArray();   fail("Wrong mixed type"); } catch (IllegalMixedTypeException e) { }
+            try { 
+                mixed.getBinaryByteArray();   
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case DATE:
-            try { mixed.getDateValue();         fail("Wrong mixed type"); } catch (IllegalMixedTypeException e) { }
+            try { 
+                mixed.getDateValue();         
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case BOOLEAN:
-            try { mixed.getBooleanValue();      fail("Wrong mixed type"); } catch (IllegalMixedTypeException e) { }
+            try { 
+                mixed.getBooleanValue();      
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case INTEGER:
-            try { mixed.getLongValue();         fail("Wrong mixed type"); } catch (IllegalMixedTypeException e) { }
+            try { 
+                mixed.getLongValue();         
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case FLOAT:
-            try { mixed.getFloatValue();        fail("Wrong mixed type"); } catch (IllegalMixedTypeException e) { }
+            try { 
+                mixed.getFloatValue();        
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case DOUBLE:
-            try { mixed.getDoubleValue();       fail("Wrong mixed type"); } catch (IllegalMixedTypeException e) { }
+            try { 
+                mixed.getDoubleValue();       
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case STRING:
-            try { mixed.getStringValue();       fail("Wrong mixed type"); } catch (IllegalMixedTypeException e) { }
+            try { 
+                mixed.getStringValue();       
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         default:
             fail("wrong type");

@@ -91,7 +91,8 @@ public class JNITableInsertTest {
 
         // Test set()
         Date date2 = new Date(123);
-        Object[] newRowData = new Object[] {true, 321, "new", new byte[] {5}, date2, "hey", new Object[][] {{432, "new"}} };
+        Object[] newRowData = new Object[] {true, 321, "new", new byte[] {5}, 
+                date2, "hey", new Object[][] {{432, "new"}} };
         table.set(2, newRowData);
         verifyRow(table, 0, rowData3);
         verifyRow(table, 1, rowData0);
@@ -248,7 +249,8 @@ public class JNITableInsertTest {
 
         Table table = new Table();
         try { 
-            table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, LONGER THAN THE MAX 63 CHARACTERS"); 
+            table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, "
+                    + "LONGER THAN THE MAX 63 CHARACTERS"); 
             fail("Too long name"); } 
         catch (IllegalArgumentException e) { }
     }
