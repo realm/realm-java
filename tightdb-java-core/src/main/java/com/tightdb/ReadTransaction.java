@@ -21,10 +21,8 @@ public class ReadTransaction extends Group {
         db.endRead();
     }
 
-//    @Override
-    @Deprecated
+    @Override
     public void close() {
-        //System.out.println("read-close");
         db.endRead();
     }
 

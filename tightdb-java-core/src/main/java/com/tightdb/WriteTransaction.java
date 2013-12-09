@@ -19,6 +19,7 @@ public class WriteTransaction extends Group {
         db.rollback();
     }
 
+    @Override
     public void close() {
         if (!committed) {
             rollback();

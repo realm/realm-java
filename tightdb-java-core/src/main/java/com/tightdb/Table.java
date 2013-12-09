@@ -1,6 +1,5 @@
 package com.tightdb;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 import com.tightdb.TableView.Order;
@@ -104,7 +103,8 @@ public class Table implements TableOrView, TableSchema {
         }
     }
 
-    private void close() {
+    @Override
+    public void close() {
         synchronized (CloseMutex.getInstance()) {
             if (nativePtr == 0) {
                 if (DEBUG)

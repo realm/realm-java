@@ -27,7 +27,7 @@ public class TableQuery {
         }
     }
 
-    private synchronized void close() {
+    public synchronized void close() {
         if (DEBUG)
             System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
         if (nativePtr == 0) {

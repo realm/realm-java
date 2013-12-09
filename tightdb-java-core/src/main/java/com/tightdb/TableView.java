@@ -1,6 +1,5 @@
 package com.tightdb;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 
@@ -84,7 +83,8 @@ public class TableView implements TableOrView {
         }
     }
 
-    private synchronized void close(){
+    @Override
+    public synchronized void close(){
         if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
         if (nativePtr == 0)
             return;

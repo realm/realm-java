@@ -16,31 +16,29 @@ public class SharedGroup {
         FULL(0),
         MEM_ONLY(1),
         ASYNC(2);
-        private final int value;
-        private Durability(int value)
-        {
+        
+        final int value;
+        
+        private Durability(int value) {
             this.value = value;
-        }
-        public int getValue() {
-            return value;
         }
     }
 
     public SharedGroup(String databaseFile) {
-        this.nativePtr = createNative(databaseFile, Durability.FULL.getValue(), false, false);
+        this.nativePtr = createNative(databaseFile, Durability.FULL.value, false, false);
         checkNativePtr();
     }
     public SharedGroup(String databaseFile, Durability durability) {
-        this.nativePtr = createNative(databaseFile, durability.getValue(), false, false);
+        this.nativePtr = createNative(databaseFile, durability.value, false, false);
         checkNativePtr();
     }
     public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
-        this.nativePtr = createNative(databaseFile, durability.getValue(), fileMustExist, false);
+        this.nativePtr = createNative(databaseFile, durability.value, fileMustExist, false);
         checkNativePtr();
     }
 /*
     SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
-        this.nativePtr = createNative(databaseFile, durability.getValue(), no_create, enableReplication);
+        this.nativePtr = createNative(databaseFile, durability.value, no_create, enableReplication);
         checkNativePtr();
     }
 */
