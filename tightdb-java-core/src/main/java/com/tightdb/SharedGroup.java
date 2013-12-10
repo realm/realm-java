@@ -44,6 +44,7 @@ public class SharedGroup {
     SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
         this.nativePtr = createNative(databaseFile, durability.value, no_create, enableReplication);
         checkNativePtr();
+        context = new Context();
     }
 */
     public WriteTransaction beginWrite() {
