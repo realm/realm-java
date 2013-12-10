@@ -44,10 +44,10 @@ public class JNIGarbageCollectorQueryTest {
 
         for (long i=0;i<count;i++){
             Table sub = t.getSubTable(0, i);
-            TableQuery quer = sub.where();
+            TableQuery query = sub.where();
             sub.close();
-            quer.count();
-            quer.close();
+            query.count();
+            query.close();
         }
     }
 
