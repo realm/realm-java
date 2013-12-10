@@ -125,8 +125,8 @@ public class Table implements TableOrView, TableSchema {
         }
     }*/
     
-    public void close()
-    {
+    @Override
+    public void close() {
         if (nativePtr != 0) {
             nativeClose(nativePtr);
             nativePtr = 0;
@@ -167,7 +167,7 @@ public class Table implements TableOrView, TableSchema {
      * The only method you can call is 'isValid()'.
      */
 
-    public boolean isValid(){
+    public boolean isValid() {
         if (nativePtr == 0)
             return false;
         return nativeIsValid(nativePtr);

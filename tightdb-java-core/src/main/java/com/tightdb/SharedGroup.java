@@ -116,7 +116,7 @@ public class SharedGroup {
        // }
     }
 
-    private boolean isClosed(){
+    private boolean isClosed() {
         return nativePtr == 0;
     }
 

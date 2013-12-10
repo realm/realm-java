@@ -16,6 +16,11 @@ public class JNIGarbageCollectorTableTest {
 
 
     public void test1(long count){
+        
+        t = new Table();
+
+        t.addColumn(ColumnType.TABLE, "table");
+        t.addEmptyRow();
 
         List<Table> tables = new ArrayList<Table>();
 
@@ -23,35 +28,52 @@ public class JNIGarbageCollectorTableTest {
             t.addEmptyRow();
             tables.add(t.getSubTable(0, i));
         }
+        
+        t.close();
     }
 
     public void test2(long count){
 
+        t = new Table();
+
+        t.addColumn(ColumnType.TABLE, "table");
+        t.addEmptyRow();
 
         for (long i=0;i<count;i++){
+            t.addEmptyRow();
+
             Table sub = t.getSubTable(0, i);
             sub.size();
 
         }
+        
+        t.close();
     }
 
     public void test3(long count){
+        
+        t = new Table();
+
+        t.addColumn(ColumnType.TABLE, "table");
+        t.addEmptyRow();
 
         for (long i=0;i<count;i++){
+            t.addEmptyRow();
+
             Table sub = t.getSubTable(0, i);
             sub.size();
             sub.close();
         }
+        
+        t.close();
     }
 
 
     @Test
     public void testGetSubtable(){
 
-        t = new Table();
+        
 
-        t.addColumn(ColumnType.TABLE, "table");
-        t.addEmptyRow();
 
         long count = 1000;
 
