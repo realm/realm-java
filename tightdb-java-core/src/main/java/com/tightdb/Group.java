@@ -96,12 +96,12 @@ public class Group {
 
     protected native long createNative(ByteBuffer buffer);
 
-    protected Group(long nativePtr, boolean immutable) {
+    /*protected Group(long nativePtr, boolean immutable) {
         this.immutable = immutable;
         this.nativePtr = nativePtr;
         checkNativePtr();
         context = new Context();
-    }
+    }*/
 
     protected void finalize()
     {

@@ -51,8 +51,7 @@ public class SharedGroup {
             throw new IllegalStateException(
                     "Can't beginWrite() during another active transaction");
         // FIXME: throw from nativeMethod in case of error
-        WriteTransaction t = new WriteTransaction(this,
-                nativeBeginWrite(nativePtr));
+        WriteTransaction t = new WriteTransaction(context, this, nativeBeginWrite(nativePtr));
         activeTransaction = true;
         return t;
     }

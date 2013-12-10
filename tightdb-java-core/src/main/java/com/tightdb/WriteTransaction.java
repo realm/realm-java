@@ -26,8 +26,8 @@ public class WriteTransaction extends Group {
         }
     }
 
-    WriteTransaction(SharedGroup db, long nativePtr) {
-        super(nativePtr, false);    // Group is mutable
+    WriteTransaction(Context context,SharedGroup db, long nativePtr) {
+        super(context, nativePtr, false);    // Group is mutable
         this.db = db;
         committed = false;
     }

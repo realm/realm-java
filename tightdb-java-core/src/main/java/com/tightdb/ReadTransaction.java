@@ -7,10 +7,10 @@ public class ReadTransaction extends Group {
 
     private SharedGroup db;
 
-    ReadTransaction(SharedGroup db) {
+    /*ReadTransaction(SharedGroup db) {
         super(db.beginReadGroup(), true);
         this.db = db;
-    }
+    }*/
     
     ReadTransaction(Context context, SharedGroup db, long nativePointer)
     {
@@ -18,10 +18,10 @@ public class ReadTransaction extends Group {
         this.db = db;
     }
 
-    ReadTransaction(SharedGroup db, long nativePtr) {
+    /*ReadTransaction(SharedGroup db, long nativePtr) {
         super(nativePtr, true); // make Group immutable
         this.db = db;
-    }
+    }*/
 
     public void endRead() {
         db.endRead();
