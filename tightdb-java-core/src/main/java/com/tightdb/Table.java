@@ -94,7 +94,7 @@ public class Table implements TableOrView, TableSchema {
         this.nativePtr = nativePointer;
     }
 
-    protected Table(Object parent, long nativePtr, boolean immutable) {
+  /*  protected Table(Object parent, long nativePtr, boolean immutable) {
         this.immutable = immutable;
         this.nativePtr = nativePtr;
         this.parent = parent;
@@ -102,7 +102,7 @@ public class Table implements TableOrView, TableSchema {
             tableNo = ++TableCount;
             System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
-    }
+    }*/
     
     @Override
     protected void finalize() {
@@ -814,7 +814,8 @@ public class Table implements TableOrView, TableSchema {
     // which happens before an insertDone().
 
     private Table getSubTableDuringInsert(long columnIndex, long rowIndex) {
-        return new Table(this, nativeGetSubTableDuringInsert(nativePtr, columnIndex, rowIndex), immutable);
+        context.executeDelayedDisposal();
+        return new Table(this.context, this, nativeGetSubTableDuringInsert(nativePtr, columnIndex, rowIndex), immutable);
     }
     private native long nativeGetSubTableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
 

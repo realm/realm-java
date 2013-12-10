@@ -92,6 +92,7 @@ public class Group {
         } else {
             throw new IllegalArgumentException();
         }
+        context = new Context();
     }
 
     protected native long createNative(ByteBuffer buffer);

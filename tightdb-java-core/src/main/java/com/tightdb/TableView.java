@@ -306,7 +306,8 @@ public class TableView implements TableOrView {
 
     @Override
     public Table getSubTable(long columnIndex, long rowIndex){
-        return new Table(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex), immutable);
+        this.context.executeDelayedDisposal();
+        return new Table(this.context, this, nativeGetSubTable(nativePtr, columnIndex, rowIndex), immutable);
     }
 
     protected native long nativeGetSubTable(long nativeViewPtr, long columnIndex, long rowIndex);
