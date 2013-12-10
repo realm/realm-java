@@ -3,7 +3,7 @@ package com.tightdb;
 import java.util.Date;
 
 import com.tightdb.TableView.Order;
-import com.tightdb.internal.CloseMutex;
+//import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 /*
@@ -124,8 +124,24 @@ public class Table implements TableOrView, TableSchema {
             super.finalize();
         }
     }*/
+    
+    public void close()
+    {
+        if (nativePtr != 0) {
+            nativeClose(nativePtr);
+            nativePtr = 0;
+            
+            if (DEBUG) {
+                TableCount--;
+                System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+            }
+        } else {
+            if (DEBUG)
+                System.err.println(".... CLOSE ignored.");
+        }
+    }
 
-    @Override
+   /* @Override
     public void close() {
         synchronized (CloseMutex.getInstance()) {
             if (nativePtr == 0) {
@@ -140,7 +156,7 @@ public class Table implements TableOrView, TableSchema {
             nativeClose(nativePtr);
             nativePtr = 0;
         }
-    }
+    }*/
 
     protected static native void nativeClose(long nativeTablePtr);
 

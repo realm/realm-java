@@ -1,6 +1,6 @@
 package com.tightdb;
 
-import com.tightdb.internal.CloseMutex;
+//import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 public class SharedGroup {
@@ -108,12 +108,12 @@ public class SharedGroup {
     }
 
     private void doClose() {
-        synchronized (CloseMutex.getInstance()) {
+       // synchronized (CloseMutex.getInstance()) {
             if (nativePtr == 0)
                 return;
             nativeClose(nativePtr);
             nativePtr = 0;
-        }
+       // }
     }
 
     private boolean isClosed(){

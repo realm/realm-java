@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.tightdb.internal.CloseMutex;
+//import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 /**

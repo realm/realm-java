@@ -1,4 +1,4 @@
-package com.tightdb.internal;
+/*package com.tightdb.internal;
 
 // Singleton for handling synchronized close of tables and groups
 
@@ -16,3 +16,4 @@ public class CloseMutex {
     }
 
 }
+*/
