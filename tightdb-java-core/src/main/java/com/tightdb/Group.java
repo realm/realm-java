@@ -12,6 +12,11 @@ import com.tightdb.typed.TightDB;
  * of a collection of tables.
  */
 public class Group {
+    
+    
+    protected long nativePtr;
+    protected boolean immutable = false;
+    private Context context = null;
 
     static {
         TightDB.loadLibrary();
@@ -33,6 +38,7 @@ public class Group {
     public Group() {
         this.nativePtr = createNative();
         checkNativePtr();
+        context = new Context();
     }
 
     protected native long createNative();
@@ -51,16 +57,19 @@ public class Group {
     public Group(String filepath, OpenMode mode) {
         this.nativePtr = createNative(filepath, mode.value);
         checkNativePtr();
+        context = new Context();
     }
 
     protected native long createNative(String filepath, int value);
 
     public Group(String filepath) {
         this(filepath, OpenMode.READ_ONLY);
+        context = new Context();
     }
 
     public Group(File file) {
         this(file.getAbsolutePath(), file.canWrite() ? OpenMode.READ_WRITE : OpenMode.READ_ONLY);
+        context = new Context();
     }
 
 
@@ -71,6 +80,7 @@ public class Group {
         } else {
             throw new IllegalArgumentException();
         }
+        context = new Context();
     }
 
     protected native long createNative(byte[] data);
@@ -90,24 +100,31 @@ public class Group {
         this.immutable = immutable;
         this.nativePtr = nativePtr;
         checkNativePtr();
+        context = new Context();
     }
 
-    protected void finalize() {
-        // System.err.println("FINALIZE GROUP -------------- this " + this +
-        // "   native " + nativePtr);
-        close();
+    protected void finalize()
+    {
+        if (nativePtr != 0)
+            context.asyncDisposeGroup(nativePtr);
+    }
+    
+    
+    Group(Context context, long nativePointer, boolean immutable)
+    {
+        this.immutable = immutable;
+        this.context       = context;
+        this.nativePtr = nativePointer;
     }
 
     public void close() {
-        synchronized (CloseMutex.getInstance()) {
-            if (nativePtr != 0) {
-                nativeClose(nativePtr);
-                nativePtr = 0;
-            }
+        if (nativePtr != 0) {
+            nativeClose(nativePtr);
+            nativePtr = 0;
         }
     }
 
-    protected native void nativeClose(long nativeGroupPtr);
+    protected static native void nativeClose(long nativeGroupPtr);
 
     //
     // Group methods
@@ -175,7 +192,19 @@ public class Group {
         if (immutable)
             if (!hasTable(name))
                 throwImmutable();
-        return new Table(this, nativeGetTableNativePtr(nativePtr, name), immutable);
+        
+        context.executeDelayedDisposal();
+        long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
+        try {
+            // Copy context reference from parent
+            return new Table(context, this, nativeTablePointer, immutable);
+        }
+        catch (RuntimeException e) {
+            Table.nativeClose(nativeTablePointer);
+            throw e;
+        }
+        
+        //return new Table(this, nativeGetTableNativePtr(nativePtr, name), immutable);
     }
 
     protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
@@ -271,6 +300,5 @@ public class Group {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 
-    protected long nativePtr;
-    protected boolean immutable = false;
+    
 }

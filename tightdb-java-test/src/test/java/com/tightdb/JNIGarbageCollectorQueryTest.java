@@ -27,8 +27,6 @@ public class JNIGarbageCollectorQueryTest {
             views.add(sub.where());
             sub.close();
         }
-
-        System.out.println("Test1. Size : " + views.size());
     }
 
     public void test2(long count){
@@ -40,8 +38,6 @@ public class JNIGarbageCollectorQueryTest {
             sub.close();
             query.count();
         }
-
-        System.out.println("Test2. Done");
     }
 
     public void test3(long count){
@@ -53,24 +49,22 @@ public class JNIGarbageCollectorQueryTest {
             quer.count();
             quer.close();
         }
-
-        System.out.println("Test3. Done");
     }
 
 
-    @Test
+    @Test(enabled=true)
     public void testGetSubtable(){
 
         t = new Table();
 
         t.addColumn(ColumnType.TABLE, "table");
 
-        long count = 10000;
+        long count = 100;
 
         long loop = 0;
 
-        while (true){
-            System.out.println("Loop: " + loop);
+        for (int i=0;i<100;i++){
+            //System.out.println("Loop: " + loop);
             test1(count);
             test2(count);
             test3(count);

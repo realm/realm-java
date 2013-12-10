@@ -7,24 +7,32 @@ public class TableQuery {
 
     protected long nativePtr;
     protected boolean immutable = false;
+    private Context context = null;
 
     private boolean queryValidated = true;
 
     // TODO: Can we protect this?
-    public TableQuery(long nativeQueryPtr, boolean immutable){
+    public TableQuery(Context context, long nativeQueryPtr, boolean immutable){
         if (DEBUG)
             System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
+        this.context = context;
         this.immutable = immutable;
         this.nativePtr = nativeQueryPtr;
     }
 
-    @Override
+   /* @Override
     public void finalize() throws Throwable {
         try {
             close();
         } finally {
             super.finalize();
         }
+    }*/
+    
+    protected void finalize()
+    {
+        if (nativePtr != 0)
+            context.asyncDisposeQuery(nativePtr);
     }
 
     public synchronized void close() {
@@ -36,7 +44,7 @@ public class TableQuery {
         nativeClose(nativePtr);
         nativePtr = 0;
     }
-    protected native void nativeClose(long nativeQueryPtr);
+    protected static native void nativeClose(long nativeQueryPtr);
 
     /**
      * Checks in core if query syntax is valid. Throws exception, if not.
@@ -399,12 +407,18 @@ public class TableQuery {
 
     public TableView findAll(long start, long end, long limit){
         validateQuery();
-        return new TableView(nativeFindAll(nativePtr, start, end, limit), immutable);
+        context.executeDelayedDisposal();
+
+        long nativeViewPtr = nativeFindAll(nativePtr, start, end, limit);
+        return new TableView(this.context, nativeViewPtr, immutable);
     }
 
     public TableView findAll(){
         validateQuery();
-        return new TableView(nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE), immutable);
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE);
+
+        return new TableView(this.context, nativeViewPtr, immutable);
     }
 
     protected native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);

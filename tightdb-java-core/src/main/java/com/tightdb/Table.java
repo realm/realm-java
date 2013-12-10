@@ -53,6 +53,7 @@ public class Table implements TableOrView, TableSchema {
     protected long nativePtr;
     protected boolean immutable = false;
     protected Object parent = null;
+    private Context context = null;
 
     // test:
     protected int tableNo;
@@ -69,6 +70,7 @@ public class Table implements TableOrView, TableSchema {
      * creates a native reference of the object and keeps a reference to it.
      */
     public Table() {
+        context = new Context();
         // Native methods work will be initialized here. Generated classes will
         // have nothing to do with the native functions. Generated Java Table
         // classes will work as a wrapper on top of table.
@@ -82,6 +84,15 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native long createNative();
+    
+    
+    Table(Context context, Object parent, long nativePointer, boolean immutable)
+    {
+        this.immutable = immutable;
+        this.context = context;
+        this.parent  = parent;
+        this.nativePtr = nativePointer;
+    }
 
     protected Table(Object parent, long nativePtr, boolean immutable) {
         this.immutable = immutable;
@@ -92,8 +103,19 @@ public class Table implements TableOrView, TableSchema {
             System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
     }
-
+    
     @Override
+    protected void finalize() {
+        // Accessing `nativePointer` without synchronization as we
+        // assume that close() is never called on behalf of a
+        // finalizer thread
+        if (this.nativePtr != 0) {
+            boolean isRoot = parent == null;
+            context.asyncDisposeTable(this.nativePtr, isRoot);
+        }
+    }
+
+   /* @Override
     public void finalize() throws Throwable {
         if (DEBUG) System.err.println("==== FINALIZE " + tableNo + "...");
         try {
@@ -101,7 +123,7 @@ public class Table implements TableOrView, TableSchema {
         } finally {
             super.finalize();
         }
-    }
+    }*/
 
     @Override
     public void close() {
@@ -120,7 +142,7 @@ public class Table implements TableOrView, TableSchema {
         }
     }
 
-    protected native void nativeClose(long nativeTablePtr);
+    protected static native void nativeClose(long nativeTablePtr);
 
     /*
      * Check if the Table is valid.
@@ -135,7 +157,7 @@ public class Table implements TableOrView, TableSchema {
         return nativeIsValid(nativePtr);
     }
 
-    protected native boolean nativeIsValid(long nativeTablePtr);
+    protected static native boolean nativeIsValid(long nativeTablePtr);
 
     @Override
     public boolean equals(Object other) {
@@ -482,7 +504,8 @@ public class Table implements TableOrView, TableSchema {
      * @return
      */
     public TableView getSortedView(long columnIndex, Order order){
-        return new TableView(nativeGetSortedView(nativePtr, columnIndex, (order == Order.ascending)), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, nativeGetSortedView(nativePtr, columnIndex, (order == Order.ascending)), immutable);
     }
 
     /**
@@ -491,7 +514,8 @@ public class Table implements TableOrView, TableSchema {
      * @return
      */
     public TableView getSortedView(long columnIndex){
-        return new TableView(nativeGetSortedView(nativePtr, columnIndex, true), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, nativeGetSortedView(nativePtr, columnIndex, true), immutable);
 
     }
 
@@ -756,8 +780,17 @@ public class Table implements TableOrView, TableSchema {
      */
     @Override
     public Table getSubTable(long columnIndex, long rowIndex) {
-        return new Table(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex), immutable);
-    }
+        context.executeDelayedDisposal();
+        long nativeSubtablePointer = nativeGetSubTable(nativePtr, columnIndex, rowIndex);
+        try {
+            // Copy context reference from parent
+            return new Table(context, this, nativeSubtablePointer, immutable);
+        }
+        catch (RuntimeException e) {
+            nativeClose(nativeSubtablePointer);
+            throw e;
+        }
+        }
 
     protected native long nativeGetSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
 
@@ -1055,7 +1088,7 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public TableQuery where() {
-        return new TableQuery(nativeWhere(nativePtr), immutable);
+        return new TableQuery(this.context, nativeWhere(nativePtr), immutable);
     }
 
     protected native long nativeWhere(long nativeTablePtr);
@@ -1104,42 +1137,48 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public TableView findAllLong(long columnIndex, long value) {
-        return new TableView(nativeFindAllInt(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, nativeFindAllInt(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
     @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
-        return new TableView(nativeFindAllBool(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, nativeFindAllBool(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
     @Override
     public TableView findAllFloat(long columnIndex, float value) {
-        return new TableView(nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
 
     @Override
     public TableView findAllDouble(long columnIndex, double value) {
-        return new TableView(nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
     @Override
     public TableView findAllDate(long columnIndex, Date date) {
-        return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000), immutable);
     }
 
     protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
 
     @Override
     public TableView findAllString(long columnIndex, String value) {
-        return new TableView(nativeFindAllString(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, nativeFindAllString(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
@@ -1173,7 +1212,8 @@ public class Table implements TableOrView, TableSchema {
     //
 
     public TableView getDistinctView(long columnIndex) {
-        return new TableView(nativeGetDistinctView(nativePtr, columnIndex), immutable);
+        this.context.executeDelayedDisposal();
+        return new TableView(this.context, nativeGetDistinctView(nativePtr, columnIndex), immutable);
     }
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);

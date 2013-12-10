@@ -7,6 +7,7 @@ public class SharedGroup {
 
     private long nativePtr;
     private boolean activeTransaction;
+    private Context context = null;
 
     static {
         TightDB.loadLibrary();
@@ -27,14 +28,17 @@ public class SharedGroup {
     public SharedGroup(String databaseFile) {
         this.nativePtr = createNative(databaseFile, Durability.FULL.value, false, false);
         checkNativePtr();
+        context = new Context();
     }
     public SharedGroup(String databaseFile, Durability durability) {
         this.nativePtr = createNative(databaseFile, durability.value, false, false);
         checkNativePtr();
+        context = new Context();
     }
     public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
         this.nativePtr = createNative(databaseFile, durability.value, fileMustExist, false);
         checkNativePtr();
+        context = new Context();
     }
 /*
     SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
@@ -66,7 +70,8 @@ public class SharedGroup {
             throw new IllegalStateException(
                     "Can't beginRead() during another active transaction");
         // FIXME: throw from nativeMethod in case of error
-        ReadTransaction t = new ReadTransaction(this, nativeBeginRead(nativePtr));
+        long nativeGroupPointer = nativeBeginRead(nativePtr);
+        ReadTransaction t = new ReadTransaction(context, this, nativeGroupPointer);
         activeTransaction = true;
         return t;
     }

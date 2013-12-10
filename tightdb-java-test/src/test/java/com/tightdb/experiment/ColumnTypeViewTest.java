@@ -29,7 +29,7 @@ public class ColumnTypeViewTest {
 
     @AfterMethod
     public void after() throws Throwable {
-        t.finalize();
+       // t.finalize();
         t = null;
         v = null;
     }

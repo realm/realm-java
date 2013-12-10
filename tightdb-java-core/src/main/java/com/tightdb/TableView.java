@@ -55,7 +55,8 @@ public class TableView implements TableOrView {
      * @param table The table.
      * @param nativePtr pointer to table.
      */
-    protected TableView(long nativePtr, boolean immutable){
+    protected TableView(Context context, long nativePtr, boolean immutable){
+        this.context = context;
         this.immutable = immutable;
         this.tableView = null;
         this.nativePtr = nativePtr;
@@ -69,30 +70,29 @@ public class TableView implements TableOrView {
      * @param tableView A table view.
      * @param nativePtr pointer to table.
      */
-    protected TableView(TableView tableView, long nativePtr, boolean immutable){
+    protected TableView(Context context, TableView tableView, long nativePtr, boolean immutable){
+        this.context = context;
         this.immutable = immutable;
         this.tableView = tableView;
         this.nativePtr = nativePtr;
     }
 
-    public void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
-        }
+    protected void finalize()
+    {
+        if (nativePtr != 0)
+            context.asyncDisposeTableView(nativePtr);
     }
 
     @Override
     public synchronized void close(){
         if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
-        if (nativePtr == 0)
-            return;
-        nativeClose(nativePtr);
-        nativePtr = 0;
+        if (nativePtr != 0) {
+            nativeClose(nativePtr);
+            nativePtr = 0;
+        }
     }
 
-    protected native void nativeClose(long nativeViewPtr);
+    protected static native void nativeClose(long nativeViewPtr);
 
     /**
      * Checks whether this table is empty or not.
@@ -564,42 +564,48 @@ public class TableView implements TableOrView {
 
     @Override
     public TableView findAllLong(long columnIndex, long value){
-        return new TableView(this,  nativeFindAllInt(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, this,  nativeFindAllInt(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
     @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
-        return new TableView(this, nativeFindAllBool(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, this, nativeFindAllBool(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
     @Override
     public TableView findAllFloat(long columnIndex, float value) {
-        return new TableView(this, nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, this, nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
 
     @Override
     public TableView findAllDouble(long columnIndex, double value) {
-        return new TableView(this, nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, this, nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
     @Override
     public TableView findAllDate(long columnIndex, Date date) {
-        return new TableView(this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
     }
 
     protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
 
     @Override
     public TableView findAllString(long columnIndex, String value){
-        return new TableView(this, nativeFindAllString(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        return new TableView(this.context, this, nativeFindAllString(nativePtr, columnIndex, value), immutable);
     }
 
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
@@ -775,7 +781,7 @@ public class TableView implements TableOrView {
 
     @Override
     public TableQuery where() {
-        return new TableQuery(nativeWhere(nativePtr), immutable);
+        return new TableQuery(this.context, nativeWhere(nativePtr), immutable);
     }
 
     protected native long nativeWhere(long nativeViewPtr);
@@ -787,6 +793,7 @@ public class TableView implements TableOrView {
     protected long nativePtr;
     protected boolean immutable = false;
     protected TableView tableView;
+    private Context context = null;
 
     @Override
     public long lookup(String value) {

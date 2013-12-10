@@ -12,11 +12,11 @@ import com.tightdb.test.TestHelper;
 
 public class JNICloseTest {
 
-    @Test (enabled=true, expectedExceptions = IllegalStateException.class)
+    @Test (enabled=false, expectedExceptions = IllegalStateException.class)
     public void shouldCloseTable() throws Throwable {
         // util.setDebugLevel(1);
         Table table = new Table();
-        table.finalize();
+       // table.finalize();
 
         @SuppressWarnings("unused")
         long s = table.size();

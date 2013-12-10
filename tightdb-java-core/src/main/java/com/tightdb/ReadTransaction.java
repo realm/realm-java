@@ -11,6 +11,12 @@ public class ReadTransaction extends Group {
         super(db.beginReadGroup(), true);
         this.db = db;
     }
+    
+    ReadTransaction(Context context, SharedGroup db, long nativePointer)
+    {
+        super(context, nativePointer, true); // make Group immutable
+        this.db = db;
+    }
 
     ReadTransaction(SharedGroup db, long nativePtr) {
         super(nativePtr, true); // make Group immutable
