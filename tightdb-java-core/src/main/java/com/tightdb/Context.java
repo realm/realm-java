@@ -4,31 +4,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Context {
-    
-    private List<Long> abandonedTables  = new ArrayList<Long>();
+
+    private List<Long> abandonedSubtables  = new ArrayList<Long>();
     private List<Long> abandonedTableViews  = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
-    private boolean isFinalized = false;
     
-    public void executeDelayedDisposal()
-    {
+    private boolean isFinalized = false;
+
+    public void executeDelayedDisposal() {
         synchronized (this) {
-            for (long nativePointer: abandonedTables)
-                if(Table.nativeIsValid(nativePointer)){
+            for (long nativePointer: abandonedSubtables){
+                if(Table.nativeIsValid(nativePointer)){ // Make sure table is valid before closing it
                     Table.nativeClose(nativePointer);
                 }
-            abandonedTables.clear();
-            for (long nativePointer: abandonedTableViews)
-                //if(TableView.nativeIsValid(nativePointer)){
-                    TableView.nativeClose(nativePointer);
-               // }
+            }
+            abandonedSubtables.clear();
+
+            for (long nativePointer: abandonedTableViews){
+                TableView.nativeClose(nativePointer);
+            }
+
             abandonedTableViews.clear();
-            for (long nativePointer: abandonedQueries)
+            for (long nativePointer: abandonedQueries){
                 TableQuery.nativeClose(nativePointer);
+            }
             abandonedQueries.clear();
         }
     }
-   
 
     public void asyncDisposeTable(long nativePointer, boolean isRoot) {
         synchronized (this) {
@@ -36,11 +38,11 @@ class Context {
                 Table.nativeClose(nativePointer);
             }
             else {
-                abandonedTables.add(nativePointer);
+                abandonedSubtables.add(nativePointer);
             }
         }
     }
-    
+
     public void asyncDisposeTableView(long nativePointer) {
         synchronized (this) {
             if (isFinalized) {
@@ -62,7 +64,7 @@ class Context {
             }
         }
     }
-    
+
     public void asyncDisposeGroup(long nativePointer) {
         synchronized (this) {
             Group.nativeClose(nativePointer);
@@ -75,7 +77,4 @@ class Context {
         }
         executeDelayedDisposal();
     }
-
-  
 }
-
