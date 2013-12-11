@@ -3,7 +3,6 @@ package com.tightdb;
 import java.util.Date;
 
 import com.tightdb.TableView.Order;
-//import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 /*

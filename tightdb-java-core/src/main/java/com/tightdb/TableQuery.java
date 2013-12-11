@@ -20,17 +20,7 @@ public class TableQuery {
         this.nativePtr = nativeQueryPtr;
     }
 
-   /* @Override
-    public void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
-        }
-    }*/
-    
-    protected void finalize()
-    {
+    protected void finalize() {
         if (nativePtr != 0)
             context.asyncDisposeQuery(nativePtr);
     }

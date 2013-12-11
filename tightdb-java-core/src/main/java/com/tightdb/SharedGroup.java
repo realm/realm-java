@@ -66,14 +66,6 @@ public class SharedGroup {
         }
     }
 
-    /*long beginReadGroup() {
-        if (activeTransaction)
-            throw new IllegalStateException(
-                    "Can't beginReadGroup() during another active transaction");
-        activeTransaction = true;
-        return nativeBeginRead(nativePtr);
-    }*/
-
     public ReadTransaction beginRead() {
         if (activeTransaction)
             throw new IllegalStateException(

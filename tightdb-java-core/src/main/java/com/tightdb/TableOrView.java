@@ -9,7 +9,6 @@ public interface TableOrView {
 
     void clear();
     
-
     void close();
 
     /**
