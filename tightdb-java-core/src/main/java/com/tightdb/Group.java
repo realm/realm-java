@@ -104,15 +104,13 @@ public class Group {
         context = new Context();
     }*/
 
-    protected void finalize()
-    {
+    protected void finalize() {
         if (nativePtr != 0)
             context.asyncDisposeGroup(nativePtr);
     }
     
     
-    Group(Context context, long nativePointer, boolean immutable)
-    {
+    Group(Context context, long nativePointer, boolean immutable) {
         this.immutable = immutable;
         this.context       = context;
         this.nativePtr = nativePointer;

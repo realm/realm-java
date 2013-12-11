@@ -305,7 +305,7 @@ public class TableView implements TableOrView {
     protected native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
 
     @Override
-    public Table getSubTable(long columnIndex, long rowIndex){
+    public Table getSubTable(long columnIndex, long rowIndex) {
         this.context.executeDelayedDisposal();
         return new Table(this.context, this, nativeGetSubTable(nativePtr, columnIndex, rowIndex), immutable);
     }
@@ -782,6 +782,7 @@ public class TableView implements TableOrView {
 
     @Override
     public TableQuery where() {
+        this.context.executeDelayedDisposal();
         return new TableQuery(this.context, nativeWhere(nativePtr), immutable);
     }
 

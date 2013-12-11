@@ -26,25 +26,25 @@ public class SharedGroup {
     }
 
     public SharedGroup(String databaseFile) {
+        context = new Context();
         this.nativePtr = createNative(databaseFile, Durability.FULL.value, false, false);
         checkNativePtr();
-        context = new Context();
     }
     public SharedGroup(String databaseFile, Durability durability) {
+        context = new Context();
         this.nativePtr = createNative(databaseFile, durability.value, false, false);
         checkNativePtr();
-        context = new Context();
     }
     public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
+        context = new Context();
         this.nativePtr = createNative(databaseFile, durability.value, fileMustExist, false);
         checkNativePtr();
-        context = new Context();
     }
 /*
     SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
+        context = new Context();
         this.nativePtr = createNative(databaseFile, durability.value, no_create, enableReplication);
         checkNativePtr();
-        context = new Context();
     }
 */
     public WriteTransaction beginWrite() {
@@ -52,28 +52,45 @@ public class SharedGroup {
             throw new IllegalStateException(
                     "Can't beginWrite() during another active transaction");
         // FIXME: throw from nativeMethod in case of error
-        WriteTransaction t = new WriteTransaction(context, this, nativeBeginWrite(nativePtr));
-        activeTransaction = true;
-        return t;
+       
+        long nativeWritePtr = nativeBeginWrite(nativePtr);
+        try {
+            // Copy context reference from parent
+            WriteTransaction t = new WriteTransaction(context, this, nativeWritePtr);
+            activeTransaction = true;
+            return t;
+        }
+        catch (RuntimeException e) {
+            Group.nativeClose(nativeWritePtr);
+            throw e;
+        }
     }
 
-    long beginReadGroup() {
+    /*long beginReadGroup() {
         if (activeTransaction)
             throw new IllegalStateException(
                     "Can't beginReadGroup() during another active transaction");
         activeTransaction = true;
         return nativeBeginRead(nativePtr);
-    }
+    }*/
 
     public ReadTransaction beginRead() {
         if (activeTransaction)
             throw new IllegalStateException(
                     "Can't beginRead() during another active transaction");
         // FIXME: throw from nativeMethod in case of error
-        long nativeGroupPointer = nativeBeginRead(nativePtr);
-        ReadTransaction t = new ReadTransaction(context, this, nativeGroupPointer);
-        activeTransaction = true;
-        return t;
+        
+        long nativeReadPtr = nativeBeginRead(nativePtr);
+        try {
+            // Copy context reference from parent
+            ReadTransaction t = new ReadTransaction(context, this, nativeReadPtr);
+            activeTransaction = true;
+            return t;
+        }
+        catch (RuntimeException e) {
+            Group.nativeClose(nativeReadPtr);
+            throw e;
+        }
     }
 
     void endRead() {
@@ -87,9 +104,12 @@ public class SharedGroup {
     public void close() {
         if (activeTransaction)
             throw new IllegalStateException(
-                    "Can't close() SharedGroup during an active transaction");
+                    "Can't close the SharedGroup during an active transaction");
 
-        doClose();
+        if (nativePtr == 0)
+            return;
+        nativeClose(nativePtr);
+        nativePtr = 0;
     }
 
     void commit() {
@@ -108,14 +128,6 @@ public class SharedGroup {
         activeTransaction = false;
     }
 
-    private void doClose() {
-       // synchronized (CloseMutex.getInstance()) {
-            if (nativePtr == 0)
-                return;
-            nativeClose(nativePtr);
-            nativePtr = 0;
-       // }
-    }
 
     private boolean isClosed() {
         return nativePtr == 0;
@@ -124,8 +136,10 @@ public class SharedGroup {
     static native String nativeGetDefaultReplicationDatabaseFileName();
 
     protected void finalize() {
-        doClose();
+        if (nativePtr != 0)
+            context.asyncDisposeGroup(nativePtr);
     }
+    
 
     public boolean hasChanged() {
         return nativeHasChanged(nativePtr);
