@@ -5,8 +5,8 @@ import java.util.List;
 
 class Context {
 
-    private List<Long> abandonedSubtables  = new ArrayList<Long>();
-    private List<Long> abandonedTableViews  = new ArrayList<Long>();
+    private List<Long> abandonedSubtables = new ArrayList<Long>();
+    private List<Long> abandonedTableViews = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
     
     private boolean isFinalized = false;

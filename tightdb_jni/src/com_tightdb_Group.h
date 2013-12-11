@@ -45,7 +45,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     com_tightdb_Group
