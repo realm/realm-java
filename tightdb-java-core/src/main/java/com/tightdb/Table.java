@@ -86,23 +86,12 @@ public class Table implements TableOrView, TableSchema {
     protected native long createNative();
     
     
-    Table(Context context, Object parent, long nativePointer, boolean immutable)
-    {
+    Table(Context context, Object parent, long nativePointer, boolean immutable) {
         this.immutable = immutable;
         this.context = context;
         this.parent  = parent;
         this.nativePtr = nativePointer;
     }
-
-  /*  protected Table(Object parent, long nativePtr, boolean immutable) {
-        this.immutable = immutable;
-        this.nativePtr = nativePtr;
-        this.parent = parent;
-        if (DEBUG) {
-            tableNo = ++TableCount;
-            System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
-        }
-    }*/
     
     @Override
     protected void finalize() {
@@ -110,27 +99,17 @@ public class Table implements TableOrView, TableSchema {
         // assume that close() is never called on behalf of a
         // finalizer thread
         if (this.nativePtr != 0) {
-            boolean isRoot = parent == null;
+            boolean isRoot = (parent == null);
             context.asyncDisposeTable(this.nativePtr, isRoot);
         }
     }
 
-   /* @Override
-    public void finalize() throws Throwable {
-        if (DEBUG) System.err.println("==== FINALIZE " + tableNo + "...");
-        try {
-            close();
-        } finally {
-            super.finalize();
-        }
-    }*/
-    
     @Override
     public void close() {
         if (nativePtr != 0) {
             nativeClose(nativePtr);
             nativePtr = 0;
-            
+
             if (DEBUG) {
                 TableCount--;
                 System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
@@ -140,23 +119,6 @@ public class Table implements TableOrView, TableSchema {
                 System.err.println(".... CLOSE ignored.");
         }
     }
-
-   /* @Override
-    public void close() {
-        synchronized (CloseMutex.getInstance()) {
-            if (nativePtr == 0) {
-                if (DEBUG)
-                    System.err.println(".... CLOSE ignored.");
-                return;
-            }
-            if (DEBUG) {
-                TableCount--;
-                System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
-            }
-            nativeClose(nativePtr);
-            nativePtr = 0;
-        }
-    }*/
 
     protected static native void nativeClose(long nativeTablePtr);
 

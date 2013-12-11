@@ -14,7 +14,8 @@ class Context {
     public void executeDelayedDisposal() {
         synchronized (this) {
             for (long nativePointer: abandonedSubtables){
-                if(Table.nativeIsValid(nativePointer)){ // Make sure table is valid before closing it
+                // Make sure table is valid before closing it, otherwise Illegal State Exception is thrown
+                if (Table.nativeIsValid(nativePointer)) {
                     Table.nativeClose(nativePointer);
                 }
             }
@@ -23,8 +24,8 @@ class Context {
             for (long nativePointer: abandonedTableViews){
                 TableView.nativeClose(nativePointer);
             }
-
             abandonedTableViews.clear();
+            
             for (long nativePointer: abandonedQueries){
                 TableQuery.nativeClose(nativePointer);
             }
