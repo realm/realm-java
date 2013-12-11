@@ -84,8 +84,9 @@ public class TableView implements TableOrView {
     }
 
     @Override
-    public synchronized void close(){
-        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
+    public void close(){
+        if (DEBUG) 
+            System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
         if (nativePtr != 0) {
             nativeClose(nativePtr);
             nativePtr = 0;

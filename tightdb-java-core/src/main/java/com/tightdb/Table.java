@@ -90,6 +90,10 @@ public class Table implements TableOrView, TableSchema {
         this.context = context;
         this.parent  = parent;
         this.nativePtr = nativePointer;
+        if (DEBUG) {
+            tableNo = ++TableCount;
+            System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
+        }
     }
     
     @Override
@@ -101,6 +105,8 @@ public class Table implements TableOrView, TableSchema {
             boolean isRoot = (parent == null);
             context.asyncDisposeTable(this.nativePtr, isRoot);
         }
+        if (DEBUG) 
+            System.err.println("==== FINALIZE " + tableNo + "...");
     }
 
     @Override
@@ -767,7 +773,7 @@ public class Table implements TableOrView, TableSchema {
             nativeClose(nativeSubtablePointer);
             throw e;
         }
-        }
+    }
 
     protected native long nativeGetSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
 

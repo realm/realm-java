@@ -7,14 +7,12 @@ import com.tightdb.ColumnType;
 import com.tightdb.Table;
 import com.tightdb.TableQuery;
 import com.tightdb.TableView;
-import org.testng.annotations.Test;
-import static org.testng.AssertJUnit.*;
 
 // Execute this test with Memory leak detector enabled.
 
 public class MemoryLeakTest {
 
-    @Test(enabled=false)
+    @Test
     public void testMemoryManagement() throws Throwable {
 
         //System.out.println("Begin mem test");
@@ -29,11 +27,11 @@ public class MemoryLeakTest {
 
             TableView view = query.notEqualTo(0, 2).findAll();
             AssertJUnit.assertEquals(i, table.getLong(0,0) );
-            //view.finalize();
+            view.close();
 
-          //  query.finalize();
+            query.close();
 
-           // table.finalize();
+            table.close();
         }
         // System.out.println("End mem test");
     }

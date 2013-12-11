@@ -1,6 +1,5 @@
 package com.tightdb;
 
-//import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 public class SharedGroup {
