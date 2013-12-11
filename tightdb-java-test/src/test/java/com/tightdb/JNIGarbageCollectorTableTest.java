@@ -16,7 +16,6 @@ public class JNIGarbageCollectorTableTest {
 
 
     public void test1(long count){
-        
         t = new Table();
 
         t.addColumn(ColumnType.TABLE, "table");
@@ -33,7 +32,6 @@ public class JNIGarbageCollectorTableTest {
     }
 
     public void test2(long count){
-
         t = new Table();
 
         t.addColumn(ColumnType.TABLE, "table");
@@ -44,14 +42,12 @@ public class JNIGarbageCollectorTableTest {
 
             Table sub = t.getSubTable(0, i);
             sub.size();
-
         }
         
         t.close();
     }
 
     public void test3(long count){
-        
         t = new Table();
 
         t.addColumn(ColumnType.TABLE, "table");
@@ -72,19 +68,13 @@ public class JNIGarbageCollectorTableTest {
     @Test
     public void testGetSubtable(){
 
-        
-
-
         long count = 1000;
+        long loop = 100;
 
-        long loop = 0;
-
-        for (int i=0;i<100;i++){
-           // System.out.println("Loop: " + loop);
+        for (int i=0;i<loop;i++){
             test1(count);
             test2(count);
             test3(count);
-            loop++;
         }
     }
 }

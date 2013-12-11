@@ -18,7 +18,6 @@ public class JNIGarbageCollectorTableViewTest {
 
 
     public void test1(long count){
-
         List<TableView> views = new ArrayList<TableView>();
 
         for (long i=0;i<count;i++){
@@ -30,8 +29,6 @@ public class JNIGarbageCollectorTableViewTest {
     }
 
     public void test2(long count){
-
-
         for (long i=0;i<count;i++){
             Table sub = t.getSubTable(0, i);
             TableView view = sub.where().findAll();
@@ -41,7 +38,6 @@ public class JNIGarbageCollectorTableViewTest {
     }
 
     public void test3(long count){
-
         for (long i=0;i<count;i++){
             Table sub = t.getSubTable(0, i);
             TableView view = sub.where().findAll();
@@ -51,24 +47,19 @@ public class JNIGarbageCollectorTableViewTest {
         }
     }
 
-
     @Test(enabled=true)
     public void testGetSubtableView(){
-
+        
         t = new Table();
-
         t.addColumn(ColumnType.TABLE, "table");
 
         long count = 1000;
+        long loop = 100;
 
-        long loop = 0;
-
-        for (int i=0;i<100;i++){
-            //System.out.println("Loop: " + loop);
+        for (int i=0;i<loop;i++){
             test1(count);
             test2(count);
             test3(count);
-            loop++;
         }
     }
 }

@@ -1154,9 +1154,6 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsValid(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClose(
     JNIEnv* env, jobject jTable, jlong nativeTablePtr)
 {
-    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
-        return;
-
     TR((env, "nativeClose(jTable: %x, nativeTablePtr: %x)\n", jTable, nativeTablePtr));
     LangBindHelper::unbind_table_ref(TBL(nativeTablePtr));
 }

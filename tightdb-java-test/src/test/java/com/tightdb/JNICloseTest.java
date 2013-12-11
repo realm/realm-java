@@ -12,14 +12,14 @@ import com.tightdb.test.TestHelper;
 
 public class JNICloseTest {
 
-    @Test (enabled=false, expectedExceptions = IllegalStateException.class)
+    @Test
     public void shouldCloseTable() throws Throwable {
-        // util.setDebugLevel(1);
         Table table = new Table();
-       // table.finalize();
+        table.close();
 
-        @SuppressWarnings("unused")
-        long s = table.size();
+        try { table.size();                            fail("Table is closed"); } catch (IllegalStateException e) { }
+        try { table.getColumnCount();                  fail("Table is closed"); } catch (IllegalStateException e) { }
+        try { table.addColumn(ColumnType.STRING, "");  fail("Table is closed"); } catch (IllegalStateException e) { }
 
         // TODO: Test all methods...
     }
@@ -29,12 +29,14 @@ public class JNICloseTest {
     // Verify subtables are invalidated when table is changed/updated in any way.
     // Check that Group.close works
 
-    @Test (enabled=false)
-    public void shouldCloseGroup() { // TODO!
+    @Test
+    public void shouldCloseGroup() { 
 
-        //Group group = new Group();
+        Group group = new Group();
+        group.close();
 
-        //  EmployeeTable employees = new EmployeeTable(group);
+        try { group.getTable("t");    fail("Group is closed"); } catch (IllegalStateException e) { }
+        try { group.size();                     fail("Group is closed"); } catch (IllegalStateException e) { }
     }
 
     /**
@@ -86,8 +88,7 @@ public class JNICloseTest {
     }
 
 
-    public void shouldThrowWhenAccessingViewAfterTableIsDetached()
-    {
+    public void shouldThrowWhenAccessingViewAfterTableIsDetached() {
         final String testFile = "closetest.tightdb";
         SharedGroup db;
         File f = new File(testFile);
