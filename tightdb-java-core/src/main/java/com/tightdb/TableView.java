@@ -565,48 +565,90 @@ public class TableView implements TableOrView {
 
     @Override
     public TableView findAllLong(long columnIndex, long value){
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        return new TableView(this.context, this,  nativeFindAllInt(nativePtr, columnIndex, value), immutable);
+        long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
+        try { 
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
     @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        return new TableView(this.context, this, nativeFindAllBool(nativePtr, columnIndex, value), immutable);
+        long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
+        try { 
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }  
     }
 
     protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
     @Override
     public TableView findAllFloat(long columnIndex, float value) {
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        return new TableView(this.context, this, nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
+        long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
+        try { 
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }  
     }
 
     protected native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
 
     @Override
     public TableView findAllDouble(long columnIndex, double value) {
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        return new TableView(this.context, this, nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
+        long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
+        try { 
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }   
     }
 
     protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
     @Override
     public TableView findAllDate(long columnIndex, Date date) {
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        return new TableView(this.context, this, nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000), immutable);
+        long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000);
+        try { 
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }  
     }
 
     protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
 
     @Override
     public TableView findAllString(long columnIndex, String value){
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        return new TableView(this.context, this, nativeFindAllString(nativePtr, columnIndex, value), immutable);
+        long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
+        try { 
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
@@ -782,8 +824,15 @@ public class TableView implements TableOrView {
 
     @Override
     public TableQuery where() {
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         this.context.executeDelayedDisposal();
-        return new TableQuery(this.context, nativeWhere(nativePtr), immutable);
+        long nativeQueryPtr = nativeWhere(nativePtr);
+        try {
+            return new TableQuery(this.context, nativeQueryPtr, immutable);
+        } catch (RuntimeException e) {
+            TableQuery.nativeClose(nativeQueryPtr);
+            throw e;
+        }
     }
 
     protected native long nativeWhere(long nativeViewPtr);

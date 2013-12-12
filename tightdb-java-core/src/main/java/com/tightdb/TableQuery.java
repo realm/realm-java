@@ -397,18 +397,30 @@ public class TableQuery {
 
     public TableView findAll(long start, long end, long limit){
         validateQuery();
+        
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-
         long nativeViewPtr = nativeFindAll(nativePtr, start, end, limit);
-        return new TableView(this.context, nativeViewPtr, immutable);
+        try {
+            return new TableView(this.context, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     public TableView findAll(){
         validateQuery();
+        
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE);
-
-        return new TableView(this.context, nativeViewPtr, immutable);
+        try {
+            return new TableView(this.context, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);

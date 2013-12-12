@@ -5,7 +5,7 @@ import java.util.List;
 
 class Context {
 
-    private List<Long> abandonedSubtables = new ArrayList<Long>();
+    private List<Long> abandonedTables = new ArrayList<Long>();
     private List<Long> abandonedTableViews = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
     
@@ -13,10 +13,10 @@ class Context {
 
     public void executeDelayedDisposal() {
         synchronized (this) {
-            for (long nativePointer: abandonedSubtables) {
+            for (long nativePointer: abandonedTables) {
                     Table.nativeClose(nativePointer);
             }
-            abandonedSubtables.clear();
+            abandonedTables.clear();
 
             for (long nativePointer: abandonedTableViews) {
                 TableView.nativeClose(nativePointer);
@@ -36,7 +36,7 @@ class Context {
                 Table.nativeClose(nativePointer);
             }
             else {
-                abandonedSubtables.add(nativePointer);
+                abandonedTables.add(nativePointer);
             }
         }
     }

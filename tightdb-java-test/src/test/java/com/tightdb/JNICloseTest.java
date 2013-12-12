@@ -50,7 +50,7 @@ public class JNICloseTest {
             table.setLong(5, i, i);
         TableQuery query = table.where();
         // Closes the table, it _should_ be allowed to access the query thereafter
-        table.finalize();
+        table.close();
         table = null;
         Table table2 = TestHelper.getTableWithAllColumnTypes();
         table2.addEmptyRows(10);
@@ -70,7 +70,7 @@ public class JNICloseTest {
         TableQuery query = table.where();
         TableView view = query.findAll();
         //Closes the table, it should be allowed to access the view thereafter (table is ref-counted)
-        table.finalize();
+        table.close();
         table = null;
 
         // Accessing methods should be ok.

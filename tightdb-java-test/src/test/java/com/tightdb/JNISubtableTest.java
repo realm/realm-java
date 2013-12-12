@@ -25,7 +25,7 @@ public class JNISubtableTest {
         Table subtable1 = table.getSubTable(1, 0);
         subtable1.add(123);
         assertEquals(1, subtable1.size());
-        subtable1.finalize();
+        subtable1.close();
 
         Table subtable2 = table.getSubTable(1, 0);
         assertEquals(1, subtable2.size());
