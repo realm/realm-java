@@ -3,7 +3,7 @@ package com.tightdb;
 
 public interface TableSchema {
 
-    TableSchema getSubTableSchema(long columnIndex);
+    TableSchema getSubtableSchema(long columnIndex);
 
     long addColumn(ColumnType type, String name);
 

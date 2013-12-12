@@ -144,12 +144,12 @@ public class JNIViewTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-        TableSchema addresses = persons.getSubTableSchema(2);
+        TableSchema addresses = persons.getSubtableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        TableSchema phone_numbers = addresses.getSubTableSchema(2);
+        TableSchema phone_numbers = addresses.getSubtableSchema(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
