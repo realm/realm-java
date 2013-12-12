@@ -2,6 +2,9 @@
 Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp and com.tightdb.internal.Util.java
       when the JNI interface is changed.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+12-December-2013:
+================
+! BREAKING CHANGE: SubTableSchema renamed to SubtableSchema and the related getter methods.
 
 25-November-2013:
 ================
