@@ -84,7 +84,7 @@ public class DynTableIntro {
         tbl3.addColumn(ColumnType.STRING, "name");
         tbl3.addColumn(ColumnType.TABLE, "subtable");
 
-        TableSchema subSchema = tbl3.getSubTableSchema(1);
+        TableSchema subSchema = tbl3.getSubtableSchema(1);
         subSchema.addColumn(ColumnType.STRING, "key");
         subSchema.addColumn(ColumnType.MIXED, "value");
 

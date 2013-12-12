@@ -25,7 +25,7 @@ public class JNIGarbageCollectorSubtableSchemaTest {
 
         for (long i=0;i<count;i++){
             t.addEmptyRow();
-            tables.add(t.getSubTableSchema(0));
+            tables.add(t.getSubtableSchema(0));
         }
         
         t.close();
@@ -40,7 +40,7 @@ public class JNIGarbageCollectorSubtableSchemaTest {
         for (long i=0;i<count;i++){
             t.addEmptyRow();
 
-            TableSchema schema = t.getSubTableSchema(0);
+            TableSchema schema = t.getSubtableSchema(0);
             schema.toString();
         }
         
@@ -56,7 +56,7 @@ public class JNIGarbageCollectorSubtableSchemaTest {
         for (long i=0;i<count;i++){
             t.addEmptyRow();
 
-            TableSchema schema = t.getSubTableSchema(0);
+            TableSchema schema = t.getSubtableSchema(0);
             schema.toString();
             //schema.close();
         }
