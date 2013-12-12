@@ -20,11 +20,6 @@ public class TableQuery {
         this.nativePtr = nativeQueryPtr;
     }
 
-    protected void finalize() {
-        if (nativePtr != 0)
-            context.asyncDisposeQuery(nativePtr);
-    }
-
     public void close() {
         if (DEBUG)
             System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
@@ -35,6 +30,11 @@ public class TableQuery {
         nativePtr = 0;
     }
     protected static native void nativeClose(long nativeQueryPtr);
+    
+    protected void finalize() {
+        if (nativePtr != 0)
+            context.asyncDisposeQuery(nativePtr);
+    }
 
     /**
      * Checks in core if query syntax is valid. Throws exception, if not.

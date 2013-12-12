@@ -32,6 +32,5 @@ public class WriteTransaction extends Group {
         committed = false;
     }
 
-    protected void finalize() {
-    } // Nullify the actions of Group.finalize()
+    protected void finalize() {} // Nullify the actions of Group.finalize()
 }

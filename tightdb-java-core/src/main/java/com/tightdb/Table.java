@@ -780,13 +780,13 @@ public class Table implements TableOrView, TableSchema {
     public Table getSubTable(long columnIndex, long rowIndex) {
         // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        long nativeSubtablePointer = nativeGetSubTable(nativePtr, columnIndex, rowIndex);
+        long nativeSubtablePtr = nativeGetSubTable(nativePtr, columnIndex, rowIndex);
         try {
             // Copy context reference from parent
-            return new Table(context, this, nativeSubtablePointer, immutable);
+            return new Table(context, this, nativeSubtablePtr, immutable);
         }
         catch (RuntimeException e) {
-            nativeClose(nativeSubtablePointer);
+            nativeClose(nativeSubtablePtr);
             throw e;
         }
     }
@@ -799,12 +799,12 @@ public class Table implements TableOrView, TableSchema {
     private Table getSubTableDuringInsert(long columnIndex, long rowIndex) {
         // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        long nativeSubtablePointer =  nativeGetSubTableDuringInsert(nativePtr, columnIndex, rowIndex);
+        long nativeSubtablePtr =  nativeGetSubTableDuringInsert(nativePtr, columnIndex, rowIndex);
         try {
-            return new Table(this.context, this,nativeSubtablePointer, immutable);
+            return new Table(this.context, this,nativeSubtablePtr, immutable);
         }
         catch (RuntimeException e) {
-            nativeClose(nativeSubtablePointer);
+            nativeClose(nativeSubtablePtr);
             throw e;
         }
     }
@@ -1155,7 +1155,13 @@ public class Table implements TableOrView, TableSchema {
     @Override
     public TableView findAllLong(long columnIndex, long value) {
         context.executeDelayedDisposal();
-        return new TableView(this.context, nativeFindAllInt(nativePtr, columnIndex, value), immutable);
+        long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
+        try {
+            return new TableView(this.context, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
