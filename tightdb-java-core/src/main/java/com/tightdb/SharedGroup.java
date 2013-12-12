@@ -128,7 +128,7 @@ public class SharedGroup {
 
     protected void finalize() {
         if (nativePtr != 0)
-            context.asyncDisposeGroup(nativePtr);
+            context.asyncDisposeSharedGroup(nativePtr);
     }
     
 
@@ -164,5 +164,5 @@ public class SharedGroup {
             throw new OutOfMemoryError("Out of native memory.");
     }
 
-    private native void nativeClose(long nativePtr);
+    protected static native void nativeClose(long nativePtr);
 }

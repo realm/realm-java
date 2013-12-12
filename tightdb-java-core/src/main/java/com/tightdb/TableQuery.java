@@ -25,7 +25,7 @@ public class TableQuery {
             context.asyncDisposeQuery(nativePtr);
     }
 
-    public synchronized void close() {
+    public void close() {
         if (DEBUG)
             System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
         if (nativePtr == 0) {

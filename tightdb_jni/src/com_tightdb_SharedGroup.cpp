@@ -63,7 +63,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeClose(
-    JNIEnv*, jobject, jlong native_ptr)
+    JNIEnv*, jclass, jlong native_ptr)
 {
     delete SG(native_ptr);
 }

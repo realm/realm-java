@@ -93,17 +93,14 @@ public class Group {
 
     protected native long createNative(ByteBuffer buffer);
 
-    protected void finalize() {
-        if (nativePtr != 0)
-            context.asyncDisposeGroup(nativePtr);
-    }
-    
     Group(Context context, long nativePointer, boolean immutable) {
         this.context = context;
         this.nativePtr = nativePointer;
         this.immutable = immutable;
     }
 
+    // If close() is called, no penalty is paid for delayed disposal
+    // via the context
     public void close() {
         if (nativePtr != 0) {
             nativeClose(nativePtr);
@@ -112,6 +109,11 @@ public class Group {
     }
 
     protected static native void nativeClose(long nativeGroupPtr);
+    
+    protected void finalize() {
+        if (nativePtr != 0)
+            context.asyncDisposeGroup(nativePtr);
+    }
 
     //
     // Group methods
@@ -174,12 +176,13 @@ public class Group {
      */
     public Table getTable(String name) {
         verifyGroupIsValid();
-        if (name == null || name == "")
-            throw new IllegalArgumentException("Invalid name. Name must be a non-empty string.");
+        if (name == null || name.equals(""))
+            throw new IllegalArgumentException("Invalid name. Name must be a non-empty String.");
         if (immutable)
             if (!hasTable(name))
                 throwImmutable();
         
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
         long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
         try {

@@ -13,17 +13,17 @@ class Context {
 
     public void executeDelayedDisposal() {
         synchronized (this) {
-            for (long nativePointer: abandonedSubtables){
+            for (long nativePointer: abandonedSubtables) {
                     Table.nativeClose(nativePointer);
             }
             abandonedSubtables.clear();
 
-            for (long nativePointer: abandonedTableViews){
+            for (long nativePointer: abandonedTableViews) {
                 TableView.nativeClose(nativePointer);
             }
             abandonedTableViews.clear();
             
-            for (long nativePointer: abandonedQueries){
+            for (long nativePointer: abandonedQueries) {
                 TableQuery.nativeClose(nativePointer);
             }
             abandonedQueries.clear();
@@ -66,6 +66,12 @@ class Context {
     public void asyncDisposeGroup(long nativePointer) {
         synchronized (this) {
             Group.nativeClose(nativePointer);
+        }
+    }
+    
+    public void asyncDisposeSharedGroup(long nativePointer) {
+        synchronized (this) {
+            SharedGroup.nativeClose(nativePointer);
         }
     }
 

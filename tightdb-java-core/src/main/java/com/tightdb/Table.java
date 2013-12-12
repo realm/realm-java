@@ -84,7 +84,6 @@ public class Table implements TableOrView, TableSchema {
 
     protected native long createNative();
     
-    
     Table(Context context, Object parent, long nativePointer, boolean immutable) {
         this.immutable = immutable;
         this.context = context;
@@ -95,20 +94,9 @@ public class Table implements TableOrView, TableSchema {
             System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
     }
-    
-    @Override
-    protected void finalize() {
-        // Accessing `nativePointer` without synchronization as we
-        // assume that close() is never called on behalf of a
-        // finalizer thread
-        if (this.nativePtr != 0) {
-            boolean isRoot = (parent == null);
-            context.asyncDisposeTable(this.nativePtr, isRoot);
-        }
-        if (DEBUG) 
-            System.err.println("==== FINALIZE " + tableNo + "...");
-    }
 
+    // If close() is called, no penalty is paid for delayed disposal
+    // via the context
     @Override
     public void close() {
         if (nativePtr != 0) {
@@ -126,6 +114,19 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected static native void nativeClose(long nativeTablePtr);
+    
+    @Override
+    protected void finalize() {
+        // Accessing `nativePointer` without synchronization as we
+        // assume that close() is never called on behalf of a
+        // finalizer thread
+        if (this.nativePtr != 0) {
+            boolean isRoot = (parent == null);
+            context.asyncDisposeTable(this.nativePtr, isRoot);
+        }
+        if (DEBUG) 
+            System.err.println("==== FINALIZE " + tableNo + "...");
+    }
 
     /*
      * Check if the Table is valid.
@@ -1072,7 +1073,22 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public TableQuery where() {
-        return new TableQuery(this.context, nativeWhere(nativePtr), immutable);
+        
+        //System.out.println("where1");
+        // return new TableQuery(this.context, nativeWhere(nativePtr), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        //System.out.println("where2");
+
+        long nativeQueryPtr = nativeWhere(nativePtr);
+        try {
+            // Copy context reference from parent
+            return new TableQuery(this.context, nativeQueryPtr, immutable);
+        }
+        catch (RuntimeException e) {
+            TableQuery.nativeClose(nativeQueryPtr);
+            throw e;
+        }
     }
 
     protected native long nativeWhere(long nativeTablePtr);

@@ -127,17 +127,12 @@ public class GroupTest {
 
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void getNullTableShouldThrowIllegalArgument() {
-        Group group = new Group();
-        group.getTable(null);
-        // Expect to throw exception
-    }
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void getEmptyTableShouldThrowIllegalArgument() {
         Group group = new Group();
-        group.getTable("");
-        // Expect to throw exception
+        try { group.getTable(null); fail("null String name"); } catch (IllegalArgumentException e) { }
+        try { group.getTable(""); fail("Empty String name"); } catch (IllegalArgumentException e) { }
+
     }
 
     //

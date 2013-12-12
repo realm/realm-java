@@ -77,12 +77,6 @@ public class TableView implements TableOrView {
         this.nativePtr = nativePtr;
     }
 
-    protected void finalize()
-    {
-        if (nativePtr != 0)
-            context.asyncDisposeTableView(nativePtr);
-    }
-
     @Override
     public void close(){
         if (DEBUG) 
@@ -91,6 +85,11 @@ public class TableView implements TableOrView {
             nativeClose(nativePtr);
             nativePtr = 0;
         }
+    }
+    
+    protected void finalize() {
+        if (nativePtr != 0)
+            context.asyncDisposeTableView(nativePtr);
     }
 
     protected static native void nativeClose(long nativeViewPtr);

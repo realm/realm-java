@@ -85,7 +85,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeClose
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
 }
