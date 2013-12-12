@@ -215,7 +215,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveLast(
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeMoveLastOver
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlong rowIndex)
 {
-    if (!TBL_AND_ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, -1))
+    if (!TBL_AND_ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, true))
         return;
     try {
         TBL(nativeTablePtr)->move_last_over(S(rowIndex));

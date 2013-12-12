@@ -53,7 +53,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetSourceRowIndex
         return 0;
     if (!ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex))
         return 0;
-    return TV(nativeViewPtr)->get_source_ndx(rowIndex);   // noexcept
+    return TV(nativeViewPtr)->get_source_ndx(S(rowIndex));   // noexcept
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnCount
@@ -740,7 +740,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeToString(
     try {
        std::ostringstream ss;
        ss.sync_with_stdio(false); // for performance
-       tv->to_string(ss, maxRows);
+       tv->to_string(ss, S(maxRows));
        const std::string str = ss.str();
        return env->NewStringUTF(str.c_str());
     } CATCH_STD()
@@ -755,7 +755,7 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeRowToString(
         return NULL;
     try {
         std::ostringstream ss;
-        tv->row_to_string(rowIndex, ss);
+        tv->row_to_string(S(rowIndex), ss);
         const std::string str = ss.str();
         return env->NewStringUTF(str.c_str());
     } CATCH_STD()
