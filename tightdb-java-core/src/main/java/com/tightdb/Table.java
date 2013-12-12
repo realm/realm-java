@@ -166,13 +166,13 @@ public class Table implements TableOrView, TableSchema {
     }
 
     @Override
-    public TableSchema getSubTableSchema(long columnIndex) {
+    public TableSchema getSubtableSchema(long columnIndex) {
         if(nativeIsRootTable(nativePtr) == false)
             throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
 
         long[] newPath = new long[1];
         newPath[0] = columnIndex;
-        return new SubTableSchema(nativePtr, newPath);
+        return new SubtableSchema(nativePtr, newPath);
     }
 
     protected native boolean nativeIsRootTable(long nativeTablePtr);
