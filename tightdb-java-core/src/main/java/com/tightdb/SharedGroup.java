@@ -27,17 +27,32 @@ public class SharedGroup {
     public SharedGroup(String databaseFile) {
         context = new Context();
         this.nativePtr = createNative(databaseFile, Durability.FULL.value, false, false);
-        checkNativePtr();
+        try { 
+            checkNativePtr();
+        } catch (RuntimeException e) {
+            nativeClose(nativePtr);
+            throw e;
+        }
     }
     public SharedGroup(String databaseFile, Durability durability) {
         context = new Context();
         this.nativePtr = createNative(databaseFile, durability.value, false, false);
-        checkNativePtr();
+        try { 
+            checkNativePtr();
+        } catch (RuntimeException e) {
+            nativeClose(nativePtr);
+            throw e;
+        }
     }
     public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
         context = new Context();
         this.nativePtr = createNative(databaseFile, durability.value, fileMustExist, false);
-        checkNativePtr();
+        try { 
+            checkNativePtr();
+        } catch (RuntimeException e) {
+            nativeClose(nativePtr);
+            throw e;
+        }
     }
 /*
     SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {

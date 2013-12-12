@@ -1102,8 +1102,7 @@ public class Table implements TableOrView, TableSchema {
         try {
             // Copy context reference from parent
             return new TableQuery(this.context, nativeQueryPtr, immutable);
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             TableQuery.nativeClose(nativeQueryPtr);
             throw e;
         }

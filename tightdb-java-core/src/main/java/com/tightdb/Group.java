@@ -34,9 +34,14 @@ public class Group {
     }
 
     public Group() {
-        this.nativePtr = createNative();
-        checkNativePtr();
         context = new Context();
+        this.nativePtr = createNative();
+        try {
+            checkNativePtr();
+        } catch (RuntimeException e) {
+            nativeClose(nativePtr);
+            throw e;
+        }
     }
 
     protected native long createNative();
@@ -55,7 +60,12 @@ public class Group {
     public Group(String filepath, OpenMode mode) {
         context = new Context();
         this.nativePtr = createNative(filepath, mode.value);
-        checkNativePtr();
+        try { 
+            checkNativePtr();
+        } catch (RuntimeException e) {
+            nativeClose(nativePtr);
+            throw e;
+        }
     }
 
     protected native long createNative(String filepath, int value);
@@ -73,7 +83,12 @@ public class Group {
         context = new Context();
         if (data != null) {
             this.nativePtr = createNative(data);
-            checkNativePtr();
+            try {
+                checkNativePtr();
+            } catch (RuntimeException e) {
+                nativeClose(nativePtr);
+                throw e;
+            }
         } else {
             throw new IllegalArgumentException();
         }
@@ -85,7 +100,12 @@ public class Group {
         context = new Context();
         if (buffer != null) {
             this.nativePtr = createNative(buffer);
-            checkNativePtr();
+            try { 
+                checkNativePtr();
+            } catch (RuntimeException e) {
+                nativeClose(nativePtr);
+                throw e;
+            }
         } else {
             throw new IllegalArgumentException();
         }
