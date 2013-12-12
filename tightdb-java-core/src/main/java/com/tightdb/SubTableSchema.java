@@ -1,24 +1,24 @@
 package com.tightdb;
 
 
-public class SubTableSchema implements TableSchema {
+public class SubtableSchema implements TableSchema {
 
     private long[] path;
     private long parentNativePtr;
 
-    SubTableSchema(long parentNativePtr, long[] path) {
+    SubtableSchema(long parentNativePtr, long[] path) {
         this.parentNativePtr = parentNativePtr;
         this.path = path;
     }
 
     @Override
-    public SubTableSchema getSubTableSchema(long columnIndex) {
+    public SubtableSchema getSubtableSchema(long columnIndex) {
         long[] newPath = new long[this.path.length+1];
         for (int i = 0; i < this.path.length; i++) {
             newPath[i] = path[i];
         }
         newPath[this.path.length] = columnIndex;
-        return new SubTableSchema(this.parentNativePtr, newPath);
+        return new SubtableSchema(this.parentNativePtr, newPath);
     }
 
     private void verifyColumnName(String name) {

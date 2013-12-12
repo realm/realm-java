@@ -102,7 +102,7 @@ public class JNISubtableTest {
         Table table = group.getTable("emp");
 
         table.addColumn(ColumnType.TABLE, "table");
-        TableSchema subSchema = table.getSubTableSchema(0);
+        TableSchema subSchema = table.getSubtableSchema(0);
         long subtableIntColIndex = subSchema.addColumn(ColumnType.INTEGER, "int col");
         long subtableStringColIndex = subSchema.addColumn(ColumnType.STRING, "string col");
 
@@ -136,12 +136,12 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.TABLE, "addresses");
 
         // Add a subtable
-        TableSchema addresses = persons.getSubTableSchema(2);
+        TableSchema addresses = persons.getSubtableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        TableSchema phone_numbers = addresses.getSubTableSchema(2);
+        TableSchema phone_numbers = addresses.getSubtableSchema(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
@@ -166,7 +166,7 @@ public class JNISubtableTest {
 
         persons.addColumn(ColumnType.TABLE, "sub");
 
-        TableSchema addresses = persons.getSubTableSchema(0);
+        TableSchema addresses = persons.getSubtableSchema(0);
         try { addresses.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
 
         addresses.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
@@ -181,12 +181,12 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-        TableSchema addresses = persons.getSubTableSchema(2);
+        TableSchema addresses = persons.getSubtableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        TableSchema phone_numbers = addresses.getSubTableSchema(2);
+        TableSchema phone_numbers = addresses.getSubtableSchema(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
@@ -208,12 +208,12 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.TABLE, "addresses");
 
         // Define subtable
-        TableSchema addresses = persons.getSubTableSchema(2);
+        TableSchema addresses = persons.getSubtableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        TableSchema phone_numbers = addresses.getSubTableSchema(2);
+        TableSchema phone_numbers = addresses.getSubtableSchema(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
@@ -233,12 +233,12 @@ public class JNISubtableTest {
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
 
-        TableSchema addresses = persons.getSubTableSchema(2);
+        TableSchema addresses = persons.getSubtableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        TableSchema phone_numbers = addresses.getSubTableSchema(2);
+        TableSchema phone_numbers = addresses.getSubtableSchema(2);
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
@@ -252,7 +252,7 @@ public class JNISubtableTest {
 
         try {
             // Should throw
-            persons.getSubTable(2,0).getSubTableSchema(2);
+            persons.getSubTable(2,0).getSubtableSchema(2);
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
 
