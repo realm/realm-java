@@ -18,8 +18,8 @@ public class ReadTransactionExamples {
             (new File("mydatabase.tightdb")).delete();
             (new File("mydatabase.tightdb.lock")).delete();
             // Create table, add columns and add row with data
-            SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
-            WriteTransaction wt = group.beginWrite(); 
+            SharedGroup group = new SharedGroup("mydatabase.tightdb");
+            WriteTransaction wt = group.beginWrite();
 
             try{
                 Table users = wt.getTable("myTable");
@@ -30,14 +30,14 @@ public class ReadTransactionExamples {
             } catch (Throwable t){
                 wt.rollback();
             }
-            
+
             // Remember to close the shared group
             group.close();
         }
 
         // @@Show@@
         // Open database file in a shared group
-        SharedGroup group = new SharedGroup("mydatabase.tightdb"); 
+        SharedGroup group = new SharedGroup("mydatabase.tightdb");
 
         // Start read transaction
         ReadTransaction rt = group.beginRead();
@@ -51,10 +51,10 @@ public class ReadTransactionExamples {
         } finally {
             rt.endRead(); // End read transaction in finally
         }
-        
+
         // Remember to close the shared group
         group.close();
         // @@EndShow@@
         // @@EndExample@@
     }
-} 
+}

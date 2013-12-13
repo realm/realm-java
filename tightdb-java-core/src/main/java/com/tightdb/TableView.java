@@ -85,7 +85,7 @@ public class TableView implements TableOrView {
     }
 
     private synchronized void close(){
-        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);       
+        if (DEBUG) System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
         if (nativePtr == 0)
             return;
         nativeClose(nativePtr);
@@ -115,7 +115,7 @@ public class TableView implements TableOrView {
     }
 
     protected native long nativeSize(long nativeViewPtr);
-    
+
     /**
      * Returns the index of the row in the source table
      * @param rowIndex in the TableView
@@ -160,15 +160,14 @@ public class TableView implements TableOrView {
      * @return the index, -1 if not found
      */
     @Override
-    public long getColumnIndex(String name) {
-        long columnCount = getColumnCount();
-        for (long i = 0; i < columnCount; i++) {
-            if (name.equals(getColumnName(i))) {
-                return i;
-            }
-        }
-        return -1;
+    public long getColumnIndex(String columnName) {
+        if (columnName == null)
+            throw new NullPointerException("Column name can not be null.");
+        return nativeGetColumnIndex(nativePtr, columnName);
     }
+    
+    protected native long nativeGetColumnIndex(long nativeViewPtr, String columnName);
+
 
     /**
      * Get the type of a column identified by the columnIdex.
@@ -306,26 +305,26 @@ public class TableView implements TableOrView {
     protected native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
 
     @Override
-    public Table getSubTable(long columnIndex, long rowIndex){
-        return new Table(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex), immutable);
+    public Table getSubtable(long columnIndex, long rowIndex){
+        return new Table(this, nativeGetSubtable(nativePtr, columnIndex, rowIndex), immutable);
     }
 
-    protected native long nativeGetSubTable(long nativeViewPtr, long columnIndex, long rowIndex);
+    protected native long nativeGetSubtable(long nativeViewPtr, long columnIndex, long rowIndex);
 
     @Override
-    public long getSubTableSize(long columnIndex, long rowIndex) {
-        return nativeGetSubTableSize(nativePtr, columnIndex, rowIndex);
+    public long getSubtableSize(long columnIndex, long rowIndex) {
+        return nativeGetSubtableSize(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native long nativeGetSubtableSize(long nativeTablePtr, long columnIndex, long rowIndex);
 
     @Override
-    public void clearSubTable(long columnIndex, long rowIndex) {
+    public void clearSubtable(long columnIndex, long rowIndex) {
         if (immutable) throwImmutable();
-        nativeClearSubTable(nativePtr, columnIndex, rowIndex);
+        nativeClearSubtable(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native void nativeClearSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
 
     // Methods for setting values.
@@ -556,7 +555,7 @@ public class TableView implements TableOrView {
     public long lowerBoundLong(long columnIndex, long value) {
         throw new RuntimeException("Not implemented yet");
     }
-    
+
     // TODO..
     @Override
     public long upperBoundLong(long columnIndex, long value) {
@@ -674,14 +673,14 @@ public class TableView implements TableOrView {
     public double sumFloat(long columnIndex){
         return nativeSumFloat(nativePtr, columnIndex);
     }
-    
+
     protected native double nativeSumFloat(long nativeViewPtr, long columnIndex);
 
     @Override
     public float maximumFloat(long columnIndex){
         return nativeMaximumFloat(nativePtr, columnIndex);
     }
-    
+
     protected native float nativeMaximumFloat(long nativeViewPtr, long columnIndex);
 
     @Override
@@ -705,14 +704,14 @@ public class TableView implements TableOrView {
     public double sumDouble(long columnIndex){
         return nativeSumDouble(nativePtr, columnIndex);
     }
-    
+
     protected native double nativeSumDouble(long nativeViewPtr, long columnIndex);
 
     @Override
     public double maximumDouble(long columnIndex){
         return nativeMaximumDouble(nativePtr, columnIndex);
     }
-    
+
     protected native double nativeMaximumDouble(long nativeViewPtr, long columnIndex);
 
     @Override
@@ -759,7 +758,7 @@ public class TableView implements TableOrView {
     public String toString() {
         return nativeToString(nativePtr, 500);
     }
-    
+
     @Override
     public String toString(long maxRows) {
         return nativeToString(nativePtr, maxRows);

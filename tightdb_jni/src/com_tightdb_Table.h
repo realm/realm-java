@@ -128,6 +128,14 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetTableSpec
  */
 JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeGetColumnName
   (JNIEnv *, jobject, jlong, jlong);
+    
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeGetColumnIndex
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetColumnIndex
+    (JNIEnv *, jobject, jlong, jstring);
 
 /*
  * Class:     com_tightdb_Table
@@ -235,10 +243,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertByteArray
 
 /*
  * Class:     com_tightdb_Table
- * Method:    nativeInsertSubTable
+ * Method:    nativeInsertSubtable
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertSubTable
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertSubtable
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -323,34 +331,34 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetMixed
 
 /*
  * Class:     com_tightdb_Table
- * Method:    nativeGetSubTable
+ * Method:    nativeGetSubtable
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTable
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubtable
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_Table
- * Method:    nativeGetSubTableDuringInsert
+ * Method:    nativeGetSubtableDuringInsert
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableDuringInsert
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubtableDuringInsert
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_Table
- * Method:    nativeGetSubTableSize
+ * Method:    nativeGetSubtableSize
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableSize
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubtableSize
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_Table
- * Method:    nativeClearSubTable
+ * Method:    nativeClearSubtable
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClearSubTable
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClearSubtable
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
@@ -704,7 +712,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeUpperBoundInt
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetDistinctView
   (JNIEnv *, jobject, jlong, jlong);
-    
+
 /*
  * Class:     com_tightdb_Table
  * Method:    nativeGetSortedView

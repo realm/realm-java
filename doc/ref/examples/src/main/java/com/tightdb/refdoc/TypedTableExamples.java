@@ -70,10 +70,10 @@ public class TypedTableExamples {
         // @@Show@@
         Group group = new Group();
 
-        // Create table in the group. 
+        // Create table in the group.
         // The name of the table in group will be PeopleTable.class.getSimpleName
         PeopleTable people = new PeopleTable(group);
-        
+
         Assert(group.hasTable(PeopleTable.class.getSimpleName()));
         // @@EndShow@@
         // @@EndExample@@
@@ -88,7 +88,7 @@ public class TypedTableExamples {
         // Create 2 tables of same typed with different names by specifying it in constructor
         PeopleTable americans = new PeopleTable(group, "Americans");
         PeopleTable canadians = new PeopleTable(group, "Canadians");
-        
+
         // Table operations
         americans.add("Joe", 40, true);
         // @@EndShow@@
@@ -129,8 +129,8 @@ public class TypedTableExamples {
         // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
+        people.add("Susan", 50, false);
+        people.add("Greg", 26, true);
 
         // Size is 3
         Assert(people.size() == 3);
@@ -141,7 +141,7 @@ public class TypedTableExamples {
     public static void isEmptyExample(){
         // @@Example: ex_java_typed_table_is_empty @@
         // @@Show@@
-        // Create table 
+        // Create table
         PeopleTable people = new PeopleTable();
 
         // No data has been added, table is empty
@@ -149,8 +149,8 @@ public class TypedTableExamples {
 
         // Add 3 rows of data
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
+        people.add("Susan", 50, false);
+        people.add("Greg", 26, true);
 
         // Table is not empty
         Assert(people.isEmpty() == false);
@@ -164,8 +164,8 @@ public class TypedTableExamples {
         // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
+        people.add("Susan", 50, false);
+        people.add("Greg", 26, true);
 
         // Clear table
         people.clear();
@@ -191,8 +191,8 @@ public class TypedTableExamples {
                 people.optimize();
 
             people.add("John", 40, true);
-            people.add("Susan", 50, false); 
-            people.add("Greg", 26, true); 
+            people.add("Susan", 50, false);
+            people.add("Greg", 26, true);
         }
         // @@EndShow@@
         // @@EndExample@@
@@ -205,8 +205,8 @@ public class TypedTableExamples {
         // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
+        people.add("Susan", 50, false);
+        people.add("Greg", 26, true);
 
         // Set index on Name column (Only String columns are currently supported)
         people.name.setIndex();
@@ -223,8 +223,8 @@ public class TypedTableExamples {
         // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
+        people.add("Susan", 50, false);
+        people.add("Greg", 26, true);
 
         // Set index on Name column (Only String columns are currently supported)
         people.name.setIndex();
@@ -297,7 +297,7 @@ public class TypedTableExamples {
         // Create table and add 2 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
+        people.add("Susan", 50, false);
 
         // Use get method to access rows
         PeopleRow susan = people.get(1);
@@ -319,7 +319,7 @@ public class TypedTableExamples {
 
         // Add 2 rows of data
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
+        people.add("Susan", 50, false);
 
         Assert(people.size() == 2);
         // @@EndShow@@
@@ -352,8 +352,8 @@ public class TypedTableExamples {
         // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
+        people.add("Susan", 50, false);
+        people.add("Greg", 26, true);
 
         //Remove 2nd row
         people.remove(1);
@@ -370,8 +370,8 @@ public class TypedTableExamples {
         // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
+        people.add("Susan", 50, false);
+        people.add("Greg", 26, true);
 
         //Remove last row
         people.removeLast();
@@ -393,8 +393,8 @@ public class TypedTableExamples {
         // Create table and add 3 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
-        people.add("Greg", 26, true); 
+        people.add("Susan", 50, false);
+        people.add("Greg", 26, true);
 
         // Do a query on table
         PeopleRow susan = people.where().name.equalTo("Susan").findFirst();
@@ -418,7 +418,7 @@ public class TypedTableExamples {
         // Create table and add 2 rows of data
         PeopleTable people = new PeopleTable();
         people.add("John", 40, true);
-        people.add("Susan", 50, false); 
+        people.add("Susan", 50, false);
 
         // Generate json output
         String json = people.toJson();
@@ -440,4 +440,4 @@ public class TypedTableExamples {
             throw new RuntimeException();
         }
     }
-} 
+}

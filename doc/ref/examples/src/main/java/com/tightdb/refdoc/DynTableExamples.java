@@ -9,8 +9,8 @@ import com.tightdb.TableView.Order;
 public class DynTableExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
-        
-        
+
+
         // Constructor
         constrcutorExample();
 
@@ -35,7 +35,7 @@ public class DynTableExamples {
         hasIndexExample();
 
 
-        // Columns methods: 
+        // Columns methods:
         adjustExample();
 
 
@@ -55,7 +55,7 @@ public class DynTableExamples {
         //TODO getSubtableSize();
         //TODO clearSubtable
 
-        
+
         // Searching methods:
         lookupExample();
         findFirstExamples();
@@ -72,20 +72,20 @@ public class DynTableExamples {
         // Dump methods:
         toJsonExample();
     }
-    
-    
+
+
     // ******************************************
     // Constructor methods
     // ******************************************
-    
-    
+
+
     public static void constrcutorExample(){
         // @@Example: ex_java_dyn_table_constructor_plain @@
         // Create new table in memory
         Table table = new Table();
         // @@EndExample@@
-        
-        
+
+
         Group group = new Group();
         // @@Example: ex_java_dyn_table_constructor_group @@
         // Get table from group. If table does not exist in the group, it is created
@@ -93,7 +93,7 @@ public class DynTableExamples {
         // @@EndExample@@
     }
 
-    
+
     // ******************************************
     // Table schema methods
     // ******************************************
@@ -128,7 +128,7 @@ public class DynTableExamples {
         long SUBTABLE_COL_INDEX = table3.addColumn(ColumnType.TABLE, "events");
 
         // To add columns to the subtable use TableSchema
-        TableSchema subtableSchema = table3.getSubTableSchema(SUBTABLE_COL_INDEX);
+        TableSchema subtableSchema = table3.getSubtableSchema(SUBTABLE_COL_INDEX);
 
         // Now simply add columns using addColumn on the TableSchema object
         subtableSchema.addColumn(ColumnType.STRING, "desc");
@@ -145,38 +145,38 @@ public class DynTableExamples {
 
         // @@Example: ex_java_dyn_table_add_column_5 @@
         Table table5 = new Table();
-        
-        // Although it's possible to have empty names or the same names multiple times, 
-        // looking up columns based on the name, will only give you the first column 
-        // with that name. 
-        // But if you don't care about looking up columns by name, 
+
+        // Although it's possible to have empty names or the same names multiple times,
+        // looking up columns based on the name, will only give you the first column
+        // with that name.
+        // But if you don't care about looking up columns by name,
         // you don't have to set a name.
         table5.addColumn(ColumnType.STRING, "val");
         table5.addColumn(ColumnType.INTEGER, "val");
         table5.addColumn(ColumnType.DOUBLE, "val");
         table5.addColumn(ColumnType.STRING, ""); // Empty string are also allowed
-        table5.addColumn(ColumnType.STRING, ""); 
-        
-        try { 
+        table5.addColumn(ColumnType.STRING, "");
+
+        try {
             table5.addColumn(ColumnType.STRING, null); // Null are not allowed as column name
-        } 
-        catch(NullPointerException e) { 
-            table5.addColumn(ColumnType.STRING, "notNullName"); 
-        } 
+        }
+        catch(NullPointerException e) {
+            table5.addColumn(ColumnType.STRING, "notNullName");
+        }
         // @@EndExample@@
-        
+
         // @@Example: ex_java_dyn_table_add_column_6 @@
         Table table6 = new Table();
         table6.addColumn(ColumnType.STRING, "StringCol");
-        
+
         // Adding 1.000.000 rows with string values to the table
         for (long l=0;l<1000000;l++){
             table6.add("s" + l);
         }
-        
+
         // Adding a new int column. Default values in all 1.000.000 rows for that column is 0
         table6.addColumn(ColumnType.INTEGER, "IntCol");
-        
+
         Assert(table6.getLong(1, 5000) == 0);
         // @@EndExample@@
     }
@@ -195,17 +195,17 @@ public class DynTableExamples {
         // The column index of 'extra' has been changed
         Assert(table1.getColumnIndex("extra") == 1);
         // @@EndExample@@
-        
+
         // @@Example: ex_java_dyn_table_remove_column_2" @@
         // Create table, with subtable and add columns
         Table table2 = new Table();
         table2.addColumn(ColumnType.INTEGER, "id");
         long subtableColIndex = table2.addColumn(ColumnType.TABLE, "events");
-        
-        TableSchema subtableSchema = table2.getSubTableSchema(subtableColIndex);
+
+        TableSchema subtableSchema = table2.getSubtableSchema(subtableColIndex);
         subtableSchema.addColumn(ColumnType.STRING, "desc");
         long subDateColIndex = subtableSchema.addColumn(ColumnType.DATE, "date");
-        
+
         // Remove column 'extra'
         subtableSchema.removeColumn(subDateColIndex);
         // @@EndExample@@
@@ -371,8 +371,8 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
+
+
     public static void getSortedViewExample(){
         // @@Example: ex_java_dyn_table_get_sorted_view @@
         // @@Show@@
@@ -385,11 +385,11 @@ public class DynTableExamples {
         table.add("fatbrain", 390);
 
         // Sorting is only supported on Integer, Boolean and Date columns!
-        
+
         // Get a sorted table view sorted by score. Ascending by default
         TableView view = table.getSortedView(SCOEW_COLUMN_INDEX);
         Assert(view.getString(USERNAME_COLUMN_INDEX, 0).equals("ultra88"));
-        
+
         // Sort descending
         view = table.getSortedView(SCOEW_COLUMN_INDEX, Order.descending);
         Assert(view.getString(USERNAME_COLUMN_INDEX, 0).equals("tarzan"));
@@ -402,16 +402,16 @@ public class DynTableExamples {
         long ID_COLUMN_INDEX    = table.addColumn(ColumnType.INTEGER, "ID");
         long CITY_COLUMN_INDEX  = table.addColumn(ColumnType.STRING, "City");
         long STATE_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "State");
-        
+
         // Index can be set before data is added to table.
         // Insert operations will be a little slower from this point
         table.setIndex(CITY_COLUMN_INDEX);
-        
+
         // Add data
         table.add(100, "Washington DC", "District of Columbia");
         table.add(200, "Los Angeles", "California");
 
-        // Index can also be set after data has been added. 
+        // Index can also be set after data has been added.
         // This might take a while if the dataset is very large
         table.setIndex(STATE_COLUMN_INDEX);
 
@@ -420,8 +420,8 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
-    
+
+
     public static void hasIndexExample(){
         // @@Example: ex_java_dyn_table_has_index @@
         // @@Show@@
@@ -429,13 +429,13 @@ public class DynTableExamples {
         long ID_COLUMN_INDEX    = table.addColumn(ColumnType.INTEGER, "ID");
         long CITY_COLUMN_INDEX  = table.addColumn(ColumnType.STRING, "City");
         long STATE_COLUMN_INDEX = table.addColumn(ColumnType.STRING, "State");
-        
+
         // As default no columns in table are indexed
         Assert(table.hasIndex(CITY_COLUMN_INDEX) == false);
-        
+
         // An index can easily be set on string columns
         table.setIndex(CITY_COLUMN_INDEX);
-        
+
         // hasIndex returns true if an index has been set
         Assert(table.hasIndex(CITY_COLUMN_INDEX) == true);
         // @@EndShow@@
@@ -466,7 +466,7 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
+
 
     // ******************************************
     // Rows methods
@@ -630,7 +630,7 @@ public class DynTableExamples {
         // Get long value value of cell at position 1,1
         // NB! Column type in tightdb is INTEGER
         // In java it is accessed by getLong(col, row);
-        long score2 = table.getLong(1, 1); 
+        long score2 = table.getLong(1, 1);
 
         // Check values
         Assert(user1.equals("user1"));
@@ -694,18 +694,18 @@ public class DynTableExamples {
         // @@EndExample@@
     }
 
-    
+
     /*public static void getSubtableSizeExample(){ }*/
 
     /*public static void clearSubtableExample(){ }*/
-    
+
     // ******************************************
     // Searching methods
     // ******************************************
-    
-    
-    
-    
+
+
+
+
     public static void lookupExample(){
         // @@Example: ex_java_dyn_table_lookup @@
         // @@Show@@
@@ -713,17 +713,17 @@ public class DynTableExamples {
         Table tableMap = new Table();
         long KEY_COLUMN_INDEX   = tableMap.addColumn(ColumnType.STRING, "key");
         long VALUE_COLUMN_INDEX = tableMap.addColumn(ColumnType.INTEGER, "value");
-        
+
         // Put some values into the table map
         for (long i=0; i<1000;i++){
             String key = "key" + i;
             long value = i*1000;
             tableMap.add(key, value);
         }
-        
+
         // Lookup returns the row index of the matched key
         long keyIndex = tableMap.lookup("key49");
-        
+
         // Use the row index to retrieve the value from other columns
         Assert(tableMap.getLong(VALUE_COLUMN_INDEX, keyIndex) == 49000);
         // @@EndShow@@
@@ -823,10 +823,10 @@ public class DynTableExamples {
         table.add("user1", 420, false);
         table.add("user2", 770, true);
         table.add("user3", 327, false);
-    
+
         // where() returns a Query
         TableQuery query = table.where();
-        
+
         // You can continue to build the query
         // Here you want all the rows where
         // column 2 contains false, and column 1 > 400
@@ -841,7 +841,7 @@ public class DynTableExamples {
         // @@EndShow@@
         // @@EndExample@@
     }
-    
+
     // ******************************************
     // Aggregates methods
     // ******************************************
@@ -950,4 +950,4 @@ public class DynTableExamples {
             throw new RuntimeException();
         }
     }
-} 
+}

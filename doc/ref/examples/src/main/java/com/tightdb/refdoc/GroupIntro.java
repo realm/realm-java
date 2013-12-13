@@ -49,7 +49,7 @@ public class GroupIntro {
         // Check the number of tables in the group is 1.
         Assert(group.size() == 1);
 
-        // Get the name of the first (zero-indexed) table in the group. 
+        // Get the name of the first (zero-indexed) table in the group.
         // In this case 'table1'
         String tableName = group.getTableName(0);
 
@@ -84,11 +84,11 @@ public class GroupIntro {
             // Initialize group from the received byte array
             Group fromArray = new Group(receivedByteArray);
 
-            // Get a table from the group, 
+            // Get a table from the group,
             // and read the value from column 1, row 2 (zero-indexed)
             Table tableFromArray = fromArray.getTable(tableName);
             String value = tableFromArray.getString(1, 2);
-            Assert(value.equals("Elephant")); 
+            Assert(value.equals("Elephant"));
 
         } catch (IOException e) {
             // handle the exception...
@@ -101,5 +101,5 @@ public class GroupIntro {
             throw new RuntimeException();
         }
     }
-} 
+}
 // @@EndExample@@

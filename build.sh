@@ -857,7 +857,7 @@ EOF
 
     *)
         echo "Unspecified or bad mode '$MODE'" 1>&2
-        echo "Available modes are: config clean build test test-debug test-examples show-install install uninstall test-installed" 1>&2
+        echo "Available modes are: config clean build test test-debug test-doc test-examples show-install install uninstall test-installed" 1>&2
         echo "As well as: dist-copy dist-remarks" 1>&2
         exit 1
         ;;

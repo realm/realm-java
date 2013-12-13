@@ -14,7 +14,7 @@ public class DynTableIntro {
         //
         // Add, delete and set whole Rows
         //
-        
+
         tbl.add(12, "hello", 2);
         tbl.add(-15, "World", "I can be different types...");
         tbl.addAt(0, 53, "I'm now first", true);      // insert at row 0. data in order of columns
@@ -84,7 +84,7 @@ public class DynTableIntro {
         tbl3.addColumn(ColumnType.STRING, "name");
         tbl3.addColumn(ColumnType.TABLE, "subtable");
 
-        TableSchema subSchema = tbl3.getSubTableSchema(1);
+        TableSchema subSchema = tbl3.getSubtableSchema(1);
         subSchema.addColumn(ColumnType.STRING, "key");
         subSchema.addColumn(ColumnType.MIXED, "value");
 
@@ -94,10 +94,10 @@ public class DynTableIntro {
                                           {"secondkey", "hi - I'm mixed" } };
         tbl3.add("first", sub);
         tbl3.add("second", null);
-        Assert(tbl3.getSubTableSize(1, 0) == 2);
+        Assert(tbl3.getSubtableSize(1, 0) == 2);
 
         // Add some rows to the empty subtable in the second row
-        Table subTbl = tbl3.getSubTable(1,1);     // Get subtable
+        Table subTbl = tbl3.getSubtable(1,1);     // Get subtable
         // Now you can work with the subtable as any other table
         subTbl.add("key1", 23);
         Assert(subTbl.getString(0, 0).equals("key1"));

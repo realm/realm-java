@@ -41,8 +41,8 @@ public class TypedQueryIntro {
 
         // Find all employees with a last name of Lee and a salary less than 25000.
         EmployeeView view2 = employees.lastName.equalTo("Lee").salary.lessThan(25000).findAll();
-        
+
         // @@EndShow@@
-    }   
+    }
 }
 //@@EndExample@@

@@ -12,14 +12,14 @@ import com.tightdb.Table;
  */
 public class TestHelper {
 
-    
+
     /**
      * Returns the corresponding column type for an object.
      * @param o
      * @return
      */
     public static ColumnType getColumnType(Object o){
-        
+
         if (o instanceof Boolean)
             return ColumnType.BOOLEAN;
         if (o instanceof String)
@@ -34,19 +34,19 @@ public class TestHelper {
             return ColumnType.DATE;
         if (o instanceof byte[])
             return ColumnType.BINARY;
-        
+
         return ColumnType.MIXED;
     }
-    
-    
+
+
     /**
      * Creates an empty table with 1 column of all our supported column types, currently 9 columns
      * @return
      */
     public static Table getTableWithAllColumnTypes(){
-        
+
         Table t = new Table();
-        
+
         t.addColumn(ColumnType.BINARY, "binary");
         t.addColumn(ColumnType.BOOLEAN, "boolean");
         t.addColumn(ColumnType.DATE, "date");
@@ -56,7 +56,7 @@ public class TestHelper {
         t.addColumn(ColumnType.MIXED, "mixed");
         t.addColumn(ColumnType.STRING, "string");
         t.addColumn(ColumnType.TABLE, "table");
-        
+
         return t;
     }
 }

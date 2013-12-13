@@ -30,7 +30,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativePivot
  */
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeSize
   (JNIEnv *, jobject, jlong);
-    
+
 /*
  * Class:     com_tightdb_TableView
  * Method:    Java_com_tightdb_TableView_nativeGetSourceRowIndex
@@ -54,6 +54,14 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnCount
  */
 JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetColumnName
   (JNIEnv *, jobject, jlong, jlong);
+    
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeGetColumnIndex
+ * Signature: (J)J;
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnIndex
+  (JNIEnv *, jobject, jlong, jstring);
 
 /*
  * Class:     com_tightdb_TableView
@@ -137,26 +145,26 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableView_nativeGetMixed
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeGetSubTable
+ * Method:    nativeGetSubtable
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetSubTable
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetSubtable
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeGetSubTableSize
+ * Method:    nativeGetSubtableSize
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetSubTableSize
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetSubtableSize
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_tightdb_TableView
- * Method:    nativeClearSubTable
+ * Method:    nativeClearSubtable
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClearSubTable
+JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeClearSubtable
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*

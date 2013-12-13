@@ -19,7 +19,7 @@ public class DateViewColumn<Cursor, View, Query> extends DateTableOrViewColumn<C
             String name) {
         super(types, view, query, index, name);
     }*/
-    
+
     public void sort(Order order) {
         ( (TableView) this.tableOrView).sort(this.columnIndex, order);
     }

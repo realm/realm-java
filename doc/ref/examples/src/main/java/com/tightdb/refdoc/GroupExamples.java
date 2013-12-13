@@ -12,7 +12,7 @@ import com.tightdb.Group.OpenMode;
 public class GroupExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
-        
+
         new File("mydatabasefile.tightdb").delete();
 
         // Constructor methods
@@ -49,7 +49,7 @@ public class GroupExamples {
         // @@Example: ex_java_group_constructor_plain @@
         // @@Show@@
         // Create a group in memory. Can be saved to disk later
-        Group group = new Group(); 
+        Group group = new Group();
 
         Table table = group.getTable("mytable");
         // More table operations...
@@ -64,7 +64,7 @@ public class GroupExamples {
         File file = new File("mydatabase.tightdb");
         if(file.exists()){
             // If file exists, instantiate group from the file
-            Group group = new Group(file); 
+            Group group = new Group(file);
 
             Table table = group.getTable("mytable");
             // More table operations...
@@ -77,7 +77,7 @@ public class GroupExamples {
         // @@Example: ex_java_group_constructor_string @@
         // @@Show@@
         // Instantiate group by pointing to the tightdb file path
-        Group group = new Group("mydatabase.tightdb"); 
+        Group group = new Group("mydatabase.tightdb");
 
         Table table = group.getTable("mytable");
         // More table operations...
@@ -89,7 +89,7 @@ public class GroupExamples {
         // @@Example: ex_java_group_constructor_string_mode @@
         // @@Show@@
         // Point to the non-existing file. This mode will create a file, if it does not exist.
-        Group group = new Group("non-exisiting-db.tightdb", OpenMode.READ_WRITE); 
+        Group group = new Group("non-exisiting-db.tightdb", OpenMode.READ_WRITE);
 
         Table table = group.getTable("mytable");
         // More table operations...
@@ -106,7 +106,7 @@ public class GroupExamples {
         byte[] groupMem = existingGroup.writeToMem();
 
         // A new group can be created from this byte array
-        Group group = new Group(groupMem); 
+        Group group = new Group(groupMem);
 
         Table table = group.getTable("mytable");
         // More table operations...
@@ -130,7 +130,7 @@ public class GroupExamples {
         table.addColumn(ColumnType.STRING, "String");
         table.addColumn(ColumnType.INTEGER, "int");
         table.addColumn(ColumnType.BOOLEAN, "boolean");
-        
+
         table.add("String value", 400, true); // String, long, boolean
         // More table operations...
         // @@EndShow@@
@@ -171,7 +171,7 @@ public class GroupExamples {
 
     // **********************
     // Serialization methods
-    // **********************   
+    // **********************
 
     public static void writeToFileExample(){
         // @@Example: ex_java_group_write_to_file @@
@@ -193,7 +193,7 @@ public class GroupExamples {
     }
 
     public static void writeToMemExample() {
-        OutputStream outputStream = null; 
+        OutputStream outputStream = null;
 
         // @@Example: ex_java_group_write_to_mem @@
         // @@Show@@
@@ -202,14 +202,14 @@ public class GroupExamples {
         Table table = group.getTable("mytable");
         // More table operations...
 
-        // Write group to byte array. 
+        // Write group to byte array.
         byte[] array = group.writeToMem();
 
         // E.g send byte array through output stream
         try {
             outputStream.write(array);
         } catch (Exception e) {
-            
+
         }
         // @@EndShow@@
         // @@EndExample@@
@@ -250,7 +250,7 @@ public class GroupExamples {
 
     // **********************
     // Group methods
-    // **********************   
+    // **********************
 
     public static void sizeExample(){
         // @@Example: ex_java_group_size @@
@@ -258,8 +258,8 @@ public class GroupExamples {
         Group group = new Group();
 
         // Add 2 tables to the group
-        Table table1 = group.getTable("mytable1"); 
-        Table table2 = group.getTable("mytable2"); 
+        Table table1 = group.getTable("mytable1");
+        Table table2 = group.getTable("mytable2");
 
         // Get size of the group
         Assert(group.size() == 2);
@@ -277,8 +277,8 @@ public class GroupExamples {
         Assert(group.isEmpty() == true);
 
         // Add 2 tables to the group
-        Table table1 = group.getTable("mytable1"); 
-        Table table2 = group.getTable("mytable2"); 
+        Table table1 = group.getTable("mytable1");
+        Table table2 = group.getTable("mytable2");
 
         // Group is not empty
         Assert(group.isEmpty() == false);
@@ -291,13 +291,13 @@ public class GroupExamples {
         // @@Show@@
         // Group1 with 1 table with 1 row of data
         Group group1 = new Group();
-        Table table1 = group1.getTable("mytable1"); 
+        Table table1 = group1.getTable("mytable1");
         table1.addColumn(ColumnType.STRING, "stringCol");
         table1.add("StringVal");
 
         // Group2 with 1 table with 1 row of data
         Group group2 = new Group();
-        Table table2 = group2.getTable("mytable1"); 
+        Table table2 = group2.getTable("mytable1");
         table2.addColumn(ColumnType.STRING, "stringCol");
         table2.add("StringVal");
 
@@ -319,4 +319,4 @@ public class GroupExamples {
             throw new RuntimeException();
         }
     }
-} 
+}

@@ -106,8 +106,8 @@ public class ViewColumnsTest extends AbstractTest {
             assertEquals(EmployeesFixture.EMPLOYEES[i].salary + 123,
                     employeesView.get(i).getSalary());
     }
-    
-    
-   
+
+
+
 
 }

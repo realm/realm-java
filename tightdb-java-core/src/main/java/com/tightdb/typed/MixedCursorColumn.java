@@ -20,7 +20,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 
     @Override
     public String getReadableValue() {
-    	return get().getReadableValue();
+        return get().getReadableValue();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
 
     public <Tbl> Tbl createSubtable(Class<Tbl> tableClass) {
         set(new Mixed(ColumnType.TABLE));
-        Table subtable = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
+        Table subtable = cursor.tableOrView.getSubtable(columnIndex, cursor.getPosition());
         return AbstractSubtable.createSubtable(tableClass, subtable);
     }
 
@@ -68,7 +68,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
             throw new IllegalArgumentException("Wrong subtable type!");
         }
 
-        Table subtableBase = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
+        Table subtableBase = cursor.tableOrView.getSubtable(columnIndex, cursor.getPosition());
         return AbstractSubtable.createSubtable(tableClass, subtableBase);
     }
 
@@ -80,7 +80,7 @@ public class MixedCursorColumn<Cursor, View, Query> extends AbstractColumn<Mixed
             throw new IllegalArgumentException("The mixed value doesn't contain a sub-table!");
         }
 
-        Table subtableBase = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
+        Table subtableBase = cursor.tableOrView.getSubtable(columnIndex, cursor.getPosition());
         TableSpec spec = subtableBase.getTableSpec();
 
         // Build table schema

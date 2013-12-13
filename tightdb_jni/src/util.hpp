@@ -7,9 +7,9 @@
 #include <jni.h>
 
 #include <tightdb.hpp>
-#include <tightdb/meta.hpp>
-#include <tightdb/unique_ptr.hpp>
-#include <tightdb/safe_int_ops.hpp>
+#include <tightdb/util/meta.hpp>
+#include <tightdb/util/unique_ptr.hpp>
+#include <tightdb/util/safe_int_ops.hpp>
 #include <tightdb/lang_bind_helper.hpp>
 
 #include "com_tightdb_internal_Util.h"
@@ -34,11 +34,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 #define CATCH_FILE(fileName) \
     catch (InvalidDatabase&) { \
         ThrowException(env, IllegalArgument, "Invalid Group file format."); \
-    } catch (File::PermissionDenied& e) { \
+    } catch (util::File::PermissionDenied& e) { \
         ThrowException(env, IOFailed, fileName, string("Permission denied. ") + e.what()); \
-    } catch (File::NotFound&) { \
+    } catch (util::File::NotFound&) { \
         ThrowException(env, FileNotFound, fileName); \
-    } catch (File::AccessError& e) { \
+    } catch (util::File::AccessError& e) { \
         ThrowException(env, FileAccessError, string(fileName), e.what()); \
     }
 
@@ -162,7 +162,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     bool valid = (objPtr != NULL);
     if (valid) {
         // Check if Table is valid
-        if (tightdb::SameType<tightdb::Table, T>::value) {
+        if (tightdb::util::SameType<tightdb::Table, T>::value) {
             valid = TBL(objPtr)->is_attached();
         }
         // TODO: Add check for TableView
@@ -187,13 +187,13 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
         ThrowException(env, IndexOutOfBounds, "startIndex < 0.");
         return false;
     }
-    if (tightdb::int_greater_than(startIndex, maxIndex)) {
+    if (tightdb::util::int_greater_than(startIndex, maxIndex)) {
         TR_ERR((env, "startIndex %lld > %lld - invalid!", S(startIndex), maxIndex));
         ThrowException(env, IndexOutOfBounds, "startIndex > available rows.");
         return false;
     }
 
-    if (tightdb::int_greater_than(endIndex, maxIndex)) {
+    if (tightdb::util::int_greater_than(endIndex, maxIndex)) {
         TR_ERR((env, "endIndex %lld > %lld - invalid!", S(endIndex), maxIndex));
         ThrowException(env, IndexOutOfBounds, "endIndex > available rows.");
         return false;
@@ -223,7 +223,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0
     size_t size = pTable->size();
     if (size > 0)
         size += offset;
-    bool rowErr = tightdb::int_greater_than_or_equal(rowIndex, size);
+    bool rowErr = tightdb::util::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), size));
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
@@ -234,7 +234,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0
 template <class T>
 inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0)
 {
-    if (tightdb::SameType<tightdb::Table, T>::value) {
+    if (tightdb::util::SameType<tightdb::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
@@ -248,7 +248,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
         ThrowException(env, IndexOutOfBounds, "columnIndex is less than 0.");
         return false;
     }
-    bool colErr = tightdb::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
+    bool colErr = tightdb::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
         TR_ERR((env, "columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()));
         ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
@@ -259,7 +259,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 template <class T>
 inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
-    if (tightdb::SameType<tightdb::Table, T>::value) {
+    if (tightdb::util::SameType<tightdb::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
@@ -285,7 +285,7 @@ inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong
 {
     if (!TblColIndexValid(env, pTable, columnIndex))
         return false;
-    bool rowErr = tightdb::int_greater_than(rowIndex, pTable->size()+1);
+    bool rowErr = tightdb::util::int_greater_than(rowIndex, pTable->size()+1);
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", rowIndex, pTable->size()));
         ThrowException(env, IndexOutOfBounds,
@@ -375,14 +375,14 @@ public:
     }
 
     // Part of the "safe bool" idiom
-    typedef tightdb::UniquePtr<char[]> (JStringAccessor::*unspecified_bool_type);
+    typedef tightdb::util::UniquePtr<char[]> (JStringAccessor::*unspecified_bool_type);
     operator unspecified_bool_type() const TIGHTDB_NOEXCEPT
     {
         return m_data ? &JStringAccessor::m_data : 0;
     }
 
 private:
-    tightdb::UniquePtr<char[]> m_data;
+    tightdb::util::UniquePtr<char[]> m_data;
     std::size_t m_size;
 };
 

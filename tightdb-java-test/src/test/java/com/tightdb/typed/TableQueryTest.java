@@ -89,7 +89,7 @@ public class TableQueryTest extends AbstractTest {
         assertEquals(2, employees.firstName.startsWith("j", false).findAll().size());
         assertEquals(1, employees.firstName.endsWith("hnY", false).findAll().size());
         assertEquals(2, employees.firstName.contains("ohN", false).findAll().size());
-        
+
     }
 
     @Test
@@ -238,41 +238,41 @@ public class TableQueryTest extends AbstractTest {
 
     }
 
-    
-    
+
+
     @Test
     public void queryNumbersTest() {
-       
+
         TestQueryTableTable table = new TestQueryTableTable();
         table.add(10, 10f, 10d, "s10");
         table.add(20, 20f, 20d, "s20");
         table.add(20, 20f, 20d, "s20");
         table.add(100, 100f, 100d, "s100");
         table.add(1000, 1000f, 1000d, "s1000");
-        
+
         TestQueryTableQuery query = table.where();
-        
+
         // Average
         assertEquals(230d, query.floatNum.average() ); // average on float column returns a double
         assertEquals(230d, query.doubleNum.average() );
-        
+
         // maximum
         assertEquals(1000f, query.floatNum.maximum() );
         assertEquals(1000d, query.doubleNum.maximum() );
-        
+
         // minimum
         assertEquals(10f, query.floatNum.minimum() );
         assertEquals(10d, query.doubleNum.minimum() );
-        
+
         // sum
         assertEquals(1150d, query.floatNum.sum() ); // Sum on float column returns a double
         assertEquals(1150d, query.doubleNum.sum() );
-        
+
     }
 
     @Test
     public void queryOnView() {
-       
+
         TestQueryTableTable table = new TestQueryTableTable();
         table.add(10, 10f, 10d, "s10");
         table.add(20, 20f, 20d, "s20");
@@ -281,23 +281,23 @@ public class TableQueryTest extends AbstractTest {
         table.add(1000, 1000f, 1000d, "s1000");
 
         TestQueryTableView view = table.where().findAll();
-        
+
         // Average
         assertEquals(230d, view.floatNum.average() ); // average on float column returns a double
         assertEquals(230d, view.doubleNum.average() );
-        
+
         // maximum
         assertEquals(1000f, view.floatNum.maximum() );
         assertEquals(1000d, view.doubleNum.maximum() );
-        
+
         // minimum
         assertEquals(10f, view.floatNum.minimum() );
         assertEquals(10d, view.doubleNum.minimum() );
-        
+
         // sum
         assertEquals(1150d, view.floatNum.sum() ); // Sum on float column returns a double
         assertEquals(1150d, view.doubleNum.sum() );
-        
+
     }
 
     @Test

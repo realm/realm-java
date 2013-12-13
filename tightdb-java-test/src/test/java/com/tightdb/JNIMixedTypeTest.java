@@ -29,35 +29,54 @@ public class JNIMixedTypeTest {
         }
     }
 
-    @Test(expectedExceptions = IllegalMixedTypeException.class, dataProvider = "columnTypesProvider")
-    public void shouldFailOnWrongTypeRetrieval(ColumnType columnType)
-            throws Exception {
+    @Test(dataProvider = "columnTypesProvider")
+    public void shouldFailOnWrongTypeRetrieval(ColumnType columnType) {
         Object value = columnType != ColumnType.STRING ? "abc" : 123;
         Mixed mixed = Mixed.mixedValue(value);
 
         switch (columnType) {
         case BINARY:
-            mixed.getBinaryByteArray();
+            try { 
+                mixed.getBinaryByteArray();   
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case DATE:
-            mixed.getDateValue();
+            try { 
+                mixed.getDateValue();         
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case BOOLEAN:
-            mixed.getBooleanValue();
+            try { 
+                mixed.getBooleanValue();      
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case INTEGER:
-            mixed.getLongValue();
+            try { 
+                mixed.getLongValue();         
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case FLOAT:
-            mixed.getFloatValue();
+            try { 
+                mixed.getFloatValue();        
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case DOUBLE:
-            mixed.getDoubleValue();
+            try { 
+                mixed.getDoubleValue();       
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
         case STRING:
-            mixed.getStringValue();
+            try { 
+                mixed.getStringValue();       
+                fail("Wrong mixed type"); 
+            } catch (IllegalMixedTypeException e) { }
             break;
-
         default:
             fail("wrong type");
             break;
@@ -120,8 +139,7 @@ public class JNIMixedTypeTest {
                 new MixedData(ColumnType.FLOAT, 987.123f),
                 new MixedData(ColumnType.DOUBLE, 1234567.898d),
                 new MixedData(ColumnType.DATE, new Date(645342)),
-                new MixedData(ColumnType.BINARY, new byte[] { 1, 2,
-                        3, 4, 5 }) };
+                new MixedData(ColumnType.BINARY, new byte[] { 1, 2, 3, 4, 5 }) };
 
         List<?> mixedValues = Arrays.asList(values);
         return DataProviderUtil.allCombinations(mixedValues, mixedValues,
@@ -130,12 +148,16 @@ public class JNIMixedTypeTest {
 
     @DataProvider(name = "columnTypesProvider")
     public Object[][] columnTypesProvider() {
-        Object[][] values = { {ColumnType.BOOLEAN},
-                {ColumnType.STRING}, {ColumnType.INTEGER},
-                {ColumnType.FLOAT}, {ColumnType.DOUBLE},
-                {ColumnType.DATE}, {ColumnType.BINARY} };
+        Object[][] values = { 
+                {ColumnType.BOOLEAN},
+                {ColumnType.STRING}, 
+                {ColumnType.INTEGER},
+                {ColumnType.FLOAT}, 
+                {ColumnType.DOUBLE},
+                {ColumnType.DATE}, 
+                {ColumnType.BINARY} 
+        };
 
         return values;
     }
-
 }

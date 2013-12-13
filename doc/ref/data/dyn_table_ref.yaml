@@ -16,24 +16,24 @@ SEE        : *g_dyn_table_intro_see
 EXAMPLES   :
 - DESCR    : >
              Below examples will showcase all the available methods in a dynamic Table.
-             
-             More specific examples are (soon) available in the detailed description 
+
+             More specific examples are (soon) available in the detailed description
              of each method above.
   CODE     : ex_java_dyn_table_intro
-IGNORE     : [g_dyn_table_where_const, 
+IGNORE     : [g_dyn_table_where_const,
               g_dyn_table_find_all_bool_const,
               g_dyn_table_find_all_int_const,
-              g_dyn_table_find_all_date_const, 
-              g_dyn_table_find_all_string_const, 
+              g_dyn_table_find_all_date_const,
+              g_dyn_table_find_all_string_const,
               g_dyn_table_find_all_float_const,
-              g_dyn_table_find_all_double_const, 
+              g_dyn_table_find_all_double_const,
               g_dyn_table_find_all_binary_const,
               g_dyn_table_get_sorted_view_const,
               g_dyn_table_get_subtable_const,
               g_dyn_table_distinct_const,
               g_dyn_table_set_enum,
-              g_dyn_table_insert_bool, g_dyn_table_insert_int, g_dyn_table_insert_enum, 
-              g_dyn_table_insert_float, g_dyn_table_insert_double, g_dyn_table_insert_date, 
+              g_dyn_table_insert_bool, g_dyn_table_insert_int, g_dyn_table_insert_enum,
+              g_dyn_table_insert_float, g_dyn_table_insert_double, g_dyn_table_insert_date,
               g_dyn_table_insert_string, g_dyn_table_insert_binary, g_dyn_table_insert_mixed,
               g_dyn_table_insert_subtable, g_dyn_table_insert_done
               ]
@@ -69,7 +69,7 @@ CATEGORIES :
                  This method appends a column of the specified type and name to the table.
                  If it's used in a table which already has rows, the new column will just get
                  default values (0, "", null) in those rows.
-                 
+
                  Currently, the following types are supported from the <code>ColumnType</code> class:
                  <ul>
                    <li><code>BOOLEAN</code> (default false)</li>
@@ -130,8 +130,8 @@ CATEGORIES :
         DESCR  : *g_dyn_table_rename_column_param2_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_table_rename_column
-        DESCR  : 
-  
+        DESCR  :
+
   - g_dyn_table_get_column_count:
       NAMES    : getColumnCount
       SUMMARY  : *g_dyn_table_get_column_count_summary
@@ -153,7 +153,7 @@ CATEGORIES :
       RETURN:
         TYPES  : String
         DESCR  : The column name.
-      THROWS:      
+      THROWS:
       - EXCEPT : ArrayIndexOutOfBoundsException
         DESCR  : &java_array_out_of_bounds_exception_text
                  Throws exception if column index is out of range.
@@ -356,12 +356,12 @@ CATEGORIES :
   - g_dyn_table_insert:
       NAMES    : addAt
       SUMMARY  : Inserts a row at the specified row index.
-      DESCR    : Inserts a row at the specified row index. 
+      DESCR    : Inserts a row at the specified row index.
                  Shifts the row currently at that row index and any subsequent rows down (adds one to their row index).
       PARAMS:
       - NAME   : rowIndex
         TYPES  : long
-        DESCR  : The row index where this row should be inserted (starting with 0). 
+        DESCR  : The row index where this row should be inserted (starting with 0).
       - NAME   : values
         TYPES  : Object...
         DESCR  : For each column in the table, you must provide a parameter with a matching type
@@ -370,7 +370,7 @@ CATEGORIES :
       - CODE   : ex_java_dyn_table_add_at
         DESCR  :
       SEE      : >
-                See also {@link g_dyn_table_add} to append a row at the end of the table 
+                See also {@link g_dyn_table_add} to append a row at the end of the table
                 (equivalent to using size() as rowIndex).
   - g_dyn_table_set_row:
       NAMES    : set
@@ -379,7 +379,7 @@ CATEGORIES :
       PARAMS:
       - NAME   : rowIndex
         TYPES  : long
-        DESCR  : The existing row index where this values should be replaced (starting with 0). 
+        DESCR  : The existing row index where this values should be replaced (starting with 0).
       - NAME   : values
         TYPES  : Object...
         DESCR  : For each column in the table, you must provide a parameter with a matching type
@@ -420,8 +420,8 @@ CATEGORIES :
   - g_dyn_table_get_mixed_type:
   - g_dyn_table_get_subtable:
       TITLE    : get*
-      NAMES    : [getBoolean, getLong, getFloat, getDouble, getDate, getString, 
-                  getBinaryByteBuffer, getBinaryByteArray, getMixed, getMixedType, 
+      NAMES    : [getBoolean, getLong, getFloat, getDouble, getDate, getString,
+                  getBinaryByteBuffer, getBinaryByteArray, getMixed, getMixedType,
                   getSubtable]
       SUMMARY  : *g_dyn_table_get_xxx_summary
       DESCR    : *g_dyn_table_get_xxx_descr
@@ -445,10 +445,10 @@ CATEGORIES :
         TYPES  : long
         DESCR  : *g_dyn_table_get_xxx_parm2_descr
       RETURN:
-        TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, "byte[]", 
+        TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, "byte[]",
                   Mixed, ColumnType, Table]
         DESCR  : *g_dyn_table_get_xxx_return_descr
-      THROWS:                     
+      THROWS:
       - EXCEPT : ArrayIndexOutOfBoundsException
         DESCR  : *java_array_out_of_bounds_exception_text
       - EXCEPT : IllegalArgumentException
@@ -468,8 +468,8 @@ CATEGORIES :
   - g_dyn_table_set_binary2:
   - g_dyn_table_set_mixed:
       TITLE    : set*
-      NAMES    : [setLong, setFloat, setDouble, setBoolean, setDate, setString, 
-                  setBinaryByteBuffer, setBinaryByteArray, setMixed] 
+      NAMES    : [setLong, setFloat, setDouble, setBoolean, setDate, setString,
+                  setBinaryByteBuffer, setBinaryByteArray, setMixed]
       SUMMARY  : *g_dyn_table_set_xxx_summary
       DESCR    : *g_dyn_table_set_xxx_descr
       SIGNATURE: |
@@ -492,7 +492,7 @@ CATEGORIES :
       - NAME   : value
         TYPES  : [long, float, double, boolean, Date, String, ByteBuffer, "byte[]", Mixed]
         DESCR  : *g_dyn_table_set_xxx_parm3_descr
-      THROWS:                     
+      THROWS:
       - EXCEPT : ArrayIndexOutOfBoundsException
         DESCR  : *java_array_out_of_bounds_exception_text
       EXAMPLES:
@@ -532,7 +532,7 @@ CATEGORIES :
       - CODE   : ex_java_dyn_table_clear_subtable
         DESCR  :
 
-        
+
 - Searching:
   METHODS:
   - g_dyn_table_lookup:
@@ -551,12 +551,12 @@ CATEGORIES :
         DESCR  :
   - g_dyn_table_find_first_int:
   - g_dyn_table_find_first_float:
-  - g_dyn_table_find_first_double:  
+  - g_dyn_table_find_first_double:
   - g_dyn_table_find_first_bool:
   - g_dyn_table_find_first_date:
   - g_dyn_table_find_first_string:
-      NAMES    : [findFirstLong, findFirstFloat, findFirstDouble, 
-                  findFirstBoolean, findFirstDate, findFirstString] 
+      NAMES    : [findFirstLong, findFirstFloat, findFirstDouble,
+                  findFirstBoolean, findFirstDate, findFirstString]
       TITLE    : findFirst*
       SUMMARY  : *g_dyn_table_find_first_xxx_summary
       DESCR    : *g_dyn_table_find_first_xxx_descr
@@ -577,7 +577,7 @@ CATEGORIES :
       RETURN:
         TYPES  : long
         DESCR  : The row index or -1 if there is no match.
-      THROWS:    
+      THROWS:
       - EXCEPT : IllegalArgumentException
         DESCR  : &java_no_column_match_exception
                  Throws exception if used method does not match the column type.
@@ -590,8 +590,8 @@ CATEGORIES :
   - g_dyn_table_find_all_bool:
   - g_dyn_table_find_all_date:
   - g_dyn_table_find_all_string:
-      NAMES    : [findAllLong, findAllFloat, findAllDouble, 
-                  findAllBoolean, findAllDate, findAllString] 
+      NAMES    : [findAllLong, findAllFloat, findAllDouble,
+                  findAllBoolean, findAllDate, findAllString]
       TITLE    : findAll*
       SUMMARY  : *g_dyn_table_find_all_xxx_summary
       DESCR    : *g_dyn_table_find_all_xxx_descr
@@ -612,7 +612,7 @@ CATEGORIES :
       RETURN:
         TYPES  : TableView
         DESCR  : *g_dyn_table_find_all_xxx_return_descr
-      THROWS:    
+      THROWS:
       - EXCEPT : IllegalArgumentException
         DESCR  : *java_no_column_match_exception
       EXAMPLES:
@@ -649,7 +649,7 @@ CATEGORIES :
       RETURN:
         TYPES  : TableView
         DESCR  : *g_dyn_table_distinct_return_desc
-      THROWS:    
+      THROWS:
       - EXCEPT : UnsupportedOperationException
         DESCR  : Throws exception if column is not indexed.
       EXAMPLES:
@@ -666,8 +666,8 @@ CATEGORIES :
       EXAMPLES:
       - DESCR  :
         CODE   : ex_java_dyn_table_where
-        
-        
+
+
 - Aggregates:
   METHODS:
 # TODO - g_dyn_table_count_int:
@@ -691,7 +691,7 @@ CATEGORIES :
 #      EXAMPLES:
 #      - CODE   : ex_java_dyn_table_count
 #        DESCR  :
-        
+
   - g_dyn_table_sum:
   - g_dyn_table_sum_float:
   - g_dyn_table_sum_double:
@@ -759,7 +759,7 @@ CATEGORIES :
   - g_dyn_table_average:
   - g_dyn_table_average_float:
   - g_dyn_table_average_double:
-      TITLE    : average* 
+      TITLE    : average*
       NAMES    : [average, averageFloat, averageDouble]
       SUMMARY  : *g_dyn_table_average_summary
       DESCR    : *g_dyn_table_average_descr
@@ -777,7 +777,7 @@ CATEGORIES :
       EXAMPLES:
       - CODE   : ex_java_dyn_table_average
         DESCR  :
-        
+
 
 - Dump:
   METHODS:

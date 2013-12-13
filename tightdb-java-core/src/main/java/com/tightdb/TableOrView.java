@@ -34,13 +34,13 @@ public interface TableOrView {
     void remove(long index);
 
     void removeLast();
-    
+
     long getColumnCount();
-    
+
     String getColumnName(long columnIndex);
-    
+
     long getColumnIndex(String name);
-    
+
     ColumnType getColumnType(long columnIndex);
 
     /**
@@ -119,11 +119,11 @@ public interface TableOrView {
 
     ColumnType getMixedType(long columnIndex, long rowIndex);
 
-    Table getSubTable(long columnIndex, long rowIndex);
+    Table getSubtable(long columnIndex, long rowIndex);
 
-    void clearSubTable(long columnIndex, long rowIndex);
+    void clearSubtable(long columnIndex, long rowIndex);
 
-    long getSubTableSize(long columnIndex, long rowIndex);
+    long getSubtableSize(long columnIndex, long rowIndex);
 
     /**
      * Sets the long value for a particular cell identified by columnIndex and
@@ -251,15 +251,15 @@ public interface TableOrView {
     TableView findAllString(long columnIndex, String value);
 
     String toJson();
-    
+
     String toString();
 
     String toString(long maxRows);
-    
+
     String rowToString(long rowIndex);
 
     TableQuery where();
-    
+
     // Experimental:
 
     long lookup(String value);

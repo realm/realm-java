@@ -23,8 +23,8 @@ public abstract class AbstractDataOperationsTest {
     protected abstract AbstractTableOrView<TestEmployeeRow, TestEmployeeView, TestEmployeeQuery> getEmployees();
 
     protected TestEmployeeTable getEmployeeTable() {
-    	Date myDate = new Date(123456789);
-    	TestEmployeeTable tbl = new TestEmployeeTable();
+        Date myDate = new Date(123456789);
+        TestEmployeeTable tbl = new TestEmployeeTable();
 
         tbl.add(NAME0, "Doe", 10000, true, new byte[] { 1, 2, 3 }, myDate, "Extra!", null);
         tbl.add(NAME2, "B. Good", 10000, true, new byte[] { 1, 2, 3 }, myDate, true, null);
@@ -32,7 +32,7 @@ public abstract class AbstractDataOperationsTest {
 
         Object[][] phones = new Object[][] { { "home", "123-123" }, { "mobile", "456-456" } };
         tbl.add(NAME3, "Bond", 150000, true, new byte[] { 0 }, myDate, "x", phones);
-		return tbl;
+        return tbl;
     }
 
     @AfterMethod
@@ -113,37 +113,37 @@ public abstract class AbstractDataOperationsTest {
 
     @Test
     public void shouldExportToJSON() {
-    	String expected = "[{\"firstName\":\"John\",\"lastName\":\"Doe\",\"salary\":10000,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-02 10:17:36\",\"extra\":\"Extra!\",\"phones\":[]},{\"firstName\":\"Nikolche\",\"lastName\":\"Mihajlovski\",\"salary\":30000,\"driver\":false,\"photo\":\"0405\",\"birthdate\":\"1970-01-02 10:17:36\",\"extra\":1234,\"phones\":[]},{\"firstName\":\"Johny\",\"lastName\":\"B. Good\",\"salary\":10000,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-02 10:17:36\",\"extra\":true,\"phones\":[]},{\"firstName\":\"James\",\"lastName\":\"Bond\",\"salary\":150000,\"driver\":true,\"photo\":\"00\",\"birthdate\":\"1970-01-02 10:17:36\",\"extra\":\"x\",\"phones\":[{\"type\":\"home\",\"number\":\"123-123\"},{\"type\":\"mobile\",\"number\":\"456-456\"}]}]";
+        String expected = "[{\"firstName\":\"John\",\"lastName\":\"Doe\",\"salary\":10000,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-02 10:17:36\",\"extra\":\"Extra!\",\"phones\":[]},{\"firstName\":\"Nikolche\",\"lastName\":\"Mihajlovski\",\"salary\":30000,\"driver\":false,\"photo\":\"0405\",\"birthdate\":\"1970-01-02 10:17:36\",\"extra\":1234,\"phones\":[]},{\"firstName\":\"Johny\",\"lastName\":\"B. Good\",\"salary\":10000,\"driver\":true,\"photo\":\"010203\",\"birthdate\":\"1970-01-02 10:17:36\",\"extra\":true,\"phones\":[]},{\"firstName\":\"James\",\"lastName\":\"Bond\",\"salary\":150000,\"driver\":true,\"photo\":\"00\",\"birthdate\":\"1970-01-02 10:17:36\",\"extra\":\"x\",\"phones\":[{\"type\":\"home\",\"number\":\"123-123\"},{\"type\":\"mobile\",\"number\":\"456-456\"}]}]";
         String json = getEmployees().toJson();
         assertEquals(expected, json);
     }
-    
+
     public void shouldPrintData(String header) {
-    	String expectedTableStr1 = header + ":\n" + 
+        String expectedTableStr1 = header + ":\n" +
 "    firstName     lastName  salary  driver      photo            birthdate   extra  phones\n"+
 "0:  John       Doe           10000    true    3 bytes  1970-01-02 10:17:36  Extra!     [0]\n"+
 "1:  Nikolche   Mihajlovski   30000   false    2 bytes  1970-01-02 10:17:36    1234     [0]\n";
-    	String expectedTableStr2 =
+        String expectedTableStr2 =
 "2:  Johny      B. Good       10000    true    3 bytes  1970-01-02 10:17:36    true     [0]\n"+
 "3:  James      Bond         150000    true    1 bytes  1970-01-02 10:17:36  x          [2]\n";
-    	
-		String result = getEmployees().toString(2);
-		assertEquals(expectedTableStr1 + "... and 2 more rows (total 4)", result);
 
-		result = getEmployees().toString();
-		assertEquals(expectedTableStr1 + expectedTableStr2, result);
+        String result = getEmployees().toString(2);
+        assertEquals(expectedTableStr1 + "... and 2 more rows (total 4)", result);
 
-		String expectedRowStr = 
-				"    firstName     lastName  salary  driver      photo            birthdate   extra  phones\n" +
-				"0:  John       Doe           10000    true    3 bytes  1970-01-02 10:17:36  Extra!     [0]\n";
-		
-		result = getEmployees().first().toString();
-		assertEquals(expectedRowStr, result);
+        result = getEmployees().toString();
+        assertEquals(expectedTableStr1 + expectedTableStr2, result);
+
+        String expectedRowStr =
+                "    firstName     lastName  salary  driver      photo            birthdate   extra  phones\n" +
+                "0:  John       Doe           10000    true    3 bytes  1970-01-02 10:17:36  Extra!     [0]\n";
+
+        result = getEmployees().first().toString();
+        assertEquals(expectedRowStr, result);
         /*
         assertEquals("TestEmployeeTable.birthdate",
-        		getEmployees().first().getBirthdate().toString());
+                getEmployees().first().getBirthdate().toString());
         assertEquals("TestEmployeeTable.phones",
-        		getEmployees().first().getPhones().toString());
+                getEmployees().first().getPhones().toString());
         */
     }
 }

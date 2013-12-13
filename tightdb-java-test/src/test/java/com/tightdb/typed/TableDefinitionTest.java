@@ -17,7 +17,7 @@ import com.tightdb.test.TestEmployeeRow;
 
 public class TableDefinitionTest {
 
-    
+
     @DefineTable
     class Car {
         String s1;
@@ -25,10 +25,10 @@ public class TableDefinitionTest {
         int rowIndex; // _rowIndex is used in the generated classes
     }
 
-    
+
     @Test
     public void checkTable() {
-        
+
         // Just make sure table can be created and used
         CarTable myCar = new CarTable();
         myCar.addEmptyRow();

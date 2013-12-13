@@ -179,7 +179,7 @@ public class Showcase {
         employees.last().before(2);                 // 3rd-last row
 
         /***************************** SAVE TO FILE ******************************/
-        
+
         new File("employees.tightdb").delete();
         try {
             group.writeToFile("employees.tightdb");

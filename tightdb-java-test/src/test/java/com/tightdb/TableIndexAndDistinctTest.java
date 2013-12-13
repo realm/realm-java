@@ -50,18 +50,18 @@ public class TableIndexAndDistinctTest {
         assertEquals(4, view.getLong(0, 3));
     }
 
-    
-    
+
+
     /**
      * Should throw exception if trying to get distinct on columns where index has not been set
      * @param index
      */
     @Test(expectedExceptions = UnsupportedOperationException.class, dataProvider = "columnIndex")
     public void shouldTestDistinctErrorWhenNoIndex(Long index) {
-        
+
         //Get a table with all available column types
         Table t = TestHelper.getTableWithAllColumnTypes();
-        
+
         TableView view = table.getDistinctView(1);
     }
 
@@ -77,7 +77,7 @@ public class TableIndexAndDistinctTest {
      * @param index
      */
     public void shouldTestSettingIndexOnMultipleColumns() {
-        
+
         //Create a table only with String type columns
         Table t = new Table();
         t.addColumn(ColumnType.STRING, "col1");
@@ -90,32 +90,32 @@ public class TableIndexAndDistinctTest {
         t.add("row1", "row2", "row3", "row4", "row5");
         t.add("row1", "row2", "row3", "row4", "row5");
         t.add("row1", "row2", "row3", "row4", "row5");
-        
+
         for (long c=0;c<t.getColumnCount();c++){
             t.setIndex(c);
             assertEquals(true, t.hasIndex(c));
         }
     }
 
-    
+
     /**
-     * Checks that all other column types than String throws exception. 
+     * Checks that all other column types than String throws exception.
      * @param o
      */
     @Test(expectedExceptions = IllegalArgumentException.class, dataProvider = "columnIndex")
     public void shouldTestIndexOnWrongColumnType(Long index) {
-        
+
         //Get a table with all available column types
         Table t = TestHelper.getTableWithAllColumnTypes();
-        
+
         //If column type is String, then throw the excepted exception
         if (t.getColumnType(index).equals(ColumnType.STRING)){
             throw new IllegalArgumentException();
         }
-        
+
         t.setIndex(index);
     }
-    
+
     @Test()
     public void shouldCheckIndexIsOkOnColumn() {
         init();
@@ -128,11 +128,11 @@ public class TableIndexAndDistinctTest {
         table.setIndex(1);
         TableView view = table.getDistinctView(0);
     }
-    
-    
+
+
     /**
-     * Is used to run a test multiple times, 
-     * that corresponds to the number of columns in the Table generated 
+     * Is used to run a test multiple times,
+     * that corresponds to the number of columns in the Table generated
      * in TestHelper.getTableWithAllColumnTypes
      * @return
      */

@@ -5,11 +5,11 @@ import com.tightdb.DefineTable;
 import com.tightdb.Table;
 
 public class InsertVsAddPerformance {
-    
-    
+
+
     private static long ROWS = 10000000;
-    
-    
+
+
     @DefineTable(table = "PeopleTable")
     class people {
         String  name1;
@@ -25,12 +25,12 @@ public class InsertVsAddPerformance {
         long     age4;
         boolean hired5;
     }
-    
-    
+
+
     public static void main(String[] args) {
-        
+
         PeopleTable pt = new PeopleTable();
-        
+
         Long typedTimer = System.currentTimeMillis();
         System.out.println("Performance testing TYPED interface on " + ROWS + " rows");
 
@@ -40,12 +40,12 @@ public class InsertVsAddPerformance {
             }*/
             pt.add("name"+r, r, true, "name"+r, r, true, "name"+r, r, true, "name"+r, r, true);
         }
-        
+
         Long totalTimeTyped = System.currentTimeMillis() - typedTimer;
         System.out.println("Time for TYPED interface: " + totalTimeTyped);
-        
+
         Table t = new Table();
-        
+
         t.addColumn(ColumnType.STRING, "String");
         t.addColumn(ColumnType.INTEGER, "Long");
         t.addColumn(ColumnType.BOOLEAN, "Boolean");
@@ -58,7 +58,7 @@ public class InsertVsAddPerformance {
         t.addColumn(ColumnType.STRING, "String");
         t.addColumn(ColumnType.INTEGER, "Long");
         t.addColumn(ColumnType.BOOLEAN, "Boolean");
-        
+
         Long dynTimer = System.currentTimeMillis();
         System.out.println("Performance testing DYNAMIC interface on " + ROWS + " rows");
 
@@ -68,9 +68,9 @@ public class InsertVsAddPerformance {
             }*/
             t.add("name"+r, r, true, "name"+r, r, true, "name"+r, r, true, "name"+r, r, true);
         }
-        
+
         Long totalTimeDyn = System.currentTimeMillis() - dynTimer;
-        
+
         System.out.println("Summery for performance tests on " + ROWS + " rows:");
         System.out.println("TYPED: " + totalTimeTyped);
         System.out.println("DYNAMIC: " + totalTimeDyn);

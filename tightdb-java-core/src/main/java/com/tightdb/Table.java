@@ -156,17 +156,17 @@ public class Table implements TableOrView, TableSchema {
     private void verifyColumnName(String name) {
         if (name.length() > 63) {
             throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
-        }    	
+        }
     }
 
     @Override
-    public TableSchema getSubTableSchema(long columnIndex) {
+    public TableSchema getSubtableSchema(long columnIndex) {
         if(nativeIsRootTable(nativePtr) == false)
             throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
 
         long[] newPath = new long[1];
         newPath[0] = columnIndex;
-        return new SubTableSchema(nativePtr, newPath);
+        return new SubtableSchema(nativePtr, newPath);
     }
 
     protected native boolean nativeIsRootTable(long nativeTablePtr);
@@ -293,19 +293,18 @@ public class Table implements TableOrView, TableSchema {
     /**
      * Returns the 0-based index of a column based on the name.
      *
-     * @param name column name
+     * @param columnName column name
      * @return the index, -1 if not found
      */
     @Override
-    public long getColumnIndex(String name) {
-        long columnCount = getColumnCount();
-        for (long i = 0; i < columnCount; i++) {
-            if (name.equals(getColumnName(i))) {
-                return i;
-            }
-        }
-        return -1;
+    public long getColumnIndex(String columnName) {
+        if (columnName == null)
+            throw new NullPointerException("Column name can not be null.");
+        return nativeGetColumnIndex(nativePtr, columnName);
     }
+    
+    protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
+
 
     /**
      * Get the type of a column identified by the columnIdex.
@@ -413,7 +412,7 @@ public class Table implements TableOrView, TableSchema {
             if (!colType.matchObject(value)) {
                 //String representation of the provided value type
                 String providedType;
-                if (value == null) 
+                if (value == null)
                     providedType = "null";
                 else
                     providedType = value.getClass().toString();
@@ -452,7 +451,7 @@ public class Table implements TableOrView, TableSchema {
                 nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
                 break;
             case TABLE:
-                nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
+                nativeInsertSubtable(nativePtr, columnIndex, rowIndex);
                 insertSubtableValues(rowIndex, columnIndex, value);
                 break;
             default:
@@ -460,7 +459,7 @@ public class Table implements TableOrView, TableSchema {
             }
         }
         //Insert done. Use native, no need to check for immutable again here
-        nativeInsertDone(nativePtr); 
+        nativeInsertDone(nativePtr);
 
     }
 
@@ -495,10 +494,10 @@ public class Table implements TableOrView, TableSchema {
         return new TableView(nativeGetSortedView(nativePtr, columnIndex, true), immutable);
 
     }
-    
+
     protected native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
 
-   
+
 
     /**
      * Replaces the row at the specified position with the specified row.
@@ -569,7 +568,7 @@ public class Table implements TableOrView, TableSchema {
             nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
         }
 
-        public void insertBoolean(long columnIndex, long rowIndex, boolean value) { 
+        public void insertBoolean(long columnIndex, long rowIndex, boolean value) {
             if (immutable) throwImmutable();
             nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
         }
@@ -611,9 +610,9 @@ public class Table implements TableOrView, TableSchema {
                 throw new NullPointerException("byte[] must not be null. Alternatively insert empty array.");
         }
 
-        public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
+        public void insertSubtable(long columnIndex, long rowIndex, Object[][] values) {
             if (immutable) throwImmutable();
-            nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
+            nativeInsertSubtable(nativePtr, columnIndex, rowIndex);
             insertSubtableValues(rowIndex, columnIndex, values);
         }
 
@@ -647,7 +646,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
 
-    protected native void nativeInsertSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native void nativeInsertSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
     protected native void nativeInsertDone(long nativeTablePtr);
 
@@ -756,33 +755,33 @@ public class Table implements TableOrView, TableSchema {
      * @return TableBase the subtable at the requested cell
      */
     @Override
-    public Table getSubTable(long columnIndex, long rowIndex) {
-        return new Table(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex), immutable);
+    public Table getSubtable(long columnIndex, long rowIndex) {
+        return new Table(this, nativeGetSubtable(nativePtr, columnIndex, rowIndex), immutable);
     }
 
-    protected native long nativeGetSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native long nativeGetSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
-    // Below version will allow to getSubTable when number of available rows are not updated yet -
+    // Below version will allow to getSubtable when number of available rows are not updated yet -
     // which happens before an insertDone().
 
     private Table getSubTableDuringInsert(long columnIndex, long rowIndex) {
-        return new Table(this, nativeGetSubTableDuringInsert(nativePtr, columnIndex, rowIndex), immutable);
+        return new Table(this, nativeGetSubtableDuringInsert(nativePtr, columnIndex, rowIndex), immutable);
     }
-    private native long nativeGetSubTableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native long nativeGetSubtableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
 
 
-    public long getSubTableSize(long columnIndex, long rowIndex) {
-        return nativeGetSubTableSize(nativePtr, columnIndex, rowIndex);
+    public long getSubtableSize(long columnIndex, long rowIndex) {
+        return nativeGetSubtableSize(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native long nativeGetSubtableSize(long nativeTablePtr, long columnIndex, long rowIndex);
 
-    public void clearSubTable(long columnIndex, long rowIndex) {
+    public void clearSubtable(long columnIndex, long rowIndex) {
         if (immutable) throwImmutable();
-        nativeClearSubTable(nativePtr, columnIndex, rowIndex);
+        nativeClearSubtable(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native void nativeClearSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
 
     //
@@ -831,7 +830,7 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
-        if (value == null) 
+        if (value == null)
             throw new NullPointerException("Null String is not allowed.");
         if (immutable) throwImmutable();
         nativeSetString(nativePtr, columnIndex, rowIndex, value);

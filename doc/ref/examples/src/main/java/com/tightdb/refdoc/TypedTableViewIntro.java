@@ -24,7 +24,7 @@ public class TypedTableViewIntro {
         cities.add(200, "Los Angeles");
         cities.add(300, "New York");
 
-        // Create a query object from the table without any filters 
+        // Create a query object from the table without any filters
         // and execute it to retrieve a table view
         CityView view = cities.where().findAll();
 
@@ -33,7 +33,7 @@ public class TypedTableViewIntro {
         view.remove(0);
         Assert(cities.size() == 2);
 
-        // Change the value of column 1, row 1 to 'London'. 
+        // Change the value of column 1, row 1 to 'London'.
         // The changes are reflected in the original table
         view.get(1).setName("London");
         Assert(cities.get(1).getName().equals("London"));
@@ -45,14 +45,14 @@ public class TypedTableViewIntro {
         Assert(view.id.average() == 250);
 
 
-        // Get JSON representation of the data in the view 
+        // Get JSON representation of the data in the view
         // and print it using e.g. a PrintWriter object
         PrintWriter out = new PrintWriter("fromServlet");
         out.print(view.toJson());
         out.close();
         System.out.println(view.toJson());
         // @@EndShow@@
-        
+
     }
 
     static void Assert(boolean check) {

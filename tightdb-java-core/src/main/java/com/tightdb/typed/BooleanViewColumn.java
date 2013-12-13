@@ -18,8 +18,8 @@ public class BooleanViewColumn<Cursor, View, Query> extends BooleanTableOrViewCo
     /*public BooleanViewColumn(EntityTypes<?, View, Cursor, Query> types, TableOrView view, TableQuery query, int index,
             String name) {
         super(types, view, query, index, name);
-    }*/    
-    
+    }*/
+
     public void sort(Order order) {
         ( (TableView) this.tableOrView).sort(columnIndex, order);
     }

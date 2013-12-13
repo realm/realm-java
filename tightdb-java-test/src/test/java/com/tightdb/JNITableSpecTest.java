@@ -155,19 +155,19 @@ public class JNITableSpecTest {
         persons.addColumn(ColumnType.TABLE, "addresses");
 
 
-        TableSchema addresses = persons.getSubTableSchema(2);
+        TableSchema addresses = persons.getSubtableSchema(2);
         addresses.addColumn(ColumnType.STRING, "street");
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, null }} });
 
-        Table address = persons.getSubTable(2,0);
+        Table address = persons.getSubtable(2,0);
 
         TableSpec spec = new TableSpec();
         spec.addColumn(ColumnType.INTEGER, "foo");
 
-        
+
        try { address.updateFromSpec(spec); fail("Address is subtable. Not allowed to update from spec"); } catch (UnsupportedOperationException e) { }
     }
 

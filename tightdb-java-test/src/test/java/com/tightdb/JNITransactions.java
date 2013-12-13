@@ -129,16 +129,16 @@ public class JNITransactions {
 
 
     @Test
-    public void onlyOneCommit() { 
+    public void onlyOneCommit() {
         WriteTransaction trans = db.beginWrite();
 
         try {
             Table tbl = trans.getTable("EmployeeTable");
             tbl.addColumn(ColumnType.STRING, "name");
             trans.commit();
-            try { 
-            	trans.commit(); // should throw 
-            	assert(false); 
+            try {
+                trans.commit(); // should throw
+                assert(false);
             } catch (IllegalStateException e){}
 
         } catch (Throwable t){
@@ -212,9 +212,9 @@ public class JNITransactions {
         try { table.add(0, false);                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRow();                  assert(false);} catch (IllegalStateException e) {}
         try { table.addEmptyRows(1);                assert(false);} catch (IllegalStateException e) {}
-        try { table.adjust(0,0);        			assert(false);} catch (IllegalStateException e) {}
+        try { table.adjust(0,0);                    assert(false);} catch (IllegalStateException e) {}
         try { table.clear();                        assert(false);} catch (IllegalStateException e) {}
-        try { table.clearSubTable(0,0);             assert(false);} catch (IllegalStateException e) {}
+        try { table.clearSubtable(0,0);             assert(false);} catch (IllegalStateException e) {}
         try { table.optimize();                     assert(false);} catch (IllegalStateException e) {}
         try { table.remove(0);                      assert(false);} catch (IllegalStateException e) {}
         try { table.removeLast();                   assert(false);} catch (IllegalStateException e) {}
@@ -232,9 +232,9 @@ public class JNITransactions {
         try { q.remove(0,0);                        assert(false);} catch (IllegalStateException e) {}
 
         TableView v = q.findAll();
-        try { v.adjust(0, 0);           			assert(false);} catch (IllegalStateException e) {}
+        try { v.adjust(0, 0);                       assert(false);} catch (IllegalStateException e) {}
         try { v.clear();                            assert(false);} catch (IllegalStateException e) {}
-        try { v.clearSubTable(0, 0);                assert(false);} catch (IllegalStateException e) {}
+        try { v.clearSubtable(0, 0);                assert(false);} catch (IllegalStateException e) {}
         try { v.remove(0);                          assert(false);} catch (IllegalStateException e) {}
         try { v.removeLast();                       assert(false);} catch (IllegalStateException e) {}
         try { v.setBinaryByteArray(0, 0, null);     assert(false);} catch (IllegalStateException e) {}

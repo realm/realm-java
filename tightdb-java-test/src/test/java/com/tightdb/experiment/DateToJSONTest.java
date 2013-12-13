@@ -24,7 +24,7 @@ public class DateToJSONTest {
         t.addColumn(ColumnType.DATE, "date");
         t.addColumn(ColumnType.STRING, "name");
 
-        t.add(date, "name1");   
+        t.add(date, "name1");
 
         //JSON must contain the current year
         assertTrue(t.toJson().contains(""+year));
@@ -45,10 +45,10 @@ public class DateToJSONTest {
         t.add(new Date(), "name");
 
         assertTrue(t.toJson().contains("name"));
-        
+
        // System.out.println("Month: " + month2);
        // System.out.println(t.toJson());
-        
+
 
         assertTrue(t.toJson().contains(""+month2));
     }
