@@ -58,6 +58,9 @@ public class Group {
     };
 
     public Group(String filepath, OpenMode mode) {
+        if (mode.equals(OpenMode.READ_ONLY))
+            this.immutable = true; // Group immutable
+        
         context = new Context();
         this.nativePtr = createNative(filepath, mode.value);
         try { 
