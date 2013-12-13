@@ -1,7 +1,5 @@
 package com.tightdb;
 
-import static org.testng.AssertJUnit.*;
-
 import java.util.ArrayList;
 import java.util.List;
 

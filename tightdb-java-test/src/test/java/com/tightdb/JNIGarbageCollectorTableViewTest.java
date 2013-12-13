@@ -1,14 +1,9 @@
 package com.tightdb;
 
-import static org.testng.AssertJUnit.*;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.testng.annotations.Test;
-
-import com.tightdb.test.TestHelper;
 
 // Tables get detached
 
@@ -22,7 +17,7 @@ public class JNIGarbageCollectorTableViewTest {
 
         for (long i=0;i<count;i++){
             t.addEmptyRow();
-            Table sub = t.getSubTable(0, i);
+            Table sub = t.getSubtable(0, i);
             views.add(sub.where().findAll());
             sub.close();
         }
@@ -30,7 +25,7 @@ public class JNIGarbageCollectorTableViewTest {
 
     public void test2(long count){
         for (long i=0;i<count;i++){
-            Table sub = t.getSubTable(0, i);
+            Table sub = t.getSubtable(0, i);
             TableView view = sub.where().findAll();
             sub.close();
             view.size();
@@ -39,7 +34,7 @@ public class JNIGarbageCollectorTableViewTest {
 
     public void test3(long count){
         for (long i=0;i<count;i++){
-            Table sub = t.getSubTable(0, i);
+            Table sub = t.getSubtable(0, i);
             TableView view = sub.where().findAll();
             sub.close();
             view.size();

@@ -22,12 +22,12 @@ public class JNISubtableTest {
         table.add("Foo", null);
         assertEquals(1, table.size());
 
-        Table subtable1 = table.getSubTable(1, 0);
+        Table subtable1 = table.getSubtable(1, 0);
         subtable1.add(123);
         assertEquals(1, subtable1.size());
         subtable1.close();
 
-        Table subtable2 = table.getSubTable(1, 0);
+        Table subtable2 = table.getSubtable(1, 0);
         assertEquals(1, subtable2.size());
         assertEquals(123, subtable2.getLong(0, 0));
 
@@ -51,9 +51,9 @@ public class JNISubtableTest {
 
         // Insert values
         table.add("Foo", null, 123456);
-        table.getSubTable(1, 0).add(123);
-        assertEquals(1, table.getSubTable(1, 0).size());
-        assertEquals(123, table.getSubTable(1, 0).getLong(0,0));
+        table.getSubtable(1, 0).add(123);
+        assertEquals(1, table.getSubtable(1, 0).size());
+        assertEquals(123, table.getSubtable(1, 0).getLong(0,0));
 
         assertEquals(1, table.size());
     }
@@ -67,7 +67,7 @@ public class JNISubtableTest {
         long subtableColIndex = table.addColumn(ColumnType.TABLE, "table");
 
         table.add("val", null);
-        assertEquals(0,  table.getSubTable(subtableColIndex, 0).getColumnCount());
+        assertEquals(0,  table.getSubtable(subtableColIndex, 0).getColumnCount());
     }
 
     @Test
@@ -79,19 +79,19 @@ public class JNISubtableTest {
 
         // No rows added
         try { 
-            table.getSubTable(0, 0); 
+            table.getSubtable(0, 0); 
             fail("rowIndex > available rows."); 
         } catch (ArrayIndexOutOfBoundsException e) { }
 
         try { 
-            table.getSubTable(1, 0); 
+            table.getSubtable(1, 0); 
             fail("columnIndex > available columns."); 
         } catch (ArrayIndexOutOfBoundsException e) { }
 
         table.addEmptyRow();
 
         try { 
-            table.getSubTable(1, 0); 
+            table.getSubtable(1, 0); 
             fail("columnIndex > available columns."); 
         } catch (ArrayIndexOutOfBoundsException e) { }
     }
@@ -108,7 +108,7 @@ public class JNISubtableTest {
 
         table.addEmptyRow();
 
-        Table subtable = table.getSubTable(0, 0);
+        Table subtable = table.getSubtable(0, 0);
         subtable.add(10, "s");
         subtable.add(100, "ss");
         subtable.add(1000, "sss");
@@ -149,12 +149,12 @@ public class JNISubtableTest {
 
         // Assertions
         assertEquals(persons.getColumnName(2), "addresses");
-        assertEquals(persons.getSubTable(2,0).getColumnName(2), "phone_numbers");
-        assertEquals(persons.getSubTable(2,0).getSubTable(2,0).getColumnName(0), "number");
+        assertEquals(persons.getSubtable(2,0).getColumnName(2), "phone_numbers");
+        assertEquals(persons.getSubtable(2,0).getSubtable(2,0).getColumnName(0), "number");
 
         assertEquals(persons.getString(1,0), "xx@xxxx.com");
-        assertEquals(persons.getSubTable(2,0).getString(0,0), "X Street");
-        assertEquals(persons.getSubTable(2,0).getSubTable(2,0).getLong(0,0), 12345678);
+        assertEquals(persons.getSubtable(2,0).getString(0,0), "X Street");
+        assertEquals(persons.getSubtable(2,0).getSubtable(2,0).getLong(0,0), 12345678);
     }
 
 
@@ -193,9 +193,9 @@ public class JNISubtableTest {
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
 
         // Assertions
-        assertEquals(persons.getSubTable(2,0).getColumnCount(), 3);
+        assertEquals(persons.getSubtable(2,0).getColumnCount(), 3);
         addresses.removeColumn(1);
-        assertEquals(persons.getSubTable(2,0).getColumnCount(), 2);
+        assertEquals(persons.getSubtable(2,0).getColumnCount(), 2);
     }
 
     @Test
@@ -220,9 +220,9 @@ public class JNISubtableTest {
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
 
         // Assertions
-        assertEquals("zipcode", persons.getSubTable(2,0).getColumnName(1));
+        assertEquals("zipcode", persons.getSubtable(2,0).getColumnName(1));
         addresses.renameColumn(1, "zip");
-        assertEquals("zip", persons.getSubTable(2,0).getColumnName(1));
+        assertEquals("zip", persons.getSubtable(2,0).getColumnName(1));
     }
 
     @Test
@@ -246,13 +246,13 @@ public class JNISubtableTest {
 
         try {
             // Should throw
-            persons.getSubTable(2,0).addColumn(ColumnType.INTEGER, "i");
+            persons.getSubtable(2,0).addColumn(ColumnType.INTEGER, "i");
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
 
         try {
             // Should throw
-            persons.getSubTable(2,0).getSubtableSchema(2);
+            persons.getSubtable(2,0).getSubtableSchema(2);
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {}
 

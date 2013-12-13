@@ -457,7 +457,7 @@ public class Table implements TableOrView, TableSchema {
                 nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
                 break;
             case TABLE:
-                nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
+                nativeInsertSubtable(nativePtr, columnIndex, rowIndex);
                 insertSubtableValues(rowIndex, columnIndex, value);
                 break;
             default:
@@ -472,7 +472,7 @@ public class Table implements TableOrView, TableSchema {
     private void insertSubtableValues(long rowIndex, long columnIndex, Object value) {
         if (value != null) {
             // insert rows in subtable recursively
-            Table subtable = getSubTableDuringInsert(columnIndex, rowIndex);
+            Table subtable = getSubtableDuringInsert(columnIndex, rowIndex);
             int rows = ((Object[])value).length;
             for (int i=0; i<rows; ++i) {
                 Object rowArr = ((Object[])value)[i];
@@ -632,9 +632,9 @@ public class Table implements TableOrView, TableSchema {
                 throw new NullPointerException("byte[] must not be null. Alternatively insert empty array.");
         }
 
-        public void insertSubTable(long columnIndex, long rowIndex, Object[][] values) {
+        public void insertSubtable(long columnIndex, long rowIndex, Object[][] values) {
             if (immutable) throwImmutable();
-            nativeInsertSubTable(nativePtr, columnIndex, rowIndex);
+            nativeInsertSubtable(nativePtr, columnIndex, rowIndex);
             insertSubtableValues(rowIndex, columnIndex, values);
         }
 
@@ -668,7 +668,7 @@ public class Table implements TableOrView, TableSchema {
 
     protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
 
-    protected native void nativeInsertSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native void nativeInsertSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
     protected native void nativeInsertDone(long nativeTablePtr);
 
@@ -777,10 +777,10 @@ public class Table implements TableOrView, TableSchema {
      * @return TableBase the subtable at the requested cell
      */
     @Override
-    public Table getSubTable(long columnIndex, long rowIndex) {
+    public Table getSubtable(long columnIndex, long rowIndex) {
         // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        long nativeSubtablePtr = nativeGetSubTable(nativePtr, columnIndex, rowIndex);
+        long nativeSubtablePtr = nativeGetSubtable(nativePtr, columnIndex, rowIndex);
         try {
             // Copy context reference from parent
             return new Table(context, this, nativeSubtablePtr, immutable);
@@ -791,15 +791,15 @@ public class Table implements TableOrView, TableSchema {
         }
     }
 
-    protected native long nativeGetSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native long nativeGetSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
-    // Below version will allow to getSubTable when number of available rows are not updated yet -
+    // Below version will allow to getSubtable when number of available rows are not updated yet -
     // which happens before an insertDone().
 
-    private Table getSubTableDuringInsert(long columnIndex, long rowIndex) {
+    private Table getSubtableDuringInsert(long columnIndex, long rowIndex) {
         // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
         context.executeDelayedDisposal();
-        long nativeSubtablePtr =  nativeGetSubTableDuringInsert(nativePtr, columnIndex, rowIndex);
+        long nativeSubtablePtr =  nativeGetSubtableDuringInsert(nativePtr, columnIndex, rowIndex);
         try {
             return new Table(this.context, this,nativeSubtablePtr, immutable);
         }
@@ -808,21 +808,22 @@ public class Table implements TableOrView, TableSchema {
             throw e;
         }
     }
-    private native long nativeGetSubTableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
+    
+    private native long nativeGetSubtableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
 
 
-    public long getSubTableSize(long columnIndex, long rowIndex) {
-        return nativeGetSubTableSize(nativePtr, columnIndex, rowIndex);
+    public long getSubtableSize(long columnIndex, long rowIndex) {
+        return nativeGetSubtableSize(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native long nativeGetSubtableSize(long nativeTablePtr, long columnIndex, long rowIndex);
 
-    public void clearSubTable(long columnIndex, long rowIndex) {
+    public void clearSubtable(long columnIndex, long rowIndex) {
         if (immutable) throwImmutable();
-        nativeClearSubTable(nativePtr, columnIndex, rowIndex);
+        nativeClearSubtable(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native void nativeClearSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
 
     //

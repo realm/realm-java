@@ -1,7 +1,5 @@
 package com.tightdb;
 
-import static org.testng.AssertJUnit.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +23,7 @@ public class JNIGarbageCollectorTableTest {
 
         for (long i=0;i<count;i++){
             t.addEmptyRow();
-            tables.add(t.getSubTable(0, i));
+            tables.add(t.getSubtable(0, i));
         }
         
         t.close();
@@ -40,7 +38,7 @@ public class JNIGarbageCollectorTableTest {
         for (long i=0;i<count;i++){
             t.addEmptyRow();
 
-            Table sub = t.getSubTable(0, i);
+            Table sub = t.getSubtable(0, i);
             sub.size();
         }
         
@@ -56,7 +54,7 @@ public class JNIGarbageCollectorTableTest {
         for (long i=0;i<count;i++){
             t.addEmptyRow();
 
-            Table sub = t.getSubTable(0, i);
+            Table sub = t.getSubtable(0, i);
             sub.size();
             sub.close();
         }

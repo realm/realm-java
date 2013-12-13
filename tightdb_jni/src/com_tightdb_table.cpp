@@ -24,7 +24,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
     if (!name2)
         return 0;
     if (TBL(nativeTablePtr)->has_shared_spec()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubTableSchema() on root table instead.");
+        ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubtableSchema() on root table instead.");
         return 0;
     }
     try {
@@ -39,7 +39,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
     if (TBL(nativeTablePtr)->has_shared_spec()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to remove column in subtable. Use getSubTableSchema() on root table instead.");
+        ThrowException(env, UnsupportedOperation, "Not allowed to remove column in subtable. Use getSubtableSchema() on root table instead.");
         return;
     }
     try {
@@ -56,7 +56,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
     if (!name2)
         return;
     if (TBL(nativeTablePtr)->has_shared_spec()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to rename column in subtable. Use getSubTableSchema() on root table instead.");
+        ThrowException(env, UnsupportedOperation, "Not allowed to rename column in subtable. Use getSubtableSchema() on root table instead.");
         return;
     }
     try {
@@ -308,13 +308,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetMixed(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertSubTable(
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertSubtable(
     JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
         return;
 
-    TR((env, "nativeInsertSubTable(jTable:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld)\n",
+    TR((env, "nativeInsertSubtable(jTable:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld)\n",
        jTable, nativeTablePtr,  columnIndex, rowIndex));
     try {
         TBL(nativeTablePtr)->insert_subtable( S(columnIndex), S(rowIndex));
@@ -427,37 +427,37 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetMixed(
     return CreateJMixedFromMixed(env, value);
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTable(
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubtable(
     JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
     if (!TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
         return 0;
     try {
-        Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr),
+        Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr),
             S(columnIndex), S(rowIndex)));
-        TR((env, "nativeGetSubTable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
-            jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubTable));
-        return (jlong)pSubTable;
+        TR((env, "nativeGetSubtable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
+            jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubtable));
+        return (jlong)pSubtable;
     } CATCH_STD()
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableDuringInsert(
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubtableDuringInsert(
     JNIEnv* env, jobject jTableBase, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
         return 0;
     try {
-        Table* pSubTable = static_cast<Table*>(LangBindHelper::get_subtable_ptr_during_insert(
+        Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr_during_insert(
             TBL(nativeTablePtr), S(columnIndex), S(rowIndex)));
-        TR((env, "nativeGetSubTableDuringInsert(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
-            jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubTable));
-        return (jlong)pSubTable;
+        TR((env, "nativeGetSubtableDuringInsert(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
+            jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubtable));
+        return (jlong)pSubtable;
     } CATCH_STD()
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubTableSize(
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetSubtableSize(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
     if (!TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
@@ -592,7 +592,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeAddInt(
 }
 
 
-JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClearSubTable(
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClearSubtable(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
     if (!TBL_AND_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex))

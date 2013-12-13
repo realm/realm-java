@@ -162,7 +162,7 @@ public class JNITableSpecTest {
 
         persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, null }} });
 
-        Table address = persons.getSubTable(2,0);
+        Table address = persons.getSubtable(2,0);
 
         TableSpec spec = new TableSpec();
         spec.addColumn(ColumnType.INTEGER, "foo");
