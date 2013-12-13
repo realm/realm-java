@@ -117,13 +117,13 @@ public abstract class AbstractQuery<Query, Cursor, View extends AbstractView<Cur
     }
 
     // FIXME: columnIndex is low-level
-    public Query subTable(long columnIndex) {
-        query.subTable(columnIndex);
+    public Query subtable(long columnIndex) {
+        query.subtable(columnIndex);
         return newQuery(query);
     }
 
-    public Query endSubTable() {
-        query.endSubTable();
+    public Query endSubtable() {
+        query.endSubtable();
         return newQuery(query);
     }
 

@@ -160,14 +160,14 @@ public class JNIViewTest {
 
         TableView personsView = persons.where().findAll();
 
-        assertEquals(2, personsView.getSubTableSize(2, 0));
+        assertEquals(2, personsView.getSubtableSize(2, 0));
 
-        Table address = personsView.getSubTable(2, 0);
+        Table address = personsView.getSubtable(2, 0);
         assertEquals(2, address.size());
         assertEquals(3, address.getColumnCount());
 
-        personsView.clearSubTable(2, 0);
-        assertEquals(0, personsView.getSubTableSize(2, 0));
+        personsView.clearSubtable(2, 0);
+        assertEquals(0, personsView.getSubtableSize(2, 0));
     }
 
     @Test
@@ -235,9 +235,9 @@ public class JNIViewTest {
         try { view.getString(-10, 0); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.getString(100, 0); fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
 
-        try { view.getSubTable(-1, 0); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getSubTable(-10, 0); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { view.getSubTable(100, 0); fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getSubtable(-1, 0); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getSubtable(-10, 0); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { view.getSubtable(100, 0); fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
     }
 
 

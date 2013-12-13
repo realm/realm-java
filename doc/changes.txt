@@ -4,7 +4,8 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 12-December-2013:
 ================
-! BREAKING CHANGE: SubTableSchema renamed to SubtableSchema. Related getter methods are also renamed.
+! BREAKING CHANGE: SubTableSchema renamed to SubtableSchema.
+! BREAKING CHANGE: All methods with *subTable* renamed to *subtable*.
 
 25-November-2013:
 ================

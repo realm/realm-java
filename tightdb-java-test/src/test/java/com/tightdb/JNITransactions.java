@@ -214,7 +214,7 @@ public class JNITransactions {
         try { table.addEmptyRows(1);                assert(false);} catch (IllegalStateException e) {}
         try { table.adjust(0,0);                    assert(false);} catch (IllegalStateException e) {}
         try { table.clear();                        assert(false);} catch (IllegalStateException e) {}
-        try { table.clearSubTable(0,0);             assert(false);} catch (IllegalStateException e) {}
+        try { table.clearSubtable(0,0);             assert(false);} catch (IllegalStateException e) {}
         try { table.optimize();                     assert(false);} catch (IllegalStateException e) {}
         try { table.remove(0);                      assert(false);} catch (IllegalStateException e) {}
         try { table.removeLast();                   assert(false);} catch (IllegalStateException e) {}
@@ -234,7 +234,7 @@ public class JNITransactions {
         TableView v = q.findAll();
         try { v.adjust(0, 0);                       assert(false);} catch (IllegalStateException e) {}
         try { v.clear();                            assert(false);} catch (IllegalStateException e) {}
-        try { v.clearSubTable(0, 0);                assert(false);} catch (IllegalStateException e) {}
+        try { v.clearSubtable(0, 0);                assert(false);} catch (IllegalStateException e) {}
         try { v.remove(0);                          assert(false);} catch (IllegalStateException e) {}
         try { v.removeLast();                       assert(false);} catch (IllegalStateException e) {}
         try { v.setBinaryByteArray(0, 0, null);     assert(false);} catch (IllegalStateException e) {}

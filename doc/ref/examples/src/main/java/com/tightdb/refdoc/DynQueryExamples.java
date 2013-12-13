@@ -349,7 +349,7 @@ public class DynQueryExamples {
 
 
         // Query the table
-        TableView view = table.where().subTable(1).equalTo(2, true).endSubTable().findAll();
+        TableView view = table.where().subtable(1).equalTo(2, true).endSubtable().findAll();
 
         System.out.println(view);
 

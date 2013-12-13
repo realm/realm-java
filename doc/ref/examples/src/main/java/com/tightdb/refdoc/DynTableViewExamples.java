@@ -1,7 +1,5 @@
 package com.tightdb.refdoc;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
