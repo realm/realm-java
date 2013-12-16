@@ -4,7 +4,6 @@ import java.util.Date;
 
 
 import com.tightdb.TableView.Order;
-import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 /*
@@ -52,8 +51,10 @@ public class Table implements TableOrView, TableSchema {
     public static final long INFINITE = -1;
 
     protected long nativePtr;
-    protected boolean immutable = false;
-    protected Object parent = null;
+    
+    protected final boolean immutable;
+    protected final Object parent;
+    private final Context context;
 
     // test:
     protected int tableNo;
@@ -70,10 +71,13 @@ public class Table implements TableOrView, TableSchema {
      * creates a native reference of the object and keeps a reference to it.
      */
     public Table() {
+        this.parent = null; // No parent in free-standing table
+        this.immutable = false; 
+        this.context = new Context();
         // Native methods work will be initialized here. Generated classes will
         // have nothing to do with the native functions. Generated Java Table
         // classes will work as a wrapper on top of table.
-        nativePtr = createNative();
+        this.nativePtr = createNative();
         if (nativePtr == 0)
             throw new OutOfMemoryError("Out of native memory.");
         if (DEBUG) {
@@ -83,44 +87,51 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native long createNative();
-
-    protected Table(Object parent, long nativePtr, boolean immutable) {
+    
+    Table(Context context, Object parent, long nativePointer, boolean immutable) {
         this.immutable = immutable;
-        this.nativePtr = nativePtr;
-        this.parent = parent;
+        this.context = context;
+        this.parent  = parent;
+        this.nativePtr = nativePointer;
         if (DEBUG) {
             tableNo = ++TableCount;
             System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
     }
 
+    // If close() is called, no penalty is paid for delayed disposal
+    // via the context
     @Override
-    public void finalize() throws Throwable {
-        if (DEBUG) System.err.println("==== FINALIZE " + tableNo + "...");
-        try {
-            close();
-        } finally {
-            super.finalize();
+    public void close() {
+        synchronized (context) {
+            if (nativePtr != 0) {
+                nativeClose(nativePtr);
+                
+                if (DEBUG) {
+                    TableCount--;
+                    System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+                }
+                
+                nativePtr = 0;
+            }   
         }
     }
 
-    private void close() {
-        synchronized (CloseMutex.getInstance()) {
-            if (nativePtr == 0) {
-                if (DEBUG)
-                    System.err.println(".... CLOSE ignored.");
-                return;
+    protected static native void nativeClose(long nativeTablePtr);
+    
+    @Override
+    protected void finalize() {
+        synchronized (context) {
+            if (nativePtr != 0) {
+                boolean isRoot = (parent == null);
+                context.asyncDisposeTable(nativePtr, isRoot);
+                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
             }
-            if (DEBUG) {
-                TableCount--;
-                System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
-            }
-            nativeClose(nativePtr);
-            nativePtr = 0;
         }
-    }
 
-    protected native void nativeClose(long nativeTablePtr);
+        if (DEBUG) 
+            System.err.println("==== FINALIZE " + tableNo + "...");
+    }
 
     /*
      * Check if the Table is valid.
@@ -129,7 +140,7 @@ public class Table implements TableOrView, TableSchema {
      * The only method you can call is 'isValid()'.
      */
 
-    public boolean isValid(){
+    public boolean isValid() {
         if (nativePtr == 0)
             return false;
         return nativeIsValid(nativePtr);
@@ -466,7 +477,7 @@ public class Table implements TableOrView, TableSchema {
     private void insertSubtableValues(long rowIndex, long columnIndex, Object value) {
         if (value != null) {
             // insert rows in subtable recursively
-            Table subtable = getSubTableDuringInsert(columnIndex, rowIndex);
+            Table subtable = getSubtableDuringInsert(columnIndex, rowIndex);
             int rows = ((Object[])value).length;
             for (int i=0; i<rows; ++i) {
                 Object rowArr = ((Object[])value)[i];
@@ -482,7 +493,15 @@ public class Table implements TableOrView, TableSchema {
      * @return
      */
     public TableView getSortedView(long columnIndex, Order order){
-        return new TableView(nativeGetSortedView(nativePtr, columnIndex, (order == Order.ascending)), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeGetSortedView(nativePtr, columnIndex, (order == Order.ascending));
+        try {
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     /**
@@ -491,7 +510,15 @@ public class Table implements TableOrView, TableSchema {
      * @return
      */
     public TableView getSortedView(long columnIndex){
-        return new TableView(nativeGetSortedView(nativePtr, columnIndex, true), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeGetSortedView(nativePtr, columnIndex, true);
+        try {
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
 
     }
 
@@ -756,7 +783,17 @@ public class Table implements TableOrView, TableSchema {
      */
     @Override
     public Table getSubtable(long columnIndex, long rowIndex) {
-        return new Table(this, nativeGetSubtable(nativePtr, columnIndex, rowIndex), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeSubtablePtr = nativeGetSubtable(nativePtr, columnIndex, rowIndex);
+        try {
+            // Copy context reference from parent
+            return new Table(context, this, nativeSubtablePtr, immutable);
+        }
+        catch (RuntimeException e) {
+            nativeClose(nativeSubtablePtr);
+            throw e;
+        }
     }
 
     protected native long nativeGetSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
@@ -764,9 +801,19 @@ public class Table implements TableOrView, TableSchema {
     // Below version will allow to getSubtable when number of available rows are not updated yet -
     // which happens before an insertDone().
 
-    private Table getSubTableDuringInsert(long columnIndex, long rowIndex) {
-        return new Table(this, nativeGetSubtableDuringInsert(nativePtr, columnIndex, rowIndex), immutable);
+    private Table getSubtableDuringInsert(long columnIndex, long rowIndex) {
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeSubtablePtr =  nativeGetSubtableDuringInsert(nativePtr, columnIndex, rowIndex);
+        try {
+            return new Table(context, this, nativeSubtablePtr, immutable);
+        }
+        catch (RuntimeException e) {
+            nativeClose(nativeSubtablePtr);
+            throw e;
+        }
     }
+    
     private native long nativeGetSubtableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
 
 
@@ -1055,7 +1102,16 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public TableQuery where() {
-        return new TableQuery(nativeWhere(nativePtr), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeQueryPtr = nativeWhere(nativePtr);
+        try {
+            // Copy context reference from parent
+            return new TableQuery(this.context, this, nativeQueryPtr, immutable);
+        } catch (RuntimeException e) {
+            TableQuery.nativeClose(nativeQueryPtr);
+            throw e;
+        }
     }
 
     protected native long nativeWhere(long nativeTablePtr);
@@ -1104,42 +1160,89 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public TableView findAllLong(long columnIndex, long value) {
-        return new TableView(nativeFindAllInt(nativePtr, columnIndex, value), immutable);
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
+        try {
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
     @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
-        return new TableView(nativeFindAllBool(nativePtr, columnIndex, value), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
+        try {
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
 
     @Override
     public TableView findAllFloat(long columnIndex, float value) {
-        return new TableView(nativeFindAllFloat(nativePtr, columnIndex, value), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
+        try {
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
 
     @Override
     public TableView findAllDouble(long columnIndex, double value) {
-        return new TableView(nativeFindAllDouble(nativePtr, columnIndex, value), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
+        try {
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
 
     @Override
     public TableView findAllDate(long columnIndex, Date date) {
-        return new TableView(nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000);
+        try {
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
 
     @Override
     public TableView findAllString(long columnIndex, String value) {
-        return new TableView(nativeFindAllString(nativePtr, columnIndex, value), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
+        try {
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
@@ -1182,12 +1285,20 @@ public class Table implements TableOrView, TableSchema {
         return result;
     }
 
-    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
+    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long resultPtr);
 
     //
 
     public TableView getDistinctView(long columnIndex) {
-        return new TableView(nativeGetDistinctView(nativePtr, columnIndex), immutable);
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        this.context.executeDelayedDisposal();
+        long nativeViewPtr = nativeGetDistinctView(nativePtr, columnIndex);
+        try {
+            return new TableView(this.context, this, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);

@@ -63,7 +63,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SharedGroup_createNative(
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeClose(
-    JNIEnv*, jobject, jlong native_ptr)
+    JNIEnv*, jclass, jlong native_ptr)
 {
     delete SG(native_ptr);
 }
@@ -71,8 +71,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeClose(
 JNIEXPORT void JNICALL Java_com_tightdb_SharedGroup_nativeReserve(
    JNIEnv *env, jobject, jlong native_ptr, jlong bytes)
 {
+    if (bytes <= 0) {
+        ThrowException(env, UnsupportedOperation, "number of bytes must be > 0.");
+        return;
+    }
+
     try {
-         SG(native_ptr)->reserve(bytes);
+         SG(native_ptr)->reserve(S(bytes));
     }
     CATCH_STD()
 }

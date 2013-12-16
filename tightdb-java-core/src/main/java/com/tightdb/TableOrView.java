@@ -9,6 +9,8 @@ import java.util.Date;
 public interface TableOrView {
 
     void clear();
+    
+    void close();
 
     /**
      * Returns the number of entries of the table/view.
@@ -281,6 +283,5 @@ public interface TableOrView {
     }
     
     public Table pivot(long stringCol, long intCol, PivotType pivotType);
-
 
 }

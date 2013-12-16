@@ -11,7 +11,7 @@ void arrayToVector(JNIEnv *env, jlongArray path, vector<size_t>& nativePath)
 
     jlong *pathElements = env->GetLongArrayElements(path, 0);
     for (jsize i = 0; i < size; ++i) {
-        nativePath.push_back(pathElements[i]);
+        nativePath.push_back(S(pathElements[i]));
     }
     env->ReleaseLongArrayElements(path, pathElements, JNI_ABORT);
 }
@@ -40,7 +40,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_SubtableSchema_nativeRemoveColumn
     try {
         vector<size_t> nativePath;
         arrayToVector(env, path, nativePath);
-        nativePath.push_back(columnIndex);
+        nativePath.push_back(S(columnIndex));
 
         TBL(nativeTablePtr)->remove_subcolumn(nativePath);
     } CATCH_STD()
@@ -57,7 +57,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_SubtableSchema_nativeRenameColumn
     try {
         vector<size_t> nativePath;
         arrayToVector(env, path, nativePath);
-        nativePath.push_back(columnIndex);
+        nativePath.push_back(S(columnIndex));
 
         TBL(nativeTablePtr)->rename_subcolumn(nativePath, name2);
     } CATCH_STD()

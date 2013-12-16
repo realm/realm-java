@@ -214,15 +214,15 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
 }
 
 template <class T>
-inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0)
+inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
 {
     if(rowIndex < 0) {
         ThrowException(env, IndexOutOfBounds, "rowIndex is less than 0.");
         return false;
     }
     size_t size = pTable->size();
-    if (size > 0)
-        size += offset;
+    if (size > 0 && offset)
+        size -= 1;
     bool rowErr = tightdb::util::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
         TR_ERR((env, "rowIndex %lld > %lld - invalid!", S(rowIndex), size));
@@ -232,7 +232,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0
 }
 
 template <class T>
-inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, jlong offset=0)
+inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
 {
     if (tightdb::util::SameType<tightdb::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))

@@ -23,7 +23,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_createNative
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeClose
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
     
 /*
  * Class:     com_tightdb_Table

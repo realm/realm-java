@@ -103,7 +103,7 @@ public class JNIMixedTypeTest {
         table.setMixed(0, 0, Mixed.mixedValue(value3.value));
 
         checkMixedCell(table, 0, 0, value3.type, value3.value);
-        table.finalize();
+        table.close();
     }
 
     private void checkMixedCell(Table table, long col, long row, ColumnType columnType, Object value) throws IllegalMixedTypeException {
