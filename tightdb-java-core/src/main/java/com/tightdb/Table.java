@@ -805,7 +805,7 @@ public class Table implements TableOrView, TableSchema {
         context.executeDelayedDisposal();
         long nativeSubtablePtr =  nativeGetSubtableDuringInsert(nativePtr, columnIndex, rowIndex);
         try {
-            return new Table(this.context, this,nativeSubtablePtr, immutable);
+            return new Table(context, this, nativeSubtablePtr, immutable);
         }
         catch (RuntimeException e) {
             nativeClose(nativeSubtablePtr);

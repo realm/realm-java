@@ -304,7 +304,7 @@ public class TableView implements TableOrView {
         long nativeSubtablePtr = nativeGetSubtable(nativePtr, columnIndex, rowIndex);
         try {
             // Copy context reference from parent
-            return new Table(context, this, nativeSubtablePtr, immutable);
+            return new Table(context, this.parent, nativeSubtablePtr, immutable);
         }
         catch (RuntimeException e) {
             Table.nativeClose(nativeSubtablePtr);
