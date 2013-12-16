@@ -52,7 +52,7 @@ public class TableView implements TableOrView {
      * native native TableView object reference. The method is not supposed to
      * be called by the user of the db. The method is for internal use only.
      *
-     * @param parent A table view.
+     * @param parent A table.
      * @param nativePtr pointer to table.
      */
     protected TableView(Context context, Table parent, long nativePtr, boolean immutable){
