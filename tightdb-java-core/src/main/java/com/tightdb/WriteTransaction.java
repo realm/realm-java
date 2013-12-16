@@ -2,7 +2,7 @@ package com.tightdb;
 
 public class WriteTransaction extends Group {
 
-    private SharedGroup db;
+    private final SharedGroup db;
     private boolean committed;
 
     public void commit() {
@@ -19,18 +19,18 @@ public class WriteTransaction extends Group {
         db.rollback();
     }
 
+    @Override
     public void close() {
         if (!committed) {
             rollback();
         }
     }
 
-    WriteTransaction(SharedGroup db, long nativePtr) {
-        super(nativePtr, false);    // Group is mutable
+    WriteTransaction(Context context,SharedGroup db, long nativePtr) {
+        super(context, nativePtr, false);    // Group is mutable
         this.db = db;
         committed = false;
     }
 
-    protected void finalize() {
-    } // Nullify the actions of Group.finalize()
+    protected void finalize() {} // Nullify the actions of Group.finalize()
 }

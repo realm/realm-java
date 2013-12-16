@@ -99,7 +99,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Group_createNative__Ljava_nio_ByteBuffe
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Group_nativeClose(
-    JNIEnv* env, jobject, jlong nativeGroupPtr)
+    JNIEnv* env, jclass, jlong nativeGroupPtr)
 {
     TR((env, "Group::nativeClose(%x)\n", nativeGroupPtr));
     delete G(nativeGroupPtr);

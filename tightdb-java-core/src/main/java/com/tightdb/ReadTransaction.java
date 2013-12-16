@@ -5,15 +5,10 @@ package com.tightdb;
 
 public class ReadTransaction extends Group {
 
-    private SharedGroup db;
-
-    ReadTransaction(SharedGroup db) {
-        super(db.beginReadGroup(), true);
-        this.db = db;
-    }
-
-    ReadTransaction(SharedGroup db, long nativePtr) {
-        super(nativePtr, true); // make Group immutable
+    private final SharedGroup db;
+    
+    ReadTransaction(Context context, SharedGroup db, long nativePointer) {
+        super(context, nativePointer, true); // make Group immutable
         this.db = db;
     }
 
@@ -21,10 +16,8 @@ public class ReadTransaction extends Group {
         db.endRead();
     }
 
-//    @Override
-    @Deprecated
+    @Override
     public void close() {
-        //System.out.println("read-close");
         db.endRead();
     }
 

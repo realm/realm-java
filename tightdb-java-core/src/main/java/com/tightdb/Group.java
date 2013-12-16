@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.tightdb.internal.CloseMutex;
 import com.tightdb.typed.TightDB;
 
 /**
@@ -12,6 +11,10 @@ import com.tightdb.typed.TightDB;
  * of a collection of tables.
  */
 public class Group {
+    
+    protected long nativePtr;
+    protected final boolean immutable;
+    private final Context context;
 
     static {
         TightDB.loadLibrary();
@@ -21,7 +24,7 @@ public class Group {
     // Group construction and destruction
     //
 
-    private void checkNativePtr() {
+    private void checkNativePtrNotZero() {
         if (this.nativePtr == 0)
             // FIXME: It is wrong to assume that a null pointer means 'out
             // of memory'. An out of memory condition in
@@ -31,8 +34,11 @@ public class Group {
     }
 
     public Group() {
+        this.immutable = false;
+        this.context = new Context();
         this.nativePtr = createNative();
-        checkNativePtr();
+        checkNativePtrNotZero();
+        
     }
 
     protected native long createNative();
@@ -50,9 +56,13 @@ public class Group {
 
     public Group(String filepath, OpenMode mode) {
         if (mode.equals(OpenMode.READ_ONLY))
-            this.immutable = true; // Group immutable
+            this.immutable = true;
+        else
+            this.immutable = false;
+        
+        this.context = new Context();
         this.nativePtr = createNative(filepath, mode.value);
-        checkNativePtr();
+        checkNativePtrNotZero();
     }
 
     protected native long createNative(String filepath, int value);
@@ -67,9 +77,11 @@ public class Group {
 
 
     public Group(byte[] data) {
+        this.immutable = false;
+        this.context = new Context();
         if (data != null) {
             this.nativePtr = createNative(data);
-            checkNativePtr();
+            checkNativePtrNotZero();
         } else {
             throw new IllegalArgumentException();
         }
@@ -78,9 +90,11 @@ public class Group {
     protected native long createNative(byte[] data);
 
     public Group(ByteBuffer buffer) {
+        this.immutable = false;
+        this.context = new Context();
         if (buffer != null) {
             this.nativePtr = createNative(buffer);
-            checkNativePtr();
+            checkNativePtrNotZero();
         } else {
             throw new IllegalArgumentException();
         }
@@ -88,20 +102,16 @@ public class Group {
 
     protected native long createNative(ByteBuffer buffer);
 
-    protected Group(long nativePtr, boolean immutable) {
+    Group(Context context, long nativePointer, boolean immutable) {
+        this.context = context;
+        this.nativePtr = nativePointer;
         this.immutable = immutable;
-        this.nativePtr = nativePtr;
-        checkNativePtr();
     }
 
-    protected void finalize() {
-        // System.err.println("FINALIZE GROUP -------------- this " + this +
-        // "   native " + nativePtr);
-        close();
-    }
-
+    // If close() is called, no penalty is paid for delayed disposal
+    // via the context
     public void close() {
-        synchronized (CloseMutex.getInstance()) {
+        synchronized (context) {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
                 nativePtr = 0;
@@ -109,7 +119,16 @@ public class Group {
         }
     }
 
-    protected native void nativeClose(long nativeGroupPtr);
+    protected static native void nativeClose(long nativeGroupPtr);
+    
+    protected void finalize() {
+        synchronized (context) {
+            if (nativePtr != 0) {
+                context.asyncDisposeGroup(nativePtr);
+                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
+            }
+        }
+    }
 
     //
     // Group methods
@@ -172,12 +191,23 @@ public class Group {
      */
     public Table getTable(String name) {
         verifyGroupIsValid();
-        if (name == null || name == "")
-            throw new IllegalArgumentException("Invalid name. Name must be a non-empty string.");
+        if (name == null || name.equals(""))
+            throw new IllegalArgumentException("Invalid name. Name must be a non-empty String.");
         if (immutable)
             if (!hasTable(name))
                 throwImmutable();
-        return new Table(this, nativeGetTableNativePtr(nativePtr, name), immutable);
+        
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
+        try {
+            // Copy context reference from parent
+            return new Table(context, this, nativeTablePointer, immutable);
+        }
+        catch (RuntimeException e) {
+            Table.nativeClose(nativeTablePointer);
+            throw e;
+        }
     }
 
     protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
@@ -272,7 +302,4 @@ public class Group {
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
-
-    protected long nativePtr;
-    protected boolean immutable = false;
 }

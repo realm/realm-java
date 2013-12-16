@@ -6,37 +6,44 @@ public class TableQuery {
     protected boolean DEBUG = false;
 
     protected long nativePtr;
-    protected boolean immutable = false;
+    protected final boolean immutable;
+    protected final Table parent;
+    private final Context context;
 
     private boolean queryValidated = true;
 
     // TODO: Can we protect this?
-    public TableQuery(long nativeQueryPtr, boolean immutable){
+    public TableQuery(Context context, Table parent, long nativeQueryPtr, boolean immutable){
         if (DEBUG)
             System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
+        this.context = context;
+        this.parent = parent;
         this.immutable = immutable;
         this.nativePtr = nativeQueryPtr;
     }
 
-    @Override
-    public void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
+    public void close() {
+        synchronized (context) {
+            if (nativePtr != 0) {
+            nativeClose(nativePtr);  
+            
+            if (DEBUG)
+                System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
+            
+            nativePtr = 0;
+            }
         }
     }
-
-    private synchronized void close() {
-        if (DEBUG)
-            System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
-        if (nativePtr == 0) {
-            return;
+    protected static native void nativeClose(long nativeQueryPtr);
+    
+    protected void finalize() {
+        synchronized (context) {
+            if (nativePtr != 0) {
+                context.asyncDisposeQuery(nativePtr); 
+                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
+            }
         }
-        nativeClose(nativePtr);
-        nativePtr = 0;
     }
-    protected native void nativeClose(long nativeQueryPtr);
 
     /**
      * Checks in core if query syntax is valid. Throws exception, if not.
@@ -399,12 +406,30 @@ public class TableQuery {
 
     public TableView findAll(long start, long end, long limit){
         validateQuery();
-        return new TableView(nativeFindAll(nativePtr, start, end, limit), immutable);
+        
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAll(nativePtr, start, end, limit);
+        try {
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     public TableView findAll(){
         validateQuery();
-        return new TableView(nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE), immutable);
+        
+        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE);
+        try {
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
     }
 
     protected native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);

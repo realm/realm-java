@@ -127,17 +127,12 @@ public class GroupTest {
 
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void getNullTableShouldThrowIllegalArgument() {
-        Group group = new Group();
-        group.getTable(null);
-        // Expect to throw exception
-    }
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void getEmptyTableShouldThrowIllegalArgument() {
         Group group = new Group();
-        group.getTable("");
-        // Expect to throw exception
+        try { group.getTable(null); fail("null String name"); } catch (IllegalArgumentException e) { }
+        try { group.getTable(""); fail("Empty String name"); } catch (IllegalArgumentException e) { }
+
     }
 
     //
@@ -198,7 +193,6 @@ public class GroupTest {
         // TODO: How can we verify that group is closed?
     }
     
-    
     @Test
     public void testReadOnlyGroup() throws IOException {
         String fileName = "db-name.tightdb";
@@ -211,7 +205,6 @@ public class GroupTest {
         try { g2.getTable("newTable"); fail("Group read-only"); } catch (IllegalStateException e ) { }
         assertEquals(1, g2.size()); // Only the 1 table from g1 should be there
     }
-
 
     @Test(expectedExceptions = com.tightdb.IOException.class)
     public void groupWriteToEmptyStringPath() throws IOException {

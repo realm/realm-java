@@ -30,7 +30,7 @@ inline bool QueryValid(JNIEnv* env, Query* pQuery)
 
 //-------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose(JNIEnv * env, jobject, jlong nativeQueryPtr) {
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeClose(JNIEnv * env, jclass, jlong nativeQueryPtr) {
     TR((env, "Query nativeClose(ptr %x)\n", nativeQueryPtr));
     delete Q(nativeQueryPtr);
 }
