@@ -145,7 +145,7 @@ public class Table implements TableOrView, TableSchema {
         return nativeIsValid(nativePtr);
     }
 
-    protected static native boolean nativeIsValid(long nativeTablePtr);
+    protected native boolean nativeIsValid(long nativeTablePtr);
 
     @Override
     public boolean equals(Object other) {
