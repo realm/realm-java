@@ -27,32 +27,17 @@ public class SharedGroup {
     public SharedGroup(String databaseFile) {
         context = new Context();
         this.nativePtr = createNative(databaseFile, Durability.FULL.value, false, false);
-        try { 
-            checkNativePtr();
-        } catch (RuntimeException e) {
-            nativeClose(nativePtr);
-            throw e;
-        }
+        checkNativePtrNotZero();
     }
     public SharedGroup(String databaseFile, Durability durability) {
         context = new Context();
         this.nativePtr = createNative(databaseFile, durability.value, false, false);
-        try { 
-            checkNativePtr();
-        } catch (RuntimeException e) {
-            nativeClose(nativePtr);
-            throw e;
-        }
+        checkNativePtrNotZero();
     }
     public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
         context = new Context();
         this.nativePtr = createNative(databaseFile, durability.value, fileMustExist, false);
-        try { 
-            checkNativePtr();
-        } catch (RuntimeException e) {
-            nativeClose(nativePtr);
-            throw e;
-        }
+        checkNativePtrNotZero();
     }
 /*
     SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
@@ -174,7 +159,7 @@ public class SharedGroup {
             boolean no_create,
             boolean enableReplication);
 
-    private void checkNativePtr() {
+    private void checkNativePtrNotZero() {
         if (this.nativePtr == 0)
             throw new OutOfMemoryError("Out of native memory.");
     }

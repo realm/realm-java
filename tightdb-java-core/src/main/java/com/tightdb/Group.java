@@ -24,7 +24,7 @@ public class Group {
     // Group construction and destruction
     //
 
-    private void checkNativePtr() {
+    private void checkNativePtrNotZero() {
         if (this.nativePtr == 0)
             // FIXME: It is wrong to assume that a null pointer means 'out
             // of memory'. An out of memory condition in
@@ -36,12 +36,8 @@ public class Group {
     public Group() {
         context = new Context();
         this.nativePtr = createNative();
-        try {
-            checkNativePtr();
-        } catch (RuntimeException e) {
-            nativeClose(nativePtr);
-            throw e;
-        }
+        checkNativePtrNotZero();
+        
     }
 
     protected native long createNative();
@@ -63,12 +59,7 @@ public class Group {
         
         context = new Context();
         this.nativePtr = createNative(filepath, mode.value);
-        try { 
-            checkNativePtr();
-        } catch (RuntimeException e) {
-            nativeClose(nativePtr);
-            throw e;
-        }
+        checkNativePtrNotZero();
     }
 
     protected native long createNative(String filepath, int value);
@@ -86,12 +77,7 @@ public class Group {
         context = new Context();
         if (data != null) {
             this.nativePtr = createNative(data);
-            try {
-                checkNativePtr();
-            } catch (RuntimeException e) {
-                nativeClose(nativePtr);
-                throw e;
-            }
+            checkNativePtrNotZero();
         } else {
             throw new IllegalArgumentException();
         }
@@ -103,12 +89,7 @@ public class Group {
         context = new Context();
         if (buffer != null) {
             this.nativePtr = createNative(buffer);
-            try { 
-                checkNativePtr();
-            } catch (RuntimeException e) {
-                nativeClose(nativePtr);
-                throw e;
-            }
+            checkNativePtrNotZero();
         } else {
             throw new IllegalArgumentException();
         }
