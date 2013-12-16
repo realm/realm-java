@@ -13,8 +13,8 @@ import com.tightdb.typed.TightDB;
 public class Group {
     
     protected long nativePtr;
-    protected boolean immutable = false;
-    private Context context = null;
+    protected final boolean immutable;
+    private final Context context;
 
     static {
         TightDB.loadLibrary();
@@ -34,7 +34,8 @@ public class Group {
     }
 
     public Group() {
-        context = new Context();
+        this.immutable = false;
+        this.context = new Context();
         this.nativePtr = createNative();
         checkNativePtrNotZero();
         
@@ -55,9 +56,11 @@ public class Group {
 
     public Group(String filepath, OpenMode mode) {
         if (mode.equals(OpenMode.READ_ONLY))
-            this.immutable = true; // Group immutable
+            this.immutable = true;
+        else
+            this.immutable = false;
         
-        context = new Context();
+        this.context = new Context();
         this.nativePtr = createNative(filepath, mode.value);
         checkNativePtrNotZero();
     }
@@ -74,7 +77,8 @@ public class Group {
 
 
     public Group(byte[] data) {
-        context = new Context();
+        this.immutable = false;
+        this.context = new Context();
         if (data != null) {
             this.nativePtr = createNative(data);
             checkNativePtrNotZero();
@@ -86,7 +90,8 @@ public class Group {
     protected native long createNative(byte[] data);
 
     public Group(ByteBuffer buffer) {
-        context = new Context();
+        this.immutable = false;
+        this.context = new Context();
         if (buffer != null) {
             this.nativePtr = createNative(buffer);
             checkNativePtrNotZero();

@@ -6,7 +6,7 @@ public class SharedGroup {
 
     private long nativePtr;
     private boolean activeTransaction;
-    private Context context = null;
+    private final Context context;
 
     static {
         TightDB.loadLibrary();
@@ -102,6 +102,11 @@ public class SharedGroup {
         nativeClose(nativePtr);
         nativePtr = 0;
     }
+    
+    protected void finalize() {
+        if (nativePtr != 0)
+            context.asyncDisposeSharedGroup(nativePtr);
+    }
 
     void commit() {
         if (isClosed())
@@ -125,12 +130,6 @@ public class SharedGroup {
     }
 
     static native String nativeGetDefaultReplicationDatabaseFileName();
-
-    protected void finalize() {
-        if (nativePtr != 0)
-            context.asyncDisposeSharedGroup(nativePtr);
-    }
-    
 
     public boolean hasChanged() {
         return nativeHasChanged(nativePtr);

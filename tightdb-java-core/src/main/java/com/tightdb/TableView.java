@@ -851,9 +851,9 @@ public class TableView implements TableOrView {
     }
 
     protected long nativePtr;
-    protected boolean immutable = false;
-    protected TableView tableView;
-    private Context context = null;
+    protected final boolean immutable;
+    protected final TableView tableView;
+    private final Context context;
 
     @Override
     public long lookup(String value) {

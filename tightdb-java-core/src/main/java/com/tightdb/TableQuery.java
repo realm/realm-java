@@ -6,8 +6,8 @@ public class TableQuery {
     protected boolean DEBUG = false;
 
     protected long nativePtr;
-    protected boolean immutable = false;
-    private Context context = null;
+    protected final boolean immutable;
+    private final Context context;
 
     private boolean queryValidated = true;
 

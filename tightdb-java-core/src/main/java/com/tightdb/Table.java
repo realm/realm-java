@@ -50,9 +50,10 @@ public class Table implements TableOrView, TableSchema {
     public static final long INFINITE = -1;
 
     protected long nativePtr;
-    protected boolean immutable = false;
-    protected Object parent = null;
-    private Context context = null;
+    
+    protected final boolean immutable;
+    protected final Object parent;
+    private final Context context;
 
     // test:
     protected int tableNo;
@@ -69,11 +70,13 @@ public class Table implements TableOrView, TableSchema {
      * creates a native reference of the object and keeps a reference to it.
      */
     public Table() {
-        context = new Context();
+        this.parent = null; // No parent in free-standing table
+        this.immutable = false; 
+        this.context = new Context();
         // Native methods work will be initialized here. Generated classes will
         // have nothing to do with the native functions. Generated Java Table
         // classes will work as a wrapper on top of table.
-        nativePtr = createNative();
+        this.nativePtr = createNative();
         if (nativePtr == 0)
             throw new OutOfMemoryError("Out of native memory.");
         if (DEBUG) {
@@ -102,13 +105,14 @@ public class Table implements TableOrView, TableSchema {
         if (nativePtr != 0) {
             nativeClose(nativePtr);
             nativePtr = 0;
+        }   
 
-            if (DEBUG) {
+        if (DEBUG) {
+            if (nativePtr != 0) {
                 TableCount--;
                 System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
             }
-        } else {
-            if (DEBUG)
+            else 
                 System.err.println(".... CLOSE ignored.");
         }
     }
@@ -117,13 +121,11 @@ public class Table implements TableOrView, TableSchema {
     
     @Override
     protected void finalize() {
-        // Accessing `nativePointer` without synchronization as we
-        // assume that close() is never called on behalf of a
-        // finalizer thread
-        if (this.nativePtr != 0) {
+        if (nativePtr != 0) {
             boolean isRoot = (parent == null);
-            context.asyncDisposeTable(this.nativePtr, isRoot);
+            context.asyncDisposeTable(nativePtr, isRoot);
         }
+
         if (DEBUG) 
             System.err.println("==== FINALIZE " + tableNo + "...");
     }
