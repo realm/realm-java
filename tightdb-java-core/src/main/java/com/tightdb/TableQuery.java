@@ -25,15 +25,16 @@ public class TableQuery {
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {
-            nativeClose(nativePtr);  
-            
-            if (DEBUG)
-                System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
-            
-            nativePtr = 0;
+                nativeClose(nativePtr);  
+
+                if (DEBUG)
+                    System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
+
+                nativePtr = 0;
             }
         }
     }
+    
     protected static native void nativeClose(long nativeQueryPtr);
     
     protected void finalize() {
