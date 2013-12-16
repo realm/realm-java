@@ -111,17 +111,23 @@ public class Group {
     // If close() is called, no penalty is paid for delayed disposal
     // via the context
     public void close() {
-        if (nativePtr != 0) {
-            nativeClose(nativePtr);
-            nativePtr = 0;
+        synchronized (context) {
+            if (nativePtr != 0) {
+                nativeClose(nativePtr);
+                nativePtr = 0;
+            }
         }
     }
 
     protected static native void nativeClose(long nativeGroupPtr);
     
     protected void finalize() {
-        if (nativePtr != 0)
-            context.asyncDisposeGroup(nativePtr);
+        synchronized (context) {
+            if (nativePtr != 0) {
+                context.asyncDisposeGroup(nativePtr);
+                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
+            }
+        }
     }
 
     //

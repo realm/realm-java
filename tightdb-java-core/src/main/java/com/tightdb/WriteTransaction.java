@@ -2,7 +2,7 @@ package com.tightdb;
 
 public class WriteTransaction extends Group {
 
-    private SharedGroup db;
+    private final SharedGroup db;
     private boolean committed;
 
     public void commit() {

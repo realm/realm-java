@@ -5,7 +5,7 @@ package com.tightdb;
 
 public class ReadTransaction extends Group {
 
-    private SharedGroup db;
+    private final SharedGroup db;
     
     ReadTransaction(Context context, SharedGroup db, long nativePointer) {
         super(context, nativePointer, true); // make Group immutable

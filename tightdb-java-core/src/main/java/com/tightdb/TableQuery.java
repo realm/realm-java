@@ -7,33 +7,42 @@ public class TableQuery {
 
     protected long nativePtr;
     protected final boolean immutable;
+    protected final Table parent;
     private final Context context;
 
     private boolean queryValidated = true;
 
     // TODO: Can we protect this?
-    public TableQuery(Context context, long nativeQueryPtr, boolean immutable){
+    public TableQuery(Context context, Table parent, long nativeQueryPtr, boolean immutable){
         if (DEBUG)
             System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
         this.context = context;
+        this.parent = parent;
         this.immutable = immutable;
         this.nativePtr = nativeQueryPtr;
     }
 
     public void close() {
-        if (DEBUG)
-            System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
-        if (nativePtr == 0) {
-            return;
+        synchronized (context) {
+            if (nativePtr != 0) {
+            nativeClose(nativePtr);  
+            
+            if (DEBUG)
+                System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
+            
+            nativePtr = 0;
+            }
         }
-        nativeClose(nativePtr);
-        nativePtr = 0;
     }
     protected static native void nativeClose(long nativeQueryPtr);
     
     protected void finalize() {
-        if (nativePtr != 0)
-            context.asyncDisposeQuery(nativePtr);
+        synchronized (context) {
+            if (nativePtr != 0) {
+                context.asyncDisposeQuery(nativePtr); 
+                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
+            }
+        }
     }
 
     /**
@@ -402,7 +411,7 @@ public class TableQuery {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, start, end, limit);
         try {
-            return new TableView(this.context, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -416,7 +425,7 @@ public class TableQuery {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE);
         try {
-            return new TableView(this.context, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;

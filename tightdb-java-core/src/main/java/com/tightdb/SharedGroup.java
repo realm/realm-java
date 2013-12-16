@@ -97,15 +97,21 @@ public class SharedGroup {
             throw new IllegalStateException(
                     "Can't close the SharedGroup during an active transaction");
 
-        if (nativePtr == 0)
-            return;
-        nativeClose(nativePtr);
-        nativePtr = 0;
+        synchronized (context) {
+            if (nativePtr != 0) {
+                nativeClose(nativePtr);
+                nativePtr = 0; 
+            }
+        }
     }
     
     protected void finalize() {
-        if (nativePtr != 0)
-            context.asyncDisposeSharedGroup(nativePtr);
+        synchronized (context) {
+            if (nativePtr != 0) {
+                context.asyncDisposeSharedGroup(nativePtr); 
+                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
+            }
+        }
     }
 
     void commit() {

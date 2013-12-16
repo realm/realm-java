@@ -47,49 +47,42 @@ import java.util.Date;
 public class TableView implements TableOrView {
     protected boolean DEBUG = false; //true;
 
-    /**
-     * Creates a TableViewBase with a Java Object Table and a already created
-     * native reference to a TableView. This method is not supposed to be
-     * called by a user of this db. It is for internal use only.
-     *
-     * @param table The table.
-     * @param nativePtr pointer to table.
-     */
-    protected TableView(Context context, long nativePtr, boolean immutable){
-        this.context = context;
-        this.immutable = immutable;
-        this.tableView = null;
-        this.nativePtr = nativePtr;
-    }
-
-    /**
+     /**
      * Creates a TableView with already created Java TableView Object and a
      * native native TableView object reference. The method is not supposed to
      * be called by the user of the db. The method is for internal use only.
      *
-     * @param tableView A table view.
+     * @param parent A table view.
      * @param nativePtr pointer to table.
      */
-    protected TableView(Context context, TableView tableView, long nativePtr, boolean immutable){
+    protected TableView(Context context, Table parent, long nativePtr, boolean immutable){
         this.context = context;
         this.immutable = immutable;
-        this.tableView = tableView;
+        this.parent = parent;
         this.nativePtr = nativePtr;
     }
 
     @Override
     public void close(){
-        if (DEBUG) 
-            System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
-        if (nativePtr != 0) {
-            nativeClose(nativePtr);
-            nativePtr = 0;
+        synchronized (context) {
+            if (nativePtr != 0) {
+                nativeClose(nativePtr);
+                
+                if (DEBUG) 
+                    System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
+              
+                nativePtr = 0;
+            } 
         }
     }
     
     protected void finalize() {
-        if (nativePtr != 0)
-            context.asyncDisposeTableView(nativePtr);
+        synchronized (context) {
+            if (nativePtr != 0) {
+                context.asyncDisposeTableView(nativePtr);
+                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
+            }
+        }
     }
 
     protected static native void nativeClose(long nativeViewPtr);
@@ -578,7 +571,7 @@ public class TableView implements TableOrView {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -593,7 +586,7 @@ public class TableView implements TableOrView {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -608,7 +601,7 @@ public class TableView implements TableOrView {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -623,7 +616,7 @@ public class TableView implements TableOrView {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -638,7 +631,7 @@ public class TableView implements TableOrView {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000);
         try { 
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -653,7 +646,7 @@ public class TableView implements TableOrView {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -837,7 +830,7 @@ public class TableView implements TableOrView {
         this.context.executeDelayedDisposal();
         long nativeQueryPtr = nativeWhere(nativePtr);
         try {
-            return new TableQuery(this.context, nativeQueryPtr, immutable);
+            return new TableQuery(this.context, this.parent, nativeQueryPtr, immutable);
         } catch (RuntimeException e) {
             TableQuery.nativeClose(nativeQueryPtr);
             throw e;
@@ -852,7 +845,7 @@ public class TableView implements TableOrView {
 
     protected long nativePtr;
     protected final boolean immutable;
-    protected final TableView tableView;
+    protected final Table parent;
     private final Context context;
 
     @Override
