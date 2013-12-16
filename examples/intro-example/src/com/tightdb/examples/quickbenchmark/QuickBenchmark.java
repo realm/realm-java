@@ -7,7 +7,7 @@ import com.tightdb.*;
 
 public class QuickBenchmark {
     final static int ROW_COUNT = 500000;
-    final static int ROUNDS    = 100;
+    final static int ROUNDS    = 10;
 
     // Define a TightDB table. It will generate 3 classes: TestTable, TestQuery, TestTableView
     @DefineTable(table = "PersonTable")
@@ -41,7 +41,7 @@ public class QuickBenchmark {
 
         System.out.println("\n\nPerformance tests with " + ROW_COUNT + " rows. Test is repeated "
                 + ROUNDS + " times.");
-        for (int _i=0; _i<1000; _i++) {
+        for (int _i=0; _i<ROUNDS; _i++) {
         // We need some random names that we know are present for lookups
         Random rand = new Random();
         String[] randomNames = new String[100];

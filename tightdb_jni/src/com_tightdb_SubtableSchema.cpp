@@ -1,5 +1,5 @@
 #include "util.hpp"
-#include "com_tightdb_SubTableSchema.h"
+#include "com_tightdb_SubtableSchema.h"
 
 using namespace tightdb;
 using namespace std;
@@ -16,7 +16,7 @@ void arrayToVector(JNIEnv *env, jlongArray path, vector<size_t>& nativePath)
     env->ReleaseLongArrayElements(path, pathElements, JNI_ABORT);
 }
 
-JNIEXPORT jlong JNICALL Java_com_tightdb_SubTableSchema_nativeAddColumn
+JNIEXPORT jlong JNICALL Java_com_tightdb_SubtableSchema_nativeAddColumn
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlongArray path, jint colType, jstring name)
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
@@ -32,7 +32,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SubTableSchema_nativeAddColumn
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_SubTableSchema_nativeRemoveColumn
+JNIEXPORT void JNICALL Java_com_tightdb_SubtableSchema_nativeRemoveColumn
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlongArray path, jlong columnIndex)
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
@@ -46,7 +46,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_SubTableSchema_nativeRemoveColumn
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_SubTableSchema_nativeRenameColumn
+JNIEXPORT void JNICALL Java_com_tightdb_SubtableSchema_nativeRenameColumn
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlongArray path, jlong columnIndex, jstring name)
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))

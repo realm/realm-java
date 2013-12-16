@@ -197,6 +197,20 @@ public class GroupTest {
         group.close();
         // TODO: How can we verify that group is closed?
     }
+    
+    
+    @Test
+    public void testReadOnlyGroup() throws IOException {
+        String fileName = "db-name.tightdb";
+        new File(fileName).delete();
+        Group g1 = new Group();
+        g1.getTable("table1");
+        g1.writeToFile(fileName);
+        
+        Group g2 = new Group(fileName, OpenMode.READ_ONLY);
+        try { g2.getTable("newTable"); fail("Group read-only"); } catch (IllegalStateException e ) { }
+        assertEquals(1, g2.size()); // Only the 1 table from g1 should be there
+    }
 
 
     @Test(expectedExceptions = com.tightdb.IOException.class)

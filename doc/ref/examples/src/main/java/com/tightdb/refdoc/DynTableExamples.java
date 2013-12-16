@@ -128,7 +128,7 @@ public class DynTableExamples {
         long SUBTABLE_COL_INDEX = table3.addColumn(ColumnType.TABLE, "events");
 
         // To add columns to the subtable use TableSchema
-        TableSchema subtableSchema = table3.getSubTableSchema(SUBTABLE_COL_INDEX);
+        TableSchema subtableSchema = table3.getSubtableSchema(SUBTABLE_COL_INDEX);
 
         // Now simply add columns using addColumn on the TableSchema object
         subtableSchema.addColumn(ColumnType.STRING, "desc");
@@ -202,7 +202,7 @@ public class DynTableExamples {
         table2.addColumn(ColumnType.INTEGER, "id");
         long subtableColIndex = table2.addColumn(ColumnType.TABLE, "events");
 
-        TableSchema subtableSchema = table2.getSubTableSchema(subtableColIndex);
+        TableSchema subtableSchema = table2.getSubtableSchema(subtableColIndex);
         subtableSchema.addColumn(ColumnType.STRING, "desc");
         long subDateColIndex = subtableSchema.addColumn(ColumnType.DATE, "date");
 

@@ -34,8 +34,8 @@ public class Performance {
         System.out.print("Performance testing TightDB: ");
         TestResult tightdb = TestPerformance(new Tightdb(), numOfValues);
 
-        System.out.print("\nPerformance testing TightDB iterate: ");
-        TestResult tightdb2 = TestPerformance(new TightdbIterate(), numOfValues);
+      //  System.out.print("\nPerformance testing TightDB iterate: ");
+      //  TestResult tightdb2 = TestPerformance(new TightdbIterate(), numOfValues);
 
         System.out.print("\nPerformance testing Java ArrayList: ");
         TestResult javaArray = TestPerformance(new JavaArrayList(), numOfValues);
@@ -58,11 +58,11 @@ public class Performance {
             System.out.print( testText[test] );
             printTime(tightdb.testTime[test], " ms (x1)", "\t");
 
-            printTime(tightdb2.testTime[test], " ms ", "");
+          /*  printTime(tightdb2.testTime[test], " ms ", "");
             if (tightdb.testTime[test] > 0)
                 System.out.print( "(x" + tightdb2.testTime[test] / tightdb.testTime[test] + ")\t");
             else
-                System.out.print("\t");
+                System.out.print("\t");*/
 
             printTime(javaArray.testTime[test], " ms ", "");
             if (tightdb.testTime[test] > 0)

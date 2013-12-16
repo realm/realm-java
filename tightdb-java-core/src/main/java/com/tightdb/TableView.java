@@ -305,26 +305,26 @@ public class TableView implements TableOrView {
     protected native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
 
     @Override
-    public Table getSubTable(long columnIndex, long rowIndex){
-        return new Table(this, nativeGetSubTable(nativePtr, columnIndex, rowIndex), immutable);
+    public Table getSubtable(long columnIndex, long rowIndex){
+        return new Table(this, nativeGetSubtable(nativePtr, columnIndex, rowIndex), immutable);
     }
 
-    protected native long nativeGetSubTable(long nativeViewPtr, long columnIndex, long rowIndex);
+    protected native long nativeGetSubtable(long nativeViewPtr, long columnIndex, long rowIndex);
 
     @Override
-    public long getSubTableSize(long columnIndex, long rowIndex) {
-        return nativeGetSubTableSize(nativePtr, columnIndex, rowIndex);
+    public long getSubtableSize(long columnIndex, long rowIndex) {
+        return nativeGetSubtableSize(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native long nativeGetSubTableSize(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native long nativeGetSubtableSize(long nativeTablePtr, long columnIndex, long rowIndex);
 
     @Override
-    public void clearSubTable(long columnIndex, long rowIndex) {
+    public void clearSubtable(long columnIndex, long rowIndex) {
         if (immutable) throwImmutable();
-        nativeClearSubTable(nativePtr, columnIndex, rowIndex);
+        nativeClearSubtable(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native void nativeClearSubTable(long nativeTablePtr, long columnIndex, long rowIndex);
+    protected native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
 
     // Methods for setting values.

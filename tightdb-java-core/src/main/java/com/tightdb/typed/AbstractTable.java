@@ -152,7 +152,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     }
 
     protected void insertTable(long columnIndex, long rowIndex, Object[][] values) {
-        table.getInternalMethods().insertSubTable(columnIndex, rowIndex, values);
+        table.getInternalMethods().insertSubtable(columnIndex, rowIndex, values);
     }
 
     protected void insertDone() {

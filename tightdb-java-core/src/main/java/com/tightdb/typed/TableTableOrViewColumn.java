@@ -26,8 +26,8 @@ public class TableTableOrViewColumn<Cursor, View, Query, Subtable> extends Table
         long count = tableOrView.size();
         Subtable[] values = (Subtable[]) Array.newInstance(subtableClass, (int) count);
         for (int i = 0; i < count; i++) {
-            Table subTableBase = tableOrView.getSubTable(columnIndex, i);
-            values[i] = AbstractSubtable.createSubtable(subtableClass, subTableBase);
+            Table subtableBase = tableOrView.getSubtable(columnIndex, i);
+            values[i] = AbstractSubtable.createSubtable(subtableClass, subtableBase);
         }
         return values;
     }

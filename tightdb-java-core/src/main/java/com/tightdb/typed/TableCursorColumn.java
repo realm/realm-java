@@ -21,8 +21,8 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
 
     @Override
     public Subtable get() {
-        Table subTableBase = cursor.tableOrView.getSubTable(columnIndex, cursor.getPosition());
-        return AbstractSubtable.createSubtable(subtableClass, subTableBase);
+        Table subtableBase = cursor.tableOrView.getSubtable(columnIndex, cursor.getPosition());
+        return AbstractSubtable.createSubtable(subtableClass, subtableBase);
     }
 
     @Override
@@ -39,7 +39,7 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
     }
 
     public long size() {
-        return cursor.tableOrView.getSubTableSize(columnIndex, cursor.getPosition());
+        return cursor.tableOrView.getSubtableSize(columnIndex, cursor.getPosition());
     }
 
     public boolean isEmpty() {
@@ -47,7 +47,7 @@ public class TableCursorColumn<Cursor, View, Query, Subcursor, Subtable extends 
     }
 
     public void clear() {
-        cursor.tableOrView.clearSubTable(columnIndex, cursor.getPosition());
+        cursor.tableOrView.clearSubtable(columnIndex, cursor.getPosition());
     }
 
     /**

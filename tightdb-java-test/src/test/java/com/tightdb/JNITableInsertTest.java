@@ -29,12 +29,12 @@ public class JNITableInsertTest {
         //      Mixed mix2 =  tbl.getMixed(5, rowIndex);
         // TODO:        assertTrue(mix1.equals(mix2));
 
-        Table subTable = tbl.getSubTable(6,  rowIndex);
+        Table subtable = tbl.getSubtable(6,  rowIndex);
         Object[] subValues = (Object[])values[6];
-        for (long i=0; i<subTable.size(); i++) {
+        for (long i=0; i<subtable.size(); i++) {
             Object[] val = (Object[])subValues[(int) i];
-            assertTrue(((Number)val[0]).longValue() == subTable.getLong(0, i));
-            assertEquals(((String)val[1]), subTable.getString(1, i));
+            assertTrue(((Number)val[0]).longValue() == subtable.getLong(0, i));
+            assertEquals(((String)val[1]), subtable.getString(1, i));
         }
         assertTrue(tbl.isValid());
     }
@@ -55,7 +55,7 @@ public class JNITableInsertTest {
         table.updateFromSpec(tableSpec);
 
         byte[] buf = new byte[23];
-        Mixed mixedSubTable = new Mixed(ColumnType.TABLE);
+        Mixed mixedSubtable = new Mixed(ColumnType.TABLE);
         Date date = new Date();
         long mixed = 123;
 
@@ -70,7 +70,7 @@ public class JNITableInsertTest {
 
         Object[] rowData1 = new Object[] {false, 7, "hi1", new byte[] {0,2,3}, date, "mix1", null};
         Object[] rowData2 = new Object[] {true, 12345567789L, "hello", new byte[] {0}, date, buf, null};
-        Object[] rowData3 = new Object[] {false, (byte)17, "hi3", buf, date, mixedSubTable, null};
+        Object[] rowData3 = new Object[] {false, (byte)17, "hi3", buf, date, mixedSubtable, null};
         // TODO: support insert of mixed subtable
 
         table.addAt(1, rowData1);
