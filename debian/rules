@@ -1,27 +1,29 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-VERSION              := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
+VERSION				 := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f 2 -d ' ')
 
 override_dh_usrlocal:
 
 clean:
 	dh_testdir
 	dh_clean
-	sh build.sh clean
 
 build: clean
 	sh build.sh config /usr
+	sh build.sh clean
 	sh build.sh build
 
-
 tightdb-java: build
+	dh_installdirs
 	DESTDIR=$$(pwd)/debian/tightdb-java sh build.sh install-prod
 	dh_testdir -a
 	dh_testroot -a
 	dh_installdocs -a
 	dh_installchangelogs -p$@ -a
 	dh_strip -p$@ -a
+	mh_installpoms -p$@
+	mh_installjar -p$@ -l pom.xml lib/tightdb.jar
 	dh_compress -p$@ -s
 	dh_fixperms -p$@ -a
 	dh_installdeb -p$@ -a
@@ -29,11 +31,9 @@ tightdb-java: build
 	dh_gencontrol -p$@ -a
 	dh_md5sums -p$@ -a
 	dh_builddeb -p$@ -a
-	dh_installdirs
-	mh_installpoms -p$@
-	mh_installjar -p$@ -l pom.xml lib/tightdb.jar
 
 tightdb-java-dev: build
+	dh_installdirs
 	DESTDIR=$$(pwd)/debian/tightdb-java-dev sh build.sh install-devel
 	dh_testdir -a
 	dh_testroot -a
@@ -42,8 +42,8 @@ tightdb-java-dev: build
 	dh_strip -p$@ -a
 	dh_installexamples -p$@ $$(pwd)/examples/ant-setup
 	dh_installexamples -p$@ $$(pwd)/examples/intro-example
-	dh_installexamples -p$@ $$(pwd)/examples/lib-sqlite
-	dh_installexamples -p$@ $$(pwd)/examples/maven-setup
+#	dh_installexamples -p$@ $$(pwd)/examples/lib-sqlite
+#	dh_installexamples -p$@ $$(pwd)/examples/maven-setup
 	mh_installpom -p$@ -o pom-debian.xml
 	dh_compress -p$@ -s
 	dh_fixperms -p$@ -a
@@ -52,13 +52,8 @@ tightdb-java-dev: build
 	dh_gencontrol -p$@ -a
 	dh_md5sums -p$@ -a
 	dh_builddeb -p$@ -a
-	dh_installdirs
 
-binary: build binary-indep binary-arch
+binary: tightdb-java tightdb-java-dev
 
-binary-indep: tightdb-java-dev
+.PHONY: clean checkroot
 
-binary: tightdb-java
-
-
-.PHONY: binary binary-arch binary-indep clean checkroot build  tightdb-java tightdb-java-dev
