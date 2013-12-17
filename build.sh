@@ -814,6 +814,14 @@ EOF
 /test-installed
 /examples
 /prerequisite_jars
+/debian/changelog.in
+/debian/rules
+/debian/compat
+/debian/control
+/debian/copyright
+/debian/tightdb-java-dev.poms
+/pom-debian.xml
+/pom.xml
 EOF
         cat >"$TEMP_DIR/exclude" <<EOF
 .gitignore
