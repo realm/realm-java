@@ -156,6 +156,10 @@ extern void jprint(JNIEnv *env, char *txt);
 #endif
 
 
+inline jlong to_jlong_or_not_found(size_t res) {
+    return (res == not_found) ? jlong(-1) : jlong(res);
+}
+
 template <class T>
 inline bool TableIsValid(JNIEnv* env, T* objPtr)
 {
