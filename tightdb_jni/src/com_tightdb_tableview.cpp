@@ -418,7 +418,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstDouble(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
         return 0;
     try {
-        return to_jlong_or_not_found( (TV(nativeViewPtr)->find_first_double( S(columnIndex), value) );
+        return to_jlong_or_not_found( (TV(nativeViewPtr)->find_first_double( S(columnIndex), value)) );
     } CATCH_STD()
     return 0;
 }

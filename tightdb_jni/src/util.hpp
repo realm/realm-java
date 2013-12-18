@@ -157,7 +157,7 @@ extern void jprint(JNIEnv *env, char *txt);
 
 
 inline jlong to_jlong_or_not_found(size_t res) {
-    return (res == not_found) ? jlong(-1) : jlong(res);
+    return (res == tightdb::not_found) ? jlong(-1) : jlong(res);
 }
 
 template <class T>
