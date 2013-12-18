@@ -65,9 +65,9 @@ std::string num_to_string(T pNumber)
 }
 
 
-#define MAX_JLONG  9223372036854775807
-#define MIN_JLONG -9223372036854775808
-#define MAX_JINT   2147483647
+#define MAX_JLONG  0x7FFFFFFFFFFFFFFFLL
+#define MIN_JLONG -0x8000000000000000LL
+#define MAX_JINT   0x7FFFFFFFL
 #define MAX_JSIZE  MAX_JINT
 
 // Helper macros for better readability
