@@ -159,7 +159,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetColumnIndex(
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
     JStringAccessor columnName2(env, columnName);
-    return TBL(nativeTablePtr)->get_column_index(columnName2); // noexcept
+    return to_jlong_or_not_found( TBL(nativeTablePtr)->get_column_index(columnName2) ); // noexcept
 }
 
 JNIEXPORT jint JNICALL Java_com_tightdb_Table_nativeGetColumnType(
@@ -168,7 +168,7 @@ JNIEXPORT jint JNICALL Java_com_tightdb_Table_nativeGetColumnType(
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return 0;
 
-    return static_cast<int>( TBL(nativeTablePtr)->get_column_type( S(columnIndex)) ); // noexcept
+    return static_cast<jint>( TBL(nativeTablePtr)->get_column_type( S(columnIndex)) ); // noexcept
 }
 
 // TODO: get_column_index() ?
