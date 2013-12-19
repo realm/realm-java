@@ -65,9 +65,9 @@ std::string num_to_string(T pNumber)
 }
 
 
-#define MAX_JLONG  9223372036854775807
-#define MIN_JLONG -9223372036854775808
-#define MAX_JINT   2147483647
+#define MAX_JLONG  0x7FFFFFFFFFFFFFFFLL
+#define MIN_JLONG -0x8000000000000000LL
+#define MAX_JINT   0x7FFFFFFFL
 #define MAX_JSIZE  MAX_JINT
 
 // Helper macros for better readability
@@ -155,6 +155,10 @@ extern void jprint(JNIEnv *env, char *txt);
 
 #endif
 
+
+inline jlong to_jlong_or_not_found(size_t res) {
+    return (res == tightdb::not_found) ? jlong(-1) : jlong(res);
+}
 
 template <class T>
 inline bool TableIsValid(JNIEnv* env, T* objPtr)

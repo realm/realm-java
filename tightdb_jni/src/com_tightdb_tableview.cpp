@@ -103,15 +103,15 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnIndex
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
     JStringAccessor columnName2(env, columnName);
-    return TV(nativeViewPtr)->get_column_index(columnName2); // noexcept
+    return to_jlong_or_not_found( TV(nativeViewPtr)->get_column_index(columnName2) ); // noexcept
 }
 
 JNIEXPORT jint JNICALL Java_com_tightdb_TableView_nativeGetColumnType
   (JNIEnv *env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
     if (!VIEW_VALID(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
-            return 0;
-        return static_cast<int>( TV(nativeViewPtr)->get_column_type( S(columnIndex)) );
+        return 0;
+    return static_cast<int>( TV(nativeViewPtr)->get_column_type( S(columnIndex)) );
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetLong(
@@ -406,7 +406,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstInt(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
         return 0;
     try {
-        return static_cast<jlong>(TV(nativeViewPtr)->find_first_int( S(columnIndex), value));
+        return to_jlong_or_not_found( TV(nativeViewPtr)->find_first_int( S(columnIndex), value) );
     } CATCH_STD()
     return 0;
 }
@@ -416,11 +416,12 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstBool(
 {
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Bool))
-        return false;
+        return 0;
     try {
-        return TV(nativeViewPtr)->find_first_bool( S(columnIndex), value != 0 ? true : false);
+        size_t res = TV(nativeViewPtr)->find_first_bool( S(columnIndex), value != 0 ? true : false);
+        return to_jlong_or_not_found( res );
     } CATCH_STD()
-    return false;
+    return 0;
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstFloat(
@@ -430,7 +431,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstFloat(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
         return 0;
     try {
-        return static_cast<jlong>(TV(nativeViewPtr)->find_first_float( S(columnIndex), value));
+        return to_jlong_or_not_found( TV(nativeViewPtr)->find_first_float( S(columnIndex), value) );
     } CATCH_STD()
     return 0;
 }
@@ -442,7 +443,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstDouble(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
         return 0;
     try {
-        return static_cast<jlong>(TV(nativeViewPtr)->find_first_double( S(columnIndex), value));
+        return to_jlong_or_not_found( (TV(nativeViewPtr)->find_first_double( S(columnIndex), value)) );
     } CATCH_STD()
     return 0;
 }
@@ -454,7 +455,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstDate(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
         return 0;
     try {
-        return TV(nativeViewPtr)->find_first_datetime( S(columnIndex), (time_t)dateTimeValue);
+        return to_jlong_or_not_found( TV(nativeViewPtr)->find_first_datetime( S(columnIndex), (time_t)dateTimeValue) );
     } CATCH_STD()
     return 0;
 }
@@ -471,7 +472,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstString(
         return 0;
     try {
         size_t searchIndex = TV(nativeViewPtr)->find_first_string( S(columnIndex), value2);
-        return static_cast<jlong>(searchIndex);
+        return to_jlong_or_not_found( searchIndex );
     } CATCH_STD()
     return 0;
 }

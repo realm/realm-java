@@ -2,6 +2,12 @@
 Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp and com.tightdb.internal.Util.java
       when the JNI interface is changed.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+18-December-2013:
+=================
+! Bugfix: Table and TableView's findFirst*() methods now correctly returns -1 
+on 32 bit architectures when the value can't be found.
+  
 12-December-2013:
 ================
 ! BREAKING CHANGE: SubTableSchema renamed to SubtableSchema.
