@@ -3,17 +3,17 @@ package com.tightdb;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 public class JNITransactions {
+    
+    List<String> fileNameList = new ArrayList<String>();
 
-    protected SharedGroup db;
-
-    protected String testFile = "transact.tightdb";
 
     protected void deleteFile(String filename) {
         File f = new File(filename);
@@ -24,19 +24,21 @@ public class JNITransactions {
             f.delete();
     }
 
-    @BeforeMethod
+    @AfterClass
     public void init() {
-        deleteFile(testFile);
-        db = new SharedGroup(testFile, SharedGroup.Durability.ASYNC);
+        for (String filename : fileNameList){
+            deleteFile(filename);
+        }
     }
 
-    @AfterMethod
-    public void clear() {
-        db.close();
-        deleteFile(testFile);
+    
+    private String createDBFileName(){
+        String name = "" + System.currentTimeMillis() + "transact.tightdb";
+        fileNameList.add(name);
+        return name;
     }
 
-    protected void writeOneTransaction(long rows) {
+    protected void writeOneTransaction(SharedGroup db, long rows) {
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
         tbl.addColumn(ColumnType.STRING, "name");
@@ -57,7 +59,7 @@ public class JNITransactions {
 
     }
 
-    protected void checkRead(int rows) {
+    protected void checkRead(SharedGroup db, int rows) {
         // Read transaction
         ReadTransaction trans = db.beginRead();
         Table tbl = trans.getTable("EmployeeTable");
@@ -68,21 +70,22 @@ public class JNITransactions {
 
     @Test
     public void mustWriteAndReadEmpty() {
-        writeOneTransaction(0);
-        checkRead(0);
-        clear();
+        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        writeOneTransaction(db, 0);
+        checkRead(db, 0);
     }
 
     @Test
     public void mustWriteCommit() {
-        writeOneTransaction(10);
-        checkRead(10);
-        clear();
+        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        writeOneTransaction(db, 10);
+        checkRead(db, 10);
     }
 
 
     @Test(expectedExceptions=IllegalStateException.class)
     public void shouldThrowExceptionAfterClosedReadTransaction() {
+        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
         ReadTransaction rt = db.beginRead();
 
         try {
@@ -92,13 +95,13 @@ public class JNITransactions {
             assert(false);
         } finally {
             rt.endRead();
-            clear();
         }
     }
 
 
     @Test(expectedExceptions=IllegalStateException.class)
     public void shouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
+        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
         ReadTransaction rt = db.beginRead();
 
         try {
@@ -108,28 +111,28 @@ public class JNITransactions {
             assert(false);
         } finally {
             rt.endRead();
-            clear();
         }
     }
 
 
     @Test(expectedExceptions=IllegalStateException.class)
     public void shouldThrowExceptionWhenWritingInReadTrans() {
+        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
         ReadTransaction rt = db.beginRead();
 
         try {
-            Table tbl = rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
+            rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
             rt.endRead();
             assert(false);
         } finally {
             rt.endRead();
-            clear();
         }
     }
 
 
     @Test
     public void onlyOneCommit() {
+        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
         WriteTransaction trans = db.beginWrite();
 
         try {
@@ -148,7 +151,8 @@ public class JNITransactions {
 
     @Test
     public void mustRollback() {
-        writeOneTransaction(1);
+        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        writeOneTransaction(db, 1);
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
 
@@ -156,13 +160,12 @@ public class JNITransactions {
         assertEquals(2, tbl.size());
         trans.rollback();
 
-        checkRead(1); // Only 1 row now.
-
-        clear();
+        checkRead(db, 1); // Only 1 row now.
     }
 
     @Test()
     public void mustAllowDoubleCommitAndRollback() {
+        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
         {
             WriteTransaction trans = db.beginWrite();
             Table tbl = trans.getTable("EmployeeTable");
@@ -191,8 +194,6 @@ public class JNITransactions {
             assertEquals(1, tbl.size());
             trans.endRead();
         }
-
-        clear();
     }
 
     // TODO:
@@ -202,8 +203,9 @@ public class JNITransactions {
 
     @Test
     public void mustFailOnWriteInReadTransactions() {
+        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
 
-        writeOneTransaction(1);
+        writeOneTransaction(db, 1);
 
         ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
@@ -245,7 +247,6 @@ public class JNITransactions {
         try { v.setMixed(0, 0, null);               assert(false);} catch (IllegalStateException e) {}
 
         t.endRead();
-        clear();
     }
 
 
