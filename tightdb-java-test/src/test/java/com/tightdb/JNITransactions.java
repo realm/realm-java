@@ -12,8 +12,15 @@ import org.testng.annotations.Test;
 
 public class JNITransactions {
     
+    // List of created .tightdb-files to be deleted when all tests are done.
     List<String> fileNameList = new ArrayList<String>();
 
+    @AfterClass
+    public void init() {
+        for (String filename : fileNameList){
+            deleteFile(filename);
+        }
+    }
 
     protected void deleteFile(String filename) {
         File f = new File(filename);
@@ -24,16 +31,9 @@ public class JNITransactions {
             f.delete();
     }
 
-    @AfterClass
-    public void init() {
-        for (String filename : fileNameList){
-            deleteFile(filename);
-        }
-    }
-
     
     private String createDBFileName(){
-        String name = "" + System.currentTimeMillis() + "transact.tightdb";
+        String name = System.currentTimeMillis() + "_transact.tightdb";
         fileNameList.add(name);
         return name;
     }
