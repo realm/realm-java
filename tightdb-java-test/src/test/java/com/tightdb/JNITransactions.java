@@ -29,6 +29,13 @@ public class JNITransactions {
         f = new File(filename + ".lock");
         if (f.exists())
             f.delete();
+        
+        // Pause to wait for async daemon to finish
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     
