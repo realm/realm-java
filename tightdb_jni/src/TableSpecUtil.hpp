@@ -1,38 +1,26 @@
-#ifndef TABLE_SPEC_UTIL_H
-#define TABLE_SPEC_UTIL_H
+#ifndef TIGHTDB_JAVA_TABLE_SPEC_UTIL_HPP
+#define TIGHTDB_JAVA_TABLE_SPEC_UTIL_HPP
 
+#include <cstddef>
+#include <vector>
 #include <jni.h>
-#include <tightdb.hpp>
+#include <tightdb/table.hpp>
 
-using namespace tightdb;
+jlong Java_com_tightdb_TableSpec_getColumnCount(JNIEnv*, jobject jTableSpec);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+jobject Java_com_tightdb_TableSpec_getColumnType(JNIEnv*, jobject jTableSpec, jlong columnIndex);
 
-jlong Java_com_tightdb_TableSpec_getColumnCount(
-    JNIEnv* env, jobject jTableSpec);
+jstring Java_com_tightdb_TableSpec_getColumnName(JNIEnv*, jobject jTableSpec, jlong columnIndex);
 
-jobject Java_com_tightdb_TableSpec_getColumnType(
-    JNIEnv* env, jobject jTableSpec, jlong columnIndex);
+jobject Java_com_tightdb_TableSpec_getTableSpec(JNIEnv*, jobject jTableSpec, jlong columnIndex);
 
-jstring Java_com_tightdb_TableSpec_getColumnName(
-    JNIEnv* env, jobject jTableSpec, jlong columnIndex);
+jlong Java_com_tightdb_TableSpec_getColumnIndex(JNIEnv*, jobject jTableSpec, jstring columnName);
 
-jobject Java_com_tightdb_TableSpec_getTableSpec(
-    JNIEnv* env, jobject jTableSpec, jlong columnIndex);
+void updateSpecFromJSpec(JNIEnv*, tightdb::Table*, const std::vector<std::size_t>& path,
+                         jobject jTableSpec);
+void UpdateJTableSpecFromSpec(JNIEnv*, const tightdb::Spec&, jobject jTableSpec);
 
-jlong Java_com_tightdb_TableSpec_getColumnIndex(
-    JNIEnv* env, jobject jTableSpec, jstring columnName);
+jclass GetClassTableSpec(JNIEnv*);
+jmethodID GetTableSpecMethodID(JNIEnv*, const char* methodStr, const char* typeStr);
 
-void updateSpecFromJSpec(JNIEnv* env, Spec& spec, jobject jTableSpec);
-void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec);
-
-jclass GetClassTableSpec(JNIEnv* env);
-jmethodID GetTableSpecMethodID(JNIEnv* env, const char* methodStr, const char* typeStr);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#endif // TIGHTDB_JAVA_TABLE_SPEC_UTIL_HPP
