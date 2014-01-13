@@ -45,7 +45,7 @@ each of our major platforms:
     sudo apt-get install libcommons-io-java libcommons-lang-java libfreemarker-java
     sudo apt-get install testng libqdox-java bsh ant
 
-### Fedora 17, 18, 19
+### Fedora 17, 18, 19, 20
 
     sudo yum install gcc gcc-c++ java-1.7.0-openjdk-devel
     sudo yum install apache-commons-io apache-commons-lang freemarker

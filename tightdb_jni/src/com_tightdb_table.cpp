@@ -9,6 +9,7 @@
 #include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
 
+using namespace std;
 using namespace tightdb;
 
 // Note: Don't modify spec on a table which has a shared_spec.
@@ -110,9 +111,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
         return;
     }
     try {
-        Spec& spec = pTable->get_spec();
-        updateSpecFromJSpec(env, spec, jTableSpec);
-        pTable->update_from_spec();
+        vector<size_t> path;
+        updateSpecFromJSpec(env, pTable, path, jTableSpec);
     } CATCH_STD()
 }
 
@@ -1120,10 +1120,10 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToJson(
 
     // Write table to string in JSON format
     try {
-        std::ostringstream ss;
+        ostringstream ss;
         ss.sync_with_stdio(false); // for performance
         table->to_json(ss);
-        const std::string str = ss.str();
+        const string str = ss.str();
         return env->NewStringUTF(str.c_str());
     } CATCH_STD()
     return NULL;
@@ -1136,9 +1136,9 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToString(
     if (!TABLE_VALID(env, table))
         return NULL;
     try {
-        std::ostringstream ss;
+        ostringstream ss;
         table->to_string(ss, S(maxRows));
-        const std::string str = ss.str();
+        const string str = ss.str();
         return env->NewStringUTF(str.c_str());
     } CATCH_STD()
     return NULL;
@@ -1151,9 +1151,9 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeRowToString(
     if (!TBL_AND_ROW_INDEX_VALID(env, table, rowIndex))
         return NULL;
     try {
-        std::ostringstream ss;
+        ostringstream ss;
         table->row_to_string(S(rowIndex), ss);
-        const std::string str = ss.str();
+        const string str = ss.str();
         return env->NewStringUTF(str.c_str());
     } CATCH_STD()
     return NULL;
