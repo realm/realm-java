@@ -2,7 +2,6 @@ package com.tightdb;
 
 import java.util.Date;
 
-
 /**
  * Specification of the common operations for the low-level table and view API.
  */
