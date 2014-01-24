@@ -272,6 +272,8 @@ public class TableQuery {
     // Query for Date values
 
     public TableQuery equalTo(long columnIndex, Date value){
+        if(value == null)
+            throw new IllegalArgumentException("Date value in query criteria must not be null.");
         nativeEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         queryValidated = false;
         return this;
@@ -279,6 +281,8 @@ public class TableQuery {
     protected native void nativeEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery notEqualTo(long columnIndex, Date value){
+        if(value == null)
+            throw new IllegalArgumentException("Date value in query criteria must not be null.");
         nativeNotEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         queryValidated = false;
         return this;
@@ -286,6 +290,8 @@ public class TableQuery {
     protected native void nativeNotEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery greaterThan(long columnIndex, Date value){
+        if(value == null)
+            throw new IllegalArgumentException("Date value in query criteria must not be null.");
         nativeGreaterDateTime(nativePtr, columnIndex, value.getTime()/1000);
         queryValidated = false;
         return this;
@@ -295,6 +301,8 @@ public class TableQuery {
 
 
     public TableQuery greaterThanOrEqual(long columnIndex, Date value){
+        if(value == null)
+            throw new IllegalArgumentException("Date value in query criteria must not be null.");
         nativeGreaterEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         queryValidated = false;
         return this;
@@ -303,6 +311,8 @@ public class TableQuery {
     protected native void nativeGreaterEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery lessThan(long columnIndex, Date value){
+        if(value == null)
+            throw new IllegalArgumentException("Date value in query criteria must not be null.");
         nativeLessDateTime(nativePtr, columnIndex, value.getTime()/1000);
         queryValidated = false;
         return this;
@@ -312,6 +322,8 @@ public class TableQuery {
 
 
     public TableQuery lessThanOrEqual(long columnIndex, Date value){
+        if(value == null)
+            throw new IllegalArgumentException("Date value in query criteria must not be null.");
         nativeLessEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         queryValidated = false;
         return this;
@@ -320,6 +332,8 @@ public class TableQuery {
     protected native void nativeLessEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
 
     public TableQuery between(long columnIndex, Date value1, Date value2){
+        if(value1 == null || value2 == null)
+            throw new IllegalArgumentException("Date values in query criteria must not be null.");
         nativeBetweenDateTime(nativePtr, columnIndex, value1.getTime()/1000, value2.getTime()/1000);
         queryValidated = false;
         return this;
@@ -330,11 +344,15 @@ public class TableQuery {
 
     // Equal
     public TableQuery equalTo(long columnIndex, String value, boolean caseSensitive){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeEqual(nativePtr, columnIndex, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery equalTo(long columnIndex, String value){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeEqual(nativePtr, columnIndex, value, true);
         queryValidated = false;
         return this;
@@ -343,11 +361,15 @@ public class TableQuery {
 
     // Not Equal
     public TableQuery notEqualTo(long columnIndex, String value, boolean caseSensitive){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeNotEqual(nativePtr, columnIndex, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery notEqualTo(long columnIndex, String value){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeNotEqual(nativePtr, columnIndex, value, true);
         queryValidated = false;
         return this;
@@ -355,11 +377,15 @@ public class TableQuery {
     protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
 
     public TableQuery beginsWith(long columnIndex, String value, boolean caseSensitive){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeBeginsWith(nativePtr, columnIndex, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery beginsWith(long columnIndex, String value){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeBeginsWith(nativePtr, columnIndex, value, true);
         queryValidated = false;
         return this;
@@ -367,11 +393,15 @@ public class TableQuery {
     protected native void nativeBeginsWith(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
 
     public TableQuery endsWith(long columnIndex, String value, boolean caseSensitive){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeEndsWith(nativePtr, columnIndex, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery endsWith(long columnIndex, String value){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeEndsWith(nativePtr, columnIndex, value, true);
         queryValidated = false;
         return this;
@@ -379,11 +409,15 @@ public class TableQuery {
     protected native void nativeEndsWith(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
 
     public TableQuery contains(long columnIndex, String value, boolean caseSensitive){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeContains(nativePtr, columnIndex, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery contains(long columnIndex, String value){
+        if(value == null)
+            throw new IllegalArgumentException("String value in query criteria must not be null.");
         nativeContains(nativePtr, columnIndex, value, true);
         queryValidated = false;
         return this;
