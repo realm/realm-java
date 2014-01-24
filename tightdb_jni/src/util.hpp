@@ -92,8 +92,7 @@ enum ExceptionKind {
     UnsupportedOperation = 9,
     OutOfMemory = 10,
     Unspecified = 11,
-    RuntimeError = 12,
-    NullPointer = 13
+    RuntimeError = 12
 };
 
 extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");

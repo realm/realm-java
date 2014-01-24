@@ -412,11 +412,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_Str
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
         return;
-    if(!value) {
-        ThrowException(env, NullPointer, "String in query criteria must not be null.");
-        return;
-    }
     JStringAccessor value2(env, value);
+    if (!value2)
+        return;
     try {
         pQuery->equal(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
@@ -429,11 +427,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
         return;
-    if(!value) {
-        ThrowException(env, NullPointer, "String in query criteria must not be null.");
-        return;
-    }
     JStringAccessor value2(env, value);
+    if (!value2)
+        return;
     try {
         pQuery->begins_with(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
@@ -446,11 +442,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
         return;
-    if(!value) {
-        ThrowException(env, NullPointer, "String in query criteria must not be null.");
-        return;
-    }
     JStringAccessor value2(env, value);
+    if (!value2)
+        return;
     try {
         pQuery->ends_with(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
@@ -463,11 +457,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
         return;
-    if(!value) {
-        ThrowException(env, NullPointer, "String in query criteria must not be null.");
-        return;
-    }
     JStringAccessor value2(env, value);
+    if (!value2)
+        return;
     try {
         pQuery->contains(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
@@ -480,17 +472,14 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
     Table* pTable = get_table_ptr(pQuery);
     if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
         return;
-    if(!value) {
-        ThrowException(env, NullPointer, "String in query criteria must not be null.");
-        return;
-    }
     JStringAccessor value2(env, value);
+    if (!value2)
+        return;
     try {
         pQuery->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
-// Subtable
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex)
