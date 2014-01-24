@@ -1,5 +1,6 @@
 #include "util.hpp"
 #include "com_tightdb_TableQuery.h"
+#include "tablequery.hpp"
 
 using namespace tightdb;
 
@@ -11,22 +12,22 @@ using namespace tightdb;
 #define QUERY_VALID(env, pQuery)            true
 #endif
 
-inline tightdb::Table* Ref2Ptr(tightdb::TableRef tableref)
+inline tightdb::Table* Ref2Ptr(tightdb::TableRef& tableref)
 {
     return &*tableref;
 }
 
-inline Table* get_table_ptr(Query* queryPtr)
-{
-    return Ref2Ptr( queryPtr->get_table() );
-}
-
 inline bool QueryValid(JNIEnv* env, Query* pQuery)
 {
-    Table* pTable = get_table_ptr(pQuery);
-    return TABLE_VALID(env, pTable);
+    TableRef pTable = pQuery->get_table();
+    return TABLE_VALID(env, Ref2Ptr(pTable));
 }
 
+inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colIndex, DataType type)
+{
+    TableRef pTable = TQ(nativeQueryPtr)->get_current_table();
+    return COL_TYPE_VALID(env, Ref2Ptr(pTable), colIndex, type);
+}
 
 //-------------------------------------------------------
 
@@ -42,14 +43,15 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableQuery_nativeValidateQuery
     return to_jstring(env, pQuery->validate());
 }
 
+
 // Integer
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJJ(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Int))
         return;
     try {
         pQuery->equal(S(columnIndex), static_cast<int64_t>(value));
@@ -60,8 +62,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJJ(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Int))
         return;
     try {
         pQuery->not_equal(S(columnIndex), static_cast<int64_t>(value));
@@ -72,8 +74,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJJ(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Int))
         return;
     try {
         pQuery->greater(S(columnIndex), static_cast<int64_t>(value));
@@ -84,8 +86,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJJ(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Int))
         return;
     try {
         pQuery->greater_equal(S(columnIndex), static_cast<int64_t>(value));
@@ -96,8 +98,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJJ(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Int))
         return;
     try {
         pQuery->less(S(columnIndex), static_cast<int64_t>(value));
@@ -108,8 +110,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJJ(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Int))
         return;
     try {
         pQuery->less_equal(S(columnIndex), static_cast<int64_t>(value));
@@ -120,8 +122,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJJJ(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value1, jlong value2)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Int))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Int))
         return;
     try {
         pQuery->between(S(columnIndex), static_cast<int64_t>(value1), static_cast<int64_t>(value2));
@@ -134,8 +136,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJF(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jfloat value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Float))
         return;
     try {
         pQuery->equal(S(columnIndex), value);
@@ -146,8 +148,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJF(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jfloat value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Float))
         return;
     try {
         pQuery->not_equal(S(columnIndex), value);
@@ -158,8 +160,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJF(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jfloat value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Float))
         return;
     try {
         pQuery->greater(S(columnIndex), value);
@@ -170,8 +172,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJF(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jfloat value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Float))
         return;
     try {
         pQuery->greater_equal(S(columnIndex), value);
@@ -182,8 +184,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJF(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jfloat value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Float))
         return;
     try {
         pQuery->less(S(columnIndex), value);
@@ -194,8 +196,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJF(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jfloat value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Float))
         return;
     try {
         pQuery->less_equal(S(columnIndex), value);
@@ -206,8 +208,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJFF(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jfloat value1, jfloat value2)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Float))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Float))
         return;
     try {
         pQuery->between(S(columnIndex), value1, value2);
@@ -220,8 +222,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJD(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jdouble value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Double))
         return;
     try {
         pQuery->equal(S(columnIndex), value);
@@ -232,8 +234,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJD(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jdouble value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Double))
         return;
     try {
         pQuery->not_equal(S(columnIndex), value);
@@ -244,8 +246,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreater__JJD(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jdouble value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Double))
         return;
     try {
         pQuery->greater(S(columnIndex), value);
@@ -256,8 +258,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqual__JJD(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jdouble value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Double))
         return;
     try {
         pQuery->greater_equal(S(columnIndex), value);
@@ -268,8 +270,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLess__JJD(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jdouble value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Double))
         return;
     try {
         pQuery->less(S(columnIndex), value);
@@ -280,8 +282,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqual__JJD(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jdouble value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Double))
         return;
     try {
         pQuery->less_equal(S(columnIndex), value);
@@ -292,8 +294,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetween__JJDD(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jdouble value1, jdouble value2)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Double))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Double))
         return;
     try {
         pQuery->between(S(columnIndex), value1, value2);
@@ -307,8 +309,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqualDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_DateTime))
         return;
     try {
         Q(nativeQueryPtr)->equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
@@ -319,8 +321,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqualDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_DateTime))
         return;
     try {
         Q(nativeQueryPtr)->not_equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
@@ -331,8 +333,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_DateTime))
         return;
     try {
         Q(nativeQueryPtr)->greater_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
@@ -343,8 +345,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGreaterEqualDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_DateTime))
         return;
     try {
         Q(nativeQueryPtr)->greater_equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
@@ -355,8 +357,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_DateTime))
         return;
     try {
         Q(nativeQueryPtr)->less_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
@@ -367,8 +369,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeLessEqualDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_DateTime))
         return;
     try {
         Q(nativeQueryPtr)->less_equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
@@ -380,8 +382,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBetweenDateTime(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value1, jlong value2)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_DateTime))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_DateTime))
         return;
     try {
         Q(nativeQueryPtr)->between_datetime(S(columnIndex), DateTime(static_cast<time_t>(value1)), DateTime(static_cast<time_t>(value2)));
@@ -395,8 +397,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJZ(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jboolean value)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_Bool))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Bool))
         return;
     try {
         pQuery->equal(S(columnIndex), value != 0 ? true : false);
@@ -409,8 +411,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_Str
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     JStringAccessor value2(env, value);
     if (!value2)
@@ -424,8 +426,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     JStringAccessor value2(env, value);
     if (!value2)
@@ -439,8 +441,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     JStringAccessor value2(env, value);
     if (!value2)
@@ -454,8 +456,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     JStringAccessor value2(env, value);
     if (!value2)
@@ -469,8 +471,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!COL_TYPE_VALID(env, pTable, columnIndex, type_String))
+    TableRef pTable = TQ(pQuery)->get_current_table();
+    if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     JStringAccessor value2(env, value);
     if (!value2)
@@ -480,19 +482,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
     } CATCH_STD()
 }
 
-
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex)
-{
-    Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
-    if (!QUERY_VALID(env, pQuery) ||
-        !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Table))
-        return;
-    try {
-        pQuery->subtable(S(columnIndex));
-    } CATCH_STD()
-}
 
 // General ----------------------------------------------------
 // TODO:
@@ -533,18 +522,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent(
-    JNIEnv* env, jobject, jlong nativeQueryPtr)
-{
-    // No verification of parameters needed?
-    Query* pQuery = Q(nativeQueryPtr);
-    if (!QUERY_VALID(env, pQuery))
-        return;
-    try {
-        pQuery->end_subtable();
-    } CATCH_STD()
-}
-
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
     JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
@@ -557,6 +534,36 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
     } CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubtable(
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex)
+{
+    TableQuery* pTQuery = TQ(nativeQueryPtr);
+    if (!QUERY_VALID(env, pTQuery))
+        return;
+
+    try {
+        TableRef pTable = pTQuery->get_current_table();
+        pTQuery->push_subtable(S(columnIndex));
+        if (!COL_INDEX_AND_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_Table))
+            return;
+ 
+        pTQuery->subtable(S(columnIndex));
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent(
+    JNIEnv* env, jobject, jlong nativeQueryPtr)
+{
+    // No verification of parameters needed?
+    TableQuery* pTQuery = TQ(nativeQueryPtr);
+    if (!QUERY_VALID(env, pTQuery))
+        return;
+    try {
+        pTQuery->pop_subtable();
+        pTQuery->end_subtable();
+    } CATCH_STD()
+}
+
 
 // Find --------------------------------------
 
@@ -565,7 +572,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFind(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong fromTableRow)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery))
         return -1;
     // It's valid to go 1 past the end index
@@ -586,7 +593,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeFindAll(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return -1;
@@ -605,7 +612,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeSumInt(
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    Table* pTable = get_table_ptr(pQuery);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))

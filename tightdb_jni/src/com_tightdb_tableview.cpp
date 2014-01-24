@@ -2,6 +2,7 @@
 #include "com_tightdb_TableView.h"
 #include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
+#include "tablequery.hpp"
 #include <ostream>
 
 using namespace tightdb;
@@ -771,7 +772,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeWhere
     try {
         TableView* tv = TV(nativeViewPtr);
         Query query = tv->get_parent().where().tableview(*tv);
-        Query* queryPtr = new Query(query);
+        TableQuery* queryPtr = new TableQuery(query);
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;

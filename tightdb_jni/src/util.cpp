@@ -263,7 +263,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         const jchar* end   = begin + chars.size();
         buf_size = Xcode::find_utf8_buf_size(begin, end);
     }
-    m_data.reset(new char[buf_size]);
+    m_data.reset(new char[buf_size]);   // throws
     {
         const jchar* in_begin = chars.data();
         const jchar* in_end   = in_begin + chars.size();

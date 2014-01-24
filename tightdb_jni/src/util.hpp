@@ -371,7 +371,7 @@ jstring to_jstring(JNIEnv*, tightdb::StringData);
 
 class JStringAccessor {
 public:
-    JStringAccessor(JNIEnv*, jstring);
+    JStringAccessor(JNIEnv*, jstring);  // throws
 
     operator tightdb::StringData() const TIGHTDB_NOEXCEPT
     {

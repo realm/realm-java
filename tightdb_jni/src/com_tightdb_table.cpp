@@ -8,6 +8,7 @@
 #include "java_lang_List_Util.hpp"
 #include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
+#include "tablequery.hpp"
 
 using namespace tightdb;
 
@@ -836,7 +837,6 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeLookup(
     return 0;
 }
 
-//
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeWhere(
     JNIEnv *env, jobject, jlong nativeTablePtr)
@@ -845,7 +845,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeWhere(
         return 0;
     try {
         Query query = TBL(nativeTablePtr)->where();
-        Query* queryPtr = new Query(query);
+        TableQuery* queryPtr = new TableQuery(query);
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;

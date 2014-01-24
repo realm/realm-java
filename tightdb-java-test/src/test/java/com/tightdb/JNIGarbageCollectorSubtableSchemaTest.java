@@ -66,8 +66,8 @@ public class JNIGarbageCollectorSubtableSchemaTest {
     @Test
     public void testGetSubtable(){
 
-        long count = 1000;
-        long loop = 1000;
+        long count = 10; // 1000;
+        long loop = 10; //  1000;
 
         for (int i=0;i<loop;i++){
             test1(count);
