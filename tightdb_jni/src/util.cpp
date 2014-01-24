@@ -123,6 +123,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             jExceptionClass = env->FindClass("java/lang/RuntimeException");
             message = classStr;
             break;
+            
+        case NullPointer:
+            jExceptionClass = env->FindClass("java/lang/NullPointerException");
+            message = classStr;
+            break;
     }
     if (jExceptionClass != NULL)
         env->ThrowNew(jExceptionClass, message.c_str());

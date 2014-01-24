@@ -335,6 +335,35 @@ public class JNIQueryTest {
         try { query.contains(-1, "hey", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
+    @Test
+    public void nullInputQuery() {
+        Table t = new Table();
+        t.addColumn(ColumnType.DATE, "dateCol");
+        t.addColumn(ColumnType.STRING, "stringCol");
+        
+        Date nullDate = null;
+        try { t.where().equalTo(0, nullDate);               fail("Date is null"); } catch (NullPointerException e) { }
+        try { t.where().notEqualTo(0, nullDate);            fail("Date is null"); } catch (NullPointerException e) { }
+        try { t.where().greaterThan(0, nullDate);           fail("Date is null"); } catch (NullPointerException e) { }
+        try { t.where().greaterThanOrEqual(0, nullDate);    fail("Date is null"); } catch (NullPointerException e) { }
+        try { t.where().lessThan(0, nullDate);              fail("Date is null"); } catch (NullPointerException e) { }
+        try { t.where().lessThanOrEqual(0, nullDate);       fail("Date is null"); } catch (NullPointerException e) { }
+        try { t.where().between(0, nullDate, new Date());   fail("Date is null"); } catch (NullPointerException e) { }
+        try { t.where().between(0, new Date(), nullDate);   fail("Date is null"); } catch (NullPointerException e) { }
+        try { t.where().between(0, nullDate, nullDate);     fail("Dates are null"); } catch (NullPointerException e) { }
+        
+        String nullString = null;
+        try { t.where().equalTo(1, nullString);             fail("String is null"); } catch (NullPointerException e) { }
+        try { t.where().equalTo(1, nullString, false);      fail("String is null"); } catch (NullPointerException e) { }
+        try { t.where().notEqualTo(1, nullString);          fail("String is null"); } catch (NullPointerException e) { }
+        try { t.where().notEqualTo(1, nullString, false);   fail("String is null"); } catch (NullPointerException e) { }
+        try { t.where().contains(1, nullString);            fail("String is null"); } catch (NullPointerException e) { }
+        try { t.where().contains(1, nullString, false);     fail("String is null"); } catch (NullPointerException e) { }
+        try { t.where().beginsWith(1, nullString);          fail("String is null"); } catch (NullPointerException e) { }
+        try { t.where().beginsWith(1, nullString, false);   fail("String is null"); } catch (NullPointerException e) { }
+        try { t.where().endsWith(1, nullString);            fail("String is null"); } catch (NullPointerException e) { }
+        try { t.where().endsWith(1, nullString, false);     fail("String is null"); } catch (NullPointerException e) { }
+    }
 
 
     @Test
