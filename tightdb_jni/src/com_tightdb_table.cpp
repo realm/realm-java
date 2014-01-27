@@ -10,6 +10,7 @@
 #include "tablebase_tpl.hpp"
 #include "tablequery.hpp"
 
+using namespace std;
 using namespace tightdb;
 
 // Note: Don't modify spec on a table which has a shared_spec.
@@ -32,6 +33,39 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
         return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
     } CATCH_STD()
     return 0;
+}
+
+
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativePivot
+(JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
+{
+    Table* dataTable = TBL(dataTablePtr);
+    Table* resultTable = TBL(resultTablePtr);
+    Table::AggrType pivotOp;
+    switch (operation) {
+        case 0:
+            pivotOp = Table::aggr_count;
+            break;
+        case 1:
+            pivotOp = Table::aggr_sum;
+            break;
+        case 2:
+            pivotOp = Table::aggr_avg;
+            break;
+        case 3:
+            pivotOp = Table::aggr_min;
+            break;
+        case 4:
+            pivotOp = Table::aggr_max;
+            break;
+        default:
+            ThrowException(env, UnsupportedOperation, "No pivot operation specified.");
+            return;
+    }
+    
+    try {
+        dataTable->aggregate(S(stringCol), S(intCol), pivotOp, *resultTable);
+    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
@@ -85,9 +119,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
         return;
     }
     try {
-        Spec& spec = pTable->get_spec();
-        updateSpecFromJSpec(env, spec, jTableSpec);
-        pTable->update_from_spec();
+        vector<size_t> path;
+        updateSpecFromJSpec(env, pTable, path, jTableSpec);
     } CATCH_STD()
 }
 
@@ -1094,10 +1127,10 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToJson(
 
     // Write table to string in JSON format
     try {
-        std::ostringstream ss;
+        ostringstream ss;
         ss.sync_with_stdio(false); // for performance
         table->to_json(ss);
-        const std::string str = ss.str();
+        const string str = ss.str();
         return env->NewStringUTF(str.c_str());
     } CATCH_STD()
     return NULL;
@@ -1110,9 +1143,9 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeToString(
     if (!TABLE_VALID(env, table))
         return NULL;
     try {
-        std::ostringstream ss;
+        ostringstream ss;
         table->to_string(ss, S(maxRows));
-        const std::string str = ss.str();
+        const string str = ss.str();
         return env->NewStringUTF(str.c_str());
     } CATCH_STD()
     return NULL;
@@ -1125,9 +1158,9 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Table_nativeRowToString(
     if (!TBL_AND_ROW_INDEX_VALID(env, table, rowIndex))
         return NULL;
     try {
-        std::ostringstream ss;
+        ostringstream ss;
         table->row_to_string(S(rowIndex), ss);
-        const std::string str = ss.str();
+        const string str = ss.str();
         return env->NewStringUTF(str.c_str());
     } CATCH_STD()
     return NULL;
