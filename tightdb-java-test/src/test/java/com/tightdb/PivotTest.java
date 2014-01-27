@@ -22,7 +22,7 @@ public class PivotTest {
         colIndexAge = t.addColumn(ColumnType.INTEGER, "age");
         colIndexHired = t.addColumn(ColumnType.BOOLEAN, "hired");
         
-        for (long i=0;i<5000000;i++){
+        for (long i=0;i<50000;i++){
             String sex = i % 2 == 0 ? "Male" : "Female";
             t.add(sex, 20 + (i%20), true);
         }
@@ -33,8 +33,8 @@ public class PivotTest {
         
         Table resultCount = t.pivot(colIndexSex, colIndexAge, PivotType.COUNT);
         assertEquals(2, resultCount.size());
-        assertEquals(2500000, resultCount.getLong(1, 0));
-        assertEquals(2500000, resultCount.getLong(1, 1));
+        assertEquals(25000, resultCount.getLong(1, 0));
+        assertEquals(25000, resultCount.getLong(1, 1));
         
         Table resultMin = t.pivot(colIndexSex, colIndexAge, PivotType.MIN);
         assertEquals(20, resultMin.getLong(1, 0));
@@ -56,8 +56,8 @@ public class PivotTest {
         
         Table resultCount = view.pivot(colIndexSex, colIndexAge, PivotType.COUNT);
         assertEquals(2, resultCount.size());
-        assertEquals(2500000, resultCount.getLong(1, 0));
-        assertEquals(2500000, resultCount.getLong(1, 1));
+        assertEquals(25000, resultCount.getLong(1, 0));
+        assertEquals(25000, resultCount.getLong(1, 1));
         
         Table resultMin = view.pivot(colIndexSex, colIndexAge, PivotType.MIN);
         assertEquals(20, resultMin.getLong(1, 0));
