@@ -2,6 +2,7 @@ package com.tightdb;
 
 import java.util.Date;
 
+
 import com.tightdb.TableView.Order;
 import com.tightdb.typed.TightDB;
 
@@ -626,7 +627,7 @@ public class Table implements TableOrView, TableSchema {
                 throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");   // FIXME: support other than allocateDirect
         }
 
-        */
+         */
 
         public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
             if (immutable) throwImmutable();
@@ -663,7 +664,7 @@ public class Table implements TableOrView, TableSchema {
     protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
 
-   /* public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
+    /* public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
         if (data == null)
             throw new NullPointerException("Null Array");
         if (immutable) throwImmutable();
@@ -747,7 +748,7 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native ByteBuffer nativeGetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex);
-    */
+     */
 
     @Override
     public byte[] getBinaryByteArray(long columnIndex, long rowIndex) {
@@ -908,7 +909,7 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native void nativeSetByteBuffer(long nativeTablePtr, long columnIndex, long rowIndex, ByteBuffer data);
-    */
+     */
 
 
     @Override
@@ -1271,6 +1272,20 @@ public class Table implements TableOrView, TableSchema {
 
     protected native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
     protected native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
+    
+    
+    @Override
+    public Table pivot(long stringCol, long intCol, PivotType pivotType){
+        if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
+            throw new UnsupportedOperationException("Group by column must be of type String");
+        if (! this.getColumnType(intCol).equals(ColumnType.INTEGER ))
+            throw new UnsupportedOperationException("Aggregeation column must be of type Int");
+        Table result = new Table();
+        nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
+        return result;
+    }
+
+    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long resultPtr);
 
     //
 
@@ -1287,6 +1302,7 @@ public class Table implements TableOrView, TableSchema {
     }
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
+
 
     // Optimize
     public void optimize() {

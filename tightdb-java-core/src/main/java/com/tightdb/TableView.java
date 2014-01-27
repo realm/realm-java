@@ -3,6 +3,7 @@ package com.tightdb;
 import java.util.Date;
 
 
+
 /**
  * This class represents a view of a particular table. We can think of
  * a tableview is a subset of a table. It contains less than or
@@ -859,4 +860,18 @@ public class TableView implements TableOrView {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
     }
+    
+    
+    @Override
+    public Table pivot(long stringCol, long intCol, PivotType pivotType){
+        if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
+            throw new UnsupportedOperationException("Group by column must be of type String");
+        if (! this.getColumnType(intCol).equals(ColumnType.INTEGER ))
+            throw new UnsupportedOperationException("Aggregeation column must be of type Int");
+        Table result = new Table();
+        nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
+        return result;
+   }
+   
+   protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
 }

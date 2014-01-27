@@ -266,5 +266,21 @@ public interface TableOrView {
     long lookup(String value);
 
     long count(long columnIndex, String value);
+    
+    public enum PivotType {
+        COUNT(0),
+        SUM(1),
+        AVG(2),
+        MIN(3),
+        MAX(4);
+
+        final int value; // Package protected, accessible from Table and TableView
+
+        private PivotType(int value) {
+            this.value = value;
+        }
+    }
+    
+    public Table pivot(long stringCol, long intCol, PivotType pivotType);
 
 }

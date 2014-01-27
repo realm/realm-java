@@ -36,7 +36,6 @@ public class TypedTableDefinition {
         byte[] byteCol;
         Car carTableCol; // Subtable of the type Car defined as a typed table
         Object mixedCol; // Can hold any of the types
-
     }
     //@@EndExample@@
 }

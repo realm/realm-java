@@ -34,6 +34,39 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
     return 0;
 }
 
+
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativePivot
+(JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
+{
+    Table* dataTable = TBL(dataTablePtr);
+    Table* resultTable = TBL(resultTablePtr);
+    Table::AggrType pivotOp;
+    switch (operation) {
+        case 0:
+            pivotOp = Table::aggr_count;
+            break;
+        case 1:
+            pivotOp = Table::aggr_sum;
+            break;
+        case 2:
+            pivotOp = Table::aggr_avg;
+            break;
+        case 3:
+            pivotOp = Table::aggr_min;
+            break;
+        case 4:
+            pivotOp = Table::aggr_max;
+            break;
+        default:
+            ThrowException(env, UnsupportedOperation, "No pivot operation specified.");
+            return;
+    }
+    
+    try {
+        dataTable->aggregate(S(stringCol), S(intCol), pivotOp, *resultTable);
+    } CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
