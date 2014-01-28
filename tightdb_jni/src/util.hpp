@@ -385,13 +385,6 @@ public:
         return tightdb::StringData(m_data.get(), m_size);
     }
 
-    // Part of the "safe bool" idiom
-    typedef tightdb::util::UniquePtr<char[]> (JStringAccessor::*unspecified_bool_type);
-    operator unspecified_bool_type() const TIGHTDB_NOEXCEPT
-    {
-        return m_data ? &JStringAccessor::m_data : 0;
-    }
-
 private:
     tightdb::util::UniquePtr<char[]> m_data;
     std::size_t m_size;

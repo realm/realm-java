@@ -114,7 +114,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnIndex
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
     try {
-        JStringAccessor columnName2(env, columnName);
+        JStringAccessor columnName2(env, columnName); // throws
         return to_jlong_or_not_found( TV(nativeViewPtr)->get_column_index(columnName2) ); // noexcept
         } CATCH_STD();
     return NULL;
@@ -337,10 +337,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetString(
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String))
         return;
 
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return;
     try {
+        JStringAccessor value2(env, value);  // throws
         TV(nativeViewPtr)->set_string( S(columnIndex), S(rowIndex), value2);
     } CATCH_STD()
 }
@@ -484,10 +482,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstString(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_String))
         return 0;
 
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return 0;
     try {
+        JStringAccessor value2(env, value); // throws
         size_t searchIndex = TV(nativeViewPtr)->find_first_string( S(columnIndex), value2);
         return to_jlong_or_not_found( searchIndex );
     } CATCH_STD()
@@ -570,11 +566,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindAllString(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_String))
         return 0;
 
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return 0;
-    TR((env, "nativeFindAllString(col %d, string '%s') ", columnIndex, StringData(value2).data()));
     try {
+        JStringAccessor value2(env, value); // throws
+        TR((env, "nativeFindAllString(col %d, string '%s') ", columnIndex, StringData(value2).data()));
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_string( S(columnIndex), value2) );
         TR((env, "-- resultview size=%lld.\n", pResultView->size()));
         return reinterpret_cast<jlong>(pResultView);

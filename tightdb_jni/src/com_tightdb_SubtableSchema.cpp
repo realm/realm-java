@@ -21,10 +21,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SubtableSchema_nativeAddColumn
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
-    JStringAccessor name2(env, name);
-    if (!name2)
-        return 0;
     try {
+        JStringAccessor name2(env, name); // throws
         vector<size_t> nativePath;
         arrayToVector(env, path, nativePath);
         return TBL(nativeTablePtr)->add_subcolumn(nativePath, DataType(colType), name2);
@@ -51,10 +49,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_SubtableSchema_nativeRenameColumn
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
-    JStringAccessor name2(env, name);
-    if (!name2)
-        return;
     try {
+        JStringAccessor name2(env, name);
         vector<size_t> nativePath;
         arrayToVector(env, path, nativePath);
         nativePath.push_back(S(columnIndex));

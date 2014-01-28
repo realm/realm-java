@@ -22,15 +22,13 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
+    if (TBL(nativeTablePtr)->has_shared_spec()) {
+        ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubtableSchema() on root table instead.");
+        return 0;
+    }
     try {
-        JStringAccessor name2(env, name);
-        if (name2) {
-            if (TBL(nativeTablePtr)->has_shared_spec()) {
-                ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubtableSchema() on root table instead.");
-                return 0;
-            }
-            return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
-        }
+        JStringAccessor name2(env, name); // throws
+        return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
     } CATCH_STD()
     return 0;
 }
@@ -87,15 +85,13 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
+    if (TBL(nativeTablePtr)->has_shared_spec()) {
+        ThrowException(env, UnsupportedOperation, "Not allowed to rename column in subtable. Use getSubtableSchema() on root table instead.");
+        return;
+    }
     try {
-        JStringAccessor name2(env, name);
-        if (name2) {
-            if (TBL(nativeTablePtr)->has_shared_spec()) {
-                ThrowException(env, UnsupportedOperation, "Not allowed to rename column in subtable. Use getSubtableSchema() on root table instead.");
-                return;
-            }
-            TBL(nativeTablePtr)->rename_column(S(columnIndex), name2);
-        }
+        JStringAccessor name2(env, name); // throws
+        TBL(nativeTablePtr)->rename_column(S(columnIndex), name2);
     } CATCH_STD()
 }
 
@@ -196,8 +192,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeGetColumnIndex(
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
     try {
-        JStringAccessor columnName2(env, columnName);
-        // FIXME: check columnName2?
+        JStringAccessor columnName2(env, columnName); // throws
         return to_jlong_or_not_found( TBL(nativeTablePtr)->get_column_index(columnName2) ); // noexcept
     } CATCH_STD()
     return 0;
@@ -320,9 +315,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertString(
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_String))
         return;
     try {
-        JStringAccessor value2(env, value);
-        if (value2)
-            TBL(nativeTablePtr)->insert_string( S(columnIndex), S(rowIndex), value2);
+        JStringAccessor value2(env, value); // throws
+        TBL(nativeTablePtr)->insert_string( S(columnIndex), S(rowIndex), value2);
     } CATCH_STD()
 }
 
@@ -559,10 +553,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeSetString(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_String))
         return;
     try {
-        JStringAccessor value2(env, value);
-        if (value2) {
-            TBL(nativeTablePtr)->set_string( S(columnIndex), S(rowIndex), value2);
-        }
+        JStringAccessor value2(env, value); // throws
+        TBL(nativeTablePtr)->set_string( S(columnIndex), S(rowIndex), value2);
     } CATCH_STD()
 }
 
@@ -855,9 +847,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountString(
         return 0;
 
     try {
-        JStringAccessor value2(env, value);
-        if (value2)
-            return TBL(nativeTablePtr)->count_string( S(columnIndex), value2);
+        JStringAccessor value2(env, value); // throws
+        return TBL(nativeTablePtr)->count_string( S(columnIndex), value2);
     } CATCH_STD()
     return 0;
 }
@@ -871,9 +862,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeLookup(
         return 0;
 
     try {
-        JStringAccessor value2(env, value);
-        if (value2)
-            return to_jlong_or_not_found( TBL(nativeTablePtr)->lookup(value2) );
+        JStringAccessor value2(env, value); // throws
+        return to_jlong_or_not_found( TBL(nativeTablePtr)->lookup(value2) );
     } CATCH_STD()
     return 0;
 }
@@ -957,9 +947,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindFirstString(
         return 0;
 
     try {
-        JStringAccessor value2(env, value);
-        if (value2)
-            return to_jlong_or_not_found( TBL(nativeTablePtr)->find_first_string( S(columnIndex), value2) );
+        JStringAccessor value2(env, value); // throws
+        return to_jlong_or_not_found( TBL(nativeTablePtr)->find_first_string( S(columnIndex), value2) );
     } CATCH_STD()
     return 0;
 }
@@ -1034,11 +1023,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeFindAllString(
 
     Table* pTable = TBL(nativeTablePtr);
     try {
-        JStringAccessor value2(env, value);
-        if (value2) {
-            TableView* pTableView = new TableView( pTable->find_all_string( S(columnIndex), value2) );
-            return reinterpret_cast<jlong>(pTableView);
-        }
+        JStringAccessor value2(env, value); // throws
+        TableView* pTableView = new TableView( pTable->find_all_string( S(columnIndex), value2) );
+        return reinterpret_cast<jlong>(pTableView);
     } CATCH_STD()
     return 0;
 }

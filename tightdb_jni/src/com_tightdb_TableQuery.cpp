@@ -418,9 +418,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_Str
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     try {
-        JStringAccessor value2(env, value);
-        if (value2)
-            pQuery->equal(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value); // throws
+        pQuery->equal(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
@@ -432,9 +431,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     try {
-        JStringAccessor value2(env, value);
-        if (value2)
-            pQuery->begins_with(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value); // throws
+        pQuery->begins_with(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
@@ -446,9 +444,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     try {
-        JStringAccessor value2(env, value);
-        if (value2)
-            pQuery->ends_with(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value); // throws
+        pQuery->ends_with(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
@@ -460,9 +457,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     try {
-        JStringAccessor value2(env, value);
-        if (value2)
-            pQuery->contains(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value); // throws
+        pQuery->contains(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
@@ -474,9 +470,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
     try {
-        JStringAccessor value2(env, value);
-        if (value2)
-            pQuery->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value); // throws
+        pQuery->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
