@@ -685,7 +685,6 @@ public class JNIQueryTest {
         table.addColumn(ColumnType.STRING, "username");
         table.addColumn(ColumnType.TABLE, "tasks");
         table.addColumn(ColumnType.STRING, "username2");
-        
 
         TableSchema tasks = table.getSubtableSchema(1);
         tasks.addColumn(ColumnType.STRING, "name");
@@ -706,4 +705,17 @@ public class JNIQueryTest {
         assertEquals(2, view.size());
     }
 
+    @Test
+    public void queryWithUnbalancedSubtable() {
+        Table table = new Table();
+        table.addColumn(ColumnType.TABLE, "sub");
+        
+        TableSchema tasks = table.getSubtableSchema(0);
+        tasks.addColumn(ColumnType.STRING, "name");
+        
+      	try { table.where().subtable(0).count(); 	assert(false); } 			catch (UnsupportedOperationException e) {}
+       	try { table.where().endSubtable().count(); 	assert(false); }			catch (UnsupportedOperationException e) {}
+       	try { table.where().endSubtable().subtable(0).count(); assert(false); } catch (UnsupportedOperationException e) {}
+       	try { table.where().subtable(0).endSubtable().count(); assert(false); } catch (UnsupportedOperationException e) {} 
+    }
 }
