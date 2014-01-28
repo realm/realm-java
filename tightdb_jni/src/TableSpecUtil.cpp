@@ -65,7 +65,7 @@ jlong Java_com_tightdb_TableSpec_getColumnIndex(JNIEnv* env, jobject jTableSpec,
     return 0;
 }
 
-void updateSpecFromJSpec(JNIEnv* env, Table* table, const vector<size_t>& path, jobject jTableSpec)
+void set_descriptor(JNIEnv* env, Descriptor& desc, jobject jTableSpec)
 {
     jlong n = Java_com_tightdb_TableSpec_getColumnCount(env, jTableSpec);
     for (jlong i = 0; i != n; ++i) {
@@ -76,17 +76,16 @@ void updateSpecFromJSpec(JNIEnv* env, Table* table, const vector<size_t>& path, 
 
         jobject jColumnType = Java_com_tightdb_TableSpec_getColumnType(env, jTableSpec, i);
         DataType type = GetColumnTypeFromJColumnType(env, jColumnType);
-        table->add_subcolumn(path, type, name);
+        DescriptorRef subdesc;
+        desc.add_column(type, name, &subdesc); // Throws
         if (type == type_Table) {
-            vector<size_t> subpath = path;
-            subpath.push_back(i);
             jobject jNextColumnTableSpec = Java_com_tightdb_TableSpec_getTableSpec(env, jTableSpec, i);
-            updateSpecFromJSpec(env, table, subpath, jNextColumnTableSpec);
+            set_descriptor(env, *subdesc, jNextColumnTableSpec);
         }
     }
 }
 
-void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec)
+void get_descriptor(JNIEnv* env, const Descriptor& desc, jobject jTableSpec)
 {
     static jmethodID jAddColumnMethodId = GetTableSpecMethodID(env, "addColumn", "(ILjava/lang/String;)V");
     static jmethodID jAddSubtableColumnMethodId = GetTableSpecMethodID(env, "addSubtableColumn", "(Ljava/lang/String;)Lcom/tightdb/TableSpec;");
@@ -95,14 +94,14 @@ void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec)
         return;
     }
 
-    size_t n = spec.get_column_count(); // noexcept
+    size_t n = desc.get_column_count(); // noexcept
     for(size_t i = 0; i != n; ++i) {
-        DataType type   = spec.get_column_type(i); // noexcept
-        StringData name = spec.get_column_name(i); // noexcept
+        DataType type   = desc.get_column_type(i); // noexcept
+        StringData name = desc.get_column_name(i); // noexcept
         if (type == type_Table) {
             jobject jSubTableSpec = env->CallObjectMethod(jTableSpec, jAddSubtableColumnMethodId, to_jstring(env, name));
-            Spec subspec = SubspecRef(SubspecRef::const_cast_tag(), spec.get_subtable_spec(i)); // Throws
-            UpdateJTableSpecFromSpec(env, subspec, jSubTableSpec);
+            ConstDescriptorRef subdesc = desc.get_subdescriptor(i); // Throws
+            get_descriptor(env, *subdesc, jSubTableSpec);
         }
         else {
             env->CallVoidMethod(jTableSpec, jAddColumnMethodId, jint(type), to_jstring(env, name));
