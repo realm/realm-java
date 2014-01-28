@@ -336,7 +336,6 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetString(
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String))
         return;
-
     try {
         JStringAccessor value2(env, value);  // throws
         TV(nativeViewPtr)->set_string( S(columnIndex), S(rowIndex), value2);

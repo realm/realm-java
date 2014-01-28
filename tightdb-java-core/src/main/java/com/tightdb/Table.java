@@ -6,11 +6,6 @@ import java.util.Date;
 import com.tightdb.TableView.Order;
 import com.tightdb.typed.TightDB;
 
-/*
- Add isEqual(Table)
-
- */
-
 /**
  * This class is a base class for all TightDB tables. The class supports all low
  * level methods (define/insert/delete/update) a table has. All the native

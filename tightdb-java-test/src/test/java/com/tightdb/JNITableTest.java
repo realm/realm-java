@@ -365,7 +365,7 @@ public class JNITableTest {
 
         // Write transaction must be run so where are sure a db exists with the correct table
         WriteTransaction wt = group.beginWrite();
-        try{
+        try {
             Table table = wt.getTable(TABLENAME);
             table.addColumn(ColumnType.STRING, "col0");
             table.add("value0");
@@ -378,7 +378,7 @@ public class JNITableTest {
         }
 
         ReadTransaction rt = group.beginRead();
-        try{
+        try {
             Table table = rt.getTable(TABLENAME);
 
             try {  table.addAt(1, "NewValue"); fail("Exception expected when inserting in read transaction"); } catch (IllegalStateException e) { }
