@@ -102,7 +102,10 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetColumnName
 {
     if (!VIEW_VALID(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
         return NULL;
-    return to_jstring(env, TV(nativeViewPtr)->get_column_name( S(columnIndex)));
+    try {
+        return to_jstring(env, TV(nativeViewPtr)->get_column_name( S(columnIndex)));
+    } CATCH_STD();
+    return NULL;
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnIndex
@@ -110,8 +113,11 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnIndex
 {
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
-    JStringAccessor columnName2(env, columnName);
-    return to_jlong_or_not_found( TV(nativeViewPtr)->get_column_index(columnName2) ); // noexcept
+    try {
+        JStringAccessor columnName2(env, columnName);
+        return to_jlong_or_not_found( TV(nativeViewPtr)->get_column_index(columnName2) ); // noexcept
+        } CATCH_STD();
+    return NULL;
 }
 
 JNIEXPORT jint JNICALL Java_com_tightdb_TableView_nativeGetColumnType
@@ -178,8 +184,11 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetString(
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String))
         return NULL;
-
-    return to_jstring(env, TV(nativeViewPtr)->get_string( S(columnIndex), S(rowIndex)));  // noexcept
+    try {
+        return to_jstring(env, TV(nativeViewPtr)->get_string( S(columnIndex), S(rowIndex)) // noexcept
+                          );
+        } CATCH_STD();
+    return NULL;
 }
 
 /*
@@ -226,7 +235,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableView_nativeGetMixed(
         return NULL;
 
     Mixed value = TV(nativeViewPtr)->get_mixed( S(columnIndex), S(rowIndex));   // noexcept
-    try { // just in case...
+    try {
         return CreateJMixedFromMixed(env, value);
     } CATCH_STD()
     return NULL;

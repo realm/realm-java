@@ -18,8 +18,11 @@ public:
         subtables.push_back(index);
     }
 
-    void pop_subtable() {
+    bool pop_subtable() {
+        if (subtables.empty())
+            return false;
         subtables.pop_back();
+        return true;
     }
     
     tightdb::TableRef get_current_table() {

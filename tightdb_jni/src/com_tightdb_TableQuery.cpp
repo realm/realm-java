@@ -40,7 +40,10 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableQuery_nativeValidateQuery
 (JNIEnv * env, jobject, jlong nativeQueryPtr)
 {
     Query* pQuery = Q(nativeQueryPtr);
-    return to_jstring(env, pQuery->validate());
+    try {
+        return to_jstring(env, pQuery->validate());
+    } CATCH_STD();
+    return NULL;
 }
 
 
@@ -414,11 +417,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEqual__JJLjava_lang_Str
     TableRef pTable = TQ(pQuery)->get_current_table();
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return;
     try {
-        pQuery->equal(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value);
+        if (value2)
+            pQuery->equal(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
@@ -429,11 +431,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeBeginsWith(
     TableRef pTable = TQ(pQuery)->get_current_table();
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return;
     try {
-        pQuery->begins_with(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value);
+        if (value2)
+            pQuery->begins_with(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
@@ -444,11 +445,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndsWith(
     TableRef pTable = TQ(pQuery)->get_current_table();
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return;
     try {
-        pQuery->ends_with(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value);
+        if (value2)
+            pQuery->ends_with(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
@@ -459,11 +459,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeContains(
     TableRef pTable = TQ(pQuery)->get_current_table();
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return;
     try {
-        pQuery->contains(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value);
+        if (value2)
+            pQuery->contains(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
@@ -474,11 +473,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeNotEqual__JJLjava_lang_
     TableRef pTable = TQ(pQuery)->get_current_table();
     if (!COL_TYPE_VALID(env, Ref2Ptr(pTable), columnIndex, type_String))
         return;
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return;
     try {
-        pQuery->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
+        JStringAccessor value2(env, value);
+        if (value2)
+            pQuery->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
@@ -554,13 +552,16 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubtable(
 JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeParent(
     JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
-    // No verification of parameters needed?
     TableQuery* pTQuery = TQ(nativeQueryPtr);
     if (!QUERY_VALID(env, pTQuery))
         return;
     try {
-        pTQuery->pop_subtable();
-        pTQuery->end_subtable();
+        if (pTQuery->pop_subtable()) {
+            pTQuery->end_subtable();
+        }
+        else {
+            ThrowException(env, UnsupportedOperation, "No matching subtable().");
+        }
     } CATCH_STD()
 }
 

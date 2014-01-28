@@ -208,21 +208,25 @@ jstring to_jstring(JNIEnv* env, StringData str)
     typedef Utf8x16<jchar, JcharTraits> Xcode;
 
     if (str.size() <= stack_buf_size) {
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end)) goto bad_utf8;
-        if (in_begin == in_end) goto transcode_complete;
+        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
+            goto bad_utf8;
+        if (in_begin == in_end)
+            goto transcode_complete;
     }
 
     {
         const char* in_begin2 = in_begin;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end);
-        if (in_begin2 != in_end) goto bad_utf8;
+        if (in_begin2 != in_end) 
+            goto bad_utf8;
         if (int_add_with_overflow_detect(size, stack_buf_size))
             throw runtime_error("String size overflow");
         dyn_buf.reset(new jchar[size]);
         out_curr = copy(out_begin, out_curr, dyn_buf.get());
         out_begin = dyn_buf.get();
         out_end   = dyn_buf.get() + size;
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end)) goto bad_utf8;
+        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
+            goto bad_utf8;
         TIGHTDB_ASSERT(in_begin == in_end);
     }
 
@@ -263,7 +267,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         const jchar* end   = begin + chars.size();
         buf_size = Xcode::find_utf8_buf_size(begin, end);
     }
-    m_data.reset(new char[buf_size]);   // throws
+    m_data.reset(new char[buf_size]);
     {
         const jchar* in_begin = chars.data();
         const jchar* in_end   = in_begin + chars.size();
@@ -275,6 +279,3 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         m_size = out_begin - m_data.get();
     }
 }
-
-
-// native testcases
