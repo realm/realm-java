@@ -156,7 +156,7 @@ public class TableView implements TableOrView {
     @Override
     public long getColumnIndex(String columnName) {
         if (columnName == null)
-            throw new NullPointerException("Column name can not be null.");
+            throw new IllegalArgumentException("Column name can not be null.");
         return nativeGetColumnIndex(nativePtr, columnName);
     }
     

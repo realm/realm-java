@@ -310,7 +310,7 @@ public class Table implements TableOrView, TableSchema {
     @Override
     public long getColumnIndex(String columnName) {
         if (columnName == null)
-            throw new NullPointerException("Column name can not be null.");
+            throw new IllegalArgumentException("Column name can not be null.");
         return nativeGetColumnIndex(nativePtr, columnName);
     }
     
@@ -634,7 +634,7 @@ public class Table implements TableOrView, TableSchema {
             if(data != null)
                 nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
             else
-                throw new NullPointerException("byte[] must not be null. Alternatively insert empty array.");
+                throw new IllegalArgumentException("byte[] must not be null. Alternatively insert empty array.");
         }
 
         public void insertSubtable(long columnIndex, long rowIndex, Object[][] values) {
@@ -666,7 +666,7 @@ public class Table implements TableOrView, TableSchema {
 
     /* public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
         if (data == null)
-            throw new NullPointerException("Null Array");
+            throw new IllegalArgumentException("Null Array");
         if (immutable) throwImmutable();
         nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
     }*/
@@ -869,6 +869,8 @@ public class Table implements TableOrView, TableSchema {
 
     @Override
     public void setDate(long columnIndex, long rowIndex, Date date) {
+        if (date == null)
+            throw new IllegalArgumentException("Null Date is not allowed.");
         if (immutable) throwImmutable();
         nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
     }
@@ -878,7 +880,7 @@ public class Table implements TableOrView, TableSchema {
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
         if (value == null)
-            throw new NullPointerException("Null String is not allowed.");
+            throw new IllegalArgumentException("Null String is not allowed.");
         if (immutable) throwImmutable();
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
@@ -901,7 +903,7 @@ public class Table implements TableOrView, TableSchema {
     public void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data) {
         if (immutable) throwImmutable();
         if (data == null)
-            throw new NullPointerException("Null array");
+            throw new IllegalArgumentException("Null array");
         if (data.isDirect())
             nativeSetByteBuffer(nativePtr, columnIndex, rowIndex, data);
         else
@@ -916,7 +918,7 @@ public class Table implements TableOrView, TableSchema {
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         if (immutable) throwImmutable();
         if (data == null)
-            throw new NullPointerException("Null Array");
+            throw new IllegalArgumentException("Null Array");
         nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
     }
 
@@ -935,7 +937,7 @@ public class Table implements TableOrView, TableSchema {
     public void setMixed(long columnIndex, long rowIndex, Mixed data) {
         if (immutable) throwImmutable();
         if (data == null)
-            throw new NullPointerException();
+            throw new IllegalArgumentException();
         nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
     }
 
@@ -1251,7 +1253,7 @@ public class Table implements TableOrView, TableSchema {
     @Override
     public long lookup(String value) {
         if (value == null)
-            throw new NullPointerException("String must not be null.");
+            throw new IllegalArgumentException("String must not be null.");
         if (this.getColumnType(0) != ColumnType.STRING)
             throw new UnsupportedOperationException("lookup() requires column 0 is a String column.");
         return nativeLookup(nativePtr, value);
