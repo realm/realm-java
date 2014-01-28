@@ -4,60 +4,60 @@
 using namespace tightdb;
 using namespace std;
 
-void arrayToVector(JNIEnv *env, jlongArray path, vector<size_t>& native_path)
+void arrayToVector(JNIEnv* env, jlongArray path, vector<size_t>& nativePath)
 {
     jsize size = env->GetArrayLength(path);
-    native_path.reserve(size+1);
+    nativePath.reserve(size+1);
 
-    jlong *path_elements = env->GetLongArrayElements(path, 0);
+    jlong* pathElements = env->GetLongArrayElements(path, 0);
     for (jsize i = 0; i < size; ++i) {
-        native_path.push_back(S(path_elements[i]));
+        nativePath.push_back(S(pathElements[i]));
     }
-    env->ReleaseLongArrayElements(path, path_elements, JNI_ABORT);
+    env->ReleaseLongArrayElements(path, pathElements, JNI_ABORT);
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_SubtableSchema_nativeAddColumn
-  (JNIEnv *env, jobject, jlong native_table_ptr, jlongArray path, jint col_type, jstring name)
+  (JNIEnv* env, jobject, jlong  nativeTablePtr, jlongArray path, jint colType, jstring name)
 {
-    if (!TABLE_VALID(env, TBL(native_table_ptr)))
+    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
     JStringAccessor name2(env, name);
     if (!name2)
         return 0;
     try {
-        vector<size_t> native_path;
-        arrayToVector(env, path, native_path);
-        return TBL(native_table_ptr)->add_subcolumn(native_path, DataType(col_type), name2);
+        vector<size_t> nativePath;
+        arrayToVector(env, path, nativePath);
+        return TBL(nativeTablePtr)->add_subcolumn(nativePath, DataType(colType), name2);
     }
     CATCH_STD()
     return 0;
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_SubtableSchema_nativeRemoveColumn
-  (JNIEnv *env, jobject, jlong native_table_ptr, jlongArray path, jlong column_index)
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlongArray path, jlong columnIndex)
 {
-    if (!TBL_AND_COL_INDEX_VALID(env, TBL(native_table_ptr), column_index))
+    if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
     try {
-        vector<size_t> native_path;
-        arrayToVector(env, path, native_path);
-        TBL(native_table_ptr)->remove_subcolumn(native_path, column_index);
+        vector<size_t> nativePath;
+        arrayToVector(env, path, nativePath);
+        TBL(nativeTablePtr)->remove_subcolumn(nativePath, columnIndex);
     }
     CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_SubtableSchema_nativeRenameColumn
-  (JNIEnv *env, jobject, jlong native_table_ptr, jlongArray path, jlong column_index, jstring name)
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlongArray path, jlong columnIndex, jstring name)
 {
-    if (!TBL_AND_COL_INDEX_VALID(env, TBL(native_table_ptr), column_index))
+    if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
     JStringAccessor name2(env, name);
     if (!name2)
         return;
     try {
-        vector<size_t> native_path;
-        arrayToVector(env, path, native_path);
-        TBL(native_table_ptr)->rename_subcolumn(native_path, column_index, name2);
+        vector<size_t> nativePath;
+        arrayToVector(env, path, nativePath);
+        TBL(nativeTablePtr)->rename_subcolumn(nativePath, columnIndex, name2);
     }
     CATCH_STD()
 }

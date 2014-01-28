@@ -61,7 +61,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativePivot
             ThrowException(env, UnsupportedOperation, "No pivot operation specified.");
             return;
     }
-    
+
     try {
         dataTable->aggregate(S(stringCol), S(intCol), pivotOp, *resultTable);
     } CATCH_STD()
@@ -107,36 +107,36 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsRootTable
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
-    JNIEnv* env, jobject, jlong native_table_ptr, jobject jTableSpec)
+    JNIEnv* env, jobject, jlong nativeTablePtr, jobject jTableSpec)
 {
-    Table* table = TBL(native_table_ptr);
-    TR((env, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", table, jTableSpec));
-    if (!TABLE_VALID(env, table))
+    Table* pTable = TBL(nativeTablePtr);
+    TR((env, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec));
+    if (!TABLE_VALID(env, pTable))
         return;
-    if (table->has_shared_type()) {
+    if (pTable->has_shared_type()) {
         ThrowException(env, UnsupportedOperation, "It is not allowed to update a subtable from spec.");
         return;
     }
     try {
-        DescriptorRef desc = table->get_descriptor(); // Throws
+        DescriptorRef desc = pTable->get_descriptor(); // Throws
         set_descriptor(env, *desc, jTableSpec);
     }
     CATCH_STD()
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetTableSpec(
-    JNIEnv* env, jobject, jlong native_table_ptr)
+    JNIEnv* env, jobject, jlong nativeTablePtr)
 {
-    if (!TABLE_VALID(env, TBL(native_table_ptr)))
+    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
 
-    TR((env, "nativeGetTableSpec(table %x)\n", native_table_ptr));
+    TR((env, "nativeGetTableSpec(table %x)\n", nativeTablePtr));
     static jmethodID jTableSpecConsId = GetTableSpecMethodID(env, "<init>", "()V");
     if (jTableSpecConsId) {
         try {
             // Create a new TableSpec object in Java
-            const Table* table = TBL(native_table_ptr);
-            ConstDescriptorRef desc = table->get_descriptor(); // noexcept
+            const Table* pTable = TBL(nativeTablePtr);
+            ConstDescriptorRef desc = pTable->get_descriptor(); // noexcept
             jobject jTableSpec = env->NewObject(GetClassTableSpec(env), jTableSpecConsId);
             if (jTableSpec) {
                 get_descriptor(env, *desc, jTableSpec);
