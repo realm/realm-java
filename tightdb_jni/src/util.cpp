@@ -236,7 +236,8 @@ jstring to_jstring(JNIEnv* env, StringData str)
     }
 
   bad_utf8:
-    throw runtime_error("Bad UTF-8 encoding");
+    ThrowException(env, RuntimeError, "String encoded with bad UTF-8 format");
+    return NULL;
 }
 
 
