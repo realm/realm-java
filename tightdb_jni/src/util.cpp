@@ -216,8 +216,10 @@ jstring to_jstring(JNIEnv* env, StringData str)
         const char* in_begin2 = in_begin;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end);
         if (in_begin2 != in_end) goto bad_utf8;
-        if (int_add_with_overflow_detect(size, stack_buf_size))
-            throw runtime_error("String size overflow");
+        if (int_add_with_overflow_detect(size, stack_buf_size)) {
+            ThrowException(env, RuntimeError, "String size overflow");
+            return NULL;
+        }
         dyn_buf.reset(new jchar[size]);
         out_curr = copy(out_begin, out_curr, dyn_buf.get());
         out_begin = dyn_buf.get();
@@ -229,14 +231,17 @@ jstring to_jstring(JNIEnv* env, StringData str)
   transcode_complete:
     {
         jsize out_size;
-        if (int_cast_with_overflow_detect(out_curr - out_begin, out_size))
-            throw runtime_error("String size overflow");
+        if (int_cast_with_overflow_detect(out_curr - out_begin, out_size)) {
+            ThrowException(env, RuntimeError, "String size overflow");
+            return NULL;
+        }
 
         return env->NewString(out_begin, out_size);
     }
 
   bad_utf8:
-    throw runtime_error("Bad UTF-8 encoding");
+    ThrowException(env, RuntimeError, "String encoded with bad UTF-8 format");
+    return NULL;
 }
 
 
