@@ -422,7 +422,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeTableview(
     if (!QUERY_VALID(env, pQuery))
         return;
     try {
-        Q(nativeQueryPtr)->tableview(*TV(nativeTableViewPtr));
+        pQuery->tableview(*TV(nativeTableViewPtr));
     } CATCH_STD()
 }
 
@@ -433,7 +433,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeGroup(
     if (!QUERY_VALID(env, pQuery))
         return;
     try {
-        Q(nativeQueryPtr)->group();
+        pQuery->group();
     } CATCH_STD()
 }
 
@@ -444,7 +444,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup(
     if (!QUERY_VALID(env, pQuery))
         return;
     try {
-        Q(nativeQueryPtr)->end_group();
+        pQuery->end_group();
     } CATCH_STD()
 }
 
@@ -456,7 +456,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeOr(
     if (!QUERY_VALID(env, pQuery))
         return;
     try {
-        Q(nativeQueryPtr)->Or();
+        pQuery->Or();
     } CATCH_STD()
 }
 
