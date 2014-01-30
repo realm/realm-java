@@ -23,4 +23,11 @@ public class TableQueryColumn<Cursor, View, Query, Subtable> extends AbstractCol
         return "subtable";
     }
 
+/* Not supported yet. The query returned must be specific to the subtable (to provide
+ * access to the subtable members.
+ * 
+    public Query subtable() {
+        return query(getQuery().subtable(columnIndex));
+    }
+*/
 }
