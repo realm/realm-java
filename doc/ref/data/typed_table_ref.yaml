@@ -267,7 +267,7 @@ CATEGORIES :
       PARAMS:
       - NAME   : rowIndex
         TYPES  : long
-        DESCR  : *g_typed_table_operator_brackets_descr
+        DESCR  : *g_dyn_table_get_xxx_parm1_descr
       EXAMPLES:
       - CODE   : ex_java_typed_table_get
         DESCR  :
