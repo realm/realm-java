@@ -2,6 +2,7 @@
 #include "com_tightdb_TableView.h"
 #include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
+#include "tablequery.hpp"
 #include <ostream>
 
 using namespace tightdb;
@@ -101,7 +102,10 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetColumnName
 {
     if (!VIEW_VALID(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
         return NULL;
-    return to_jstring(env, TV(nativeViewPtr)->get_column_name( S(columnIndex)));
+    try {
+        return to_jstring(env, TV(nativeViewPtr)->get_column_name( S(columnIndex)));
+    } CATCH_STD();
+    return NULL;
 }
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnIndex
@@ -109,8 +113,11 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeGetColumnIndex
 {
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
-    JStringAccessor columnName2(env, columnName);
-    return to_jlong_or_not_found( TV(nativeViewPtr)->get_column_index(columnName2) ); // noexcept
+    try {
+        JStringAccessor columnName2(env, columnName); // throws
+        return to_jlong_or_not_found( TV(nativeViewPtr)->get_column_index(columnName2) ); // noexcept
+        } CATCH_STD();
+    return NULL;
 }
 
 JNIEXPORT jint JNICALL Java_com_tightdb_TableView_nativeGetColumnType
@@ -177,8 +184,11 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_TableView_nativeGetString(
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String))
         return NULL;
-
-    return to_jstring(env, TV(nativeViewPtr)->get_string( S(columnIndex), S(rowIndex)));  // noexcept
+    try {
+        return to_jstring(env, TV(nativeViewPtr)->get_string( S(columnIndex), S(rowIndex)) // noexcept
+                          );
+        } CATCH_STD();
+    return NULL;
 }
 
 /*
@@ -225,7 +235,7 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_TableView_nativeGetMixed(
         return NULL;
 
     Mixed value = TV(nativeViewPtr)->get_mixed( S(columnIndex), S(rowIndex));   // noexcept
-    try { // just in case...
+    try {
         return CreateJMixedFromMixed(env, value);
     } CATCH_STD()
     return NULL;
@@ -326,11 +336,8 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSetString(
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String))
         return;
-
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return;
     try {
+        JStringAccessor value2(env, value);  // throws
         TV(nativeViewPtr)->set_string( S(columnIndex), S(rowIndex), value2);
     } CATCH_STD()
 }
@@ -474,10 +481,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindFirstString(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_String))
         return 0;
 
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return 0;
     try {
+        JStringAccessor value2(env, value); // throws
         size_t searchIndex = TV(nativeViewPtr)->find_first_string( S(columnIndex), value2);
         return to_jlong_or_not_found( searchIndex );
     } CATCH_STD()
@@ -560,11 +565,9 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeFindAllString(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_String))
         return 0;
 
-    JStringAccessor value2(env, value);
-    if (!value2)
-        return 0;
-    TR((env, "nativeFindAllString(col %d, string '%s') ", columnIndex, StringData(value2).data()));
     try {
+        JStringAccessor value2(env, value); // throws
+        TR((env, "nativeFindAllString(col %d, string '%s') ", columnIndex, StringData(value2).data()));
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_string( S(columnIndex), value2) );
         TR((env, "-- resultview size=%lld.\n", pResultView->size()));
         return reinterpret_cast<jlong>(pResultView);
@@ -803,7 +806,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeWhere
     try {
         TableView* tv = TV(nativeViewPtr);
         Query query = tv->get_parent().where().tableview(*tv);
-        Query* queryPtr = new Query(query);
+        TableQuery* queryPtr = new TableQuery(query);
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;

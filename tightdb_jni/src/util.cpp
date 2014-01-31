@@ -7,48 +7,9 @@
 #include "util.hpp"
 #include "com_tightdb_internal_Util.h"
 
-
 using namespace std;
 using namespace tightdb;
 using namespace tightdb::util;
-
-namespace {
-
-// This assumes that 'jchar' is an integral type with at least 16
-// non-sign value bits, that is, an unsigned 16-bit integer, or any
-// signed or unsigned integer with more than 16 bits.
-struct JcharTraits {
-    static jchar to_int_type(jchar c)  TIGHTDB_NOEXCEPT { return c; }
-    static jchar to_char_type(jchar i) TIGHTDB_NOEXCEPT { return i; }
-};
-
-struct JStringCharsAccessor {
-    JStringCharsAccessor(JNIEnv* e, jstring s):
-        m_env(e), m_string(s), m_data(e->GetStringChars(s,0)), m_size(get_size(e,s)) {}
-    ~JStringCharsAccessor()
-    {
-        m_env->ReleaseStringChars(m_string, m_data);
-    }
-    const jchar* data() const TIGHTDB_NOEXCEPT { return m_data; }
-    size_t size() const TIGHTDB_NOEXCEPT { return m_size; }
-
-private:
-    JNIEnv* const m_env;
-    const jstring m_string;
-    const jchar* const m_data;
-    const size_t m_size;
-
-    static size_t get_size(JNIEnv* e, jstring s)
-    {
-        size_t size;
-        if (int_cast_with_overflow_detect(e->GetStringLength(s), size))
-            throw runtime_error("String size overflow");
-        return size;
-    }
-};
-
-} // anonymous namespace
-
 
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr)
@@ -187,6 +148,48 @@ bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& bin)
 }
 
 
+//*********************************************************************
+// String handling
+//*********************************************************************
+
+namespace {
+
+// This assumes that 'jchar' is an integral type with at least 16
+// non-sign value bits, that is, an unsigned 16-bit integer, or any
+// signed or unsigned integer with more than 16 bits.
+struct JcharTraits {
+    static jchar to_int_type(jchar c)  TIGHTDB_NOEXCEPT { return c; }
+    static jchar to_char_type(jchar i) TIGHTDB_NOEXCEPT { return i; }
+};
+
+struct JStringCharsAccessor {
+    JStringCharsAccessor(JNIEnv* e, jstring s):
+        m_env(e), m_string(s), m_data(e->GetStringChars(s,0)), m_size(get_size(e,s)) {}
+    ~JStringCharsAccessor()
+    {
+        m_env->ReleaseStringChars(m_string, m_data);
+    }
+    const jchar* data() const TIGHTDB_NOEXCEPT { return m_data; }
+    size_t size() const TIGHTDB_NOEXCEPT { return m_size; }
+
+private:
+    JNIEnv* const m_env;
+    const jstring m_string;
+    const jchar* const m_data;
+    const size_t m_size;
+
+    static size_t get_size(JNIEnv* e, jstring s)
+    {
+        size_t size;
+        if (int_cast_with_overflow_detect(e->GetStringLength(s), size))
+            throw runtime_error("String size overflow");
+        return size;
+    }
+};
+
+} // anonymous namespace
+
+
 jstring to_jstring(JNIEnv* env, StringData str)
 {
     // For efficiency, if the incoming UTF-8 string is sufficiently
@@ -208,21 +211,25 @@ jstring to_jstring(JNIEnv* env, StringData str)
     typedef Utf8x16<jchar, JcharTraits> Xcode;
 
     if (str.size() <= stack_buf_size) {
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end)) goto bad_utf8;
-        if (in_begin == in_end) goto transcode_complete;
+        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
+            goto bad_utf8;
+        if (in_begin == in_end)
+            goto transcode_complete;
     }
 
     {
         const char* in_begin2 = in_begin;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end);
-        if (in_begin2 != in_end) goto bad_utf8;
+        if (in_begin2 != in_end) 
+            goto bad_utf8;
         if (int_add_with_overflow_detect(size, stack_buf_size))
             throw runtime_error("String size overflow");
         dyn_buf.reset(new jchar[size]);
         out_curr = copy(out_begin, out_curr, dyn_buf.get());
         out_begin = dyn_buf.get();
         out_end   = dyn_buf.get() + size;
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end)) goto bad_utf8;
+        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
+            goto bad_utf8;
         TIGHTDB_ASSERT(in_begin == in_end);
     }
 
@@ -263,7 +270,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         const jchar* end   = begin + chars.size();
         buf_size = Xcode::find_utf8_buf_size(begin, end);
     }
-    m_data.reset(new char[buf_size]);
+    m_data.reset(new char[buf_size]);  // throws
     {
         const jchar* in_begin = chars.data();
         const jchar* in_end   = in_begin + chars.size();
@@ -275,6 +282,3 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         m_size = out_begin - m_data.get();
     }
 }
-
-
-// native testcases

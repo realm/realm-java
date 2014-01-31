@@ -49,10 +49,10 @@ JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeEndGroup
 
 /*
  * Class:     com_tightdb_TableQuery
- * Method:    nativeSubTable
+ * Method:    nativeSubtable
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubTable
+JNIEXPORT void JNICALL Java_com_tightdb_TableQuery_nativeSubtable
   (JNIEnv *, jobject, jlong, jlong);
 
 /*

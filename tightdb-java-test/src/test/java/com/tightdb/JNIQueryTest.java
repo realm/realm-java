@@ -678,4 +678,44 @@ public class JNIQueryTest {
         assertEquals(1, view2.size());
     }
 
+
+    @Test
+    public void queryWithSubtable() {
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "username");
+        table.addColumn(ColumnType.TABLE, "tasks");
+        table.addColumn(ColumnType.STRING, "username2");
+
+        TableSchema tasks = table.getSubtableSchema(1);
+        tasks.addColumn(ColumnType.STRING, "name");
+        tasks.addColumn(ColumnType.INTEGER, "score");
+        tasks.addColumn(ColumnType.BOOLEAN, "completed");
+
+        // Insert some values
+        table.add("Arnold", new Object[][] {{"task1", 120, false},
+                                            {"task2", 321, false},
+                                            {"task3", 78, false}}, "");
+        table.add("Jane", new Object[][] {{"task2", 400, true},
+                                          {"task3", 375, true}}, "");
+        table.add("Erik", new Object[][] {{"task1", 562, true},
+                                          {"task3", 14, false}}, "");
+
+        // Query the table
+        TableView view = table.where().subtable(1).equalTo(2, true).endSubtable().findAll();
+        assertEquals(2, view.size());
+    }
+
+    @Test
+    public void queryWithUnbalancedSubtable() {
+        Table table = new Table();
+        table.addColumn(ColumnType.TABLE, "sub");
+        
+        TableSchema tasks = table.getSubtableSchema(0);
+        tasks.addColumn(ColumnType.STRING, "name");
+        
+        try { table.where().subtable(0).count();               assert(false); } catch (UnsupportedOperationException e) {}
+        try { table.where().endSubtable().count();             assert(false); } catch (UnsupportedOperationException e) {}
+        try { table.where().endSubtable().subtable(0).count(); assert(false); } catch (UnsupportedOperationException e) {}
+        try { table.where().subtable(0).endSubtable().count(); assert(false); } catch (UnsupportedOperationException e) {} 
+    }
 }

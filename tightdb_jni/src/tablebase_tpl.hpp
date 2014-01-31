@@ -78,12 +78,9 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
     case type_String:
         {
             jstring stringValue = GetMixedStringValue(env, jMixedValue);
-            JStringAccessor string(env, stringValue);
-            if (string) {
-                (pTable->*doMixed)( S(columnIndex), S(rowIndex), StringData(string));
-                return;
-            }
-            break;
+            JStringAccessor string(env, stringValue); // throws
+            (pTable->*doMixed)( S(columnIndex), S(rowIndex), StringData(string));
+            return;
         }
     case type_DateTime:
         {

@@ -380,7 +380,7 @@ public class JNIViewTest {
         Table t = new Table();
         t.addColumn(ColumnType.INTEGER, "");
         TableView view = t.where().findAll();
-        try { view.getColumnIndex(null); fail("Getting null column"); } catch(NullPointerException e) { }
+        try { view.getColumnIndex(null); fail("Getting null column"); } catch(IllegalArgumentException e) { }
     }
 
 

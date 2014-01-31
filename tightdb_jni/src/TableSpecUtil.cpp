@@ -70,9 +70,7 @@ void updateSpecFromJSpec(JNIEnv* env, Table* table, const vector<size_t>& path, 
     jlong n = Java_com_tightdb_TableSpec_getColumnCount(env, jTableSpec);
     for (jlong i = 0; i != n; ++i) {
         jstring jColumnName = Java_com_tightdb_TableSpec_getColumnName(env, jTableSpec, i);
-        JStringAccessor name(env, jColumnName);
-        if (!name)
-            return;
+        JStringAccessor name(env, jColumnName);  // throws
 
         jobject jColumnType = Java_com_tightdb_TableSpec_getColumnType(env, jTableSpec, i);
         DataType type = GetColumnTypeFromJColumnType(env, jColumnType);
@@ -89,18 +87,20 @@ void updateSpecFromJSpec(JNIEnv* env, Table* table, const vector<size_t>& path, 
 void UpdateJTableSpecFromSpec(JNIEnv* env, const Spec& spec, jobject jTableSpec)
 {
     static jmethodID jAddColumnMethodId = GetTableSpecMethodID(env, "addColumn", "(ILjava/lang/String;)V");
-    static jmethodID jAddSubtableColumnMethodId = GetTableSpecMethodID(env, "addSubtableColumn", "(Ljava/lang/String;)Lcom/tightdb/TableSpec;");
+    static jmethodID jAddSubtableColumnMethodId = GetTableSpecMethodID(env, "addSubtableColumn", 
+                                                                            "(Ljava/lang/String;)Lcom/tightdb/TableSpec;");
 
     if (jAddColumnMethodId == NULL || jAddSubtableColumnMethodId == NULL) {
         return;
     }
 
     size_t n = spec.get_column_count(); // noexcept
-    for(size_t i = 0; i != n; ++i) {
+    for (size_t i = 0; i != n; ++i) {
         DataType type   = spec.get_column_type(i); // noexcept
         StringData name = spec.get_column_name(i); // noexcept
         if (type == type_Table) {
-            jobject jSubTableSpec = env->CallObjectMethod(jTableSpec, jAddSubtableColumnMethodId, to_jstring(env, name));
+            jobject jSubTableSpec = env->CallObjectMethod(jTableSpec, jAddSubtableColumnMethodId, 
+                                                          to_jstring(env, name));
             Spec subspec = SubspecRef(SubspecRef::const_cast_tag(), spec.get_subtable_spec(i)); // Throws
             UpdateJTableSpecFromSpec(env, subspec, jSubTableSpec);
         }
