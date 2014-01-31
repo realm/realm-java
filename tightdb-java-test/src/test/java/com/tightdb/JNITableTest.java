@@ -109,7 +109,7 @@ public class JNITableTest {
 
         byte[] nullByte = null;
 
-        try { t.getInternalMethods().insertBinary(0, 2, nullByte); fail("Inserting null array"); } catch(NullPointerException e) { }
+        try { t.getInternalMethods().insertBinary(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
 
 
         assertEquals(new byte[] { 1, 2, 3 }, t.getBinaryByteArray(0, 0));
@@ -121,7 +121,7 @@ public class JNITableTest {
         assertEquals(new byte[] { 7, 77, 77 }, t.getBinaryByteArray(0, 0));
         assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
 
-        try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(NullPointerException e) { }
+        try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
     }
 
 
@@ -151,7 +151,7 @@ public class JNITableTest {
         assertEquals(4, t.lookup(""));
 
         // null lookup value
-        try {  t.lookup(null); fail("lookup value is null"); } catch (NullPointerException r) { };
+        try {  t.lookup(null); fail("lookup value is null"); } catch (IllegalArgumentException r) { };
 
         assertEquals(-1, t.lookup("I dont exist"));
 
@@ -230,7 +230,7 @@ public class JNITableTest {
         t.addColumn(ColumnType.INTEGER, "int");
 
         assertEquals(-1, t.getColumnIndex("non-existing column"));
-        try { t.getColumnIndex(null); fail("column name null"); } catch (NullPointerException e) { }
+        try { t.getColumnIndex(null); fail("column name null"); } catch (IllegalArgumentException e) { }
     }
 
 
@@ -315,8 +315,8 @@ public class JNITableTest {
         t.addColumn(ColumnType.BINARY, "");
         t.add("String val", new Date(), new Mixed(""), new byte[] { 1,2,3} );
 
-        try { t.setString(0, 0, null);  fail("null string not allowed"); } catch (NullPointerException e) { }
-        try { t.setDate(1, 0, null);    fail("null Date not allowed"); } catch (NullPointerException e) { }
+        try { t.setString(0, 0, null);  fail("null string not allowed"); } catch (IllegalArgumentException e) { }
+        try { t.setDate(1, 0, null);    fail("null Date not allowed"); } catch (IllegalArgumentException e) { }
     }
 
     @Test
@@ -342,7 +342,7 @@ public class JNITableTest {
         t.addColumn(ColumnType.MIXED, "mixed");
         t.add(new Mixed(true));
 
-        try { t.setMixed(0, 0, null); fail("Argument is null"); } catch (NullPointerException e) { }
+        try { t.setMixed(0, 0, null); fail("Argument is null"); } catch (IllegalArgumentException e) { }
     }
 
     @Test
@@ -365,7 +365,7 @@ public class JNITableTest {
 
         // Write transaction must be run so where are sure a db exists with the correct table
         WriteTransaction wt = group.beginWrite();
-        try{
+        try {
             Table table = wt.getTable(TABLENAME);
             table.addColumn(ColumnType.STRING, "col0");
             table.add("value0");
@@ -378,7 +378,7 @@ public class JNITableTest {
         }
 
         ReadTransaction rt = group.beginRead();
-        try{
+        try {
             Table table = rt.getTable(TABLENAME);
 
             try {  table.addAt(1, "NewValue"); fail("Exception expected when inserting in read transaction"); } catch (IllegalStateException e) { }

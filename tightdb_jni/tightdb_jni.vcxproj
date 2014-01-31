@@ -19,37 +19,40 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\columntypeutil.h" />
-    <ClInclude Include="src\com_tightdb_group.h" />
-    <ClInclude Include="src\com_tightdb_internal_Util.h" />
-    <ClInclude Include="src\com_tightdb_SharedGroup.h" />
-    <ClInclude Include="src\com_tightdb_SubTableSchema.h" />
-    <ClInclude Include="src\com_tightdb_Table.h" />
-    <ClInclude Include="src\com_tightdb_tablequery.h" />
-    <ClInclude Include="src\com_tightdb_TableView.h" />
-    <ClInclude Include="src\mem_usage.hpp" />
-    <ClInclude Include="src\tablebase_tpl.hpp" />
-    <ClInclude Include="src\tablespecutil.h" />
-    <ClInclude Include="src\mixedutil.h" />
-    <ClInclude Include="src\util.hpp" />
+    <None Include="..\doc\changes.txt" />
+    <None Include="src\Makefile" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\columntypeutil.cpp" />
-    <ClCompile Include="src\com_tightdb_group.cpp" />
+    <ClCompile Include="src\com_tightdb_Group.cpp" />
     <ClCompile Include="src\com_tightdb_internal_Util.cpp" />
     <ClCompile Include="src\com_tightdb_SharedGroup.cpp" />
-    <ClCompile Include="src\com_tightdb_SubTableSchema.cpp" />
+    <ClCompile Include="src\com_tightdb_SubtableSchema.cpp" />
     <ClCompile Include="src\com_tightdb_table.cpp" />
-    <ClCompile Include="src\com_tightdb_tablequery.cpp" />
+    <ClCompile Include="src\com_tightdb_TableQuery.cpp" />
     <ClCompile Include="src\com_tightdb_tableview.cpp" />
-    <ClCompile Include="src\java_lang_list_util.cpp" />
+    <ClCompile Include="src\java_lang_List_Util.cpp" />
     <ClCompile Include="src\mem_usage.cpp" />
-    <ClCompile Include="src\util.cpp" />
     <ClCompile Include="src\mixedutil.cpp" />
-    <ClCompile Include="src\tablespecutil.cpp" />
+    <ClCompile Include="src\TableSpecUtil.cpp" />
+    <ClCompile Include="src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\doc\changes.txt" />
+    <ClInclude Include="src\columntypeutil.hpp" />
+    <ClInclude Include="src\com_tightdb_Group.h" />
+    <ClInclude Include="src\com_tightdb_internal_Util.h" />
+    <ClInclude Include="src\com_tightdb_SharedGroup.h" />
+    <ClInclude Include="src\com_tightdb_SubtableSchema.h" />
+    <ClInclude Include="src\com_tightdb_Table.h" />
+    <ClInclude Include="src\com_tightdb_TableQuery.h" />
+    <ClInclude Include="src\com_tightdb_TableView.h" />
+    <ClInclude Include="src\java_lang_List_Util.hpp" />
+    <ClInclude Include="src\mem_usage.hpp" />
+    <ClInclude Include="src\mixedutil.hpp" />
+    <ClInclude Include="src\tablebase_tpl.hpp" />
+    <ClInclude Include="src\tablequery.hpp" />
+    <ClInclude Include="src\TableSpecUtil.hpp" />
+    <ClInclude Include="src\util.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <SccProjectName />

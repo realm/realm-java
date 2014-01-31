@@ -70,9 +70,7 @@ void set_descriptor(JNIEnv* env, Descriptor& desc, jobject jTableSpec)
     jlong n = Java_com_tightdb_TableSpec_getColumnCount(env, jTableSpec);
     for (jlong i = 0; i != n; ++i) {
         jstring jColumnName = Java_com_tightdb_TableSpec_getColumnName(env, jTableSpec, i);
-        JStringAccessor name(env, jColumnName);
-        if (!name)
-            return;
+        JStringAccessor name(env, jColumnName);  // throws
 
         jobject jColumnType = Java_com_tightdb_TableSpec_getColumnType(env, jTableSpec, i);
         DataType type = GetColumnTypeFromJColumnType(env, jColumnType);
@@ -88,18 +86,20 @@ void set_descriptor(JNIEnv* env, Descriptor& desc, jobject jTableSpec)
 void get_descriptor(JNIEnv* env, const Descriptor& desc, jobject jTableSpec)
 {
     static jmethodID jAddColumnMethodId = GetTableSpecMethodID(env, "addColumn", "(ILjava/lang/String;)V");
-    static jmethodID jAddSubtableColumnMethodId = GetTableSpecMethodID(env, "addSubtableColumn", "(Ljava/lang/String;)Lcom/tightdb/TableSpec;");
+    static jmethodID jAddSubtableColumnMethodId = GetTableSpecMethodID(env, "addSubtableColumn", 
+                                                                            "(Ljava/lang/String;)Lcom/tightdb/TableSpec;");
 
     if (jAddColumnMethodId == NULL || jAddSubtableColumnMethodId == NULL) {
         return;
     }
 
     size_t n = desc.get_column_count(); // noexcept
-    for(size_t i = 0; i != n; ++i) {
+    for (size_t i = 0; i != n; ++i) {
         DataType type   = desc.get_column_type(i); // noexcept
         StringData name = desc.get_column_name(i); // noexcept
         if (type == type_Table) {
-            jobject jSubTableSpec = env->CallObjectMethod(jTableSpec, jAddSubtableColumnMethodId, to_jstring(env, name));
+            jobject jSubTableSpec = env->CallObjectMethod(jTableSpec, jAddSubtableColumnMethodId, 
+                                                          to_jstring(env, name));
             ConstDescriptorRef subdesc = desc.get_subdescriptor(i); // Throws
             get_descriptor(env, *subdesc, jSubTableSpec);
         }

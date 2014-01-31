@@ -48,7 +48,7 @@ public class JNIGarbageCollectorTableViewTest {
         t = new Table();
         t.addColumn(ColumnType.TABLE, "table");
 
-        long count = 1000;
+        long count = 10; // 1000;
         long loop = 100;
 
         for (int i=0;i<loop;i++){
