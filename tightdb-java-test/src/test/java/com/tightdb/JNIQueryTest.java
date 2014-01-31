@@ -713,9 +713,9 @@ public class JNIQueryTest {
         TableSchema tasks = table.getSubtableSchema(0);
         tasks.addColumn(ColumnType.STRING, "name");
         
-      	try { table.where().subtable(0).count(); 	assert(false); } 			catch (UnsupportedOperationException e) {}
-       	try { table.where().endSubtable().count(); 	assert(false); }			catch (UnsupportedOperationException e) {}
-       	try { table.where().endSubtable().subtable(0).count(); assert(false); } catch (UnsupportedOperationException e) {}
-       	try { table.where().subtable(0).endSubtable().count(); assert(false); } catch (UnsupportedOperationException e) {} 
+        try { table.where().subtable(0).count();               assert(false); } catch (UnsupportedOperationException e) {}
+        try { table.where().endSubtable().count();             assert(false); } catch (UnsupportedOperationException e) {}
+        try { table.where().endSubtable().subtable(0).count(); assert(false); } catch (UnsupportedOperationException e) {}
+        try { table.where().subtable(0).endSubtable().count(); assert(false); } catch (UnsupportedOperationException e) {} 
     }
 }
