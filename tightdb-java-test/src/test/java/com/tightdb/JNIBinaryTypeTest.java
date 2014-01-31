@@ -21,10 +21,7 @@ public class JNIBinaryTypeTest {
         //util.setDebugLevel(0); //Set to 1 to see more JNI debug messages
 
         table = new Table();
-
-        TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.BINARY, "bin");
-        table.updateFromSpec(tableSpec);
+        table.addColumn(ColumnType.BINARY, "bin");
     }
 
     @AfterMethod
