@@ -392,7 +392,7 @@ CATEGORIES :
       SUMMARY  : *g_dyn_view_sum_summary
       DESCR    : *g_dyn_view_sum_descr
       SIGNATURE: |
-                 long   sumInt(long columnIndex)
+                 long   sumLong(long columnIndex)
                  double sumFloat(long columnIndex)
                  double sumDouble(long columnIndex)
       PARAMS:
@@ -413,7 +413,7 @@ CATEGORIES :
       SUMMARY  : *g_dyn_view_maximum_summary
       DESCR    : *g_dyn_view_maximum_descr
       SIGNATURE: |
-                 long   maximumInt(long columnIndex)
+                 long   maximumLong(long columnIndex)
                  double maximumFloat(long columnIndex)
                  double maximumDouble(long columnIndex)
       PARAMS:
@@ -434,7 +434,7 @@ CATEGORIES :
       SUMMARY  : *g_dyn_view_minimum_summary
       DESCR    : *g_dyn_view_minimum_descr
       SIGNATURE: |
-                 long   minimumInt(long columnIndex)
+                 long   minimumLong(long columnIndex)
                  double minimumFloat(long columnIndex)
                  double minimumDouble(long columnIndex)
       PARAMS:
@@ -455,7 +455,7 @@ CATEGORIES :
       SUMMARY  : *g_dyn_table_average_summary
       DESCR    : *g_dyn_table_average_descr
       SIGNATURE: |
-                 long   averageInt(long columnIndex)
+                 long   averageLong(long columnIndex)
                  double averageFloat(long columnIndex)
                  double averageDouble(long columnIndex)
       PARAMS:
