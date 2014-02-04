@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.tightdb.internal.Util;
+import com.tightdb.Version;
 
 /**
  * Utility methods for TightDB.
@@ -130,9 +130,7 @@ public class TightDB {
         }
         libraryIsLoaded.set(true);
 
-        if (!Util.versionCompatible()) {
-            throw new RuntimeException("Version mismatch between tightdb.jar and native JNI library " + jnilib);
-        }
+        Version.coreLibVersionCompatible(true);
     }
 
     private static String loadLibraryWindows() {

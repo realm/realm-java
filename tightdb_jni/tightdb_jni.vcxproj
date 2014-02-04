@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -31,6 +31,7 @@
     <ClCompile Include="src\com_tightdb_table.cpp" />
     <ClCompile Include="src\com_tightdb_TableQuery.cpp" />
     <ClCompile Include="src\com_tightdb_tableview.cpp" />
+    <ClCompile Include="src\com_tightdb_Version.cpp" />
     <ClCompile Include="src\java_lang_List_Util.cpp" />
     <ClCompile Include="src\mem_usage.cpp" />
     <ClCompile Include="src\mixedutil.cpp" />
@@ -46,6 +47,7 @@
     <ClInclude Include="src\com_tightdb_Table.h" />
     <ClInclude Include="src\com_tightdb_TableQuery.h" />
     <ClInclude Include="src\com_tightdb_TableView.h" />
+    <ClInclude Include="src\com_tightdb_Version.h" />
     <ClInclude Include="src\java_lang_List_Util.hpp" />
     <ClInclude Include="src\mem_usage.hpp" />
     <ClInclude Include="src\mixedutil.hpp" />
