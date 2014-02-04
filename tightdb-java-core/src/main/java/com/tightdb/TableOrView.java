@@ -195,13 +195,13 @@ public interface TableOrView {
     //Increments all rows in the specified column with the provided value
     void adjust(long columnIndex, long value);
 
-    long sumInt(long columnIndex);
+    long sumLong(long columnIndex);
 
-    long maximumInt(long columnIndex);
+    long maximumLong(long columnIndex);
 
-    long minimumInt(long columnIndex);
+    long minimumLong(long columnIndex);
 
-    double averageInt(long columnIndex);
+    double averageLong(long columnIndex);
 
 
     double sumFloat(long columnIndex);
