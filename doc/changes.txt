@@ -13,7 +13,8 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
   - minimumInt() -> minimumLong().
   - averageInt() -> averageLong().
  + Accessing a TableView after it's parent table has been changed, is now detected,
-   and an exception is thrown. 
+   and an exception is thrown.
+ + Version API introduced. Not to be documented yet. 
 
 18-December-2013:
 =================
