@@ -401,10 +401,10 @@ public class JNIViewTest {
         view.getColumnName(0);
         view.getColumnIndex("");
         view.getColumnType(0);
-        view.averageInt(0);
-        view.maximumInt(0);
-        view.minimumInt(0);
-        view.sumInt(0);
+        view.averageLong(0);
+        view.maximumLong(0);
+        view.minimumLong(0);
+        view.sumLong(0);
         view.findAllLong(0, 2);
         view.findFirstLong(0, 2);
         view.where();
@@ -421,10 +421,10 @@ public class JNIViewTest {
         try { view.getColumnName(0);    assert(false); } catch (IllegalStateException e) {}
         try { view.getColumnIndex("");  assert(false); } catch (IllegalStateException e) {}
         try { view.getColumnType(0);    assert(false); } catch (IllegalStateException e) {}
-        try { view.averageInt(0);       assert(false); } catch (IllegalStateException e) {}
-        try { view.maximumInt(0);       assert(false); } catch (IllegalStateException e) {}
-        try { view.minimumInt(0);       assert(false); } catch (IllegalStateException e) {}
-        try { view.sumInt(0);           assert(false); } catch (IllegalStateException e) {}
+        try { view.averageLong(0);       assert(false); } catch (IllegalStateException e) {}
+        try { view.maximumLong(0);       assert(false); } catch (IllegalStateException e) {}
+        try { view.minimumLong(0);       assert(false); } catch (IllegalStateException e) {}
+        try { view.sumLong(0);           assert(false); } catch (IllegalStateException e) {}
         try { view.findAllLong(0, 2);   assert(false); } catch (IllegalStateException e) {}
         try { view.findFirstLong(0, 2); assert(false); } catch (IllegalStateException e) {}
         try { view.where();             assert(false); } catch (IllegalStateException e) {}

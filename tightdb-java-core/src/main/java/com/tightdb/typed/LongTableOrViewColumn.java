@@ -22,22 +22,22 @@ public class LongTableOrViewColumn<Cursor, View, Query> extends
 
     @Override
     public long sum() {
-        return tableOrView.sumInt(columnIndex);
+        return tableOrView.sumLong(columnIndex);
     }
 
     @Override
     public long maximum() {
-        return tableOrView.maximumInt(columnIndex);
+        return tableOrView.maximumLong(columnIndex);
     }
 
     @Override
     public long minimum() {
-        return tableOrView.minimumInt(columnIndex);
+        return tableOrView.minimumLong(columnIndex);
     }
 
     @Override
     public double average() {
-        return tableOrView.averageInt(columnIndex);
+        return tableOrView.averageLong(columnIndex);
     }
 
     /*

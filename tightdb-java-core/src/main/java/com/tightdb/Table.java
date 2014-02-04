@@ -976,28 +976,28 @@ public class Table implements TableOrView, TableSchema {
 
     // Integers
     @Override
-    public long sumInt(long columnIndex) {
+    public long sumLong(long columnIndex) {
         return nativeSumInt(nativePtr, columnIndex);
     }
 
     protected native long nativeSumInt(long nativePtr, long columnIndex);
 
     @Override
-    public long maximumInt(long columnIndex) {
+    public long maximumLong(long columnIndex) {
         return nativeMaximumInt(nativePtr, columnIndex);
     }
 
     protected native long nativeMaximumInt(long nativePtr, long columnIndex);
 
     @Override
-    public long minimumInt(long columnIndex) {
+    public long minimumLong(long columnIndex) {
         return nativeMinimumInt(nativePtr, columnIndex);
     }
 
     protected native long nativeMinimumInt(long nativePtr, long columnnIndex);
 
     @Override
-    public double averageInt(long columnIndex) {
+    public double averageLong(long columnIndex) {
         return nativeAverageInt(nativePtr, columnIndex);
     }
 
