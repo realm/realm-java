@@ -137,9 +137,7 @@ public class JNIViewTest {
 
     @Test
     public void subtableTest() {
-
         Table persons = new Table();
-
         persons.addColumn(ColumnType.STRING, "name");
         persons.addColumn(ColumnType.STRING, "email");
         persons.addColumn(ColumnType.TABLE, "addresses");
@@ -153,10 +151,11 @@ public class JNIViewTest {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {
-                                                                            { "X Street", 1234, new Object[][] {{ 12345678 }} },
-                                                                            { "Y Street", 1234, new Object[][] {{ 12345678 }} }
-                                                                                                                                    } });
+        persons.add(new Object[] {"Mr X", "xx@xxxx.com", 
+                                  new Object[][] { { "X Street", 1234, new Object[][] {{ 12345678 }} },
+                                                   { "Y Street", 1234, new Object[][] {{ 12345678 }} }
+                                                 } 
+                                 });
 
         TableView personsView = persons.where().findAll();
 
@@ -174,12 +173,9 @@ public class JNIViewTest {
     public void sortOnNonexistingColumn() {
         TableView view = t.where().findAll();
 
-
         try { view.sort(-1); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.sort(-100); fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { view.sort(100); fail("Column is 100, column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
-
-
     }
 
 
@@ -244,7 +240,6 @@ public class JNIViewTest {
     @Test
     public void testGetSourceRow() {
         Table t = new Table();
-
         t.addColumn(ColumnType.STRING, "");
         t.addColumn(ColumnType.INTEGER, "");
         t.addColumn(ColumnType.BOOLEAN, "");
@@ -270,7 +265,6 @@ public class JNIViewTest {
     @Test
     public void testGetSourceRowNoRows() {
         Table t = new Table();
-
         t.addColumn(ColumnType.STRING, "");
         t.addColumn(ColumnType.INTEGER, "");
         t.addColumn(ColumnType.BOOLEAN, "");
@@ -381,7 +375,6 @@ public class JNIViewTest {
     @Test
     public void viewToString() {
         Table t = new Table();
-
         t.addColumn(ColumnType.STRING, "stringCol");
         t.addColumn(ColumnType.INTEGER, "intCol");
         t.addColumn(ColumnType.BOOLEAN, "boolCol");
@@ -397,5 +390,74 @@ public class JNIViewTest {
                         "1:  s2              2    false\n" ;
 
         assertEquals(expected, view.toString());
+    }
+
+    void accessingViewOk(TableView view)
+    {
+        view.size();
+        view.isEmpty();
+        view.getLong(0, 0);
+        view.getColumnCount();
+        view.getColumnName(0);
+        view.getColumnIndex("");
+        view.getColumnType(0);
+        view.averageInt(0);
+        view.maximumInt(0);
+        view.minimumInt(0);
+        view.sumInt(0);
+        view.findAllLong(0, 2);
+        view.findFirstLong(0, 2);
+        view.where();
+        view.toJson();
+        view.toString();
+    }
+
+    void accessingViewMustThrow(TableView view)
+    {
+        try { view.size();              assert(false); } catch (IllegalStateException e) {}
+        try { view.isEmpty();           assert(false); } catch (IllegalStateException e) {}
+        try { view.getLong(0,0);        assert(false); } catch (IllegalStateException e) {}
+        try { view.getColumnCount();    assert(false); } catch (IllegalStateException e) {}
+        try { view.getColumnName(0);    assert(false); } catch (IllegalStateException e) {}
+        try { view.getColumnIndex("");  assert(false); } catch (IllegalStateException e) {}
+        try { view.getColumnType(0);    assert(false); } catch (IllegalStateException e) {}
+        try { view.averageInt(0);       assert(false); } catch (IllegalStateException e) {}
+        try { view.maximumInt(0);       assert(false); } catch (IllegalStateException e) {}
+        try { view.minimumInt(0);       assert(false); } catch (IllegalStateException e) {}
+        try { view.sumInt(0);           assert(false); } catch (IllegalStateException e) {}
+        try { view.findAllLong(0, 2);   assert(false); } catch (IllegalStateException e) {}
+        try { view.findFirstLong(0, 2); assert(false); } catch (IllegalStateException e) {}
+        try { view.where();             assert(false); } catch (IllegalStateException e) {}
+        try { view.toJson();            assert(false); } catch (IllegalStateException e) {}
+        try { view.toString();          assert(false); } catch (IllegalStateException e) {}
+    }
+
+    @Test
+    public void viewShouldInvalidate() {
+        Table t = new Table();
+        t.addColumn(ColumnType.INTEGER, "intCol");
+        t.add(1);
+        t.add(2);
+        t.add(3);
+        
+        TableView view = t.where().equalTo(0, 2).findAll();
+        // access view is ok.
+        assertEquals(1, view.size());
+        
+        // access view after change in value is ok
+        t.setLong(0, 0, 3);
+        accessingViewOk(view);
+        
+        // access view after additions to table must fail
+        t.add(4);
+        accessingViewMustThrow(view);
+
+        // recreate view to access again
+        view = t.where().equalTo(0, 2).findAll();
+        accessingViewOk(view);
+        
+        // Removing any row in Table should invalidate view 
+        t.remove(3);
+        accessingViewMustThrow(view);
     }
 }
