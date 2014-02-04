@@ -12,8 +12,7 @@ using namespace tightdb;
 inline bool view_valid(JNIEnv* env, jlong nativeViewPtr) {
     bool valid = (nativeViewPtr != 0);
     if (valid) {
-        valid = TV(nativeViewPtr)->get_parent().is_attached();
-        if (!valid) {
+        if (!TV(nativeViewPtr)->is_valid()) {
             ThrowException(env, TableInvalid, "Table is closed, and no longer valid to operate on.");
         }
     }
