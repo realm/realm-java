@@ -16,9 +16,8 @@ jobject Java_com_tightdb_TableSpec_getTableSpec(JNIEnv*, jobject jTableSpec, jlo
 
 jlong Java_com_tightdb_TableSpec_getColumnIndex(JNIEnv*, jobject jTableSpec, jstring columnName);
 
-void updateSpecFromJSpec(JNIEnv*, tightdb::Table*, const std::vector<std::size_t>& path,
-                         jobject jTableSpec);
-void UpdateJTableSpecFromSpec(JNIEnv*, const tightdb::Spec&, jobject jTableSpec);
+void set_descriptor(JNIEnv*,       tightdb::Descriptor&, jobject jTableSpec);
+void get_descriptor(JNIEnv*, const tightdb::Descriptor&, jobject jTableSpec);
 
 jclass GetClassTableSpec(JNIEnv*);
 jmethodID GetTableSpecMethodID(JNIEnv*, const char* methodStr, const char* typeStr);

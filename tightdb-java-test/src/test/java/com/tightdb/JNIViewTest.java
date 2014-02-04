@@ -327,10 +327,7 @@ public class JNIViewTest {
     @Test
     public void shouldSearchByColumnValue() {
         Table table = new Table();
-
-        TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.STRING, "name");
-        table.updateFromSpec(tableSpec);
+        table.addColumn(ColumnType.STRING, "name");
 
         table.add("Foo");
         table.add("Bar");
@@ -345,10 +342,7 @@ public class JNIViewTest {
     @Test
     public void shouldQueryInView() {
         Table table = new Table();
-
-        TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.STRING, "name");
-        table.updateFromSpec(tableSpec);
+        table.addColumn(ColumnType.STRING, "name");
 
         table.add("A1");
         table.add("B");

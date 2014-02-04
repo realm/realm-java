@@ -22,7 +22,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeAddColumn
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
-    if (TBL(nativeTablePtr)->has_shared_spec()) {
+    if (TBL(nativeTablePtr)->has_shared_type()) {
         ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubtableSchema() on root table instead.");
         return 0;
     }
@@ -60,7 +60,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativePivot
             ThrowException(env, UnsupportedOperation, "No pivot operation specified.");
             return;
     }
-    
+
     try {
         dataTable->aggregate(S(stringCol), S(intCol), pivotOp, *resultTable);
     } CATCH_STD()
@@ -71,7 +71,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRemoveColumn
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
-    if (TBL(nativeTablePtr)->has_shared_spec()) {
+    if (TBL(nativeTablePtr)->has_shared_type()) {
         ThrowException(env, UnsupportedOperation, "Not allowed to remove column in subtable. Use getSubtableSchema() on root table instead.");
         return;
     }
@@ -85,7 +85,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeRenameColumn
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
-    if (TBL(nativeTablePtr)->has_shared_spec()) {
+    if (TBL(nativeTablePtr)->has_shared_type()) {
         ThrowException(env, UnsupportedOperation, "Not allowed to rename column in subtable. Use getSubtableSchema() on root table instead.");
         return;
     }
@@ -100,7 +100,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeIsRootTable
   (JNIEnv *, jobject, jlong nativeTablePtr)
 {
     //If the spec is shared, it is a subtable, and this method will return false
-    return !TBL(nativeTablePtr)->has_shared_spec();
+    return !TBL(nativeTablePtr)->has_shared_type();
 }
 
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
@@ -110,14 +110,15 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeUpdateFromSpec(
     TR((env, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec));
     if (!TABLE_VALID(env, pTable))
         return;
-    if (TBL(nativeTablePtr)->has_shared_spec()) {
+    if (pTable->has_shared_type()) {
         ThrowException(env, UnsupportedOperation, "It is not allowed to update a subtable from spec.");
         return;
     }
     try {
-        vector<size_t> path;
-        updateSpecFromJSpec(env, pTable, path, jTableSpec);
-    } CATCH_STD()
+        DescriptorRef desc = pTable->get_descriptor(); // Throws
+        set_descriptor(env, *desc, jTableSpec);
+    }
+    CATCH_STD()
 }
 
 JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetTableSpec(
@@ -132,14 +133,14 @@ JNIEXPORT jobject JNICALL Java_com_tightdb_Table_nativeGetTableSpec(
         try {
             // Create a new TableSpec object in Java
             const Table* pTable = TBL(nativeTablePtr);
-            const Spec& tableSpec = pTable->get_spec();     // noexcept
+            ConstDescriptorRef desc = pTable->get_descriptor(); // noexcept
             jobject jTableSpec = env->NewObject(GetClassTableSpec(env), jTableSpecConsId);
             if (jTableSpec) {
-                // copy the c++ spec to the new java TableSpec
-                UpdateJTableSpecFromSpec(env, tableSpec, jTableSpec); // throws
+                get_descriptor(env, *desc, jTableSpec); // Throws
                 return jTableSpec;
             }
-        } CATCH_STD()
+        }
+        CATCH_STD()
     }
     return 0;
 }
