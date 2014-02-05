@@ -25,18 +25,16 @@ JNIEXPORT jstring JNICALL Java_com_tightdb_Version_nativeGetVersion(JNIEnv *env,
 
 JNIEXPORT jboolean JNICALL Java_com_tightdb_Version_nativeHasFeature(JNIEnv *env, jclass, jint feature)
 {
-    switch (feature) 
-    {
+    switch (feature) {
         case 0: 
             return Version::has_feature(feature_Debug);
         case 1: 
             return Version::has_feature(feature_Replication);
-        default:
-            {
-                std::ostringstream ss;
-                ss << "Unknown feature code: " << feature;
-                ThrowException(env, RuntimeError, ss.str());
-            }
+        default: {
+            std::ostringstream ss;
+            ss << "Unknown feature code: " << feature;
+            ThrowException(env, RuntimeError, ss.str());
+        }
     }
     return false;
 }
