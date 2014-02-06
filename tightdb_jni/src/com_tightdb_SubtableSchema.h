@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 /*
- * Class:     com_tightdb_SubTableSchema
+ * Class:     com_tightdb_SubtableSchema
  * Method:    nativeAddColumn
  * Signature: (J[JILjava/lang/String;)J
  */
@@ -16,7 +16,7 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_SubtableSchema_nativeAddColumn
   (JNIEnv *, jobject, jlong, jlongArray, jint, jstring);
 
 /*
- * Class:     com_tightdb_SubTableSchema
+ * Class:     com_tightdb_SubtableSchema
  * Method:    nativeRemoveColumn
  * Signature: (J[JJ)V
  */
@@ -24,7 +24,7 @@ JNIEXPORT void JNICALL Java_com_tightdb_SubtableSchema_nativeRemoveColumn
   (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
- * Class:     com_tightdb_SubTableSchema
+ * Class:     com_tightdb_SubtableSchema
  * Method:    nativeRenameColumn
  * Signature: (J[JJLjava/lang/String;)V
  */

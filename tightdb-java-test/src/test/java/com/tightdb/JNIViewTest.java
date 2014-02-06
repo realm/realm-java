@@ -421,10 +421,10 @@ public class JNIViewTest {
         try { view.getColumnName(0);    assert(false); } catch (IllegalStateException e) {}
         try { view.getColumnIndex("");  assert(false); } catch (IllegalStateException e) {}
         try { view.getColumnType(0);    assert(false); } catch (IllegalStateException e) {}
-        try { view.averageLong(0);       assert(false); } catch (IllegalStateException e) {}
-        try { view.maximumLong(0);       assert(false); } catch (IllegalStateException e) {}
-        try { view.minimumLong(0);       assert(false); } catch (IllegalStateException e) {}
-        try { view.sumLong(0);           assert(false); } catch (IllegalStateException e) {}
+        try { view.averageLong(0);      assert(false); } catch (IllegalStateException e) {}
+        try { view.maximumLong(0);      assert(false); } catch (IllegalStateException e) {}
+        try { view.minimumLong(0);      assert(false); } catch (IllegalStateException e) {}
+        try { view.sumLong(0);          assert(false); } catch (IllegalStateException e) {}
         try { view.findAllLong(0, 2);   assert(false); } catch (IllegalStateException e) {}
         try { view.findFirstLong(0, 2); assert(false); } catch (IllegalStateException e) {}
         try { view.where();             assert(false); } catch (IllegalStateException e) {}
@@ -439,15 +439,15 @@ public class JNIViewTest {
         t.add(1);
         t.add(2);
         t.add(3);
-        
+
         TableView view = t.where().equalTo(0, 2).findAll();
         // access view is ok.
         assertEquals(1, view.size());
-        
+
         // access view after change in value is ok
         t.setLong(0, 0, 3);
         accessingViewOk(view);
-        
+
         // access view after additions to table must fail
         t.add(4);
         accessingViewMustThrow(view);
@@ -455,7 +455,7 @@ public class JNIViewTest {
         // recreate view to access again
         view = t.where().equalTo(0, 2).findAll();
         accessingViewOk(view);
-        
+
         // Removing any row in Table should invalidate view 
         t.remove(3);
         accessingViewMustThrow(view);

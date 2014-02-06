@@ -83,6 +83,7 @@ enum ExceptionKind {
     ClassNotFound = 0,
     NoSuchField = 1,
     NoSuchMethod = 2,
+
     IllegalArgument = 3,
     IOFailed = 4,
     FileNotFound = 5,

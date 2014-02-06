@@ -12,8 +12,9 @@ using namespace tightdb;
 inline bool view_valid(JNIEnv* env, jlong nativeViewPtr) {
     bool valid = (nativeViewPtr != 0);
     if (valid) {
-        if (!TV(nativeViewPtr)->is_valid()) {
+        if (!TV(nativeViewPtr)->is_attached()) {
             ThrowException(env, TableInvalid, "Table is closed, and no longer valid to operate on.");
+            return false;
         }
     }
     return valid;
@@ -29,8 +30,8 @@ JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_createNativeTableView(
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativePivot
-(JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
+JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativePivot(
+    JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
 {
     TableView* dataTable = TV(dataTablePtr);
     Table* resultTable = TBL(resultTablePtr);
