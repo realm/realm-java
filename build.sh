@@ -560,16 +560,16 @@ EOF
 
     "get-version")
         version_file="pom.xml"
-        tightdb_version="$(sed -n -e '1,/<version>.*<\/version>/p' pom.xml | sed -e 's/^M//g' | tail -1 | sed -e 's/>/>\n/g' | sed -e 's/<\//\n<\//g' | tr -d " \t" | grep -v "^<" | grep -v "^$")"
+        tightdb_version="$(sed -n -e '1,/<version>.*<\/version>/p' pom.xml | sed -e 's/^M//g' | tail -1 | sed -e 's/>/>\n/g' | sed -e 's/<\//\n<\//g' | tr -d " \t" | grep -v "^<" | grep -v "^$" | grep -v ^^M | tr -d "\r\n")"
         echo $tightdb_version
         exit 0
         ;;
 
     "set-version")
         tightdb_version="$1"
-        echo "Run 'sh build.sh get-version' to find current version"
-        echo "Then run 'sh updateversion.sh <current-version> $tightdb_version'"
+        cur_tightdb_version="$(sh build.sh get-version | tr -d "\n")"
 
+        sh updateversion.sh "$cur_tightdb_version" $tightdb_version || exit 1
         sh tools/add-deb-changelog.sh "$tightdb_version" "$(pwd)/debian/changelog.in" tightdb-java || exit 1
         exit 0
         ;;
