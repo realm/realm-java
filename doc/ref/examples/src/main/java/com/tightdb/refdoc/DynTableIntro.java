@@ -28,7 +28,7 @@ public class DynTableIntro {
         tbl.setMixed(2,  0, new Mixed("changed Long value to String"));
         // Inspect the type of Mixed value that was just added:
         Assert(tbl.getMixedType(2, 0) == ColumnType.STRING);
-   //TODO:     Assert(tbl.getMixed(2, 0).getStringValue().equals("changed Long value to String"));
+        Assert(tbl.getMixed(2, 0).getStringValue().equals("changed Long value to String"));
 
         // Inspect table
         Assert(tbl.size() == 2);
@@ -49,8 +49,8 @@ public class DynTableIntro {
 
         // Do some simple aggregations
         Assert(tbl.maximumDouble(2) == 123.45);
-        Assert(tbl.sumInt(0) == 24);
-        Assert(tbl.averageInt(0) == 6.0);
+        Assert(tbl.sumLong(0) == 24);
+        Assert(tbl.averageLong(0) == 6.0);
 
         // Simple match search
         Assert(tbl.findFirstLong(0, -15) == 1);       // Search for -15 in column 0. returns rowIndex

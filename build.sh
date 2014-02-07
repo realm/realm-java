@@ -690,13 +690,11 @@ EOF
 
     "test-doc")
         echo "Testing ref-doc:"
+        rm *.tightdb
+        rm *.lock
         cd "doc/ref/examples" || exit 1
         ant refdoc || exit 1
         echo "Test passed"
-
-        echo "Testing intro examples:"
-        cd "../../../examples/intro-example" || exit 1
-        ant runall || exit 1
         exit 0
         ;;
 
