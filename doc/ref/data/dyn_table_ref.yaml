@@ -83,8 +83,8 @@ CATEGORIES :
                 See also {@link g_dyn_table_is_empty}.
   - g_dyn_table_optimize:
       NAMES    : optimize
-      SUMMARY  : *g_dyn_table_optimize_summary
-      DESCR    : *g_dyn_table_optimize_descr
+      SUMMARY  : *g_table_optimize_summary
+      DESCR    : *g_table_optimize_descr
       EXAMPLES:
       - CODE   : ex_java_dyn_table_optimize
         DESCR  :

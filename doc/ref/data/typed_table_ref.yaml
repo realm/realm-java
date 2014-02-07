@@ -127,8 +127,8 @@ CATEGORIES :
                 See also {@link g_typed_table_is_empty}.
   - g_typed_table_optimize:
       NAMES    : optimize
-      SUMMARY  : *g_typed_table_optimize_summary
-      DESCR    : *g_typed_table_optimize_descr
+      SUMMARY  : *g_table_optimize_summary
+      DESCR    : *g_table_optimize_descr
       EXAMPLES:
       - CODE   : ex_java_typed_table_optimize
         DESCR  :
