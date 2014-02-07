@@ -495,7 +495,7 @@ public class DynTableViewExamples {
         TableView view = table.where().findAll();
 
         // The sum of all values in column 1
-        long totalScore = view.sumInt(1);
+        long totalScore = view.sumLong(1);
 
         Assert(totalScore == 1517);
         // @@EndShow@@
@@ -518,7 +518,7 @@ public class DynTableViewExamples {
         TableView view = table.where().findAll();
 
         // The maximum score in column 1
-        long maxScore = view.maximumInt(1);
+        long maxScore = view.maximumLong(1);
 
         Assert(maxScore == 770);
         // @@EndShow@@
@@ -541,7 +541,7 @@ public class DynTableViewExamples {
         TableView view = table.where().findAll();
 
         // The minimum score in column 1
-        long minScore = view.minimumInt(1);
+        long minScore = view.minimumLong(1);
 
         Assert(minScore == 327);
         // @@EndShow@@
@@ -564,7 +564,7 @@ public class DynTableViewExamples {
         TableView view = table.where().findAll();
 
         // The average score in column 1
-        double avgScore = view.averageInt(1); // Returns a double
+        double avgScore = view.averageLong(1); // Returns a double
 
         Assert(avgScore == 505);
         // @@EndShow@@

@@ -62,7 +62,7 @@ public class GroupExamples {
         // @@Show@@
         // Point to file
         File file = new File("mydatabase.tightdb");
-        if(file.exists()){
+        if (file.exists()) {
             // If file exists, instantiate group from the file
             Group group = new Group(file);
 
@@ -75,8 +75,13 @@ public class GroupExamples {
 
     public static void constructorStringExample(){
         // @@Example: ex_java_group_constructor_string @@
+        Group group1 = new Group("mydatabase.tightdb", OpenMode.READ_WRITE);
+        Table table1 = group1.getTable("mytable");
+        group1.commit();
+                
         // @@Show@@
         // Instantiate group by pointing to the tightdb file path
+        // The group is by default opened in READ_ONLY mode.
         Group group = new Group("mydatabase.tightdb");
 
         Table table = group.getTable("mytable");
