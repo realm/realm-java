@@ -34,9 +34,6 @@ public class Performance {
         System.out.print("Performance testing TightDB: ");
         TestResult tightdb = TestPerformance(new Tightdb(), numOfValues);
 
-      //  System.out.print("\nPerformance testing TightDB iterate: ");
-      //  TestResult tightdb2 = TestPerformance(new TightdbIterate(), numOfValues);
-
         System.out.print("\nPerformance testing Java ArrayList: ");
         TestResult javaArray = TestPerformance(new JavaArrayList(), numOfValues);
 
@@ -53,16 +50,10 @@ public class Performance {
                 "Search for byte (indexed):    \t"
         };
 
-        System.out.println("\t\t\t\t\t   TightDB\tTightdb2\tArrayList\tSQLite");
+        System.out.println("\t\t\t\t\t   TightDB\tArrayList\tSQLite");
         for (int test = 0; test < TESTS; ++test) {
             System.out.print( testText[test] );
             printTime(tightdb.testTime[test], " ms (x1)", "\t");
-
-          /*  printTime(tightdb2.testTime[test], " ms ", "");
-            if (tightdb.testTime[test] > 0)
-                System.out.print( "(x" + tightdb2.testTime[test] / tightdb.testTime[test] + ")\t");
-            else
-                System.out.print("\t");*/
 
             printTime(javaArray.testTime[test], " ms ", "");
             if (tightdb.testTime[test] > 0)
@@ -77,7 +68,7 @@ public class Performance {
                 System.out.print("\t");
             System.out.println();
         }
-
+        /*
         long tightTotal  = tightdb.javaDBMemUsed + tightdb.nativeDBMemUsed;
         long javaTotal   = javaArray.javaDBMemUsed + javaArray.nativeDBMemUsed;
         long sqliteTotal = sqlite.javaDBMemUsed + sqlite.nativeDBMemUsed;
@@ -85,7 +76,7 @@ public class Performance {
                 toKB(tightTotal),
                 toKB(javaTotal), javaTotal/tightTotal,
                 toKB(sqliteTotal), sqliteTotal/tightTotal);
-
+        */
         System.out.println("\nDONE.");
         if (pause) Util.waitForEnter();
     }
