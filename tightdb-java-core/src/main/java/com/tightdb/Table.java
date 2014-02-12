@@ -140,6 +140,15 @@ public class Table implements TableOrView, TableSchema {
             return false;
         return nativeIsValid(nativePtr);
     }
+    
+    
+    public void jniTest(long records){
+        nativeJniTest(nativePtr, records);
+        
+    }
+    
+    protected native void nativeJniTest(long nativeTablePtr, long records);
+
 
     protected native boolean nativeIsValid(long nativeTablePtr);
 

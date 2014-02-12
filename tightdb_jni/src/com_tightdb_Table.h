@@ -256,6 +256,9 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertSubtable
  */
 JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertDone
   (JNIEnv *, jobject, jlong);
+    
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeJniTest
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     com_tightdb_Table

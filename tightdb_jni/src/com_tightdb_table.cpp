@@ -364,6 +364,25 @@ JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeInsertDone(
     } CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_com_tightdb_Table_nativeJniTest(
+    JNIEnv*, jobject, jlong, jlong records)
+{
+    
+    Table table;
+    table.add_column(type_String, "name");
+    table.add_column(type_Int, "age");
+    table.add_column(type_Bool, "driver");
+    
+    String name = "anni";
+    
+    for (long i = 0; i < records; ++i) {
+        size_t ndx = table.add_empty_row();
+        table.set_string(0, ndx, name);
+        table.set_int(1, ndx, ndx);
+        table.set_bool(2, ndx, true);
+    }
+}
+
 
 // ----------------- Get cell
 

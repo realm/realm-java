@@ -23,4 +23,18 @@ public class JNI_nativeTests {
 
         }
     }
+    
+    
+    @Test
+    public void jniTest(){
+        Table table = new Table();
+        
+        long records = 1000000;
+        
+        long tic = System.currentTimeMillis();
+        
+        table.jniTest(records);
+        
+        System.out.println("Total time for " + records + " records: " + (System.currentTimeMillis() - tic));
+    }
 }
