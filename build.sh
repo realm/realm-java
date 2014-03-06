@@ -9,6 +9,8 @@ if [ "$TIGHTDB_SCRIPT_DEBUG" ]; then
     set -x
 fi
 
+ORIG_CWD="$(pwd)" || exit 1
+ANDROID_DIR="android-lib"
 
 cd "$(dirname "$0")" || exit 1
 TIGHTDB_JAVA_HOME="$(pwd)" || exit 1
@@ -95,6 +97,47 @@ readlink_f()
     readlink_f "$TARGET"
 }
 
+# Find the path of most recent version of the installed Android NDKs
+find_android_ndk()
+{
+    local ndks ndks_index current_ndk latest_ndk sorted highest result
+
+    ndks_index=0
+
+    # If homebrew is installed...
+    if [ -d "/usr/local/Cellar/android-ndk" ]; then
+        ndks[$ndks_index]="/usr/local/Cellar/android-ndk"
+        ((ndks_index = ndks_index + 1))
+    fi
+    if [ -d "/usr/local/android-ndk" ]; then
+        ndks[$ndks_index]="/usr/local/android-ndk"
+        ((ndks_index = ndks_index + 1))
+    fi
+    if [ "$ndks_index" -eq 0 ]; then
+        return 1
+    fi
+
+    latest_ndk=""
+    result=""
+    for ndk in "${ndks[@]}"; do
+        for i in $(cd "$ndk" && echo *); do
+            if [ -f "$ndk/$i/RELEASE.TXT" ]; then
+                current_ndk=$(sed 's/\(r\)\([1-9]\{1,\}\)\([a-z]\)/\1.\2.\3/' < "$ndk/$i/RELEASE.TXT") || return 1
+                sorted="$(printf "%s\n%s\n" "$current_ndk" "$latest_ndk" | sort -t . -k 2,2nr -k 3,3r)" || return 1
+                highest="$(printf "%s\n" "$sorted" | head -n 1)" || return 1
+                if [ $current_ndk = $highest ]; then
+                    result=$ndk/$i
+                fi
+            fi
+        done
+    done
+
+    if [ -z $result ]; then
+        return 1
+    fi
+
+    printf "%s\n" "$result"
+}
 
 # Setup OS specific stuff
 OS="$(uname)" || exit 1
@@ -263,8 +306,6 @@ check_java_home()
     fi
     return 0
 }
-
-
 
 case "$MODE" in
 
@@ -517,23 +558,45 @@ case "$MODE" in
         word_list_prepend "tightdb_ldflags"     "$ldflags" || exit 1
         word_list_prepend "tightdb_ldflags_dbg" "$ldflags" || exit 1
 
+        # Find Android NDK
+        if [ "$NDK_HOME" ]; then
+            ndk_home="$NDK_HOME"
+        else
+            ndk_home="$(find_android_ndk)" || ndk_home="none"
+        fi
+
+        android_core_lib="none"
+        if [ "$TIGHTDB_ANDROID_CORE_LIB" ]; then
+            android_core_lib="$TIGHTDB_ANDROID_CORE_LIB"
+            if ! printf "%s\n" "$android_core_lib" | grep -q '^/'; then
+                android_core_lib="$ORIG_CWD/$android_core_lib"
+            fi
+        elif [ -e "../tightdb/build.sh" ]; then
+            path="$(cd "../tightdb" || return 1; pwd)" || exit 1
+            android_core_lib="$path/$ANDROID_DIR"
+        else
+            tightdb_echo "Could not find home of TightDB core library built for Android"
+        fi
+
         cat >"$CONFIG_MK" <<EOF
-INSTALL_PREFIX      = $install_prefix
-JAVA_COMMAND        = $java_cmd
-JAVAC_COMMAND       = $javac_cmd
-JAVA_VERSION        = $java_version
-JAVA_CFLAGS         = $java_cflags
-REQUIRED_JARS       = $required_jars
-TESTING_JARS        = $testing_jars
-JNI_INSTALL_DIR     = $jni_install_dir
-JAR_INSTALL_DIR     = $jar_install_dir
-JNI_SUFFIX          = $jni_suffix
-TIGHTDB_CONFIG      = $tightdb_config_cmd
-TIGHTDB_VERSION     = $tightdb_version
-TIGHTDB_CFLAGS      = $tightdb_cflags
-TIGHTDB_CFLAGS_DBG  = $tightdb_cflags_dbg
-TIGHTDB_LDFLAGS     = $tightdb_ldflags
-TIGHTDB_LDFLAGS_DBG = $tightdb_ldflags_dbg
+INSTALL_PREFIX              = $install_prefix
+JAVA_COMMAND                = $java_cmd
+JAVAC_COMMAND               = $javac_cmd
+JAVA_VERSION                = $java_version
+JAVA_CFLAGS                 = $java_cflags
+REQUIRED_JARS               = $required_jars
+TESTING_JARS                = $testing_jars
+JNI_INSTALL_DIR             = $jni_install_dir
+JAR_INSTALL_DIR             = $jar_install_dir
+JNI_SUFFIX                  = $jni_suffix
+TIGHTDB_CONFIG              = $tightdb_config_cmd
+TIGHTDB_VERSION             = $tightdb_version
+TIGHTDB_CFLAGS              = $tightdb_cflags
+TIGHTDB_CFLAGS_DBG          = $tightdb_cflags_dbg
+TIGHTDB_LDFLAGS             = $tightdb_ldflags
+TIGHTDB_LDFLAGS_DBG         = $tightdb_ldflags_dbg
+NDK_HOME                    = $ndk_home
+ANDROID_CORE_LIB            = $android_core_lib
 EOF
         if ! [ "$INTERACTIVE" ]; then
             echo "New configuration in $CONFIG_MK:"
@@ -590,15 +653,16 @@ EOF
             rm -f "lib/"* || exit 1
             rmdir "lib" || exit 1
         fi
+        if [ -e "$ANDROID_DIR" ]; then
+            rm -rf "$ANDROID_DIR" || exit 1
+        fi
         echo "Done cleaning"
         exit 0
         ;;
 
-    "build")
-        auto_configure || exit 1
-        javac_cmd="$(get_config_param "JAVAC_COMMAND")" || exit 1
-
+    "build-jars")
         mkdir -p "lib" || exit 1
+        javac_cmd="$(get_config_param "JAVAC_COMMAND")" || exit 1
 
         # Build tightdb.jar
         echo "Building 'lib/tightdb.jar'"
@@ -629,6 +693,11 @@ EOF
         (cd "$dir/java" && $javac_cmd           com/tightdb/generator/*.java)  || exit 1
         (cd "$dir/java" && jar uf "$devkit_jar" com/tightdb/generator/*.class) || exit 1
         (cd "lib" && jar i "tightdb-devkit.jar") || exit 1
+        exit 0
+        ;;
+
+    "build-jni")
+        mkdir -p "lib" || exit 1
 
         # FIXME: Consider whether we should call `javah
         # PACKAGE_QUALIFIED_CLASSES` here to recreate the JNI header
@@ -653,6 +722,95 @@ EOF
             echo "Done building"
         fi
         exit 0
+        ;;
+
+    "build")
+        auto_configure || exit 1
+
+        sh build.sh build-jars || exit 1
+        sh build.sh build-jni || exit 1
+        exit 0
+        ;;
+
+    "build-android")
+        require_config || exit 1
+        ndk_home="$(get_config_param "NDK_HOME")" || exit 1
+        if [ "$ndk_home" = "none" ]; then
+            cat 1>&2 <<EOF
+ERROR: No Android NDK was found.
+Please do one of the following:
+ * Install an NDK in /usr/local/android-ndk
+ * Provide the path to the NDK in the environment variable NDK_HOME
+ * If on OSX and using Homebrew install the package android-sdk
+EOF
+            exit 1
+        fi
+        mkdir -p "$ANDROID_DIR" || exit 1
+        OLDPATH=$PATH
+        for target in "arm" "arm-v7a" "mips" "x86"; do
+            temp_dir="$(mktemp -d /tmp/tightdb.build-android.XXXX)" || exit 1
+            if [ "$target" = "arm" ]; then
+                platform=8
+            else
+                platform=9
+            fi
+            $ndk_home/build/tools/make-standalone-toolchain.sh --platform=android-$platform --install-dir=$temp_dir --arch=$target || exit 1
+            export PATH=$temp_dir/bin:$OLDPATH
+            if [ "$target" = "arm" ]; then
+                android_prefix="arm"
+                subfolder="armeabi"
+            elif [ "$target" = "arm-v7a" ]; then
+                android_prefix="arm"
+                subfolder="armeabi-v7a"
+            elif [ "$target" = "mips" ]; then
+                android_prefix="mipsel"
+                subfolder="$target"
+            elif [ "$target" = "x86" ]; then
+                android_prefix="i686"
+                subfolder="$target"
+            fi
+            export CXX="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-gcc)"
+            export LD="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-gcc) -lstdc++"
+            extra_cflags="-DANDROID -Os"
+            if [ "$target" = "arm" ]; then
+                extra_cflags="$extra_cflags -mthumb"
+            elif [ "$target" = "arm-v7a" ]; then
+                extra_cflags="$extra_cflags -mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
+            fi
+            denom="android-$target"
+            android_core_lib="$(get_config_param "ANDROID_CORE_LIB")" || exit 1
+            android_ldflags="-ltightdb-$denom -L$android_core_lib -shared"
+            $MAKE -C "tightdb_jni/src" "libtightdb-jni-$denom.so" BASE_DENOM="$denom" CFLAGS_ARCH="$extra_cflags" TIGHTDB_LDFLAGS="$android_ldflags" TIGHTDB_LDFLAGS_DBG="$android_ldflags" LIB_SUFFIX_SHARED=".so" || exit 1
+            mkdir -p "$ANDROID_DIR/$subfolder" || exit 1
+            cp "tightdb_jni/src/libtightdb-jni-$denom.so" "$ANDROID_DIR/$subfolder/libtightdb-jni.so" || exit 1
+            rm -rf $temp_dir
+        done
+        sh build.sh build-jars || exit 1
+        exit 0
+        ;;
+
+    "android-package")
+        if ! [ -e "$ANDROID_DIR/x86" ]; then
+            cat 1>&2 <<EOF
+ERROR: No TightDB core files found.
+Make sure to run "sh build.sh build-android"
+EOF
+            exit 1
+        fi
+        if ! [ -e "lib/tightdb.jar" -a -e "lib/tightdb-devkit.jar" ]; then
+            cat 1>&2 <<EOF
+ERROR: No jar files found.
+Make sure to run "sh build.sh build-android"
+EOF
+            exit 1
+        fi
+        tightdb_version="$(sh build.sh get-version)"
+        if [ -e "lib/tightdb-android-$tightdb_version.zip" ]; then
+            rm -f "lib/tightdb-android-$tightdb_version.zip" || exit 1
+        fi
+        cp "lib/tightdb.jar" "$ANDROID_DIR" || exit 1
+        cp "lib/tightdb-devkit.jar" "$ANDROID_DIR" || exit 1
+        (cd "$ANDROID_DIR" && zip -r "../lib/tightdb-android-$tightdb_version.zip" "armeabi" "armeabi-v7a" "mips" "x86" "tightdb.jar" "tightdb-devkit.jar") || exit 1
         ;;
 
     "test")
