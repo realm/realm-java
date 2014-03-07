@@ -770,7 +770,7 @@ EOF
                 subfolder="$target"
             fi
             export CXX="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-gcc)"
-            export LD="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-gcc) -lstdc++"
+            export LD="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-g++)"
             extra_cflags="-DANDROID -Os"
             if [ "$target" = "arm" ]; then
                 extra_cflags="$extra_cflags -mthumb"
