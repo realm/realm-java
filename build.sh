@@ -579,24 +579,24 @@ case "$MODE" in
         fi
 
         cat >"$CONFIG_MK" <<EOF
-INSTALL_PREFIX              = $install_prefix
-JAVA_COMMAND                = $java_cmd
-JAVAC_COMMAND               = $javac_cmd
-JAVA_VERSION                = $java_version
-JAVA_CFLAGS                 = $java_cflags
-REQUIRED_JARS               = $required_jars
-TESTING_JARS                = $testing_jars
-JNI_INSTALL_DIR             = $jni_install_dir
-JAR_INSTALL_DIR             = $jar_install_dir
-JNI_SUFFIX                  = $jni_suffix
-TIGHTDB_CONFIG              = $tightdb_config_cmd
-TIGHTDB_VERSION             = $tightdb_version
-TIGHTDB_CFLAGS              = $tightdb_cflags
-TIGHTDB_CFLAGS_DBG          = $tightdb_cflags_dbg
-TIGHTDB_LDFLAGS             = $tightdb_ldflags
-TIGHTDB_LDFLAGS_DBG         = $tightdb_ldflags_dbg
-NDK_HOME                    = $ndk_home
-ANDROID_CORE_LIB            = $android_core_lib
+INSTALL_PREFIX      = $install_prefix
+JAVA_COMMAND        = $java_cmd
+JAVAC_COMMAND       = $javac_cmd
+JAVA_VERSION        = $java_version
+JAVA_CFLAGS         = $java_cflags
+REQUIRED_JARS       = $required_jars
+TESTING_JARS        = $testing_jars
+JNI_INSTALL_DIR     = $jni_install_dir
+JAR_INSTALL_DIR     = $jar_install_dir
+JNI_SUFFIX          = $jni_suffix
+TIGHTDB_CONFIG      = $tightdb_config_cmd
+TIGHTDB_VERSION     = $tightdb_version
+TIGHTDB_CFLAGS      = $tightdb_cflags
+TIGHTDB_CFLAGS_DBG  = $tightdb_cflags_dbg
+TIGHTDB_LDFLAGS     = $tightdb_ldflags
+TIGHTDB_LDFLAGS_DBG = $tightdb_ldflags_dbg
+NDK_HOME            = $ndk_home
+ANDROID_CORE_LIB    = $android_core_lib
 EOF
         if ! [ "$INTERACTIVE" ]; then
             echo "New configuration in $CONFIG_MK:"
@@ -718,9 +718,6 @@ EOF
         for x in $library_aliases; do
             (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
         done
-        if ! [ "$INTERACTIVE" ]; then
-            echo "Done building"
-        fi
         exit 0
         ;;
 
@@ -729,6 +726,10 @@ EOF
 
         sh build.sh build-jars || exit 1
         sh build.sh build-jni || exit 1
+
+        if ! [ "$INTERACTIVE" ]; then
+            echo "Done building"
+        fi
         exit 0
         ;;
 
