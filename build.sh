@@ -734,7 +734,7 @@ EOF
         ;;
 
     "build-android")
-        require_config || exit 1
+        auto_configure || exit 1
         ndk_home="$(get_config_param "NDK_HOME")" || exit 1
         if [ "$ndk_home" = "none" ]; then
             cat 1>&2 <<EOF
@@ -1037,7 +1037,7 @@ EOF
 
     *)
         echo "Unspecified or bad mode '$MODE'" 1>&2
-        echo "Available modes are: config clean build test test-debug test-doc test-examples show-install install uninstall test-installed" 1>&2
+        echo "Available modes are: config clean build build-android android-package test test-debug test-doc test-examples show-install install uninstall test-installed" 1>&2
         echo "As well as: dist-copy dist-remarks" 1>&2
         exit 1
         ;;
