@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.tightdb</groupId>
 		<artifactId>tightdb-parent</artifactId>
-		<version>0.2.0</version>
+		<version>0.3.0</version>
 	</parent>
 
 	<artifactId>tightdb-java-test</artifactId>
@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>com.tightdb</groupId>
 			<artifactId>tightdb</artifactId>
-			<version>0.2.0</version>
+			<version>0.3.0</version>
 		</dependency>
 	</dependencies>
 
@@ -43,7 +43,7 @@
                     <dependency>
                         <groupId>com.tightdb</groupId>
                         <artifactId>tightdb-devkit</artifactId>
-                        <version>0.2.0</version>
+                        <version>0.3.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
