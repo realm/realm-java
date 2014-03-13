@@ -800,6 +800,8 @@ EOF
         ;;
 
     "android-package")
+        # Ant
+        echo "Building the Ant package"
         if ! [ -e "$ANDROID_DIR/x86" ]; then
             cat 1>&2 <<EOF
 ERROR: No TightDB core files found.
@@ -821,6 +823,19 @@ EOF
         cp "lib/tightdb.jar" "$ANDROID_DIR" || exit 1
         cp "lib/tightdb-devkit.jar" "$ANDROID_DIR" || exit 1
         (cd "$ANDROID_DIR" && zip -r "../lib/tightdb-android-$tightdb_version.zip" "armeabi" "armeabi-v7a" "mips" "x86" "tightdb.jar" "tightdb-devkit.jar") || exit 1
+
+        # Gradle
+        echo "Building the Gradle package"
+        (
+            cd $ANDROID_DIR &&
+            mkdir lib &&
+            cp -r armeabi lib &&
+            cp -r armeabi-v7a lib &&
+            cp -r mips lib &&
+            cp -r x86 lib &&
+            jar uf tightdb.jar lib &&
+            rm -rf lib
+        ) || exit 1
         ;;
 
     "test")
