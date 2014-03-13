@@ -11,6 +11,7 @@ fi
 
 ORIG_CWD="$(pwd)" || exit 1
 ANDROID_DIR="android-lib"
+ANDROID_PLATFORMS="arm arm-v7a mips x86"
 
 cd "$(dirname "$0")" || exit 1
 TIGHTDB_JAVA_HOME="$(pwd)" || exit 1
@@ -559,10 +560,10 @@ case "$MODE" in
         word_list_prepend "tightdb_ldflags_dbg" "$ldflags" || exit 1
 
         # Find Android NDK
-        if [ "$NDK_HOME" ]; then
-            ndk_home="$NDK_HOME"
+        if [ "$ANDROID_NDK_HOME" ]; then
+            android_ndk_home="$ANDROID_NDK_HOME"
         else
-            ndk_home="$(find_android_ndk)" || ndk_home="none"
+            android_ndk_home="$(find_android_ndk)" || android_ndk_home="none"
         fi
 
         android_core_lib="none"
@@ -595,7 +596,7 @@ TIGHTDB_CFLAGS      = $tightdb_cflags
 TIGHTDB_CFLAGS_DBG  = $tightdb_cflags_dbg
 TIGHTDB_LDFLAGS     = $tightdb_ldflags
 TIGHTDB_LDFLAGS_DBG = $tightdb_ldflags_dbg
-NDK_HOME            = $ndk_home
+ANDROID_NDK_HOME    = $android_ndk_home
 ANDROID_CORE_LIB    = $android_core_lib
 EOF
         if ! [ "$INTERACTIVE" ]; then
@@ -640,6 +641,14 @@ EOF
     "clean")
         auto_configure || exit 1
         $MAKE -C "tightdb_jni" clean || exit 1
+        for x in $ANDROID_PLATFORMS; do
+            denom="android-$x"
+            $MAKE -C "tightdb_jni/src" clean BASE_DENOM="$denom" LIB_SUFFIX_SHARED=".so" || exit 1
+        done
+        if [ -e "$ANDROID_DIR" ]; then
+            echo "Removing '$ANDROID_DIR'"
+            rm -rf "$ANDROID_DIR" || exit 1
+        fi
         for x in core generator test; do
             echo "Removing class files in 'tightdb-java-$x'"
             (cd "tightdb-java-$x" && find src/ -type f -name '*.class' -delete) || exit 1
@@ -652,9 +661,6 @@ EOF
             echo "Removing library symlinks for examples from 'lib'"
             rm -f "lib/"* || exit 1
             rmdir "lib" || exit 1
-        fi
-        if [ -e "$ANDROID_DIR" ]; then
-            rm -rf "$ANDROID_DIR" || exit 1
         fi
         echo "Done cleaning"
         exit 0
@@ -735,28 +741,31 @@ EOF
 
     "build-android")
         auto_configure || exit 1
-        ndk_home="$(get_config_param "NDK_HOME")" || exit 1
-        if [ "$ndk_home" = "none" ]; then
+        android_ndk_home="$(get_config_param "ANDROID_NDK_HOME")" || exit 1
+        if [ "$android_ndk_home" = "none" ]; then
             cat 1>&2 <<EOF
 ERROR: No Android NDK was found.
 Please do one of the following:
  * Install an NDK in /usr/local/android-ndk
- * Provide the path to the NDK in the environment variable NDK_HOME
+ * Provide the path to the NDK in the environment variable ANDROID_NDK_HOME
  * If on OSX and using Homebrew install the package android-sdk
 EOF
             exit 1
         fi
         mkdir -p "$ANDROID_DIR" || exit 1
-        OLDPATH=$PATH
-        for target in "arm" "arm-v7a" "mips" "x86"; do
+        OLDPATH="$PATH"
+        for target in $ANDROID_PLATFORMS; do
             temp_dir="$(mktemp -d /tmp/tightdb.build-android.XXXX)" || exit 1
             if [ "$target" = "arm" ]; then
-                platform=8
+                platform="8"
             else
-                platform=9
+                platform="9"
             fi
-            $ndk_home/build/tools/make-standalone-toolchain.sh --platform=android-$platform --install-dir=$temp_dir --arch=$target || exit 1
-            export PATH=$temp_dir/bin:$OLDPATH
+            # Note that `make-standalone-toolchain.sh` is written for
+            # `bash` and must therefore be executed by `bash`.
+            make_toolchain="$android_ndk_home/build/tools/make-standalone-toolchain.sh"
+            bash "$make_toolchain" --platform="android-$platform" --install-dir="$temp_dir" --arch="$target" || exit 1
+            export PATH="$temp_dir/bin:$OLDPATH"
             if [ "$target" = "arm" ]; then
                 android_prefix="arm"
                 subfolder="armeabi"
@@ -784,7 +793,7 @@ EOF
             $MAKE -C "tightdb_jni/src" "libtightdb-jni-$denom.so" BASE_DENOM="$denom" CFLAGS_ARCH="$extra_cflags" TIGHTDB_LDFLAGS="$android_ldflags" TIGHTDB_LDFLAGS_DBG="$android_ldflags" LIB_SUFFIX_SHARED=".so" || exit 1
             mkdir -p "$ANDROID_DIR/$subfolder" || exit 1
             cp "tightdb_jni/src/libtightdb-jni-$denom.so" "$ANDROID_DIR/$subfolder/libtightdb-jni.so" || exit 1
-            rm -rf $temp_dir
+            rm -rf "$temp_dir"
         done
         sh build.sh build-jars || exit 1
         exit 0
