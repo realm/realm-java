@@ -17,17 +17,14 @@ public class Tutorial {
         tutorial();
     }
 
-    //@@Example: create_table @@
-    // Define the TighDB table with columns "name", "age" and "hired"
-    @DefineTable(table = "PeopleTable")
-    class people {
-        String  name;
-        int     age;
-        boolean hired;
-    }
-
     public static void tutorial() {
-        PeopleTable peopleTable = new PeopleTable();
+
+        //@@Example: create_table @@
+        // Define the TighDB table with columns "name", "age" and "hired"
+        Table peopleTable = new Table();
+        final long NAME = peopleTable.addColumn(ColumnType.STRING, "name");
+        final long AGE = peopleTable.addColumn(ColumnType.INTEGER, "age");
+        final long HIRED = peopleTable.addColumn(ColumnType.BOOLEAN, "hired");
         //@@EndExample@@
 
         /****************************** BASIC OPERATIONS *************************/
@@ -41,7 +38,7 @@ public class Tutorial {
         // @@EndExample@@
 
         // @@Example: insert_at_index @@
-        peopleTable.insert(2, "Frank", 34, true);
+        peopleTable.addAt(2, "Frank", 34, true);
         // @@EndExample@@
 
         // @@Example: number_of_rows @@
@@ -56,21 +53,21 @@ public class Tutorial {
 
         // @@Example: accessing_rows @@
         // Get value
-        String name = peopleTable.get(2).getName(); // name => "Mary"
+        String name = peopleTable.getString(NAME, 1); // name => "Mary"
 
         // Set value
-        peopleTable.get(2).setName("NewName");
+        peopleTable.setString(NAME, 1, "NewName");
         // @@EndExample@@
 
         System.out.println("get(2).getName -> " + name);
         System.out.println("get(2).setName('NewName') -> " + peopleTable.get(2).getName());
 
         // @@Example: last_row @@
-        String lastRowName = peopleTable.last().getName();  // retrieve name for last row
+        String lastRowName = peopleTable.getString(NAME, peopleTable.size());  // retrieve name for last row
         // @@EndExample@@
 
         // @@Example: updating_entire_row @@
-        peopleTable.get(4).set("Eric", 50, true);
+        peopleTable.set(4, "Eric", 50, true);
         // @@EndExample@@
 
         /****************************** DATA REMOVAL *****************************/

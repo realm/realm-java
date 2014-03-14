@@ -3,14 +3,11 @@ To get the last row the <tt>last()</tt> method can be used:
 @@EndOverlay
 
 @@Overlay: bracket @@
-the <tt>at</tt> method which returns a cursor to the row:
+getters and setters:
 @@EndOverlay
 
 @@Overlay: generated_classes @@
-Using Java annotations a number of classes will be generated. For the <tt>people</tt> class you will have <tt>PeopleTable</tt> (the actual table), <tt>People</tt> (representing rows), <tt>PeopleQuery</tt> (query objects), and <tt>PeopleView</tt> (query results). These classes will then provide you a fully typesafe API
-with your specific columns integrated. This gives you easy access to your named columns, typesafety and autocompletion.
 
-<p>(For more dynamic datastructures unknown at compiletime, another "untyped" API is also available. Please checkout the reference documentation for details.)</p>
 @@EndOverlay
 
 @@Overlay: updating_entire_row @@
