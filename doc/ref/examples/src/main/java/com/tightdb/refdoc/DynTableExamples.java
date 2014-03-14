@@ -393,6 +393,8 @@ public class DynTableExamples {
         // Sort descending
         view = table.getSortedView(SCOEW_COLUMN_INDEX, Order.descending);
         Assert(view.getString(USERNAME_COLUMN_INDEX, 0).equals("tarzan"));
+        // @@EndShow@@
+        // @@EndExample@@
     }
 
     public static void setIndexExample(){
