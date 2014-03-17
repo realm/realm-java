@@ -753,7 +753,6 @@ EOF
             exit 1
         fi
         mkdir -p "$ANDROID_DIR" || exit 1
-        OLDPATH="$PATH"
         for target in $ANDROID_PLATFORMS; do
             temp_dir="$(mktemp -d /tmp/tightdb.build-android.XXXX)" || exit 1
             if [ "$target" = "arm" ]; then
@@ -765,23 +764,21 @@ EOF
             # `bash` and must therefore be executed by `bash`.
             make_toolchain="$android_ndk_home/build/tools/make-standalone-toolchain.sh"
             bash "$make_toolchain" --platform="android-$platform" --install-dir="$temp_dir" --arch="$target" || exit 1
-            export PATH="$temp_dir/bin:$OLDPATH"
+            android_prefix="$target"
+            subfolder="$target"
             if [ "$target" = "arm" ]; then
-                android_prefix="arm"
                 subfolder="armeabi"
             elif [ "$target" = "arm-v7a" ]; then
                 android_prefix="arm"
                 subfolder="armeabi-v7a"
             elif [ "$target" = "mips" ]; then
                 android_prefix="mipsel"
-                subfolder="$target"
             elif [ "$target" = "x86" ]; then
                 android_prefix="i686"
-                subfolder="$target"
             fi
-            export CXX="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-gcc)"
-            export LD="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-g++)"
-            extra_cflags="-DANDROID -Os"
+            path="$temp_dir/bin:$PATH"
+            cc="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-gcc)" || exit 1
+            extra_cflags="-DANDROID"
             if [ "$target" = "arm" ]; then
                 extra_cflags="$extra_cflags -mthumb"
             elif [ "$target" = "arm-v7a" ]; then
@@ -789,11 +786,13 @@ EOF
             fi
             denom="android-$target"
             android_core_lib="$(get_config_param "ANDROID_CORE_LIB")" || exit 1
-            android_ldflags="-ltightdb-$denom -L$android_core_lib -shared"
-            $MAKE -C "tightdb_jni/src" "libtightdb-jni-$denom.so" BASE_DENOM="$denom" CFLAGS_ARCH="$extra_cflags" TIGHTDB_LDFLAGS="$android_ldflags" TIGHTDB_LDFLAGS_DBG="$android_ldflags" LIB_SUFFIX_SHARED=".so" || exit 1
+            android_ldflags="-ltightdb-$denom -L$android_core_lib"
+            PATH="$path" CC="$cc" $MAKE -C "tightdb_jni/src" CC_IS="gcc" BASE_DENOM="$denom" CFLAGS_OPTIM="-Os -DNDEBUG" CFLAGS_ARCH="$extra_cflags" TIGHTDB_LDFLAGS="$android_ldflags" TIGHTDB_LDFLAGS_DBG="$android_ldflags" LIB_SUFFIX_SHARED=".so" "libtightdb-jni-$denom.so" || exit 1
             mkdir -p "$ANDROID_DIR/$subfolder" || exit 1
             cp "tightdb_jni/src/libtightdb-jni-$denom.so" "$ANDROID_DIR/$subfolder/libtightdb-jni.so" || exit 1
-            rm -rf "$temp_dir"
+#            strip="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-strip)" || exit 1
+#            PATH="$path" $strip --strip-unneeded "$ANDROID_DIR/$subfolder/libtightdb-jni.so" || exit 1
+            rm -rf "$temp_dir" || exit 1
         done
         sh build.sh build-jars || exit 1
         exit 0

@@ -12,3 +12,6 @@
 /libtightdb-jni-dbg.jnilib
 /libtightdb-jni-cov.so
 /libtightdb-jni-cov.jnilib
+
+# Android
+/libtightdb-jni-android-*.so
