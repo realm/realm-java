@@ -27,6 +27,8 @@ public class Tutorial {
         final long HIRED = peopleTable.addColumn(ColumnType.BOOLEAN, "hired");
         //@@EndExample@@
 
+        Assert(peopleTable.getColumnCount() == 3);
+
         /****************************** BASIC OPERATIONS *************************/
 
         // @@Example: insert_rows @@
@@ -37,9 +39,14 @@ public class Tutorial {
         peopleTable.add("Anni", 54, true);
         // @@EndExample@@
 
+        Assert(peopleTable.size() == 5);
+
         // @@Example: insert_at_index @@
         peopleTable.addAt(2, "Frank", 34, true);
         // @@EndExample@@
+
+        Assert(peopleTable.size() == 6);
+        Assert(peopleTable.getString(NAME, 2).equals("Frank"));
 
         // @@Example: number_of_rows @@
         if (!peopleTable.isEmpty()) {
@@ -59,68 +66,80 @@ public class Tutorial {
         peopleTable.setString(NAME, 1, "NewName");
         // @@EndExample@@
 
-        System.out.println("get(2).getName -> " + name);
-        System.out.println("get(2).setName('NewName') -> " + peopleTable.get(2).getName());
+        Assert(name.equals("Mary"));
+        Assert(peopleTable.getString(NAME, 1).equals("NewName"));
 
         // @@Example: last_row @@
-        String lastRowName = peopleTable.getString(NAME, peopleTable.size());  // retrieve name for last row
+        String lastRowName = peopleTable.getString(NAME, peopleTable.size()-1);  // retrieve name for last row
         // @@EndExample@@
+
+        Assert(lastRowName.equals("Anni"));
 
         // @@Example: updating_entire_row @@
         peopleTable.set(4, "Eric", 50, true);
         // @@EndExample@@
+
+        Assert(peopleTable.getString(NAME, 4).equals("Eric"));
+        Assert(peopleTable.getLong(AGE, 4) == 50);
+        Assert(peopleTable.getBoolean(HIRED, 4) == true);
 
         /****************************** DATA REMOVAL *****************************/
         // @@Example: deleting_row @@
         peopleTable.remove(2);
         // @@EndExample@@
 
-        System.out.println("\nRemoved row 2. Down to " + peopleTable.size() + " rows.\n");
+        Assert(peopleTable.size() == 5);
 
         /****************************** ITERATION OF ALL RECORDS *****************/
 
         // lazy iteration over the table
 
         // @@Example: iteration @@
-        for (PeopleRow person : peopleTable) {
-            System.out.println(person.getName() + " is " + person.getAge() + " years old.");
+        for (long index = 0; index < peopleTable.size(); index++) {
+            System.out.println(peopleTable.getString(NAME, index) + " is " + peopleTable.getLong(AGE, index) + " years old.");
         }
         // @@EndExample@@
 
         /****************************** SIMPLE QUERY *****************************/
 
-        System.out.println("\nFound: ");
         // @@Example: simple_seach @@
-        PeopleRow p = peopleTable.name.equalTo("John").findFirst();
-        System.out.println( p );
-        // prints: "Employee {name=John, age=20, hired=true}"
+        long johnIndex = peopleTable.findFirstString(NAME, "John");
+        System.out.println("Name: " + peopleTable.getString(NAME, johnIndex) +
+                ", Age: " + peopleTable.getLong(AGE, johnIndex) +
+                ", Hired: " + peopleTable.getBoolean(HIRED, johnIndex));
+        // prints: "Name: John, Age: 20, Hired: true"
         // @@EndExample@@
+
+        Assert(johnIndex == 0);
 
         /****************************** COMPLEX QUERY ****************************/
 
         // @@Example: advanced_search @@
         // Define the query
-        PeopleQuery query = peopleTable
-                               .age.between(20, 35)    // Implicit AND with below
-                               .name.contains("a")     // Implicit AND with below
+        TableQuery query = peopleTable.where()
+                               .between(AGE, 20, 35)    // Implicit AND with below
+                               .contains(NAME, "a")     // Implicit AND with below
                                .group()                // "("
-                                   .hired.equalTo(true)
+                                   .equalTo(HIRED, true)
                                    .or()               // or
-                                   .name.endsWith("y")
+                                   .endsWith(NAME, "y")
                                .endGroup();            // ")"
         // Count matches
-        PeopleView match = query.findAll();
+        TableView match = query.findAll();
         System.out.println(match.size() + " employee(s) match query.");
 
         // Take the average age of the matches
-        System.out.println(match.age.sum() + " years is the sum of ages.");
+        System.out.println(match.averageLong(AGE) + " years is the average age.");
 
         // Perform query and use the result
-        for (PeopleRow person : match) {
-            // ... do something with matching 'person'
+        for (long index = 0; index < match.size(); index++) {
+            System.out.println(match.getString(NAME, index) + " is " + match.getLong(AGE, index) + " years old.");
         }
         // @@EndExample
-        System.out.println("");
+
+        Assert(match.size() == 1);
+
+        Assert(match.averageLong(AGE) == 32D);
 
         /****************************** SERIALIZE ********************************/
 
@@ -131,10 +150,16 @@ public class Tutorial {
         // @@Example: serialisation @@
         // Create Table in Group
         Group group = new Group();
-        PeopleTable person1 = new PeopleTable(group);
+        Table people1 = group.getTable("people");
+        people1.addColumn(ColumnType.STRING, "name");
+        people1.addColumn(ColumnType.INTEGER, "age");
+        people1.addColumn(ColumnType.BOOLEAN, "hired");
 
-        person1.add("John", 20, true);
-        person1.add("Mary", 21, false);
+        people1.add("John", 20, true);
+        people1.add("Mary", 21, false);
+
+        Assert(people1.getColumnCount() == 3);
+        Assert(people1.size() == 2);
 
         // Write to disk
         try {
@@ -146,11 +171,13 @@ public class Tutorial {
 
         // Load a group from disk (and print contents)
         Group fromDisk = new Group("people.tightdb");
-        PeopleTable people2 = new PeopleTable(fromDisk);
+        Table people2 = fromDisk.getTable("people");
 
-        for (PeopleRow person : people2) {
-            System.out.println(person.getName() + " is " +
-                               person.getAge() + " years old");
+        Assert(people2.getColumnCount() == 3);
+        Assert(people2.size() == 2);
+
+        for (long index = 0; index < people2.size(); index++) {
+            System.out.println(people2.getString(NAME, index) + " is " + people2.getLong(AGE, index) + " years old.");
         }
 
         // Write same group to memory buffer
@@ -158,11 +185,10 @@ public class Tutorial {
 
         // Load a group from memory (and print contents)
         Group fromMem = new Group(buffer);
-        PeopleTable people3 = new PeopleTable(fromMem);
+        Table people3 = fromMem.getTable("people");
 
-        for (PeopleRow person : people3) {
-            System.out.println(person.getName() +
-                               " is " + person.getAge() + " years old");
+        for (long index = 0; index < people3.size(); index++) {
+            System.out.println(people3.getString(NAME, index) + " is " + people3.getLong(AGE, index) + " years old.");
         }
         // @@EndExample@@
 
@@ -172,31 +198,36 @@ public class Tutorial {
         // @@Example: transaction @@
 
         // Open a shared group
-        SharedGroup db = new SharedGroup("people.tightdb");
+        SharedGroup sharedGroupg = new SharedGroup("people.tightdb");
 
         // Write transaction:
-        WriteTransaction wrtTrans = db.beginWrite();    // Start transaction
+        WriteTransaction writeTransaction = sharedGroupg.beginWrite();    // Start transaction
         try {
-            PeopleTable person = new PeopleTable(wrtTrans);
+            Table person = writeTransaction.getTable("people");
             // Add row to table
             person.add("Bill", 53, true);
-            wrtTrans.commit();                          // End transaction
+            writeTransaction.commit();                          // End transaction
         } catch (Throwable e) {
-            wrtTrans.rollback();                        // or Rollback
+            writeTransaction.rollback();                        // or Rollback
         }
 
         // Read transaction:
-        ReadTransaction rdTrans = db.beginRead();       // Start transaction
-        try{
-            PeopleTable people = new PeopleTable(rdTrans);
-            for (PeopleRow person2 : people) {
-                System.out.println(person2.getName() + " is " +
-                                   person2.getAge() + " years old");
+        ReadTransaction readTransaction = sharedGroupg.beginRead();       // Start transaction
+        try {
+            Table people = readTransaction.getTable("people");
+            for (long index = 0; index < people.size(); index++) {
+                System.out.println(people.getString(NAME, index) + " is " + people.getLong(AGE, index) + " years old.");
             }
         } finally {
-            rdTrans.endRead();                          // End transaction
+            readTransaction.endRead();                          // End transaction
         }
         // @@EndExample@@
 
     } // main
+
+    static void Assert(boolean check) {
+        if (!check) {
+            throw new RuntimeException();
+        }
+    }
 } // class

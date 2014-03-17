@@ -27,13 +27,6 @@ Anni is 54 years old.
 @@EndOverlay@@
 
 @@Overlay: execute_tutorial @@
-Depending on how you manage your project there are different ways to setup annotation processing:
-<ul>
-    <li><a href="http://www.tightdb.com/documentation/Java_misc/40/Eclipse%20Setup">Eclipse Setup</a></li>
-    <li><a href="http://www.tightdb.com/documentation/Java_misc/41/IntelliJ%20IDEA%20Setup">IntelliJ IDEA Setup</a></li>
-    <li><a href="http://www.tightdb.com/documentation/Java_misc/60/Maven%20Setup">Maven Setup</a></li>
-    <li><a href="http://www.tightdb.com/documentation/Java_misc/50/Ant%20Setup">Ant Setup</a></li>
-</ul>
 @@EndOverlay@@
 
 @@Overlay: examples @@
