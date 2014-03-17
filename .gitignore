@@ -71,6 +71,9 @@ _ReSharper*/
 # sh build.sh test
 /test_output
 
+# sh build.sh build-android
+/android-lib/
+
 .DS_Store
 
 .idea
@@ -102,4 +105,4 @@ _ReSharper*/
 
 # generated lib files
 /java/share/java/*.jar
-tightdb_jni/src/*.dylib
+/tightdb_jni/src/*.dylib
