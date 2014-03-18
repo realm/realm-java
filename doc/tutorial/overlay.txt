@@ -1,6 +1,3 @@
-@@Overlay: accessing_rows @@
-To get the last row the <tt>last()</tt> method can be used:
-@@EndOverlay
 
 @@Overlay: bracket @@
 getters and setters:

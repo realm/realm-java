@@ -50,7 +50,7 @@ public class Tutorial {
 
         // @@Example: number_of_rows @@
         if (!peopleTable.isEmpty()) {
-            long s = peopleTable.size(); // s => 6
+            long s = peopleTable.size();
         }
         // @@EndExample@@
 
@@ -60,7 +60,7 @@ public class Tutorial {
 
         // @@Example: accessing_rows @@
         // Get value
-        String name = peopleTable.getString(NAME, 1); // name => "Mary"
+        String name = peopleTable.getString(NAME, 1);
 
         // Set value
         peopleTable.setString(NAME, 1, "NewName");
@@ -68,12 +68,6 @@ public class Tutorial {
 
         Assert(name.equals("Mary"));
         Assert(peopleTable.getString(NAME, 1).equals("NewName"));
-
-        // @@Example: last_row @@
-        String lastRowName = peopleTable.getString(NAME, peopleTable.size()-1);  // retrieve name for last row
-        // @@EndExample@@
-
-        Assert(lastRowName.equals("Anni"));
 
         // @@Example: updating_entire_row @@
         peopleTable.set(4, "Eric", 50, true);
@@ -96,7 +90,8 @@ public class Tutorial {
 
         // @@Example: iteration @@
         for (long index = 0; index < peopleTable.size(); index++) {
-            System.out.println(peopleTable.getString(NAME, index) + " is " + peopleTable.getLong(AGE, index) + " years old.");
+            System.out.println(peopleTable.getString(NAME, index) +
+                    " is " + peopleTable.getLong(AGE, index) + " years old.");
         }
         // @@EndExample@@
 
@@ -117,13 +112,13 @@ public class Tutorial {
         // @@Example: advanced_search @@
         // Define the query
         TableQuery query = peopleTable.where()
-                               .between(AGE, 20, 35)    // Implicit AND with below
-                               .contains(NAME, "a")     // Implicit AND with below
-                               .group()                // "("
+                               .between(AGE, 20, 35)
+                               .contains(NAME, "a")
+                               .group()
                                    .equalTo(HIRED, true)
-                                   .or()               // or
+                                   .or()
                                    .endsWith(NAME, "y")
-                               .endGroup();            // ")"
+                               .endGroup();
         // Count matches
         TableView match = query.findAll();
         System.out.println(match.size() + " employee(s) match query.");
@@ -133,7 +128,8 @@ public class Tutorial {
 
         // Perform query and use the result
         for (long index = 0; index < match.size(); index++) {
-            System.out.println(match.getString(NAME, index) + " is " + match.getLong(AGE, index) + " years old.");
+            System.out.println(match.getString(NAME, index) +
+                    " is " + match.getLong(AGE, index) + " years old.");
         }
         // @@EndExample
 
@@ -177,7 +173,8 @@ public class Tutorial {
         Assert(people2.size() == 2);
 
         for (long index = 0; index < people2.size(); index++) {
-            System.out.println(people2.getString(NAME, index) + " is " + people2.getLong(AGE, index) + " years old.");
+            System.out.println(people2.getString(NAME, index) +
+                    " is " + people2.getLong(AGE, index) + " years old.");
         }
 
         // Write same group to memory buffer
@@ -188,7 +185,8 @@ public class Tutorial {
         Table people3 = fromMem.getTable("people");
 
         for (long index = 0; index < people3.size(); index++) {
-            System.out.println(people3.getString(NAME, index) + " is " + people3.getLong(AGE, index) + " years old.");
+            System.out.println(people3.getString(NAME, index) +
+                    " is " + people3.getLong(AGE, index) + " years old.");
         }
         // @@EndExample@@
 
@@ -198,28 +196,29 @@ public class Tutorial {
         // @@Example: transaction @@
 
         // Open a shared group
-        SharedGroup sharedGroupg = new SharedGroup("people.tightdb");
+        SharedGroup sharedGroup = new SharedGroup("people.tightdb");
 
         // Write transaction:
-        WriteTransaction writeTransaction = sharedGroupg.beginWrite();    // Start transaction
+        WriteTransaction writeTransaction = sharedGroup.beginWrite();
         try {
             Table person = writeTransaction.getTable("people");
             // Add row to table
             person.add("Bill", 53, true);
-            writeTransaction.commit();                          // End transaction
+            writeTransaction.commit();
         } catch (Throwable e) {
-            writeTransaction.rollback();                        // or Rollback
+            writeTransaction.rollback();
         }
 
         // Read transaction:
-        ReadTransaction readTransaction = sharedGroupg.beginRead();       // Start transaction
+        ReadTransaction readTransaction = sharedGroup.beginRead();
         try {
             Table people = readTransaction.getTable("people");
             for (long index = 0; index < people.size(); index++) {
-                System.out.println(people.getString(NAME, index) + " is " + people.getLong(AGE, index) + " years old.");
+                System.out.println(people.getString(NAME, index) +
+                        " is " + people.getLong(AGE, index) + " years old.");
             }
         } finally {
-            readTransaction.endRead();                          // End transaction
+            readTransaction.endRead();
         }
         // @@EndExample@@
 
