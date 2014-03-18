@@ -1,5 +1,5 @@
 EXTRA_PRIMARY_PREFIXES = jni
-jni_LIBRARIES   = libtightdb-jni.a
+jni_LIBRARIES = libtightdb-jni.a
 jnidir = $(JNI_INSTALL_DIR)
 
 JNI_SOURCES := $(wildcard *.cpp)
