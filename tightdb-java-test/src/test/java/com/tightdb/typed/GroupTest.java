@@ -80,7 +80,7 @@ public class GroupTest {
         assertEquals(group.hasTable(""), false);
         assertEquals(group.hasTable("hi"), false);
 
-        Table table = group.getTable("hi");
+        Table table = group.createTable("hi");
         assertEquals(table.isValid(), true);
         assertEquals(group.hasTable("hi"), true);
     }
@@ -90,7 +90,7 @@ public class GroupTest {
      */
     private Group getGroupWithTable(){
         Group group = new Group();
-        Table table1 =  group.getTable("table");
+        Table table1 =  group.createTable("table");
         table1.addColumn(ColumnType.STRING, "col");
         table1.add("StringValue");
         return group;
@@ -198,11 +198,11 @@ public class GroupTest {
         String fileName = "db-name.tightdb";
         new File(fileName).delete();
         Group g1 = new Group();
-        g1.getTable("table1");
+        g1.createTable("table1");
         g1.writeToFile(fileName);
         
         Group g2 = new Group(fileName, OpenMode.READ_ONLY);
-        try { g2.getTable("newTable"); fail("Group read-only"); } catch (IllegalStateException e ) { }
+        try { g2.createTable("newTable"); fail("Group read-only"); } catch (IllegalStateException e ) { }
         assertEquals(1, g2.size()); // Only the 1 table from g1 should be there
     }
 
@@ -255,7 +255,7 @@ public class GroupTest {
         Group group = new Group(FILENAME, OpenMode.READ_WRITE);
         group.commit();
 
-        Table tbl = group.getTable("test");
+        Table tbl = group.createTable("test");
         tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
         group.commit();
@@ -336,12 +336,12 @@ public class GroupTest {
     @Test
     public void shouldCompareGroups() {
         Group group1 = new Group();
-        Table tbl = group1.getTable("test");
+        Table tbl = group1.createTable("test");
         tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
 
         Group group2 = new Group();
-        Table tbl2 = group2.getTable("test");
+        Table tbl2 = group2.createTable("test");
         tbl2.addColumn(ColumnType.INTEGER, "number");
         tbl2.add(1);
 
@@ -355,7 +355,7 @@ public class GroupTest {
     @Test
     public void shouldFailWhenModifyingTablesOnClosedGroup() {
         Group group = new Group();
-        Table tbl = group.getTable("test");
+        Table tbl = group.createTable("test");
         tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
 
@@ -370,7 +370,7 @@ public class GroupTest {
     @Test
     public void shouldFailWhenAddingTablesToClosedGroup() {
         Group group = new Group();
-        Table tbl = group.getTable("test");
+        Table tbl = group.createTable("test");
         tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
 
@@ -385,7 +385,7 @@ public class GroupTest {
     @Test
     public void shouldFailWhenGettingValuesFromTablesInClosedGroup() {
         Group group = new Group();
-        Table tbl = group.getTable("test");
+        Table tbl = group.createTable("test");
         tbl.addColumn(ColumnType.INTEGER, "number");
         tbl.add(1);
 

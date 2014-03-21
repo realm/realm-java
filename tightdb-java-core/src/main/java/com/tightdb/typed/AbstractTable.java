@@ -21,7 +21,9 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
     protected final Table table;
 
     public AbstractTable(EntityTypes<?, View, Cursor, Query> types) {
-        this(types, new Table());
+        super(types, new Table());
+        table = (Table)this.tableOrView;
+        createColumnsFromSpec(types, table);
     }
 
     /**
@@ -31,17 +33,25 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
      * @param tableName
      */
     public AbstractTable(EntityTypes<?, View, Cursor, Query> types, Group group, String tableName) {
-        this(types, group.getTable(tableName));
+        super(types, group.getTable(tableName));
+        if(this.tableOrView == null) {
+            this.tableOrView = group.createTable(tableName);
+        }
+        table = (Table)this.tableOrView;
+        createColumnsFromSpec(types, table);
     }
 
     public AbstractTable(EntityTypes<?, View, Cursor, Query> types, Group group) {
-        this(types, group.getTable(types.getTableClass().getSimpleName()));
+        this(types, group, types.getTableClass().getSimpleName());
     }
 
-    @SuppressWarnings("unchecked")
     protected AbstractTable(EntityTypes<?, View, Cursor, Query> types, Table table) {
         super(types, table);
         this.table = table;
+        createColumnsFromSpec(types, table);
+    }
+
+    private void createColumnsFromSpec(EntityTypes<?, View, Cursor, Query> types, Table table) {
         if (table != null && table.getTableSpec().getColumnCount() <= 0) {
             // Build table schema
             final TableSpec spec = new TableSpec();

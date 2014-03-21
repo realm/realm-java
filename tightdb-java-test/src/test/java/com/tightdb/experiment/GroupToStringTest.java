@@ -16,10 +16,10 @@ public class GroupToStringTest {
 
         Group group = new Group();
 
-        Table table = group.getTable("testTable");
+        Table table = group.createTable("testTable");
         table.addColumn(ColumnType.BOOLEAN, "boolean");
         table.add(true);
-        Table table2 = group.getTable("another-table");
+        Table table2 = group.createTable("another-table");
         table2.addColumn(ColumnType.BOOLEAN, "boolean");
         table2.add(true);
 
@@ -33,7 +33,7 @@ public class GroupToStringTest {
 
         Group group = new Group();
 
-        Table table = group.getTable("testTable");
+        Table table = group.createTable("testTable");
 
         table.addColumn(ColumnType.BINARY, "binary");     // 0
         table.addColumn(ColumnType.BOOLEAN, "boolean");   // 1
