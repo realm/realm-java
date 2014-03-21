@@ -228,7 +228,7 @@ public class Group {
         }
 
         if (hasTable(name)) {
-            throw new RuntimeException("Database already exists.");
+            throw new RuntimeException("Table already exists.");
         } else {
             // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
             context.executeDelayedDisposal();
