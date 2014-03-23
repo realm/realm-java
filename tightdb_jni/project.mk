@@ -33,4 +33,31 @@ ifeq ($(NO_CONFIG_MK),)
   DEP_MAKEFILES += $(CONFIG_MK)
   include $(CONFIG_MK)
   LIB_SUFFIX_SHARED = $(JNI_SUFFIX)
+  EXTRA_PRIMARY_PREFIXES = jni
+  jnidir = $(JNI_INSTALL_DIR)
 endif
+
+ifeq ($(TIGHTDB_ANDROID),)
+  CFLAGS_INCLUDE += $(JAVA_CFLAGS)
+  ifneq ($(TIGHTDB_ENABLE_MEM_USAGE),)
+    PROJECT_CFLAGS += -DTIGHTDB_ENABLE_MEM_USAGE
+    ifeq ($(shell pkg-config libprocps --exists 2>/dev/null && echo yes),yes)
+      PROCPS_CFLAGS  := $(shell pkg-config libprocps --cflags)
+      PROCPS_LDFLAGS := $(shell pkg-config libprocps --libs)
+      PROJECT_CFLAGS  += $(PROCPS_CFLAGS)
+      PROJECT_LDFLAGS += $(PROCPS_LDFLAGS)
+    else
+      PROJECT_LDFLAGS += -lproc
+    endif
+  endif
+else
+  PROJECT_CFLAGS += -DANDROID
+  CFLAGS_OPTIM = -Os -DNDEBUG
+endif
+
+PROJECT_CFLAGS_OPTIM  += $(TIGHTDB_CFLAGS)
+PROJECT_CFLAGS_DEBUG  += $(TIGHTDB_CFLAGS_DBG)
+PROJECT_CFLAGS_COVER  += $(TIGHTDB_CFLAGS_DBG)
+PROJECT_LDFLAGS_OPTIM += $(TIGHTDB_LDFLAGS)
+PROJECT_LDFLAGS_DEBUG += $(TIGHTDB_LDFLAGS_DBG)
+PROJECT_LDFLAGS_COVER += $(TIGHTDB_LDFLAGS_DBG)
