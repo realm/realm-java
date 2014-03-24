@@ -51,8 +51,8 @@ ifeq ($(TIGHTDB_ANDROID),)
     endif
   endif
 else
-  PROJECT_CFLAGS += -DANDROID
-  CFLAGS_OPTIM = -Os -DNDEBUG
+  PROJECT_CFLAGS += -fvisibility=hidden -DANDROID
+  CFLAGS_OPTIM = -Os -flto -DNDEBUG
 endif
 
 PROJECT_CFLAGS_OPTIM  += $(TIGHTDB_CFLAGS)
