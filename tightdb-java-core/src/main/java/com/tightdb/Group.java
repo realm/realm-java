@@ -205,6 +205,8 @@ public class Group {
                 return new Table(context, this, nativeTablePointer, immutable);
             }
             catch (RuntimeException e) {
+                // This would rarely throw, but if it does it will most likely be OutOfMemory,
+                // and we want to make sure that we clean up after us in core.
                 Table.nativeClose(nativeTablePointer);
                 throw e;
             }

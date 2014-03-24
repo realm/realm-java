@@ -51,7 +51,7 @@ public class GroupExamples {
         // Create a group in memory. Can be saved to disk later
         Group group = new Group();
 
-        Table table = group.getTable("mytable");
+        Table table = group.createTable("mytable");
         // More table operations...
         // @@EndShow@@
         // @@EndExample@@
@@ -96,7 +96,7 @@ public class GroupExamples {
         // Point to the non-existing file. This mode will create a file, if it does not exist.
         Group group = new Group("non-exisiting-db.tightdb", OpenMode.READ_WRITE);
 
-        Table table = group.getTable("mytable");
+        Table table = group.createTable("mytable");
         // More table operations...
         // @@EndShow@@
         // @@EndExample@@
@@ -123,18 +123,32 @@ public class GroupExamples {
     // Table methods
     // **********************
 
-    public static void getTableExample(){
-        // @@Example: ex_java_group_get_table @@
+    public static void createTableExample(){
+        // @@Example: ex_java_group_create_table @@
         // @@Show@@
         Group group = new Group();
 
         // Create table and return it
-        Table table = group.getTable("mytable");
+        Table table = group.createTable("mytable");
 
         // Add columns and data
         table.addColumn(ColumnType.STRING, "String");
         table.addColumn(ColumnType.INTEGER, "int");
         table.addColumn(ColumnType.BOOLEAN, "boolean");
+
+        table.add("String value", 400, true); // String, long, boolean
+        // More table operations...
+        // @@EndShow@@
+        // @@EndExample@@
+    }
+
+    public static void getTableExample(){
+        // @@Example: ex_java_group_get_table @@
+        // @@Show@@
+        Group group = new Group("mydatabase.tightdb");
+
+        // Get table and return it
+        Table table = group.getTable("myExistingTable");
 
         table.add("String value", 400, true); // String, long, boolean
         // More table operations...
@@ -148,7 +162,7 @@ public class GroupExamples {
         Group group = new Group("mydatabase.tightdb");
 
         // A table is created (if not already in the group) and returned
-        Table table = group.getTable("mytable");
+        Table table = group.createTable("mytable");
         // More table operations...
 
         // Use has table to check if group contains a table with the specified name
@@ -164,8 +178,8 @@ public class GroupExamples {
         Group group = new Group();
 
         // Add 2 tables to the group
-        Table table1 = group.getTable("mytable1"); // Will be positioned at index 0
-        Table table2 = group.getTable("mytable2"); // Will be positioned at index 1
+        Table table1 = group.createTable("mytable1"); // Will be positioned at index 0
+        Table table2 = group.createTable("mytable2"); // Will be positioned at index 1
 
         // Get name of a table by it's index
         Assert(group.getTableName(0).equals("mytable1"));
@@ -183,7 +197,7 @@ public class GroupExamples {
         // @@Show@@
         Group group = new Group();
 
-        Table table = group.getTable("mytable");
+        Table table = group.createTable("mytable");
         // More table operations...
 
         try {
@@ -204,7 +218,7 @@ public class GroupExamples {
         // @@Show@@
         Group group = new Group();
 
-        Table table = group.getTable("mytable");
+        Table table = group.createTable("mytable");
         // More table operations...
 
         // Write group to byte array.
@@ -225,7 +239,7 @@ public class GroupExamples {
         // @@Show@@
         Group group = new Group();
 
-        Table table = group.getTable("mytable");
+        Table table = group.createTable("mytable");
         // More table operations...
 
         // Get a String representation of the group
@@ -239,7 +253,7 @@ public class GroupExamples {
         // @@Show@@
         Group group = new Group();
 
-        Table table = group.getTable("mytable");
+        Table table = group.createTable("mytable");
         // More table operations...
 
         // Get a JSON representation of the group
@@ -263,8 +277,8 @@ public class GroupExamples {
         Group group = new Group();
 
         // Add 2 tables to the group
-        Table table1 = group.getTable("mytable1");
-        Table table2 = group.getTable("mytable2");
+        Table table1 = group.createTable("mytable1");
+        Table table2 = group.createTable("mytable2");
 
         // Get size of the group
         Assert(group.size() == 2);
@@ -282,8 +296,8 @@ public class GroupExamples {
         Assert(group.isEmpty() == true);
 
         // Add 2 tables to the group
-        Table table1 = group.getTable("mytable1");
-        Table table2 = group.getTable("mytable2");
+        Table table1 = group.createTable("mytable1");
+        Table table2 = group.createTable("mytable2");
 
         // Group is not empty
         Assert(group.isEmpty() == false);
@@ -296,13 +310,13 @@ public class GroupExamples {
         // @@Show@@
         // Group1 with 1 table with 1 row of data
         Group group1 = new Group();
-        Table table1 = group1.getTable("mytable1");
+        Table table1 = group1.createTable("mytable1");
         table1.addColumn(ColumnType.STRING, "stringCol");
         table1.add("StringVal");
 
         // Group2 with 1 table with 1 row of data
         Group group2 = new Group();
-        Table table2 = group2.getTable("mytable1");
+        Table table2 = group2.createTable("mytable1");
         table2.addColumn(ColumnType.STRING, "stringCol");
         table2.add("StringVal");
 

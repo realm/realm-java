@@ -34,7 +34,7 @@ public abstract class AbstractTable<Cursor, View, Query> extends AbstractTableOr
      */
     public AbstractTable(EntityTypes<?, View, Cursor, Query> types, Group group, String tableName) {
         super(types, group.getTable(tableName));
-        if(this.tableOrView == null) {
+        if (this.tableOrView == null) {
             this.tableOrView = group.createTable(tableName);
         }
         table = (Table)this.tableOrView;

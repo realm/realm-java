@@ -21,7 +21,7 @@ public class WriteTransactionExamples {
         WriteTransaction wt = group.beginWrite();
         try {
             // Get the table (or create it if it's not there)
-            Table table = wt.getTable("people");
+            Table table = wt.createTable("people");
             // Define the table schema if the table is new
             if (table.getColumnCount() == 0) {
                 // Define 2 columns
