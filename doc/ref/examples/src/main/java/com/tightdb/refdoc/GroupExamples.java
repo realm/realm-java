@@ -23,6 +23,7 @@ public class GroupExamples {
         constructorByteArrayExample();
 
         // Table methods
+        createTableExample();
         getTableExample();
         getTableNameExample();
         hasTableExample();
@@ -126,7 +127,7 @@ public class GroupExamples {
     public static void createTableExample(){
         // @@Example: ex_java_group_create_table @@
         // @@Show@@
-        Group group = new Group();
+        Group group = new Group("mydatabase.tightdb");
 
         // Create table and return it
         Table table = group.createTable("mytable");
@@ -140,6 +141,8 @@ public class GroupExamples {
         // More table operations...
         // @@EndShow@@
         // @@EndExample@@
+
+        group.commit();
     }
 
     public static void getTableExample(){
@@ -148,7 +151,7 @@ public class GroupExamples {
         Group group = new Group("mydatabase.tightdb");
 
         // Get table and return it
-        Table table = group.getTable("myExistingTable");
+        Table table = group.getTable("mytable");
 
         table.add("String value", 400, true); // String, long, boolean
         // More table operations...
