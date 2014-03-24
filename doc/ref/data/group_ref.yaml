@@ -99,14 +99,32 @@ CATEGORIES:
       - DESCR  :
         CODE   : ex_java_group_has_table
 
+  - g_group_create_table:
+      NAMES    : createTable
+      SUMMARY  : Create a new table.
+      DESCR    : >
+                 This method will create and return a named table from the group.
+
+                 If a table exists with the specified name, a RuntimeException will be thrown.
+      PARAMS:
+      - NAME   : name
+        TYPES  : String
+        DESCR  : Name of the table you wish to create.
+      RETURN:
+        TYPES  : Table
+        DESCR  : The new Table object.
+      EXAMPLES:
+      -  DESCR :
+         CODE  : ex_java_group_create_table
+      SEE      : "{@link g_group_has_table}"
+
   - g_group_get_table:
       NAMES    : getTable
       SUMMARY  : *g_group_get_table_summary
       DESCR    : >
                  This method will find and return a named table from the group.
 
-                 If no table exists with the specified name, a new
-                 empty table will be created.
+                 If no table exists with the specified name, null will be returned.
       PARAMS:
       - NAME   : name
         TYPES  : String
