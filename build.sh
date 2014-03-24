@@ -576,7 +576,8 @@ case "$MODE" in
             path="$(cd "../tightdb" || return 1; pwd)" || exit 1
             android_core_lib="$path/$ANDROID_DIR"
         else
-            tightdb_echo "Could not find home of TightDB core library built for Android"
+            echo "Could not find home of TightDB core library built for Android" 1>&1
+            exit 1
         fi
 
         cat >"$CONFIG_MK" <<EOF
@@ -744,7 +745,7 @@ EOF
         android_ndk_home="$(get_config_param "ANDROID_NDK_HOME")" || exit 1
         if [ "$android_ndk_home" = "none" ]; then
             cat 1>&2 <<EOF
-ERROR: No Android NDK was found.
+ERROR: Android NDK was not found during configuration.
 Please do one of the following:
  * Install an NDK in /usr/local/android-ndk
  * Provide the path to the NDK in the environment variable ANDROID_NDK_HOME
@@ -752,6 +753,19 @@ Please do one of the following:
 EOF
             exit 1
         fi
+        android_core_lib="$(get_config_param "ANDROID_CORE_LIB")" || exit 1
+        if [ "$android_core_lib" = "none" ]; then
+            echo "ERROR: TightDB core library for iPhone was not found during configuration" 1>&2
+            exit 1
+        fi
+        if ! [ -e "$android_core_lib/include/tightdb.hpp" ]; then
+            echo "ERROR: TightDB core library for Android is not available in '$android_core_lib'" 1>&2
+            exit 1
+        fi
+        tightdb_config_cmd="$(get_config_param "TIGHTDB_CONFIG")" || exit 1
+        tightdb_cflags="$($tightdb_config_cmd --cflags)" || exit 1
+        word_list_prepend "tightdb_cflags" "-I$android_core_lib/include" || exit 1
+        export TIGHTDB_ANDROID="1"
         mkdir -p "$ANDROID_DIR" || exit 1
         for target in $ANDROID_PLATFORMS; do
             temp_dir="$(mktemp -d /tmp/tightdb.build-android.XXXX)" || exit 1
@@ -765,12 +779,12 @@ EOF
             make_toolchain="$android_ndk_home/build/tools/make-standalone-toolchain.sh"
             bash "$make_toolchain" --platform="android-$platform" --install-dir="$temp_dir" --arch="$target" || exit 1
             android_prefix="$target"
-            subfolder="$target"
+            subdir="$target"
             if [ "$target" = "arm" ]; then
-                subfolder="armeabi"
+                subdir="armeabi"
             elif [ "$target" = "arm-v7a" ]; then
                 android_prefix="arm"
-                subfolder="armeabi-v7a"
+                subdir="armeabi-v7a"
             elif [ "$target" = "mips" ]; then
                 android_prefix="mipsel"
             elif [ "$target" = "x86" ]; then
@@ -778,20 +792,19 @@ EOF
             fi
             path="$temp_dir/bin:$PATH"
             cc="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-gcc)" || exit 1
-            extra_cflags="-DANDROID"
+            cflags_arch=""
             if [ "$target" = "arm" ]; then
-                extra_cflags="$extra_cflags -mthumb"
+                word_list_append "cflags_arch" "-mthumb" || exit 1
             elif [ "$target" = "arm-v7a" ]; then
-                extra_cflags="$extra_cflags -mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
+                word_list_append "cflags_arch" "-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16" || exit 1
             fi
             denom="android-$target"
-            android_core_lib="$(get_config_param "ANDROID_CORE_LIB")" || exit 1
-            android_ldflags="-ltightdb-$denom -L$android_core_lib"
-            PATH="$path" CC="$cc" $MAKE -C "tightdb_jni/src" CC_IS="gcc" BASE_DENOM="$denom" CFLAGS_OPTIM="-Os -DNDEBUG" CFLAGS_ARCH="$extra_cflags" TIGHTDB_LDFLAGS="$android_ldflags" TIGHTDB_LDFLAGS_DBG="$android_ldflags" LIB_SUFFIX_SHARED=".so" "libtightdb-jni-$denom.so" || exit 1
-            mkdir -p "$ANDROID_DIR/$subfolder" || exit 1
-            cp "tightdb_jni/src/libtightdb-jni-$denom.so" "$ANDROID_DIR/$subfolder/libtightdb-jni.so" || exit 1
+            tightdb_ldflags="-ltightdb-$denom -L$android_core_lib"
+            PATH="$path" CC="$cc" $MAKE -C "tightdb_jni/src" CC_IS="gcc" BASE_DENOM="$denom" TIGHTDB_CFLAGS="$tightdb_cflags" CFLAGS_ARCH="$cflags_arch" TIGHTDB_LDFLAGS="$tightdb_ldflags" LIB_SUFFIX_SHARED=".so" "libtightdb-jni-$denom.so" || exit 1
+            mkdir -p "$ANDROID_DIR/$subdir" || exit 1
+            cp "tightdb_jni/src/libtightdb-jni-$denom.so" "$ANDROID_DIR/$subdir/libtightdb-jni.so" || exit 1
             strip="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-strip)" || exit 1
-            PATH="$path" $strip --strip-all "$ANDROID_DIR/$subfolder/libtightdb-jni.so" || exit 1
+            PATH="$path" $strip --strip-all "$ANDROID_DIR/$subdir/libtightdb-jni.so" || exit 1
             rm -rf "$temp_dir" || exit 1
         done
         sh build.sh build-jars || exit 1
