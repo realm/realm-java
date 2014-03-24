@@ -202,6 +202,9 @@ public class Tutorial {
         WriteTransaction writeTransaction = sharedGroup.beginWrite();
         try {
             Table person = writeTransaction.createTable("peopleTable");
+            person.addColumn(ColumnType.STRING, "name");
+            person.addColumn(ColumnType.INTEGER, "age");
+            person.addColumn(ColumnType.BOOLEAN, "hired");
             // Add row to table
             person.add("Bill", 53, true);
             writeTransaction.commit();

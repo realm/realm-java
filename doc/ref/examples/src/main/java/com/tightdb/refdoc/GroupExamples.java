@@ -127,7 +127,7 @@ public class GroupExamples {
     public static void createTableExample(){
         // @@Example: ex_java_group_create_table @@
         // @@Show@@
-        Group group = new Group("mydatabase.tightdb");
+        Group group = new Group("mydatabase.tightdb", OpenMode.READ_WRITE);
 
         // Create table and return it
         Table table = group.createTable("mytable");
@@ -148,7 +148,7 @@ public class GroupExamples {
     public static void getTableExample(){
         // @@Example: ex_java_group_get_table @@
         // @@Show@@
-        Group group = new Group("mydatabase.tightdb");
+        Group group = new Group("mydatabase.tightdb", OpenMode.READ_WRITE);
 
         // Get table and return it
         Table table = group.getTable("mytable");
@@ -162,14 +162,16 @@ public class GroupExamples {
     public static void hasTableExample(){
         // @@Example: ex_java_group_has_table @@
         // @@Show@@
-        Group group = new Group("mydatabase.tightdb");
+        Group group = new Group("mydatabase.tightdb", OpenMode.READ_WRITE);
 
-        // A table is created (if not already in the group) and returned
-        Table table = group.createTable("mytable");
+        // A table is created (if not already in the group)
+        if(!group.hasTable("myTable")) {
+            group.createTable("myTable");
+        }
         // More table operations...
 
         // Use has table to check if group contains a table with the specified name
-        Assert(group.hasTable("mytable"));
+        Assert(group.hasTable("myTable"));
         // @@EndShow@@
         // @@EndExample@@
     }
