@@ -1,5 +1,6 @@
 package com.tightdb;
 
+import java.io.Closeable;
 import java.util.Date;
 
 
@@ -45,7 +46,7 @@ import java.util.Date;
  * The generated class will have more specialized method to do operations on TableView.
  *
  */
-public class TableView implements TableOrView {
+public class TableView implements TableOrView, Closeable {
     protected boolean DEBUG = false; //true;
 
      /**

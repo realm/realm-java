@@ -1,5 +1,6 @@
 package com.tightdb;
 
+import java.io.Closeable;
 import java.util.Date;
 
 
@@ -41,7 +42,7 @@ import com.tightdb.typed.TightDB;
  *
  */
 
-public class Table implements TableOrView, TableSchema {
+public class Table implements TableOrView, TableSchema, Closeable {
 
     public static final long INFINITE = -1;
 

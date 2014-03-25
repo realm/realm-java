@@ -1,8 +1,9 @@
 package com.tightdb;
 
+import java.io.Closeable;
 import java.util.Date;
 
-public class TableQuery {
+public class TableQuery implements Closeable {
     protected boolean DEBUG = false;
 
     protected long nativePtr;
