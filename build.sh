@@ -846,6 +846,7 @@ EOF
             cp -r mips lib &&
             cp -r x86 lib &&
             jar uf tightdb.jar lib &&
+            cp -f tightdb.jar ../lib/tightdb-android-$tightdb_version.jar &&
             rm -rf lib
         ) || exit 1
         ;;

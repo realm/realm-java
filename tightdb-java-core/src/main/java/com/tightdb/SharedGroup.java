@@ -2,7 +2,9 @@ package com.tightdb;
 
 import com.tightdb.typed.TightDB;
 
-public class SharedGroup {
+import java.io.Closeable;
+
+public class SharedGroup implements Closeable {
 
     private long nativePtr;
     private boolean activeTransaction;
