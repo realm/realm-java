@@ -2,7 +2,9 @@ package com.tightdb;
 
 import static org.testng.AssertJUnit.*;
 
-import java.io.File;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.testng.annotations.Test;
 
@@ -11,6 +13,44 @@ import com.tightdb.test.TestHelper;
 // Tables get detached
 
 public class JNICloseTest {
+
+    @Test
+    public void closeableTest() {
+        String testFile = "closeableTest.tightdb";
+        File f = new File(testFile);
+        if (f.exists()) {
+            f.delete();
+        }
+
+        List<Closeable> resources = new ArrayList<Closeable>();
+
+        SharedGroup sg = new SharedGroup(testFile);
+        resources.add(sg);
+
+        WriteTransaction wt = sg.beginWrite();
+        resources.add(wt);
+        try {
+            Table t = wt.getTable("test");
+            resources.add(t);
+            t.addColumn(ColumnType.STRING, "StringColumn");
+
+            t.add("abc");
+            t.add("cba");
+
+            wt.commit();
+
+        } catch(Throwable t) {
+            wt.rollback();
+        } finally {
+            for(Closeable c : resources) {
+                try {
+                    c.close();
+                } catch(java.io.IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     @Test
     public void shouldCloseTable() throws Throwable {
