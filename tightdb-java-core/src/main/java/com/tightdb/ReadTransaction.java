@@ -1,8 +1,5 @@
 package com.tightdb;
 
-// ARM only works in Java 1.7
-// public class ReadTransaction extends Group implements AutoCloseable {
-
 public class ReadTransaction extends Group {
 
     private final SharedGroup db;

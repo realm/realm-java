@@ -1,5 +1,6 @@
 package com.tightdb;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,7 +11,7 @@ import com.tightdb.typed.TightDB;
  * This class is used to serialize tables to either disk or memory. It consists
  * of a collection of tables.
  */
-public class Group {
+public class Group implements Closeable {
     
     protected long nativePtr;
     protected final boolean immutable;
