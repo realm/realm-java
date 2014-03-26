@@ -27,6 +27,16 @@ public class JNIQueryTest {
         assertEquals(6, table.size());
     }
 
+    @Test(expectedExceptions=RuntimeException.class)
+    public void shouldThrowOnQueryOnSortedView() {
+
+        init();
+
+        TableView sortedView = table.getSortedView(0, TableView.Order.descending);
+
+        TableView result = sortedView.where().findAll();
+    }
+
     @Test
     public void shouldQuery() {
         init();
