@@ -5,21 +5,22 @@
 #include "com_tightdb_Version.h"
 #include <tightdb/version.hpp>
 
-static int TIGHTDB_JNI_VERSION = 23;
+static int tightdb_jni_version = 23;
 
 
 using namespace tightdb;
 
 JNIEXPORT jint JNICALL Java_com_tightdb_Version_nativeGetAPIVersion(JNIEnv*, jclass)
 {
-    return TIGHTDB_JNI_VERSION;
+    return tightdb_jni_version;
 }
 
 JNIEXPORT jstring JNICALL Java_com_tightdb_Version_nativeGetVersion(JNIEnv *env, jclass)
 {
     try {
         return to_jstring(env, Version::get_version());
-    } CATCH_STD();
+    }
+    CATCH_STD();
     return NULL;
 }
 
