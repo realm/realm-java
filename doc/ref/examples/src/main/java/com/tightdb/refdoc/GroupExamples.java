@@ -165,7 +165,7 @@ public class GroupExamples {
         Group group = new Group("mydatabase.tightdb", OpenMode.READ_WRITE);
 
         // A table is created (if not already in the group)
-        if(!group.hasTable("myTable")) {
+        if (!group.hasTable("myTable")) {
             group.createTable("myTable");
         }
         // More table operations...
