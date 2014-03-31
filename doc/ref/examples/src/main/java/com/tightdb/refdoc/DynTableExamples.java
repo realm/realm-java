@@ -94,7 +94,7 @@ public class DynTableExamples {
         // Get table from group.
         // If it doesn't exist null is returned
         Table table2 = group.getTable("myTable");
-        if(table2 != null) {
+        if (table2 != null) {
             // Do operations on the table
         }
         // @@EndExample@@
