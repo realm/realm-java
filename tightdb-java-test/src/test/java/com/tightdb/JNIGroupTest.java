@@ -26,12 +26,10 @@ public class JNIGroupTest {
 
     @Test
     public void getTableFromGroup() {
-
         Group group = new Group();
         group.createTable("myTable");
         Table table1 = group.getTable("myTable");
         assert(table1 != null);
-
     }
 
     @Test
