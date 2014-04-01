@@ -88,8 +88,15 @@ public class DynTableExamples {
 
         Group group = new Group();
         // @@Example: ex_java_dyn_table_constructor_group @@
-        // Get table from group. If table does not exist in the group, it is created
-        Table table2 = group.getTable("tableName");
+        // Create a new table from group
+        Table table1 = group.createTable("myTable");
+
+        // Get table from group.
+        // If it doesn't exist null is returned
+        Table table2 = group.getTable("myTable");
+        if (table2 != null) {
+            // Do operations on the table
+        }
         // @@EndExample@@
     }
 

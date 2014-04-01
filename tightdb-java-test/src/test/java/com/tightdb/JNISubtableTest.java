@@ -9,7 +9,7 @@ public class JNISubtableTest {
     @Test
     public void shouldSynchronizeNestedTables() throws Throwable {
         Group group = new Group();
-        Table table = group.getTable("emp");
+        Table table = group.createTable("emp");
 
         TableSpec tableSpec = new TableSpec();
         tableSpec.addColumn(ColumnType.STRING, "name");
@@ -37,7 +37,7 @@ public class JNISubtableTest {
     @Test
     public void shouldInsertNestedTablesNested() {
         Group group = new Group();
-        Table table = group.getTable("emp");
+        Table table = group.createTable("emp");
 
         // Define table
         TableSpec tableSpec = new TableSpec();
@@ -61,7 +61,7 @@ public class JNISubtableTest {
     @Test
     public void shouldReturnSubtableIfNullIsInsertedAsSubtable() {
         Group group = new Group();
-        Table table = group.getTable("emp");
+        Table table = group.createTable("emp");
 
         table.addColumn(ColumnType.STRING, "string");
         long subtableColIndex = table.addColumn(ColumnType.TABLE, "table");
@@ -73,7 +73,7 @@ public class JNISubtableTest {
     @Test
     public void getSubtableOutOfRange() {
         Group group = new Group();
-        Table table = group.getTable("emp");
+        Table table = group.createTable("emp");
 
         table.addColumn(ColumnType.TABLE, "table");
 
@@ -99,7 +99,7 @@ public class JNISubtableTest {
     @Test
     public void subtableSort() {
         Group group = new Group();
-        Table table = group.getTable("emp");
+        Table table = group.createTable("emp");
 
         table.addColumn(ColumnType.TABLE, "table");
         TableSchema subSchema = table.getSubtableSchema(0);

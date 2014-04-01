@@ -7,6 +7,11 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
 =================
 + Group, SharedGroup, Table, TableView & Query now implements Closeable
 
+24-March-2014:
+=================
+! API Breaking change: Group.getTable now only retrieves tables, and returns null if it does not exist.
++ Added Group.createTable to create new tables.
+
 06-February-2014:
 =================
 + Added get-version and set-version to build.sh.

@@ -11,7 +11,7 @@ import com.tightdb.TableOrView;
 public abstract class AbstractTableOrView<Cursor, View, Query> implements Iterable<Cursor> {
 
     protected final EntityTypes<?, View, Cursor, Query> types;
-    protected final TableOrView tableOrView;
+    protected TableOrView tableOrView;
 
     public AbstractTableOrView(EntityTypes<?, View, Cursor, Query> types, TableOrView tableOrView) {
         this.types = types;

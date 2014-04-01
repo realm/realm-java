@@ -52,7 +52,7 @@ public class WriteTransactionIntro {
         WriteTransaction wt = group.beginWrite();
         try {
             // Create table, add columns and add row with data
-            Table users = wt.getTable("users");
+            Table users = wt.createTable("users");
             users.addColumn(ColumnType.STRING, "username");
             users.addColumn(ColumnType.INTEGER, "level");
             users.add("tarzan", 45);

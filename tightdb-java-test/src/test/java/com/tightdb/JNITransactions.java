@@ -40,7 +40,7 @@ public class JNITransactions {
 
     protected void writeOneTransaction(SharedGroup db, long rows) {
         WriteTransaction trans = db.beginWrite();
-        Table tbl = trans.getTable("EmployeeTable");
+        Table tbl = trans.createTable("EmployeeTable");
         tbl.addColumn(ColumnType.STRING, "name");
         tbl.addColumn(ColumnType.INTEGER, "number");
 
@@ -86,6 +86,7 @@ public class JNITransactions {
     @Test(expectedExceptions=IllegalStateException.class)
     public void shouldThrowExceptionAfterClosedReadTransaction() {
         SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        writeOneTransaction(db, 0);
         ReadTransaction rt = db.beginRead();
 
         try {
@@ -102,6 +103,7 @@ public class JNITransactions {
     @Test(expectedExceptions=IllegalStateException.class)
     public void shouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
         SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        writeOneTransaction(db, 0);
         ReadTransaction rt = db.beginRead();
 
         try {
@@ -121,7 +123,7 @@ public class JNITransactions {
         ReadTransaction rt = db.beginRead();
 
         try {
-            rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
+            rt.createTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
             rt.endRead();
             assert(false);
         } finally {
@@ -168,7 +170,7 @@ public class JNITransactions {
         SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
         {
             WriteTransaction trans = db.beginWrite();
-            Table tbl = trans.getTable("EmployeeTable");
+            Table tbl = trans.createTable("EmployeeTable");
             tbl.addColumn(ColumnType.STRING, "name");
             tbl.addColumn(ColumnType.INTEGER, "number");
 

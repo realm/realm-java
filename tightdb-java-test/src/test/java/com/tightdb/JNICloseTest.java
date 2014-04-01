@@ -30,7 +30,7 @@ public class JNICloseTest {
         WriteTransaction wt = sg.beginWrite();
         resources.add(wt);
         try {
-            Table t = wt.getTable("test");
+            Table t = wt.createTable("test");
             resources.add(t);
             t.addColumn(ColumnType.STRING, "StringColumn");
 

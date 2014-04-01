@@ -17,7 +17,7 @@ public class GroupIntro {
         Group group = new Group();
 
         // Create a new table with 2 columns and add 3 rows of data
-        Table table = group.getTable("table1");
+        Table table = group.createTable("table1");
         table.addColumn(ColumnType.INTEGER, "ID");
         table.addColumn(ColumnType.STRING, "Animal");
         table.add(1, "Lion");

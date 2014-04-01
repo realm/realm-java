@@ -146,7 +146,7 @@ public class Tutorial {
         // @@Example: serialisation @@
         // Create Table in Group
         Group group = new Group();
-        Table people1 = group.getTable("people");
+        Table people1 = group.createTable("people");
         people1.addColumn(ColumnType.STRING, "name");
         people1.addColumn(ColumnType.INTEGER, "age");
         people1.addColumn(ColumnType.BOOLEAN, "hired");
@@ -201,7 +201,10 @@ public class Tutorial {
         // Write transaction:
         WriteTransaction writeTransaction = sharedGroup.beginWrite();
         try {
-            Table person = writeTransaction.getTable("people");
+            Table person = writeTransaction.createTable("peopleTable");
+            person.addColumn(ColumnType.STRING, "name");
+            person.addColumn(ColumnType.INTEGER, "age");
+            person.addColumn(ColumnType.BOOLEAN, "hired");
             // Add row to table
             person.add("Bill", 53, true);
             writeTransaction.commit();
@@ -212,7 +215,7 @@ public class Tutorial {
         // Read transaction:
         ReadTransaction readTransaction = sharedGroup.beginRead();
         try {
-            Table people = readTransaction.getTable("people");
+            Table people = readTransaction.getTable("peopleTable");
             for (long index = 0; index < people.size(); index++) {
                 System.out.println(people.getString(NAME, index) +
                         " is " + people.getLong(AGE, index) + " years old.");

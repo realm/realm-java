@@ -22,7 +22,7 @@ public class ReadTransactionExamples {
             WriteTransaction wt = group.beginWrite();
 
             try{
-                Table users = wt.getTable("myTable");
+                Table users = wt.createTable("myTable");
                 users.addColumn(ColumnType.STRING, "username");
                 users.addColumn(ColumnType.INTEGER, "level");
                 users.add("tarzan", 45);

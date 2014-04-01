@@ -15,7 +15,7 @@ public class DynamicReadTransactionIntro {
             SharedGroup group = new SharedGroup("mydatabase.tightdb");
             WriteTransaction wt = group.beginWrite();
             try {
-                Table users = wt.getTable("people");
+                Table users = wt.createTable("people");
                 users.addColumn(ColumnType.STRING, "username");
                 users.addColumn(ColumnType.INTEGER, "level");
                 users.add("tarzan", 45);

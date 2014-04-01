@@ -188,26 +188,62 @@ public class Group implements Closeable {
      *
      * @param name
      *            The name of the table.
-     * @return The table if it exists, otherwise create it.
+     * @return The table if it exists, null otherwise.
      */
     public Table getTable(String name) {
         verifyGroupIsValid();
-        if (name == null || name.equals(""))
+        if (name == null || name.equals("")) {
             throw new IllegalArgumentException("Invalid name. Name must be a non-empty String.");
-        if (immutable)
-            if (!hasTable(name))
-                throwImmutable();
-        
-        // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
-        context.executeDelayedDisposal();
-        long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
-        try {
-            // Copy context reference from parent
-            return new Table(context, this, nativeTablePointer, immutable);
         }
-        catch (RuntimeException e) {
-            Table.nativeClose(nativeTablePointer);
-            throw e;
+        if (!hasTable(name)) {
+            return null;
+        } else {
+            // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+            context.executeDelayedDisposal();
+            long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
+            try {
+                // Copy context reference from parent
+                return new Table(context, this, nativeTablePointer, immutable);
+            }
+            catch (RuntimeException e) {
+                // This would rarely throw, but if it does it will most likely be OutOfMemory,
+                // and we want to make sure that we clean up after us in core.
+                Table.nativeClose(nativeTablePointer);
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * Returns a table with the specified name.
+     *
+     * @param name
+     *            The name of the table.
+     * @return The table if it exists, null otherwise.
+     */
+    public Table createTable(String name) {
+        verifyGroupIsValid();
+        if (name == null || name.equals("")) {
+            throw new IllegalArgumentException("Invalid name. Name must be a non-empty String.");
+        }
+        if (immutable) {
+            throwImmutable();
+        }
+
+        if (hasTable(name)) {
+            throw new RuntimeException("Table already exists.");
+        } else {
+            // Execute the disposal of abandoned tightdb objects each time a new tightdb object is created
+            context.executeDelayedDisposal();
+            long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
+            try {
+                // Copy context reference from parent
+                return new Table(context, this, nativeTablePointer, immutable);
+            }
+            catch (RuntimeException e) {
+                Table.nativeClose(nativeTablePointer);
+                throw e;
+            }
         }
     }
 

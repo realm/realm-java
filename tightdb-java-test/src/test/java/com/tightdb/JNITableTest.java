@@ -366,7 +366,7 @@ public class JNITableTest {
         // Write transaction must be run so where are sure a db exists with the correct table
         WriteTransaction wt = group.beginWrite();
         try {
-            Table table = wt.getTable(TABLENAME);
+            Table table = wt.createTable(TABLENAME);
             table.addColumn(ColumnType.STRING, "col0");
             table.add("value0");
             table.add("value1");
