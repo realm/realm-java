@@ -8,7 +8,8 @@
 		<version>0.5.0</version>
 	</parent>
 
-	<artifactId>tightdb-java-test</artifactId>
+    <artifactId>tightdb-java-test</artifactId>
+    <packaging>jar</packaging>
 
 	<dependencies>
 		<dependency>
@@ -46,6 +47,24 @@
                         <version>0.5.0</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+
+                <executions>
+                    <execution>
+                        <configuration>
+                            <finalName>tightdb</finalName>
+                            <outputDirectory>${project.parent.basedir}/lib</outputDirectory>
+                        </configuration>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
