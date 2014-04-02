@@ -3,6 +3,60 @@ Remember to increase the TIGHTDB_JNI_VERSION in com_tightdb_internal_Util.cpp an
       when the JNI interface is changed.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+Template
+=============================================================
+x.x.x Release notes (yyyy—MM-dd)
+
+Java
+----
+The Java API has been updated and your code will break!
+
+### Bugfixes:
+
+* None.
+
+### API breaking changes:
+
+* `???`
+
+### Enhancements:
+
+* `???`
+
+-------------
+
+### Internals:
+
+* `???`
+
+=============================================================
+0.5.0 Release notes (2014-04-02)
+
+Java
+----
+Release due to update of C++ (core) library.
+
+### Bugfixes:
+
+* None.
+
+### API breaking changes:
+
+* None.
+
+### Enhancements:
+
+* None.
+
+-------------
+
+### Internals:
+
+* Remove obsolete function `Java_com_tightdb_internal_Util_nativeGetVersion()`
+
+
+
+
 25-March-2014:
 =================
 + Group, SharedGroup, Table, TableView & Query now implements Closeable
