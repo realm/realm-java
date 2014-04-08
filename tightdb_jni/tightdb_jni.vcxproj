@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -60,6 +60,7 @@
     <SccProjectName />
     <SccLocalPath />
     <ProjectName>tightdb_jni</ProjectName>
+    <ProjectGuid>{3F422E96-7826-0F72-C2FC-D7F8AED63C7B}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -67,22 +68,26 @@
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>NotSet</CharacterSet>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>NotSet</CharacterSet>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -188,6 +193,7 @@
       <DisableSpecificWarnings>4355;4996</DisableSpecificWarnings>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnablePREfast>false</EnablePREfast>
+      <AdditionalIncludeDirectories>$(tightdb_path);$(tightdb_path)src\;$(tightdb_path)src\win32\pthread\; $(JAVA_HOME)\include; $(JAVA_HOME)\include\win32</AdditionalIncludeDirectories>
     </ClCompile>
     <PostBuildEvent>
       <Command>echo on
