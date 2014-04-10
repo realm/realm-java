@@ -1,3 +1,10 @@
+tightdb-java (0.6.0~@CODENAME@-1) UNRELEASED; urgency=low
+
+  * Tracking upstream release.
+
+ -- Emanuele Zattin <emanuele.zattin@switch-gears.dk>  Thu, 10 Apr 2014 10:16:43 +0200
+
+
 tightdb-java (0.5.0~@CODENAME@-1) UNRELEASED; urgency=low
 
   * Tracking upstream release.
