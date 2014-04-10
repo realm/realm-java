@@ -617,22 +617,22 @@ public class TableQuery implements Closeable {
 
     // date aggregation
 
-    public Date maximumDate(long columnIndex, long start, long end, long limit){
+    public Date maximumDate(long columnIndex, long start, long end, long limit) {
         validateQuery();
         return new Date(nativeMaximumDate(nativePtr, columnIndex, start, end, limit) * 1000);
     }
-    public Date maximumDate(long columnIndex){
+    public Date maximumDate(long columnIndex) {
         validateQuery();
         return new Date(nativeMaximumDate(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE) * 1000);
     }
     protected native long nativeMaximumDate(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
-    public Date minimumDate(long columnIndex, long start, long end, long limit){
+    public Date minimumDate(long columnIndex, long start, long end, long limit) {
         validateQuery();
         return new Date(nativeMinimumDate(nativePtr, columnIndex, start, end, limit) * 1000);
     }
-    public Date minimumDate(long columnIndex){
+    public Date minimumDate(long columnIndex) {
         validateQuery();
         return new Date(nativeMinimumDate(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE) * 1000);
     }

@@ -667,7 +667,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeHasIndex(
     return false;
 }
 
-//---------------------- Aggregare methods for integers
+//---------------------- Aggregate methods for integers
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSumInt(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)

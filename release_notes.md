@@ -34,7 +34,6 @@ The Java API has been updated and your code will break!
 
 Java
 ----
-The Java API has been updated and your code will break!
 
 ### Bugfixes:
 

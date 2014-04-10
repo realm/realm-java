@@ -486,7 +486,7 @@ CATEGORIES :
                  float  maximumFloat(long columnIndex, long start, long end, long limit)
                  double maximumDouble(long columnIndex)
                  double maximumDouble(long columnIndex, long start, long end, long limit)
-                 Date   maximumDate()
+                 Date   maximumDate(long columnIndex)
                  Date   maximumDate(long columnIndex, long start, long end, long limit)
       PARAMS:
       - NAME   : columnIndex
@@ -523,7 +523,7 @@ CATEGORIES :
                  float  minimumFloat(long columnIndex, long start, long end, long limit)
                  long   minimumDouble(long columnIndex)
                  double minimumDouble(long columnIndex, long start, long end, long limit)
-                 Date   minimumDate()
+                 Date   minimumDate(long columnIndex)
                  Date   minimumDate(long columnIndex, long start, long end, long limit)
       PARAMS:
       - NAME   : columnIndex
