@@ -1,6 +1,7 @@
 package com.tightdb;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 import java.util.Date;
@@ -489,4 +490,33 @@ public class JNITableTest {
         assertEquals(300.0f, t.getFloat(2, 4));
         assertEquals(3000.0f, t.getFloat(2, 5));
     }
+
+    @Test
+    public void maximumDate() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.DATE, "date");
+
+        table.add(new Date(0));
+        table.add(new Date(10000));
+        table.add(new Date(1000));
+
+        assertEquals(new Date(10000), table.maximumDate(0));
+
+    }
+
+    @Test
+    public void minimumDate() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.DATE, "date");
+
+        table.add(new Date(10000));
+        table.add(new Date(0));
+        table.add(new Date(1000));
+
+        assertEquals(new Date(0), table.minimumDate(0));
+
+    }
+
 }

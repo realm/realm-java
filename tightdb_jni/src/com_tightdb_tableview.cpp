@@ -731,6 +731,35 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeMinimumDouble(
     return 0;
 }
 
+
+// date aggregates
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMaximumDate(
+    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
+{
+    if (!VIEW_VALID(env, nativeViewPtr) ||
+        !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
+        return 0;
+    try {
+        // This exploits the fact that dates are stored as int in core
+        return TV(nativeViewPtr)->maximum_int( S(columnIndex));
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMinimumDate(
+    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
+{
+    if (!VIEW_VALID(env, nativeViewPtr) ||
+        !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
+        return 0;
+    try {
+        // This exploits the fact that dates are stored as int in core
+        return TV(nativeViewPtr)->minimum_int( S(columnIndex));
+    } CATCH_STD()
+    return 0;
+}
+
 // sort
 
 JNIEXPORT void JNICALL Java_com_tightdb_TableView_nativeSort(

@@ -408,20 +408,22 @@ CATEGORIES :
   - g_dyn_view_maximum:
   - g_dyn_view_maximum_float:
   - g_dyn_view_maximum_double:
+  - g_dyn_view_maximum_date:
       TITLE    : maximum*
-      NAMES    : [maximumInt, maximumFloat, maximumDouble]
+      NAMES    : [maximumInt, maximumFloat, maximumDouble, maximumDate]
       SUMMARY  : *g_dyn_view_maximum_summary
       DESCR    : *g_dyn_view_maximum_descr
       SIGNATURE: |
                  long   maximumLong(long columnIndex)
-                 double maximumFloat(long columnIndex)
+                 float maximumFloat(long columnIndex)
                  double maximumDouble(long columnIndex)
+                 Date maximumDate(long columnIndex)
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
         DESCR  : Column index.
       RETURN:
-        TYPES  : [long, double]
+        TYPES  : [long, float, double, Date]
         DESCR  : The maximum value in the column.
       EXAMPLES:
       - CODE   : ex_java_dyn_view_maximum
@@ -429,20 +431,22 @@ CATEGORIES :
   - g_dyn_view_minimum:
   - g_dyn_view_minimum_float:
   - g_dyn_view_minimum_double:
+  - g_dyn_view_minimum_date:
       TITLE    : minimum*
-      NAMES    : [minimumInt, minimumFloat, minimumDouble]
+      NAMES    : [minimumInt, minimumFloat, minimumDouble, minimumDate]
       SUMMARY  : *g_dyn_view_minimum_summary
       DESCR    : *g_dyn_view_minimum_descr
       SIGNATURE: |
                  long   minimumLong(long columnIndex)
-                 double minimumFloat(long columnIndex)
+                 float minimumFloat(long columnIndex)
                  double minimumDouble(long columnIndex)
+                 Date minimumDate(long columnIndex)
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
         DESCR  : Column index.
       RETURN:
-        TYPES  : [long, double]
+        TYPES  : [long, float, double, Date]
         DESCR  : The minimum value in the column.
       EXAMPLES:
       - CODE   : ex_java_dyn_view_minimum

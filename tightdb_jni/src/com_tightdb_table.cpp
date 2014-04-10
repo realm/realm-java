@@ -806,6 +806,33 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageDouble(
     return 0;
 }
 
+
+//--------------------- Aggregare methods for double
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximumDate(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+        return 0;
+    try {
+        // This exploits the fact that dates are stored as int in core
+        return TBL(nativeTablePtr)->maximum_int( S(columnIndex));
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimumDate(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+        return 0;
+    try {
+        // This exploits the fact that dates are stored as int in core
+        return TBL(nativeTablePtr)->minimum_int( S(columnIndex));
+    } CATCH_STD()
+    return 0;
+}
+
 //---------------------- Count
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeCountLong(

@@ -726,4 +726,33 @@ public class JNIQueryTest {
         try { table.where().endSubtable().subtable(0).count(); assert(false); } catch (UnsupportedOperationException e) {}
         try { table.where().subtable(0).endSubtable().count(); assert(false); } catch (UnsupportedOperationException e) {} 
     }
+
+    @Test
+    public void maximumDate() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.DATE, "date");
+
+        table.add(new Date(0));
+        table.add(new Date(10000));
+        table.add(new Date(1000));
+
+        assertEquals(new Date(10000), table.where().maximumDate(0));
+
+    }
+
+    @Test
+    public void minimumDate() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.DATE, "date");
+
+        table.add(new Date(10000));
+        table.add(new Date(0));
+        table.add(new Date(1000));
+
+        assertEquals(new Date(0), table.where().minimumDate(0));
+
+    }
+
 }

@@ -222,6 +222,11 @@ public interface TableOrView {
     double averageDouble(long columnIndex);
 
 
+    Date maximumDate(long columnIndex);
+
+    Date minimumDate(long columnIndex);
+
+
     long findFirstLong(long columnIndex, long value);
 
     long findFirstBoolean(long columnIndex, boolean value);

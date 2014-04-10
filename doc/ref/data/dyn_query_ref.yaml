@@ -474,18 +474,20 @@ CATEGORIES :
   - g_dyn_query_maximum:
   - g_dyn_query_maximum_float:
   - g_dyn_query_maximum_double:
+  - g_dyn_query_maximum_date:
       TITLE    : maximum*
-      NAMES    : [maximum, maximumFloat, maximumDouble]
+      NAMES    : [maximum, maximumFloat, maximumDouble, maximumDate]
       DESCR    : *g_dyn_query_maximum_descr
       SUMMARY  : *g_dyn_query_maximum_summary
       SIGNATURE: |
                  long   maximum(long columnIndex)
                  long   maximum(long columnIndex, long start, long end, long limit)
-                 long   maximumFloat(long columnIndex)
+                 float  maximumFloat(long columnIndex)
                  float  maximumFloat(long columnIndex, long start, long end, long limit)
-                 long   maximumDouble(long columnIndex)
+                 double maximumDouble(long columnIndex)
                  double maximumDouble(long columnIndex, long start, long end, long limit)
-#                 Date  maximumDate(long columnIndex, long start, long end, long limit)
+                 Date   maximumDate()
+                 Date   maximumDate(long columnIndex, long start, long end, long limit)
       PARAMS:
       - NAME   : columnIndex
         DESCR  : Column index. The datatype of the column must match the function called. E.g. <code>maximum_float()</code> can only be used on columns which contains floats.
@@ -500,7 +502,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : "Maximum number of rows to search. -1 for infinity."
       RETURN:
-        TYPES  : [long, float, double] #, Date]
+        TYPES  : [long, float, double, Date]
         DESCR  : The highest value.
       EXAMPLES:
       - DESCR  :
@@ -509,8 +511,9 @@ CATEGORIES :
   - g_dyn_query_minimum:
   - g_dyn_query_minimum_float:
   - g_dyn_query_minimum_double:
+  - g_dyn_query_minimum_date:
       TITLE    : minimum*
-      NAMES    : [minimum, minimumFloat, minimumDouble] #, minimum_date]
+      NAMES    : [minimum, minimumFloat, minimumDouble, minimum_date]
       DESCR    : *g_dyn_query_minimum_descr
       SUMMARY  : *g_dyn_query_minimum_summary
       SIGNATURE: |
@@ -520,7 +523,8 @@ CATEGORIES :
                  float  minimumFloat(long columnIndex, long start, long end, long limit)
                  long   minimumDouble(long columnIndex)
                  double minimumDouble(long columnIndex, long start, long end, long limit)
-#                 Date  minimumDate(long columnIndex, long start, long end, long limit)
+                 Date   minimumDate()
+                 Date   minimumDate(long columnIndex, long start, long end, long limit)
       PARAMS:
       - NAME   : columnIndex
         DESCR  : Column index. The datatype of the column must match the function called. E.g. <code>minimum_float()</code> can only be used on columns which contains floats.
@@ -535,7 +539,7 @@ CATEGORIES :
         TYPES  : long
         DESCR  : "Maximum number of rows to find. -1 for infinity."
       RETURN:
-        TYPES  : [long, float, double] #, Date]
+        TYPES  : [long, float, double, Date]
         DESCR  : The lowest value.
       EXAMPLES:
       - DESCR  :

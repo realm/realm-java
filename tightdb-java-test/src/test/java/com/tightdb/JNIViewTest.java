@@ -460,4 +460,36 @@ public class JNIViewTest {
         t.remove(3);
         accessingViewMustThrow(view);
     }
+
+    @Test
+    public void maximumDate() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.DATE, "date");
+
+        table.add(new Date(0));
+        table.add(new Date(10000));
+        table.add(new Date(1000));
+
+        TableView view = table.where().findAll();
+
+        assertEquals(new Date(10000), view.maximumDate(0));
+
+    }
+
+    @Test
+    public void minimumDate() {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.DATE, "date");
+
+        table.add(new Date(10000));
+        table.add(new Date(0));
+        table.add(new Date(1000));
+
+        TableView view = table.where().findAll();
+
+        assertEquals(new Date(0), view.minimumDate(0));
+
+    }
 }

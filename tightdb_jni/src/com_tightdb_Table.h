@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 #undef com_tightdb_Table_INFINITE
-#define com_tightdb_Table_INFINITE -1i64
+#define com_tightdb_Table_INFINITE -1LL
 /*
  * Class:     com_tightdb_Table
  * Method:    createNative
@@ -543,6 +543,22 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeMinimumDouble
  * Signature: (JJ)D
  */
 JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageDouble
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeMaximumDate
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximumDate
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_Table
+ * Method:    nativeMinimumDate
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimumDate
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
