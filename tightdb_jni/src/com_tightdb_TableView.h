@@ -441,6 +441,22 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableView_nativeAverageDouble
 
 /*
  * Class:     com_tightdb_TableView
+ * Method:    nativeMaximumDate
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMaximumDate
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
+ * Method:    nativeMinimumDate
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableView_nativeMinimumDate
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     com_tightdb_TableView
  * Method:    nativeSort
  * Signature: (JJZ)V
  */

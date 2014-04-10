@@ -214,12 +214,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     /**
      * Updates a table specification from a Table specification structure.
-     * Supported types - refer to @see ColumnType.
-     *
-     * @param columnType
-     *            data type of the column @see <code>ColumnType</code>
-     * @param columnName
-     *            name of the column. Duplicate column name is not allowed.
      */
     public void updateFromSpec(TableSpec tableSpec) {
         if (immutable) throwImmutable();
@@ -1061,6 +1055,22 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native double nativeAverageDouble(long nativePtr, long columnIndex);
+
+    // Date aggregates
+
+    @Override
+    public Date maximumDate(long columnIndex) {
+        return new Date(nativeMaximumDate(nativePtr, columnIndex) * 1000);
+    }
+
+    protected native long nativeMaximumDate(long nativePtr, long columnIndex);
+
+    @Override
+    public Date minimumDate(long columnIndex) {
+        return new Date(nativeMinimumDate(nativePtr, columnIndex) * 1000);
+    }
+
+    protected native long nativeMinimumDate(long nativePtr, long columnnIndex);
 
 
     //

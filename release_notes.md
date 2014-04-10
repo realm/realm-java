@@ -30,6 +30,31 @@ The Java API has been updated and your code will break!
 * `???`
 
 =============================================================
+0.6.0 Release notes (yyyy—MM-dd)
+
+Java
+----
+
+### Bugfixes:
+
+* None.
+
+### API breaking changes:
+
+* None.
+
+### Enhancements:
+
+* `maximumDate` has been added to `Table`, `TableView` and `Query`
+* `minimumDate` has been added to `Table`, `TableView` and `Query`
+
+-------------
+
+### Internals:
+
+* `???`
+
+=============================================================
 0.5.0 Release notes (2014-04-02)
 
 Java

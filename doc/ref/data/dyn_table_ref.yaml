@@ -716,21 +716,23 @@ CATEGORIES :
   - g_dyn_table_maximum:
   - g_dyn_table_maximum_float:
   - g_dyn_table_maximum_double:
+  - g_dyn_table_maximum_date:
       TITLE    : maximum*
-      NAMES    : [maximum, maximumFloat, maximumDouble]
+      NAMES    : [maximum, maximumFloat, maximumDouble, maximumDate]
       SUMMARY  : *g_dyn_table_maximum_summary
       DESCR    : *g_dyn_table_maximum_descr
       SIGNATURE: |
                  long   maximumLong(long columnIndex)
                  float  maximumFloat(long columnIndex)
                  double maximumDouble(long columnIndex)
+                 Date   maximumDate(long columnIndex)
       CONST    : True
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
         DESCR  : Column index.
       RETURN:
-        TYPES  : [long, float, double]
+        TYPES  : [long, float, double, Date]
         DESCR  : The maximum value.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_maximum
@@ -738,20 +740,22 @@ CATEGORIES :
   - g_dyn_table_minimum:
   - g_dyn_table_minimum_float:
   - g_dyn_table_minimum_double:
+  - g_dyn_table_minimum_date:
       TITLE    : minimum*
-      NAMES    : [minimum, minimumFloat, minimumDouble]
+      NAMES    : [minimum, minimumFloat, minimumDouble, minimumDate]
       SUMMARY  : *g_dyn_table_minimum_summary
       DESCR    : *g_dyn_table_minimum_descr
       SIGNATURE: |
                  long   minimumLong(long columnIndex)
                  float  minimumFloat(long columnIndex)
                  double minimumDouble(long columnIndex)
+                 Date   minimumDate(long columnIndex)
       PARAMS:
       - NAME   : columnIndex
         TYPES  : long
         DESCR  : Column index.
       RETURN:
-        TYPES  : [long, float, double]
+        TYPES  : [long, float, double, Date]
         DESCR  : The minimum value.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_minimum

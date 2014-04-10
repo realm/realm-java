@@ -1,5 +1,5 @@
 #ifndef TIGHTDB_COLUMN_TYPE_UTIL_H
-#define TIGTHDB_COLUMN_TYPE_UTIL_H
+#define TIGHTDB_COLUMN_TYPE_UTIL_H
 
 #include <jni.h>
 #include <tightdb.hpp>

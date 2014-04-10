@@ -743,6 +743,42 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_TableQuery_nativeAverageDouble(
 }
 
 
+// date aggregates
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMaximumDate(
+    JNIEnv* env, jobject, jlong nativeQueryPtr,
+    jlong columnIndex, jlong start, jlong end, jlong limit)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
+    if (!QUERY_VALID(env, pQuery) ||
+        !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_DateTime) ||
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+        return 0;
+    try {
+        // This exploits the fact that dates are stored as int in core
+        return pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeMinimumDate(
+    JNIEnv* env, jobject, jlong nativeQueryPtr,
+    jlong columnIndex, jlong start, jlong end, jlong limit)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    Table* pTable = Ref2Ptr(pQuery->get_table());
+    if (!QUERY_VALID(env, pQuery) ||
+        !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_DateTime) ||
+        !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+        return 0;
+    try {
+        // This exploits the fact that dates are stored as int in core
+        return pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
+    } CATCH_STD()
+    return 0;
+}
+
 // Count, Remove
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_TableQuery_nativeCount(

@@ -151,7 +151,7 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Returns the 0-based index of a column based on the name.
      *
-     * @param name column name
+     * @param columnName column name
      * @return the index, -1 if not found
      */
     @Override
@@ -780,6 +780,23 @@ public class TableView implements TableOrView, Closeable {
     }
 
     protected native double nativeAverageDouble(long nativePtr, long columnIndex);
+
+
+    // Date aggregates
+
+    @Override
+    public Date maximumDate(long columnIndex) {
+        return new Date(nativeMaximumDate(nativePtr, columnIndex) * 1000);
+    }
+
+    protected native long nativeMaximumDate(long nativePtr, long columnIndex);
+
+    @Override
+    public Date minimumDate(long columnIndex) {
+        return new Date(nativeMinimumDate(nativePtr, columnIndex) * 1000);
+    }
+
+    protected native long nativeMinimumDate(long nativePtr, long columnnIndex);
 
 
     // Sorting

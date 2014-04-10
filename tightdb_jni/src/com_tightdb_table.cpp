@@ -667,7 +667,7 @@ JNIEXPORT jboolean JNICALL Java_com_tightdb_Table_nativeHasIndex(
     return false;
 }
 
-//---------------------- Aggregare methods for integers
+//---------------------- Aggregate methods for integers
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeSumInt(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
@@ -713,7 +713,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageInt(
     return 0;
 }
 
-//--------------------- Aggregare methods for float
+//--------------------- Aggregate methods for float
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeSumFloat(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
@@ -760,7 +760,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageFloat(
 }
 
 
-//--------------------- Aggregare methods for double
+//--------------------- Aggregate methods for double
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeSumDouble(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
@@ -802,6 +802,33 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageDouble(
         return 0;
     try {
         return TBL(nativeTablePtr)->average_double( S(columnIndex));
+    } CATCH_STD()
+    return 0;
+}
+
+
+//--------------------- Aggregate methods for date
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximumDate(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+        return 0;
+    try {
+        // This exploits the fact that dates are stored as int in core
+        return TBL(nativeTablePtr)->maximum_int( S(columnIndex));
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMinimumDate(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
+        return 0;
+    try {
+        // This exploits the fact that dates are stored as int in core
+        return TBL(nativeTablePtr)->minimum_int( S(columnIndex));
     } CATCH_STD()
     return 0;
 }
