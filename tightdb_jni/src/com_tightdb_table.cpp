@@ -713,7 +713,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageInt(
     return 0;
 }
 
-//--------------------- Aggregare methods for float
+//--------------------- Aggregate methods for float
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeSumFloat(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
@@ -760,7 +760,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageFloat(
 }
 
 
-//--------------------- Aggregare methods for double
+//--------------------- Aggregate methods for double
 
 JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeSumDouble(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
@@ -807,7 +807,7 @@ JNIEXPORT jdouble JNICALL Java_com_tightdb_Table_nativeAverageDouble(
 }
 
 
-//--------------------- Aggregare methods for double
+//--------------------- Aggregate methods for date
 
 JNIEXPORT jlong JNICALL Java_com_tightdb_Table_nativeMaximumDate(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
