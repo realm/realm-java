@@ -7,6 +7,7 @@ import com.tightdb.ColumnType;
 import com.tightdb.ReadTransaction;
 import com.tightdb.SharedGroup;
 import com.tightdb.Table;
+import com.tightdb.TableOrView;
 
 import java.io.IOException;
 import java.lang.reflect.*;
@@ -22,7 +23,7 @@ public class Realm<T> extends AbstractList<T> {
     private SharedGroup sg;
     private ReadTransaction rt;
 
-    private Table table;
+    private TableOrView dataStore;
 
 
     public Realm(Class<T> type, Context context) {
@@ -35,8 +36,7 @@ public class Realm<T> extends AbstractList<T> {
 
         this.type = type;
 
-        this.table = new Table();
-
+        this.dataStore = new Table();
 
 
         for(Field f : this.type.getDeclaredFields()) {
@@ -45,22 +45,36 @@ public class Realm<T> extends AbstractList<T> {
 
 
             if(fieldType.equals(String.class)) {
-                table.addColumn(ColumnType.STRING, f.getName());
+                ((Table)dataStore).addColumn(ColumnType.STRING, f.getName());
             } else if(fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
-                table.addColumn(ColumnType.INTEGER, f.getName());
+                ((Table)dataStore).addColumn(ColumnType.INTEGER, f.getName());
             } else if(fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                table.addColumn(ColumnType.DOUBLE, f.getName());
+                ((Table)dataStore).addColumn(ColumnType.DOUBLE, f.getName());
             } else if(fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-                table.addColumn(ColumnType.FLOAT, f.getName());
+                ((Table)dataStore).addColumn(ColumnType.FLOAT, f.getName());
             } else if(fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                table.addColumn(ColumnType.BOOLEAN, f.getName());
+                ((Table)dataStore).addColumn(ColumnType.BOOLEAN, f.getName());
             } else if(fieldType.equals(Date.class)) {
-                table.addColumn(ColumnType.DATE, f.getName());
+                ((Table)dataStore).addColumn(ColumnType.DATE, f.getName());
             } else {
                 System.err.println("Type not supported: " + fieldType.getName());
             }
 
         }
+    }
+
+    Realm(Realm<T> realm, TableOrView dataStore) {
+        this.context = realm.context;
+        this.type = realm.type;
+        this.dataStore = dataStore;
+    }
+
+    TableOrView getDataStore() {
+        return this.dataStore;
+    }
+
+    public RealmQuery<T> where() {
+        return new RealmQuery<T>(this);
     }
 
     @Override
@@ -86,13 +100,13 @@ public class Realm<T> extends AbstractList<T> {
 
         }
 
-        table.addAt(rowIndex, row);
+        ((Table)this.dataStore).addAt(rowIndex, row);
 
     }
 
     @Override
     public T remove(int rowIndex) {
-        this.table.remove(rowIndex);
+        this.dataStore.remove(rowIndex);
         return null;
     }
 
@@ -109,24 +123,24 @@ public class Realm<T> extends AbstractList<T> {
             Class<?> fieldType = f.getType();
 
             System.out.println(f.getName());
-            long columnIndex = table.getColumnIndex(f.getName());
+            long columnIndex = this.dataStore.getColumnIndex(f.getName());
 
             f.setAccessible(true);
 
             try {
 
                 if (fieldType.equals(String.class)) {
-                    table.setString(columnIndex, rowIndex, (String) f.get(element));
+                    this.dataStore.setString(columnIndex, rowIndex, (String) f.get(element));
                 } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
-                    table.setLong(columnIndex, rowIndex, f.getLong(element));
+                    this.dataStore.setLong(columnIndex, rowIndex, f.getLong(element));
                 } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                    table.setDouble(columnIndex, rowIndex, f.getDouble(element));
+                    this.dataStore.setDouble(columnIndex, rowIndex, f.getDouble(element));
                 } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-                    table.setFloat(columnIndex, rowIndex, f.getFloat(element));
+                    this.dataStore.setFloat(columnIndex, rowIndex, f.getFloat(element));
                 } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                    table.setBoolean(columnIndex, rowIndex, f.getBoolean(element));
+                    this.dataStore.setBoolean(columnIndex, rowIndex, f.getBoolean(element));
                 } else if (fieldType.equals(Date.class)) {
-                    table.setDate(columnIndex, rowIndex, (Date) f.get(element));
+                    this.dataStore.setDate(columnIndex, rowIndex, (Date) f.get(element));
                 } else {
                     System.err.println("Type not supported: " + fieldType.getName());
                 }
@@ -148,7 +162,7 @@ public class Realm<T> extends AbstractList<T> {
         try {
             T obj = ProxyBuilder.forClass(this.type)
                     .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
-                    .handler(new RealmProxy<T>(table, rowIndex))
+                    .handler(new RealmProxy<T>(this.dataStore, rowIndex))
                     .build();
             return obj;
         } catch(IOException e) {
@@ -159,7 +173,7 @@ public class Realm<T> extends AbstractList<T> {
 
     @Override
     public int size() {
-        return ((Long)this.table.size()).intValue();
+        return ((Long)this.dataStore.size()).intValue();
     }
 
 

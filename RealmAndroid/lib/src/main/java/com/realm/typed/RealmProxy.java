@@ -1,6 +1,7 @@
 package com.realm.typed;
 
 import com.tightdb.Table;
+import com.tightdb.TableOrView;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -9,7 +10,7 @@ import java.util.Date;
 
 public class RealmProxy<T> implements InvocationHandler {
 
-    private Table table;
+    private TableOrView table;
     private long rowIndex;
 
     public RealmProxy() {
@@ -17,7 +18,7 @@ public class RealmProxy<T> implements InvocationHandler {
     }
 
 
-    public RealmProxy(Table table, long rowIndex) {
+    public RealmProxy(TableOrView table, long rowIndex) {
         this.table = table;
         this.rowIndex = rowIndex;
     }

@@ -44,7 +44,10 @@ public class RealmTest extends AndroidTestCase {
             System.out.println(user.getId());
         }
 
-        //User result = realm.query().whereEquals("name", "Rasmus").find();
+        // Query
+        Realm<User> results = realm.where().equalTo("id", 33).find();
+        assertEquals(1, results.size());
+        assertEquals(33, results.get(0).getId());
 
     }
 
