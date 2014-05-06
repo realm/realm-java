@@ -10,13 +10,10 @@ import com.tightdb.Table;
 
 import java.io.IOException;
 import java.lang.reflect.*;
-import java.util.Collection;
+import java.util.AbstractList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 
-public class Realm<T> implements List<T> {
+public class Realm<T> extends AbstractList<T> {
 
     private Class<T> type;
 
@@ -27,6 +24,7 @@ public class Realm<T> implements List<T> {
 
     private Table table;
 
+
     public Realm(Class<T> type, Context context) {
         this(type, context, context.getFilesDir()+"/default.realm");
     }
@@ -35,10 +33,11 @@ public class Realm<T> implements List<T> {
         this.context = context;
         this.sg = new SharedGroup(filePath);
 
+        this.type = type;
+
         this.table = new Table();
 
 
-        this.type = type;
 
         for(Field f : this.type.getDeclaredFields()) {
 
@@ -64,96 +63,85 @@ public class Realm<T> implements List<T> {
         }
     }
 
-    public T create() {
-        try {
-            return ProxyBuilder.forClass(this.type)
-                    .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
-                    .handler(new RealmProxy<T>(table, -1))
-                    .build();
-        } catch(IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     @Override
-    public void add(int i, T t) {
+    public void add(int rowIndex, T element) {
 
-    }
+        Field[] fields = element.getClass().getDeclaredFields();
 
-    public boolean add(T obj) {
-        long rowIndex = table.addEmptyRow();
+        Object[] row = new Object[fields.length];
 
         // Inspect fields and add them
-        for(Field f : obj.getClass().getDeclaredFields()) {
+        for(int i = 0; i < fields.length; i++) {
 
-            Class<?> fieldType = f.getType();
-
-            long columnIndex = table.getColumnIndex(f.getName());
-
+            Field f = fields[i];
             f.setAccessible(true);
 
             try {
-                if (fieldType.equals(String.class)) {
-                    table.setString(columnIndex, rowIndex, (String) f.get(obj));
-                } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
-                    table.setLong(columnIndex, rowIndex, f.getLong(obj));
-                } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                    table.setDouble(columnIndex, rowIndex, f.getDouble(obj));
-                } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-                    table.setFloat(columnIndex, rowIndex, f.getFloat(obj));
-                } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                    table.setBoolean(columnIndex, rowIndex, f.getBoolean(obj));
-                } else if (fieldType.equals(Date.class)) {
-                    table.setDate(columnIndex, rowIndex, (Date) f.get(obj));
-                } else {
-                    System.err.println("Type not supported: " + fieldType.getName());
-                }
+
+                row[i] = f.get(element);
+
             } catch(IllegalAccessException e) {
                 e.printStackTrace();
             }
 
         }
 
-        return true;
+        table.addAt(rowIndex, row);
 
     }
 
     @Override
-    public boolean addAll(int i, Collection<? extends T> ts) {
-        return false;
+    public T remove(int rowIndex) {
+        this.table.remove(rowIndex);
+        return null;
     }
 
     @Override
-    public boolean addAll(Collection<? extends T> ts) {
-        return false;
+    public T set(int rowIndex, T element) {
+
+        Field[] fields = element.getClass().getDeclaredFields();
+
+        // Inspect fields and add them
+        for(int i = 0; i < fields.length; i++) {
+
+            Field f = fields[i];
+
+            Class<?> fieldType = f.getType();
+
+            System.out.println(f.getName());
+            long columnIndex = table.getColumnIndex(f.getName());
+
+            f.setAccessible(true);
+
+            try {
+
+                if (fieldType.equals(String.class)) {
+                    table.setString(columnIndex, rowIndex, (String) f.get(element));
+                } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
+                    table.setLong(columnIndex, rowIndex, f.getLong(element));
+                } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
+                    table.setDouble(columnIndex, rowIndex, f.getDouble(element));
+                } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
+                    table.setFloat(columnIndex, rowIndex, f.getFloat(element));
+                } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
+                    table.setBoolean(columnIndex, rowIndex, f.getBoolean(element));
+                } else if (fieldType.equals(Date.class)) {
+                    table.setDate(columnIndex, rowIndex, (Date) f.get(element));
+                } else {
+                    System.err.println("Type not supported: " + fieldType.getName());
+                }
+
+            } catch(IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return this.get(rowIndex);
+
     }
 
-    @Override
-    public void clear() {
-        this.table.clear();
-    }
 
-    @Override
-    public boolean contains(Object o) {
-        return false;
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> objects) {
-        return false;
-    }
-
-
-    @Override
-    public int indexOf(Object o) {
-        return 0;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return false;
-    }
 
     @Override
     public T get(int rowIndex) {
@@ -174,69 +162,5 @@ public class Realm<T> implements List<T> {
         return ((Long)this.table.size()).intValue();
     }
 
-    @Override
-    public List<T> subList(int i, int i2) {
-        return null;
-    }
 
-    @Override
-    public Object[] toArray() {
-        return new Object[0];
-    }
-
-    @Override
-    public <T1> T1[] toArray(T1[] t1s) {
-        return null;
-    }
-
-    /*
-    public <T> RealmQuery<T> query(Class<T> type) {
-        return new RealmQuery<T>();
-    }
-*/
-
-    @Override
-    public Iterator<T> iterator() {
-        return new RealmIterator<T>(this);
-    }
-
-    @Override
-    public int lastIndexOf(Object o) {
-        return 0;
-    }
-
-    @Override
-    public ListIterator<T> listIterator() {
-        return null;
-    }
-
-    @Override
-    public ListIterator<T> listIterator(int i) {
-        return null;
-    }
-
-    @Override
-    public T remove(int i) {
-        return null;
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        return false;
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> objects) {
-        return false;
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> objects) {
-        return false;
-    }
-
-    @Override
-    public T set(int i, T t) {
-        return null;
-    }
 }
