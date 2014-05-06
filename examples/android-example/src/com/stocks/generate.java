@@ -8,8 +8,8 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.csvreader.CsvReader;
-import com.tightdb.Group;
-import com.tightdb.example.StockaTable;
+import com.realm.Group;
+import com.realm.example.StockaTable;
 
 public class generate {
     public void stocks() {
@@ -25,7 +25,7 @@ public class generate {
             }
         }
         File dir = Environment.getExternalStorageDirectory();
-        File file = new File(dir, "NOK.tightdb");
+        File file = new File(dir, "NOK.realm");
 
         Group group = new Group(file);
         //  Group group = new Group();
@@ -64,7 +64,7 @@ public class generate {
         }
         // Write to disk
         try {
-            group.writeToFile("sdcard/NOK.tightdb");
+            group.writeToFile("sdcard/NOK.realm");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -83,11 +83,11 @@ public class generate {
          */
         // Write to disk
         /*try {
-        group.writeToFile("sdcard/stocksa.tightdb");
+        group.writeToFile("sdcard/stocksa.realm");
     } catch (IOException e) {
         e.printStackTrace();
     }
-    File file_new = new File(dir, "stocksa.tightdb");
+    File file_new = new File(dir, "stocksa.realm");
     Group group_new = new Group(file_new);
     StockaTable stocks_new = new StockaTable(group_new);
     Log.i("TDB1_new", Long.toString(stocks_new.last().getLow()));

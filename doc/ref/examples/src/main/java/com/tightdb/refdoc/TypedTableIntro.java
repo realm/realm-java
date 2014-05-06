@@ -1,9 +1,9 @@
 // @@Example: ex_java_typed_table_intro @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.File;
 import java.io.IOException;
-import com.tightdb.*;
+import com.realm.*;
 
 public class TypedTableIntro {
 
@@ -99,7 +99,7 @@ public class TypedTableIntro {
         /****************************** SERIALIZE ********************************/
 
         System.out.println("Serialize to file:");
-        new File("people.tightdb").delete(); // overwrites file if it already exists
+        new File("people.realm").delete(); // overwrites file if it already exists
 
         // Create Table in Group
         Group group = new Group();
@@ -110,14 +110,14 @@ public class TypedTableIntro {
 
         // Write to disk
         try {
-            group.writeToFile("people.tightdb");
+            group.writeToFile("people.realm");
         } catch (IOException e) {
             // unable to write - handle...
             System.exit(1);
         }
 
         // Load a group from disk (and print contents)
-        Group fromDisk = new Group("people.tightdb");
+        Group fromDisk = new Group("people.realm");
         PeopleTable people2 = new PeopleTable(fromDisk);
 
         for (PeopleRow person : people2) {
@@ -140,7 +140,7 @@ public class TypedTableIntro {
         System.out.println("\nTransactions:");
 
         // Open a shared group
-        SharedGroup db = new SharedGroup("people.tightdb");
+        SharedGroup db = new SharedGroup("people.realm");
 
         // Write transaction:
         WriteTransaction wrtTrans = db.beginWrite();    // Start transaction

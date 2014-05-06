@@ -1,6 +1,6 @@
 package my.app;
 
-import com.tightdb.*;
+import com.realm.*;
 
 public class Test {
 

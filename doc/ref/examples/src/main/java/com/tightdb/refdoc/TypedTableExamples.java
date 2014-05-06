@@ -1,11 +1,11 @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-import com.tightdb.Group;
-import com.tightdb.SharedGroup;
-import com.tightdb.WriteTransaction;
+import com.realm.Group;
+import com.realm.SharedGroup;
+import com.realm.WriteTransaction;
 
 public class TypedTableExamples {
 
@@ -105,7 +105,7 @@ public class TypedTableExamples {
         // @@Example: ex_java_typed_table_is_valid @@
         // @@Show@@
         // Open a group from file
-        Group fromFile = new Group( /* filepath.tightdb */);
+        Group fromFile = new Group( /* filepath.realm */);
 
         // Get PeopleTable from group
         PeopleTable people = new PeopleTable(fromFile);

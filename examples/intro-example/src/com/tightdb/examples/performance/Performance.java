@@ -1,6 +1,6 @@
-package com.tightdb.examples.performance;
+package com.realm.examples.performance;
 
-import com.tightdb.internal.Util;
+import com.realm.internal.Util;
 
 
 public class Performance {
@@ -69,7 +69,7 @@ public class Performance {
             System.out.println();
         }
         /*
-        long tightTotal  = tightdb.javaDBMemUsed + tightdb.nativeDBMemUsed;
+        long tightTotal  = realm.javaDBMemUsed + realm.nativeDBMemUsed;
         long javaTotal   = javaArray.javaDBMemUsed + javaArray.nativeDBMemUsed;
         long sqliteTotal = sqlite.javaDBMemUsed + sqlite.nativeDBMemUsed;
         System.out.printf("Memory use (java+native):\t%5d KB (x1)\t%5d KB (x%d)\t%5d KB (x%x)\n",

@@ -1,6 +1,6 @@
 // @@Example: ex_java_dyn_table_intro @@
-package com.tightdb.refdoc;
-import com.tightdb.*;
+package com.realm.refdoc;
+import com.realm.*;
 
 public class DynTableIntro {
     public static void main(String[] args) {

@@ -1,9 +1,9 @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import com.tightdb.*;
+import com.realm.*;
 
 public class ReadTransactionExamples {
 
@@ -15,10 +15,10 @@ public class ReadTransactionExamples {
         // @@Example: ex_java_shared_group_end_read @@
         {
             // Delete file to start from scratch
-            (new File("mydatabase.tightdb")).delete();
-            (new File("mydatabase.tightdb.lock")).delete();
+            (new File("mydatabase.realm")).delete();
+            (new File("mydatabase.realm.lock")).delete();
             // Create table, add columns and add row with data
-            SharedGroup group = new SharedGroup("mydatabase.tightdb");
+            SharedGroup group = new SharedGroup("mydatabase.realm");
             WriteTransaction wt = group.beginWrite();
 
             try{
@@ -37,7 +37,7 @@ public class ReadTransactionExamples {
 
         // @@Show@@
         // Open database file in a shared group
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
         // Start read transaction
         ReadTransaction rt = group.beginRead();

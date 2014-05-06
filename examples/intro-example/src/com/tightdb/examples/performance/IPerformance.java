@@ -1,4 +1,4 @@
-package com.tightdb.examples.performance;
+package com.realm.examples.performance;
 
 public abstract interface IPerformance {
 

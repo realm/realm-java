@@ -1,4 +1,4 @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,14 +6,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import com.tightdb.*;
-import com.tightdb.Group.OpenMode;
+import com.realm.*;
+import com.realm.Group.OpenMode;
 
 public class GroupExamples {
 
     public static void main(String[] args) throws FileNotFoundException  {
 
-        new File("mydatabasefile.tightdb").delete();
+        new File("mydatabasefile.realm").delete();
 
         // Constructor methods
         constructorPlainExample();
@@ -61,7 +61,7 @@ public class GroupExamples {
         // @@Example: ex_java_group_constructor_file @@
         // @@Show@@
         // Point to file
-        File file = new File("mydatabase.tightdb");
+        File file = new File("mydatabase.realm");
         if (file.exists()) {
             // If file exists, instantiate group from the file
             Group group = new Group(file);
@@ -75,14 +75,14 @@ public class GroupExamples {
 
     public static void constructorStringExample(){
         // @@Example: ex_java_group_constructor_string @@
-        Group group1 = new Group("mydatabase.tightdb", OpenMode.READ_WRITE);
+        Group group1 = new Group("mydatabase.realm", OpenMode.READ_WRITE);
         Table table1 = group1.getTable("mytable");
         group1.commit();
                 
         // @@Show@@
-        // Instantiate group by pointing to the tightdb file path
+        // Instantiate group by pointing to the realm file path
         // The group is by default opened in READ_ONLY mode.
-        Group group = new Group("mydatabase.tightdb");
+        Group group = new Group("mydatabase.realm");
 
         Table table = group.getTable("mytable");
         // More table operations...
@@ -94,7 +94,7 @@ public class GroupExamples {
         // @@Example: ex_java_group_constructor_string_mode @@
         // @@Show@@
         // Point to the non-existing file. This mode will create a file, if it does not exist.
-        Group group = new Group("non-exisiting-db.tightdb", OpenMode.READ_WRITE);
+        Group group = new Group("non-exisiting-db.realm", OpenMode.READ_WRITE);
 
         Table table = group.getTable("mytable");
         // More table operations...
@@ -106,7 +106,7 @@ public class GroupExamples {
         // @@Example: ex_java_group_constructor_memory @@
         // @@Show@@
         // Existing group
-        Group existingGroup = new Group("mydatabase.tightdb");
+        Group existingGroup = new Group("mydatabase.realm");
         // Group is written to a byte array
         byte[] groupMem = existingGroup.writeToMem();
 
@@ -145,7 +145,7 @@ public class GroupExamples {
     public static void hasTableExample(){
         // @@Example: ex_java_group_has_table @@
         // @@Show@@
-        Group group = new Group("mydatabase.tightdb");
+        Group group = new Group("mydatabase.realm");
 
         // A table is created (if not already in the group) and returned
         Table table = group.getTable("mytable");
@@ -188,7 +188,7 @@ public class GroupExamples {
 
         try {
             // Write to the specified file
-            group.writeToFile("mydatabasefile.tightdb");
+            group.writeToFile("mydatabasefile.realm");
         } catch (IOException e) {
             // Exception if file already exists
             e.printStackTrace();

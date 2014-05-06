@@ -178,7 +178,7 @@ interactive_install_required_jar()
 }
 
 
-CONFIG_MK="tightdb_jni/config.mk"
+CONFIG_MK="realm_jni/config.mk"
 
 require_config()
 {
@@ -426,11 +426,11 @@ case "$MODE" in
                 # We choose /usr/lib over /usr/local/lib because the
                 # latter is not in the default runtime library search
                 # path on RedHat and RedHat derived systems.
-                jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_MK="1" $MAKE --no-print-directory prefix="/usr" get-libdir)" || exit 1
+                jni_install_dir="$(cd "realm_jni" && NO_CONFIG_MK="1" $MAKE --no-print-directory prefix="/usr" get-libdir)" || exit 1
             fi
             jar_install_dir="/usr/local/share/java"
         else
-            jni_install_dir="$(cd "tightdb_jni" && NO_CONFIG_MK="1" $MAKE --no-print-directory prefix="$install_prefix" get-libdir)" || exit 1
+            jni_install_dir="$(cd "realm_jni" && NO_CONFIG_MK="1" $MAKE --no-print-directory prefix="$install_prefix" get-libdir)" || exit 1
             jar_install_dir="$install_prefix/share/java"
         fi
 
@@ -612,11 +612,11 @@ EOF
         has_installed=0
         jni_install_dir="$(get_config_param "JNI_INSTALL_DIR")"
         jar_install_dir="$(get_config_param "JAR_INSTALL_DIR")"
-        find $jni_install_dir -name '*tight*jni*' | while read f; do
+        find $jni_install_dir -name '*realm*jni*' | while read f; do
             has_installed=1
             echo "  $f"
         done
-        find $jar_install_dir -name '*tightdb*jar' | while read f; do
+        find $jar_install_dir -name '*realm*jar' | while read f; do
             has_installed=1
             echo "  $f"
         done
@@ -641,21 +641,21 @@ EOF
 
     "clean")
         auto_configure || exit 1
-        $MAKE -C "tightdb_jni" clean || exit 1
+        $MAKE -C "realm_jni" clean || exit 1
         for x in $ANDROID_PLATFORMS; do
             denom="android-$x"
-            $MAKE -C "tightdb_jni/src" clean BASE_DENOM="$denom" LIB_SUFFIX_SHARED=".so" || exit 1
+            $MAKE -C "realm_jni/src" clean BASE_DENOM="$denom" LIB_SUFFIX_SHARED=".so" || exit 1
         done
         if [ -e "$ANDROID_DIR" ]; then
             echo "Removing '$ANDROID_DIR'"
             rm -rf "$ANDROID_DIR" || exit 1
         fi
         for x in core generator test; do
-            echo "Removing class files in 'tightdb-java-$x'"
-            (cd "tightdb-java-$x" && find src/ -type f -name '*.class' -delete) || exit 1
+            echo "Removing class files in 'realm-java-$x'"
+            (cd "realm-java-$x" && find src/ -type f -name '*.class' -delete) || exit 1
         done
         if [ -e "lib" ]; then
-            for x in tightdb.jar tightdb-devkit.jar; do
+            for x in realm.jar realm-devkit.jar; do
                 echo "Removing 'lib/$x'"
                 rm -f "lib/$x" || exit 1
             done
@@ -671,35 +671,35 @@ EOF
         mkdir -p "lib" || exit 1
         javac_cmd="$(get_config_param "JAVAC_COMMAND")" || exit 1
 
-        # Build tightdb.jar
-        echo "Building 'lib/tightdb.jar'"
-        dir="tightdb-java-core/src/main"
-        tightdb_jar="$TIGHTDB_JAVA_HOME/lib/tightdb.jar"
-        (cd "$dir/java" && $javac_cmd            com/tightdb/*.java com/tightdb/internal/*.java  com/tightdb/typed/*.java)   || exit 1
-        (cd "$dir/java" && jar cf "$tightdb_jar" com/tightdb/*.class com/tightdb/internal/*.class com/tightdb/typed/*.class) || exit 1
-        (cd "lib" && jar i "tightdb.jar") || exit 1
+        # Build realm.jar
+        echo "Building 'lib/realm.jar'"
+        dir="realm-java-core/src/main"
+        realm_jar="$TIGHTDB_JAVA_HOME/lib/realm.jar"
+        (cd "$dir/java" && $javac_cmd            com/realm/*.java com/realm/internal/*.java  com/realm/typed/*.java)   || exit 1
+        (cd "$dir/java" && jar cf "$realm_jar" com/realm/*.class com/realm/internal/*.class com/realm/typed/*.class) || exit 1
+        (cd "lib" && jar i "realm.jar") || exit 1
 
-        # Build tightdb-devkit.jar
-        echo "Building 'lib/tightdb-devkit.jar'"
+        # Build realm-devkit.jar
+        echo "Building 'lib/realm-devkit.jar'"
         required_jars="$(get_config_param "REQUIRED_JARS")" || exit 1
         manifest_jars="$required_jars"
-        word_list_prepend "manifest_jars" "tightdb.jar" || exit 1
-        temp_dir="$(mktemp -d /tmp/tightdb.java.build.XXXX)" || exit 1
+        word_list_prepend "manifest_jars" "realm.jar" || exit 1
+        temp_dir="$(mktemp -d /tmp/realm.java.build.XXXX)" || exit 1
         manifest="$temp_dir/MANIFEST.MF"
         touch "$manifest" || exit 1
         echo "Class-Path: $manifest_jars" >>"$manifest"
         echo "MANIFEST.MF constains:"
         cat "$manifest" | sed 's/^/    /' || exit 1
         CLASSPATH="$(printf "%s\n" "$required_jars" | sed 's/  */:/g')" || exit 1
-        path_list_append CLASSPATH "$tightdb_jar" || exit 1
+        path_list_append CLASSPATH "$realm_jar" || exit 1
         export CLASSPATH
-        dir="tightdb-java-generator/src/main"
-        # FIXME: Must run ResourceGenerator to produce "$dir/java/com/tightdb/generator/Templates.java"
-        devkit_jar="$TIGHTDB_JAVA_HOME/lib/tightdb-devkit.jar"
+        dir="realm-java-generator/src/main"
+        # FIXME: Must run ResourceGenerator to produce "$dir/java/com/realm/generator/Templates.java"
+        devkit_jar="$TIGHTDB_JAVA_HOME/lib/realm-devkit.jar"
         (cd "$dir" && jar cfm "$devkit_jar" "$manifest" -C resources META-INF) || exit 1
-        (cd "$dir/java" && $javac_cmd           com/tightdb/generator/*.java)  || exit 1
-        (cd "$dir/java" && jar uf "$devkit_jar" com/tightdb/generator/*.class) || exit 1
-        (cd "lib" && jar i "tightdb-devkit.jar") || exit 1
+        (cd "$dir/java" && $javac_cmd           com/realm/generator/*.java)  || exit 1
+        (cd "$dir/java" && jar uf "$devkit_jar" com/realm/generator/*.class) || exit 1
+        (cd "lib" && jar i "realm-devkit.jar") || exit 1
         exit 0
         ;;
 
@@ -711,7 +711,7 @@ EOF
         # files before building the JNI library.
 
         # Build libtightdb-jni.so
-        TIGHTDB_ENABLE_FAT_BINARIES="1" $MAKE -C "tightdb_jni" || exit 1
+        TIGHTDB_ENABLE_FAT_BINARIES="1" $MAKE -C "realm_jni" || exit 1
 
         # Setup links to libraries to make the examples work
         echo "Setting up library symlinks in 'lib' to make examples work"
@@ -721,9 +721,9 @@ EOF
                 (cd "lib" && ln -s -f "$TIGHTDB_HOME/src/tightdb/$x") || exit 1
             done
         fi
-        library_aliases="$(cd "tightdb_jni/src" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
+        library_aliases="$(cd "realm_jni/src" && $MAKE --no-print-directory get-inst-libraries)" || exit 1
         for x in $library_aliases; do
-            (cd "lib" && ln -s -f "../tightdb_jni/src/$x") || exit 1
+            (cd "lib" && ln -s -f "../realm_jni/src/$x") || exit 1
         done
         exit 0
         ;;
@@ -768,7 +768,7 @@ EOF
         export TIGHTDB_ANDROID="1"
         mkdir -p "$ANDROID_DIR" || exit 1
         for target in $ANDROID_PLATFORMS; do
-            temp_dir="$(mktemp -d /tmp/tightdb.build-android.XXXX)" || exit 1
+            temp_dir="$(mktemp -d /tmp/realm.build-android.XXXX)" || exit 1
             if [ "$target" = "arm" ]; then
                 platform="8"
             else
@@ -821,7 +821,7 @@ Make sure to run "sh build.sh build-android"
 EOF
             exit 1
         fi
-        if ! [ -e "lib/tightdb.jar" -a -e "lib/tightdb-devkit.jar" ]; then
+        if ! [ -e "lib/realm.jar" -a -e "lib/realm-devkit.jar" ]; then
             cat 1>&2 <<EOF
 ERROR: No jar files found.
 Make sure to run "sh build.sh build-android"
@@ -829,12 +829,12 @@ EOF
             exit 1
         fi
         tightdb_version="$(sh build.sh get-version)"
-        if [ -e "lib/tightdb-android-$tightdb_version.zip" ]; then
-            rm -f "lib/tightdb-android-$tightdb_version.zip" || exit 1
+        if [ -e "lib/realm-android-$tightdb_version.zip" ]; then
+            rm -f "lib/realm-android-$tightdb_version.zip" || exit 1
         fi
-        cp "lib/tightdb.jar" "$ANDROID_DIR" || exit 1
-        cp "lib/tightdb-devkit.jar" "$ANDROID_DIR" || exit 1
-        (cd "$ANDROID_DIR" && zip -r "../lib/tightdb-android-$tightdb_version.zip" "armeabi" "armeabi-v7a" "mips" "x86" "tightdb.jar" "tightdb-devkit.jar") || exit 1
+        cp "lib/realm.jar" "$ANDROID_DIR" || exit 1
+        cp "lib/realm-devkit.jar" "$ANDROID_DIR" || exit 1
+        (cd "$ANDROID_DIR" && zip -r "../lib/realm-android-$tightdb_version.zip" "armeabi" "armeabi-v7a" "mips" "x86" "realm.jar" "realm-devkit.jar") || exit 1
 
         # Gradle
         echo "Building the Gradle package"
@@ -845,8 +845,8 @@ EOF
             cp -r armeabi-v7a lib &&
             cp -r mips lib &&
             cp -r x86 lib &&
-            jar uf tightdb.jar lib &&
-            cp -f tightdb.jar ../lib/tightdb-android-$tightdb_version.jar &&
+            jar uf realm.jar lib &&
+            cp -f realm.jar ../lib/realm-android-$tightdb_version.jar &&
             rm -rf lib
         ) || exit 1
         ;;
@@ -854,15 +854,15 @@ EOF
     "test")
         require_config || exit 1
         javac_cmd="$(get_config_param "JAVAC_COMMAND")" || exit 1
-        devkit_jar="$TIGHTDB_JAVA_HOME/lib/tightdb-devkit.jar"
-        temp_dir="$(mktemp -d /tmp/tightdb.java.test-debug.XXXX)" || exit 1
+        devkit_jar="$TIGHTDB_JAVA_HOME/lib/realm-devkit.jar"
+        temp_dir="$(mktemp -d /tmp/realm.java.test-debug.XXXX)" || exit 1
         mkdir "$temp_dir/out" || exit 1
         mkdir "$temp_dir/gen" || exit 1
 
-        dir="tightdb-java-test/src/test"
+        dir="realm-java-test/src/test"
         echo "Building test suite in '$dir'"
         export CLASSPATH="$devkit_jar:$temp_dir/gen:."
-        (cd "$dir/../test/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/tightdb/test/TestTableModel.java) || exit 1
+        (cd "$dir/../test/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/realm/test/TestTableModel.java) || exit 1
 
         path_list_append "CLASSPATH" "../main" || exit 1
         testing_jars="$(get_config_param "TESTING_JARS")" || exit 1
@@ -890,7 +890,7 @@ EOF
 </classes></test></suite>
 EOF
         java_cmd="$(get_config_param "JAVA_COMMAND")" || exit 1
-        (cd "$temp_dir/out" && $java_cmd -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" "$testng_xml") || exit 1
+        (cd "$temp_dir/out" && $java_cmd -Djava.library.path="$TIGHTDB_JAVA_HOME/realm_jni/src" org.testng.TestNG -d "$TIGHTDB_JAVA_HOME/test_output" "$testng_xml") || exit 1
         exit 0
         ;;
 
@@ -901,7 +901,7 @@ EOF
 
     "test-doc")
         echo "Testing ref-doc:"
-        rm *.tightdb
+        rm *.realm
         rm *.lock
         cd "doc/ref/examples" || exit 1
         ant refdoc || exit 1
@@ -917,7 +917,7 @@ EOF
         ;;
 
     "show-install")
-        temp_dir="$(mktemp -d /tmp/tightdb.java.show-install.XXXX)" || exit 1
+        temp_dir="$(mktemp -d /tmp/realm.java.show-install.XXXX)" || exit 1
         mkdir "$temp_dir/fake-root" || exit 1
         DESTDIR="$temp_dir/fake-root" sh build.sh install >/dev/null || exit 1
         (cd "$temp_dir/fake-root" && find * \! -type d >"$temp_dir/list") || exit 1
@@ -934,14 +934,14 @@ EOF
         install_jni=""
         case "$MODE" in
             "install-devel")
-                jar_list="tightdb-devkit.jar"
+                jar_list="realm-devkit.jar"
                 ;;
             "install-prod")
-                jar_list="tightdb.jar"
+                jar_list="realm.jar"
                 install_jni="yes"
                 ;;
             *)
-                jar_list="tightdb-devkit.jar tightdb.jar"
+                jar_list="realm-devkit.jar realm.jar"
                 install_jni="yes"
                 ;;
         esac
@@ -955,7 +955,7 @@ EOF
         done
 
         if [ "$install_jni" ]; then
-            $MAKE -C "tightdb_jni" install-only DESTDIR="$DESTDIR" || exit 1
+            $MAKE -C "realm_jni" install-only DESTDIR="$DESTDIR" || exit 1
         fi
 
         if ! [ "$INTERACTIVE" ]; then
@@ -968,12 +968,12 @@ EOF
         require_config || exit 1
 
         jar_install_dir="$(get_config_param "JAR_INSTALL_DIR")" || exit 1
-        for x in "tightdb-devkit.jar" "tightdb.jar"; do
+        for x in "realm-devkit.jar" "realm.jar"; do
             echo "Uninstalling '$jar_install_dir/$x'"
             rm -f "$jar_install_dir/$x" || exit 1
         done
 
-        $MAKE -C "tightdb_jni" uninstall || exit 1
+        $MAKE -C "realm_jni" uninstall || exit 1
 
         echo "Done uninstalling"
         exit 0
@@ -983,10 +983,10 @@ EOF
         require_config || exit 1
 
         jar_install_dir="$(get_config_param "JAR_INSTALL_DIR")" || exit 1
-        devkit_jar="$jar_install_dir/tightdb-devkit.jar"
+        devkit_jar="$jar_install_dir/realm-devkit.jar"
         export CLASSPATH="$devkit_jar:."
         javac_cmd="$(get_config_param "JAVAC_COMMAND")" || exit 1
-        temp_dir="$(mktemp -d /tmp/tightdb.java.test-installed.XXXX)" || exit 1
+        temp_dir="$(mktemp -d /tmp/realm.java.test-installed.XXXX)" || exit 1
         (cd "test-installed" && $javac_cmd -d "$temp_dir" -s "$temp_dir" java/my/app/Test.java) || exit 1
 
         install_prefix="$(get_config_param "INSTALL_PREFIX")" || exit 1
@@ -1009,17 +1009,17 @@ EOF
             echo "Unspecified or bad target directory '$TARGET_DIR'" 1>&2
             exit 1
         fi
-        TEMP_DIR="$(mktemp -d /tmp/tightdb.java.copy.XXXX)" || exit 1
+        TEMP_DIR="$(mktemp -d /tmp/realm.java.copy.XXXX)" || exit 1
         cat >"$TEMP_DIR/include" <<EOF
 /README.md
 /build.sh
-/tightdb_jni/generic.mk
-/tightdb_jni/project.mk
-/tightdb_jni/Makefile
-/tightdb_jni/src
-/tightdb-java-core
-/tightdb-java-generator
-/tightdb-java-test
+/realm_jni/generic.mk
+/realm_jni/project.mk
+/realm_jni/Makefile
+/realm_jni/src
+/realm-java-core
+/realm-java-generator
+/realm-java-test
 /test-installed
 /examples
 /prerequisite_jars
@@ -1028,15 +1028,15 @@ EOF
 /debian/compat
 /debian/control
 /debian/copyright
-/debian/tightdb-java-dev.poms
+/debian/realm-java-dev.poms
 /pom-debian.xml
 /pom.xml
 EOF
         cat >"$TEMP_DIR/exclude" <<EOF
 .gitignore
-/tightdb-java-generator/pom.xml
-/tightdb-java-test/pom.xml
-/tightdb-java-test/src/test/resources
+/realm-java-generator/pom.xml
+/realm-java-test/pom.xml
+/realm-java-test/src/test/resources
 *.dll
 EOF
         grep -E -v '^(#.*)?$' "$TEMP_DIR/include" >"$TEMP_DIR/include2" || exit 1
@@ -1064,7 +1064,7 @@ EOF
     "dist-remarks")
 cat <<EOF
 To help you get started, a simple example is provided in
-"tightdb_java/examples/intro-example". First you need to build the
+"realm_java/examples/intro-example". First you need to build the
 Java extension as described above. Do NOT run "./build clean", as that
 will prevent the example from running. For further details, please
 consult the README.md file in mentioned directory.

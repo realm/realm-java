@@ -1,7 +1,7 @@
-package com.tightdb.examples.performance;
+package com.realm.examples.performance;
 
-import com.tightdb.DefineTable;
-import com.tightdb.internal.Util;
+import com.realm.DefineTable;
+import com.realm.internal.Util;
 
 public class Tightdb extends PerformanceBase implements IPerformance {
 

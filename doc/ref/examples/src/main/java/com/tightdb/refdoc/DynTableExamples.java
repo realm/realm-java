@@ -1,10 +1,10 @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-import com.tightdb.*;
-import com.tightdb.TableView.Order;
+import com.realm.*;
+import com.realm.TableView.Order;
 
 public class DynTableExamples {
 
@@ -298,7 +298,7 @@ public class DynTableExamples {
         // @@Example: ex_java_dyn_table_is_valid @@
         // @@Show@@
         // Open a group from file
-        Group fromFile = new Group( /* filepath.tightdb */);
+        Group fromFile = new Group( /* filepath.realm */);
 
         // Get table from group
         Table table = fromFile.getTable("peopleTable");
@@ -630,7 +630,7 @@ public class DynTableExamples {
         String user1 = table.getString(0, 0);
 
         // Get long value value of cell at position 1,1
-        // NB! Column type in tightdb is INTEGER
+        // NB! Column type in realm is INTEGER
         // In java it is accessed by getLong(col, row);
         long score2 = table.getLong(1, 1);
 
@@ -670,7 +670,7 @@ public class DynTableExamples {
         table.setString(0, 0, "Liquid Droid");
 
         // Reset the users score to 0 in cell 1,1
-        // NB. Column type in tightdb is INTEGER
+        // NB. Column type in realm is INTEGER
         // In java it is set by setLong(col, row, value);
         table.setLong(1, 1, 0);
 

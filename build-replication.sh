@@ -19,4 +19,4 @@ cd "$TIGHTDB_JAVA_HOME/tightdb-example/src/main/java" || exit 1
 find com/ -type f -name '*.class' -delete || exit 1
 export CLASSPATH="$TIGHTDB_JAVA_HOME/src/main/java/tightdb.jar:."
 javac com/tightdb/example/ReplicationExample.java com/tightdb/example/generated/*.java || exit 1
-java -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" com.tightdb.example.ReplicationExample --database-file /tmp/replication.tightdb || exit 1
+java -Djava.library.path="$TIGHTDB_JAVA_HOME/tightdb_jni/src" com.realm.example.ReplicationExample --database-file /tmp/replication.tightdb || exit 1

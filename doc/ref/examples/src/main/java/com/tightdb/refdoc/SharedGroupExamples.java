@@ -1,11 +1,11 @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.FileNotFoundException;
 
-import com.tightdb.ReadTransaction;
-import com.tightdb.SharedGroup;
-import com.tightdb.Table;
-import com.tightdb.WriteTransaction;
+import com.realm.ReadTransaction;
+import com.realm.SharedGroup;
+import com.realm.Table;
+import com.realm.WriteTransaction;
 
 public class SharedGroupExamples {
 
@@ -25,8 +25,8 @@ public class SharedGroupExamples {
     public static void constructorStringExample(){
         // @@Example: ex_java_shared_group_constructor_string @@
         // @@Show@@
-        // Instantiate group by specifying path to tightdb file
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        // Instantiate group by specifying path to realm file
+        SharedGroup group = new SharedGroup("mydatabase.realm");
         // @@EndShow@@
         // @@EndExample@@
     }
@@ -35,7 +35,7 @@ public class SharedGroupExamples {
     public static void beginWriteExample(){
         // @@Example: ex_java_shared_group_begin_write @@
         // @@Show@@
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
         // Starts a write transaction
         WriteTransaction wt = group.beginWrite();
@@ -61,7 +61,7 @@ public class SharedGroupExamples {
     public static void beginReadExample(){
         // @@Example: ex_java_shared_group_begin_read @@
         // @@Show@@
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
         // Starts a read transaction
         ReadTransaction rt = group.beginRead();
@@ -86,7 +86,7 @@ public class SharedGroupExamples {
     public static void closeExample(){
         // @@Example: ex_java_shared_group_close @@
         // @@Show@@
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
         // Starts a write transaction
         WriteTransaction wt = group.beginWrite();
@@ -112,7 +112,7 @@ public class SharedGroupExamples {
     public static void hasChangedExample(){
         // @@Example: ex_java_shared_group_has_changed @@
         // @@Show@@
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
         boolean hasChanged = group.hasChanged();
         // @@EndShow@@

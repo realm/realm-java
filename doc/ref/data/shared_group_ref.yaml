@@ -104,7 +104,7 @@ CATEGORIES:
   - g_shared_group_close:
       NAMES    : close
       SUMMARY  : Closes a shared group.
-      DESCR    : Closes a shared group. When the last shared group pointing to the same .tightdb file is closed, the .lock file will be removed. <br><br>
+      DESCR    : Closes a shared group. When the last shared group pointing to the same .realm file is closed, the .lock file will be removed. <br><br>
                  In Async mode, the .lock file will not be deleted until the database is fully updated and the commit daemon exits.
 
       RETURN:

@@ -52,7 +52,7 @@
 		<javac source="${source}" target="${target}" srcdir="${srcdir}" includeantruntime="false">
 			<classpath refid="build-classpath"/>
 			<compilerarg value="-processor" />
-			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
+			<compilerarg value="com.realm.generator.CodeGenProcessor" />
 			<compilerarg value="-processorpath" />
 			<compilerarg value="${libpath}/lib/tightdb-devkit.jar" />
 			<compilerarg value="-s" />
@@ -62,7 +62,7 @@
 	</target>
     
     <target depends="build" name="run">
-        <java classname="com.tightdb.example.HelloWorld" failonerror="true" fork="yes">
+        <java classname="com.realm.example.HelloWorld" failonerror="true" fork="yes">
             <env key="LD_LIBRARY_PATH" path="${libpath}/lib"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}/lib"/> <!-- Darwin -->
             <sysproperty key="java.library.path" path="${libpath}/lib"/>

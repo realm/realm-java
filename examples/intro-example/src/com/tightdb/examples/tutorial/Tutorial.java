@@ -4,11 +4,11 @@
 // to the documentation.
 //
 
-package com.tightdb.examples.tutorial;
+package com.realm.examples.tutorial;
 
 import java.io.IOException;
 import java.io.File;
-import com.tightdb.*;
+import com.realm.*;
 
 @SuppressWarnings("unused")
 
@@ -141,7 +141,7 @@ public class Tutorial {
 
         System.out.println("Serialize to file:");
         // remove file if there - can't write to the same file
-        new File("people.tightdb").delete();
+        new File("people.realm").delete();
 
         // @@Example: serialisation @@
         // Create Table in Group
@@ -159,14 +159,14 @@ public class Tutorial {
 
         // Write to disk
         try {
-            group.writeToFile("people.tightdb");
+            group.writeToFile("people.realm");
         } catch (IOException e) {
             // unable to write - handle...
             System.exit(1);
         }
 
         // Load a group from disk (and print contents)
-        Group fromDisk = new Group("people.tightdb");
+        Group fromDisk = new Group("people.realm");
         Table people2 = fromDisk.getTable("people");
 
         Assert(people2.getColumnCount() == 3);
@@ -196,7 +196,7 @@ public class Tutorial {
         // @@Example: transaction @@
 
         // Open a shared group
-        SharedGroup sharedGroup = new SharedGroup("people.tightdb");
+        SharedGroup sharedGroup = new SharedGroup("people.realm");
 
         // Write transaction:
         WriteTransaction writeTransaction = sharedGroup.beginWrite();

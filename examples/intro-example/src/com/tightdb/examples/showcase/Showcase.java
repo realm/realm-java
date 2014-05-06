@@ -1,13 +1,13 @@
-package com.tightdb.examples.showcase;
+package com.realm.examples.showcase;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 
-import com.tightdb.Group;
-import com.tightdb.DefineTable;
-import com.tightdb.typed.AbstractColumn;
+import com.realm.Group;
+import com.realm.DefineTable;
+import com.realm.typed.AbstractColumn;
 
 public class Showcase {
 
@@ -180,9 +180,9 @@ public class Showcase {
 
         /***************************** SAVE TO FILE ******************************/
 
-        new File("employees.tightdb").delete();
+        new File("employees.realm").delete();
         try {
-            group.writeToFile("employees.tightdb");
+            group.writeToFile("employees.realm");
         } catch (IOException e) {
             throw new RuntimeException("Couldn't save the data!", e);
         }
@@ -201,7 +201,7 @@ public class Showcase {
 
         /**************************** LOAD FROM FILE *****************************/
 
-        Group group2 = new Group("employees.tightdb");
+        Group group2 = new Group("employees.realm");
         EmployeeTable employees2 = new EmployeeTable(group2);
         System.out.println(employees2);
         group2.close();

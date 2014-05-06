@@ -1,7 +1,7 @@
 // @@Example: ex_java_typed_query_intro @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
-import com.tightdb.*;
+import com.realm.*;
 
 public class TypedQueryIntro {
 

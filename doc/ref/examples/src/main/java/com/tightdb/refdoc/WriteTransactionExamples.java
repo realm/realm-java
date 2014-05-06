@@ -1,7 +1,7 @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.FileNotFoundException;
-import com.tightdb.*;
+import com.realm.*;
 
 public class WriteTransactionExamples {
 
@@ -15,7 +15,7 @@ public class WriteTransactionExamples {
         // @@Show@@
         // Open an existing database file or create a
         // new database file and open as a shared group.
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
          // Begins a write transaction
         WriteTransaction wt = group.beginWrite();

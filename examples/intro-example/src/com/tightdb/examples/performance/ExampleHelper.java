@@ -1,8 +1,8 @@
-package com.tightdb.examples.performance;
+package com.realm.examples.performance;
 
 import java.util.Scanner;
 
-import com.tightdb.typed.TightDB;
+import com.realm.typed.TightDB;
 
 public class ExampleHelper {
 

@@ -1,9 +1,9 @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-import com.tightdb.*;
+import com.realm.*;
 
 public class DynTableViewExamples {
 
@@ -315,7 +315,7 @@ public class DynTableViewExamples {
         String user1 = view.getString(0, 0);
 
         // Get long value value of cell at position 1,1
-        // NB! Column type in tightdb is INTEGER
+        // NB! Column type in realm is INTEGER
         // In java it is accessed by getLong(col, row);
         long score2 = view.getLong(1, 1);
 
@@ -357,7 +357,7 @@ public class DynTableViewExamples {
         view.setString(0, 0, "Liquid Droid");
 
         // Reset the users score to 0 in cell 1,1
-        // NB. Column type in tightdb is INTEGER
+        // NB. Column type in realm is INTEGER
         // In java it is set by setLong(col, row, value);
         view.setLong(1, 1, 0);
 

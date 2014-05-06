@@ -1,4 +1,4 @@
-package com.tightdb.example;
+package com.realm.example;
 
 import java.io.File;
 
@@ -11,8 +11,8 @@ import android.view.ViewGroup.LayoutParams;
 
 // import com.stocks.generate;
 
-import com.tightdb.Group;
-import com.tightdb.DefineTable;
+import com.realm.Group;
+import com.realm.DefineTable;
 import org.stockchart.StockChartView;
 import org.stockchart.core.Area;
 import org.stockchart.core.Axis;
@@ -46,8 +46,8 @@ public class TightdbAndroidActivity extends Activity {
             // new generate().stocks();
 
             File dir = Environment.getExternalStorageDirectory();
-//          File file = new File(dir, "NOK.tightdb");
-            File file = new File(dir, "stocks_ZBRA.tightdb");
+//          File file = new File(dir, "NOK.realm");
+            File file = new File(dir, "stocks_ZBRA.realm");
 
             Group group = new Group(file);
             StockaTable stocks = new StockaTable(group);

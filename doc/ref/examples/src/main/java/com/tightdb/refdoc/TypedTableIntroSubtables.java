@@ -1,9 +1,7 @@
 // @@Example: ex_java_typed_table_intro_subtables @@
-package com.tightdb.refdoc;
-import java.io.File;
-import java.io.IOException;
+package com.realm.refdoc;
 
-import com.tightdb.*;
+import com.realm.*;
 
 public class TypedTableIntroSubtables {
 

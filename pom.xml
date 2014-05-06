@@ -3,8 +3,8 @@
     
 	<modelVersion>4.0.0</modelVersion>
     
-	<groupId>com.tightdb</groupId>
-	<artifactId>tightdb-parent</artifactId>
+	<groupId>com.realm</groupId>
+	<artifactId>realm-parent</artifactId>
 	<version>0.10.0</version>
 	<packaging>pom</packaging>
 
@@ -36,10 +36,10 @@
 	</build>
 
 	<modules>
-		<module>tightdb-java-core</module>
-		<module>tightdb-java-generator</module>
-		<module>tightdb-java-example</module>
-		<module>tightdb-java-test</module>
+		<module>realm-java-core</module>
+		<module>realm-java-generator</module>
+		<module>realm-java-example</module>
+		<module>realm-java-test</module>
 	</modules>
 
 </project>

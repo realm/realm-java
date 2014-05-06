@@ -1,9 +1,9 @@
-package com.tightdb.examples.quickbenchmark;
+package com.realm.examples.quickbenchmark;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-import com.tightdb.*;
+import com.realm.*;
 
 public class QuickBenchmark {
     final static int ROW_COUNT = 500000;
@@ -225,13 +225,13 @@ public class QuickBenchmark {
 
             // Print comparable speeds
             if (tightdbFindTime > 0)
-                System.out.printf("\nfind:   tightdb is %d times faster than ArrayList\n", javaFindTime / tightdbFindTime);
+                System.out.printf("\nfind:   realm is %d times faster than ArrayList\n", javaFindTime / tightdbFindTime);
             if (tightdbSumTime > 0)
-                System.out.printf("sum:    tightdb is %d times faster than ArrayList\n", javaSumTime / tightdbSumTime);
+                System.out.printf("sum:    realm is %d times faster than ArrayList\n", javaSumTime / tightdbSumTime);
             if (tightdbCountTime > 0)
-                System.out.printf("count:  tightdb is %d times faster than ArrayList\n", javaCountTime / tightdbCountTime);
+                System.out.printf("count:  realm is %d times faster than ArrayList\n", javaCountTime / tightdbCountTime);
             if (tightdbLookupTime > 0)
-                System.out.printf("lookup: tightdb is %d times faster than HashMap\n", javaLookupTime / tightdbLookupTime);
+                System.out.printf("lookup: realm is %d times faster than HashMap\n", javaLookupTime / tightdbLookupTime);
             System.out.println("\nDONE.");
 
         }

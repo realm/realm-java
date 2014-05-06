@@ -1,9 +1,9 @@
-package com.tightdb.example;
+package com.realm.example;
 
 import java.util.Date;
 
-import com.tightdb.DefineTable;
-import com.tightdb.typed.TightDB;
+import com.realm.DefineTable;
+import com.realm.typed.TightDB;
 
 public class HelloWorld {
 

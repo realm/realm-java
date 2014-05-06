@@ -5,6 +5,6 @@
 </listAttribute>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LAUNCH_CONFIGURATION_BUILD_SCOPE" value="${none}"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="C:\Program Files\Java\jdk1.7.0\bin\javah.exe"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="-d ${workspace_loc:/tightdb-core/target/classes} com.tightdb.Group com.tightdb.Table  com.tightdb.TableView com.tightdb.TableQuery com.tightdb.internal.Util com.tightdb.SharedGroup com.tightdb.SubtableSchema com.tightdb.Version"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/tightdb-core/target/classes}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="-d ${workspace_loc:/realm-core/target/classes} com.realm.Group com.realm.Table  com.realm.TableView com.realm.TableQuery com.realm.internal.Util com.realm.SharedGroup com.realm.SubtableSchema com.realm.Version"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/realm-core/target/classes}"/>
 </launchConfiguration>

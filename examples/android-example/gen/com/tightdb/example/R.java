@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package com.tightdb.example;
+package com.realm.example;
 
 public final class R {
     public static final class attr {

@@ -1,19 +1,19 @@
 // @@Example: ex_java_shared_group_intro @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.File;
-import com.tightdb.*;
+import com.realm.*;
 
 public class SharedGroupIntro {
 
     public static void main(String[] args) {
         // Delete file to start from scratch
-        (new File("mydatabase.tightdb")).delete();
+        (new File("mydatabase.realm")).delete();
 
         // @@Show@@
         // Opens an existing database file or creates a
         // new database file and opens it into a shared group.
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
         // -------------------------------------------------------------------
         // Writing to the group using transaction

@@ -1,18 +1,18 @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 // @@Example: ex_java_dyn_read_transaction_intro @@
 
 import java.io.File;
 
-import com.tightdb.*;
+import com.realm.*;
 
 public class DynamicReadTransactionIntro {
 
     public static void main(String[] args) {
         {
             // Delete file to start from scratch
-            (new File("mydatabase.tightdb")).delete();
+            (new File("mydatabase.realm")).delete();
             // Create table, add columns and add row with data
-            SharedGroup group = new SharedGroup("mydatabase.tightdb");
+            SharedGroup group = new SharedGroup("mydatabase.realm");
             WriteTransaction wt = group.beginWrite();
             try {
                 Table users = wt.getTable("people");
@@ -35,7 +35,7 @@ public class DynamicReadTransactionIntro {
     // @@Show@@
     public static void dynamicReadTransactionIntro() {
         // Open existing database file in a shared group
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
         // Create a read transaction from the group
         ReadTransaction rt = group.beginRead();

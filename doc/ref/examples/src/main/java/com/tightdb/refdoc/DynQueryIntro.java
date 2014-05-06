@@ -1,11 +1,10 @@
 // @@Example: ex_java_dyn_query_intro @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
-import com.tightdb.ColumnType;
-import com.tightdb.Table;
-import com.tightdb.TableQuery;
-import com.tightdb.TableView;
-import java.util.Date;
+import com.realm.ColumnType;
+import com.realm.Table;
+import com.realm.TableQuery;
+import com.realm.TableView;
 
 public class DynQueryIntro {
 

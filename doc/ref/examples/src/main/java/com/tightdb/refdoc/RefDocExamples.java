@@ -1,4 +1,4 @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 public class RefDocExamples {
 

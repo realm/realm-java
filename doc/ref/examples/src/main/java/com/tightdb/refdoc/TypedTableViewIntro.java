@@ -1,10 +1,10 @@
  // @@Example: ex_java_typed_table_view_intro @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-import com.tightdb.*;
+import com.realm.*;
 
 public class TypedTableViewIntro {
 

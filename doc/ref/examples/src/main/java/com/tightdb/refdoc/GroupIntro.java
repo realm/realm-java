@@ -1,5 +1,5 @@
 // @@Example: ex_java_group_intro @@
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
-import com.tightdb.*;
+import com.realm.*;
 
 public class GroupIntro {
 
@@ -29,7 +29,7 @@ public class GroupIntro {
         // -------------------------------------------------------------------
 
         // A _new_ file pointing to the location of the database
-        File file = new File("mydatabase.tightdb");
+        File file = new File("mydatabase.realm");
         file.delete();
 
         // Serializing to a file that already exists is an error

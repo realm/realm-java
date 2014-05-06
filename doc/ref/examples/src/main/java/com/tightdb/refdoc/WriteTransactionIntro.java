@@ -1,7 +1,7 @@
 
-package com.tightdb.refdoc;
+package com.realm.refdoc;
 
-import com.tightdb.*;
+import com.realm.*;
 
 public class WriteTransactionIntro {
 
@@ -20,7 +20,7 @@ public class WriteTransactionIntro {
 
     public static void typedWriteTransactionIntro(){
         // Open existing database file in a shared group
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
         // Begin write transaction
         WriteTransaction wt = group.beginWrite();
@@ -46,7 +46,7 @@ public class WriteTransactionIntro {
     // @@Show@@
     public static void dynamicWriteTransactionIntro(){
         // Open existing database file in a shared group
-        SharedGroup group = new SharedGroup("mydatabase.tightdb");
+        SharedGroup group = new SharedGroup("mydatabase.realm");
 
         // Begin write transaction
         WriteTransaction wt = group.beginWrite();
