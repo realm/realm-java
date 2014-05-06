@@ -106,3 +106,5 @@ _ReSharper*/
 # generated lib files
 /java/share/java/*.jar
 /tightdb_jni/src/*.dylib
+
+RealmAndroid/lib/libs/tightdb-android-0.10.0.jar
