@@ -4,8 +4,8 @@ import android.test.AndroidTestCase;
 
 import com.realm.typed.entities.User;
 
-import java.util.ArrayList;
 import java.util.List;
+
 
 public class RealmTest extends AndroidTestCase {
 
@@ -13,6 +13,7 @@ public class RealmTest extends AndroidTestCase {
 
         // Init
         Realm<User> realm = new Realm<User>(User.class, this.getContext());
+        // Notice that Realm implements List, which means that it can be used in a lot of existing code
 
 
         // Insert

@@ -1,6 +1,5 @@
 package com.realm.typed;
 
-import com.tightdb.Table;
 import com.tightdb.TableOrView;
 
 import java.lang.reflect.InvocationHandler;
