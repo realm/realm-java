@@ -11,12 +11,12 @@
 	<property name="libpath" value="../../../lib" />
 
     <path id="build-classpath">
-        <pathelement location="${libpath}/tightdb.jar"/>
+        <pathelement location="${libpath}/realm.jar"/>
     </path>
 
     <path id="samples-classpath">
         <pathelement location="${bindir}"/>
-        <pathelement location="${libpath}/tightdb.jar"/>
+        <pathelement location="${libpath}/realm.jar"/>
     </path>
 
     <target name="init">
@@ -54,7 +54,7 @@
 			<compilerarg value="-processor" />
 			<compilerarg value="com.realm.generator.CodeGenProcessor" />
 			<compilerarg value="-processorpath" />
-			<compilerarg value="${libpath}/tightdb-devkit.jar" />
+			<compilerarg value="${libpath}/realm-devkit.jar" />
 			<compilerarg value="-s" />
 			<compilerarg value="${gendir}" />
 			<compilerarg value="-proc:only" />
