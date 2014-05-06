@@ -800,9 +800,9 @@ EOF
             fi
             denom="android-$target"
             tightdb_ldflags="-ltightdb-$denom -L$android_core_lib"
-            PATH="$path" CC="$cc" $MAKE -C "tightdb_jni/src" CC_IS="gcc" BASE_DENOM="$denom" TIGHTDB_CFLAGS="$tightdb_cflags" CFLAGS_ARCH="$cflags_arch" TIGHTDB_LDFLAGS="$tightdb_ldflags" LIB_SUFFIX_SHARED=".so" "libtightdb-jni-$denom.so" || exit 1
+            PATH="$path" CC="$cc" $MAKE -C "realm_jni/src" CC_IS="gcc" BASE_DENOM="$denom" TIGHTDB_CFLAGS="$tightdb_cflags" CFLAGS_ARCH="$cflags_arch" TIGHTDB_LDFLAGS="$tightdb_ldflags" LIB_SUFFIX_SHARED=".so" "libtightdb-jni-$denom.so" || exit 1
             mkdir -p "$ANDROID_DIR/$subdir" || exit 1
-            cp "tightdb_jni/src/libtightdb-jni-$denom.so" "$ANDROID_DIR/$subdir/libtightdb-jni.so" || exit 1
+            cp "realm_jni/src/libtightdb-jni-$denom.so" "$ANDROID_DIR/$subdir/libtightdb-jni.so" || exit 1
             strip="$(cd "$temp_dir/bin" && echo $android_prefix-linux-*-strip)" || exit 1
             PATH="$path" $strip --strip-all "$ANDROID_DIR/$subdir/libtightdb-jni.so" || exit 1
             rm -rf "$temp_dir" || exit 1
