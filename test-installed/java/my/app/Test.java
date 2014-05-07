@@ -1,7 +1,5 @@
 package my.app;
 
-import com.tightdb.*;
-
 public class Test {
 
     @DefineTable

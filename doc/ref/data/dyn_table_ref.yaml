@@ -46,7 +46,7 @@ CATEGORIES :
   - g_dyn_table_constructor_plain:
       NAMES    : Table
       SUMMARY  : Creates a new Table object.
-      DESCR    : This method creates a table, which is the basic structure in tightdb.
+      DESCR    : This method creates a table, which is the basic structure in realm.
       EXAMPLES:
       - CODE   : ex_java_dyn_table_constructor_plain
         DESCR  : A table can be created as free form.
