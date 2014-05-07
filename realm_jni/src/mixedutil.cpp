@@ -6,7 +6,7 @@ using namespace tightdb;
 
 jclass GetClassMixed(JNIEnv* env)
 {
-    static jclass jMixedClass = GetClass(env, "com/realm/Mixed");
+    static jclass jMixedClass = GetClass(env, "io/realm/Mixed");
     return jMixedClass;
 }
 
@@ -27,7 +27,7 @@ jmethodID GetMixedMethodID(JNIEnv* env, const char* methodStr, const char* typeS
 DataType GetMixedObjectType(JNIEnv* env, jobject jMixed)
 {
     // Call Java "Mixed.getType"
-    static jmethodID jGetTypeMethodId = GetMixedMethodID(env, "getType", "()Lcom/realm/ColumnType;");
+    static jmethodID jGetTypeMethodId = GetMixedMethodID(env, "getType", "()Lio/realm/ColumnType;");
     if (jGetTypeMethodId == NULL)
         return DataType(0);
 
@@ -105,7 +105,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
         {
             // param input: Table* t.
             TR((env, "   --Mixed(type_Table)\n"));
-            jmethodID consId = GetMixedMethodID(env, "<init>", "(Lcom/realm/ColumnType;)V");
+            jmethodID consId = GetMixedMethodID(env, "<init>", "(Lio/realm/ColumnType;)V");
 
             jobject jColumnType = NULL; // GetJColumnTypeFromColumnType(env, type_Table);
             if (consId)

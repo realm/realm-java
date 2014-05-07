@@ -1,7 +1,5 @@
 package my.app;
 
-import com.realm.*;
-
 public class Test {
 
     @DefineTable

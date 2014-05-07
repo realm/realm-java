@@ -1,4 +1,4 @@
-package com.realm.example;
+package io.realm.example;
 
 import java.io.File;
 
@@ -11,8 +11,8 @@ import android.view.ViewGroup.LayoutParams;
 
 // import com.stocks.generate;
 
-import com.realm.Group;
-import com.realm.DefineTable;
+import io.realm.Group;
+import io.realm.DefineTable;
 import org.stockchart.StockChartView;
 import org.stockchart.core.Area;
 import org.stockchart.core.Axis;

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.realm</groupId>
+		<groupId>io.realm</groupId>
 		<artifactId>realm-parent</artifactId>
 		<version>0.10.0</version>
 	</parent>

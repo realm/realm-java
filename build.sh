@@ -675,8 +675,8 @@ EOF
         echo "Building 'lib/realm.jar'"
         dir="realm-java-core/src/main"
         realm_jar="$TIGHTDB_JAVA_HOME/lib/realm.jar"
-        (cd "$dir/java" && $javac_cmd            com/realm/*.java com/realm/internal/*.java  com/realm/typed/*.java)   || exit 1
-        (cd "$dir/java" && jar cf "$realm_jar" com/realm/*.class com/realm/internal/*.class com/realm/typed/*.class) || exit 1
+        (cd "$dir/java" && $javac_cmd            io/realm/*.java io/realm/internal/*.java  io/realm/typed/*.java)   || exit 1
+        (cd "$dir/java" && jar cf "$realm_jar" io/realm/*.class io/realm/internal/*.class io/realm/typed/*.class) || exit 1
         (cd "lib" && jar i "realm.jar") || exit 1
 
         # Build realm-devkit.jar
@@ -694,11 +694,11 @@ EOF
         path_list_append CLASSPATH "$realm_jar" || exit 1
         export CLASSPATH
         dir="realm-java-generator/src/main"
-        # FIXME: Must run ResourceGenerator to produce "$dir/java/com/realm/generator/Templates.java"
+        # FIXME: Must run ResourceGenerator to produce "$dir/java/io/realm/generator/Templates.java"
         devkit_jar="$TIGHTDB_JAVA_HOME/lib/realm-devkit.jar"
         (cd "$dir" && jar cfm "$devkit_jar" "$manifest" -C resources META-INF) || exit 1
-        (cd "$dir/java" && $javac_cmd           com/realm/generator/*.java)  || exit 1
-        (cd "$dir/java" && jar uf "$devkit_jar" com/realm/generator/*.class) || exit 1
+        (cd "$dir/java" && $javac_cmd           io/realm/generator/*.java)  || exit 1
+        (cd "$dir/java" && jar uf "$devkit_jar" io/realm/generator/*.class) || exit 1
         (cd "lib" && jar i "realm-devkit.jar") || exit 1
         exit 0
         ;;
@@ -862,7 +862,7 @@ EOF
         dir="realm-java-test/src/test"
         echo "Building test suite in '$dir'"
         export CLASSPATH="$devkit_jar:$temp_dir/gen:."
-        (cd "$dir/../test/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" com/realm/test/TestTableModel.java) || exit 1
+        (cd "$dir/../test/java" && $javac_cmd -d "$temp_dir/out" -s "$temp_dir/gen" io/realm/test/TestTableModel.java) || exit 1
 
         path_list_append "CLASSPATH" "../main" || exit 1
         testing_jars="$(get_config_param "TESTING_JARS")" || exit 1

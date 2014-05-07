@@ -87,7 +87,7 @@ _ReSharper*/
 
 # Ref doc generated classes
 
-/doc/ref/examples/generated/com/realm/refdoc/*.java
+/doc/ref/examples/generated/io/realm/refdoc/*.java
 
 # generated json output in ref doc json example
 
@@ -105,4 +105,6 @@ _ReSharper*/
 
 # generated lib files
 /java/share/java/*.jar
-/tightdb_jni/src/*.dylib
+/realm_jni/src/*.dylib
+
+realm-java-test/*.realm

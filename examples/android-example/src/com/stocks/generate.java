@@ -8,8 +8,8 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.csvreader.CsvReader;
-import com.realm.Group;
-import com.realm.example.StockaTable;
+import io.realm.Group;
+import io.realm.example.StockaTable;
 
 public class generate {
     public void stocks() {

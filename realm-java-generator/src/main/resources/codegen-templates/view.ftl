@@ -3,8 +3,8 @@ ${java_header}
 package ${packageName};
 </#if>
 
-import com.realm.*;
-import com.realm.typed.*;
+import io.realm.*;
+import io.realm.typed.*;
 
 /**
  * This class represents a TightDB view and was automatically generated.

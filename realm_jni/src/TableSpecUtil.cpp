@@ -7,7 +7,7 @@ using namespace tightdb;
 
 jclass GetClassTableSpec(JNIEnv* env)
 {
-    static jclass myClass = GetClass(env, "com/realm/TableSpec");
+    static jclass myClass = GetClass(env, "io/realm/TableSpec");
     return myClass;
 }
 
@@ -25,7 +25,7 @@ jmethodID GetTableSpecMethodID(JNIEnv* env, const char* methodStr, const char* t
     return myMethod;
 }
 
-jlong Java_com_realm_TableSpec_getColumnCount(JNIEnv* env, jobject jTableSpec)
+jlong Java_io_realm_TableSpec_getColumnCount(JNIEnv* env, jobject jTableSpec)
 {
     static jmethodID jGetColumnCountMethodId = GetTableSpecMethodID(env, "getColumnCount", "()J");
     if (jGetColumnCountMethodId)
@@ -33,15 +33,15 @@ jlong Java_com_realm_TableSpec_getColumnCount(JNIEnv* env, jobject jTableSpec)
     return 0;
 }
 
-jobject Java_com_realm_TableSpec_getColumnType(JNIEnv* env, jobject jTableSpec, jlong columnIndex)
+jobject Java_io_realm_TableSpec_getColumnType(JNIEnv* env, jobject jTableSpec, jlong columnIndex)
 {
-    static jmethodID jGetColumnTypeMethodId = GetTableSpecMethodID(env, "getColumnType", "(J)Lcom/realm/ColumnType;");
+    static jmethodID jGetColumnTypeMethodId = GetTableSpecMethodID(env, "getColumnType", "(J)Lio/realm/ColumnType;");
     if (jGetColumnTypeMethodId)
         return env->CallObjectMethod(jTableSpec, jGetColumnTypeMethodId, columnIndex);
     return NULL;
 }
 
-jstring Java_com_realm_TableSpec_getColumnName(JNIEnv* env, jobject jTableSpec, jlong columnIndex)
+jstring Java_io_realm_TableSpec_getColumnName(JNIEnv* env, jobject jTableSpec, jlong columnIndex)
 {
     static jmethodID jGetColumnNameMethodId = GetTableSpecMethodID(env, "getColumnName", "(J)Ljava/lang/String;");
     if (jGetColumnNameMethodId)
@@ -49,15 +49,15 @@ jstring Java_com_realm_TableSpec_getColumnName(JNIEnv* env, jobject jTableSpec, 
     return NULL;
 }
 
-jobject Java_com_realm_TableSpec_getTableSpec(JNIEnv* env, jobject jTableSpec, jlong columnIndex)
+jobject Java_io_realm_TableSpec_getTableSpec(JNIEnv* env, jobject jTableSpec, jlong columnIndex)
 {
-    static jmethodID jGetTableSpecMethodId = GetTableSpecMethodID(env, "getSubtableSpec", "(J)Lcom/realm/TableSpec;");
+    static jmethodID jGetTableSpecMethodId = GetTableSpecMethodID(env, "getSubtableSpec", "(J)Lio/realm/TableSpec;");
     if (jGetTableSpecMethodId)
         return env->CallObjectMethod(jTableSpec, jGetTableSpecMethodId, columnIndex);
     return NULL;
 }
 
-jlong Java_com_realm_TableSpec_getColumnIndex(JNIEnv* env, jobject jTableSpec, jstring columnName)
+jlong Java_io_realm_TableSpec_getColumnIndex(JNIEnv* env, jobject jTableSpec, jstring columnName)
 {
     static jmethodID jGetColumnIndexMethodId = GetTableSpecMethodID(env, "getColumnIndex", "(Ljava/lang/String;)J");
     if (jGetColumnIndexMethodId)
@@ -67,17 +67,17 @@ jlong Java_com_realm_TableSpec_getColumnIndex(JNIEnv* env, jobject jTableSpec, j
 
 void set_descriptor(JNIEnv* env, Descriptor& desc, jobject jTableSpec)
 {
-    jlong n = Java_com_realm_TableSpec_getColumnCount(env, jTableSpec);
+    jlong n = Java_io_realm_TableSpec_getColumnCount(env, jTableSpec);
     for (jlong i = 0; i != n; ++i) {
-        jstring jColumnName = Java_com_realm_TableSpec_getColumnName(env, jTableSpec, i);
+        jstring jColumnName = Java_io_realm_TableSpec_getColumnName(env, jTableSpec, i);
         JStringAccessor name(env, jColumnName);  // throws
 
-        jobject jColumnType = Java_com_realm_TableSpec_getColumnType(env, jTableSpec, i);
+        jobject jColumnType = Java_io_realm_TableSpec_getColumnType(env, jTableSpec, i);
         DataType type = GetColumnTypeFromJColumnType(env, jColumnType);
         DescriptorRef subdesc;
         desc.add_column(type, name, &subdesc); // Throws
         if (type == type_Table) {
-            jobject jNextColumnTableSpec = Java_com_realm_TableSpec_getTableSpec(env, jTableSpec, i);
+            jobject jNextColumnTableSpec = Java_io_realm_TableSpec_getTableSpec(env, jTableSpec, i);
             set_descriptor(env, *subdesc, jNextColumnTableSpec);
         }
     }
@@ -87,7 +87,7 @@ void get_descriptor(JNIEnv* env, const Descriptor& desc, jobject jTableSpec)
 {
     static jmethodID jAddColumnMethodId = GetTableSpecMethodID(env, "addColumn", "(ILjava/lang/String;)V");
     static jmethodID jAddSubtableColumnMethodId = GetTableSpecMethodID(env, "addSubtableColumn", 
-                                                                            "(Ljava/lang/String;)Lcom/realm/TableSpec;");
+                                                                            "(Ljava/lang/String;)Lio/realm/TableSpec;");
 
     if (jAddColumnMethodId == NULL || jAddSubtableColumnMethodId == NULL) {
         return;

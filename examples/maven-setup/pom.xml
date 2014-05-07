@@ -39,7 +39,7 @@
 					</goals>
 					<configuration>
 					    <processors>
-						    <processor>com.realm.generator.CodeGenProcessor</processor>
+						    <processor>io.realm.generator.CodeGenProcessor</processor>
 					    </processors>
 					    <outputDirectory>${project.build.directory}/generated</outputDirectory>
 					</configuration>

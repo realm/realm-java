@@ -5,7 +5,7 @@
 #include <tightdb/util/utf8.hpp>
 
 #include "util.hpp"
-#include "com_realm_internal_Util.h"
+#include "io_realm_internal_Util.h"
 
 using namespace std;
 using namespace tightdb;
@@ -46,17 +46,17 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case IOFailed:
-            jExceptionClass = env->FindClass("com/realm/IOException");
+            jExceptionClass = env->FindClass("io/realm/IOException");
             message = "Failed to open " + classStr + ". " + itemStr;
             break;
 
         case FileNotFound:
-            jExceptionClass = env->FindClass("com/realm/IOException");
+            jExceptionClass = env->FindClass("io/realm/IOException");
             message = "File not found: " + classStr + ".";
             break;
 
         case FileAccessError:
-            jExceptionClass = env->FindClass("com/realm/IOException");
+            jExceptionClass = env->FindClass("io/realm/IOException");
             message = "Failed to access: " + classStr + ". " + itemStr;
             break;
 
@@ -71,7 +71,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case OutOfMemory:
-            jExceptionClass = env->FindClass("com/realm/OutOfMemoryError");
+            jExceptionClass = env->FindClass("io/realm/OutOfMemoryError");
             message = classStr + " " + itemStr;
             break;
 
@@ -113,7 +113,7 @@ void jprint(JNIEnv *env, char *txt)
     static_cast<void>(env);
     fprintf(stderr, " -- JNI: %s", txt);  fflush(stderr);
 #else
-    static jclass myClass = GetClass(env, "com/realm/util");
+    static jclass myClass = GetClass(env, "io/realm/util");
     static jmethodID myMethod = env->GetStaticMethodID(myClass, "javaPrint", "(Ljava/lang/String;)V");
     if (myMethod)
         env->CallStaticVoidMethod(myClass, myMethod, env->NewStringUTF(txt));

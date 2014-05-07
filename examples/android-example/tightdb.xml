@@ -16,7 +16,7 @@
 		<javac source="${version}" target="${version}" srcdir="${srcdir}">
 			<classpath refid="code-gen-classpath"/>
             <compilerarg value="-processor" />
-			<compilerarg value="com.realm.generator.CodeGenProcessor" />
+			<compilerarg value="io.realm.generator.CodeGenProcessor" />
 			<compilerarg value="-processorpath" />
 			<compilerarg value="libs/tightdb/tightdb-devkit.jar" />
 			<compilerarg value="-s" />

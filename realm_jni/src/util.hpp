@@ -12,7 +12,7 @@
 #include <tightdb/util/safe_int_ops.hpp>
 #include <tightdb/lang_bind_helper.hpp>
 
-#include "com_realm_internal_Util.h"
+#include "io_realm_internal_Util.h"
 
 
 #define TRACE               1       // disable for performance

@@ -3,8 +3,8 @@
     
     <test name="allTests" >
         <packages>
-            <package name="com.realm" />
-            <package name="com.realm.lib" />
+            <package name="io.realm" />
+            <package name="io.realm.lib" />
         </packages>
     </test>
 

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.realm</groupId>
+		<groupId>io.realm</groupId>
 		<artifactId>realm-parent</artifactId>
 		<version>0.10.0</version>
 	</parent>
@@ -12,7 +12,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.realm</groupId>
+			<groupId>io.realm</groupId>
 			<artifactId>realm</artifactId>
 			<version>0.10.0</version>
 		</dependency>
@@ -31,7 +31,7 @@
                         </goals>
                         <configuration>
                             <processors>
-                                <processor>com.realm.generator.CodeGenProcessor</processor>
+                                <processor>io.realm.generator.CodeGenProcessor</processor>
                             </processors>
                             <outputDirectory>${project.build.directory}/generated</outputDirectory>
                         </configuration>
@@ -39,7 +39,7 @@
                 </executions>
                 <dependencies>
                     <dependency>
-                        <groupId>com.realm</groupId>
+                        <groupId>io.realm</groupId>
                         <artifactId>realm-devkit</artifactId>
                         <version>0.10.0</version>
                     </dependency>

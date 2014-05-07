@@ -75,7 +75,7 @@ How to run Java tests:
    
 3. Execute the examples(from Eclipse):
     a) Execute the any of the examples in the tightdb-java-example project, by right-clicking the java file 
-      (under "src/main/java" -> "com.realm.example") and -> Run As -> Java Application
+      (under "src/main/java" -> "io.realm.example") and -> Run As -> Java Application
 
 
 How to update Java bindings:
@@ -87,7 +87,7 @@ How to update Java bindings:
 	   Click the button next to the "Play": "External Tools" -> JNI-h-file-generation
 	b) Or from cmd line: 
 	   cd workspace (assuming it's located next to the tightdb_java)
-	   javah -d ..\tightdb_java\tightdb-java-core\target\classes\jni com.realm.Group com.realm.TableBase com.realm.TableViewBase com.realm.TableQuery com.realm.util com.realm.SharedGroup
+	   javah -d ..\tightdb_java\tightdb-java-core\target\classes\jni io.realm.Group io.realm.TableBase io.realm.TableViewBase io.realm.TableQuery io.realm.util io.realm.SharedGroup
 
 
 How to update Java tightdb-jars:
