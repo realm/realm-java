@@ -1,18 +1,19 @@
-package com.realm.typed;
+package io.realm.typed;
 
 import android.content.Context;
 
 import com.google.dexmaker.stock.ProxyBuilder;
-import com.tightdb.ColumnType;
-import com.tightdb.ReadTransaction;
-import com.tightdb.SharedGroup;
-import com.tightdb.Table;
-import com.tightdb.TableOrView;
 
 import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.AbstractList;
 import java.util.Date;
+
+import io.realm.ColumnType;
+import io.realm.ReadTransaction;
+import io.realm.SharedGroup;
+import io.realm.Table;
+import io.realm.TableOrView;
 
 public class Realm<T> extends AbstractList<T> {
 

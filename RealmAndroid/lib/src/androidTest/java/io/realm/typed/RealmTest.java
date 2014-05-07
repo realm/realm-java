@@ -1,10 +1,10 @@
-package com.realm.typed;
+package io.realm.typed;
 
 import android.test.AndroidTestCase;
 
-import com.realm.typed.entities.User;
-
 import java.util.List;
+
+import io.realm.typed.entities.User;
 
 
 public class RealmTest extends AndroidTestCase {
@@ -12,7 +12,7 @@ public class RealmTest extends AndroidTestCase {
     public void testRealm() {
 
         // Init
-        Realm<User> realm = new Realm<User>(User.class, this.getContext());
+        Realm<User> users = Realms.newList(this.getContext(), User.class);
         // Notice that Realm implements List, which means that it can be used in a lot of existing code
 
 
@@ -23,7 +23,7 @@ public class RealmTest extends AndroidTestCase {
             user.setName("Rasmus");
             user.setEmail("ra@realm.io");
 
-            realm.add(user);
+            users.add(user);
 
             user.setId(10);
         }
@@ -31,22 +31,22 @@ public class RealmTest extends AndroidTestCase {
 
 
         // Get
-        User user1 = realm.get(100);
+        User user1 = users.get(100);
         assertEquals(user1.getName(), "Rasmus");
         user1.setName("TestName");
 
         assertEquals(user1.getName(), "TestName");
 
 
-        assertEquals(120, realm.size());
+        assertEquals(120, users.size());
 
         // Iterable
-        for(User user : realm) {
+        for(User user : users) {
             System.out.println(user.getId());
         }
 
         // Query
-        Realm<User> results = realm.where().equalTo("id", 33).find();
+        Realm<User> results = users.where().equalTo("id", 33).find();
         assertEquals(1, results.size());
         assertEquals(33, results.get(0).getId());
 

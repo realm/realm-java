@@ -1,4 +1,4 @@
-package com.realm.typed.entities;
+package io.realm.typed.entities;
 
 
 public class User {

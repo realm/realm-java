@@ -1,11 +1,12 @@
-package com.realm.typed;
+package io.realm.typed;
 
-import com.tightdb.TableOrView;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Date;
+
+import io.realm.TableOrView;
 
 public class RealmProxy<T> implements InvocationHandler {
 

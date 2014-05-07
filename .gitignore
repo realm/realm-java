@@ -106,7 +106,8 @@ _ReSharper*/
 # generated lib files
 /java/share/java/*.jar
 
-RealmAndroid/lib/libs/tightdb-android-0.10.0.jar
 /realm_jni/src/*.dylib
 
 realm-java-test/*.realm
+
+RealmAndroid/lib/libs/realm-android-0.10.0.jar

@@ -1,11 +1,12 @@
-package com.realm.typed;
+package io.realm.typed;
 
-import com.tightdb.TableOrView;
-import com.tightdb.TableQuery;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import io.realm.TableOrView;
+import io.realm.TableQuery;
 
 public class RealmQuery<T> {
 
