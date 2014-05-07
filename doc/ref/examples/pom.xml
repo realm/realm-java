@@ -36,7 +36,7 @@
                         <phase>generate-test-sources</phase>
                         <configuration>
                             <processors>
-                                <processor>com.tightdb.generator.CodeGenProcessor</processor>
+                                <processor>io.realm.generator.CodeGenProcessor</processor>
                             </processors>
                             <outputDirectory>${project.build.directory}/generated-test</outputDirectory>
                         </configuration>

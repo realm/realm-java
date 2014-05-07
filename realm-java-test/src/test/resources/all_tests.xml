@@ -1,0 +1,11 @@
+<!DOCTYPE suite SYSTEM "http://beust.com/testng/testng-1.0.dtd" >
+<suite name="My test suite" >
+    
+    <test name="allTests" >
+        <packages>
+            <package name="io.realm" />
+            <package name="io.realm.lib" />
+        </packages>
+    </test>
+
+</suite>

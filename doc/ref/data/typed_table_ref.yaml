@@ -63,7 +63,7 @@ CATEGORIES :
       PARAMS:
       - NAME   : group
         TYPES  : com.tight.Group
-        DESCR  : A tightdb group.
+        DESCR  : A realm group.
       - NAME   : tableName
         TYPES  : String
         DESCR  : The name of the table in the group.

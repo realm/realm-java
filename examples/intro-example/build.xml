@@ -13,13 +13,13 @@
 	<property name="libpath-sqlite" value="../lib-sqlite" />
 
     <path id="build-classpath">
-        <pathelement location="${libpath}/tightdb.jar"/>
+        <pathelement location="${libpath}/realm.jar"/>
         <pathelement location="${libpath-sqlite}/sqlite4java.jar"/>
     </path>
 
     <path id="samples-classpath">
         <pathelement location="${bindir}"/>
-        <pathelement location="${libpath}/tightdb.jar"/>
+        <pathelement location="${libpath}/realm.jar"/>
         <pathelement location="${libpath-sqlite}/sqlite4java.jar"/>
     </path>
 
@@ -56,9 +56,9 @@
 		<javac source="${source}" target="${target}" srcdir="${srcdir}" includeantruntime="false">
 			<classpath refid="build-classpath"/>
 			<compilerarg value="-processor" />
-			<compilerarg value="com.tightdb.generator.CodeGenProcessor" />
+			<compilerarg value="io.realm.generator.CodeGenProcessor" />
 			<compilerarg value="-processorpath" />
-			<compilerarg value="${libpath}/tightdb-devkit.jar" />
+			<compilerarg value="${libpath}/realm-devkit.jar" />
 			<compilerarg value="-s" />
 			<compilerarg value="${gendir}" />
 			<compilerarg value="-proc:only" />
@@ -66,7 +66,7 @@
 	</target>
 
     <target depends="build" name="tutorial">
-        <java classname="com.tightdb.examples.tutorial.Tutorial" failonerror="true" fork="yes">
+        <java classname="io.realm.examples.tutorial.Tutorial" failonerror="true" fork="yes">
 <!--
             <env key="LD_LIBRARY_PATH" path="${libpath}"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
@@ -77,7 +77,7 @@
     </target>
 
     <target depends="build" name="showcase">
-        <java classname="com.tightdb.examples.showcase.Showcase" failonerror="true" fork="yes">
+        <java classname="io.realm.examples.showcase.Showcase" failonerror="true" fork="yes">
 <!--
             <env key="LD_LIBRARY_PATH" path="${libpath}"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
@@ -88,7 +88,7 @@
     </target>
 
     <target depends="build" name="quickbenchmark">
-        <java classname="com.tightdb.examples.quickbenchmark.QuickBenchmark" failonerror="true" fork="yes">
+        <java classname="io.realm.examples.quickbenchmark.QuickBenchmark" failonerror="true" fork="yes">
 <!--
             <env key="LD_LIBRARY_PATH" path="${libpath}"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>
@@ -99,7 +99,7 @@
     </target>
 
     <target depends="build" name="performance">
-        <java classname="com.tightdb.examples.performance.Performance" failonerror="true" fork="yes">
+        <java classname="io.realm.examples.performance.Performance" failonerror="true" fork="yes">
 <!--
             <env key="LD_LIBRARY_PATH" path="${libpath}"/>
             <env key="DYLD_LIBRARY_PATH" path="${libpath}"/>

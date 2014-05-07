@@ -8,8 +8,8 @@ tightdb_jni*.exp
 /examples/*/generated/*
 /examples/*/generated-sources/*
 /examples/*/lib
-
 *.tightdb
+*.realm
 .metadata/*
 
 *.sdf
@@ -63,7 +63,7 @@ _ReSharper*/
 /doc/ref/html
 
 # sh build.sh config
-/tightdb_jni/config.mk
+/realm_jni/config.mk
 
 # sh build.sh build
 /lib
@@ -81,13 +81,13 @@ _ReSharper*/
 
 *.lock
 
-/tightdb-java-test/testng.xml
+/realm-java-test/testng.xml
 
 *.prefs
 
 # Ref doc generated classes
 
-/doc/ref/examples/generated/com/tightdb/refdoc/*.java
+/doc/ref/examples/generated/io/realm/refdoc/*.java
 
 # generated json output in ref doc json example
 
@@ -105,6 +105,8 @@ _ReSharper*/
 
 # generated lib files
 /java/share/java/*.jar
-/tightdb_jni/src/*.dylib
 
 RealmAndroid/lib/libs/tightdb-android-0.10.0.jar
+/realm_jni/src/*.dylib
+
+realm-java-test/*.realm
