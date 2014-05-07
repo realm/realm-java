@@ -74,6 +74,19 @@ public class Realm<T> extends AbstractList<T> {
         return this.dataStore;
     }
 
+    public T create() {
+        try {
+            T obj = ProxyBuilder.forClass(this.type)
+                    .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
+                    .handler(new RealmProxy<T>(this.dataStore, -1))
+                    .build();
+            return obj;
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public RealmQuery<T> where() {
         return new RealmQuery<T>(this);
     }
@@ -81,7 +94,7 @@ public class Realm<T> extends AbstractList<T> {
     @Override
     public void add(int rowIndex, T element) {
 
-        Field[] fields = element.getClass().getDeclaredFields();
+        Field[] fields = element.getClass().getSuperclass().getDeclaredFields();
 
         Object[] row = new Object[fields.length];
 
@@ -90,6 +103,7 @@ public class Realm<T> extends AbstractList<T> {
 
             Field f = fields[i];
             f.setAccessible(true);
+
 
             try {
 
@@ -102,6 +116,9 @@ public class Realm<T> extends AbstractList<T> {
         }
 
         ((Table)this.dataStore).addAt(rowIndex, row);
+
+        ((RealmProxy)ProxyBuilder.getInvocationHandler(element)).realmSetRowIndex(rowIndex);
+
 
     }
 
@@ -165,6 +182,7 @@ public class Realm<T> extends AbstractList<T> {
                     .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
                     .handler(new RealmProxy<T>(this.dataStore, rowIndex))
                     .build();
+            ((RealmProxy)ProxyBuilder.getInvocationHandler(obj)).realmSetRowIndex(rowIndex);
             return obj;
         } catch(IOException e) {
             e.printStackTrace();

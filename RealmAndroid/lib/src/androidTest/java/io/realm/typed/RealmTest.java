@@ -18,7 +18,9 @@ public class RealmTest extends AndroidTestCase {
 
         // Insert
         for(int i = 0; i < 120; i++) {
-            User user = new User();
+
+            User user = users.create();
+
             user.setId(i);
             user.setName("Rasmus");
             user.setEmail("ra@realm.io");
@@ -26,9 +28,8 @@ public class RealmTest extends AndroidTestCase {
             users.add(user);
 
             user.setId(10);
+
         }
-
-
 
         // Get
         User user1 = users.get(100);
@@ -37,7 +38,6 @@ public class RealmTest extends AndroidTestCase {
 
         assertEquals(user1.getName(), "TestName");
 
-
         assertEquals(120, users.size());
 
         // Iterable
@@ -45,10 +45,12 @@ public class RealmTest extends AndroidTestCase {
             System.out.println(user.getId());
         }
 
+        user1.setId(100);
+
         // Query
-        Realm<User> results = users.where().equalTo("id", 33).find();
-        assertEquals(1, results.size());
-        assertEquals(33, results.get(0).getId());
+        Realm<User> results = users.where().equalTo("id", 10).find();
+        assertEquals(119, results.size());
+        assertEquals(10, results.get(0).getId());
 
     }
 
