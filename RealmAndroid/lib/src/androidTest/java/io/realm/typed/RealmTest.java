@@ -2,7 +2,7 @@ package io.realm.typed;
 
 import android.test.AndroidTestCase;
 
-import java.util.List;
+import java.util.Collections;
 
 import io.realm.typed.entities.User;
 
@@ -12,15 +12,14 @@ public class RealmTest extends AndroidTestCase {
     public void testRealm() {
 
         // Init
-        Realm<User> users = Realms.newList(this.getContext(), User.class);
-        // Notice that Realm implements List, which means that it can be used in a lot of existing code
+        RealmList<User> users = Realms.newList(this.getContext(), User.class);
+        // Notice that RealmList implements List, which means that it can be used in a lot of existing code
 
 
         // Insert
         for(int i = 0; i < 120; i++) {
 
             User user = users.create();
-
             user.setId(i);
             user.setName("Rasmus");
             user.setEmail("ra@realm.io");
@@ -48,7 +47,8 @@ public class RealmTest extends AndroidTestCase {
         user1.setId(100);
 
         // Query
-        Realm<User> results = users.where().equalTo("id", 10).find();
+        RealmList<User> results = users.where().equalTo("id", 10).findAll();
+
         assertEquals(119, results.size());
         assertEquals(10, results.get(0).getId());
 

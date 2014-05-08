@@ -3,6 +3,7 @@ package io.realm.typed;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.realm.TableOrView;
@@ -10,19 +11,23 @@ import io.realm.TableQuery;
 
 public class RealmQuery<T> {
 
-    private Realm<T> realm;
+    private RealmList<T> realm;
     private TableQuery query;
     private Map<String, Integer> columns = new HashMap<String, Integer>();
 
-    public RealmQuery(Realm<T> realm) {
-        this.realm = realm;
+    public RealmQuery(RealmList<T> realmList) {
+        this.realm = realmList;
 
-        TableOrView dataStore = realm.getDataStore();
+        TableOrView dataStore = realmList.getDataStore();
         this.query = dataStore.where();
 
         for(int i = 0; i < dataStore.getColumnCount(); i++) {
             this.columns.put(dataStore.getColumnName(i), i);
         }
+    }
+
+    public static <T> RealmQuery<T> where(List<T> realm) {
+        return new RealmQuery<T>((RealmList<T>)realm);
     }
 
     // Equal
@@ -136,8 +141,8 @@ public class RealmQuery<T> {
 
     // Execute
 
-    public Realm<T> find() {
-        return new Realm<T>(realm, query.findAll());
+    public RealmList<T> findAll() {
+        return new RealmList<T>(realm, query.findAll());
     }
 
 }

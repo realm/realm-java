@@ -15,7 +15,7 @@ import io.realm.SharedGroup;
 import io.realm.Table;
 import io.realm.TableOrView;
 
-public class Realm<T> extends AbstractList<T> {
+public class RealmList<T> extends AbstractList<T> {
 
     private Class<T> type;
 
@@ -27,11 +27,11 @@ public class Realm<T> extends AbstractList<T> {
     private TableOrView dataStore;
 
 
-    public Realm(Class<T> type, Context context) {
+    public RealmList(Class<T> type, Context context) {
         this(type, context, context.getFilesDir()+"/default.realm");
     }
 
-    public Realm(Class<T> type, Context context, String filePath) {
+    public RealmList(Class<T> type, Context context, String filePath) {
         this.context = context;
         this.sg = new SharedGroup(filePath);
 
@@ -64,7 +64,7 @@ public class Realm<T> extends AbstractList<T> {
         }
     }
 
-    Realm(Realm<T> realm, TableOrView dataStore) {
+    RealmList(RealmList<T> realm, TableOrView dataStore) {
         this.context = realm.context;
         this.type = realm.type;
         this.dataStore = dataStore;
