@@ -3,6 +3,7 @@ package io.realm.example;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 
@@ -14,8 +15,8 @@ import io.realm.typed.Realms;
 public class MainActivity extends Activity {
 
     private RealmList<User> users;
+    private ArrayAdapter<User> adapter;
 
-    private UserAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,24 +24,26 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         // Initialize  the Realm
-        this.users = Realms.newList(this, User.class);
+        this.users = Realms.list(this, User.class);
 
 
         // Setup the ListView
         ListView listView = (ListView)findViewById(R.id.listView);
-        adapter = new UserAdapter(this, users);
-        listView.setAdapter(adapter);
+        this.adapter = new ArrayAdapter<User>(this, R.layout.list_item, this.users);
+        listView.setAdapter(this.adapter);
 
 
     }
 
     public void createItem(View v) {
+
         User user = this.users.create();
+
         user.setId(0);
         user.setName("Username " + this.users.size());
         user.setEmail("");
-        this.users.add(user);
-        adapter.notifyDataSetChanged();
+
+        this.adapter.add(user);
     }
 
 

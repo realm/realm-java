@@ -10,10 +10,12 @@ import java.util.AbstractList;
 import java.util.Date;
 
 import io.realm.ColumnType;
+import io.realm.Group;
 import io.realm.ReadTransaction;
 import io.realm.SharedGroup;
 import io.realm.Table;
 import io.realm.TableOrView;
+import io.realm.WriteTransaction;
 
 public class RealmList<T> extends AbstractList<T> {
 
@@ -22,9 +24,9 @@ public class RealmList<T> extends AbstractList<T> {
     private Context context;
 
     private SharedGroup sg;
-    private ReadTransaction rt;
+    private Group transaction;
 
-    private TableOrView dataStore;
+    private TableOrView dataStore = null;
 
 
     public RealmList(Class<T> type, Context context) {
@@ -37,31 +39,49 @@ public class RealmList<T> extends AbstractList<T> {
 
         this.type = type;
 
-        this.dataStore = new Table();
+
+        WriteTransaction wt = sg.beginWrite();
+        try {
+
+            if (!wt.hasTable(type.getName())) {
+
+                Table table = wt.getTable(type.getName());
+
+                for (Field f : this.type.getDeclaredFields()) {
+
+                    Class<?> fieldType = f.getType();
 
 
-        for(Field f : this.type.getDeclaredFields()) {
+                    if (fieldType.equals(String.class)) {
+                        table.addColumn(ColumnType.STRING, f.getName());
+                    } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
+                        table.addColumn(ColumnType.INTEGER, f.getName());
+                    } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
+                        table.addColumn(ColumnType.DOUBLE, f.getName());
+                    } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
+                        table.addColumn(ColumnType.FLOAT, f.getName());
+                    } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
+                        table.addColumn(ColumnType.BOOLEAN, f.getName());
+                    } else if (fieldType.equals(Date.class)) {
+                        table.addColumn(ColumnType.DATE, f.getName());
+                    } else {
+                        System.err.println("Type not supported: " + fieldType.getName());
+                    }
 
-            Class<?> fieldType = f.getType();
+                }
 
-
-            if(fieldType.equals(String.class)) {
-                ((Table)dataStore).addColumn(ColumnType.STRING, f.getName());
-            } else if(fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
-                ((Table)dataStore).addColumn(ColumnType.INTEGER, f.getName());
-            } else if(fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                ((Table)dataStore).addColumn(ColumnType.DOUBLE, f.getName());
-            } else if(fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-                ((Table)dataStore).addColumn(ColumnType.FLOAT, f.getName());
-            } else if(fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                ((Table)dataStore).addColumn(ColumnType.BOOLEAN, f.getName());
-            } else if(fieldType.equals(Date.class)) {
-                ((Table)dataStore).addColumn(ColumnType.DATE, f.getName());
-            } else {
-                System.err.println("Type not supported: " + fieldType.getName());
             }
 
+            wt.commit();
+
+        } catch(Throwable t) {
+            t.printStackTrace();
+            wt.rollback();
         }
+
+        this.transaction = sg.beginRead();
+        this.dataStore = this.transaction.getTable(this.type.getName());
+
     }
 
     RealmList(RealmList<T> realm, TableOrView dataStore) {
@@ -74,11 +94,35 @@ public class RealmList<T> extends AbstractList<T> {
         return this.dataStore;
     }
 
+    void refreshReadTransaction() {
+        ((ReadTransaction)this.transaction).endRead();
+        this.transaction = this.sg.beginRead();
+        this.dataStore = this.transaction.getTable(this.type.getName());
+    }
+
+    void beginWriteTransaction() {
+        ((ReadTransaction)this.transaction).endRead();
+        this.transaction = this.sg.beginWrite();
+        this.dataStore = this.transaction.getTable(this.type.getName());
+    }
+
+    void commitWriteTransaction() {
+        ((WriteTransaction)this.transaction).commit();
+        this.transaction = this.sg.beginRead();
+        this.dataStore = this.transaction.getTable(this.type.getName());
+    }
+
+    void rollbackWriteTransaction() {
+        ((WriteTransaction)this.transaction).rollback();
+        this.transaction = this.sg.beginRead();
+        this.dataStore = this.transaction.getTable(this.type.getName());
+    }
+
     public T create() {
         try {
             T obj = ProxyBuilder.forClass(this.type)
                     .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
-                    .handler(new RealmProxy<T>(this.dataStore, -1))
+                    .handler(new RealmProxy<T>(this, -1))
                     .build();
             return obj;
         } catch(IOException e) {
@@ -115,10 +159,19 @@ public class RealmList<T> extends AbstractList<T> {
 
         }
 
-        ((Table)this.dataStore).addAt(rowIndex, row);
+        beginWriteTransaction();
+        try {
 
-        ((RealmProxy)ProxyBuilder.getInvocationHandler(element)).realmSetRowIndex(rowIndex);
+            ((Table)this.dataStore).addAt(rowIndex, row);
 
+            ((RealmProxy)ProxyBuilder.getInvocationHandler(element)).realmSetRowIndex(rowIndex);
+
+            commitWriteTransaction();
+
+        } catch(Throwable t) {
+            t.printStackTrace();
+            rollbackWriteTransaction();
+        }
 
     }
 
@@ -133,40 +186,50 @@ public class RealmList<T> extends AbstractList<T> {
 
         Field[] fields = element.getClass().getDeclaredFields();
 
-        // Inspect fields and add them
-        for(int i = 0; i < fields.length; i++) {
+        beginWriteTransaction();
+        try {
 
-            Field f = fields[i];
+            // Inspect fields and add them
+            for (int i = 0; i < fields.length; i++) {
 
-            Class<?> fieldType = f.getType();
+                Field f = fields[i];
 
-            System.out.println(f.getName());
-            long columnIndex = this.dataStore.getColumnIndex(f.getName());
+                Class<?> fieldType = f.getType();
 
-            f.setAccessible(true);
+                System.out.println(f.getName());
+                long columnIndex = this.dataStore.getColumnIndex(f.getName());
 
-            try {
+                f.setAccessible(true);
 
-                if (fieldType.equals(String.class)) {
-                    this.dataStore.setString(columnIndex, rowIndex, (String) f.get(element));
-                } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
-                    this.dataStore.setLong(columnIndex, rowIndex, f.getLong(element));
-                } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                    this.dataStore.setDouble(columnIndex, rowIndex, f.getDouble(element));
-                } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-                    this.dataStore.setFloat(columnIndex, rowIndex, f.getFloat(element));
-                } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                    this.dataStore.setBoolean(columnIndex, rowIndex, f.getBoolean(element));
-                } else if (fieldType.equals(Date.class)) {
-                    this.dataStore.setDate(columnIndex, rowIndex, (Date) f.get(element));
-                } else {
-                    System.err.println("Type not supported: " + fieldType.getName());
+                try {
+
+                    if (fieldType.equals(String.class)) {
+                        this.dataStore.setString(columnIndex, rowIndex, (String) f.get(element));
+                    } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
+                        this.dataStore.setLong(columnIndex, rowIndex, f.getLong(element));
+                    } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
+                        this.dataStore.setDouble(columnIndex, rowIndex, f.getDouble(element));
+                    } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
+                        this.dataStore.setFloat(columnIndex, rowIndex, f.getFloat(element));
+                    } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
+                        this.dataStore.setBoolean(columnIndex, rowIndex, f.getBoolean(element));
+                    } else if (fieldType.equals(Date.class)) {
+                        this.dataStore.setDate(columnIndex, rowIndex, (Date) f.get(element));
+                    } else {
+                        System.err.println("Type not supported: " + fieldType.getName());
+                    }
+
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
                 }
 
-            } catch(IllegalAccessException e) {
-                e.printStackTrace();
             }
 
+            commitWriteTransaction();
+
+        } catch(Throwable t) {
+            t.printStackTrace();
+            rollbackWriteTransaction();
         }
 
         return this.get(rowIndex);
@@ -180,7 +243,7 @@ public class RealmList<T> extends AbstractList<T> {
         try {
             T obj = ProxyBuilder.forClass(this.type)
                     .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
-                    .handler(new RealmProxy<T>(this.dataStore, rowIndex))
+                    .handler(new RealmProxy<T>(this, rowIndex))
                     .build();
             ((RealmProxy)ProxyBuilder.getInvocationHandler(obj)).realmSetRowIndex(rowIndex);
             return obj;
@@ -194,6 +257,8 @@ public class RealmList<T> extends AbstractList<T> {
     public int size() {
         return ((Long)this.dataStore.size()).intValue();
     }
+
+
 
 
 }

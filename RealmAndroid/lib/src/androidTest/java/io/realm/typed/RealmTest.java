@@ -2,8 +2,6 @@ package io.realm.typed;
 
 import android.test.AndroidTestCase;
 
-import java.util.Collections;
-
 import io.realm.typed.entities.User;
 
 
@@ -12,14 +10,16 @@ public class RealmTest extends AndroidTestCase {
     public void testRealm() {
 
         // Init
-        RealmList<User> users = Realms.newList(this.getContext(), User.class);
+        RealmList<User> users = Realms.list(this.getContext(), User.class);
         // Notice that RealmList implements List, which means that it can be used in a lot of existing code
+        // We could also implement RealmMap, RealmSet, etc.
 
 
         // Insert
         for(int i = 0; i < 120; i++) {
 
             User user = users.create();
+
             user.setId(i);
             user.setName("Rasmus");
             user.setEmail("ra@realm.io");
