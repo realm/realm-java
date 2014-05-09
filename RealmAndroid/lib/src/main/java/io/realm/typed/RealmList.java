@@ -141,7 +141,7 @@ public class RealmList<E> extends AbstractList<E> {
         try {
             E obj = ProxyBuilder.forClass(this.type)
                     .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
-                    .handler(new RealmProxy<E>(this, -1))
+                    .handler(new RealmProxy(this, -1))
                     .build();
             return obj;
         } catch(IOException e) {
@@ -286,7 +286,7 @@ public class RealmList<E> extends AbstractList<E> {
         try {
             E obj = ProxyBuilder.forClass(this.type)
                     .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
-                    .handler(new RealmProxy<E>(this, rowIndex))
+                    .handler(new RealmProxy(this, rowIndex))
                     .build();
             ((RealmProxy)ProxyBuilder.getInvocationHandler(obj)).realmSetRowIndex(rowIndex);
             return obj;
