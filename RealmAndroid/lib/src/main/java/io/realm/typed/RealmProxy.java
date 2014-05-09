@@ -10,12 +10,10 @@ import java.util.Date;
 
 import io.realm.TableOrView;
 
-public class RealmProxy<T> implements InvocationHandler {
+class RealmProxy implements InvocationHandler {
 
     private RealmList realm;
     private long rowIndex;
-    private Object proxied;
-
 
     public RealmProxy(RealmList realm, long rowIndex) {
         this.realm = realm;
@@ -103,6 +101,5 @@ public class RealmProxy<T> implements InvocationHandler {
 
         return ProxyBuilder.callSuper(proxy, m, args);
     }
-
 
 }

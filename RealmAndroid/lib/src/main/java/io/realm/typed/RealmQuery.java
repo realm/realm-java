@@ -3,19 +3,22 @@ package io.realm.typed;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import io.realm.TableOrView;
 import io.realm.TableQuery;
 
-public class RealmQuery<T> {
+/**
+ *
+ * @param <E> The type of objects to be queried
+ */
+public class RealmQuery<E> {
 
-    private RealmList<T> realm;
+    private RealmList<E> realm;
     private TableQuery query;
     private Map<String, Integer> columns = new HashMap<String, Integer>();
 
-    public RealmQuery(RealmList<T> realmList) {
+    public RealmQuery(RealmList<E> realmList) {
         this.realm = realmList;
 
         TableOrView dataStore = realmList.getDataStore();
@@ -26,49 +29,45 @@ public class RealmQuery<T> {
         }
     }
 
-    public static <T> RealmQuery<T> where(List<T> realm) {
-        return new RealmQuery<T>((RealmList<T>)realm);
-    }
-
     // Equal
 
-    public RealmQuery<T> equalTo(String columnName, String value) {
+    public RealmQuery<E> equalTo(String columnName, String value) {
         int columnIndex = columns.get(columnName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<T> equalTo(String columnName, int value) {
+    public RealmQuery<E> equalTo(String columnName, int value) {
         int columnIndex = columns.get(columnName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<T> equalTo(String columnName, long value) {
+    public RealmQuery<E> equalTo(String columnName, long value) {
         int columnIndex = columns.get(columnName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<T> equalTo(String columnName, double value) {
+    public RealmQuery<E> equalTo(String columnName, double value) {
         int columnIndex = columns.get(columnName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<T> equalTo(String columnName, float value) {
+    public RealmQuery<E> equalTo(String columnName, float value) {
         int columnIndex = columns.get(columnName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<T> equalTo(String columnName, boolean value) {
+    public RealmQuery<E> equalTo(String columnName, boolean value) {
         int columnIndex = columns.get(columnName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<T> equalTo(String columnName, Date value) {
+    public RealmQuery<E> equalTo(String columnName, Date value) {
         int columnIndex = columns.get(columnName);
         this.query.equalTo(columnIndex, value);
         return this;
@@ -76,31 +75,31 @@ public class RealmQuery<T> {
 
     // Between
 
-    public RealmQuery<T> between(String columnName, int from, int to) {
+    public RealmQuery<E> between(String columnName, int from, int to) {
         int columnIndex = columns.get(columnName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
-    public RealmQuery<T> between(String columnName, long from, long to) {
+    public RealmQuery<E> between(String columnName, long from, long to) {
         int columnIndex = columns.get(columnName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
-    public RealmQuery<T> between(String columnName, double from, double to) {
+    public RealmQuery<E> between(String columnName, double from, double to) {
         int columnIndex = columns.get(columnName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
-    public RealmQuery<T> between(String columnName, float from, float to) {
+    public RealmQuery<E> between(String columnName, float from, float to) {
         int columnIndex = columns.get(columnName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
-    public RealmQuery<T> between(String columnName, Date from, Date to) {
+    public RealmQuery<E> between(String columnName, Date from, Date to) {
         int columnIndex = columns.get(columnName);
         this.query.between(columnIndex, from, to);
         return this;
@@ -109,13 +108,13 @@ public class RealmQuery<T> {
 
     // Contains
 
-    public RealmQuery<T> contains(String columnName, String value) {
+    public RealmQuery<E> contains(String columnName, String value) {
         int columnIndex = columns.get(columnName);
         this.query.contains(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<T> contains(String columnName, String value, boolean caseSensitive) {
+    public RealmQuery<E> contains(String columnName, String value, boolean caseSensitive) {
         int columnIndex = columns.get(columnName);
         this.query.contains(columnIndex, value, caseSensitive);
         return this;
@@ -141,8 +140,8 @@ public class RealmQuery<T> {
 
     // Execute
 
-    public RealmList<T> findAll() {
-        return new RealmList<T>(realm, query.findAll());
+    public RealmList<E> findAll() {
+        return new RealmList<E>(realm, query.findAll());
     }
 
 }

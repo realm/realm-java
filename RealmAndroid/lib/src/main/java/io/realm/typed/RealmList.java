@@ -17,9 +17,13 @@ import io.realm.Table;
 import io.realm.TableOrView;
 import io.realm.WriteTransaction;
 
-public class RealmList<T> extends AbstractList<T> {
+/**
+ *
+ * @param <E> The type of objects to be persisted in this list
+ */
+public class RealmList<E> extends AbstractList<E> {
 
-    private Class<T> type;
+    private Class<E> type;
 
     private Context context;
 
@@ -28,12 +32,22 @@ public class RealmList<T> extends AbstractList<T> {
 
     private TableOrView dataStore = null;
 
-
-    public RealmList(Class<T> type, Context context) {
+    /**
+     *
+     * @param type
+     * @param context
+     */
+    RealmList(Class<E> type, Context context) {
         this(type, context, context.getFilesDir()+"/default.realm");
     }
 
-    public RealmList(Class<T> type, Context context, String filePath) {
+    /**
+     *
+     * @param type
+     * @param context
+     * @param filePath
+     */
+    RealmList(Class<E> type, Context context, String filePath) {
         this.context = context;
         this.sg = new SharedGroup(filePath);
 
@@ -84,7 +98,7 @@ public class RealmList<T> extends AbstractList<T> {
 
     }
 
-    RealmList(RealmList<T> realm, TableOrView dataStore) {
+    RealmList(RealmList<E> realm, TableOrView dataStore) {
         this.context = realm.context;
         this.type = realm.type;
         this.dataStore = dataStore;
@@ -118,11 +132,16 @@ public class RealmList<T> extends AbstractList<T> {
         this.dataStore = this.transaction.getTable(this.type.getName());
     }
 
-    public T create() {
+    /**
+     * Instantiates and adds a new object to the list
+     *
+     * @return          The new object
+     */
+    public E create() {
         try {
-            T obj = ProxyBuilder.forClass(this.type)
+            E obj = ProxyBuilder.forClass(this.type)
                     .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
-                    .handler(new RealmProxy<T>(this, -1))
+                    .handler(new RealmProxy<E>(this, -1))
                     .build();
             return obj;
         } catch(IOException e) {
@@ -131,12 +150,22 @@ public class RealmList<T> extends AbstractList<T> {
         return null;
     }
 
-    public RealmQuery<T> where() {
-        return new RealmQuery<T>(this);
+    /**
+     * Returns a RealmQuery, used to filter this collection
+     *
+     * @return          A RealmQuery to filter the list
+     */
+    public RealmQuery<E> where() {
+        return new RealmQuery<E>(this);
     }
 
+    /**
+     *
+     * @param rowIndex  The index position where the object should be inserted
+     * @param element   The object to insert
+     */
     @Override
-    public void add(int rowIndex, T element) {
+    public void add(int rowIndex, E element) {
 
         Field[] fields = element.getClass().getSuperclass().getDeclaredFields();
 
@@ -175,14 +204,25 @@ public class RealmList<T> extends AbstractList<T> {
 
     }
 
+    /**
+     *
+     * @param rowIndex  The index of the object to be removed
+     * @return          Always returns null, as the object is no longer backed by Realm
+     */
     @Override
-    public T remove(int rowIndex) {
+    public E remove(int rowIndex) {
         this.dataStore.remove(rowIndex);
         return null;
     }
 
+    /**
+     *
+     * @param rowIndex  The index position where the object should be inserted
+     * @param element   The object to insert
+     * @return          The inserted object
+     */
     @Override
-    public T set(int rowIndex, T element) {
+    public E set(int rowIndex, E element) {
 
         Field[] fields = element.getClass().getDeclaredFields();
 
@@ -236,14 +276,17 @@ public class RealmList<T> extends AbstractList<T> {
 
     }
 
-
-
+    /**
+     *
+     * @param rowIndex  The objects index in the list
+     * @return          An object of type T, which is backed by Realm
+     */
     @Override
-    public T get(int rowIndex) {
+    public E get(int rowIndex) {
         try {
-            T obj = ProxyBuilder.forClass(this.type)
+            E obj = ProxyBuilder.forClass(this.type)
                     .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
-                    .handler(new RealmProxy<T>(this, rowIndex))
+                    .handler(new RealmProxy<E>(this, rowIndex))
                     .build();
             ((RealmProxy)ProxyBuilder.getInvocationHandler(obj)).realmSetRowIndex(rowIndex);
             return obj;
@@ -253,6 +296,10 @@ public class RealmList<T> extends AbstractList<T> {
         return null;
     }
 
+    /**
+     *
+     * @return          The number of elements in this RealmList
+     */
     @Override
     public int size() {
         return ((Long)this.dataStore.size()).intValue();
