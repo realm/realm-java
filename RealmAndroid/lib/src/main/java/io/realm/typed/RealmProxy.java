@@ -4,7 +4,6 @@ package io.realm.typed;
 import com.google.dexmaker.stock.ProxyBuilder;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Date;
 
@@ -27,11 +26,10 @@ class RealmProxy implements InvocationHandler {
     public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
 
 
-
-        String methodName = m.getName();
-
         if(this.rowIndex != -1) {
 
+            String methodName = m.getName();
+/*
             if (methodName.startsWith("get")) {
 
                 TableOrView table = this.realm.getDataStore();
@@ -41,58 +39,50 @@ class RealmProxy implements InvocationHandler {
                 String name = methodName.substring(3).toLowerCase();
 
                 if (type.equals(String.class)) {
-                    return table.getString(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(int.class) || m.getReturnType().equals(Integer.class)) {
-                    return ((Long) table.getLong(table.getColumnIndex(name), rowIndex)).intValue();
-                } else if (type.equals(long.class) || m.getReturnType().equals(Long.class)) {
-                    return table.getLong(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(double.class) || m.getReturnType().equals(Double.class)) {
-                    return table.getDouble(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(float.class) || m.getReturnType().equals(Float.class)) {
-                    return table.getFloat(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(boolean.class) || m.getReturnType().equals(Boolean.class)) {
-                    return table.getBoolean(table.getColumnIndex(name), rowIndex);
+                    return table.getString(realm.getColumnIndex(name), rowIndex);
+                } else if (type.equals(int.class) || type.equals(Integer.class)) {
+                    return ((Long) table.getLong(realm.getColumnIndex(name), rowIndex)).intValue();
+                } else if (type.equals(long.class) || type.equals(Long.class)) {
+                    return table.getLong(realm.getColumnIndex(name), rowIndex);
+                } else if (type.equals(double.class) || type.equals(Double.class)) {
+                    return table.getDouble(realm.getColumnIndex(name), rowIndex);
+                } else if (type.equals(float.class) || type.equals(Float.class)) {
+                    return table.getFloat(realm.getColumnIndex(name), rowIndex);
+                } else if (type.equals(boolean.class) || type.equals(Boolean.class)) {
+                    return table.getBoolean(realm.getColumnIndex(name), rowIndex);
                 } else if (type.equals(Date.class)) {
-                    return table.getDate(table.getColumnIndex(name), rowIndex);
+                    return table.getDate(realm.getColumnIndex(name), rowIndex);
                 }
 
 
-            } else if (methodName.startsWith("set")) {
+            } else*/
+            if (methodName.startsWith("set")) {
 
-                this.realm.beginWriteTransaction();
 
-                try {
+                TableOrView table = this.realm.getDataStore();
 
-                    TableOrView table = this.realm.getDataStore();
+                Class<?> type = m.getParameterTypes()[0];
 
-                    Class<?> type = m.getParameterTypes()[0];
+                String name = methodName.substring(3).toLowerCase();
 
-                    String name = methodName.substring(3).toLowerCase();
-
-                    if (type.equals(String.class)) {
-                        table.setString(table.getColumnIndex(name), rowIndex, (String) args[0]);
-                    } else if (type.equals(int.class) || m.getReturnType().equals(Integer.class)) {
-                        table.setLong(table.getColumnIndex(name), rowIndex, new Long((Integer) args[0]));
-                    } else if (type.equals(long.class) || m.getReturnType().equals(Long.class)) {
-                        table.setLong(table.getColumnIndex(name), rowIndex, (Long) args[0]);
-                    } else if (type.equals(double.class) || m.getReturnType().equals(Double.class)) {
-                        table.setDouble(table.getColumnIndex(name), rowIndex, (Double) args[0]);
-                    } else if (type.equals(float.class) || m.getReturnType().equals(Float.class)) {
-                        table.setFloat(table.getColumnIndex(name), rowIndex, (Float) args[0]);
-                    } else if (type.equals(boolean.class) || m.getReturnType().equals(Boolean.class)) {
-                        table.setBoolean(table.getColumnIndex(name), rowIndex, (Boolean) args[0]);
-                    } else if (type.equals(Date.class)) {
-                        table.setDate(table.getColumnIndex(name), rowIndex, (Date) args[0]);
-                    } else {
-                        return null;
-                    }
-
-                    this.realm.commitWriteTransaction();
-
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                    this.realm.rollbackWriteTransaction();
+                if (type.equals(String.class)) {
+                    table.setString(realm.getColumnIndex(name), rowIndex, (String) args[0]);
+                } else if (type.equals(int.class) || type.equals(Integer.class)) {
+                    table.setLong(realm.getColumnIndex(name), rowIndex, (Integer) args[0]);
+                } else if (type.equals(long.class) || type.equals(Long.class)) {
+                    table.setLong(realm.getColumnIndex(name), rowIndex, (Long) args[0]);
+                } else if (type.equals(double.class) || type.equals(Double.class)) {
+                    table.setDouble(realm.getColumnIndex(name), rowIndex, (Double) args[0]);
+                } else if (type.equals(float.class) || type.equals(Float.class)) {
+                    table.setFloat(realm.getColumnIndex(name), rowIndex, (Float) args[0]);
+                } else if (type.equals(boolean.class) || type.equals(Boolean.class)) {
+                    table.setBoolean(realm.getColumnIndex(name), rowIndex, (Boolean) args[0]);
+                } else if (type.equals(Date.class)) {
+                    table.setDate(realm.getColumnIndex(name), rowIndex, (Date) args[0]);
+                } else {
+                    return null;
                 }
+
                 return null;
 
             }

@@ -15,27 +15,45 @@ public class RealmTest extends AndroidTestCase {
         // We could also implement RealmMap, RealmSet, etc.
 
 
-        // Insert
-        for(int i = 0; i < 120; i++) {
+        try {
+            users.beginWrite();
 
-            User user = users.create();
+            // Insert
+            for (int i = 0; i < 120; i++) {
 
-            user.setId(i);
-            user.setName("Rasmus");
-            user.setEmail("ra@realm.io");
+                User user = users.create();
 
-            users.add(user);
+                user.setId(i);
+                user.setName("Rasmus");
+                user.setEmail("ra@realm.io");
 
-            user.setId(10);
+            //    users.add(user);
 
+                user.setId(10);
+
+            }
+
+            users.commit();
+
+        } catch(Throwable t) {
+            t.printStackTrace();
+            users.rollback();
         }
 
         // Get
         User user1 = users.get(100);
-        assertEquals(user1.getName(), "Rasmus");
-        user1.setName("TestName");
+        assertEquals("Rasmus", user1.getName());
 
-        assertEquals(user1.getName(), "TestName");
+        try {
+            users.beginWrite();
+            user1.setName("TestName");
+            users.commit();
+        } catch(Throwable t) {
+            users.rollback();
+        }
+
+
+        assertEquals("TestName", user1.getName());
 
         assertEquals(120, users.size());
 
@@ -44,7 +62,13 @@ public class RealmTest extends AndroidTestCase {
             System.out.println(user.getId());
         }
 
-        user1.setId(100);
+        try {
+            users.beginWrite();
+            user1.setId(100);
+            users.commit();
+        } catch(Throwable t) {
+            users.rollback();
+        }
 
         // Query
         RealmList<User> results = users.where().equalTo("id", 10).findAll();
