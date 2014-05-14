@@ -9,49 +9,57 @@ public class RealmTest extends AndroidTestCase {
 
     public void testRealm() {
 
-        // Init
-        RealmList<User> users = Realms.list(this.getContext(), User.class);
-        // Notice that RealmList implements List, which means that it can be used in a lot of existing code
-        // We could also implement RealmMap, RealmSet, etc.
-
+        Realm realm = new Realm(getContext());
 
         try {
-            users.beginWrite();
+            realm.beginWrite();
+
+
+            // Clear everything of this type, to do a clean test
+            realm.clear(User.class);
 
             // Insert
             for (int i = 0; i < 120; i++) {
 
-                User user = users.create();
+                User user = realm.create(User.class);
 
                 user.setId(i);
                 user.setName("Rasmus");
                 user.setEmail("ra@realm.io");
 
-            //    users.add(user);
-
                 user.setId(10);
 
             }
 
-            users.commit();
+            realm.commit();
 
         } catch(Throwable t) {
             t.printStackTrace();
-            users.rollback();
+            realm.rollback();
         }
+
+        RealmList<User> users = realm.where(User.class).findAll();
 
         // Get
         User user1 = users.get(100);
         assertEquals("Rasmus", user1.getName());
 
         try {
-            users.beginWrite();
+
+            realm.beginWrite();
+
             user1.setName("TestName");
-            users.commit();
+
+            realm.commit();
+
         } catch(Throwable t) {
-            users.rollback();
+            realm.rollback();
         }
 
+        users = realm.where(User.class).findAll();
+
+        // Get
+        user1 = users.get(100);
 
         assertEquals("TestName", user1.getName());
 
@@ -63,15 +71,19 @@ public class RealmTest extends AndroidTestCase {
         }
 
         try {
-            users.beginWrite();
+
+            realm.beginWrite();
+
             user1.setId(100);
-            users.commit();
+
+            realm.commit();
+
         } catch(Throwable t) {
-            users.rollback();
+            realm.rollback();
         }
 
         // Query
-        RealmList<User> results = users.where().equalTo("id", 10).findAll();
+        RealmList<User> results = realm.where(User.class).equalTo("id", 10).findAll();
 
         assertEquals(119, results.size());
         assertEquals(10, results.get(0).getId());

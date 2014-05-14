@@ -51,23 +51,22 @@ public class PerformanceTest extends AndroidTestCase {
 
         System.out.println("Testing new interface");
 
-        RealmList<User> realmList = Realms.list(this.getContext(), User.class);
+        Realm realm = new Realm(getContext());
 
         timer = System.currentTimeMillis();
         try {
-            realmList.beginWrite();
+            realm.beginWrite();
             for(int i = 0; i < listSize; i++) {
-                User user = new User();
+                User user = realm.create(User.class);
 
                 user.setId(i);
                 user.setName("John Doe");
                 user.setEmail("john@doe.com");
 
-                realmList.add(user);
             }
-            realmList.commit();
+            realm.commit();
         } catch(Throwable t) {
-            realmList.rollback();
+            realm.rollback();
             t.printStackTrace();
             fail();
         }
@@ -75,7 +74,8 @@ public class PerformanceTest extends AndroidTestCase {
         timings.put("RealmList_Add", (System.currentTimeMillis() - timer));
 
         timer = System.currentTimeMillis();
-        for(int i = 0; i < listSize; i++) {
+        RealmList<User> realmList = realm.where(User.class).findAll();
+        for(int i = 0; i < realmList.size(); i++) {
             User u = realmList.get(i);
         }
         timings.put("RealmList_Get", (System.currentTimeMillis() - timer));

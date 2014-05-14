@@ -9,8 +9,8 @@ import android.widget.ListView;
 
 import io.realm.example.entities.User;
 import io.realm.testApp.R;
+import io.realm.typed.Realm;
 import io.realm.typed.RealmList;
-import io.realm.typed.Realms;
 
 public class MainActivity extends Activity {
 
@@ -23,8 +23,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize  the Realm
-        this.users = Realms.list(this, User.class);
+        // Initialize the Realm
+        Realm realm = new Realm(this);
+
+        this.users = realm.where(User.class).findAll();
 
 
         // Setup the ListView
@@ -37,7 +39,7 @@ public class MainActivity extends Activity {
 
     public void createItem(View v) {
 
-        User user = this.users.create();
+        User user = new User();
 
         user.setId(0);
         user.setName("Username " + this.users.size());

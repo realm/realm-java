@@ -6,6 +6,7 @@ import com.google.dexmaker.stock.ProxyBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.*;
+import java.util.AbstractList;
 import java.util.Date;
 
 import io.realm.Table;
@@ -13,55 +14,46 @@ import io.realm.TableOrView;
 
 /**
  *
- * @param <E> The type of objects to be persisted in this list
+ * @param <E> The classSpec of objects to be persisted in this list
  */
-public class RealmList<E> extends AbstractRealm<E> {
+public class RealmList<E> extends AbstractList<E> {
 
-    RealmList(Class<E> type, Context context) {
-        super(type, context);
+    private Class<E> classSpec;
+    private Realm realm;
+    private TableOrView table = null;
+
+    RealmList(Realm realm, Class<E> classSpec) {
+        this.realm = realm;
+        this.classSpec = classSpec;
     }
 
-    RealmList(Class<E> type, Context context, String filePath) {
-        super(type, context, filePath);
+    RealmList(Realm realm, TableOrView table, Class<E> classSpec) {
+        this(realm, classSpec);
+        this.table = table;
     }
 
-    RealmList(RealmList<E> realm, TableOrView dataStore) {
-        super(realm, dataStore);
-    }
-
-
-    /**
-     * Instantiates and adds a new object to the list
-     *
-     * @return          The new object
-     */
-    public E create() {
-        try {
-            long index = ((Table)this.getDataStore()).addEmptyRow();
-            E obj = ProxyBuilder.forClass(this.type)
-                    .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
-                    .handler(new RealmProxy(this, index))
-                    .build();
-            return obj;
-        } catch(IOException e) {
-            e.printStackTrace();
+    TableOrView getTable() {
+        if(table == null) {
+            return realm.getTable(classSpec);
+        } else {
+            return table;
         }
-        return null;
     }
 
+
     /**
-     * Returns a RealmQuery, used to filter this collection
+     * Returns a RealmQuery, used to filter this RealmList
      *
      * @return          A RealmQuery to filter the list
      */
     public RealmQuery<E> where() {
-        return new RealmQuery<E>(this);
+        return new RealmQuery<E>(realm, classSpec);
     }
 
     /**
      *
-     * @param rowIndex  The index position where the object should be inserted
-     * @param element   The object to insert
+     * @param rowIndex      The index position where the object should be inserted
+     * @param element       The object to insert
      */
     @Override
     public void add(int rowIndex, E element) {
@@ -87,33 +79,33 @@ public class RealmList<E> extends AbstractRealm<E> {
 
         }
 
-        ((Table)this.getDataStore()).addAt(rowIndex, row);
+        ((Table)getTable()).addAt(rowIndex, row);
 
     }
 
     /**
      *
-     * @param rowIndex  The index of the object to be removed
-     * @return          Always returns null, as the object is no longer backed by Realm
+     * @param rowIndex      The index of the object to be removed
+     * @return              Always returns null, as the object is no longer backed by Realm
      */
     @Override
     public E remove(int rowIndex) {
-        this.getDataStore().remove(rowIndex);
+        getTable().remove(rowIndex);
         return null;
     }
 
     /**
      *
-     * @param rowIndex  The index position where the object should be inserted
-     * @param element   The object to insert
-     * @return          The inserted object
+     * @param rowIndex      The index position where the object should be inserted
+     * @param element       The object to insert
+     * @return              The inserted object
      */
     @Override
     public E set(int rowIndex, E element) {
 
         Field[] fields = element.getClass().getDeclaredFields();
 
-        TableOrView dataStore = getDataStore();
+        TableOrView dataStore = getTable();
 
         // Inspect fields and add them
         for (int i = 0; i < fields.length; i++) {
@@ -123,7 +115,7 @@ public class RealmList<E> extends AbstractRealm<E> {
             Class<?> fieldType = f.getType();
 
             System.out.println(f.getName());
-            long columnIndex = getColumnIndex(f.getName());
+            long columnIndex = dataStore.getColumnIndex(f.getName());
 
             f.setAccessible(true);
 
@@ -158,14 +150,14 @@ public class RealmList<E> extends AbstractRealm<E> {
 
     /**
      *
-     * @param rowIndex  The objects index in the list
-     * @return          An object of type T, which is backed by Realm
+     * @param rowIndex      The objects index in the list
+     * @return              An object of type E, which is backed by Realm
      */
     @Override
     public E get(int rowIndex) {
         try {
-            E obj = ProxyBuilder.forClass(this.type)
-                    .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
+            E obj = ProxyBuilder.forClass(classSpec)
+                    .dexCache(realm.getContext().getDir("dx", Context.MODE_PRIVATE))
                     .handler(new RealmProxy(this, rowIndex))
                     .build();
             return obj;
@@ -177,11 +169,11 @@ public class RealmList<E> extends AbstractRealm<E> {
 
     /**
      *
-     * @return          The number of elements in this RealmList
+     * @return              The number of elements in this RealmList
      */
     @Override
     public int size() {
-        return ((Long)this.getDataStore().size()).intValue();
+        return ((Long)getTable().size()).intValue();
     }
 
 }

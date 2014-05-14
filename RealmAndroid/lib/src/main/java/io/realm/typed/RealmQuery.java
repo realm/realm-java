@@ -10,18 +10,20 @@ import io.realm.TableQuery;
 
 /**
  *
- * @param <E> The type of objects to be queried
+ * @param <E> The classSpec of objects to be queried
  */
 public class RealmQuery<E> {
 
-    private RealmList<E> realm;
+    private Realm realm;
     private TableQuery query;
     private Map<String, Integer> columns = new HashMap<String, Integer>();
+    private Class<E> classSpec;
 
-    public RealmQuery(RealmList<E> realmList) {
-        this.realm = realmList;
+    public RealmQuery(Realm realm, Class<E> classSpec) {
+        this.realm = realm;
+        this.classSpec = classSpec;
 
-        TableOrView dataStore = realmList.getDataStore();
+        TableOrView dataStore = realm.getTable(classSpec);
         this.query = dataStore.where();
 
         for(int i = 0; i < dataStore.getColumnCount(); i++) {
@@ -141,7 +143,7 @@ public class RealmQuery<E> {
     // Execute
 
     public RealmList<E> findAll() {
-        return new RealmList<E>(realm, query.findAll());
+        return new RealmList<E>(realm, query.findAll(), classSpec);
     }
 
 }
