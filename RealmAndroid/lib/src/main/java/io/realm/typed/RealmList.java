@@ -14,7 +14,7 @@ import io.realm.TableOrView;
 
 /**
  *
- * @param <E> The classSpec of objects to be persisted in this list
+ * @param <E> The class of objects in this list
  */
 public class RealmList<E> extends AbstractList<E> {
 

@@ -10,7 +10,7 @@ import io.realm.TableQuery;
 
 /**
  *
- * @param <E> The classSpec of objects to be queried
+ * @param <E> The class of objects to be queried
  */
 public class RealmQuery<E> {
 
