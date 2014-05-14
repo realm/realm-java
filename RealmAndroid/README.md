@@ -34,7 +34,7 @@ Realm data models are defined by implementing a traditional Java Bean (http://en
 
     }
 
-These objects should be instantiated from the RealmCollection using the method create()
+These objects should be instantiated from the Realm using the create() method
 
 ## Instatiating a Realm
 
@@ -42,8 +42,6 @@ To get started with realm we create a new instance of a Realm
 
     Realm realm = new Realm(context);
 
-RealmList works as a traditional List, which is just automatically persisted in Realm.
-The Context, is used to get access to a writeable directory on the device, and the Class is used to generate the underlying datamodel.
 
 ## Adding Objects
 
@@ -58,6 +56,7 @@ This gives us a new User instance, which we can populate with data
     user.setEmail("john@corporation.com");
 
 ### Alternative way of adding objects
+
 An alternative to this would be to add an already existing object to the Realm
 
     User user = new User();
@@ -67,6 +66,18 @@ An alternative to this would be to add an already existing object to the Realm
 
     user = realm.add(user);
 
+## Transactions
+All write operations must be wrapped in write transactions to work
+
+    try {
+        realm.beginWrite();
+
+        ... do writes here ...
+
+        realm.commit();
+    } catch(Throwable t) {
+        realm.rollback();
+    }
 
 ## Querying
 
@@ -76,7 +87,7 @@ To find all users named "John" you would write
 
     RealmList<User> result = realm.where(User.class).equalTo("name", "John").findAll();
 
-This gives you a new list, of users with the name John
+This gives you a new RealmList, of users with the name John
 
 ## Iterating through Objects
 
