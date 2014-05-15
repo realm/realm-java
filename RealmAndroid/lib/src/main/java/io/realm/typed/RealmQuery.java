@@ -70,8 +70,117 @@ public class RealmQuery<E> {
     }
 
     public RealmQuery<E> equalTo(String columnName, Date value) {
+        
         int columnIndex = columns.get(columnName);
         this.query.equalTo(columnIndex, value);
+        return this;
+    }
+
+    // Not Equal
+
+    public RealmQuery<E> notEqualTo(String columnName, String value) {
+        int columnIndex = columns.get(columnName);
+        this.query.notEqualTo(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> notEqualTo(String columnName, int value) {
+        int columnIndex = columns.get(columnName);
+        this.query.notEqualTo(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> notEqualTo(String columnName, long value) {
+        int columnIndex = columns.get(columnName);
+        this.query.notEqualTo(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> notEqualTo(String columnName, double value) {
+        int columnIndex = columns.get(columnName);
+        this.query.notEqualTo(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> notEqualTo(String columnName, float value) {
+        int columnIndex = columns.get(columnName);
+        this.query.notEqualTo(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> notEqualTo(String columnName, boolean value) {
+        int columnIndex = columns.get(columnName);
+        this.query.equalTo(columnIndex, !value);
+        return this;
+    }
+
+    public RealmQuery<E> notEqualTo(String columnName, Date value) {
+        int columnIndex = columns.get(columnName);
+        this.query.notEqualTo(columnIndex, value);
+        return this;
+    }
+
+    // Greater Than
+
+    public RealmQuery<E> greaterThan(String columnName, int value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThan(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> greaterThan(String columnName, long value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThan(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> greaterThan(String columnName, double value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThan(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> greaterThan(String columnName, float value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThan(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> greaterThan(String columnName, Date value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThan(columnIndex, value);
+        return this;
+    }
+
+    // Less Than
+
+    public RealmQuery<E> lessThan(String columnName, int value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThan(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThan(String columnName, long value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThan(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThan(String columnName, double value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThan(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThan(String columnName, float value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThan(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThan(String columnName, Date value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThan(columnIndex, value);
         return this;
     }
 
@@ -125,6 +234,8 @@ public class RealmQuery<E> {
 
     // Aggregates
 
+    // Sum
+
     public long sumInt(String columnName) {
         int columnIndex = columns.get(columnName);
         return this.query.sumInt(columnIndex);
@@ -138,6 +249,50 @@ public class RealmQuery<E> {
     public double sumFloat(String columnName) {
         int columnIndex = columns.get(columnName);
         return this.query.sumFloat(columnIndex);
+    }
+
+    // Min
+
+    public long minimumInt(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.minimumInt(columnIndex);
+    }
+
+    public double minimuDouble(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.minimumDouble(columnIndex);
+    }
+
+    public float minimuFloat(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.minimumFloat(columnIndex);
+    }
+
+    public Date minimumDate(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.minimumDate(columnIndex);
+    }
+
+    // Max
+
+    public long maximumInt(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.maximumInt(columnIndex);
+    }
+
+    public double maximuDouble(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.maximumDouble(columnIndex);
+    }
+
+    public float maximuFloat(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.maximumFloat(columnIndex);
+    }
+
+    public Date maximumDate(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.maximumDate(columnIndex);
     }
 
     // Execute
