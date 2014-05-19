@@ -1,11 +1,15 @@
 package io.realm.typed.entities;
 
+import java.util.List;
 
-public class User {
+import io.realm.typed.RealmObject;
+
+public class User extends RealmObject {
 
     private int id;
     private String name;
     private String email;
+    private List<User> friends;
 
     public int getId() {
         return id;
@@ -29,5 +33,13 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public List<User> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(List<User> friends) {
+        this.friends = friends;
     }
 }

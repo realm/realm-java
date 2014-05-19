@@ -1,11 +1,15 @@
 package io.realm.example.entities;
 
 
-public class User {
+import io.realm.typed.RealmObject;
+
+public class User extends RealmObject {
 
     private int id;
     private String name;
     private String email;
+
+    private User friend;
 
     public int getId() {
         return id;

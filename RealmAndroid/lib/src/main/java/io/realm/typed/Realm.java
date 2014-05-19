@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.google.dexmaker.stock.ProxyBuilder;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -22,6 +23,7 @@ public class Realm {
     private Context context;
     private SharedGroup sg;
     private Group transaction;
+    private String filePath;
 
     /**
      * Initializes a default realm
@@ -42,6 +44,7 @@ public class Realm {
         this.context = context;
         this.sg = new SharedGroup(filePath);
         this.transaction = sg.beginRead();
+        this.filePath = filePath;
     }
 
     Context getContext() {
@@ -53,18 +56,10 @@ public class Realm {
     }
 
 
-    /**
-     * Instantiates and adds a new object to the realm
-     *
-     * @return              The new object
-     * @param <E>
-     */
-    public <E> E create(Class<E> classSpec) {
-
+    private <E> void initTable(Class<E> classSpec) {
         // Check for table existence
         if(!this.transaction.hasTable(classSpec.getName())) {
             // Create the table
-            beginWrite();
             Table table = this.transaction.getTable(classSpec.getName());
 
             for (Field f : classSpec.getDeclaredFields()) {
@@ -84,6 +79,10 @@ public class Realm {
                     table.addColumn(ColumnType.BOOLEAN, f.getName().toLowerCase());
                 } else if (fieldType.equals(Date.class)) {
                     table.addColumn(ColumnType.DATE, f.getName().toLowerCase());
+                } else if (fieldType.equals(byte[].class)) {
+                    table.addColumn(ColumnType.BINARY, f.getName().toLowerCase());
+                } else if (fieldType.equals(RealmObject.class.equals(fieldType.getSuperclass()))) {
+                    // Link
                 } else {
                     System.err.println("Type not supported: " + fieldType.getName());
                 }
@@ -91,6 +90,19 @@ public class Realm {
             }
 
         }
+
+    }
+
+
+    /**
+     * Instantiates and adds a new object to the realm
+     *
+     * @return              The new object
+     * @param <E>
+     */
+    public <E extends RealmObject> E create(Class<E> classSpec) {
+
+        initTable(classSpec);
 
         Table table = this.transaction.getTable(classSpec.getName());
 
@@ -115,7 +127,9 @@ public class Realm {
      * @param <E>
      * @return
      */
-    public <E> E add(E element) {
+    public <E extends RealmObject> E add(E element) {
+
+        initTable(element.getClass());
 
         Field[] fields = element.getClass().getDeclaredFields();
 
@@ -150,6 +164,7 @@ public class Realm {
             e.printStackTrace();
         }
 
+
         return proxiedObject;
     }
 
@@ -160,7 +175,7 @@ public class Realm {
      * @param <E>
      * @return
      */
-    public <E> RealmQuery<E> where(Class<E> classSpec) {
+    public <E extends RealmObject> RealmQuery<E> where(Class<E> classSpec) {
         return new RealmQuery<E>(this, classSpec);
     }
 
@@ -195,6 +210,11 @@ public class Realm {
 
     public void clear(Class<?> classSpec) {
         getTable(classSpec).clear();
+    }
+
+    public void clear() {
+        new File(filePath).delete();
+        new File(filePath+".lock").delete();
     }
 
 }

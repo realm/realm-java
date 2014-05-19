@@ -2,6 +2,9 @@ package io.realm.typed;
 
 import android.test.AndroidTestCase;
 
+import java.util.Date;
+
+import io.realm.typed.entities.AllColumns;
 import io.realm.typed.entities.User;
 
 
@@ -16,7 +19,7 @@ public class RealmTest extends AndroidTestCase {
 
 
             // Clear everything of this type, to do a clean test
-            realm.clear(User.class);
+            realm.clear();
 
             // Insert
             for (int i = 0; i < 120; i++) {
@@ -40,9 +43,11 @@ public class RealmTest extends AndroidTestCase {
 
         RealmList<User> users = realm.where(User.class).findAll();
 
+
         // Get
         User user1 = users.get(100);
         assertEquals("Rasmus", user1.getName());
+
 
         try {
 
@@ -73,7 +78,8 @@ public class RealmTest extends AndroidTestCase {
         try {
 
             realm.beginWrite();
-
+            users = realm.where(User.class).findAll();
+            user1 = users.get(100);
             user1.setId(100);
 
             realm.commit();
@@ -87,6 +93,62 @@ public class RealmTest extends AndroidTestCase {
 
         assertEquals(119, results.size());
         assertEquals(10, results.get(0).getId());
+
+    }
+
+
+    public void testAllColumnsCreate() {
+
+        Realm realm = new Realm(this.getContext());
+
+        realm.beginWrite();
+
+        realm.clear();
+
+        AllColumns obj = realm.create(AllColumns.class);
+
+        obj.setColumnString("dsfs");
+        obj.setColumnLong(1);
+        obj.setColumnFloat(1.1F);
+        obj.setColumnDouble(1.1);
+        obj.setColumnBoolean(true);
+        obj.setColumnDate(new Date());
+        obj.setColumnBinary(new byte[20]);
+
+        realm.commit();
+
+        RealmList<AllColumns> result = realm.where(AllColumns.class).findAll();
+
+        assertEquals(1, result.size());
+
+    }
+
+    public void testAllColumnsAdd() {
+
+        Realm realm = new Realm(this.getContext());
+
+        realm.beginWrite();
+
+        realm.clear();
+
+        AllColumns obj = new AllColumns();
+
+        obj.setColumnString("dsfs");
+        obj.setColumnLong(1);
+        obj.setColumnFloat(1.1F);
+        obj.setColumnDouble(1.1);
+        obj.setColumnBoolean(true);
+        obj.setColumnDate(new Date());
+        obj.setColumnBinary(new byte[20]);
+
+        realm.add(obj);
+
+
+        realm.commit();
+
+        RealmList<AllColumns> result = realm.where(AllColumns.class).findAll();
+
+        assertEquals(1, result.size());
 
     }
 

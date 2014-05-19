@@ -16,7 +16,7 @@ import io.realm.TableOrView;
  *
  * @param <E> The class of objects in this list
  */
-public class RealmList<E> extends AbstractList<E> {
+public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     private Class<E> classSpec;
     private Realm realm;

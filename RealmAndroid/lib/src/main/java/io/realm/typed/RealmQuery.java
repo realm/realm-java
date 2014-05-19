@@ -12,7 +12,7 @@ import io.realm.TableQuery;
  *
  * @param <E> The class of objects to be queried
  */
-public class RealmQuery<E> {
+public class RealmQuery<E extends RealmObject> {
 
     private Realm realm;
     private TableQuery query;

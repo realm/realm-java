@@ -3,9 +3,13 @@ package io.realm.typed;
 
 import com.google.dexmaker.stock.ProxyBuilder;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Date;
+import java.util.List;
 
 import io.realm.TableOrView;
 
@@ -39,8 +43,6 @@ class RealmProxy implements InvocationHandler {
 
     public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
 
-        System.out.println("p " + proxy.getClass().getSuperclass());
-
         if(this.rowIndex != -1) {
 
             String methodName = m.getName();
@@ -67,6 +69,40 @@ class RealmProxy implements InvocationHandler {
                     return table.getBoolean(table.getColumnIndex(name), rowIndex);
                 } else if (type.equals(Date.class)) {
                     return table.getDate(table.getColumnIndex(name), rowIndex);
+                } else if (type.equals(byte[].class)) {
+                    // Binary
+                } else if(RealmObject.class.equals(type.getSuperclass())) {
+                    /*
+                    *
+                    * Link
+                    * int columnIndex = table.getColumnIndex(name);
+                    *
+                    * TableOrView t = table.getLinkTarget(columnIndex);
+                    *
+                    * rowIndex = table.getLink(columnIndex);
+                    *
+                    *
+                    * */
+                } else if(RealmList.class.equals(type)) {
+                    Field f = m.getDeclaringClass().getDeclaredField(name);
+                    Type genericType = f.getGenericType();
+                    System.out.println(genericType);
+                    if(genericType instanceof ParameterizedType) {
+                        ParameterizedType pType = (ParameterizedType)genericType;
+                        Class<?> actual = (Class<?>)pType.getActualTypeArguments()[0];
+                        System.out.println(actual.getName() + " - " + RealmObject.class.equals(actual.getSuperclass()));
+                    }
+                    /*
+                    *
+                    * List of links, should just return a new RealmList with a view set to represent the links
+                    * int columnIndex = table.getColumnIndex(name);
+                    *
+                    * TableOrView t = table.getLinks(columnIndex);
+                    *
+                    * return new RealmList<?>
+                    *
+                    *
+                    * */
                 }
 
 
@@ -78,7 +114,6 @@ class RealmProxy implements InvocationHandler {
                 String name = methodName.substring(3).toLowerCase();
 
                 if (type.equals(String.class)) {
-                    System.out.println((String) args[0]);
                     table.setString(table.getColumnIndex(name), rowIndex, (String) args[0]);
                 } else if (type.equals(int.class) || type.equals(Integer.class)) {
                     table.setLong(table.getColumnIndex(name), rowIndex, (Integer) args[0]);
