@@ -251,6 +251,23 @@ public class RealmQuery<E extends RealmObject> {
         return this.query.sumFloat(columnIndex);
     }
 
+    // Average
+
+    public double averageInt(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.averageInt(columnIndex);
+    }
+
+    public double averageDouble(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.averageDouble(columnIndex);
+    }
+
+    public double averageFloat(String columnName) {
+        int columnIndex = columns.get(columnName);
+        return this.query.averageFloat(columnIndex);
+    }
+
     // Min
 
     public long minimumInt(String columnName) {
@@ -299,6 +316,15 @@ public class RealmQuery<E extends RealmObject> {
 
     public RealmList<E> findAll() {
         return new RealmList<E>(realm, query.findAll(), classSpec);
+    }
+
+    public E findFirst() {
+        RealmList<E> result = findAll();
+        if(result.size() > 0) {
+            return findAll().get(0);
+        } else {
+            return null;
+        }
     }
 
 }

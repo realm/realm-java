@@ -15,3 +15,9 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-dontwarn sun.misc.Unsafe
+
+-keep class sun.misc.Unsafe{
+    *;
+}

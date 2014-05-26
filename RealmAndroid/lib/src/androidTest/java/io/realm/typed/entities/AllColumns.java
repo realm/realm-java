@@ -13,6 +13,8 @@ public class AllColumns extends RealmObject {
     private boolean ColumnBoolean;
     private Date ColumnDate;
     private byte[] ColumnBinary;
+    private User ColumnRealmObject;
+
 
     public String getColumnString() {
         return ColumnString;
@@ -68,5 +70,13 @@ public class AllColumns extends RealmObject {
 
     public void setColumnBinary(byte[] columnBinary) {
         ColumnBinary = columnBinary;
+    }
+
+    public User getColumnRealmObject() {
+        return ColumnRealmObject;
+    }
+
+    public void setColumnRealmObject(User columnRealmObject) {
+        ColumnRealmObject = columnRealmObject;
     }
 }

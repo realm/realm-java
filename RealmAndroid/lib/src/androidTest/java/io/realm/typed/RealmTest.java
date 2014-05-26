@@ -2,8 +2,16 @@ package io.realm.typed;
 
 import android.test.AndroidTestCase;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 
+import io.realm.ColumnType;
+import io.realm.Table;
 import io.realm.typed.entities.AllColumns;
 import io.realm.typed.entities.User;
 
@@ -129,7 +137,24 @@ public class RealmTest extends AndroidTestCase {
 
         realm.beginWrite();
 
-        realm.clear();
+        realm.ensureRealmAtVersion(2, new RealmMigration() {
+            @Override
+            public void execute(Realm realm, int version) {
+
+                Table table = realm.getTable(User.class);
+
+                if(realm.getVersion() < 1) {
+                    table.addColumn(ColumnType.STRING, "newStringCol");
+                }
+
+                if(realm.getVersion() < 2) {
+                    table.removeColumn(table.getColumnIndex("newStringCol"));
+                }
+
+                realm.setVersion(version);
+
+            }
+        });
 
         AllColumns obj = new AllColumns();
 
@@ -141,14 +166,21 @@ public class RealmTest extends AndroidTestCase {
         obj.setColumnDate(new Date());
         obj.setColumnBinary(new byte[20]);
 
+        User user = new User();
+        user.setName("Rasmus");
+        user.setEmail("ra@realm.io");
+        user.setId(0);
+
+        obj.setColumnRealmObject(user);
+
         realm.add(obj);
 
 
         realm.commit();
 
         RealmList<AllColumns> result = realm.where(AllColumns.class).findAll();
-
         assertEquals(1, result.size());
+
 
     }
 

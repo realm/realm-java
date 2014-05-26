@@ -1,13 +1,20 @@
 package io.realm.typed;
 
-import android.content.Context;
 
 import com.google.dexmaker.stock.ProxyBuilder;
 
 import java.io.IOException;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.*;
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import io.realm.Table;
 import io.realm.TableOrView;
@@ -33,6 +40,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     TableOrView getTable() {
+
         if(table == null) {
             return realm.getTable(classSpec);
         } else {
@@ -148,6 +156,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     }
 
+    Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
+
     /**
      *
      * @param rowIndex      The objects index in the list
@@ -155,18 +165,30 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public E get(int rowIndex) {
+
+        E obj = null;
+
         try {
-            E obj = ProxyBuilder.forClass(classSpec)
-                    .dexCache(realm.getContext().getDir("dx", Context.MODE_PRIVATE))
+            obj = ProxyBuilder.forClass(classSpec)
+                    .parentClassLoader(this.getClass().getClassLoader())
+                    .dexCache(realm.getBytecodeCache())
                     .handler(new RealmProxy(this, rowIndex))
                     .build();
-            return obj;
-        } catch(IOException e) {
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
-    }
 
+        return obj;
+    }
+/*
+    public <T> T getTest(int rowIndex, Class<T> clazz) {
+        T f = (T) Proxy.newProxyInstance(clazz.getClassLoader(),
+                new Class[]{clazz},
+                new RealmProxy(this, rowIndex));
+        return f;
+    }
+*/
     /**
      *
      * @return              The number of elements in this RealmList

@@ -35,6 +35,8 @@ public class User extends RealmObject {
         this.email = email;
     }
 
+
+
     @Override
     public String toString() {
         return this.getName();

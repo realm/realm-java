@@ -9,7 +9,6 @@ public class User extends RealmObject {
     private int id;
     private String name;
     private String email;
-    private List<User> friends;
 
     public int getId() {
         return id;
@@ -35,11 +34,4 @@ public class User extends RealmObject {
         this.email = email;
     }
 
-    public List<User> getFriends() {
-        return friends;
-    }
-
-    public void setFriends(List<User> friends) {
-        this.friends = friends;
-    }
 }

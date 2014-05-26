@@ -7,14 +7,19 @@ import com.google.dexmaker.stock.ProxyBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import io.realm.ColumnType;
 import io.realm.Group;
 import io.realm.ReadTransaction;
 import io.realm.SharedGroup;
 import io.realm.Table;
-import io.realm.TableOrView;
 import io.realm.WriteTransaction;
 
 
@@ -24,6 +29,8 @@ public class Realm {
     private SharedGroup sg;
     private Group transaction;
     private String filePath;
+    private int version;
+    private File bytecodeCache;
 
     /**
      * Initializes a default realm
@@ -45,26 +52,31 @@ public class Realm {
         this.sg = new SharedGroup(filePath);
         this.transaction = sg.beginRead();
         this.filePath = filePath;
+        this.bytecodeCache = context.getDir("dx", Context.MODE_PRIVATE);
     }
 
-    Context getContext() {
-        return this.context;
-    }
-
-    TableOrView getTable(Class<?> classSpec) {
-        return this.transaction.getTable(classSpec.getName());
+    public Table getTable(Class<?> classSpec) {
+        return transaction.getTable(classSpec.getSimpleName());
     }
 
 
     private <E> void initTable(Class<E> classSpec) {
         // Check for table existence
-        if(!this.transaction.hasTable(classSpec.getName())) {
+        if(!this.transaction.hasTable(classSpec.getSimpleName())) {
             // Create the table
-            Table table = this.transaction.getTable(classSpec.getName());
+            Table table = this.transaction.getTable(classSpec.getSimpleName());
 
-            for (Field f : classSpec.getDeclaredFields()) {
+            System.out.println(classSpec.getSimpleName());
+
+            Field[] fields = classSpec.getDeclaredFields();
+
+            for (int i = 0; i < fields.length; i++) {
+
+                Field f = fields[i];
 
                 Class<?> fieldType = f.getType();
+
+                System.out.println(f.getName() + " - " + fieldType.getName());
 
 
                 if (fieldType.equals(String.class)) {
@@ -81,12 +93,20 @@ public class Realm {
                     table.addColumn(ColumnType.DATE, f.getName().toLowerCase());
                 } else if (fieldType.equals(byte[].class)) {
                     table.addColumn(ColumnType.BINARY, f.getName().toLowerCase());
-                } else if (fieldType.equals(RealmObject.class.equals(fieldType.getSuperclass()))) {
+                } else if (RealmObject.class.equals(fieldType.getSuperclass())) {
                     // Link
+                    // Check if the table representing the object which is linked to exists
+                    System.out.println("Creating linked objects table");
+                    initTable(fieldType);
                 } else {
                     System.err.println("Type not supported: " + fieldType.getName());
                 }
 
+            }
+
+            System.out.println("Tables in realm: ");
+            for(int i = 0; i < transaction.size(); i++) {
+                System.out.println(transaction.getTableName(i));
             }
 
         }
@@ -104,12 +124,12 @@ public class Realm {
 
         initTable(classSpec);
 
-        Table table = this.transaction.getTable(classSpec.getName());
+        Table table = getTable(classSpec);
 
         try {
             long index = table.addEmptyRow();
             E obj = ProxyBuilder.forClass(classSpec)
-                    .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
+                    .dexCache(getBytecodeCache())
                     .handler(new RealmProxy(this, index))
                     .build();
             return obj;
@@ -120,6 +140,8 @@ public class Realm {
         return null;
     }
 
+    private Map<String, List<Field>> cache = new HashMap<String, List<Field>>();
+
     /**
      * Adds an object to the realm, and returns a new instance which is backed by the Realm
      *
@@ -127,34 +149,76 @@ public class Realm {
      * @param <E>
      * @return
      */
-    public <E extends RealmObject> E add(E element) {
+    public <E extends RealmObject> void add(E element) {
 
         initTable(element.getClass());
 
-        Field[] fields = element.getClass().getDeclaredFields();
+        String className = element.getClass().getSimpleName();
 
-        Object[] row = new Object[fields.length];
+        if(!cache.containsKey(className)) {
+
+
+            List<Field> fields = Arrays.asList(element.getClass().getDeclaredFields());
+            List<Field> persistedFields = new ArrayList<Field>();
+            for(Field f : fields) {
+                if(f.getType().equals(String.class) ||
+                        f.getType().equals(int.class) ||
+                        f.getType().equals(Integer.class) ||
+                        f.getType().equals(long.class) ||
+                        f.getType().equals(Long.class) ||
+                        f.getType().equals(float.class) ||
+                        f.getType().equals(Float.class) ||
+                        f.getType().equals(double.class) ||
+                        f.getType().equals(Double.class) ||
+                        f.getType().equals(boolean.class) ||
+                        f.getType().equals(Boolean.class) ||
+                        f.getType().equals(Date.class) ||
+                        f.getType().equals(byte[].class)) {
+                    f.setAccessible(true);
+                    persistedFields.add(f);
+                }
+            }
+
+            cache.put(className, persistedFields);
+
+        }
+
+
+        List<Field> fields = cache.get(className);
+
+        List<Object> rows = new ArrayList<Object>(fields.size());
 
         // Inspect fields and add them
-        for(int i = 0; i < fields.length; i++) {
-
-            Field f = fields[i];
-            f.setAccessible(true);
-
+        for(Field f : fields) {
 
             try {
 
-                row[i] = f.get(element);
 
+
+                rows.add(f.get(element));
+/*
+                } else if(RealmObject.class.equals(f.getType().getSuperclass())) {
+                    // This is a link, should add in different table and update the link
+                    System.out.println("Insert linked object in corresponding table");
+                    RealmObject linkedObject = (RealmObject)f.get(element);
+                    if(linkedObject != null) {
+                        add(linkedObject);
+                        System.out.println("Object added");
+                    }
+
+                    // Add link
+                }
+*/
             } catch(IllegalAccessException e) {
                 e.printStackTrace();
             }
 
         }
 
-        long index = ((Table)getTable(element.getClass())).add(row);
+        ((Table)getTable(element.getClass())).add(rows.toArray());
 
-        E proxiedObject = null;
+     //   E proxiedObject = null;
+        /*
         try {
             proxiedObject = (E)ProxyBuilder.forClass((element).getClass())
                     .dexCache(this.context.getDir("dx", Context.MODE_PRIVATE))
@@ -163,9 +227,9 @@ public class Realm {
         } catch (IOException e) {
             e.printStackTrace();
         }
+*/
 
-
-        return proxiedObject;
+        //return proxiedObject;
     }
 
     /**
@@ -177,6 +241,11 @@ public class Realm {
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> classSpec) {
         return new RealmQuery<E>(this, classSpec);
+    }
+
+
+    public void ensureRealmAtVersion(int version, RealmMigration migration) {
+        migration.execute(this, version);
     }
 
 
@@ -215,6 +284,18 @@ public class Realm {
     public void clear() {
         new File(filePath).delete();
         new File(filePath+".lock").delete();
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public File getBytecodeCache() {
+        return bytecodeCache;
     }
 
 }

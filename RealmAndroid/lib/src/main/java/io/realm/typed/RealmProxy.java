@@ -9,7 +9,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.realm.TableOrView;
 
@@ -18,6 +19,8 @@ class RealmProxy implements InvocationHandler {
     private Realm realm = null;
     private RealmList realmList;
     private long rowIndex;
+
+    private static Map<String, RealmGetter> getters = new HashMap<String, RealmGetter>();
 
     public RealmProxy(RealmList realmList, long rowIndex) {
         this.realmList = realmList;
@@ -43,35 +46,61 @@ class RealmProxy implements InvocationHandler {
 
     public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
 
-        if(this.rowIndex != -1) {
+     //   long rowIndex = ((RealmObject) proxy).rowIndex;
 
-            String methodName = m.getName();
+        if(rowIndex != -1) {
 
-            TableOrView table = getTable(proxy.getClass().getSuperclass());
+            final String methodName = m.getName();
 
-            if (methodName.startsWith("get")) {
+            Class<?> clazz = proxy.getClass().getSuperclass();
 
-                Class<?> type = m.getReturnType();
+            TableOrView table = getTable(clazz);
 
-                String name = methodName.substring(3).toLowerCase();
+            if(getters.containsKey(clazz.getSimpleName()+methodName)) {
+                return getters.get(clazz.getSimpleName()+methodName).get(table, rowIndex);
+            } else {
 
-                if (type.equals(String.class)) {
-                    return table.getString(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(int.class) || type.equals(Integer.class)) {
-                    return ((Long) table.getLong(table.getColumnIndex(name), rowIndex)).intValue();
-                } else if (type.equals(long.class) || type.equals(Long.class)) {
-                    return table.getLong(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(double.class) || type.equals(Double.class)) {
-                    return table.getDouble(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(float.class) || type.equals(Float.class)) {
-                    return table.getFloat(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(boolean.class) || type.equals(Boolean.class)) {
-                    return table.getBoolean(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(Date.class)) {
-                    return table.getDate(table.getColumnIndex(name), rowIndex);
-                } else if (type.equals(byte[].class)) {
-                    // Binary
-                } else if(RealmObject.class.equals(type.getSuperclass())) {
+
+                if (methodName.startsWith("get")) {
+
+                    Class<?> type = m.getReturnType();
+
+                    String name = methodName.substring(3).toLowerCase();
+                    final long columnIndex = table.getColumnIndex(name);
+
+                    if (type.equals(String.class)) {
+
+                        getters.put(clazz.getSimpleName()+methodName, new RealmGetter() {
+                            @Override
+                            public Object get(TableOrView table, long rowIndex) {
+                                return table.getString(columnIndex, rowIndex);
+                            }
+                        });
+
+                        return table.getString(table.getColumnIndex(name), rowIndex);
+                    } else if (type.equals(int.class) || type.equals(Integer.class)) {
+
+                        getters.put(clazz.getSimpleName()+methodName, new RealmGetter() {
+                            @Override
+                            public Object get(TableOrView table, long rowIndex) {
+                                return ((Long) table.getLong(columnIndex, rowIndex)).intValue();
+                            }
+                        });
+
+                        return ((Long) table.getLong(table.getColumnIndex(name), rowIndex)).intValue();
+                    } else if (type.equals(long.class) || type.equals(Long.class)) {
+                        return table.getLong(table.getColumnIndex(name), rowIndex);
+                    } else if (type.equals(double.class) || type.equals(Double.class)) {
+                        return table.getDouble(table.getColumnIndex(name), rowIndex);
+                    } else if (type.equals(float.class) || type.equals(Float.class)) {
+                        return table.getFloat(table.getColumnIndex(name), rowIndex);
+                    } else if (type.equals(boolean.class) || type.equals(Boolean.class)) {
+                        return table.getBoolean(table.getColumnIndex(name), rowIndex);
+                    } else if (type.equals(Date.class)) {
+                        return table.getDate(table.getColumnIndex(name), rowIndex);
+                    } else if (type.equals(byte[].class)) {
+                        // Binary
+                    } else if (RealmObject.class.equals(type.getSuperclass())) {
                     /*
                     *
                     * Link
@@ -83,15 +112,15 @@ class RealmProxy implements InvocationHandler {
                     *
                     *
                     * */
-                } else if(RealmList.class.equals(type)) {
-                    Field f = m.getDeclaringClass().getDeclaredField(name);
-                    Type genericType = f.getGenericType();
-                    System.out.println(genericType);
-                    if(genericType instanceof ParameterizedType) {
-                        ParameterizedType pType = (ParameterizedType)genericType;
-                        Class<?> actual = (Class<?>)pType.getActualTypeArguments()[0];
-                        System.out.println(actual.getName() + " - " + RealmObject.class.equals(actual.getSuperclass()));
-                    }
+                    } else if (RealmList.class.equals(type)) {
+                        Field f = m.getDeclaringClass().getDeclaredField(name);
+                        Type genericType = f.getGenericType();
+                        System.out.println(genericType);
+                        if (genericType instanceof ParameterizedType) {
+                            ParameterizedType pType = (ParameterizedType) genericType;
+                            Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
+                            System.out.println(actual.getName() + " - " + RealmObject.class.equals(actual.getSuperclass()));
+                        }
                     /*
                     *
                     * List of links, should just return a new RealmList with a view set to represent the links
@@ -103,10 +132,12 @@ class RealmProxy implements InvocationHandler {
                     *
                     *
                     * */
+                    }
+
+
                 }
+            }
 
-
-            } else
             if (methodName.startsWith("set")) {
 
                 Class<?> type = m.getParameterTypes()[0];
