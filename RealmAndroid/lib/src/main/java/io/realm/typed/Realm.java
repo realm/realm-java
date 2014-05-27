@@ -65,10 +65,6 @@ public class Realm {
 
     private <E> void initTable(Class<E> classSpec) {
 
-        System.out.println("Begin inittable");
-        for(int i = 0; i < transaction.size(); i++) {
-            System.out.println(transaction.getTableName(i));
-        }
 
         // Check for table existence
         if(!transaction.hasTable(classSpec.getSimpleName())) {
@@ -104,9 +100,6 @@ public class Realm {
                     table.addColumn(ColumnType.BINARY, f.getName().toLowerCase());
                 } else if (RealmObject.class.equals(fieldType.getSuperclass())) {
                     // Link
-                    // Check if the table representing the object which is linked to exists
-                    System.out.println("Creating linked "+fieldType.getSimpleName()+" table");
-
                     initTable(fieldType);
                     table.addColumnLink(ColumnType.LINK, f.getName().toLowerCase(), getTable(fieldType));
                 } else {
@@ -115,13 +108,6 @@ public class Realm {
 
             }
 
-            System.out.println("Tables in realm: ");
-            for(int i = 0; i < transaction.size(); i++) {
-                System.out.println(transaction.getTableName(i));
-            }
-
-        } else {
-            System.out.println("Already had " + classSpec.getSimpleName());
         }
 
     }
@@ -222,14 +208,11 @@ public class Realm {
                     table.setBinaryByteArray(columnIndex, rowIndex, (byte[])f.get(element));
                 } else if(RealmObject.class.equals(f.getType().getSuperclass())) {
                     // This is a link, should add in different table and update the link
-                    System.out.println("Insert linked "+f.getType().getSimpleName()+" in corresponding table");
                     RealmObject linkedObject = (RealmObject)f.get(element);
                     if(linkedObject != null) {
                         if(linkedObject.realmGetRowIndex() == -1) {
                             add(linkedObject);
-                            System.out.println("Object added");
                         }
-                        System.out.println("Object linked " + linkedObject.realmGetRowIndex());
                         // Add link
                         table.setLink(columnIndex, rowIndex, linkedObject.realmGetRowIndex());
                     }

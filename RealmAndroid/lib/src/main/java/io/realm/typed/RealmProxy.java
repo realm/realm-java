@@ -102,20 +102,8 @@ class RealmProxy implements InvocationHandler {
                     } else if (type.equals(byte[].class)) {
                         // Binary
                     } else if (RealmObject.class.equals(type.getSuperclass())) {
-
-                        System.out.println("Prox: " + type.getName());
-                        return realm.get(type, table.getLink(columnIndex));
-                    /*
-                    *
-                    * Link
-                    * int columnIndex = table.getColumnIndex(name);
-                    *
-                    * TableOrView t = table.getLinkTarget(columnIndex);
-                    *
-                    * rowIndex = table.getLink(columnIndex);
-                    *
-                    *
-                    * */
+                        System.out.println(table.getLink(columnIndex, rowIndex));
+                        return realm.get((Class<? extends RealmObject>)type, table.getLink(columnIndex, rowIndex));
                     } else if (RealmList.class.equals(type)) {
                         Field f = m.getDeclaringClass().getDeclaredField(name);
                         Type genericType = f.getGenericType();
@@ -162,6 +150,16 @@ class RealmProxy implements InvocationHandler {
                     table.setBoolean(table.getColumnIndex(name), rowIndex, (Boolean) args[0]);
                 } else if (type.equals(Date.class)) {
                     table.setDate(table.getColumnIndex(name), rowIndex, (Date) args[0]);
+                } else if (RealmObject.class.equals(type.getSuperclass())) {
+                    // Link
+                    RealmObject linkedObject = (RealmObject)args[0];
+                    if(linkedObject != null) {
+                        if(linkedObject.realmGetRowIndex() == -1) {
+                            realm.add(linkedObject);
+                        }
+                        // Add link
+                        table.setLink(table.getColumnIndex(name), rowIndex, linkedObject.realmGetRowIndex());
+                    }
                 } else {
                     return null;
                 }

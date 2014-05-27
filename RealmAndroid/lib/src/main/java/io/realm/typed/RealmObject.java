@@ -10,7 +10,6 @@ public abstract class RealmObject {
     }
 
     protected void realmSetRowIndex(long rowIndex) {
-        System.out.println("Setting rowIndex: " + rowIndex);
         this.rowIndex = rowIndex;
     }
 

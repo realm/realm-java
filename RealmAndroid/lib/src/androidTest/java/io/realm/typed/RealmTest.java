@@ -177,22 +177,42 @@ public class RealmTest extends AndroidTestCase {
         user.setEmail("ra@realm.io");
         user.setId(0);
 
-        obj.setColumnRealmObject(user);
+
 
         realm.add(obj);
 
 
         realm.commit();
 
+
         AllColumns instance = realm.where(AllColumns.class).findFirst();
-        System.out.println(instance);
-        System.out.println(instance.getColumnRealmObject());
-        assertEquals("Rasmus", instance.getColumnRealmObject().getName());
+
+        User ras = instance.getColumnRealmObject();
+
+        assertEquals(null, ras);
+
+
 
         RealmList<AllColumns> result = realm.where(AllColumns.class).findAll();
         assertEquals(1, result.size());
 
 
+        realm.beginWrite();
+
+        AllColumns row1 = realm.where(AllColumns.class).findFirst();
+
+        User testUser = new User();
+        testUser.setName("sdf");
+
+        row1.setColumnRealmObject(testUser);
+
+        realm.commit();
+
+        row1 = realm.where(AllColumns.class).findFirst();
+
+        User user1 = row1.getColumnRealmObject();
+
+        assertEquals("sdf", user1.getName());
     }
 
 }

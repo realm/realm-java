@@ -16,7 +16,6 @@ import io.realm.ReadTransaction;
 import io.realm.SharedGroup;
 import io.realm.Table;
 import io.realm.WriteTransaction;
-import io.realm.typed.entities.IUser;
 import io.realm.typed.entities.User;
 
 public class PerformanceTest extends AndroidTestCase {
@@ -58,21 +57,19 @@ public class PerformanceTest extends AndroidTestCase {
 
         Realm realm = new Realm(getContext());
 
-        realm.beginWrite();
-        realm.clear(User.class);
-        realm.commit();
+        realm.clear();
 
         timer = System.currentTimeMillis();
         try {
             realm.beginWrite();
             for(int i = 0; i < listSize; i++) {
-                User user = new User();//realm.create(User.class);
+                User user = realm.create(User.class);
 
                 user.setId(i);
                 user.setName("John Doe");
                 user.setEmail("john@doe.com");
 
-                realm.add(user);
+               // realm.add(user);
 
             }
             realm.commit();
