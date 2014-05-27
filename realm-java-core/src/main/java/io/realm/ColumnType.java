@@ -14,14 +14,16 @@ public enum ColumnType {
     BINARY(4),
     DATE(7),
     TABLE(5),
-    MIXED(6);
+    MIXED(6),
+    LINK(12),
+    LINK_LIST(13);
     // When adding above, remember to update size of largest number below
 
     private final int nativeValue;
 
     // Note that if this array is too small, an
     // IndexOutOfBoundsException will be thrown during class loading.
-    private static ColumnType[] byNativeValue = new ColumnType[11];
+    private static ColumnType[] byNativeValue = new ColumnType[14];
 
     static {
         ColumnType[] columnTypes = values();

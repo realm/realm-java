@@ -49,7 +49,7 @@ DESCR     : >
 
 IMPORT    : [reference, typed_table_ref, dyn_table_ref, typed_query_ref,
              dyn_query_ref, group_ref, typed_view_ref, dyn_view_ref, shared_group_ref]
-IMPORTPATH: ../../realm/doc/ref_cpp/data
+IMPORTPATH: ../../tightdb/doc/ref_cpp/data
 
 
 CATEGORIES:                       # list global class-id in order of appearence
