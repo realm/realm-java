@@ -59,6 +59,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeAddColumn
 
 /*
  * Class:     io_realm_Table
+ * Method:    nativeAddColumnLink
+ * Signature: (JILjava/lang/String;J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeAddColumnLink
+  (JNIEnv *, jobject, jlong, jint, jstring, jlong);
+
+/*
+ * Class:     io_realm_Table
  * Method:    nativeRemoveColumn
  * Signature: (JJ)V
  */
@@ -331,6 +339,22 @@ JNIEXPORT jobject JNICALL Java_io_realm_Table_nativeGetMixed
 
 /*
  * Class:     io_realm_Table
+ * Method:    nativeGetLink
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetLink
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_Table
+ * Method:    nativeGetLinkTarget
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetLinkTarget
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_Table
  * Method:    nativeGetSubtable
  * Signature: (JJJ)J
  */
@@ -427,6 +451,14 @@ JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetMixed
 
 /*
  * Class:     io_realm_Table
+ * Method:    nativeSetLink
+ * Signature: (JJJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetLink
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_Table
  * Method:    nativeAddInt
  * Signature: (JJJ)V
  */
@@ -448,6 +480,22 @@ JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetIndex
  */
 JNIEXPORT jboolean JNICALL Java_io_realm_Table_nativeHasIndex
   (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_Table
+ * Method:    nativeIsNullLink
+ * Signature: (JJJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_Table_nativeIsNullLink
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_Table
+ * Method:    nativeNullifyLink
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_Table_nativeNullifyLink
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_Table

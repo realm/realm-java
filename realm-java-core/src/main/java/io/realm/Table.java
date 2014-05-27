@@ -190,6 +190,17 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeAddColumn(long nativeTablePtr, int type, String name);
 
     /**
+     * Add a link column to the table dynamically.
+     * @return Index of the new column.
+     */
+    public long addColumnLink (ColumnType type, String name, Table table) {
+        verifyColumnName(name);
+        return nativeAddColumnLink(nativePtr, type.getValue(), name, table.nativePtr);
+    }
+
+    protected native long nativeAddColumnLink(long nativeTablePtr, int type, String name, long targetTablePtr);
+
+    /**
      * Remove a column in the table dynamically.
      */
     @Override
@@ -760,6 +771,30 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native Mixed nativeGetMixed(long nativeTablePtr, long columnIndex, long rowIndex);
 
+    public long getLink(long columnIndex, long rowIndex) {
+        return nativeGetLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native long nativeGetLink(long nativePtr, long columnIndex, long rowIndex);
+
+
+    public Table getLinkTarget(long columnIndex) {
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();
+        long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
+        try {
+            // Copy context reference from parent
+            return new Table(context, this, nativeTablePointer, immutable);
+        }
+        catch (RuntimeException e) {
+            Table.nativeClose(nativeTablePointer);
+            throw e;
+        }
+    }
+
+    protected native long nativeGetLinkTarget(long nativePtr, long columnIndex);
+
+
     /**
      *
      * Note: The subtable returned will have to be closed again after use.
@@ -932,6 +967,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);
 
+    public void setLink(long columnIndex, long rowIndex, long value) {
+        if (immutable) throwImmutable();
+        nativeSetLink(nativePtr, columnIndex, rowIndex, value);
+    }
+
+    protected native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+
     /**
      * Add the value for to all cells in the column.
      *
@@ -963,6 +1005,20 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native boolean nativeHasIndex(long nativePtr, long columnIndex);
+
+
+    public boolean isNullLink(long columnIndex, long rowIndex) {
+        return nativeIsNullLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
+
+    public void nullifyLink(long columnIndex, long rowIndex) {
+        nativeNullifyLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
+
 
     //
     // Aggregate functions

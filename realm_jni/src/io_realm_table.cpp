@@ -33,6 +33,26 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeAddColumn
     return 0;
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeAddColumnLink
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jint colType, jstring name, jlong targetTablePtr)
+{
+    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
+            return 0;
+        if (TBL(nativeTablePtr)->has_shared_type()) {
+            ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubtableSchema() on root table instead.");
+            return 0;
+        }
+        if (!TBL(targetTablePtr)->is_linkable()) {
+            ThrowException(env, UnsupportedOperation, "Links can only be made to toplevel tables.");
+            return 0;
+        }
+        try {
+            JStringAccessor name2(env, name); // throws
+            return TBL(nativeTablePtr)->add_column_link(DataType(colType), name2, TBL(targetTablePtr)->get_index_in_parent());
+        } CATCH_STD()
+        return 0;
+}
+
 
 JNIEXPORT void JNICALL Java_io_realm_Table_nativePivot
 (JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
@@ -341,6 +361,16 @@ JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetMixed(
     } CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetLink
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong targetRowIndex)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Link))
+        return;
+    try {
+        TBL(nativeTablePtr)->insert_link( S(columnIndex), S(rowIndex), S(targetRowIndex));
+    } CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_Table_nativeInsertSubtable(
     JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
@@ -464,6 +494,24 @@ JNIEXPORT jobject JNICALL Java_io_realm_Table_nativeGetMixed(
         return CreateJMixedFromMixed(env, value);
     } CATCH_STD();
     return NULL;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetLink
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Link))
+        return 0;
+    return TBL(nativeTablePtr)->get_link( S(columnIndex), S(rowIndex));  // noexcept
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetLinkTarget
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    try {
+        Table* pTable = &(*TBL(nativeTablePtr)->get_link_target(S(columnIndex)));
+        return (jlong)pTable;
+    } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetSubtable(
@@ -665,6 +713,25 @@ JNIEXPORT jboolean JNICALL Java_io_realm_Table_nativeHasIndex(
         return TBL(nativeTablePtr)->has_index( S(columnIndex));
     } CATCH_STD()
     return false;
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_Table_nativeIsNullLink
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Link))
+        return 0;
+
+    return TBL(nativeTablePtr)->is_null_link(S(columnIndex), S(rowIndex));
+}
+
+JNIEXPORT void JNICALL Java_io_realm_Table_nativeNullifyLink
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Link))
+        return;
+    try {
+        TBL(nativeTablePtr)->nullify_link(S(columnIndex), S(rowIndex));
+    } CATCH_STD()
 }
 
 //---------------------- Aggregate methods for integers
