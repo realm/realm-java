@@ -1,7 +1,6 @@
 package io.realm;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 // Make sure numbers match with <realm/column_type.hpp>
 // FIXME: Add a unit test that verifies the correct correspondence.
