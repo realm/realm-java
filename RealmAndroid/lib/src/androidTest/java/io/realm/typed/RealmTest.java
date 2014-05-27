@@ -203,6 +203,7 @@ public class RealmTest extends AndroidTestCase {
 
         User testUser = new User();
         testUser.setName("sdf");
+        testUser.setEmail("sd");
 
         row1.setColumnRealmObject(testUser);
 

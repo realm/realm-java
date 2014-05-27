@@ -102,8 +102,11 @@ class RealmProxy implements InvocationHandler {
                     } else if (type.equals(byte[].class)) {
                         // Binary
                     } else if (RealmObject.class.equals(type.getSuperclass())) {
-                        System.out.println(table.getLink(columnIndex, rowIndex));
-                        return realm.get((Class<? extends RealmObject>)type, table.getLink(columnIndex, rowIndex));
+                        if(!table.isNullLink(columnIndex, rowIndex)) {
+                            return realm.get((Class<? extends RealmObject>) type, table.getLink(columnIndex, rowIndex));
+                        } else {
+                            return null;
+                        }
                     } else if (RealmList.class.equals(type)) {
                         Field f = m.getDeclaringClass().getDeclaredField(name);
                         Type genericType = f.getGenericType();
