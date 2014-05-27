@@ -1,20 +1,17 @@
 package io.realm.typed;
 
-import io.realm.TableOrView;
-
 public abstract class RealmObject {
 
-    protected long rowIndex = -1;
-    private RealmList realmList;
 
-    protected void setup(RealmList realmList, long rowIndex) {
-        this.realmList = realmList;
-        this.rowIndex = rowIndex;
+    private long rowIndex = -1;
+
+    protected long realmGetRowIndex() {
+        return rowIndex;
     }
 
-
-    protected TableOrView realmGetTable() {
-        return realmList.getTable();
+    protected void realmSetRowIndex(long rowIndex) {
+        System.out.println("Setting rowIndex: " + rowIndex);
+        this.rowIndex = rowIndex;
     }
 
 }

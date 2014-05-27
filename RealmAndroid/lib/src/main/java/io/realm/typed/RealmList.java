@@ -39,6 +39,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         this.table = table;
     }
 
+    Realm getRealm() {
+        return this.realm;
+    }
+
     TableOrView getTable() {
 
         if(table == null) {
@@ -174,6 +178,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
                     .dexCache(realm.getBytecodeCache())
                     .handler(new RealmProxy(this, rowIndex))
                     .build();
+
+            obj.realmSetRowIndex(rowIndex);
 
         } catch (IOException e) {
             e.printStackTrace();

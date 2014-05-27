@@ -60,6 +60,8 @@ public class RealmTest extends AndroidTestCase {
         try {
 
             realm.beginWrite();
+            users = realm.where(User.class).findAll();
+            user1 = users.get(100);
 
             user1.setName("TestName");
 
@@ -109,9 +111,11 @@ public class RealmTest extends AndroidTestCase {
 
         Realm realm = new Realm(this.getContext());
 
+        realm.clear();
+
         realm.beginWrite();
 
-        realm.clear();
+
 
         AllColumns obj = realm.create(AllColumns.class);
 
@@ -135,8 +139,10 @@ public class RealmTest extends AndroidTestCase {
 
         Realm realm = new Realm(this.getContext());
 
-        realm.beginWrite();
+        realm.clear();
 
+        realm.beginWrite();
+/*
         realm.ensureRealmAtVersion(2, new RealmMigration() {
             @Override
             public void execute(Realm realm, int version) {
@@ -155,7 +161,7 @@ public class RealmTest extends AndroidTestCase {
 
             }
         });
-
+*/
         AllColumns obj = new AllColumns();
 
         obj.setColumnString("dsfs");
@@ -177,6 +183,11 @@ public class RealmTest extends AndroidTestCase {
 
 
         realm.commit();
+
+        AllColumns instance = realm.where(AllColumns.class).findFirst();
+        System.out.println(instance);
+        System.out.println(instance.getColumnRealmObject());
+        assertEquals("Rasmus", instance.getColumnRealmObject().getName());
 
         RealmList<AllColumns> result = realm.where(AllColumns.class).findAll();
         assertEquals(1, result.size());

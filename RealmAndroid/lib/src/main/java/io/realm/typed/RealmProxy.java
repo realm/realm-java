@@ -16,7 +16,7 @@ import io.realm.TableOrView;
 
 class RealmProxy implements InvocationHandler {
 
-    private Realm realm = null;
+    private Realm realm;
     private RealmList realmList;
     private long rowIndex;
 
@@ -24,6 +24,7 @@ class RealmProxy implements InvocationHandler {
 
     public RealmProxy(RealmList realmList, long rowIndex) {
         this.realmList = realmList;
+        this.realm = realmList.getRealm();
         this.rowIndex = rowIndex;
     }
 
@@ -37,7 +38,7 @@ class RealmProxy implements InvocationHandler {
     }
 
     private TableOrView getTable(Class<?> classSpec) {
-        if(this.realm == null) {
+        if(this.realmList != null) {
             return realmList.getTable();
         } else {
             return realm.getTable(classSpec);
@@ -77,7 +78,7 @@ class RealmProxy implements InvocationHandler {
                             }
                         });
 
-                        return table.getString(table.getColumnIndex(name), rowIndex);
+                        return table.getString(columnIndex, rowIndex);
                     } else if (type.equals(int.class) || type.equals(Integer.class)) {
 
                         getters.put(clazz.getSimpleName()+methodName, new RealmGetter() {
@@ -87,7 +88,7 @@ class RealmProxy implements InvocationHandler {
                             }
                         });
 
-                        return ((Long) table.getLong(table.getColumnIndex(name), rowIndex)).intValue();
+                        return ((Long) table.getLong(columnIndex, rowIndex)).intValue();
                     } else if (type.equals(long.class) || type.equals(Long.class)) {
                         return table.getLong(table.getColumnIndex(name), rowIndex);
                     } else if (type.equals(double.class) || type.equals(Double.class)) {
@@ -101,6 +102,9 @@ class RealmProxy implements InvocationHandler {
                     } else if (type.equals(byte[].class)) {
                         // Binary
                     } else if (RealmObject.class.equals(type.getSuperclass())) {
+
+                        System.out.println("Prox: " + type.getName());
+                        return realm.get(type, table.getLink(columnIndex));
                     /*
                     *
                     * Link

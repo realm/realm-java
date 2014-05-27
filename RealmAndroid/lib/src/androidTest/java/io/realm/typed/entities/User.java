@@ -1,7 +1,5 @@
 package io.realm.typed.entities;
 
-import java.util.List;
-
 import io.realm.typed.RealmObject;
 
 public class User extends RealmObject {
@@ -9,6 +7,7 @@ public class User extends RealmObject {
     private int id;
     private String name;
     private String email;
+    private Dog dog;
 
     public int getId() {
         return id;
@@ -34,4 +33,11 @@ public class User extends RealmObject {
         this.email = email;
     }
 
+    public Dog getDog() {
+        return dog;
+    }
+
+    public void setDog(Dog dog) {
+        this.dog = dog;
+    }
 }
