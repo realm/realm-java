@@ -202,6 +202,10 @@ public interface TableOrView {
 
     void setMixed(long columnIndex, long rowIndex, Mixed data);
 
+    boolean isNullLink(long columnIndex, long rowIndex);
+
+    void nullifyLink(long columnIndex, long rowIndex);
+
     /**
      * Sets the link index for a particular cell identified by columnIndex and
      * rowIndex of that cell.

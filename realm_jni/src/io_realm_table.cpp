@@ -715,6 +715,25 @@ JNIEXPORT jboolean JNICALL Java_io_realm_Table_nativeHasIndex(
     return false;
 }
 
+JNIEXPORT jboolean JNICALL Java_io_realm_Table_nativeIsNullLink
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Link))
+        return 0;
+
+    return TBL(nativeTablePtr)->is_null_link(S(columnIndex), S(rowIndex));
+}
+
+JNIEXPORT void JNICALL Java_io_realm_Table_nativeNullifyLink
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Link))
+        return;
+    try {
+        TBL(nativeTablePtr)->nullify_link(S(columnIndex), S(rowIndex));
+    } CATCH_STD()
+}
+
 //---------------------- Aggregate methods for integers
 
 JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeSumInt(

@@ -483,6 +483,22 @@ JNIEXPORT jboolean JNICALL Java_io_realm_Table_nativeHasIndex
 
 /*
  * Class:     io_realm_Table
+ * Method:    nativeIsNullLink
+ * Signature: (JJJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_Table_nativeIsNullLink
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_Table
+ * Method:    nativeNullifyLink
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_Table_nativeNullifyLink
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_Table
  * Method:    nativeSumInt
  * Signature: (JJ)J
  */
