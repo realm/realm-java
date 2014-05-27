@@ -118,6 +118,16 @@ public interface TableOrView {
 
     Mixed getMixed(long columnIndex, long rowIndex);
 
+    /**
+     * Get the link index of a cell of the table/view identified by the
+     * columnIndex and rowIndex.
+     *
+     * @param columnIndex
+     * @param rowIndex
+     * @return
+     */
+    long getLink(long columnIndex, long rowIndex);
+
     ColumnType getMixedType(long columnIndex, long rowIndex);
 
     Table getSubtable(long columnIndex, long rowIndex);
@@ -191,6 +201,16 @@ public interface TableOrView {
     void setDate(long columnIndex, long rowIndex, Date date);
 
     void setMixed(long columnIndex, long rowIndex, Mixed data);
+
+    /**
+     * Sets the link index for a particular cell identified by columnIndex and
+     * rowIndex of that cell.
+     *
+     * @param columnIndex
+     * @param rowIndex
+     * @param value
+     */
+    void setLink(long columnIndex, long rowIndex, long value);
 
     //Increments all rows in the specified column with the provided value
     void adjust(long columnIndex, long value);
