@@ -137,6 +137,14 @@ JNIEXPORT jobject JNICALL Java_io_realm_TableView_nativeGetMixed
 
 /*
  * Class:     io_realm_TableView
+ * Method:    nativeGetLink
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetLink
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_TableView
  * Method:    nativeGetSubtable
  * Signature: (JJJ)J
  */
@@ -222,6 +230,14 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetByteArray
  */
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetMixed
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
+
+/*
+ * Class:     io_realm_TableView
+ * Method:    nativeSetLink
+ * Signature: (JJJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetLink
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_TableView

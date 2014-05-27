@@ -241,6 +241,16 @@ JNIEXPORT jobject JNICALL Java_io_realm_TableView_nativeGetMixed(
     return NULL;
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetLink
+  (JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
+{
+    if (!VIEW_VALID(env, nativeViewPtr) ||
+        !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Link))
+        return 0;
+
+    return TV(nativeViewPtr)->get_link( S(columnIndex), S(rowIndex));  // noexcept
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetSubtableSize(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
@@ -374,6 +384,17 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetMixed(
         return;
     try {
         tbl_nativeDoMixed(&TableView::set_mixed, TV(nativeViewPtr), env, columnIndex, rowIndex, jMixedValue);
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetLink
+  (JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jlong targetIndex)
+{
+    if (!VIEW_VALID(env, nativeViewPtr) ||
+        !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Link))
+        return;
+    try {
+        TV(nativeViewPtr)->set_link( S(columnIndex), S(rowIndex), S(targetIndex));
     } CATCH_STD()
 }
 
