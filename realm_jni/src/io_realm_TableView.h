@@ -241,6 +241,22 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetLink
 
 /*
  * Class:     io_realm_TableView
+ * Method:    nativeIsNullLink
+ * Signature: (JJJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_TableView_nativeIsNullLink
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_TableView
+ * Method:    nativeNullifyLink
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_TableView_nativeNullifyLink
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_TableView
  * Method:    nativeAddInt
  * Signature: (JJJ)V
  */

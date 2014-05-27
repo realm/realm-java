@@ -478,6 +478,19 @@ public class TableView implements TableOrView, Closeable {
 
     protected native void nativeSetLink(long nativeViewPtr, long columnIndex, long rowIndex, long value);
 
+
+    public boolean isNullLink(long columnIndex, long rowIndex) {
+        return nativeIsNullLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
+
+    public void nullifyLink(long columnIndex, long rowIndex) {
+        nativeNullifyLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
+
     /**
      * Add the value for to all cells in the column.
      *

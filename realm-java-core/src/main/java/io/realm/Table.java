@@ -1006,6 +1006,20 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native boolean nativeHasIndex(long nativePtr, long columnIndex);
 
+
+    public boolean isNullLink(long columnIndex, long rowIndex) {
+        return nativeIsNullLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
+
+    public void nullifyLink(long columnIndex, long rowIndex) {
+        nativeNullifyLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
+
+
     //
     // Aggregate functions
     //
