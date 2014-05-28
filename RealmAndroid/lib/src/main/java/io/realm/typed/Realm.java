@@ -24,6 +24,8 @@ import io.realm.WriteTransaction;
 
 public class Realm {
 
+    private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
+
     private Context context;
     private SharedGroup sg;
     private Group transaction;
@@ -54,8 +56,13 @@ public class Realm {
     }
 
     private void init() {
-        this.sg = new SharedGroup(filePath);
+        System.out.println("Initing Realm with durability: " + defaultDurability);
+        this.sg = new SharedGroup(filePath, defaultDurability);
         this.transaction = sg.beginRead();
+    }
+
+    public static void setDefaultDurability(SharedGroup.Durability durability) {
+        defaultDurability = durability;
     }
 
     public Table getTable(Class<?> classSpec) {
@@ -64,7 +71,6 @@ public class Realm {
 
 
     private <E> void initTable(Class<E> classSpec) {
-
 
         // Check for table existence
         if(!transaction.hasTable(classSpec.getSimpleName())) {
@@ -128,6 +134,11 @@ public class Realm {
         long rowIndex = table.addEmptyRow();
 
         return get(classSpec, rowIndex);
+    }
+
+
+    public <E> void remove(Class<E> clazz, long objectIndex) {
+        getTable(clazz).moveLastOver(objectIndex);
     }
 
     private Map<String, List<Field>> cache = new HashMap<String, List<Field>>();
@@ -243,18 +254,24 @@ public class Realm {
             e.printStackTrace();
         }
 
+
         return obj;
     }
 
     /**
      * Returns a typed RealmQuery, which can be used to query for specific objects of this type
      *
-     * @param classSpec         The class of the object which is to be queried for
-     * @param <E>
+     * @param clazz         The class of the object which is to be queried for
+     * @param <E extends RealmObject>
      * @return
      */
-    public <E extends RealmObject> RealmQuery<E> where(Class<E> classSpec) {
-        return new RealmQuery<E>(this, classSpec);
+    public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
+        return new RealmQuery<E>(this, clazz);
+    }
+
+
+    public <E extends RealmObject> RealmList<E> allObjects(Class<E> clazz) {
+        return where(clazz).findAll();
     }
 
 

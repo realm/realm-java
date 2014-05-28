@@ -1,9 +1,11 @@
-package io.realm.typed;
+package io.realm.examples;
 
 import android.test.AndroidTestCase;
 
-import io.realm.typed.entities.Dog;
-import io.realm.typed.entities.Person;
+import io.realm.typed.Realm;
+import io.realm.typed.RealmList;
+import io.realm.examples.entities.Dog;
+import io.realm.examples.entities.Person;
 
 public class RealmExample extends AndroidTestCase {
 

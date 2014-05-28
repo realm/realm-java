@@ -162,6 +162,8 @@ class RealmProxy implements InvocationHandler {
                         }
                         // Add link
                         table.setLink(table.getColumnIndex(name), rowIndex, linkedObject.realmGetRowIndex());
+                    } else {
+                        table.nullifyLink(table.getColumnIndex(name), rowIndex);
                     }
                 } else {
                     return null;

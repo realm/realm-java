@@ -14,20 +14,43 @@ import io.realm.TableQuery;
  */
 public class RealmQuery<E extends RealmObject> {
 
+    private RealmList realmList;
     private Realm realm;
     private TableQuery query;
     private Map<String, Integer> columns = new HashMap<String, Integer>();
-    private Class<E> classSpec;
+    private Class<E> clazz;
 
-    public RealmQuery(Realm realm, Class<E> classSpec) {
+    public RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
-        this.classSpec = classSpec;
+        this.clazz = clazz;
 
-        TableOrView dataStore = realm.getTable(classSpec);
+        TableOrView dataStore = getTable();
         this.query = dataStore.where();
 
         for(int i = 0; i < dataStore.getColumnCount(); i++) {
             this.columns.put(dataStore.getColumnName(i), i);
+        }
+    }
+
+    public RealmQuery(RealmList realmList, Class<E> clazz) {
+        this.realmList = realmList;
+
+        this.realm = realmList.getRealm();
+        this.clazz = clazz;
+
+        TableOrView dataStore = getTable();
+        this.query = dataStore.where();
+
+        for(int i = 0; i < dataStore.getColumnCount(); i++) {
+            this.columns.put(dataStore.getColumnName(i), i);
+        }
+    }
+
+    TableOrView getTable() {
+        if(realmList != null) {
+            return realmList.getTable();
+        } else {
+            return realm.getTable(clazz);
         }
     }
 
@@ -315,7 +338,7 @@ public class RealmQuery<E extends RealmObject> {
     // Execute
 
     public RealmList<E> findAll() {
-        return new RealmList<E>(realm, query.findAll(), classSpec);
+        return new RealmList<E>(realm, query.findAll(), clazz);
     }
 
     public E findFirst() {

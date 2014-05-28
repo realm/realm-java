@@ -18,16 +18,20 @@ import io.realm.typed.entities.User;
 
 public class RealmTest extends AndroidTestCase {
 
-    public void testRealm() {
+    private Realm realm;
 
-        Realm realm = new Realm(getContext());
+    @Override
+    public void setUp() throws Exception {
+        realm = new Realm(getContext());
+
+        realm.clear();
+    }
+
+
+    public void testRealm() {
 
         try {
             realm.beginWrite();
-
-
-            // Clear everything of this type, to do a clean test
-            realm.clear();
 
             // Insert
             for (int i = 0; i < 120; i++) {
@@ -107,15 +111,9 @@ public class RealmTest extends AndroidTestCase {
     }
 
 
-    public void testAllColumnsCreate() {
-
-        Realm realm = new Realm(this.getContext());
-
-        realm.clear();
+    public void testCreate() {
 
         realm.beginWrite();
-
-
 
         AllColumns obj = realm.create(AllColumns.class);
 
@@ -135,33 +133,10 @@ public class RealmTest extends AndroidTestCase {
 
     }
 
-    public void testAllColumnsAdd() {
-
-        Realm realm = new Realm(this.getContext());
-
-        realm.clear();
+    public void testAdd() {
 
         realm.beginWrite();
-/*
-        realm.ensureRealmAtVersion(2, new RealmMigration() {
-            @Override
-            public void execute(Realm realm, int version) {
 
-                Table table = realm.getTable(User.class);
-
-                if(realm.getVersion() < 1) {
-                    table.addColumn(ColumnType.STRING, "newStringCol");
-                }
-
-                if(realm.getVersion() < 2) {
-                    table.removeColumn(table.getColumnIndex("newStringCol"));
-                }
-
-                realm.setVersion(version);
-
-            }
-        });
-*/
         AllColumns obj = new AllColumns();
 
         obj.setColumnString("dsfs");
@@ -184,36 +159,32 @@ public class RealmTest extends AndroidTestCase {
 
         realm.commit();
 
+        assertEquals(1, realm.allObjects(AllColumns.class).size());
+        assertEquals(1, realm.allObjects(User.class).size());
 
-        AllColumns instance = realm.where(AllColumns.class).findFirst();
+    }
 
-        User ras = instance.getColumnRealmObject();
+    public void testMigration() {
+        /*
+        realm.ensureRealmAtVersion(2, new RealmMigration() {
+            @Override
+            public void execute(Realm realm, int version) {
 
-        assertEquals(null, ras);
+                Table table = realm.getTable(User.class);
 
+                if(realm.getVersion() < 1) {
+                    table.addColumn(ColumnType.STRING, "newStringCol");
+                }
 
+                if(realm.getVersion() < 2) {
+                    table.removeColumn(table.getColumnIndex("newStringCol"));
+                }
 
-        RealmList<AllColumns> result = realm.where(AllColumns.class).findAll();
-        assertEquals(1, result.size());
+                realm.setVersion(version);
 
-
-        realm.beginWrite();
-
-        AllColumns row1 = realm.where(AllColumns.class).findFirst();
-
-        User testUser = new User();
-        testUser.setName("sdf");
-        testUser.setEmail("sd");
-
-        row1.setColumnRealmObject(testUser);
-
-        realm.commit();
-
-        row1 = realm.where(AllColumns.class).findFirst();
-
-        User user1 = row1.getColumnRealmObject();
-
-        assertEquals("sdf", user1.getName());
+            }
+        });
+        */
     }
 
 }

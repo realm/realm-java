@@ -2,7 +2,6 @@ package io.realm.typed;
 
 public abstract class RealmObject {
 
-
     private long rowIndex = -1;
 
     protected long realmGetRowIndex() {

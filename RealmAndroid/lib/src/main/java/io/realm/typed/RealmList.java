@@ -40,7 +40,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     Realm getRealm() {
-        return this.realm;
+        return realm;
     }
 
     TableOrView getTable() {
@@ -52,6 +52,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
+    @Override
+    public boolean remove(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
+
 
     /**
      * Returns a RealmQuery, used to filter this RealmList
@@ -59,108 +66,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @return          A RealmQuery to filter the list
      */
     public RealmQuery<E> where() {
-        return new RealmQuery<E>(realm, classSpec);
+        return new RealmQuery<E>(this, classSpec);
     }
 
-    /**
-     *
-     * @param rowIndex      The index position where the object should be inserted
-     * @param element       The object to insert
-     */
-    @Override
-    public void add(int rowIndex, E element) {
-
-        Field[] fields = element.getClass().getDeclaredFields();
-
-        Object[] row = new Object[fields.length];
-
-        // Inspect fields and add them
-        for(int i = 0; i < fields.length; i++) {
-
-            Field f = fields[i];
-            f.setAccessible(true);
-
-
-            try {
-
-                row[i] = f.get(element);
-
-            } catch(IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        ((Table)getTable()).addAt(rowIndex, row);
-
-    }
-
-    /**
-     *
-     * @param rowIndex      The index of the object to be removed
-     * @return              Always returns null, as the object is no longer backed by Realm
-     */
-    @Override
-    public E remove(int rowIndex) {
-        getTable().remove(rowIndex);
-        return null;
-    }
-
-    /**
-     *
-     * @param rowIndex      The index position where the object should be inserted
-     * @param element       The object to insert
-     * @return              The inserted object
-     */
-    @Override
-    public E set(int rowIndex, E element) {
-
-        Field[] fields = element.getClass().getDeclaredFields();
-
-        TableOrView dataStore = getTable();
-
-        // Inspect fields and add them
-        for (int i = 0; i < fields.length; i++) {
-
-            Field f = fields[i];
-
-            Class<?> fieldType = f.getType();
-
-            System.out.println(f.getName());
-            long columnIndex = dataStore.getColumnIndex(f.getName());
-
-            f.setAccessible(true);
-
-            try {
-
-                if (fieldType.equals(String.class)) {
-                    dataStore.setString(columnIndex, rowIndex, (String) f.get(element));
-                } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
-                    dataStore.setLong(columnIndex, rowIndex, f.getLong(element));
-                } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                    dataStore.setDouble(columnIndex, rowIndex, f.getDouble(element));
-                } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-                    dataStore.setFloat(columnIndex, rowIndex, f.getFloat(element));
-                } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                    dataStore.setBoolean(columnIndex, rowIndex, f.getBoolean(element));
-                } else if (fieldType.equals(Date.class)) {
-                    dataStore.setDate(columnIndex, rowIndex, (Date) f.get(element));
-                } else {
-                    System.err.println("Type not supported: " + fieldType.getName());
-                }
-
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-
-        return this.get(rowIndex);
-
-    }
-
-    Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
 
     /**
      *
@@ -187,14 +95,18 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
         return obj;
     }
-/*
-    public <T> T getTest(int rowIndex, Class<T> clazz) {
-        T f = (T) Proxy.newProxyInstance(clazz.getClassLoader(),
-                new Class[]{clazz},
-                new RealmProxy(this, rowIndex));
-        return f;
+
+    public E first() {
+        return get(0);
     }
-*/
+
+    public E last() {
+        return get(size()-1);
+    }
+
+    // Aggregates
+
+
     /**
      *
      * @return              The number of elements in this RealmList

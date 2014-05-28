@@ -1,4 +1,4 @@
-package io.realm.typed.entities;
+package io.realm.examples.entities;
 
 import io.realm.typed.RealmObject;
 

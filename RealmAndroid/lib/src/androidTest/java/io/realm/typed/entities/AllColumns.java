@@ -6,77 +6,76 @@ import io.realm.typed.RealmObject;
 
 public class AllColumns extends RealmObject {
 
-    private String ColumnString;
-    private long ColumnLong;
-    private float ColumnFloat;
-    private double ColumnDouble;
-    private boolean ColumnBoolean;
-    private Date ColumnDate;
-    private byte[] ColumnBinary;
-    private User ColumnRealmObject;
-
+    private String columnString;
+    private long columnLong;
+    private float columnFloat;
+    private double columnDouble;
+    private boolean columnBoolean;
+    private Date columnDate;
+    private byte[] columnBinary;
+    private User columnRealmObject;
 
     public String getColumnString() {
-        return ColumnString;
+        return columnString;
     }
 
     public void setColumnString(String columnString) {
-        ColumnString = columnString;
+        this.columnString = columnString;
     }
 
     public long getColumnLong() {
-        return ColumnLong;
+        return columnLong;
     }
 
     public void setColumnLong(long columnLong) {
-        ColumnLong = columnLong;
+        this.columnLong = columnLong;
     }
 
     public float getColumnFloat() {
-        return ColumnFloat;
+        return columnFloat;
     }
 
     public void setColumnFloat(float columnFloat) {
-        ColumnFloat = columnFloat;
+        this.columnFloat = columnFloat;
     }
 
     public double getColumnDouble() {
-        return ColumnDouble;
+        return columnDouble;
     }
 
     public void setColumnDouble(double columnDouble) {
-        ColumnDouble = columnDouble;
+        this.columnDouble = columnDouble;
     }
 
     public boolean isColumnBoolean() {
-        return ColumnBoolean;
+        return columnBoolean;
     }
 
     public void setColumnBoolean(boolean columnBoolean) {
-        ColumnBoolean = columnBoolean;
+        this.columnBoolean = columnBoolean;
     }
 
     public Date getColumnDate() {
-        return ColumnDate;
+        return columnDate;
     }
 
     public void setColumnDate(Date columnDate) {
-        ColumnDate = columnDate;
+        this.columnDate = columnDate;
     }
 
     public byte[] getColumnBinary() {
-        return ColumnBinary;
+        return columnBinary;
     }
 
     public void setColumnBinary(byte[] columnBinary) {
-        ColumnBinary = columnBinary;
+        this.columnBinary = columnBinary;
     }
 
     public User getColumnRealmObject() {
-        return ColumnRealmObject;
+        return columnRealmObject;
     }
 
     public void setColumnRealmObject(User columnRealmObject) {
-        ColumnRealmObject = columnRealmObject;
+        this.columnRealmObject = columnRealmObject;
     }
 }
