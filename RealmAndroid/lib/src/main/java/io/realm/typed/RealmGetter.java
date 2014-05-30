@@ -1,9 +1,9 @@
 package io.realm.typed;
 
-import io.realm.TableOrView;
+import io.realm.Row;
 
 public interface RealmGetter {
 
-    public Object get(TableOrView table, long rowIndex);
+    public Object get(Row row);
 
 }

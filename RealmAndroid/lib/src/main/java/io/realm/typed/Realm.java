@@ -218,7 +218,7 @@ public class Realm {
                 } else if(type.equals(byte[].class)) {
                     table.setBinaryByteArray(columnIndex, rowIndex, (byte[])f.get(element));
                 } else if(RealmObject.class.equals(f.getType().getSuperclass())) {
-                    // This is a link, should add in different table and update the link
+                    /*
                     RealmObject linkedObject = (RealmObject)f.get(element);
                     if(linkedObject != null) {
                         if(linkedObject.realmGetRowIndex() == -1) {
@@ -227,7 +227,7 @@ public class Realm {
                         // Add link
                         table.setLink(columnIndex, rowIndex, linkedObject.realmGetRowIndex());
                     }
-
+*/
                 }
 
             } catch(IllegalAccessException e) {
@@ -247,7 +247,7 @@ public class Realm {
             obj = ProxyBuilder.forClass(clazz)
                     .parentClassLoader(clazz.getClassLoader())
                     .dexCache(getBytecodeCache())
-                    .handler(new RealmProxy(this, rowIndex))
+                    .handler(new RealmProxy(transaction.getTable(clazz.getSimpleName()).getRow(rowIndex)))
                     .build();
             obj.realmSetRowIndex(rowIndex);
         } catch (IOException e) {
