@@ -687,6 +687,16 @@ JNIEXPORT void JNICALL Java_io_realm_Table_nativeClearSubtable(
     } CATCH_STD()
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetRowPtr
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong index)
+{
+    try {
+        Row* row = new Row( (*TBL(nativeTablePtr))[ S(index) ] );
+        return reinterpret_cast<jlong>(row);
+    } CATCH_STD()
+    return 0;
+}
+
 //--------------------- Indexing methods:
 
 JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetIndex(
