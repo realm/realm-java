@@ -13,6 +13,54 @@ public class Row {
     }
 
 
+    public long getColumnCount() {
+        return nativeGetColumnCount(nativePtr);
+    }
+
+    protected native long nativeGetColumnCount(long nativeTablePtr);
+
+    /**
+     * Returns the name of a column identified by columnIndex. Notice that the
+     * index is zero based.
+     *
+     * @param columnIndex the column index
+     * @return the name of the column
+     */
+    public String getColumnName(long columnIndex) {
+        return nativeGetColumnName(nativePtr, columnIndex);
+    }
+
+    protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+
+    /**
+     * Returns the 0-based index of a column based on the name.
+     *
+     * @param columnName column name
+     * @return the index, -1 if not found
+     */
+    public long getColumnIndex(String columnName) {
+        if (columnName == null)
+            throw new IllegalArgumentException("Column name can not be null.");
+        return nativeGetColumnIndex(nativePtr, columnName);
+    }
+
+    protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
+
+
+    /**
+     * Get the type of a column identified by the columnIdex.
+     *
+     * @param columnIndex index of the column.
+     * @return Type of the particular column.
+     */
+    public ColumnType getColumnType(long columnIndex) {
+        return ColumnType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
+    }
+
+    protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
+
+
+
     // Getters
 
     public long getLong(long columnIndex) {

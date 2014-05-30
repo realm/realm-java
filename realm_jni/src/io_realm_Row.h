@@ -9,6 +9,38 @@ extern "C" {
 #endif
 /*
  * Class:     io_realm_Row
+ * Method:    nativeGetColumnCount
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetColumnCount
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_Row
+ * Method:    nativeGetColumnName
+ * Signature: (JJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_realm_Row_nativeGetColumnName
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_Row
+ * Method:    nativeGetColumnIndex
+ * Signature: (JLjava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetColumnIndex
+  (JNIEnv *, jobject, jlong, jstring);
+
+/*
+ * Class:     io_realm_Row
+ * Method:    nativeGetColumnType
+ * Signature: (JJ)I
+ */
+JNIEXPORT jint JNICALL Java_io_realm_Row_nativeGetColumnType
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_Row
  * Method:    nativeGetLong
  * Signature: (JJ)J
  */
