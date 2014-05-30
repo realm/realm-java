@@ -5,6 +5,46 @@
 
 using namespace tightdb;
 
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetColumnCount
+  (JNIEnv *, jobject, jlong nativeRowPtr)
+{
+    if (!ROW(nativeRowPtr)->is_attached())
+        return 0;
+    return ROW(nativeRowPtr)->get_column_count(); // noexcept
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_Row_nativeGetColumnName
+  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_VALID(env, ROW(nativeRowPtr)->get_table(), columnIndex))
+        return NULL;
+    try {
+        return to_jstring(env, ROW(nativeRowPtr)->get_column_name( S(columnIndex)));
+    } CATCH_STD();
+    return NULL;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetColumnIndex
+  (JNIEnv* env, jobject, jlong nativeRowPtr, jstring columnName)
+{
+    if (!ROW(nativeRowPtr)->is_attached())
+        return 0;
+    try {
+        JStringAccessor columnName2(env, columnName); // throws
+        return to_jlong_or_not_found( ROW(nativeRowPtr)->get_column_index(columnName2) ); // noexcept
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jint JNICALL Java_io_realm_Row_nativeGetColumnType
+  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_VALID(env, ROW(nativeRowPtr)->get_table(), columnIndex))
+        return 0;
+
+    return static_cast<jint>( ROW(nativeRowPtr)->get_column_type( S(columnIndex)) ); // noexcept
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetLong
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
 {
