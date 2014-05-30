@@ -14,6 +14,7 @@ class Context {
     private List<Long> abandonedTables = new ArrayList<Long>();
     private List<Long> abandonedTableViews = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
+    private List<Long> abandonedRows = new ArrayList<Long>();
 
     private boolean isFinalized = false;
 
@@ -23,6 +24,11 @@ class Context {
                 Table.nativeClose(nativePointer);
             }
             abandonedTables.clear();
+
+            for (long nativePointer: abandonedRows) {
+                Row.nativeClose(nativePointer);
+            }
+            abandonedRows.clear();
 
             for (long nativePointer: abandonedTableViews) {
                 TableView.nativeClose(nativePointer);
@@ -42,6 +48,15 @@ class Context {
         }
         else {
             abandonedTables.add(nativePointer);
+        }
+    }
+
+    public void asyncDisposeRow(long nativePointer) {
+        if (isFinalized) {
+            Row.nativeClose(nativePointer);
+        }
+        else {
+            abandonedRows.add(nativePointer);
         }
     }
 

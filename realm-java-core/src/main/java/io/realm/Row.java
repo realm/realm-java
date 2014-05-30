@@ -4,9 +4,11 @@ import java.util.Date;
 
 public class Row {
 
+    private final Context context;
     protected long nativePtr;
 
-    Row(long nativePtr) {
+    Row(Context context, long nativePtr) {
+        this.context = context;
         this.nativePtr = nativePtr;
     }
 
@@ -139,6 +141,12 @@ public class Row {
 
     @Override
     protected void finalize() {
+        synchronized (context) {
+            if (nativePtr != 0) {
+                context.asyncDisposeRow(nativePtr);
+                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
+            }
+        }
         nativeClose(nativePtr);
         nativePtr = 0;
     }

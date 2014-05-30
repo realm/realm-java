@@ -822,7 +822,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     public Row getRow(long index) {
         long nativeRowPtr = nativeGetRowPtr(nativePtr, index);
-        return new Row(nativeRowPtr);
+        return new Row(context, nativeRowPtr);
     }
 
     protected native long nativeGetRowPtr(long nativePtr, long index);
