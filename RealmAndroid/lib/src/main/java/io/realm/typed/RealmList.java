@@ -18,6 +18,7 @@ import java.util.Map;
 
 import io.realm.Table;
 import io.realm.TableOrView;
+import io.realm.TableView;
 
 /**
  *
@@ -78,19 +79,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E get(int rowIndex) {
 
-        E obj = null;
+        E obj;
 
-        try {
-            obj = ProxyBuilder.forClass(classSpec)
-                    .parentClassLoader(this.getClass().getClassLoader())
-                    .dexCache(realm.getBytecodeCache())
-                    .handler(new RealmProxy(this, rowIndex))
-                    .build();
-
-            obj.realmSetRowIndex(rowIndex);
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        TableOrView table = getTable();
+        if(table instanceof TableView) {
+            obj = realm.get(classSpec, ((TableView)table).getSourceRowIndex(rowIndex));
+        } else {
+            obj = realm.get(classSpec, rowIndex);
         }
 
         return obj;

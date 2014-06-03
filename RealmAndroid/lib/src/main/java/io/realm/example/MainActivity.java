@@ -7,15 +7,19 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.realm.example.entities.User;
 import io.realm.testApp.R;
 import io.realm.typed.Realm;
-import io.realm.typed.RealmList;
+import io.realm.typed.RealmChangeListener;
 
 public class MainActivity extends Activity {
 
-    private RealmList<User> users;
+    private List<User> users;
     private ArrayAdapter<User> adapter;
+    private Realm realm;
 
 
     @Override
@@ -24,9 +28,16 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         // Initialize the Realm
-        Realm realm = new Realm(this);
+        if(realm == null) {
+            realm = new Realm(this);
+        } else {
+            System.out.println("Already inited");
+        }
 
-        this.users = realm.where(User.class).findAll();
+      //  realm.clear();
+
+
+        users = new ArrayList<User>();
 
 
         // Setup the ListView
@@ -34,10 +45,23 @@ public class MainActivity extends Activity {
         this.adapter = new ArrayAdapter<User>(this, R.layout.list_item, this.users);
         listView.setAdapter(this.adapter);
 
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                realm.refresh();
+                users = realm.where(User.class).findAll();
+                adapter.notifyDataSetChanged();
+                System.out.println("Updated list");
+            }
+        });
+
 
     }
 
     public void createItem(View v) {
+
+        Realm wrRealm = new Realm(this);
+        wrRealm.beginWrite();
 
         User user = new User();
 
@@ -45,7 +69,10 @@ public class MainActivity extends Activity {
         user.setName("Username " + this.users.size());
         user.setEmail("");
 
-        this.adapter.add(user);
+        wrRealm.add(user);
+        wrRealm.commit();
+
+
     }
 
 

@@ -1,11 +1,13 @@
 package io.realm.typed;
 
 import android.content.Context;
+import android.os.Handler;
 
 import com.google.dexmaker.stock.ProxyBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,12 +28,14 @@ public class Realm {
 
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
 
-    private Context context;
     private SharedGroup sg;
     private Group transaction;
     private String filePath;
     private int version;
     private File bytecodeCache;
+
+    private List<RealmChangeListener> changeListeners;
+    boolean runEventHandler = false;
 
     /**
      * Initializes a default realm
@@ -49,10 +53,23 @@ public class Realm {
      * @param filePath      Path to the file backing this realm
      */
     public Realm(Context context, String filePath) {
-        this.context = context;
         this.filePath = filePath;
         this.bytecodeCache = context.getDir("dx", Context.MODE_PRIVATE);
+        this.changeListeners = new ArrayList<RealmChangeListener>();
+
         init();
+    }
+
+    private void startEventHandler() {
+        runEventHandler = true;
+        RealmEventHandler realmEventHandler = new RealmEventHandler(this);
+        new Handler().postDelayed(realmEventHandler, 100);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        ((ReadTransaction)transaction).endRead();
+        System.out.println("finalize");
     }
 
     private void init() {
@@ -258,6 +275,10 @@ public class Realm {
         return obj;
     }
 
+    public boolean contains(Class<?> clazz) {
+        return transaction.hasTable(clazz.getSimpleName());
+    }
+
     /**
      * Returns a typed RealmQuery, which can be used to query for specific objects of this type
      *
@@ -275,10 +296,53 @@ public class Realm {
     }
 
 
+    // Migration
+
     public void ensureRealmAtVersion(int version, RealmMigration migration) {
         migration.execute(this, version);
     }
 
+    // Notifications
+
+    public void addChangeListener(RealmChangeListener listener) {
+        changeListeners.add(listener);
+        if(!runEventHandler) {
+            startEventHandler();
+        }
+    }
+
+    public void removeChangeListener(RealmChangeListener listener) {
+        changeListeners.remove(listener);
+        if(runEventHandler && changeListeners.isEmpty()) {
+            runEventHandler = false;
+        }
+    }
+
+    public void removeAllChangeListeners() {
+        changeListeners.clear();
+    }
+
+    void sendNotifications() {
+        for(RealmChangeListener listener : changeListeners) {
+            listener.onChange();
+        }
+        if(runEventHandler && changeListeners.isEmpty()) {
+            runEventHandler = false;
+        }
+    }
+
+    boolean hasChanged() {
+        return sg.hasChanged();
+    }
+
+    // Transactions
+
+    public void refresh() {
+        if(transaction instanceof ReadTransaction) {
+            ((ReadTransaction)transaction).endRead();
+            transaction = sg.beginRead();
+        }
+    }
 
     private void beginRead() {
         this.transaction = this.sg.beginRead();
@@ -288,6 +352,12 @@ public class Realm {
      * Starts a write transaction, this must be closed with either commit() or rollback()
      */
     public void beginWrite() {
+
+        // If we are moving the transaction forward, send local notifications
+        if (sg.hasChanged()) {
+            sendNotifications();
+        }
+
         ((ReadTransaction)this.transaction).endRead();
         this.transaction = this.sg.beginWrite();
     }
@@ -297,6 +367,10 @@ public class Realm {
      */
     public void commit() {
         ((WriteTransaction)this.transaction).commit();
+
+        // Send notifications because we did a local change
+        sendNotifications();
+
         beginRead();
     }
 

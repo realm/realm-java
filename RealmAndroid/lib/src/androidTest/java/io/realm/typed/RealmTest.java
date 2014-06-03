@@ -30,6 +30,13 @@ public class RealmTest extends AndroidTestCase {
 
     public void testRealm() {
 
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                System.out.println("Realm changed");
+            }
+        });
+
         try {
             realm.beginWrite();
 

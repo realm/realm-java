@@ -52,8 +52,8 @@ class RealmProxy implements InvocationHandler {
 
                         getters.put(clazz.getSimpleName()+methodName, new RealmGetter() {
                             @Override
-                            public Object get(TableOrView table, long rowIndex) {
-                                return table.getString(columnIndex, rowIndex);
+                            public Object get(Row row) {
+                                return row.getString(columnIndex);
                             }
                         });
 
@@ -62,8 +62,8 @@ class RealmProxy implements InvocationHandler {
 
                         getters.put(clazz.getSimpleName()+methodName, new RealmGetter() {
                             @Override
-                            public Object get(TableOrView table, long rowIndex) {
-                                return ((Long) table.getLong(columnIndex, rowIndex)).intValue();
+                            public Object get(Row row) {
+                                return ((Long) row.getLong(columnIndex)).intValue();
                             }
                         });
 
