@@ -99,7 +99,7 @@ public class SubtableTest extends AbstractTest {
         assertTrue(phones.isValid());
 
         employees.remove(2);
-        assertFalse(phones.isValid());
+        assertFalse(!phones.isValid());
     }
 
 }
