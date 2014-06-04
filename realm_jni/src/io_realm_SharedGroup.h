@@ -9,6 +9,54 @@ extern "C" {
 #endif
 /*
  * Class:     io_realm_SharedGroup
+ * Method:    createNativeWithImplicitTransactions
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_SharedGroup_createNativeWithImplicitTransactions
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_SharedGroup
+ * Method:    nativeCreateReplication
+ * Signature: (Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_SharedGroup_nativeCreateReplication
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     io_realm_SharedGroup
+ * Method:    nativeCreateTransactLogRegistry
+ * Signature: (Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_SharedGroup_nativeCreateTransactLogRegistry
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     io_realm_SharedGroup
+ * Method:    nativeAdvanceRead
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_SharedGroup_nativeAdvanceRead
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_SharedGroup
+ * Method:    nativePromoteToWrite
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_SharedGroup_nativePromoteToWrite
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_SharedGroup
+ * Method:    nativeCommitAndContinueAsRead
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_SharedGroup_nativeCommitAndContinueAsRead
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_SharedGroup
  * Method:    nativeGetDefaultReplicationDatabaseFileName
  * Signature: ()Ljava/lang/String;
  */
@@ -86,6 +134,22 @@ JNIEXPORT jlong JNICALL Java_io_realm_SharedGroup_createNative
  */
 JNIEXPORT void JNICALL Java_io_realm_SharedGroup_nativeClose
   (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     io_realm_SharedGroup
+ * Method:    nativeCloseTransactRegistryLog
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_SharedGroup_nativeCloseTransactRegistryLog
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_SharedGroup
+ * Method:    nativeCloseReplication
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_SharedGroup_nativeCloseReplication
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }
