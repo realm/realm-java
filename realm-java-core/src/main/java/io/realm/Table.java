@@ -802,7 +802,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw e;
         }
     }
-    
+
     private native long nativeGetSubtableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
 
 
@@ -818,6 +818,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
+
+
+    public Row getRow(long index) {
+        long nativeRowPtr = nativeGetRowPtr(nativePtr, index);
+        return new Row(context, nativeRowPtr);
+    }
+
+    protected native long nativeGetRowPtr(long nativePtr, long index);
 
 
     //

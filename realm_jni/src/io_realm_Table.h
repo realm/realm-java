@@ -363,6 +363,14 @@ JNIEXPORT void JNICALL Java_io_realm_Table_nativeClearSubtable
 
 /*
  * Class:     io_realm_Table
+ * Method:    nativeGetRowPtr
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetRowPtr
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_Table
  * Method:    nativeSetLong
  * Signature: (JJJJ)V
  */
