@@ -14,7 +14,7 @@ import io.realm.typed.TightDB;
 public class Group implements Closeable {
     
     protected long nativePtr;
-    protected final boolean immutable;
+    protected boolean immutable;
     private final Context context;
 
     static {
@@ -203,7 +203,7 @@ public class Group implements Closeable {
         long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
         try {
             // Copy context reference from parent
-            return new Table(context, this, nativeTablePointer, immutable);
+            return new Table(context, this, nativeTablePointer);
         }
         catch (RuntimeException e) {
             Table.nativeClose(nativeTablePointer);
