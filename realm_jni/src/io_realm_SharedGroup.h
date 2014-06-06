@@ -57,6 +57,14 @@ JNIEXPORT void JNICALL Java_io_realm_SharedGroup_nativeCommitAndContinueAsRead
 
 /*
  * Class:     io_realm_SharedGroup
+ * Method:    nativeBeginImplicit
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_SharedGroup_nativeBeginImplicit
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_SharedGroup
  * Method:    nativeGetDefaultReplicationDatabaseFileName
  * Signature: ()Ljava/lang/String;
  */

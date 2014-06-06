@@ -47,7 +47,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected long nativePtr;
     
-    protected final boolean immutable;
     protected final Object parent;
     private final Context context;
 
@@ -67,7 +66,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
      */
     public Table() {
         this.parent = null; // No parent in free-standing table
-        this.immutable = false; 
         this.context = new Context();
         // Native methods work will be initialized here. Generated classes will
         // have nothing to do with the native functions. Generated Java Table
@@ -83,8 +81,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native long createNative();
     
-    Table(Context context, Object parent, long nativePointer, boolean immutable) {
-        this.immutable = immutable;
+    Table(Context context, Object parent, long nativePointer) {
         this.context = context;
         this.parent  = parent;
         this.nativePtr = nativePointer;
@@ -486,7 +483,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeGetSortedView(nativePtr, columnIndex, (order == TableView.Order.ascending));
         try {
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -503,7 +500,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeGetSortedView(nativePtr, columnIndex, true);
         try {
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -777,7 +774,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         long nativeSubtablePtr = nativeGetSubtable(nativePtr, columnIndex, rowIndex);
         try {
             // Copy context reference from parent
-            return new Table(context, this, nativeSubtablePtr, immutable);
+            return new Table(context, this, nativeSubtablePtr);
         }
         catch (RuntimeException e) {
             nativeClose(nativeSubtablePtr);
@@ -795,7 +792,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         context.executeDelayedDisposal();
         long nativeSubtablePtr =  nativeGetSubtableDuringInsert(nativePtr, columnIndex, rowIndex);
         try {
-            return new Table(context, this, nativeSubtablePtr, immutable);
+            return new Table(context, this, nativeSubtablePtr);
         }
         catch (RuntimeException e) {
             nativeClose(nativeSubtablePtr);
@@ -964,9 +961,21 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native boolean nativeHasIndex(long nativePtr, long columnIndex);
 
+    boolean isImmutable() {
+        if (!(parent instanceof Table)) {
+            if(parent == null) {
+                // free standing table, so it is mutable
+                return false;
+            } else {
+                return ((Group)parent).immutable;
+            }
+        } else {
+            return ((Table)parent).isImmutable();
+        }
+    }
 
     private void checkImmutable() {
-        //if (immutable) throwImmutable();
+        if (isImmutable()) throwImmutable();
     }
 
     //
@@ -1119,7 +1128,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         long nativeQueryPtr = nativeWhere(nativePtr);
         try {
             // Copy context reference from parent
-            return new TableQuery(this.context, this, nativeQueryPtr, immutable);
+            return new TableQuery(this.context, this, nativeQueryPtr);
         } catch (RuntimeException e) {
             TableQuery.nativeClose(nativeQueryPtr);
             throw e;
@@ -1175,7 +1184,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
         try {
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -1190,7 +1199,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
         try {
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -1205,7 +1214,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
         try {
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -1220,7 +1229,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
         try {
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -1235,7 +1244,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime() / 1000);
         try {
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -1250,7 +1259,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
         try {
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -1306,7 +1315,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         this.context.executeDelayedDisposal();
         long nativeViewPtr = nativeGetDistinctView(nativePtr, columnIndex);
         try {
-            return new TableView(this.context, this, nativeViewPtr, immutable);
+            return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;

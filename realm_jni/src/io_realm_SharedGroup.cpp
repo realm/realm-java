@@ -112,6 +112,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_SharedGroup_nativeCreateTransactLogRegistr
     return 0;
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_SharedGroup_nativeBeginImplicit
+  (JNIEnv* env, jobject, jlong native_ptr)
+{
+    try {
+        Group& group = const_cast<Group&>(SG(native_ptr)->begin_read());
+        return reinterpret_cast<jlong>(&group);
+    }
+    CATCH_STD()
+    return 0;
+}
+
 JNIEXPORT void JNICALL Java_io_realm_SharedGroup_nativeAdvanceRead
   (JNIEnv *, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
 {

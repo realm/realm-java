@@ -70,24 +70,36 @@ public class SharedGroup implements Closeable {
         checkNativePtr();
     }
 */
-
-    public void advanceRead() {
-        nativeAdvanceRead(nativePtr, nativeTransactLogRegistryPtr);
-    }
+    void advanceRead() {
+    nativeAdvanceRead(nativePtr, nativeTransactLogRegistryPtr);
+}
 
     private native void nativeAdvanceRead(long nativePtr, long nativeTransactLogRegistryPtr);
 
-    public void promoteToWrite() {
+    void promoteToWrite() {
         nativePromoteToWrite(nativePtr, nativeTransactLogRegistryPtr);
     }
 
     private native void nativePromoteToWrite(long nativePtr, long nativeTransactLogRegistryPtr);
 
-    public void commitAndContinueAsRead() {
+    void commitAndContinueAsRead() {
         nativeCommitAndContinueAsRead(nativePtr);
     }
 
     private native void nativeCommitAndContinueAsRead(long nativePtr);
+
+    public ImplicitTransaction beginImplicitTransaction() {
+        if (activeTransaction) {
+            throw new IllegalStateException(
+                    "Can't beginImplicitTransaction() during another active transaction");
+        }
+        long nativeGroupPtr = nativeBeginImplicit(nativePtr);
+        ImplicitTransaction transaction = new ImplicitTransaction(context, this, nativeGroupPtr);
+        activeTransaction = true;
+        return transaction;
+    }
+
+    private native long nativeBeginImplicit(long nativePtr);
 
     public WriteTransaction beginWrite() {
         if (activeTransaction)

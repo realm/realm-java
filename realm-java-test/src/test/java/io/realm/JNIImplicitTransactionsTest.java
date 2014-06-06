@@ -6,7 +6,7 @@ import java.io.File;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-public class JNIImplicitTransactions {
+public class JNIImplicitTransactionsTest {
 
     private void deleteFile(String filename) {
         File f = new File(filename);
@@ -17,7 +17,7 @@ public class JNIImplicitTransactions {
             f.delete();
     }
 
-    @Test
+    @Test(expectedExceptions=IllegalStateException.class)
     public void testImplicitTransactions() {
 
         deleteFile("implicit.realm");
@@ -25,35 +25,29 @@ public class JNIImplicitTransactions {
 
         WriteTransaction wt = sg.beginWrite();
 
-        Table table = wt.getTable("test");
-        table.addColumn(ColumnType.INTEGER, "integer");
-        table.addEmptyRow();
+        if(!wt.hasTable("test")) {
+            Table table = wt.getTable("test");
+            table.addColumn(ColumnType.INTEGER, "integer");
+            table.addEmptyRow();
+        }
 
         wt.commit();
 
-        ReadTransaction rt = sg.beginRead();
+        ImplicitTransaction t = sg.beginImplicitTransaction();
 
-        Table test = rt.getTable("test");
+        Table test = t.getTable("test");
 
 
         assertEquals(1, test.size());
 
-        sg.promoteToWrite();
+        t.promoteToWrite();
 
         test.addEmptyRow();
 
-        sg.commitAndContinueAsRead();
+        t.commitAndContinueAsRead();
 
-        assertEquals(2, test.size());
-
+        // Should throw as this is now a read transaction
         test.addEmptyRow();
-
-        System.out.println(test.size());
-
-
-
-
-
 
     }
 
