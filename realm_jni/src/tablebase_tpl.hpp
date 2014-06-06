@@ -122,6 +122,12 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
         }
     case type_Mixed:
         break;
+    case type_Link:
+        break;
+    case type_LinkList:
+        break;
+    case type_BackLink:
+        break;
     }
     TR_ERR((env, "\nERROR: nativeSetMixed() failed.\n"));
     ThrowException(env, IllegalArgument, "nativeSetMixed()");
