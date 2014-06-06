@@ -76,6 +76,7 @@ std::string num_to_string(T pNumber)
 #define TV(x)   reinterpret_cast<tightdb::TableView*>(x)
 #define Q(x)    reinterpret_cast<tightdb::Query*>(x)
 #define G(x)    reinterpret_cast<tightdb::Group*>(x)
+#define ROW(x)  reinterpret_cast<tightdb::Row*>(x)
 
 // Exception handling
 
