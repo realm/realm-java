@@ -77,7 +77,6 @@ public class PerformanceTest extends AndroidTestCase {
             }
             realm.commit();
         } catch(Throwable t) {
-            realm.rollback();
             t.printStackTrace();
             fail();
         }

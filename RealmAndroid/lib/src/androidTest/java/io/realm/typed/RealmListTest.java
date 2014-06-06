@@ -76,7 +76,7 @@ public class RealmListTest extends AndroidTestCase {
             realm.commit();
 
         } catch (UnsupportedOperationException e) {
-            realm.rollback();
+            e.printStackTrace();
         }
 
     }
@@ -134,8 +134,6 @@ public class RealmListTest extends AndroidTestCase {
             fail("Should throw UnsupportedOperationException");
             realm.commit();
         } catch(UnsupportedOperationException e) {
-
-            realm.rollback();
         }
 
     }
@@ -155,7 +153,6 @@ public class RealmListTest extends AndroidTestCase {
             realm.commit();
 
         } catch(UnsupportedOperationException e) {
-            realm.rollback();
         }
 
     }

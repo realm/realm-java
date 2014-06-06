@@ -18,6 +18,7 @@ import java.util.Map;
 
 import io.realm.ColumnType;
 import io.realm.Group;
+import io.realm.ImplicitTransaction;
 import io.realm.ReadTransaction;
 import io.realm.SharedGroup;
 import io.realm.Table;
@@ -29,7 +30,7 @@ public class Realm {
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
 
     private SharedGroup sg;
-    private Group transaction;
+    private ImplicitTransaction transaction;
     private String filePath;
     private int version;
     private File bytecodeCache;
@@ -68,14 +69,14 @@ public class Realm {
 
     @Override
     protected void finalize() throws Throwable {
-        ((ReadTransaction)transaction).endRead();
+        transaction.endRead();
         System.out.println("finalize");
     }
 
     private void init() {
         System.out.println("Initing Realm with durability: " + defaultDurability);
         this.sg = new SharedGroup(filePath, defaultDurability);
-        this.transaction = sg.beginRead();
+        this.transaction = sg.beginImplicitTransaction();
     }
 
     public static void setDefaultDurability(SharedGroup.Durability durability) {
@@ -338,14 +339,7 @@ public class Realm {
     // Transactions
 
     public void refresh() {
-        if(transaction instanceof ReadTransaction) {
-            ((ReadTransaction)transaction).endRead();
-            transaction = sg.beginRead();
-        }
-    }
-
-    private void beginRead() {
-        this.transaction = this.sg.beginRead();
+        transaction.advanceRead();
     }
 
     /**
@@ -358,28 +352,18 @@ public class Realm {
             sendNotifications();
         }
 
-        ((ReadTransaction)this.transaction).endRead();
-        this.transaction = this.sg.beginWrite();
+        transaction.promoteToWrite();
     }
 
     /**
      * Commits a write transaction
      */
     public void commit() {
-        ((WriteTransaction)this.transaction).commit();
+        transaction.commitAndContinueAsRead();
 
         // Send notifications because we did a local change
         sendNotifications();
 
-        beginRead();
-    }
-
-    /**
-     * Does a rollback on the active write transaction
-     */
-    public void rollback() {
-        ((WriteTransaction)this.transaction).rollback();
-        beginRead();
     }
 
     public void clear(Class<?> classSpec) {
@@ -387,7 +371,7 @@ public class Realm {
     }
 
     public void clear() {
-        ((ReadTransaction)transaction).endRead();
+        transaction.endRead();
         sg.close();
         new File(filePath).delete();
         new File(filePath+".lock").delete();
@@ -402,7 +386,7 @@ public class Realm {
         this.version = version;
     }
 
-    public File getBytecodeCache() {
+    private File getBytecodeCache() {
         return bytecodeCache;
     }
 

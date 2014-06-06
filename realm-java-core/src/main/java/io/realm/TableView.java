@@ -471,7 +471,7 @@ public class TableView implements TableOrView, Closeable {
     protected native void nativeSetMixed(long nativeViewPtr, long columnIndex, long rowIndex, Mixed value);
 
     public void setLink(long columnIndex, long rowIndex, long value){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeSetLink(nativePtr, columnIndex, rowIndex, value);
     }
 

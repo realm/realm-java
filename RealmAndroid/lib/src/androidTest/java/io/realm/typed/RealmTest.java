@@ -57,7 +57,6 @@ public class RealmTest extends AndroidTestCase {
 
         } catch(Throwable t) {
             t.printStackTrace();
-            realm.rollback();
         }
 
         RealmList<User> users = realm.where(User.class).findAll();
@@ -79,7 +78,6 @@ public class RealmTest extends AndroidTestCase {
             realm.commit();
 
         } catch(Throwable t) {
-            realm.rollback();
         }
 
         users = realm.where(User.class).findAll();
@@ -96,18 +94,16 @@ public class RealmTest extends AndroidTestCase {
             System.out.println(user.getId());
         }
 
-        try {
 
-            realm.beginWrite();
-            users = realm.where(User.class).findAll();
-            user1 = users.get(100);
-            user1.setId(100);
 
-            realm.commit();
+        realm.beginWrite();
+        users = realm.where(User.class).findAll();
+        user1 = users.get(100);
+        user1.setId(100);
 
-        } catch(Throwable t) {
-            realm.rollback();
-        }
+        realm.commit();
+
+
 
         // Query
         RealmList<User> results = realm.where(User.class).equalTo("id", 10).findAll();
