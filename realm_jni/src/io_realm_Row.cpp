@@ -45,6 +45,15 @@ JNIEXPORT jint JNICALL Java_io_realm_Row_nativeGetColumnType
     return static_cast<jint>( ROW(nativeRowPtr)->get_column_type( S(columnIndex)) ); // noexcept
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetIndex
+  (JNIEnv* env, jobject, jlong nativeRowPtr)
+{
+    if (!TABLE_VALID(env, ROW(nativeRowPtr)->get_table()))
+        return 0;
+
+    return ROW(nativeRowPtr)->get_index();
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetLong
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
 {
@@ -144,6 +153,24 @@ JNIEXPORT jobject JNICALL Java_io_realm_Row_nativeGetMixed
     return NULL;
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetLink
+  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr)->get_table(), columnIndex, type_Link))
+        return 0;
+
+    return ROW(nativeRowPtr)->get_link( S(columnIndex) );
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_Row_nativeIsNullLink
+  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr)->get_table(), columnIndex, type_Link))
+        return 0;
+
+    return ROW(nativeRowPtr)->is_null_link( S(columnIndex) );
+}
+
 JNIEXPORT void JNICALL Java_io_realm_Row_nativeSetLong
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex, jlong value)
 {
@@ -234,6 +261,28 @@ JNIEXPORT void JNICALL Java_io_realm_Row_nativeSetMixed
         return;
     try {
         row_nativeSetMixed(ROW(nativeRowPtr), env, columnIndex, jMixedValue);
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_Row_nativeSetLink
+  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex, jlong value)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr)->get_table(), columnIndex, type_Link))
+        return;
+
+    try {
+        ROW(nativeRowPtr)->set_link( S(columnIndex), value);
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_Row_nativeNullifyLink
+  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr)->get_table(), columnIndex, type_Link))
+        return;
+
+    try {
+        ROW(nativeRowPtr)->nullify_link( S(columnIndex) );
     } CATCH_STD()
 }
 

@@ -63,6 +63,12 @@ public class Row {
 
     // Getters
 
+    public long getIndex() {
+        return nativeGetIndex(nativePtr);
+    }
+
+    protected native long nativeGetIndex(long nativeRowPtr);
+
     public long getLong(long columnIndex) {
         return nativeGetLong(nativePtr, columnIndex);
     }
@@ -119,6 +125,18 @@ public class Row {
     protected native int nativeGetMixedType(long nativePtr, long columnIndex);
 
     protected native Mixed nativeGetMixed(long nativeRowPtr, long columnIndex);
+
+    public long getLink(long columnIndex) {
+        return nativeGetLink(nativePtr, columnIndex);
+    }
+
+    protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
+
+    public boolean isNullLink(long columnIndex) {
+        return nativeIsNullLink(nativePtr, columnIndex);
+    }
+
+    protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
 
 
 
@@ -180,6 +198,18 @@ public class Row {
     }
 
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
+
+    public void setLink(long columnIndex, long value) {
+        nativeSetLink(nativePtr, columnIndex, value);
+    }
+
+    protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
+
+    public void nullifyLink(long columnIndex) {
+        nativeNullifyLink(nativePtr, columnIndex);
+    }
+
+    protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
 
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
