@@ -63,7 +63,7 @@ public class Row {
 
     // Getters
 
-    public long getIndex(long columnIndex) {
+    public long getIndex() {
         return nativeGetIndex(nativePtr);
     }
 

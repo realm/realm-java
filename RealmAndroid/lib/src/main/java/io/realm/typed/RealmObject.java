@@ -2,6 +2,7 @@ package io.realm.typed;
 
 public abstract class RealmObject {
 
+    long realmRowIndex = -1;
     private boolean isInStore = false;
 
     protected boolean realmIsInStore() {
@@ -10,14 +11,6 @@ public abstract class RealmObject {
 
     protected void realmSetInStore(boolean isInStore) {
         this.isInStore = isInStore;
-    }
-
-    /**
-     * This is overriden in the proxy, so this implementation will never get called, internal use only.
-     * @return The index of this object in the object store
-     */
-    long realmGetRowIndex() {
-        return -1;
     }
 
 }

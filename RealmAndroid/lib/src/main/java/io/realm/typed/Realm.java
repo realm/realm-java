@@ -209,7 +209,8 @@ public class Realm {
         long rowIndex = table.addEmptyRow();
         long columnIndex = 0;
 
-        element.realmSetRowIndex(rowIndex);
+        element.realmSetInStore(true);
+        element.realmRowIndex = rowIndex;
 
         List<Field> fields = cache.get(className);
 
@@ -243,7 +244,7 @@ public class Realm {
                             add(linkedObject);
                         }
                         // Add link
-                        table.setLink(columnIndex, rowIndex, linkedObject.realmGetRowIndex());
+                        table.setLink(columnIndex, rowIndex, linkedObject.realmRowIndex);
                     }
 
                 }

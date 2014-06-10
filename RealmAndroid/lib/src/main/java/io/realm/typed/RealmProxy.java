@@ -141,11 +141,11 @@ class RealmProxy implements InvocationHandler {
                     RealmObject linkedObject = (RealmObject)args[0];
 
                     if(linkedObject != null) {
-                        if(linkedObject.realmGetRowIndex() == -1) {
+                        if(!linkedObject.realmIsInStore()) {
                             realm.add(linkedObject);
                         }
                         // Add link
-                        row.setLink(columnIndex, linkedObject.realmGetRowIndex());
+                        row.setLink(columnIndex, linkedObject.realmRowIndex);
                     } else {
                         row.nullifyLink(columnIndex);
                     }
@@ -156,8 +156,6 @@ class RealmProxy implements InvocationHandler {
 
                 return null;
 
-            } else if(methodName.startsWith("realmGetRowIndex")) {
-                return row.getIndex();
             }
 
         }

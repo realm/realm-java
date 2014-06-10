@@ -155,7 +155,7 @@ public class RealmTest extends AndroidTestCase {
         user.setEmail("ra@realm.io");
         user.setId(0);
 
-
+        obj.setColumnRealmObject(user);
 
         realm.add(obj);
 
