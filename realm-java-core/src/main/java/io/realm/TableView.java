@@ -298,6 +298,13 @@ public class TableView implements TableOrView, Closeable {
 
     protected native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
 
+
+    public long getLink(long columnIndex, long rowIndex){
+        return nativeGetLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native long nativeGetLink(long nativeViewPtr, long columnIndex, long rowIndex);
+
     @Override
     public Table getSubtable(long columnIndex, long rowIndex) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
@@ -462,6 +469,26 @@ public class TableView implements TableOrView, Closeable {
     }
 
     protected native void nativeSetMixed(long nativeViewPtr, long columnIndex, long rowIndex, Mixed value);
+
+    public void setLink(long columnIndex, long rowIndex, long value){
+        if (parent.isImmutable()) throwImmutable();
+        nativeSetLink(nativePtr, columnIndex, rowIndex, value);
+    }
+
+    protected native void nativeSetLink(long nativeViewPtr, long columnIndex, long rowIndex, long value);
+
+
+    public boolean isNullLink(long columnIndex, long rowIndex) {
+        return nativeIsNullLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
+
+    public void nullifyLink(long columnIndex, long rowIndex) {
+        nativeNullifyLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
 
     /**
      * Add the value for to all cells in the column.

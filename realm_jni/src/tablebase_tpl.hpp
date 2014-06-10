@@ -122,6 +122,99 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
         }
     case type_Mixed:
         break;
+    case type_Link:
+        break;
+    case type_LinkList:
+        break;
+    case type_BackLink:
+        break;
+    }
+    TR_ERR((env, "\nERROR: nativeSetMixed() failed.\n"));
+    ThrowException(env, IllegalArgument, "nativeSetMixed()");
+}
+
+template <class R>
+void row_nativeSetMixed(R* pRow, JNIEnv* env, jlong columnIndex, jobject jMixedValue)
+{
+    DataType valueType = GetMixedObjectType(env, jMixedValue);
+    switch(valueType) {
+    case type_Int:
+        {
+            jlong longValue = GetMixedIntValue(env, jMixedValue);
+            pRow->set_mixed( S(columnIndex), Mixed(static_cast<int64_t>(longValue)));
+            return;
+        }
+    case type_Float:
+        {
+            jfloat floatValue = GetMixedFloatValue(env, jMixedValue);
+            pRow->set_mixed( S(columnIndex), Mixed(floatValue));
+            return;
+        }
+    case type_Double:
+        {
+            jdouble doubleValue = GetMixedDoubleValue(env, jMixedValue);
+            pRow->set_mixed( S(columnIndex), Mixed(doubleValue));
+            return;
+        }
+    case type_Bool:
+        {
+            jboolean boolValue = GetMixedBooleanValue(env, jMixedValue);
+            pRow->set_mixed( S(columnIndex), Mixed(boolValue != 0 ? true : false));
+            return;
+        }
+    case type_String:
+        {
+            jstring stringValue = GetMixedStringValue(env, jMixedValue);
+            JStringAccessor string(env, stringValue); // throws
+            pRow->set_mixed( S(columnIndex), StringData(string));
+            return;
+        }
+    case type_DateTime:
+        {
+            jlong dateTimeValue = GetMixedDateTimeValue(env, jMixedValue);
+            DateTime date(dateTimeValue);
+            pRow->set_mixed( S(columnIndex), Mixed(date));
+            return;
+        }
+    case type_Binary:
+        {
+            jint mixedBinaryType = GetMixedBinaryType(env, jMixedValue);
+            if (mixedBinaryType == 0) {
+                jbyteArray dataArray = GetMixedByteArrayValue(env, jMixedValue);
+                if (!dataArray)
+                    break;
+                char* data = reinterpret_cast<char*>(env->GetByteArrayElements(dataArray, NULL));
+                if (!data)
+                    break;
+                size_t size = S(env->GetArrayLength(dataArray));
+                pRow->set_mixed( S(columnIndex), BinaryData(data, size));
+                env->ReleaseByteArrayElements(dataArray, reinterpret_cast<jbyte*>(data), 0);
+                return;
+            }
+            else if (mixedBinaryType == 1) {
+                jobject jByteBuffer = GetMixedByteBufferValue(env, jMixedValue);
+                if (!jByteBuffer)
+                    break;
+                BinaryData binaryData;
+                if (GetBinaryData(env, jByteBuffer, binaryData))
+                    pRow->set_mixed( S(columnIndex), binaryData);
+                return;
+            }
+            break; // failed
+        }
+    case type_Table:
+        {
+            pRow->set_mixed( S(columnIndex), Mixed::subtable_tag());
+            return;
+        }
+    case type_Mixed:
+        break;
+    case type_Link:
+        break;
+    case type_LinkList:
+        break;
+    case type_BackLink:
+            break;
     }
     TR_ERR((env, "\nERROR: nativeSetMixed() failed.\n"));
     ThrowException(env, IllegalArgument, "nativeSetMixed()");
