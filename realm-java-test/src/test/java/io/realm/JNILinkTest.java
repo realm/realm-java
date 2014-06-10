@@ -40,7 +40,6 @@ public class JNILinkTest {
 
         assertEquals(test, "b");
 
-        group.close();
 
 
     }
