@@ -30,6 +30,9 @@ public class JNILinkTest {
 
         Table target = table1.getLinkTarget(0);
 
+        System.gc();
+
+
         assertEquals(target.getColumnCount(), 2);
 
 
@@ -37,6 +40,7 @@ public class JNILinkTest {
 
         assertEquals(test, "b");
 
+        group.close();
 
 
     }

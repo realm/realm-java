@@ -48,7 +48,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeAddColumnLink
         }
         try {
             JStringAccessor name2(env, name); // throws
-            return TBL(nativeTablePtr)->add_column_link(DataType(colType), name2, TBL(targetTablePtr)->get_index_in_parent());
+            return TBL(nativeTablePtr)->add_column_link(DataType(colType), name2, *TBL(targetTablePtr));
         } CATCH_STD()
         return 0;
 }
@@ -361,16 +361,6 @@ JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetMixed(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetLink
-  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong targetRowIndex)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Link))
-        return;
-    try {
-        TBL(nativeTablePtr)->insert_link( S(columnIndex), S(rowIndex), S(targetRowIndex));
-    } CATCH_STD()
-}
-
 JNIEXPORT void JNICALL Java_io_realm_Table_nativeInsertSubtable(
     JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
 {
@@ -508,7 +498,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetLinkTarget
   (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     try {
-        Table* pTable = &(*TBL(nativeTablePtr)->get_link_target(S(columnIndex)));
+        Table* pTable = &(*TBL(nativeTablePtr)->get_link_target( S(columnIndex) ));
         return (jlong)pTable;
     } CATCH_STD()
     return 0;
@@ -555,6 +545,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetSubtableSize(
 
 
 // ----------------- Set cell
+
+JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetLink
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong targetRowIndex)
+{
+    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Link))
+        return;
+    try {
+        TBL(nativeTablePtr)->set_link( S(columnIndex), S(rowIndex), S(targetRowIndex));
+    } CATCH_STD()
+}
 
 JNIEXPORT void JNICALL Java_io_realm_Table_nativeSetLong(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong value)

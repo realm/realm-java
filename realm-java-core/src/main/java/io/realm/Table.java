@@ -781,7 +781,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
         try {
             // Copy context reference from parent
-            return new Table(context, this, nativeTablePointer);
+            return new Table(context, this.parent, nativeTablePointer);
         }
         catch (RuntimeException e) {
             Table.nativeClose(nativeTablePointer);
