@@ -41,6 +41,14 @@ JNIEXPORT jint JNICALL Java_io_realm_Row_nativeGetColumnType
 
 /*
  * Class:     io_realm_Row
+ * Method:    nativeGetIndex
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetIndex
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_Row
  * Method:    nativeGetLong
  * Signature: (JJ)J
  */
@@ -113,6 +121,22 @@ JNIEXPORT jobject JNICALL Java_io_realm_Row_nativeGetMixed
 
 /*
  * Class:     io_realm_Row
+ * Method:    nativeGetLink
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetLink
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_Row
+ * Method:    nativeIsNullLink
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_Row_nativeIsNullLink
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_Row
  * Method:    nativeSetLong
  * Signature: (JJJ)V
  */
@@ -174,6 +198,22 @@ JNIEXPORT void JNICALL Java_io_realm_Row_nativeSetByteArray
  */
 JNIEXPORT void JNICALL Java_io_realm_Row_nativeSetMixed
   (JNIEnv *, jobject, jlong, jlong, jobject);
+
+/*
+ * Class:     io_realm_Row
+ * Method:    nativeSetLink
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_Row_nativeSetLink
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_Row
+ * Method:    nativeNullifyLink
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_Row_nativeNullifyLink
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_Row
