@@ -48,7 +48,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeAddColumnLink
         }
         try {
             JStringAccessor name2(env, name); // throws
-            return TBL(nativeTablePtr)->add_column_link(DataType(colType), name2, TBL(targetTablePtr)->get_index_in_parent());
+            return TBL(nativeTablePtr)->add_column_link(DataType(colType), name2, *TBL(targetTablePtr));
         } CATCH_STD()
         return 0;
 }
