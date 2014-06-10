@@ -13,15 +13,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.Row;
-import io.realm.TableOrView;
 
 class RealmProxy implements InvocationHandler {
 
+    private Realm realm = null;
     private Row row = null;
 
     private static Map<String, RealmGetter> getters = new HashMap<String, RealmGetter>();
 
-    public RealmProxy(Row row) {
+    public RealmProxy(Realm realm, Row row) {
+        this.realm = realm;
         this.row = row;
     }
 
@@ -81,13 +82,13 @@ class RealmProxy implements InvocationHandler {
                     } else if (type.equals(byte[].class)) {
                         // Binary
                     } else if (RealmObject.class.equals(type.getSuperclass())) {
-                        /*
+
                         if(!row.isNullLink(columnIndex)) {
                             return realm.get((Class<? extends RealmObject>) type, row.getLink(columnIndex));
                         } else {
                             return null;
                         }
-                        */
+
                     } else if (RealmList.class.equals(type)) {
                         Field f = m.getDeclaringClass().getDeclaredField(name);
                         Type genericType = f.getGenericType();
@@ -138,7 +139,7 @@ class RealmProxy implements InvocationHandler {
                 } else if (RealmObject.class.equals(type.getSuperclass())) {
                     // Link
                     RealmObject linkedObject = (RealmObject)args[0];
-                    /*
+
                     if(linkedObject != null) {
                         if(linkedObject.realmGetRowIndex() == -1) {
                             realm.add(linkedObject);
@@ -148,13 +149,15 @@ class RealmProxy implements InvocationHandler {
                     } else {
                         row.nullifyLink(columnIndex);
                     }
-                    */
+
                 } else {
                     return null;
                 }
 
                 return null;
 
+            } else if(methodName.startsWith("realmGetRowIndex")) {
+                return row.getIndex();
             }
 
         }

@@ -236,16 +236,16 @@ public class Realm {
                 } else if(type.equals(byte[].class)) {
                     table.setBinaryByteArray(columnIndex, rowIndex, (byte[])f.get(element));
                 } else if(RealmObject.class.equals(f.getType().getSuperclass())) {
-                    /*
+
                     RealmObject linkedObject = (RealmObject)f.get(element);
                     if(linkedObject != null) {
-                        if(linkedObject.realmGetRowIndex() == -1) {
+                        if(!linkedObject.realmIsInStore()) {
                             add(linkedObject);
                         }
                         // Add link
                         table.setLink(columnIndex, rowIndex, linkedObject.realmGetRowIndex());
                     }
-*/
+
                 }
 
             } catch(IllegalAccessException e) {
@@ -265,9 +265,9 @@ public class Realm {
             obj = ProxyBuilder.forClass(clazz)
                     .parentClassLoader(clazz.getClassLoader())
                     .dexCache(getBytecodeCache())
-                    .handler(new RealmProxy(transaction.getTable(clazz.getSimpleName()).getRow(rowIndex)))
+                    .handler(new RealmProxy(this, transaction.getTable(clazz.getSimpleName()).getRow(rowIndex)))
                     .build();
-            obj.realmSetRowIndex(rowIndex);
+            obj.realmSetInStore(true);
         } catch (IOException e) {
             e.printStackTrace();
         }
