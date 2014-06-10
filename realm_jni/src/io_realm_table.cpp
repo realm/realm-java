@@ -499,6 +499,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetLinkTarget
 {
     try {
         Table* pTable = &(*TBL(nativeTablePtr)->get_link_target( S(columnIndex) ));
+        LangBindHelper::bind_table_ref(pTable);
         return (jlong)pTable;
     } CATCH_STD()
     return 0;
