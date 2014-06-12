@@ -10,6 +10,14 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
     private LinkView view;
     private Realm realm;
 
+    public RealmLinkList(Class<E> clazz, LinkView view, Realm realm) {
+        this.clazz = clazz;
+        this.view = view;
+        this.realm = realm;
+    }
+
+
+
 
     @Override
     public void add(int location, E object) {

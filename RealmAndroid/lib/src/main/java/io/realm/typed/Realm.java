@@ -19,6 +19,7 @@ import java.util.Map;
 
 import io.realm.ColumnType;
 import io.realm.ImplicitTransaction;
+import io.realm.LinkView;
 import io.realm.Row;
 import io.realm.SharedGroup;
 import io.realm.Table;
@@ -73,7 +74,6 @@ public class Realm {
     }
 
     private void init() {
-        System.out.println("Initing Realm with durability: " + defaultDurability);
         this.sg = new SharedGroup(filePath, defaultDurability);
         this.transaction = sg.beginImplicitTransaction();
     }
@@ -128,7 +128,6 @@ public class Realm {
                 } else if (List.class.isAssignableFrom(fieldType)) {
                     // Link List
                     Type genericType = f.getGenericType();
-                    System.out.println(genericType);
                     if (genericType instanceof ParameterizedType) {
                         ParameterizedType pType = (ParameterizedType) genericType;
                         Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
@@ -182,6 +181,8 @@ public class Realm {
      */
     public <E extends RealmObject> void add(E element) {
 
+        System.out.println("Adding " + element.getClass().getName());
+
         initTable(element.getClass());
 
         String className = element.getClass().getSimpleName();
@@ -211,6 +212,17 @@ public class Realm {
 
                     f.setAccessible(true);
                     persistedFields.add(f);
+                } else if (List.class.isAssignableFrom(f.getType())) {
+                    // Link List
+                    Type genericType = f.getGenericType();
+                    if (genericType instanceof ParameterizedType) {
+                        ParameterizedType pType = (ParameterizedType) genericType;
+                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
+                        if(RealmObject.class.equals(actual.getSuperclass())) {
+                            f.setAccessible(true);
+                            persistedFields.add(f);
+                        }
+                    }
                 }
             }
 
@@ -253,13 +265,46 @@ public class Realm {
                     RealmObject linkedObject = (RealmObject)f.get(element);
                     if(linkedObject != null) {
                         if(linkedObject.realmGetRow() == null) {
-                            add(linkedObject);
+                            if(linkedObject.realmAddedAtRowIndex == -1) {
+                                add(linkedObject);
+                            }
                             table.setLink(columnIndex, rowIndex, linkedObject.realmAddedAtRowIndex);
                         } else {
                             table.setLink(columnIndex, rowIndex, linkedObject.realmGetRow().getIndex());
                         }
                     }
 
+                } else if (List.class.isAssignableFrom(f.getType())) {
+                    // Link List
+                    Type genericType = f.getGenericType();
+                    if (genericType instanceof ParameterizedType) {
+                        ParameterizedType pType = (ParameterizedType) genericType;
+                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
+                        if(RealmObject.class.equals(actual.getSuperclass())) {
+
+                            System.out.println(rowIndex + "persisting list " + table.size());
+                            table.insertLinkList(columnIndex, rowIndex);
+                            System.out.println(rowIndex + "persisting list " + table.size());
+
+                            LinkView links = table.getRow(rowIndex).getLinkList(columnIndex);
+
+                            // Loop through list and add them to the link list and possibly to the realm
+                            for(RealmObject linkedObject : (List<RealmObject>)f.get(element)) {
+
+                                if(linkedObject.realmGetRow() == null) {
+                                    if(linkedObject.realmAddedAtRowIndex == -1) {
+                                        add(linkedObject);
+                                    }
+                                    links.add(linkedObject.realmAddedAtRowIndex);
+                                } else {
+                                    links.add(linkedObject.realmGetRow().getIndex());
+                                }
+                            }
+
+
+
+                        }
+                    }
                 }
 
             } catch(IllegalAccessException e) {

@@ -63,7 +63,6 @@ public class LinkView {
     private native long nativeSize(long nativeLinkViewPtr);
 
     public boolean isEmpty() {
-        System.out.println(nativeLinkViewPtr);
         return nativeIsEmpty(nativeLinkViewPtr);
     }
     private native boolean nativeIsEmpty(long nativeLinkViewPtr);

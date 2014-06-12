@@ -10,6 +10,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.realm.Row;
@@ -88,26 +89,18 @@ class RealmProxy implements InvocationHandler {
                             return null;
                         }
 
-                    } else if (RealmTableOrViewList.class.equals(type)) {
+                    } else if (List.class.isAssignableFrom(type)) {
+                        // Link List
                         Field f = m.getDeclaringClass().getDeclaredField(name);
                         Type genericType = f.getGenericType();
-                        System.out.println(genericType);
                         if (genericType instanceof ParameterizedType) {
                             ParameterizedType pType = (ParameterizedType) genericType;
                             Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
-                            System.out.println(actual.getName() + " - " + RealmObject.class.equals(actual.getSuperclass()));
+                            if(RealmObject.class.equals(actual.getSuperclass())) {
+                                return new RealmLinkList(actual, row.getLinkList(columnIndex), realm);
+                            }
+
                         }
-                    /*
-                    *
-                    * List of links, should just return a new RealmList with a view set to represent the links
-                    * int columnIndex = table.getColumnIndex(name);
-                    *
-                    * TableOrView t = table.getLinks(columnIndex);
-                    *
-                    * return new RealmList<?>
-                    *
-                    *
-                    * */
                     }
 
 

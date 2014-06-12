@@ -59,7 +59,7 @@ public class JNILinkTest {
 
         Table table2 = group.getTable("table2");
 
-        table2.addColumnLink(ColumnType.LINK_LIST, "LinkList", table2);
+        table2.addColumnLink(ColumnType.LINK_LIST, "LinkList", table1);
 
         table2.insertLinkList(0,0);
 
@@ -68,6 +68,24 @@ public class JNILinkTest {
         assertEquals(links.isEmpty(), true);
         assertEquals(links.size(), 0);
 
+        links.add(2);
+        links.add(1);
+
+        assertEquals(links.isEmpty(), false);
+        assertEquals(links.size(), 2);
+
+        assertEquals(links.get(0).getColumnName(1), "string");
+
+        assertEquals(links.get(0).getString(1), "a");
+
+        links.move(1, 0);
+
+        assertEquals(links.get(0).getString(1), "b");
+
+        links.remove(0);
+
+        assertEquals(links.get(0).getString(1), "a");
+        assertEquals(links.size(), 1);
 
 
     }
