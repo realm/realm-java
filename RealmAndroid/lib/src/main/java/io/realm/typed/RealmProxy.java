@@ -36,7 +36,6 @@ class RealmProxy implements InvocationHandler {
 
             Class<?> clazz = proxy.getClass().getSuperclass();
 
-
             if(getters.containsKey(clazz.getSimpleName()+methodName)) {
                 return getters.get(clazz.getSimpleName()+methodName).get(row);
             } else {
@@ -89,7 +88,7 @@ class RealmProxy implements InvocationHandler {
                             return null;
                         }
 
-                    } else if (RealmList.class.equals(type)) {
+                    } else if (RealmTableOrViewList.class.equals(type)) {
                         Field f = m.getDeclaringClass().getDeclaredField(name);
                         Type genericType = f.getGenericType();
                         System.out.println(genericType);
@@ -141,11 +140,13 @@ class RealmProxy implements InvocationHandler {
                     RealmObject linkedObject = (RealmObject)args[0];
 
                     if(linkedObject != null) {
-                        if(!linkedObject.realmIsInStore()) {
+                        if(linkedObject.realmGetRow() == null) {
                             realm.add(linkedObject);
+                            row.setLink(columnIndex, linkedObject.realmAddedAtRowIndex);
+                        } else {
+                            row.setLink(columnIndex, linkedObject.realmGetRow().getIndex());
                         }
-                        // Add link
-                        row.setLink(columnIndex, linkedObject.realmRowIndex);
+
                     } else {
                         row.nullifyLink(columnIndex);
                     }

@@ -44,4 +44,32 @@ public class JNILinkTest {
 
     }
 
+    @Test
+    public void testLinkList() {
+
+        Group group = new Group();
+
+        Table table1 = group.getTable("table1");
+        table1.addColumn(ColumnType.INTEGER, "int");
+        table1.addColumn(ColumnType.STRING, "string");
+        table1.add(1, "c");
+        table1.add(2, "b");
+        table1.add(3, "a");
+
+
+        Table table2 = group.getTable("table2");
+
+        table2.addColumnLink(ColumnType.LINK_LIST, "LinkList", table2);
+
+        table2.insertLinkList(0,0);
+
+        LinkView links = table2.getRow(0).getLinkList(0);
+
+        assertEquals(links.isEmpty(), true);
+        assertEquals(links.size(), 0);
+
+
+
+    }
+
 }

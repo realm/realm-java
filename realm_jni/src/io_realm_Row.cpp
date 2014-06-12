@@ -171,6 +171,16 @@ JNIEXPORT jboolean JNICALL Java_io_realm_Row_nativeIsNullLink
     return ROW(nativeRowPtr)->is_null_link( S(columnIndex) );
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetLinkView
+  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr)->get_table(), columnIndex, type_LinkList))
+        return 0;
+
+    LinkView* link_view_ptr = LangBindHelper::get_linklist_ptr( *ROW( nativeRowPtr ), S( columnIndex) );
+    return reinterpret_cast<jlong>(link_view_ptr);
+}
+
 JNIEXPORT void JNICALL Java_io_realm_Row_nativeSetLong
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex, jlong value)
 {

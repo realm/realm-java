@@ -7,8 +7,9 @@ import com.google.dexmaker.stock.ProxyBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -17,12 +18,10 @@ import java.util.List;
 import java.util.Map;
 
 import io.realm.ColumnType;
-import io.realm.Group;
 import io.realm.ImplicitTransaction;
-import io.realm.ReadTransaction;
+import io.realm.Row;
 import io.realm.SharedGroup;
 import io.realm.Table;
-import io.realm.WriteTransaction;
 
 
 public class Realm {
@@ -126,9 +125,22 @@ public class Realm {
                     // Link
                     initTable(fieldType);
                     table.addColumnLink(ColumnType.LINK, f.getName().toLowerCase(), getTable(fieldType));
+                } else if (List.class.isAssignableFrom(fieldType)) {
+                    // Link List
+                    Type genericType = f.getGenericType();
+                    System.out.println(genericType);
+                    if (genericType instanceof ParameterizedType) {
+                        ParameterizedType pType = (ParameterizedType) genericType;
+                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
+                        if(RealmObject.class.equals(actual.getSuperclass())) {
+                            initTable(actual);
+                            table.addColumnLink(ColumnType.LINK_LIST, f.getName().toLowerCase(), getTable(actual));
+                        }
+                    }
                 } else {
                     System.err.println("Type not supported: " + fieldType.getName());
                 }
+
 
             }
 
@@ -194,6 +206,7 @@ public class Realm {
                         f.getType().equals(Date.class) ||
                         f.getType().equals(byte[].class) ||
                         RealmObject.class.equals(f.getType().getSuperclass())
+
                         ) {
 
                     f.setAccessible(true);
@@ -209,8 +222,7 @@ public class Realm {
         long rowIndex = table.addEmptyRow();
         long columnIndex = 0;
 
-        element.realmSetInStore(true);
-        element.realmRowIndex = rowIndex;
+        element.realmAddedAtRowIndex = rowIndex;
 
         List<Field> fields = cache.get(className);
 
@@ -240,11 +252,12 @@ public class Realm {
 
                     RealmObject linkedObject = (RealmObject)f.get(element);
                     if(linkedObject != null) {
-                        if(!linkedObject.realmIsInStore()) {
+                        if(linkedObject.realmGetRow() == null) {
                             add(linkedObject);
+                            table.setLink(columnIndex, rowIndex, linkedObject.realmAddedAtRowIndex);
+                        } else {
+                            table.setLink(columnIndex, rowIndex, linkedObject.realmGetRow().getIndex());
                         }
-                        // Add link
-                        table.setLink(columnIndex, rowIndex, linkedObject.realmRowIndex);
                     }
 
                 }
@@ -263,12 +276,13 @@ public class Realm {
         E obj = null;
 
         try {
+            Row row = transaction.getTable(clazz.getSimpleName()).getRow(rowIndex);
             obj = ProxyBuilder.forClass(clazz)
                     .parentClassLoader(clazz.getClassLoader())
                     .dexCache(getBytecodeCache())
-                    .handler(new RealmProxy(this, transaction.getTable(clazz.getSimpleName()).getRow(rowIndex)))
+                    .handler(new RealmProxy(this, row))
                     .build();
-            obj.realmSetInStore(true);
+            obj.realmSetRow(row);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -293,7 +307,7 @@ public class Realm {
     }
 
 
-    public <E extends RealmObject> RealmList<E> allObjects(Class<E> clazz) {
+    public <E extends RealmObject> RealmTableOrViewList<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
     }
 

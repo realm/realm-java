@@ -9,10 +9,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.List;
 
 import io.realm.ColumnType;
 import io.realm.Table;
 import io.realm.typed.entities.AllColumns;
+import io.realm.typed.entities.Dog;
 import io.realm.typed.entities.User;
 
 
@@ -164,6 +166,21 @@ public class RealmTest extends AndroidTestCase {
 
         assertEquals(1, realm.allObjects(AllColumns.class).size());
         assertEquals(1, realm.allObjects(User.class).size());
+
+    }
+
+    public void testLinkList() {
+
+        Dog dog = new Dog();
+
+
+        realm.beginWrite();
+        realm.add(dog);
+        realm.commit();
+
+
+        List<Dog> dogs = realm.allObjects(Dog.class);
+
 
     }
 

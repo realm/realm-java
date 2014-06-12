@@ -247,6 +247,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeAddEmptyRow(
     return 0;
 }
 
+JNIEXPORT void JNICALL Java_io_realm_Table_nativeInsertLinkList
+  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
+{
+    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_LinkList))
+        return;
+
+    TBL(nativeTablePtr)->insert_linklist( S(columnIndex), S(rowIndex) );
+}
+
 JNIEXPORT void JNICALL Java_io_realm_Table_nativeRemove(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong rowIndex)
 {
