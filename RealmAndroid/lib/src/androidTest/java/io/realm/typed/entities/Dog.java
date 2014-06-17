@@ -1,17 +1,20 @@
 package io.realm.typed.entities;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import io.realm.typed.RealmArrayList;
+import io.realm.typed.RealmList;
 import io.realm.typed.RealmObject;
 
 public class Dog extends RealmObject {
 
-    private List<User> owners = new ArrayList<User>();
+    private RealmList<User> owners = new RealmArrayList<User>();
     private String name;
 
-    public List<User> getOwners() {
+    public RealmList<User> getOwners() {
         return owners;
+    }
+
+    public void setOwners(RealmList<User> owners) {
+        this.owners = owners;
     }
 
     public String getName() {

@@ -125,7 +125,7 @@ public class Realm {
                     // Link
                     initTable(fieldType);
                     table.addColumnLink(ColumnType.LINK, f.getName().toLowerCase(), getTable(fieldType));
-                } else if (List.class.isAssignableFrom(fieldType)) {
+                } else if (RealmList.class.isAssignableFrom(fieldType)) {
                     // Link List
                     Type genericType = f.getGenericType();
                     if (genericType instanceof ParameterizedType) {
@@ -212,7 +212,7 @@ public class Realm {
 
                     f.setAccessible(true);
                     persistedFields.add(f);
-                } else if (List.class.isAssignableFrom(f.getType())) {
+                } else if (RealmList.class.isAssignableFrom(f.getType())) {
                     // Link List
                     Type genericType = f.getGenericType();
                     if (genericType instanceof ParameterizedType) {
@@ -274,17 +274,13 @@ public class Realm {
                         }
                     }
 
-                } else if (List.class.isAssignableFrom(f.getType())) {
+                } else if (RealmList.class.isAssignableFrom(f.getType())) {
                     // Link List
                     Type genericType = f.getGenericType();
                     if (genericType instanceof ParameterizedType) {
                         ParameterizedType pType = (ParameterizedType) genericType;
                         Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
                         if(RealmObject.class.equals(actual.getSuperclass())) {
-
-                            System.out.println(rowIndex + "persisting list " + table.size());
-                            table.insertLinkList(columnIndex, rowIndex);
-                            System.out.println(rowIndex + "persisting list " + table.size());
 
                             LinkView links = table.getRow(rowIndex).getLinkList(columnIndex);
 
@@ -300,9 +296,6 @@ public class Realm {
                                     links.add(linkedObject.realmGetRow().getIndex());
                                 }
                             }
-
-
-
                         }
                     }
                 }

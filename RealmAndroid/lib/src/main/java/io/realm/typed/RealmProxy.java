@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.realm.LinkView;
 import io.realm.Row;
 
 class RealmProxy implements InvocationHandler {
@@ -29,8 +30,6 @@ class RealmProxy implements InvocationHandler {
 
     public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
 
-     //   long rowIndex = ((RealmObject) proxy).rowIndex;
-
         if(row != null) {
 
             final String methodName = m.getName();
@@ -40,7 +39,6 @@ class RealmProxy implements InvocationHandler {
             if(getters.containsKey(clazz.getSimpleName()+methodName)) {
                 return getters.get(clazz.getSimpleName()+methodName).get(row);
             } else {
-
 
                 if (methodName.startsWith("get")) {
 
@@ -89,7 +87,7 @@ class RealmProxy implements InvocationHandler {
                             return null;
                         }
 
-                    } else if (List.class.isAssignableFrom(type)) {
+                    } else if (RealmList.class.isAssignableFrom(type)) {
                         // Link List
                         Field f = m.getDeclaringClass().getDeclaredField(name);
                         Type genericType = f.getGenericType();
@@ -144,6 +142,32 @@ class RealmProxy implements InvocationHandler {
                         row.nullifyLink(columnIndex);
                     }
 
+                } else if (RealmList.class.isAssignableFrom(type)) {
+                    // Link List
+                    Field f = m.getDeclaringClass().getDeclaredField(name);
+                    Type genericType = f.getGenericType();
+                    if (genericType instanceof ParameterizedType) {
+                        ParameterizedType pType = (ParameterizedType) genericType;
+                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
+                        if(RealmObject.class.equals(actual.getSuperclass())) {
+
+                            LinkView links = row.getLinkList(columnIndex);
+
+                            // Loop through list and add them to the link list and possibly to the realm
+                            for(RealmObject linkedObject : (RealmList<RealmObject>)args[0]) {
+
+                                if(linkedObject.realmGetRow() == null) {
+                                    if(linkedObject.realmAddedAtRowIndex == -1) {
+                                        realm.add(linkedObject);
+                                    }
+                                    links.add(linkedObject.realmAddedAtRowIndex);
+                                } else {
+                                    links.add(linkedObject.realmGetRow().getIndex());
+                                }
+                            }
+                        }
+
+                    }
                 } else {
                     return null;
                 }
