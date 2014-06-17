@@ -102,6 +102,14 @@ class RealmProxy implements InvocationHandler {
                     }
 
 
+                } else if (methodName.startsWith("is")) {
+                    Class<?> type = m.getReturnType();
+
+                    String name = methodName.substring(2).toLowerCase();
+                    final long columnIndex = row.getColumnIndex(name);
+                    if (type.equals(boolean.class) || type.equals(Boolean.class)) {
+                        return row.getBoolean(columnIndex);
+                    }
                 }
             }
 

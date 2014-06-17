@@ -156,11 +156,12 @@ public class RealmTest extends AndroidTestCase {
 
         realm.add(obj);
 
-
         realm.commit();
 
         assertEquals(1, realm.allObjects(AllColumns.class).size());
         assertEquals(1, realm.allObjects(User.class).size());
+
+        assertEquals(true, realm.where(AllColumns.class).findFirst().isColumnBoolean());
 
     }
 
