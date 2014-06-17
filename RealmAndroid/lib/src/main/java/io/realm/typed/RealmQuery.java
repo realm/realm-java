@@ -14,7 +14,7 @@ import io.realm.TableQuery;
  */
 public class RealmQuery<E extends RealmObject> {
 
-    private RealmList realmList;
+    private RealmTableOrViewList realmList;
     private Realm realm;
     private TableQuery query;
     private Map<String, Integer> columns = new HashMap<String, Integer>();
@@ -32,7 +32,7 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
-    public RealmQuery(RealmList realmList, Class<E> clazz) {
+    public RealmQuery(RealmTableOrViewList realmList, Class<E> clazz) {
         this.realmList = realmList;
 
         this.realm = realmList.getRealm();
@@ -337,8 +337,8 @@ public class RealmQuery<E extends RealmObject> {
 
     // Execute
 
-    public RealmList<E> findAll() {
-        return new RealmList<E>(realm, query.findAll(), clazz);
+    public RealmTableOrViewList<E> findAll() {
+        return new RealmTableOrViewList<E>(realm, query.findAll(), clazz);
     }
 
     public E findFirst() {

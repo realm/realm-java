@@ -5,10 +5,12 @@ import java.util.Date;
 public class Row {
 
     private final Context context;
+    private final Table parent;
     protected long nativePtr;
 
-    Row(Context context, long nativePtr) {
+    Row(Context context, Table parent, long nativePtr) {
         this.context = context;
+        this.parent = parent;
         this.nativePtr = nativePtr;
     }
 
@@ -138,6 +140,12 @@ public class Row {
 
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
 
+    public LinkView getLinkList(long columnIndex) {
+        long nativeLinkViewPtr = nativeGetLinkView(nativePtr, columnIndex);
+        return new LinkView(context, parent, columnIndex, nativeLinkViewPtr);
+    }
+
+    private native long nativeGetLinkView(long nativePtr, long columnIndex);
 
 
     // Setters

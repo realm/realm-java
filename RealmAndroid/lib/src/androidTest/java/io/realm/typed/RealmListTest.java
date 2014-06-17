@@ -4,8 +4,6 @@ import android.test.AndroidTestCase;
 
 import java.util.Date;
 
-import io.realm.typed.Realm;
-import io.realm.typed.RealmList;
 import io.realm.typed.entities.AllColumns;
 import io.realm.typed.entities.User;
 
@@ -66,7 +64,7 @@ public class RealmListTest extends AndroidTestCase {
 
         realm.beginWrite();
 
-        RealmList<AllColumns> list = realm.allObjects(AllColumns.class);
+        RealmTableOrViewList<AllColumns> list = realm.allObjects(AllColumns.class);
 
         assertEquals(0, list.size());
 

@@ -137,6 +137,14 @@ JNIEXPORT jboolean JNICALL Java_io_realm_Row_nativeIsNullLink
 
 /*
  * Class:     io_realm_Row
+ * Method:    nativeGetLinkView
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_Row_nativeGetLinkView
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_Row
  * Method:    nativeSetLong
  * Signature: (JJJ)V
  */

@@ -483,6 +483,15 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
+    // LinkList
+
+    public void insertLinkList(long columnIndex, long rowIndex) {
+        nativeInsertLinkList(nativePtr, columnIndex, rowIndex);
+        getInternalMethods().insertDone();
+    }
+
+    private native void nativeInsertLinkList(long nativePtr, long columnIndex, long rowIndex);
+
     /**
      * Returns a view sorted by the specified column and order
      * @param columnIndex
@@ -854,7 +863,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     public Row getRow(long index) {
         long nativeRowPtr = nativeGetRowPtr(nativePtr, index);
-        return new Row(context, nativeRowPtr);
+        return new Row(context, this, nativeRowPtr);
     }
 
     protected native long nativeGetRowPtr(long nativePtr, long index);
