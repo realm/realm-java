@@ -117,8 +117,6 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
         break;
     case type_LinkList:
         break;
-    case type_BackLink:
-        break;
     }
 
     return NULL;
