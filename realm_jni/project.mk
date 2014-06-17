@@ -10,7 +10,7 @@ ifneq ($(TIGHTDB_ENABLE_FAT_BINARIES),)
 endif
 
 ifeq ($(OS),Darwin)
-  CFLAGS_ARCH += -mmacosx-version-min=10.7
+  CFLAGS_ARCH += -mmacosx-version-min=10.8 -stdlib=libc++
 endif
 
 # FIXME: '-fno-elide-constructors' currently causes TightDB to fail
