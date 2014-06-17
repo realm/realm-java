@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -182,31 +183,46 @@ public class RealmTest extends AndroidTestCase {
         user2.setEmail("mk@realm.io");
         user2.setId(1);
 
+        RealmList<User> users = new RealmArrayList<User>();
+        users.add(user1);
+        users.add(user2);
 
-        Dog dog = new Dog();
-        dog.setName("Fido");
-        dog.getOwners().add(user1);
-        dog.getOwners().add(user2);
-
+        assertEquals(false, realm.contains(Dog.class));
+        assertEquals(false, realm.contains(User.class));
 
         realm.beginWrite();
-        realm.add(dog);
+
+        Dog dog = realm.create(Dog.class);
+        dog.setName("Fido");
+        dog.setOwners(users);
+
         realm.commit();
 
         Dog fido = realm.get(Dog.class, 0);
 
         assertEquals("Fido", fido.getName());
 
-        List<User> owners = fido.getOwners();
+        RealmList<User> owners = fido.getOwners();
 
         assertEquals("Rasmus", owners.get(0).getName());
 
 
 
-/*
+
         assertEquals(1, realm.allObjects(Dog.class).size());
         assertEquals(2, realm.allObjects(User.class).size());
-*/
+
+
+        Dog vuf = new Dog();
+        vuf.setName("Vuf");
+        vuf.getOwners().add(user1);
+
+        realm.beginWrite();
+        realm.add(vuf);
+        realm.commit();
+
+        assertEquals(2, realm.allObjects(Dog.class).size());
+        assertEquals(2, realm.allObjects(User.class).size());
 
     }
 
