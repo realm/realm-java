@@ -1,4 +1,4 @@
-package io.realm.typed.entities;
+package io.realm.tests.typed.entities;
 
 import io.realm.typed.RealmArrayList;
 import io.realm.typed.RealmList;

@@ -1,23 +1,16 @@
-package io.realm.typed;
+package io.realm.tests.typed;
 
 import android.test.AndroidTestCase;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
-import io.realm.ColumnType;
-import io.realm.Table;
-import io.realm.typed.entities.AllColumns;
-import io.realm.typed.entities.Dog;
-import io.realm.typed.entities.User;
+import io.realm.tests.typed.entities.AllColumns;
+import io.realm.tests.typed.entities.Dog;
+import io.realm.tests.typed.entities.User;
+import io.realm.typed.Realm;
+import io.realm.typed.RealmArrayList;
+import io.realm.typed.RealmChangeListener;
+import io.realm.typed.RealmList;
 
 
 public class RealmTest extends AndroidTestCase {
@@ -198,7 +191,7 @@ public class RealmTest extends AndroidTestCase {
 
         realm.commit();
 
-        Dog fido = realm.get(Dog.class, 0);
+        Dog fido = realm.allObjects(Dog.class).first();
 
         assertEquals("Fido", fido.getName());
 

@@ -1,4 +1,4 @@
-package io.realm.performance;
+package io.realm.tests.performance;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -16,9 +16,9 @@ import io.realm.ReadTransaction;
 import io.realm.SharedGroup;
 import io.realm.Table;
 import io.realm.WriteTransaction;
+import io.realm.tests.typed.entities.User;
 import io.realm.typed.Realm;
 import io.realm.typed.RealmList;
-import io.realm.typed.entities.User;
 
 public class PerformanceTest extends AndroidTestCase {
 

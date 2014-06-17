@@ -1,4 +1,4 @@
-package io.realm.performance;
+package io.realm.tests.performance;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

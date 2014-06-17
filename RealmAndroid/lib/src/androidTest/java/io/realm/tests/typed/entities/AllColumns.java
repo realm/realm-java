@@ -1,4 +1,4 @@
-package io.realm.typed.entities;
+package io.realm.tests.typed.entities;
 
 import java.util.Date;
 

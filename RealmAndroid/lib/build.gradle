@@ -10,11 +10,7 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testPackageName "io.realm"
-        testInstrumentationRunner "android.test.InstrumentationTestRunner"
-        testHandleProfiling true
-        testFunctionalTest true
-
+        testApplicationId "io.realm.tests"
     }
     buildTypes {
         release {
