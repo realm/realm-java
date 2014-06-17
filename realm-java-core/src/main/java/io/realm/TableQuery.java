@@ -7,19 +7,17 @@ public class TableQuery implements Closeable {
     protected boolean DEBUG = false;
 
     protected long nativePtr;
-    protected final boolean immutable;
     protected final Table parent;
     private final Context context;
 
     private boolean queryValidated = true;
 
     // TODO: Can we protect this?
-    public TableQuery(Context context, Table parent, long nativeQueryPtr, boolean immutable){
+    public TableQuery(Context context, Table parent, long nativeQueryPtr){
         if (DEBUG)
             System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
         this.context = context;
         this.parent = parent;
-        this.immutable = immutable;
         this.nativePtr = nativeQueryPtr;
     }
 
@@ -451,7 +449,7 @@ public class TableQuery implements Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, start, end, limit);
         try {
-            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -465,7 +463,7 @@ public class TableQuery implements Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE);
         try {
-            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -658,13 +656,13 @@ public class TableQuery implements Closeable {
     // Deletion.
     public long remove(long start, long end){
         validateQuery();
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         return nativeRemove(nativePtr, start, end, Table.INFINITE);
     }
 
     public long remove(){
         validateQuery();
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         return nativeRemove(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
 

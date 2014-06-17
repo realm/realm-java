@@ -57,9 +57,8 @@ public class TableView implements TableOrView, Closeable {
      * @param parent A table.
      * @param nativePtr pointer to table.
      */
-    protected TableView(Context context, Table parent, long nativePtr, boolean immutable){
+    protected TableView(Context context, Table parent, long nativePtr){
         this.context = context;
-        this.immutable = immutable;
         this.parent = parent;
         this.nativePtr = nativePtr;
     }
@@ -299,6 +298,13 @@ public class TableView implements TableOrView, Closeable {
 
     protected native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
 
+
+    public long getLink(long columnIndex, long rowIndex){
+        return nativeGetLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native long nativeGetLink(long nativeViewPtr, long columnIndex, long rowIndex);
+
     @Override
     public Table getSubtable(long columnIndex, long rowIndex) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
@@ -306,7 +312,7 @@ public class TableView implements TableOrView, Closeable {
         long nativeSubtablePtr = nativeGetSubtable(nativePtr, columnIndex, rowIndex);
         try {
             // Copy context reference from parent
-            return new Table(context, this.parent, nativeSubtablePtr, immutable);
+            return new Table(context, this.parent, nativeSubtablePtr);
         }
         catch (RuntimeException e) {
             Table.nativeClose(nativeSubtablePtr);
@@ -325,7 +331,7 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public void clearSubtable(long columnIndex, long rowIndex) {
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeClearSubtable(nativePtr, columnIndex, rowIndex);
     }
 
@@ -343,7 +349,7 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public void setLong(long columnIndex, long rowIndex, long value){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeSetLong(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -358,7 +364,7 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public void setBoolean(long columnIndex, long rowIndex, boolean value){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeSetBoolean(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -373,7 +379,7 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public void setFloat(long columnIndex, long rowIndex, float value){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeSetFloat(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -388,7 +394,7 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public void setDouble(long columnIndex, long rowIndex, double value){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeSetDouble(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -403,7 +409,7 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public void setDate(long columnIndex, long rowIndex, Date value){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeSetDateTimeValue(nativePtr, columnIndex, rowIndex, value.getTime()/1000);
     }
 
@@ -418,7 +424,7 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public void setString(long columnIndex, long rowIndex, String value){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -443,7 +449,7 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
     }
 
@@ -458,11 +464,31 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public void setMixed(long columnIndex, long rowIndex, Mixed data){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
     }
 
     protected native void nativeSetMixed(long nativeViewPtr, long columnIndex, long rowIndex, Mixed value);
+
+    public void setLink(long columnIndex, long rowIndex, long value){
+        if (parent.isImmutable()) throwImmutable();
+        nativeSetLink(nativePtr, columnIndex, rowIndex, value);
+    }
+
+    protected native void nativeSetLink(long nativeViewPtr, long columnIndex, long rowIndex, long value);
+
+
+    public boolean isNullLink(long columnIndex, long rowIndex) {
+        return nativeIsNullLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
+
+    public void nullifyLink(long columnIndex, long rowIndex) {
+        nativeNullifyLink(nativePtr, columnIndex, rowIndex);
+    }
+
+    protected native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
 
     /**
      * Add the value for to all cells in the column.
@@ -472,7 +498,7 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public void adjust(long columnIndex, long value) {
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeAddInt(nativePtr, columnIndex, value);
     }
 
@@ -481,7 +507,7 @@ public class TableView implements TableOrView, Closeable {
     // Methods for deleting.
     @Override
     public void clear(){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeClear(nativePtr);
     }
 
@@ -495,7 +521,7 @@ public class TableView implements TableOrView, Closeable {
      */
     @Override
     public void remove(long rowIndex){
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         nativeRemoveRow(nativePtr, rowIndex);
     }
 
@@ -503,7 +529,7 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public void removeLast() {
-        if (immutable) throwImmutable();
+        if (parent.isImmutable()) throwImmutable();
         if (!isEmpty()) {
             nativeRemoveRow(nativePtr, size() - 1);
         }
@@ -573,7 +599,7 @@ public class TableView implements TableOrView, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -588,7 +614,7 @@ public class TableView implements TableOrView, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -603,7 +629,7 @@ public class TableView implements TableOrView, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -618,7 +644,7 @@ public class TableView implements TableOrView, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -633,7 +659,7 @@ public class TableView implements TableOrView, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000);
         try { 
-            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -648,7 +674,7 @@ public class TableView implements TableOrView, Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
         try { 
-            return new TableView(this.context, this.parent, nativeViewPtr, immutable);
+            return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -849,7 +875,7 @@ public class TableView implements TableOrView, Closeable {
         this.context.executeDelayedDisposal();
         long nativeQueryPtr = nativeWhere(nativePtr);
         try {
-            return new TableQuery(this.context, this.parent, nativeQueryPtr, immutable);
+            return new TableQuery(this.context, this.parent, nativeQueryPtr);
         } catch (RuntimeException e) {
             TableQuery.nativeClose(nativeQueryPtr);
             throw e;
@@ -863,7 +889,6 @@ public class TableView implements TableOrView, Closeable {
     }
 
     protected long nativePtr;
-    protected final boolean immutable;
     protected final Table parent;
     private final Context context;
 

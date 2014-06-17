@@ -74,8 +74,10 @@ std::string num_to_string(T pNumber)
 #define S(x)    static_cast<size_t>(x)
 #define TBL(x)  reinterpret_cast<tightdb::Table*>(x)
 #define TV(x)   reinterpret_cast<tightdb::TableView*>(x)
+#define LV(x)   reinterpret_cast<tightdb::LinkView*>(x)
 #define Q(x)    reinterpret_cast<tightdb::Query*>(x)
 #define G(x)    reinterpret_cast<tightdb::Group*>(x)
+#define ROW(x)  reinterpret_cast<tightdb::Row*>(x)
 
 // Exception handling
 
