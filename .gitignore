@@ -26,8 +26,59 @@ target
 */.project
 */.factorypath
 
+# binary
+*.class
+*.o
+*.d
+
+# sh build.sh config
+*/config.mk
+*/config-dyn.mk
+
+# sh build.sh build
+/lib
+
+# sh build.sh test
+/test_output
+
+# sh build.sh build-android
+/android-lib/
+
+.DS_Store
+
+.idea
+*.iml
+*.lock
+
+/realm-java-test/testng.xml
+
+*.prefs
+
+# Ref doc generated classes
+/doc/ref/examples/generated/io/realm/refdoc/*.java
+/doc/ref/html
+
+# debian packaging
+/debian/tightdb-java
+/debian/tightdb-java-dev
+/debian/.mh
+
+# generated json output in ref doc json example
+/doc/ref/examples/fromServlet
+
+# generated lib files
+/java/share/java/*.jar
+*.dylib
+*.jnilib
+*.libdeps
+
+
+RealmAndroid/lib/libs/realm-android-0.10.0.jar
+
+
 #ignore thumbnails created by windows
 Thumbs.db
+
 #Ignore files build by Visual Studio
 *.obj
 *.exe
@@ -58,56 +109,3 @@ _ReSharper*/
 .settings/*
 */.settings/*
 */test-output
-
-# ref-doc
-/doc/ref/html
-
-# sh build.sh config
-/realm_jni/config.mk
-
-# sh build.sh build
-/lib
-
-# sh build.sh test
-/test_output
-
-# sh build.sh build-android
-/android-lib/
-
-.DS_Store
-
-.idea
-*.iml
-
-*.lock
-
-/realm-java-test/testng.xml
-
-*.prefs
-
-# Ref doc generated classes
-
-/doc/ref/examples/generated/io/realm/refdoc/*.java
-
-# generated json output in ref doc json example
-
-/doc/ref/examples/fromServlet
-
-
-# debian packaging
-/debian/tightdb-java
-/debian/tightdb-java-dev
-/debian/.mh
-
-
-# generated json output in ref doc json example
-/doc/ref/examples/fromServlet
-
-# generated lib files
-/java/share/java/*.jar
-
-/realm_jni/src/*.dylib
-
-realm-java-test/*.realm
-
-RealmAndroid/lib/libs/realm-android-0.10.0.jar
