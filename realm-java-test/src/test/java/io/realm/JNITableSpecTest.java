@@ -1,10 +1,8 @@
 package io.realm;
 
 import static org.testng.AssertJUnit.*;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+
+import java.util.*;
 
 import io.realm.test.DataProviderUtil;
 import org.testng.annotations.DataProvider;
@@ -65,7 +63,14 @@ public class JNITableSpecTest {
     }
 
     private List<?> columnTypes() {
-        return Arrays.asList(ColumnType.values());
+        ColumnType[] columns = ColumnType.values();
+        List<ColumnType> columnTypesToTest = new ArrayList<ColumnType>();
+        for(int i = 0; i < columns.length; i++) {
+            if(!columns[i].equals(ColumnType.LINK) && !columns[i].equals(ColumnType.LINK_LIST)) {
+                columnTypesToTest.add(columns[i]);
+            }
+        }
+        return columnTypesToTest;
     }
 
     @Test()
