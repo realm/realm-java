@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import io.realm.ColumnType;
@@ -108,23 +109,23 @@ public class Realm {
 
 
                 if (fieldType.equals(String.class)) {
-                    table.addColumn(ColumnType.STRING, f.getName().toLowerCase());
+                    table.addColumn(ColumnType.STRING, f.getName().toLowerCase(Locale.getDefault()));
                 } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
-                    table.addColumn(ColumnType.INTEGER, f.getName().toLowerCase());
+                    table.addColumn(ColumnType.INTEGER, f.getName().toLowerCase(Locale.getDefault()));
                 } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                    table.addColumn(ColumnType.DOUBLE, f.getName().toLowerCase());
+                    table.addColumn(ColumnType.DOUBLE, f.getName().toLowerCase(Locale.getDefault()));
                 } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-                    table.addColumn(ColumnType.FLOAT, f.getName().toLowerCase());
+                    table.addColumn(ColumnType.FLOAT, f.getName().toLowerCase(Locale.getDefault()));
                 } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                    table.addColumn(ColumnType.BOOLEAN, f.getName().toLowerCase());
+                    table.addColumn(ColumnType.BOOLEAN, f.getName().toLowerCase(Locale.getDefault()));
                 } else if (fieldType.equals(Date.class)) {
-                    table.addColumn(ColumnType.DATE, f.getName().toLowerCase());
+                    table.addColumn(ColumnType.DATE, f.getName().toLowerCase(Locale.getDefault()));
                 } else if (fieldType.equals(byte[].class)) {
-                    table.addColumn(ColumnType.BINARY, f.getName().toLowerCase());
+                    table.addColumn(ColumnType.BINARY, f.getName().toLowerCase(Locale.getDefault()));
                 } else if (RealmObject.class.equals(fieldType.getSuperclass())) {
                     // Link
                     initTable(fieldType);
-                    table.addColumnLink(ColumnType.LINK, f.getName().toLowerCase(), getTable(fieldType));
+                    table.addColumnLink(ColumnType.LINK, f.getName().toLowerCase(Locale.getDefault()), getTable(fieldType));
                 } else if (RealmList.class.isAssignableFrom(fieldType)) {
                     // Link List
                     Type genericType = f.getGenericType();
@@ -133,7 +134,7 @@ public class Realm {
                         Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
                         if(RealmObject.class.equals(actual.getSuperclass())) {
                             initTable(actual);
-                            table.addColumnLink(ColumnType.LINK_LIST, f.getName().toLowerCase(), getTable(actual));
+                            table.addColumnLink(ColumnType.LINK_LIST, f.getName().toLowerCase(Locale.getDefault()), getTable(actual));
                         }
                     }
                 } else {
