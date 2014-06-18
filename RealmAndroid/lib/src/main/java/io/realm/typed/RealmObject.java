@@ -1,16 +1,17 @@
 package io.realm.typed;
 
+import io.realm.Row;
+
 public abstract class RealmObject {
 
-    long realmRowIndex = -1;
-    private boolean isInStore = false;
+    private Row row;
+    long realmAddedAtRowIndex = -1;
 
-    protected boolean realmIsInStore() {
-        return isInStore;
+    protected Row realmGetRow() {
+        return row;
     }
 
-    protected void realmSetInStore(boolean isInStore) {
-        this.isInStore = isInStore;
+    protected void realmSetRow(Row row) {
+        this.row = row;
     }
-
 }

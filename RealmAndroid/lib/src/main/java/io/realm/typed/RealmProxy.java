@@ -10,8 +10,10 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
+import io.realm.LinkView;
 import io.realm.Row;
 
 class RealmProxy implements InvocationHandler {
@@ -28,25 +30,21 @@ class RealmProxy implements InvocationHandler {
 
     public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
 
-     //   long rowIndex = ((RealmObject) proxy).rowIndex;
-
         if(row != null) {
 
             final String methodName = m.getName();
 
             Class<?> clazz = proxy.getClass().getSuperclass();
 
-
             if(getters.containsKey(clazz.getSimpleName()+methodName)) {
                 return getters.get(clazz.getSimpleName()+methodName).get(row);
             } else {
-
 
                 if (methodName.startsWith("get")) {
 
                     Class<?> type = m.getReturnType();
 
-                    String name = methodName.substring(3).toLowerCase();
+                    String name = methodName.substring(3).toLowerCase(Locale.getDefault());
                     final long columnIndex = row.getColumnIndex(name);
 
                     if (type.equals(String.class)) {
@@ -89,26 +87,18 @@ class RealmProxy implements InvocationHandler {
                             return null;
                         }
 
-                    } else if (RealmList.class.equals(type)) {
+                    } else if (RealmList.class.isAssignableFrom(type)) {
+                        // Link List
                         Field f = m.getDeclaringClass().getDeclaredField(name);
                         Type genericType = f.getGenericType();
-                        System.out.println(genericType);
                         if (genericType instanceof ParameterizedType) {
                             ParameterizedType pType = (ParameterizedType) genericType;
                             Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
-                            System.out.println(actual.getName() + " - " + RealmObject.class.equals(actual.getSuperclass()));
+                            if(RealmObject.class.equals(actual.getSuperclass())) {
+                                return new RealmLinkList(actual, row.getLinkList(columnIndex), realm);
+                            }
+
                         }
-                    /*
-                    *
-                    * List of links, should just return a new RealmList with a view set to represent the links
-                    * int columnIndex = table.getColumnIndex(name);
-                    *
-                    * TableOrView t = table.getLinks(columnIndex);
-                    *
-                    * return new RealmList<?>
-                    *
-                    *
-                    * */
                     }
 
 
@@ -119,7 +109,7 @@ class RealmProxy implements InvocationHandler {
 
                 Class<?> type = m.getParameterTypes()[0];
 
-                String name = methodName.substring(3).toLowerCase();
+                String name = methodName.substring(3).toLowerCase(Locale.getDefault());
                 final long columnIndex = row.getColumnIndex(name);
 
                 if (type.equals(String.class)) {
@@ -141,15 +131,43 @@ class RealmProxy implements InvocationHandler {
                     RealmObject linkedObject = (RealmObject)args[0];
 
                     if(linkedObject != null) {
-                        if(!linkedObject.realmIsInStore()) {
+                        if(linkedObject.realmGetRow() == null) {
                             realm.add(linkedObject);
+                            row.setLink(columnIndex, linkedObject.realmAddedAtRowIndex);
+                        } else {
+                            row.setLink(columnIndex, linkedObject.realmGetRow().getIndex());
                         }
-                        // Add link
-                        row.setLink(columnIndex, linkedObject.realmRowIndex);
+
                     } else {
                         row.nullifyLink(columnIndex);
                     }
 
+                } else if (RealmList.class.isAssignableFrom(type)) {
+                    // Link List
+                    Field f = m.getDeclaringClass().getDeclaredField(name);
+                    Type genericType = f.getGenericType();
+                    if (genericType instanceof ParameterizedType) {
+                        ParameterizedType pType = (ParameterizedType) genericType;
+                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
+                        if(RealmObject.class.equals(actual.getSuperclass())) {
+
+                            LinkView links = row.getLinkList(columnIndex);
+
+                            // Loop through list and add them to the link list and possibly to the realm
+                            for(RealmObject linkedObject : (RealmList<RealmObject>)args[0]) {
+
+                                if(linkedObject.realmGetRow() == null) {
+                                    if(linkedObject.realmAddedAtRowIndex == -1) {
+                                        realm.add(linkedObject);
+                                    }
+                                    links.add(linkedObject.realmAddedAtRowIndex);
+                                } else {
+                                    links.add(linkedObject.realmGetRow().getIndex());
+                                }
+                            }
+                        }
+
+                    }
                 } else {
                     return null;
                 }

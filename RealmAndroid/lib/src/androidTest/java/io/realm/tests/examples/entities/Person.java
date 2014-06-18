@@ -1,13 +1,14 @@
-package io.realm.examples.entities;
+package io.realm.tests.examples.entities;
 
+import io.realm.typed.RealmArrayList;
 import io.realm.typed.RealmList;
 import io.realm.typed.RealmObject;
+import io.realm.typed.RealmTableOrViewList;
 
 public class Person extends RealmObject {
 
     private String name;
-    private byte[] picture;
-    private RealmList<Dog> dogs;
+    private RealmList<Dog> dogs = new RealmArrayList<Dog>();
 
     public Person(String name) {
         this.name = name;
@@ -21,19 +22,11 @@ public class Person extends RealmObject {
         this.name = name;
     }
 
-    public byte[] getPicture() {
-        return picture;
-    }
-
-    public void setPicture(byte[] picture) {
-        this.picture = picture;
-    }
-
     public RealmList<Dog> getDogs() {
         return dogs;
     }
 
-    public void setDogs(RealmList<Dog> dogs) {
+    public void setDogs(RealmTableOrViewList<Dog> dogs) {
         this.dogs = dogs;
     }
 }

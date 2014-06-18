@@ -1,19 +1,16 @@
-package io.realm.typed;
+package io.realm.tests.typed;
 
 import android.test.AndroidTestCase;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Date;
 
-import io.realm.ColumnType;
-import io.realm.Table;
-import io.realm.typed.entities.AllColumns;
-import io.realm.typed.entities.User;
+import io.realm.tests.typed.entities.AllColumns;
+import io.realm.tests.typed.entities.Dog;
+import io.realm.tests.typed.entities.User;
+import io.realm.typed.Realm;
+import io.realm.typed.RealmArrayList;
+import io.realm.typed.RealmChangeListener;
+import io.realm.typed.RealmList;
 
 
 public class RealmTest extends AndroidTestCase {
@@ -164,6 +161,61 @@ public class RealmTest extends AndroidTestCase {
 
         assertEquals(1, realm.allObjects(AllColumns.class).size());
         assertEquals(1, realm.allObjects(User.class).size());
+
+    }
+
+    public void testLinkList() {
+
+        User user1 = new User();
+        user1.setName("Rasmus");
+        user1.setEmail("ra@realm.io");
+        user1.setId(0);
+
+        User user2 = new User();
+        user2.setName("Morten");
+        user2.setEmail("mk@realm.io");
+        user2.setId(1);
+
+        RealmList<User> users = new RealmArrayList<User>();
+        users.add(user1);
+        users.add(user2);
+
+        assertEquals(false, realm.contains(Dog.class));
+        assertEquals(false, realm.contains(User.class));
+
+        realm.beginWrite();
+
+        Dog dog = realm.create(Dog.class);
+        dog.setName("Fido");
+        dog.setOwners(users);
+
+        realm.commit();
+
+        Dog fido = realm.allObjects(Dog.class).first();
+
+        assertEquals("Fido", fido.getName());
+
+        RealmList<User> owners = fido.getOwners();
+
+        assertEquals("Rasmus", owners.get(0).getName());
+
+
+
+
+        assertEquals(1, realm.allObjects(Dog.class).size());
+        assertEquals(2, realm.allObjects(User.class).size());
+
+
+        Dog vuf = new Dog();
+        vuf.setName("Vuf");
+        vuf.getOwners().add(user1);
+
+        realm.beginWrite();
+        realm.add(vuf);
+        realm.commit();
+
+        assertEquals(2, realm.allObjects(Dog.class).size());
+        assertEquals(2, realm.allObjects(User.class).size());
 
     }
 

@@ -179,6 +179,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeAddEmptyRow
 
 /*
  * Class:     io_realm_Table
+ * Method:    nativeInsertLinkList
+ * Signature: (JJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_Table_nativeInsertLinkList
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_Table
  * Method:    nativeGetSortedView
  * Signature: (JJZ)J
  */
