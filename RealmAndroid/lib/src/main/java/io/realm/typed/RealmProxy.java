@@ -10,7 +10,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import io.realm.LinkView;
@@ -44,7 +44,7 @@ class RealmProxy implements InvocationHandler {
 
                     Class<?> type = m.getReturnType();
 
-                    String name = methodName.substring(3).toLowerCase();
+                    String name = methodName.substring(3).toLowerCase(Locale.getDefault());
                     final long columnIndex = row.getColumnIndex(name);
 
                     if (type.equals(String.class)) {
@@ -109,7 +109,7 @@ class RealmProxy implements InvocationHandler {
 
                 Class<?> type = m.getParameterTypes()[0];
 
-                String name = methodName.substring(3).toLowerCase();
+                String name = methodName.substring(3).toLowerCase(Locale.getDefault());
                 final long columnIndex = row.getColumnIndex(name);
 
                 if (type.equals(String.class)) {
