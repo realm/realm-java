@@ -175,6 +175,36 @@ public class RealmQuery<E extends RealmObject> {
         return this;
     }
 
+    public RealmQuery<E> greaterThanOrEqualTo(String columnName, int value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThanOrEqual(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> greaterThanOrEqualTo(String columnName, long value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThanOrEqual(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> greaterThanOrEqualTo(String columnName, double value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThanOrEqual(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> greaterThanOrEqualTo(String columnName, float value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThanOrEqual(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> greaterThanOrEqualTo(String columnName, Date value) {
+        int columnIndex = columns.get(columnName);
+        this.query.greaterThanOrEqual(columnIndex, value);
+        return this;
+    }
+
     // Less Than
 
     public RealmQuery<E> lessThan(String columnName, int value) {
@@ -204,6 +234,36 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> lessThan(String columnName, Date value) {
         int columnIndex = columns.get(columnName);
         this.query.lessThan(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThanOrEqualTo(String columnName, int value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThanOrEqual(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThanOrEqualTo(String columnName, long value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThanOrEqual(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThanOrEqualTo(String columnName, double value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThanOrEqual(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThanOrEqualTo(String columnName, float value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThanOrEqual(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> lessThanOrEqualTo(String columnName, Date value) {
+        int columnIndex = columns.get(columnName);
+        this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
@@ -251,6 +311,47 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> contains(String columnName, String value, boolean caseSensitive) {
         int columnIndex = columns.get(columnName);
         this.query.contains(columnIndex, value, caseSensitive);
+        return this;
+    }
+
+    public RealmQuery<E> beginsWith(String columnName, String value) {
+        int columnIndex = columns.get(columnName);
+        this.query.beginsWith(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> beginsWith(String columnName, String value, boolean caseSensitive) {
+        int columnIndex = columns.get(columnName);
+        this.query.beginsWith(columnIndex, value, caseSensitive);
+        return this;
+    }
+
+    public RealmQuery<E> endsWith(String columnName, String value) {
+        int columnIndex = columns.get(columnName);
+        this.query.endsWith(columnIndex, value);
+        return this;
+    }
+
+    public RealmQuery<E> endsWith(String columnName, String value, boolean caseSensitive) {
+        int columnIndex = columns.get(columnName);
+        this.query.endsWith(columnIndex, value, caseSensitive);
+        return this;
+    }
+
+    // Grouping
+
+    public RealmQuery<E> beginGroup() {
+        this.query.group();
+        return this;
+    }
+
+    public RealmQuery<E> endGroup() {
+        this.query.endGroup();
+        return this;
+    }
+
+    public RealmQuery<E> or() {
+        this.query.or();
         return this;
     }
 
