@@ -141,7 +141,7 @@ public class Showcase {
         System.out.println("- First names: " + Arrays.toString(employees.firstName.getAll()));
 
         employees.salary.setAll(100000);
-        employees.firstName.contains("o").findAll().firstName.setAll("Bill");
+        //employees.firstName.contains("o").findAll().firstName.setAll("Bill");
 
         System.out.println(employees);
 

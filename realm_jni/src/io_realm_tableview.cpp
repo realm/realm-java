@@ -33,6 +33,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_createNativeTableView(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativePivot(
     JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
 {
+    TV(dataTablePtr)->sync_if_needed();
     TableView* dataTable = TV(dataTablePtr);
     Table* resultTable = TBL(resultTablePtr);
     Table::AggrType pivotOp;
@@ -74,14 +75,17 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeClose(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeSize(
     JNIEnv* env, jobject, jlong nativeViewPtr)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
+
     return TV(nativeViewPtr)->size();   // noexcept
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetSourceRowIndex
 (JNIEnv *env, jobject, jlong nativeViewPtr, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
     if (!ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex))
@@ -92,6 +96,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetSourceRowIndex
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetColumnCount
   (JNIEnv *env, jobject, jlong nativeViewPtr)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
     return TV(nativeViewPtr)->get_column_count();
@@ -100,6 +105,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetColumnCount
 JNIEXPORT jstring JNICALL Java_io_realm_TableView_nativeGetColumnName
   (JNIEnv *env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
         return NULL;
     try {
@@ -111,6 +117,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_TableView_nativeGetColumnName
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetColumnIndex
    (JNIEnv *env, jobject, jlong nativeViewPtr, jstring columnName)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
     try {
@@ -123,6 +130,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetColumnIndex
 JNIEXPORT jint JNICALL Java_io_realm_TableView_nativeGetColumnType
   (JNIEnv *env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
         return 0;
     return static_cast<int>( TV(nativeViewPtr)->get_column_type( S(columnIndex)) );
@@ -131,6 +139,7 @@ JNIEXPORT jint JNICALL Java_io_realm_TableView_nativeGetColumnType
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetLong(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Int))
         return 0;
@@ -141,6 +150,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetLong(
 JNIEXPORT jboolean JNICALL Java_io_realm_TableView_nativeGetBoolean(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Bool))
         return 0;
@@ -151,6 +161,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_TableView_nativeGetBoolean(
 JNIEXPORT jfloat JNICALL Java_io_realm_TableView_nativeGetFloat(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Float))
         return 0;
@@ -161,6 +172,7 @@ JNIEXPORT jfloat JNICALL Java_io_realm_TableView_nativeGetFloat(
 JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeGetDouble(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Double))
         return 0;
@@ -171,6 +183,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeGetDouble(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetDateTimeValue(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_DateTime))
         return 0;
@@ -181,9 +194,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetDateTimeValue(
 JNIEXPORT jstring JNICALL Java_io_realm_TableView_nativeGetString(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String))
         return NULL;
+
     try {
         return to_jstring(env, TV(nativeViewPtr)->get_string( S(columnIndex), S(rowIndex)) // noexcept
                           );
@@ -207,6 +222,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_TableView_nativeGetBinary(
 JNIEXPORT jbyteArray JNICALL Java_io_realm_TableView_nativeGetByteArray(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Binary))
         return NULL;
@@ -219,6 +235,7 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_TableView_nativeGetByteArray(
 JNIEXPORT jint JNICALL Java_io_realm_TableView_nativeGetMixedType(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Mixed))
         return 0;
@@ -230,6 +247,7 @@ JNIEXPORT jint JNICALL Java_io_realm_TableView_nativeGetMixedType(
 JNIEXPORT jobject JNICALL Java_io_realm_TableView_nativeGetMixed(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Mixed))
         return NULL;
@@ -244,6 +262,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_TableView_nativeGetMixed(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetLink
   (JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Link))
         return 0;
@@ -254,6 +273,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetLink
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetSubtableSize(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Table))
         return 0;
@@ -264,9 +284,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetSubtableSize(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetSubtable(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID_MIXED(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Table))
         return 0;
+
     try { // needed?
         Table* pSubtable = LangBindHelper::get_subtable_ptr(TV(nativeViewPtr), S(columnIndex), S(rowIndex));
         return reinterpret_cast<jlong>(pSubtable);
@@ -277,9 +299,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeGetSubtable(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeClearSubtable(
    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Table))
         return;
+
     TV(nativeViewPtr)->clear_subtable(S(columnIndex), S(rowIndex));  // noexcept
 }
 
@@ -288,9 +312,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeClearSubtable(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetLong(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jlong value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Int))
         return;
+
     try {
         TV(nativeViewPtr)->set_int( S(columnIndex), S(rowIndex), value);
     } CATCH_STD()
@@ -299,9 +325,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetLong(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetBoolean(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jboolean value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Bool))
         return;
+
     try {
         TV(nativeViewPtr)->set_bool( S(columnIndex), S(rowIndex), value != 0 ? true : false);
     } CATCH_STD()
@@ -310,9 +338,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetBoolean(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetFloat(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jfloat value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Float))
         return;
+
     try {
         TV(nativeViewPtr)->set_float( S(columnIndex), S(rowIndex), value);
     } CATCH_STD()
@@ -321,9 +351,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetFloat(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetDouble(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jdouble value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Double))
         return;
+
     try {
         TV(nativeViewPtr)->set_double( S(columnIndex), S(rowIndex), value);
     } CATCH_STD()
@@ -332,9 +364,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetDouble(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetDateTimeValue(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jlong dateTimeValue)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_DateTime))
         return;
+
     try {
         TV(nativeViewPtr)->set_datetime( S(columnIndex), S(rowIndex), dateTimeValue);
     } CATCH_STD()
@@ -343,9 +377,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetDateTimeValue(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetString(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jstring value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String))
         return;
+
     try {
         JStringAccessor value2(env, value);  // throws
         TV(nativeViewPtr)->set_string( S(columnIndex), S(rowIndex), value2);
@@ -368,9 +404,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetBinary(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetByteArray(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jbyteArray byteArray)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Binary))
         return;
+
     try {
         tbl_nativeDoByteArray(&TableView::set_binary, TV(nativeViewPtr), env, columnIndex, rowIndex, byteArray);
     } CATCH_STD()
@@ -379,9 +417,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetByteArray(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetMixed(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex))
         return;
+
     try {
         tbl_nativeDoMixed(&TableView::set_mixed, TV(nativeViewPtr), env, columnIndex, rowIndex, jMixedValue);
     } CATCH_STD()
@@ -390,9 +430,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetMixed(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetLink
   (JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jlong targetIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Link))
         return;
+
     try {
         TV(nativeViewPtr)->set_link( S(columnIndex), S(rowIndex), S(targetIndex));
     } CATCH_STD()
@@ -401,6 +443,7 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSetLink
 JNIEXPORT jboolean JNICALL Java_io_realm_TableView_nativeIsNullLink
   (JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Link))
         return 0;
@@ -411,9 +454,11 @@ JNIEXPORT jboolean JNICALL Java_io_realm_TableView_nativeIsNullLink
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeNullifyLink
   (JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Link))
         return;
+
     try {
         TV(nativeViewPtr)->nullify_link( S(columnIndex), S(rowIndex));
     } CATCH_STD()
@@ -422,9 +467,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeNullifyLink
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeAddInt(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
         return;
+
     try {
         TV(nativeViewPtr)->add_int( S(columnIndex), value);
     } CATCH_STD()
@@ -434,8 +481,10 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeAddInt(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeClear(
     JNIEnv* env, jobject, jlong nativeViewPtr)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr))
         return;
+
     try {
         TV(nativeViewPtr)->clear();
     } CATCH_STD()
@@ -444,9 +493,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeClear(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeRemoveRow(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex))
         return;
+
     try {
         TV(nativeViewPtr)->remove( S(rowIndex));
     } CATCH_STD()
@@ -457,9 +508,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeRemoveRow(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstInt(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
         return 0;
+
     try {
         return to_jlong_or_not_found( TV(nativeViewPtr)->find_first_int( S(columnIndex), value) );
     } CATCH_STD()
@@ -469,9 +522,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstInt(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstBool(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jboolean value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Bool))
         return 0;
+
     try {
         size_t res = TV(nativeViewPtr)->find_first_bool( S(columnIndex), value != 0 ? true : false);
         return to_jlong_or_not_found( res );
@@ -482,9 +537,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstBool(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstFloat(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jfloat value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
         return 0;
+
     try {
         return to_jlong_or_not_found( TV(nativeViewPtr)->find_first_float( S(columnIndex), value) );
     } CATCH_STD()
@@ -494,9 +551,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstFloat(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstDouble(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jdouble value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
         return 0;
+
     try {
         return to_jlong_or_not_found( (TV(nativeViewPtr)->find_first_double( S(columnIndex), value)) );
     } CATCH_STD()
@@ -506,9 +565,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstDouble(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstDate(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong dateTimeValue)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
         return 0;
+
     try {
         return to_jlong_or_not_found( TV(nativeViewPtr)->find_first_datetime( S(columnIndex), (time_t)dateTimeValue) );
     } CATCH_STD()
@@ -518,6 +579,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstDate(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstString(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jstring value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_String))
         return 0;
@@ -535,9 +597,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindFirstString(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllInt(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
         return 0;
+
     try {
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_int( S(columnIndex), value) );
         return reinterpret_cast<jlong>(pResultView);
@@ -548,9 +612,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllInt(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllBool(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jboolean value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Bool))
         return 0;
+
     try {
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_bool( S(columnIndex),
                                                 value != 0 ? true : false) );
@@ -562,9 +628,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllBool(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllFloat(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jfloat value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
         return 0;
+
     try {
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_float( S(columnIndex), value) );
         return reinterpret_cast<jlong>(pResultView);
@@ -575,9 +643,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllFloat(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllDouble(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jdouble value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
         return 0;
+
     try {
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_double( S(columnIndex), value) );
         return reinterpret_cast<jlong>(pResultView);
@@ -588,9 +658,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllDouble(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllDate(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong dateTimeValue)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
         return 0;
+
     try {
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_datetime( S(columnIndex),
                                                 static_cast<time_t>(dateTimeValue)) );
@@ -602,6 +674,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllDate(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllString(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jstring value)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_String))
         return 0;
@@ -621,9 +694,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeFindAllString(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeSumInt(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
         return 0;
+
     try {
         return TV(nativeViewPtr)->sum_int( S(columnIndex));
     } CATCH_STD()
@@ -633,6 +708,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeSumInt(
 JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeAverageInt(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
         return 0;
@@ -647,9 +723,11 @@ JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeAverageInt(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeMaximumInt(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
         return 0;
+
     try {
         return TV(nativeViewPtr)->maximum_int( S(columnIndex));
     } CATCH_STD()
@@ -659,9 +737,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeMaximumInt(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeMinimumInt(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
         return 0;
+
     try {
         return TV(nativeViewPtr)->minimum_int( S(columnIndex));
     } CATCH_STD()
@@ -673,9 +753,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeMinimumInt(
 JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeSumFloat(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
         return 0;
+
     try {
         return TV(nativeViewPtr)->sum_float( S(columnIndex));
     } CATCH_STD()
@@ -685,6 +767,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeSumFloat(
 JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeAverageFloat(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
         return 0;
@@ -699,9 +782,11 @@ JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeAverageFloat(
 JNIEXPORT jfloat JNICALL Java_io_realm_TableView_nativeMaximumFloat(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
         return 0;
+
     try {
         return TV(nativeViewPtr)->maximum_float( S(columnIndex));
     } CATCH_STD()
@@ -711,9 +796,11 @@ JNIEXPORT jfloat JNICALL Java_io_realm_TableView_nativeMaximumFloat(
 JNIEXPORT jfloat JNICALL Java_io_realm_TableView_nativeMinimumFloat(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
         return 0;
+
     try {
         return TV(nativeViewPtr)->minimum_float( S(columnIndex));
     } CATCH_STD()
@@ -725,9 +812,11 @@ JNIEXPORT jfloat JNICALL Java_io_realm_TableView_nativeMinimumFloat(
 JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeSumDouble(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
         return 0;
+
     try {
         return TV(nativeViewPtr)->sum_double( S(columnIndex));
     } CATCH_STD()
@@ -737,6 +826,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeSumDouble(
 JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeAverageDouble(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
         return 0;
@@ -751,9 +841,11 @@ JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeAverageDouble(
 JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeMaximumDouble(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
         return 0;
+
     try {
         return TV(nativeViewPtr)->maximum_double( S(columnIndex));
     } CATCH_STD()
@@ -763,9 +855,11 @@ JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeMaximumDouble(
 JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeMinimumDouble(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
         return 0;
+
     try {
         return TV(nativeViewPtr)->minimum_double( S(columnIndex));
     } CATCH_STD()
@@ -778,9 +872,11 @@ JNIEXPORT jdouble JNICALL Java_io_realm_TableView_nativeMinimumDouble(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeMaximumDate(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
         return 0;
+
     try {
         // This exploits the fact that dates are stored as int in core
         return TV(nativeViewPtr)->maximum_int( S(columnIndex));
@@ -791,9 +887,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeMaximumDate(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeMinimumDate(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
         return 0;
+
     try {
         // This exploits the fact that dates are stored as int in core
         return TV(nativeViewPtr)->minimum_int( S(columnIndex));
@@ -806,9 +904,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeMinimumDate(
 JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSort(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jboolean ascending)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr) ||
         !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
         return;
+
     int colType = TV(nativeViewPtr)->get_column_type( S(columnIndex) );
     if (colType != type_Int && colType != type_Bool && colType != type_DateTime) {
         ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
@@ -822,9 +922,11 @@ JNIEXPORT void JNICALL Java_io_realm_TableView_nativeSort(
 JNIEXPORT jstring JNICALL Java_io_realm_TableView_nativeToJson(
     JNIEnv *env, jobject, jlong nativeViewPtr)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     TableView* tv = TV(nativeViewPtr);
     if (!VIEW_VALID(env, nativeViewPtr))
         return NULL;
+
 
     // Write table to string in JSON format
     try {
@@ -840,9 +942,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_TableView_nativeToJson(
 JNIEXPORT jstring JNICALL Java_io_realm_TableView_nativeToString(
     JNIEnv *env, jobject, jlong nativeViewPtr, jlong maxRows)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     TableView* tv = TV(nativeViewPtr);
     if (!VIEW_VALID(env, nativeViewPtr))
         return NULL;
+
     try {
        std::ostringstream ss;
        ss.sync_with_stdio(false); // for performance
@@ -856,9 +960,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_TableView_nativeToString(
 JNIEXPORT jstring JNICALL Java_io_realm_TableView_nativeRowToString(
     JNIEnv *env, jobject, jlong nativeViewPtr, jlong rowIndex)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     TableView* tv = TV(nativeViewPtr);
     if (!VIEW_VALID(env, nativeViewPtr) || !ROW_INDEX_VALID(env, tv, rowIndex))
         return NULL;
+
     try {
         std::ostringstream ss;
         tv->row_to_string(S(rowIndex), ss);
@@ -871,8 +977,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_TableView_nativeRowToString(
 JNIEXPORT jlong JNICALL Java_io_realm_TableView_nativeWhere
   (JNIEnv *env, jobject, jlong nativeViewPtr)
 {
+    TV(nativeViewPtr)->sync_if_needed();
     if (!VIEW_VALID(env, nativeViewPtr))
         return 0;
+
     try {
         TableView* tv = TV(nativeViewPtr);
         Query query = tv->get_parent().where().tableview(*tv);
