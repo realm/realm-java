@@ -25,7 +25,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_LinkView_nativeGetTargetRowIndex
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong pos)
 {
     try {
-        return LV(nativeLinkViewPtr)->get_target_row( S(pos) );
+        return LV(nativeLinkViewPtr)->get( S(pos) ).get_index();
     } CATCH_STD()
     return 0;
 }

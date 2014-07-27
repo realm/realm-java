@@ -42,7 +42,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeAddColumnLink
             ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubtableSchema() on root table instead.");
             return 0;
         }
-        if (!TBL(targetTablePtr)->is_linkable()) {
+        if (!TBL(targetTablePtr)->is_group_level()) {
             ThrowException(env, UnsupportedOperation, "Links can only be made to toplevel tables.");
             return 0;
         }
