@@ -1,8 +1,5 @@
 package io.realm.typed;
 
-import android.content.Context;
-import android.os.Handler;
-
 import com.google.dexmaker.stock.ProxyBuilder;
 
 import java.io.File;
@@ -17,6 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.ColumnType;
 import io.realm.ImplicitTransaction;
@@ -35,43 +35,41 @@ public class Realm {
     private String filePath;
     private int version;
     private File bytecodeCache;
+    private ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
 
     private List<RealmChangeListener> changeListeners;
     boolean runEventHandler = false;
 
-    /**
-     * Initializes a default realm
-     *
-     * @param context
-     */
-    public Realm(Context context) {
-        this(context, context.getFilesDir()+"/default.realm");
+    public Realm(File writeablePath) throws IOException {
+        this(writeablePath, "default.realm");
     }
 
-    /**
-     * Initializes a realm backed by the file specified
-     *
-     * @param context
-     * @param filePath      Path to the file backing this realm
-     */
-    public Realm(Context context, String filePath) {
-        this.filePath = filePath;
-        this.bytecodeCache = context.getDir("dx", Context.MODE_PRIVATE);
-        this.changeListeners = new ArrayList<RealmChangeListener>();
+    public Realm(File writeablePath, String filePath) throws IOException {
+        this.filePath = new File(writeablePath, filePath).getAbsolutePath();
+        File bytecodeCache = new File(writeablePath, "dx");
+        if (!bytecodeCache.exists()) {
+            boolean success = bytecodeCache.mkdirs();
+            if (!success) {
+                throw new IOException("Could not create the bytecode cache folder");
+            }
+        }
 
+        this.bytecodeCache = bytecodeCache;
+        this.changeListeners = new ArrayList<RealmChangeListener>();
         init();
     }
 
     private void startEventHandler() {
         runEventHandler = true;
         RealmEventHandler realmEventHandler = new RealmEventHandler(this);
-        new Handler().postDelayed(realmEventHandler, 100);
+        ses.scheduleWithFixedDelay(realmEventHandler, 0, 100, TimeUnit.MILLISECONDS);
     }
 
     @Override
     protected void finalize() throws Throwable {
         transaction.endRead();
         System.out.println("finalize");
+        super.finalize();
     }
 
     private void init() {

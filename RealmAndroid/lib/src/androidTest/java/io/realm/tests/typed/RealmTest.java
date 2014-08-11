@@ -19,7 +19,7 @@ public class RealmTest extends AndroidTestCase {
 
     @Override
     public void setUp() throws Exception {
-        realm = new Realm(getContext());
+        realm = new Realm(getContext().getFilesDir());
 
         realm.clear();
     }

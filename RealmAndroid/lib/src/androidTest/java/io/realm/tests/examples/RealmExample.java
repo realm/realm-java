@@ -2,6 +2,8 @@ package io.realm.tests.examples;
 
 import android.test.AndroidTestCase;
 
+import java.io.IOException;
+
 import io.realm.tests.examples.entities.Dog;
 import io.realm.tests.examples.entities.Person;
 import io.realm.typed.Realm;
@@ -20,7 +22,13 @@ public class RealmExample extends AndroidTestCase {
         System.out.println(myDog.getName());
 
         // Realms are used to group data together
-        Realm realm = new Realm(getContext());
+        Realm realm = null;
+        try {
+            realm = new Realm(getContext().getFilesDir());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
 
         // Save your object
         realm.beginWrite();
@@ -49,7 +57,13 @@ public class RealmExample extends AndroidTestCase {
         new Thread() {
             public void run() {
 
-                Realm realm = new Realm(getContext());
+                Realm realm = null;
+                try {
+                    realm = new Realm(getContext().getFilesDir());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return;
+                }
                 realm.where(Dog.class).contains("name", "x").findAll();
 
             }

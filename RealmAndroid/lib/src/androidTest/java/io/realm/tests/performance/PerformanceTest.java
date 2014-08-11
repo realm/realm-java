@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.test.AndroidTestCase;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +59,13 @@ public class PerformanceTest extends AndroidTestCase {
         System.out.println("################################ Testing new interface");
 
         Realm.setDefaultDurability(SharedGroup.Durability.FULL);
-        Realm realm = new Realm(getContext());
+        Realm realm = null;
+        try {
+            realm = new Realm(getContext().getFilesDir());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
 
         realm.clear();
 
