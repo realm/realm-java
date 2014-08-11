@@ -1,7 +1,5 @@
 package io.realm.typed;
 
-import android.os.Handler;
-
 import java.lang.ref.WeakReference;
 
 public class RealmEventHandler implements Runnable {
@@ -25,7 +23,6 @@ public class RealmEventHandler implements Runnable {
             if (realm.hasChanged()) {
                 realm.sendNotifications();
             }
-            new Handler().postDelayed(this, 100);
 
             System.out.println("check for changes " + myCount);
         }
