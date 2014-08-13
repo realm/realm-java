@@ -508,7 +508,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_Table_nativeGetLinkTarget
 {
     try {
         Table* pTable = &(*TBL(nativeTablePtr)->get_link_target( S(columnIndex) ));
-        LangBindHelper::bind_table_ref(pTable);
+        LangBindHelper::bind_table_ptr(pTable);
         return (jlong)pTable;
     } CATCH_STD()
     return 0;
@@ -1296,7 +1296,7 @@ JNIEXPORT void JNICALL Java_io_realm_Table_nativeClose(
     JNIEnv* env, jclass, jlong nativeTablePtr)
 {
     TR((env, "nativeClose(nativeTablePtr: %x)\n", nativeTablePtr));
-    LangBindHelper::unbind_table_ref(TBL(nativeTablePtr));
+    LangBindHelper::unbind_table_ptr(TBL(nativeTablePtr));
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_Table_createNative(JNIEnv* env, jobject jTable)
