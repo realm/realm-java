@@ -634,7 +634,9 @@ EOF
         tightdb_version="$1"
         cur_tightdb_version="$(sh build.sh get-version)"
 
-        sh updateversion.sh "$cur_tightdb_version" $tightdb_version || exit 1
+        find . -name '*pom*.xml' | while read f ; do
+            sh tools/update-version-pom.sh "$cur_tightdb_version" $tightdb_version "$f" || exit 1
+        done
         sh tools/add-deb-changelog.sh "$tightdb_version" "$(pwd)/debian/changelog.in" tightdb-java || exit 1
         exit 0
         ;;
