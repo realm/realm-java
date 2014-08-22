@@ -137,7 +137,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_Group_nativeGetTableNativePtr(
 {
     try {
         JStringAccessor tableName(env, name); // throws
-        Table* pTable = LangBindHelper::get_table_ptr(G(nativeGroupPtr), tableName);
+        Table* pTable = LangBindHelper::get_or_add_table(*G(nativeGroupPtr), tableName);
         return (jlong)pTable;
     } CATCH_STD()
     return 0;
