@@ -398,9 +398,15 @@ case "$MODE" in
         java_cmd="$java_bindir/java"
         javac_cmd="$java_bindir/javac"
 
+        # Override the Java version of the found compiler
+        if [ "$TIGHTDB_JAVA_VERSION" ]; then
+            javac_cmd="$javac_cmd -target "$TIGHTDB_JAVA_VERSION" -source "$TIGHTDB_JAVA_VERSION""
+        fi
+
         if ! [ "$INTERACTIVE" ]; then
             echo "Examining Java command '$java_cmd'"
         fi
+
         min_ver_major="1"
         min_ver_minor="6"
         version="$($java_cmd -version 2>&1 | grep '^java version' | sed 's/.*"\(.*\)".*/\1/')"

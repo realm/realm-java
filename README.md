@@ -138,6 +138,10 @@ language binding:
     sh build.sh build
     sudo sh build.sh install
 
+You can specify which Java version you need by setting `TIGHTDB_JAVA_VERSION`:
+
+    TIGHTDB_JAVA_VERSION=1.7 sh build.sh config
+
 This procedure will install the following two native JNI libraries in
 an appropriate system directory (see "Configuration" below):
 
