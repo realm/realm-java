@@ -4,8 +4,8 @@
 
     cd tightdb
     git checkout master
-    sh build.sh build-android
     sh build.sh build
+    sh build.sh build-android
     sudo sh build.sh install
 
 ### Object store
