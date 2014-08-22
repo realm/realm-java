@@ -7,6 +7,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,11 @@ public class MainActivity extends Activity {
 
         // Initialize the Realm
         if(realm == null) {
-            realm = new Realm(this);
+            try {
+                realm = new Realm(this.getFilesDir());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else {
             System.out.println("Already inited");
         }
@@ -60,7 +65,12 @@ public class MainActivity extends Activity {
 
     public void createItem(View v) {
 
-        Realm wrRealm = new Realm(this);
+        Realm wrRealm = null;
+        try {
+            wrRealm = new Realm(this.getFilesDir());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         wrRealm.beginWrite();
 
         User user = new User();

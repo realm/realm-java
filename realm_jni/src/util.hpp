@@ -34,22 +34,25 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 #define CATCH_FILE(fileName) \
     catch (InvalidDatabase&) { \
         ThrowException(env, IllegalArgument, "Invalid Group file format."); \
-    } catch (util::File::PermissionDenied& e) { \
+    } \
+    catch (util::File::PermissionDenied& e) { \
         ThrowException(env, IOFailed, fileName, string("Permission denied. ") + e.what()); \
-    } catch (util::File::NotFound&) { \
+    } \
+    catch (util::File::NotFound&) { \
         ThrowException(env, FileNotFound, fileName); \
-    } catch (util::File::AccessError& e) { \
+    } \
+    catch (util::File::AccessError& e) { \
         ThrowException(env, FileAccessError, string(fileName), e.what()); \
     }
 
 #define CATCH_STD() \
-    catch (ResourceAllocError& e) { \
-        ThrowException(env, OutOfMemory, "Resource allocation error.", e.what()); \
-    } catch (std::bad_alloc& e) { \
+    catch (std::bad_alloc& e) { \
         ThrowException(env, OutOfMemory, e.what()); \
-    } catch (std::exception& e) { \
+    } \
+    catch (std::exception& e) { \
         ThrowException(env, Unspecified, e.what()); \
-    } catch (...) { \
+    } \
+    catch (...) { \
         TIGHTDB_ASSERT(false); \
         ThrowException(env, RuntimeError, "Unknown Exception"); \
     }

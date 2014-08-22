@@ -18,7 +18,7 @@ public class RealmListTest extends AndroidTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
-        realm = new Realm(getContext());
+        realm = new Realm(getContext().getFilesDir());
 
         realm.clear();
 
