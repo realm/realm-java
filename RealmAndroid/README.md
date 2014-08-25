@@ -23,12 +23,12 @@ Edit (or create) the `RealmAndroid/local.properties` file with contents:
 
     sdk.dir=<path to your sdk>
 
-And now run
+And to build the object store binding, execute the following commands:
 
     cd RealmAndroid
     gradle build
 
-To run on a connected device:
+To run/test on a connected device:
 
     gradle connectedAndroidTest
 
