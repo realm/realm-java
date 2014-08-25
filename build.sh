@@ -1,16 +1,6 @@
 # NOTE: THIS SCRIPT IS SUPPOSED TO RUN IN A POSIX SHELL
 
-
-# Enable tracing if TIGHTDB_SCRIPT_DEBUG is set
-if [ -e $HOME/.tightdb ]; then
-    . $HOME/.tightdb
-fi
-if [ "$TIGHTDB_SCRIPT_DEBUG" ]; then
-    set -x
-fi
-
-ORIG_CWD="$(pwd)" || exit 1
-ANDROID_DIR="android-lib"
+ANDROID_DIR="core"
 ANDROID_PLATFORMS="arm arm-v7a mips x86"
 
 cd "$(dirname "$0")" || exit 1
@@ -573,15 +563,10 @@ case "$MODE" in
         fi
 
         android_core_lib="none"
-        if [ "$TIGHTDB_ANDROID_CORE_LIB" ]; then
-            android_core_lib="$TIGHTDB_ANDROID_CORE_LIB"
-            if ! printf "%s\n" "$android_core_lib" | grep -q '^/'; then
-                android_core_lib="$ORIG_CWD/$android_core_lib"
-            fi
-        elif [ -e "../tightdb/build.sh" ]; then
-            path="$(cd "../tightdb" || return 1; pwd)" || exit 1
-            android_core_lib="$path/$ANDROID_DIR"
+        if [ -d "$(pwd)/$ANDROID_DIR" ]; then
+            android_core_lib="$(pwd)/$ANDROID_DIR"
         else
+            # FIXME: We should really download from our website
             echo "Could not find home of TightDB core library built for Android" 1>&1
             exit 1
         fi
@@ -652,10 +637,6 @@ EOF
             denom="android-$x"
             $MAKE -C "realm_jni/src" clean BASE_DENOM="$denom" LIB_SUFFIX_SHARED=".so" || exit 1
         done
-        if [ -e "$ANDROID_DIR" ]; then
-            echo "Removing '$ANDROID_DIR'"
-            rm -rf "$ANDROID_DIR" || exit 1
-        fi
         for x in core generator test; do
             echo "Removing class files in 'realm-java-$x'"
             (cd "realm-java-$x" && find src/ -type f -name '*.class' -delete) || exit 1
