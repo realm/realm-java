@@ -1,3 +1,41 @@
+## Building
+
+### CORE
+
+    cd tightdb
+    git checkout master
+    sh build.sh build
+    sh build.sh build-android
+    sudo sh build.sh install
+
+### Object store
+
+    cd ../tightdb_java
+    git checkout object-store-master
+    TIGHTDB_JAVA_VERSION=1.7 sh build.sh config
+    sh build.sh build
+    sh build.sh build-android
+    sh build.sh android-package
+    mkdir -p RealmAndroid/lib/libs
+    cp lib/realm-android-*.jar RealmAndroid/lib/libs
+
+Edit (or create) the `RealmAndroid/local.properties` file with contents:
+
+    sdk.dir=<path to your sdk>
+
+And to build the object store binding, execute the following commands:
+
+    cd RealmAndroid
+    gradle build
+
+To run/test on a connected device:
+
+    gradle connectedAndroidTest
+
+and use `adb logcat` to see output.
+
+
+
 ## Defining a Data Model
 
 Realm data models are defined by implementing a traditional Java Bean (http://en.wikipedia.org/wiki/Java_Bean)

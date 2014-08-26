@@ -43,6 +43,7 @@ target
 
 # sh build.sh build-android
 /android-lib/
+/core/
 
 .DS_Store
 
