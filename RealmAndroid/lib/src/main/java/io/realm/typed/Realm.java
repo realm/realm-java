@@ -1,9 +1,8 @@
 package io.realm.typed;
 
-import com.google.dexmaker.stock.ProxyBuilder;
-
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -85,6 +84,24 @@ public class Realm {
         return transaction.getTable(classSpec.getSimpleName());
     }
 
+    ColumnType columnTypeFromInt(int value)
+    {
+        switch (value)
+        {
+            case 1: return ColumnType.BOOLEAN;
+            case 0: return ColumnType.INTEGER;
+            case 9: return ColumnType.FLOAT;
+            case 10: return ColumnType.DOUBLE;
+            case 2: return ColumnType.STRING;
+            case 4: return ColumnType.BINARY;
+            case 7: return ColumnType.DATE;
+            case 8: return ColumnType.TABLE;
+            case 6: return ColumnType.MIXED;
+            case 12: return ColumnType.LINK;
+            case 13: return ColumnType.LINK_LIST;
+            default: return ColumnType.INTEGER;
+        }
+    }
 
     private <E> void initTable(Class<E> classSpec) {
 
@@ -147,6 +164,23 @@ public class Realm {
     }
 
 
+    private void initTable(RealmObject object) {
+        String tableName = object.getClass().getSimpleName().replace("_PROXY","");
+        // Check for table existence
+        if(!transaction.hasTable(tableName)) {
+            // Create the table
+            Table table = transaction.getTable(tableName);
+
+            String[] tableNames = object.getTableRowNames();
+            int[] tableTypes = object.getTableRowTypes();
+
+            for (int i = 0; i < tableNames.length; i++) {
+                table.addColumn(columnTypeFromInt(tableTypes[i]), tableNames[i].toLowerCase(Locale.getDefault()));
+            }
+        }
+    }
+
+
     /**
      * Instantiates and adds a new object to the realm
      *
@@ -164,6 +198,42 @@ public class Realm {
         return get(classSpec, rowIndex);
     }
 
+    //    public <E extends RealmObject> E create(Class<E> classSpec) {
+//
+//        E obj = null;
+//
+//        String tableName = classSpec.getName();
+//
+//        try {
+//            String className = tableName+"_PROXY";
+//            Class cl = Class.forName(className);
+//            Constructor con = cl.getConstructor();
+//            obj = (E)con.newInstance();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//
+//        initTable(obj);
+//
+//        Table table = getTable(classSpec);
+//
+//        long rowIndex = table.addEmptyRow();
+//
+//        obj.realmAddedAtRowIndex = rowIndex;
+//
+//        try {
+//            Row row = transaction.getTable(tableName).getRow(rowIndex);
+//            obj.realmSetRow(row);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//
+//        return obj;
+//
+//        //return get(classSpec, rowIndex);
+//    }
 
     public <E> void remove(Class<E> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
@@ -314,13 +384,14 @@ public class Realm {
 
         try {
             Row row = transaction.getTable(clazz.getSimpleName()).getRow(rowIndex);
-            obj = ProxyBuilder.forClass(clazz)
-                    .parentClassLoader(clazz.getClassLoader())
-                    .dexCache(getBytecodeCache())
-                    .handler(new RealmProxy(this, row))
-                    .build();
+
+            String className = clazz.getName()+"_PROXY";
+
+            Class cl = Class.forName(className);
+            Constructor con = cl.getConstructor();
+            obj = (E)con.newInstance();
             obj.realmSetRow(row);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

@@ -4,6 +4,7 @@ import java.util.Date;
 
 import io.realm.typed.RealmObject;
 
+@io.realm.base.RealmClass
 public class AllColumns extends RealmObject {
 
     private String columnString;

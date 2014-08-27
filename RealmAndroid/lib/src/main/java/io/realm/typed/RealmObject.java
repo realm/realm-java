@@ -14,4 +14,9 @@ public abstract class RealmObject {
     protected void realmSetRow(Row row) {
         this.row = row;
     }
+
+    public  String[] getTableRowNames() {return null;}
+
+    public  int[] getTableRowTypes() {return null;}
+
 }

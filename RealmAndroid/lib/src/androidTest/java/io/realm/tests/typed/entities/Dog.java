@@ -4,6 +4,7 @@ import io.realm.typed.RealmArrayList;
 import io.realm.typed.RealmList;
 import io.realm.typed.RealmObject;
 
+@io.realm.base.RealmClass
 public class Dog extends RealmObject {
 
     private RealmList<User> owners = new RealmArrayList<User>();
