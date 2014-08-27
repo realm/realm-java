@@ -194,8 +194,9 @@ public class Realm {
         Table table = getTable(classSpec);
 
         long rowIndex = table.addEmptyRow();
-
-        return get(classSpec, rowIndex);
+        E obj = get(classSpec, rowIndex);
+        obj.realmAddedAtRowIndex = rowIndex;
+        return obj;
     }
 
     //    public <E extends RealmObject> E create(Class<E> classSpec) {
@@ -249,8 +250,6 @@ public class Realm {
      * @return
      */
     public <E extends RealmObject> void add(E element) {
-
-        System.out.println("Adding " + element.getClass().getName());
 
         initTable(element.getClass());
 

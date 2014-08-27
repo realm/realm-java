@@ -76,7 +76,7 @@ public class PerformanceTest extends AndroidTestCase {
                 User user = realm.create(User.class);
 
                 user.setId(i);
-                user.setName("John Doe");
+                user.setName("John Doe"+(i/3));
                 user.setEmail("john@doe.com");
 
                // realm.add(user);
@@ -93,13 +93,21 @@ public class PerformanceTest extends AndroidTestCase {
         timer = System.currentTimeMillis();
         RealmList<User> realmList = realm.where(User.class).findAll();
         for(int i = 0; i < listSize; i++) {
-            // IUser u = realmList.getTest(i, IUser.class);
             User u = realmList.get(i);
-     //       System.out.println(u.getId());
 
-            u.getId();
-            u.getName();
-            u.getEmail();
+            int id = u.getId();
+            String name = u.getName();
+            String email = u.getEmail();
+
+//            if (id != i)
+//            {
+//                fail("read does not match write (id)");
+//            }
+//            if (("John Doe"+(i/3)).compareTo(name) != 0)
+//            {
+//                fail("read does not match write (name)");
+//            }
+
 
         }
         timings.put("RealmList_Get", (System.currentTimeMillis() - timer));
