@@ -78,10 +78,7 @@ public class PerformanceTest extends AndroidTestCase {
                 user.setId(i);
                 user.setName("John Doe"+(i/3));
                 user.setEmail("john@doe.com");
-
-               // realm.add(user);
-
-            }
+           }
             realm.commit();
         } catch(Throwable t) {
             t.printStackTrace();

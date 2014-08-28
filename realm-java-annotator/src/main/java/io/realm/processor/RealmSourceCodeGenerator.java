@@ -3,6 +3,7 @@ package io.realm.processor;
 import java.io.BufferedWriter;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -15,34 +16,34 @@ public class RealmSourceCodeGenerator {
 	private BufferedWriter _bw;
 	private HashMap<String, String> _values = new HashMap<String, String>();
 	private HashMap<String, Element> _methods = new HashMap<String, Element>();
+	private HashSet<String> ignoreFields = new HashSet<String>();
 	
 	private final String _codeHeader =   "package <+package>;\n"+
-								         "\n"+
-								         "import io.realm.tests.typed.entities.*;\n"+		
-								         "\n"+
-								         "public class <+class>_PROXY extends <+class> \n"+
+								         "\n\n"+
+								         "public class <+class>RealmProxy extends <+class> \n"+
 								         "{\n"+
-								         "    public static final String implName=\"<+class>\";\n";
+								         "    public static final String implName=\"<+class>\";\n\n";
 
-	private final String _fieldTableHeader =   "    public static String[] fieldNames = {";
+	private final String _fieldTableHeader =   "    private static String[] fieldNames = {";
 	private final String _fieldTableFooter =   "};\n"+
 	                                           "    public String[] getTableRowNames() {return fieldNames;}\n\n";
 
-	private final String _typeTableHeader =   "    public static int[] fieldTypes = {";
+	private final String _typeTableHeader =   "    private static int[] fieldTypes = {";
 	private final String _typeTableFooter =   "};\n"+
                                               "    public int[] getTableRowTypes() {return fieldTypes;}\n\n";
 	private final String _getTableName    =   "    public String getTableName() {return implName;}\n";
 
 	
 	
-	private final String _codeGetter =   "    public <+type> get<+camelField>()\n"+
+	private final String _codeGetter =   "    final static int <+field>Index = <+index>;\n\n"+
+										 "    public <+type> get<+camelField>()\n"+
 								         "    {\n"+
-                                         "        return <+cast>realmGetRow().get<+etter_type>(realmGetRow().getColumnIndex(\"<+field>\"));\n"+
+                                         "        return <+cast>row.get<+etter_type>(<+field>Index);\n"+
 							             "    }\n"+
 								         "\n";
 	private final String _codeSetter =   "    public void set<+camelField>(<+type> value)\n"+
 								         "    {\n"+
-                                         "        realmGetRow().set<+etter_type>(realmGetRow().getColumnIndex(\"<+field>\"), value);\n"+
+                                         "        row.set<+etter_type>(<+field>Index, value);\n"+
 								         "    }\n"+
 								         "\n";
 
@@ -65,8 +66,6 @@ public class RealmSourceCodeGenerator {
 	{
 		_values.put("implements", name);
 	}
-	
-
 
 	public void set_className(String className) 
 	{
@@ -78,8 +77,9 @@ public class RealmSourceCodeGenerator {
 		_methods.put(fieldName, element);
 	}
 
-	public void add_Ignore() 
+	public void add_Ignore(String symbolName) 
 	{
+		ignoreFields.add(symbolName);
 	}
 	
 	public String generateFragment(String fragment) 
@@ -96,12 +96,18 @@ public class RealmSourceCodeGenerator {
 		return fragment;
 				
 	}
+	
 
-	public String generateMethod(String fragment, String name) 
+	public String generateMethod(String fragment, String name, int methodIndex) 
 	{
 		Element e = _methods.get(name);
 		
 		String camelCase = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+		
+		
+		
+		fragment = fragment.replace("<+index>",Integer.toString(methodIndex));
+
 
 		fragment = fragment.replace("<+field>",name);
 		
@@ -152,13 +158,17 @@ public class RealmSourceCodeGenerator {
 		Iterator<String> it = keys.iterator();
 		String _fieldTable = "";
 		String _typeTable = "";
+		
+		int fieldIndex = 0;
 
 		while (it.hasNext())
 		{
 			String k = it.next();
 
-			_bw.append(generateMethod(_codeGetter, k));
-			_bw.append(generateMethod(_codeSetter, k));
+			_bw.append(generateMethod(_codeGetter, k, fieldIndex));
+			_bw.append(generateMethod(_codeSetter, k, fieldIndex));
+			
+			fieldIndex++;
 			
 			Element e = _methods.get(k);
 			if (_fieldTable.length() > 0) _fieldTable += " ,";

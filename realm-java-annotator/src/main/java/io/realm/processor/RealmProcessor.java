@@ -54,13 +54,13 @@ public class RealmProcessor extends AbstractProcessor {
 	            	
 	            	if (qName != null)
 	            	{
-	            		String qualifiedClassName = qName + "."+classElement.getSimpleName()+"_PROXY";
+	            		String qualifiedClassName = qName + "."+classElement.getSimpleName()+"RealmProxy";
 	            		qualifiedClassName = qualifiedClassName.replace(".", "/");
 	            		
 	            		codeGenerator.set_packageName(qName);
 	            		codeGenerator.set_className(classElement.getSimpleName().toString());
 	            		
-	            		JavaFileObject jfo = processingEnv.getFiler().createSourceFile(qualifiedClassName /*classElement.getSimpleName()qualifiedClassName*/);
+	            		JavaFileObject jfo = processingEnv.getFiler().createSourceFile(qualifiedClassName);
 			            
 			            BufferedWriter bw = new BufferedWriter(jfo.openWriter());
 			            codeGenerator.setBufferedWriter(bw);
@@ -94,13 +94,16 @@ public class RealmProcessor extends AbstractProcessor {
 	            }
 	        }
 	        
-//	        for (Element classElement : roundEnv.getElementsAnnotatedWith(Ignore.class)) {
-//	            // Check the annotation was applied to a Class
-//	            if (!classElement.getKind().equals(ElementKind.FIELD)) {
-//	                error("The Ignore annotation can only be applied to Fields");
-//	                return false;
-//	            }
-//	        }
+	        for (Element classElement : roundEnv.getElementsAnnotatedWith(Ignore.class)) {
+	            // Check the annotation was applied to a Class
+	            if (!classElement.getKind().equals(ElementKind.FIELD)) {
+	                error("The Ignore annotation can only be applied to Fields");
+	                return false;
+	            }
+	            String elementName = classElement.getSimpleName().toString();
+	            codeGenerator.add_Ignore(elementName);  
+	            
+	        }
 	        return true;
 	    }
 

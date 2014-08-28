@@ -131,11 +131,11 @@ class RealmProxy implements InvocationHandler {
                     RealmObject linkedObject = (RealmObject)args[0];
 
                     if(linkedObject != null) {
-                        if(linkedObject.realmGetRow() == null) {
+                        if(linkedObject.row == null) {
                             realm.add(linkedObject);
                             row.setLink(columnIndex, linkedObject.realmAddedAtRowIndex);
                         } else {
-                            row.setLink(columnIndex, linkedObject.realmGetRow().getIndex());
+                            row.setLink(columnIndex, linkedObject.row.getIndex());
                         }
 
                     } else {
@@ -156,13 +156,13 @@ class RealmProxy implements InvocationHandler {
                             // Loop through list and add them to the link list and possibly to the realm
                             for(RealmObject linkedObject : (RealmList<RealmObject>)args[0]) {
 
-                                if(linkedObject.realmGetRow() == null) {
+                                if(linkedObject.row == null) {
                                     if(linkedObject.realmAddedAtRowIndex == -1) {
                                         realm.add(linkedObject);
                                     }
                                     links.add(linkedObject.realmAddedAtRowIndex);
                                 } else {
-                                    links.add(linkedObject.realmGetRow().getIndex());
+                                    links.add(linkedObject.row.getIndex());
                                 }
                             }
                         }

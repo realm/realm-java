@@ -1,8 +1,10 @@
 package io.realm.example.entities;
 
 
+import io.realm.base.RealmClass;
 import io.realm.typed.RealmObject;
 
+@RealmClass
 public class User extends RealmObject {
 
     private int id;

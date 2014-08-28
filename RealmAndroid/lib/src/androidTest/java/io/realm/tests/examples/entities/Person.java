@@ -5,6 +5,7 @@ import io.realm.typed.RealmList;
 import io.realm.typed.RealmObject;
 import io.realm.typed.RealmTableOrViewList;
 
+@io.realm.base.RealmClass
 public class Person extends RealmObject {
 
     private String name;

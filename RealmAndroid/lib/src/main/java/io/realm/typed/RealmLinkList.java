@@ -21,22 +21,22 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
 
     @Override
     public void add(int location, E object) {
-        if(object.realmGetRow() == null) {
+        if(object.row == null) {
             realm.add(object);
             view.add(object.realmAddedAtRowIndex);
         } else {
-            view.add(object.realmGetRow().getIndex());
+            view.add(object.row.getIndex());
         }
     }
 
     @Override
     public E set(int location, E object) {
-        if(object.realmGetRow() == null) {
+        if(object.row == null) {
             realm.add(object);
             view.set(location, object.realmAddedAtRowIndex);
             return realm.get((Class<E>)object.getClass(), object.realmAddedAtRowIndex);
         } else {
-            view.set(location, object.realmGetRow().getIndex());
+            view.set(location, object.row.getIndex());
             return object;
         }
     }
@@ -62,7 +62,7 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
 
 //  NOTE
 // Need to find out why this has changed:
-//        String outClass = clazz.getName()+"_PROXY";
+//        String outClass = clazz.getSimpleName()+"RealmProxy";
 //
 //        try {
 //            Class<E> clazzCreate = (Class<E>)Class.forName(outClass);

@@ -2,6 +2,7 @@ package io.realm.tests.examples.entities;
 
 import io.realm.typed.RealmObject;
 
+@io.realm.base.RealmClass
 public class Dog extends RealmObject {
 
     private String name;

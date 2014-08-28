@@ -165,7 +165,7 @@ public class Realm {
 
 
     private void initTable(RealmObject object) {
-        String tableName = object.getClass().getSimpleName().replace("_PROXY","");
+        String tableName = object.getTableName();
         // Check for table existence
         if(!transaction.hasTable(tableName)) {
             // Create the table
@@ -187,54 +187,45 @@ public class Realm {
      * @return              The new object
      * @param <E>
      */
-    public <E extends RealmObject> E create(Class<E> classSpec) {
-
-        initTable(classSpec);
-
-        Table table = getTable(classSpec);
-
-        long rowIndex = table.addEmptyRow();
-        E obj = get(classSpec, rowIndex);
-        obj.realmAddedAtRowIndex = rowIndex;
-        return obj;
-    }
-
-    //    public <E extends RealmObject> E create(Class<E> classSpec) {
+//    public <E extends RealmObject> E create(Class<E> classSpec) {
 //
-//        E obj = null;
-//
-//        String tableName = classSpec.getName();
-//
-//        try {
-//            String className = tableName+"_PROXY";
-//            Class cl = Class.forName(className);
-//            Constructor con = cl.getConstructor();
-//            obj = (E)con.newInstance();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//
-//        initTable(obj);
+//        initTable(classSpec);
 //
 //        Table table = getTable(classSpec);
 //
 //        long rowIndex = table.addEmptyRow();
-//
+//        E obj = get(classSpec, rowIndex);
 //        obj.realmAddedAtRowIndex = rowIndex;
-//
-//        try {
-//            Row row = transaction.getTable(tableName).getRow(rowIndex);
-//            obj.realmSetRow(row);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//
 //        return obj;
-//
-//        //return get(classSpec, rowIndex);
 //    }
+
+      public <E extends RealmObject> E create(Class<E> classSpec) {
+
+        E obj = null;
+
+        try {
+            String className = classSpec.getName()+"RealmProxy";
+            Class cl = Class.forName(className);
+            Constructor con = cl.getConstructor();
+            obj = (E)con.newInstance();
+
+
+            initTable(obj);
+
+            Table table = getTable(classSpec);
+
+            long rowIndex = table.addEmptyRow();
+
+            obj.realmAddedAtRowIndex = rowIndex;
+
+            obj.row = transaction.getTable(classSpec.getSimpleName()).getRow(rowIndex);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return obj;
+    }
 
     public <E> void remove(Class<E> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
@@ -332,13 +323,13 @@ public class Realm {
 
                     RealmObject linkedObject = (RealmObject)f.get(element);
                     if(linkedObject != null) {
-                        if(linkedObject.realmGetRow() == null) {
+                        if(linkedObject.row == null) {
                             if(linkedObject.realmAddedAtRowIndex == -1) {
                                 add(linkedObject);
                             }
                             table.setLink(columnIndex, rowIndex, linkedObject.realmAddedAtRowIndex);
                         } else {
-                            table.setLink(columnIndex, rowIndex, linkedObject.realmGetRow().getIndex());
+                            table.setLink(columnIndex, rowIndex, linkedObject.row.getIndex());
                         }
                     }
 
@@ -355,13 +346,13 @@ public class Realm {
                             // Loop through list and add them to the link list and possibly to the realm
                             for(RealmObject linkedObject : (List<RealmObject>)f.get(element)) {
 
-                                if(linkedObject.realmGetRow() == null) {
+                                if(linkedObject.row == null) {
                                     if(linkedObject.realmAddedAtRowIndex == -1) {
                                         add(linkedObject);
                                     }
                                     links.add(linkedObject.realmAddedAtRowIndex);
                                 } else {
-                                    links.add(linkedObject.realmGetRow().getIndex());
+                                    links.add(linkedObject.row.getIndex());
                                 }
                             }
                         }
@@ -384,12 +375,12 @@ public class Realm {
         try {
             Row row = transaction.getTable(clazz.getSimpleName()).getRow(rowIndex);
 
-            String className = clazz.getName()+"_PROXY";
+            String className = clazz.getName()+"RealmProxy";
 
             Class cl = Class.forName(className);
             Constructor con = cl.getConstructor();
             obj = (E)con.newInstance();
-            obj.realmSetRow(row);
+            obj.row = row;
         } catch (Exception e) {
             e.printStackTrace();
         }
