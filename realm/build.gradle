@@ -1,0 +1,15 @@
+apply plugin: 'com.android.library'
+
+dependencies {
+    compile 'com.google.dexmaker:dexmaker:1.1'
+    compile group: 'com.google.guava', name: 'guava', version: '15.0'
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion '20.0.0'
+}
+
+tasks.preBuild {
+    dependsOn ':realm-jni:buildAndroidJni'
+}
