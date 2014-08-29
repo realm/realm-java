@@ -11,7 +11,8 @@ android {
 }
 
 android.libraryVariants.all { variant ->
-    task("generate${variant.name}Javadoc", type: Javadoc) {
+    task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
+        group 'Docs'
         description "Generates Javadoc for $variant.name."
         source = variant.javaCompile.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
