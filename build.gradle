@@ -10,7 +10,7 @@ buildscript {
 
 allprojects {
   group = 'io.realm'
-  version = '0.8'
+  version = '0.80'
 
   repositories {
     mavenCentral()
