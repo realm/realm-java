@@ -1,115 +1,9 @@
-apply plugin: 'cpp'
 apply plugin: 'download-task'
 
 Properties localProperties = new Properties()
 localProperties.load(new FileInputStream("${rootDir}/local.properties"))
 localProperties.entrySet().each() { entry ->
     project.ext[entry.getKey()] = localProperties.setProperty(entry.getKey(), entry.getValue())
-}
-
-model {
-    platforms {
-        androidArm {
-            operatingSystem "linux"
-            architecture "arm"
-        }
-        androidArmv7a {
-            operatingSystem "linux"
-            architecture "arm"
-        }
-/*
-        androidMips {
-            operatingSystem "linux"
-        }
-        androidIntel {
-            operatingSystem "linux"
-            architecture "x86"
-        }
-*/
-    }
-    toolChains {
-        androidArm(Gcc) {
-            def prefix = "arm-linux-androideabi-"
-            cCompiler.executable         = prefix + cCompiler.executable
-            cppCompiler.executable       = prefix + cppCompiler.executable
-            assembler.executable         = prefix + assembler.executable
-            linker.executable            = prefix + linker.executable
-            staticLibArchiver.executable = prefix + staticLibArchiver.executable
-            path "${buildDir}/standalone-toolchains/arm/bin"
-            addPlatformConfiguration(new AndroidArmPlatformConfiguration())
-        }
-/*
-        androidMips(Gcc) {
-            def prefix = "mipsel-linux-android-"
-            cCompiler.executable         = prefix + cCompiler.executable
-            cppCompiler.executable       = prefix + cppCompiler.executable
-            assembler.executable         = prefix + assembler.executable
-            linker.executable            = prefix + linker.executable
-            staticLibArchiver.executable = prefix + staticLibArchiver.executable
-            path "${rootDir}/standalone-toolchains/mips/bin"
-            addPlatformConfiguration(new AndroidMipsPlatformConfiguration())
-        }
-        androidIntel(Gcc) {
-            def prefix = "i686-linux-android-"
-            cCompiler.executable         = prefix + cCompiler.executable
-            cppCompiler.executable       = prefix + cppCompiler.executable
-            assembler.executable         = prefix + assembler.executable
-            linker.executable            = prefix + linker.executable
-            staticLibArchiver.executable = prefix + staticLibArchiver.executable
-            path "${rootDir}/standalone-toolchains/x86/bin"
-            addPlatformConfiguration(new AndroidIntelPlatformConfiguration())
-        }
-*/
-    }
-    repositories {
-        libs(PrebuiltLibraries) {
-            tightdb {
-                headers.srcDirs "${rootDir}/core/include", "${rootDir}/core/include/tightdb"
-                binaries.withType(StaticLibraryBinary) {
-                    if (targetPlatform == platforms.androidArm) {
-                        staticLibraryFile = file("${rootDir}/core/libtightdb-android-arm.a")
-                    } else if (targetPlatform == platforms.androidArmv7a) {
-                        staticLibraryFile = file("${rootDir}/core/libtightdb-android-arm-v7a.a")
-                    } else if (targetPlatform == platforms.androidMips) {
-                        staticLibraryFile = file("${rootDir}/core/libtightdb-android-mips.a")
-                    } else if (targetPlatform == platforms.androidIntel) {
-                        staticLibraryFile = file("${rootDir}/core/libtightdb-android-x86.a")
-                    }
-                }
-            }
-        }
-    }
-}
-
-libraries {
-    jni {
-        binaries.withType(SharedLibraryBinary) {
-            cppCompiler.args '-Os'
-            cppCompiler.args "-I${rootDir}/core/include"
-            if (targetPlatform == platforms.androidArm) {
-                cppCompiler.args '-mthumb'
-            } else if (targetPlatform == platforms.androidArmv7a) {
-                cppCompiler.args '-mthumb'
-                cppCompiler.args '-march=armv7-a'
-                cppCompiler.args '-mfloat-abi=softfp'
-                cppCompiler.args '-mfpu=vfpv3-d16'
-            }
-            cppCompiler.define 'TIGHTDB_HAVE_CONFIG'
-            cppCompiler.define 'PIC'
-            lib library: 'tightdb', linkage: 'static'
-        }
-    }
-}
-
-sources {
-    jni {
-        cpp {
-            source {
-                srcDir 'src'
-                include '*.cpp'
-            }
-        }
-    }
 }
 
 task checkProperties(group: 'check', description: 'Check the user provided gradle.properties') << {
@@ -136,92 +30,145 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
     }
 }
 
-for (platform in ['arm'/*, 'mips', 'x86'*/]) {
+for (platform in ['arm', 'mips', 'x86']) {
     task "generateNdkToolchain${platform.capitalize()}"(type: Exec) {
         group 'build setup'
         description "Generate the NDK standalone toolchain for the ${platform.capitalize()} platform"
         dependsOn { checkProperties }
         outputs.dir new File("${buildDir}/standalone-toolchains/${platform}")
         commandLine = [
-                "bash",
-                "${project.ext['ndk.dir']}/build/tools/make-standalone-toolchain.sh",
-                "--platform=android-${platform.contains('arm')?8:9}",
-                "--install-dir=${buildDir}/standalone-toolchains/${platform}",
-                "--arch=${platform}"
+            "bash",
+            "${project.ext['ndk.dir']}/build/tools/make-standalone-toolchain.sh",
+            "--platform=android-${platform.contains('arm')?8:9}",
+            "--install-dir=${buildDir}/standalone-toolchains/${platform}",
+            "--arch=${platform}"
         ]
     }
 }
 
-task generateAllNdkToolchains {
-    group 'build setup'
-    description 'Generate the NDK standalone toolchains for all the supported frameworks'
-    dependsOn tasks.findAll { task -> task.name.contains('generateNdkToolchain') }
+task buildAndroidJniArm {
+    group 'build'
+    description 'Build the Android JNI shared library for the Arm platform'
+    dependsOn generateNdkToolchainArm
+    dependsOn downloadCore
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core/include",
+                'CFLAGS_ARCH=-mthumb',
+                'BASE_DENOM=arm',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -L${rootDir}/core",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-arm.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-arm.so"
+            into "${projectDir}/../realm/src/main/jniLibs/armeabi"
+            rename 'libtightdb-jni-arm.so', 'libtightdb-jni.so'
+        }
+    }
 }
 
-class AndroidArmPlatformConfiguration implements TargetPlatformConfiguration {
-    boolean supportsPlatform(Platform targetPlatform) {
-        return targetPlatform.name.contains('androidArm') &&
-               targetPlatform.operatingSystem.name.equals('linux') &&
-               targetPlatform.architecture.name.equals('arm')
+task buildAndroidJniArmv7a {
+    group 'build'
+    description 'Build the Android JNI shared library for the Arm-v7a platform'
+    dependsOn generateNdkToolchainArm
+    dependsOn downloadCore
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core/include",
+                'CFLAGS_ARCH=-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16',
+                'BASE_DENOM=arm-v7a',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -L${rootDir}/core",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-arm-v7a.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-arm-v7a.so"
+            into "${projectDir}/../realm/src/main/jniLibs/armeabi-v7a"
+            rename 'libtightdb-jni-arm-v7a.so', 'libtightdb-jni.so'
+        }
     }
-    List<String> getCppCompilerArgs() { [] }
-    List<String> getCCompilerArgs() { [] }
-    List<String> getObjectiveCCompilerArgs() { [] }
-    List<String> getObjectiveCppCompilerArgs() { [] }
-    List<String> getAssemblerArgs() { [] }
-    List<String> getLinkerArgs() { [] }
-    List<String> getStaticLibraryArchiverArgs() { [] }
 }
 
-class AndroidIntelPlatformConfiguration implements TargetPlatformConfiguration {
-    boolean supportsPlatform(Platform targetPlatform) {
-        return targetPlatform.name.contains('androidIntel') &&
-               targetPlatform.operatingSystem.name.equals('linux') &&
-               targetPlatform.architecture.name.equals('x86')
+task buildAndroidJniMips {
+    group 'build'
+    description 'Build the Android JNI shared library for the Mips platform'
+    dependsOn generateNdkToolchainMips
+    dependsOn downloadCore
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/mips/mipsel-linux-android/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core/include",
+                'CFLAGS_ARCH=',
+                'BASE_DENOM=mips',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -L${rootDir}/core",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-mips.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-mips.so"
+            into "${projectDir}/../realm/src/main/jniLibs/mips"
+            rename 'libtightdb-jni-mips.so', 'libtightdb-jni.so'
+        }
     }
-    List<String> getCppCompilerArgs() { [] }
-    List<String> getCCompilerArgs() { [] }
-    List<String> getObjectiveCCompilerArgs() { [] }
-    List<String> getObjectiveCppCompilerArgs() { [] }
-    List<String> getAssemblerArgs() { [] }
-    List<String> getLinkerArgs() { [] }
-    List<String> getStaticLibraryArchiverArgs() { [] }
 }
 
-class AndroidMipsPlatformConfiguration implements TargetPlatformConfiguration {
-    boolean supportsPlatform(Platform targetPlatform) {
-        return targetPlatform.name.contains('androidMips') &&
-               targetPlatform.operatingSystem.name.equals('linux') &&
-               !targetPlatform.architecture.name.equals('arm')
-               !targetPlatform.architecture.name.equals('x86')
+task buildAndroidJniIntel {
+    group 'build'
+    description 'Build the Android JNI shared library for the Intel platform'
+    dependsOn generateNdkToolchainX86
+    dependsOn downloadCore
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/x86/i686-linux-android/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core/include",
+                'CFLAGS_ARCH=',
+                'BASE_DENOM=x86',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -L${rootDir}/core",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-x86.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-x86.so"
+            into "${projectDir}/../realm/src/main/jniLibs/x86"
+            rename 'libtightdb-jni-x86.so', 'libtightdb-jni.so'
+        }
     }
-    List<String> getCppCompilerArgs() { [] }
-    List<String> getCCompilerArgs() { [] }
-    List<String> getObjectiveCCompilerArgs() { [] }
-    List<String> getObjectiveCppCompilerArgs() { [] }
-    List<String> getAssemblerArgs() { [] }
-    List<String> getLinkerArgs() { [] }
-    List<String> getStaticLibraryArchiverArgs() { [] }
 }
 
 task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared library for all the supported platforms') {
-    dependsOn binaries.withType(SharedLibraryBinary)
-    doLast {
-        copy {
-            from "${projectDir}/build/binaries/jniSharedLibrary/androidArm/libjni.so"
-            into "${projectDir}/../realm/src/main/jniLibs/armeabi/"
-            rename 'libjni.so', 'libtightdb-jni.so'
-        }
-        copy {
-            from "${projectDir}/build/binaries/jniSharedLibrary/androidArmv7a/libjni.so"
-            into "${projectDir}/../realm/src/main/jniLibs/armeabi-v7a/"
-            rename 'libjni.so', 'libtightdb-jni.so'
-        }
-    }
-}
-
-def jniTasks = tasks.findAll { task -> task.name.contains('jni') }
-jniTasks.each() { task ->
-    task.dependsOn downloadCore
-    task.dependsOn generateAllNdkToolchains
+    dependsOn buildAndroidJniArm
+    dependsOn buildAndroidJniArmv7a
+    dependsOn buildAndroidJniMips
+    dependsOn buildAndroidJniIntel
 }

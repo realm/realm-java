@@ -10,6 +10,16 @@ android {
     buildToolsVersion '20.0.0'
 }
 
+android.libraryVariants.all { variant ->
+    task("generate${variant.name}Javadoc", type: Javadoc) {
+        description "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        exclude "**/internal/**"
+    }
+}
+
 tasks.preBuild {
     dependsOn ':realm-jni:buildAndroidJni'
 }

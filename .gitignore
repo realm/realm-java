@@ -20,8 +20,10 @@ core
 # JNI libs
 /realm/src/main/jniLibs
 
-# Dynamic Libraries
+# Build artifacts
 *.so
+*.d
+*.o
 
 # Backup files
 *.bak
