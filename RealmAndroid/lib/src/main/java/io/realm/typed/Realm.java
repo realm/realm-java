@@ -33,8 +33,9 @@ public class Realm {
     private ImplicitTransaction transaction;
     private String filePath;
     private int version;
-    private File bytecodeCache;
     private ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+
+    public ImplicitTransaction getTransaction() {return transaction;}
 
     private List<RealmChangeListener> changeListeners;
     boolean runEventHandler = false;
@@ -45,15 +46,7 @@ public class Realm {
 
     public Realm(File writeablePath, String filePath) throws IOException {
         this.filePath = new File(writeablePath, filePath).getAbsolutePath();
-        File bytecodeCache = new File(writeablePath, "dx");
-        if (!bytecodeCache.exists()) {
-            boolean success = bytecodeCache.mkdirs();
-            if (!success) {
-                throw new IOException("Could not create the bytecode cache folder");
-            }
-        }
 
-        this.bytecodeCache = bytecodeCache;
         this.changeListeners = new ArrayList<RealmChangeListener>();
         init();
     }
@@ -110,8 +103,6 @@ public class Realm {
             // Create the table
             Table table = transaction.getTable(classSpec.getSimpleName());
 
-            System.out.println(classSpec.getSimpleName());
-
             Field[] fields = classSpec.getDeclaredFields();
 
             for (int i = 0; i < fields.length; i++) {
@@ -119,9 +110,6 @@ public class Realm {
                 Field f = fields[i];
 
                 Class<?> fieldType = f.getType();
-
-                System.out.println(f.getName() + " - " + fieldType.getName());
-
 
                 if (fieldType.equals(String.class)) {
                     table.addColumn(ColumnType.STRING, f.getName().toLowerCase(Locale.getDefault()));
@@ -498,9 +486,4 @@ public class Realm {
     public void setVersion(int version) {
         this.version = version;
     }
-
-    private File getBytecodeCache() {
-        return bytecodeCache;
-    }
-
 }

@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.test.AndroidTestCase;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,9 +14,14 @@ import java.util.List;
 import java.util.Map;
 
 import io.realm.ColumnType;
+import io.realm.ImplicitTransaction;
 import io.realm.ReadTransaction;
+import io.realm.Row;
 import io.realm.SharedGroup;
 import io.realm.Table;
+import io.realm.TableOrView;
+import io.realm.TableQuery;
+import io.realm.TableView;
 import io.realm.WriteTransaction;
 import io.realm.tests.typed.entities.User;
 import io.realm.typed.Realm;
@@ -109,6 +115,53 @@ public class PerformanceTest extends AndroidTestCase {
         }
         timings.put("RealmList_Get", (System.currentTimeMillis() - timer));
 
+
+        System.out.println("################################ Testing raw");
+
+        realm.clear();
+        realm = null;
+
+        timer = System.currentTimeMillis();
+        String filePath = new File(getContext().getFilesDir(),  "default.realm").getAbsolutePath();
+        try {
+
+            SharedGroup sg = new SharedGroup(filePath,  SharedGroup.Durability.FULL);
+            ImplicitTransaction transaction = sg.beginImplicitTransaction();
+            transaction.promoteToWrite();
+            Table table = transaction.getTable("User");
+            table.addColumn(ColumnType.INTEGER, "id");
+            table.addColumn(ColumnType.STRING, "user");
+            table.addColumn(ColumnType.STRING, "email");
+
+            table = transaction.getTable("User");
+
+            for(int i = 0; i < listSize; i++) {
+                Row row = table.getRow(table.addEmptyRow());
+                row.setLong(0,i);
+                row.setString(1,"John Doe"+(i/3));
+                row.setString(2,"john@doe.com");
+            }
+            transaction.commitAndContinueAsRead();
+
+
+            timings.put("RealmList_RawW", (System.currentTimeMillis() - timer));
+
+            timer = System.currentTimeMillis();
+
+            TableOrView dataStore =  transaction.getTable("User");
+            TableQuery query = dataStore.where();
+            TableView tv = query.findAll();
+
+            for(int i = 0; i < listSize; i++) {
+                long v = tv.getLong(0,i);
+                String s1 = tv.getString(1,i);
+                String s2 = tv.getString(2,i);
+            }
+            } catch(Throwable t) {
+            t.printStackTrace();
+            fail();
+        }
+        timings.put("RealmList_RawG", (System.currentTimeMillis() - timer));
 
         // TightDB dyn
 
@@ -215,6 +268,11 @@ public class PerformanceTest extends AndroidTestCase {
         System.out.println("New Interface:");
         System.out.println("Add: " + timings.get("RealmList_Add")+" ms");
         System.out.println("Get: " + timings.get("RealmList_Get")+" ms");
+
+        // Output results
+        System.out.println("RAW Interface:");
+        System.out.println("Add: " + timings.get("RealmList_RawW")+" ms\t\t(x" + (timings.get("RealmList_Add").doubleValue() / timings.get("RealmList_RawW").doubleValue()) + ")");
+        System.out.println("Get: " + timings.get("RealmList_RawG")+" ms\t\t(x" + (timings.get("RealmList_Get").doubleValue() / timings.get("RealmList_RawG").doubleValue()) + ")");
 
         System.out.println("Old Dyn Interface:");
         System.out.println("Add: " + timings.get("TightDB_Add") + " ms\t\t(x" + (timings.get("RealmList_Add").doubleValue() / timings.get("TightDB_Add").doubleValue()) + ")");
