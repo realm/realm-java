@@ -8,6 +8,7 @@ realm-jni/build
 
 # Core
 core
+core-*
 
 # Android Studio
 .idea
