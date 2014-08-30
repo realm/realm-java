@@ -32,6 +32,18 @@ public class RealmProcessor extends AbstractProcessor {
 	   @Override
 	    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
+	        for (Element classElement : roundEnv.getElementsAnnotatedWith(Ignore.class)) {
+	            // Check the annotation was applied to a FIELD
+	            if (!classElement.getKind().equals(ElementKind.FIELD)) {
+	                error("The Ignore annotation can only be applied to Fields");
+	                return false;
+	            }
+	            codeGenerator.add_Ignore(classElement.getSimpleName().toString());  
+	            
+	        }
+
+		   
+		   
 		   for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
 	            // Check the annotation was applied to a Class
 	            if (!classElement.getKind().equals(ElementKind.CLASS)) {
@@ -94,16 +106,6 @@ public class RealmProcessor extends AbstractProcessor {
 	            }
 	        }
 	        
-	        for (Element classElement : roundEnv.getElementsAnnotatedWith(Ignore.class)) {
-	            // Check the annotation was applied to a Class
-	            if (!classElement.getKind().equals(ElementKind.FIELD)) {
-	                error("The Ignore annotation can only be applied to Fields");
-	                return false;
-	            }
-	            String elementName = classElement.getSimpleName().toString();
-	            codeGenerator.add_Ignore(elementName);  
-	            
-	        }
 	        return true;
 	    }
 

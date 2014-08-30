@@ -164,6 +164,12 @@ public class RealmSourceCodeGenerator {
 		while (it.hasNext())
 		{
 			String k = it.next();
+			
+			
+			if (ignoreFields.contains(k))
+			{
+				continue;
+			}
 
 			_bw.append(generateMethod(_codeGetter, k, fieldIndex));
 			_bw.append(generateMethod(_codeSetter, k, fieldIndex));
