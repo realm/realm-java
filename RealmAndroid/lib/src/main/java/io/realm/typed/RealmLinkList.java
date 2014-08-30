@@ -21,24 +21,24 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
 
     @Override
     public void add(int location, E object) {
-        if(object.row == null) {
-            realm.add(object);
-            view.add(object.realmAddedAtRowIndex);
-        } else {
+//        if(object.row == null) {
+//            realm.add(object);
+//            view.add(object.realmAddedAtRowIndex);
+//        } else {
             view.add(object.row.getIndex());
-        }
+//        }
     }
 
     @Override
     public E set(int location, E object) {
-        if(object.row == null) {
-            realm.add(object);
-            view.set(location, object.realmAddedAtRowIndex);
-            return realm.get((Class<E>)object.getClass(), object.realmAddedAtRowIndex);
-        } else {
+//        if(object.row == null) {
+//            realm.add(object);
+//            view.set(location, object.realmAddedAtRowIndex);
+//            return realm.get((Class<E>)object.getClass(), object.realmAddedAtRowIndex);
+//        } else {
             view.set(location, object.row.getIndex());
             return object;
-        }
+//        }
     }
 
     @Override
