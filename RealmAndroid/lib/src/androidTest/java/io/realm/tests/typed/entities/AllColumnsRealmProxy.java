@@ -29,19 +29,7 @@ public class AllColumnsRealmProxy extends AllColumns
         row.setDouble(columnDoubleIndex, value);
     }
 
-    final static int columnLongIndex = 2;
-
-    public long getColumnLong()
-    {
-        return row.getLong(columnLongIndex);
-    }
-
-    public void setColumnLong(long value)
-    {
-        row.setLong(columnLongIndex, value);
-    }
-
-    final static int columnBooleanIndex = 3;
+    final static int columnBooleanIndex = 2;
 
     public boolean getColumnBoolean()
     {
@@ -53,7 +41,7 @@ public class AllColumnsRealmProxy extends AllColumns
         row.setBoolean(columnBooleanIndex, value);
     }
 
-    final static int columnStringIndex = 4;
+    final static int columnStringIndex = 3;
 
     public java.lang.String getColumnString()
     {
@@ -65,7 +53,7 @@ public class AllColumnsRealmProxy extends AllColumns
         row.setString(columnStringIndex, value);
     }
 
-    final static int columnFloatIndex = 5;
+    final static int columnFloatIndex = 4;
 
     public float getColumnFloat()
     {
@@ -77,10 +65,10 @@ public class AllColumnsRealmProxy extends AllColumns
         row.setFloat(columnFloatIndex, value);
     }
 
-    private static String[] fieldNames = {"columnDate" ,"columnDouble" ,"columnLong" ,"columnBoolean" ,"columnString" ,"columnFloat"};
+    private static String[] fieldNames = {"columnDate" ,"columnDouble" ,"columnBoolean" ,"columnString" ,"columnFloat"};
     public String[] getTableRowNames() {return fieldNames;}
 
-    private static int[] fieldTypes = {7 ,10 ,0 ,1 ,2 ,9};
+    private static int[] fieldTypes = {7 ,10 ,1 ,2 ,9};
     public int[] getTableRowTypes() {return fieldTypes;}
 
     public String getTableName() {return implName;}

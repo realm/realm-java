@@ -12,10 +12,6 @@ public class Person extends RealmObject {
     private String name;
     private RealmList<Dog> dogs = new RealmArrayList<Dog>();
 
-    public Person(String name) {
-        this.name = name;
-    }
-
     public String getName() {
         return name;
     }
