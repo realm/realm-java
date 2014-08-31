@@ -3,9 +3,10 @@ package io.realm.tests.examples.entities;
 import io.realm.typed.RealmArrayList;
 import io.realm.typed.RealmList;
 import io.realm.typed.RealmObject;
+import io.realm.base.RealmClass;
 import io.realm.typed.RealmTableOrViewList;
 
-@io.realm.base.RealmClass
+@RealmClass
 public class Person extends RealmObject {
 
     private String name;

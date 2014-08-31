@@ -1,8 +1,9 @@
 package io.realm.tests.typed.entities;
 
 import io.realm.typed.RealmObject;
+import io.realm.base.RealmClass;
 
-@io.realm.base.RealmClass
+@RealmClass
 public class User extends RealmObject {
 
     private int id;
