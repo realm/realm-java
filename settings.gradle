@@ -1,0 +1,4 @@
+include 'realm-jni'
+include 'realm'
+
+rootProject.name = 'tightdb_java'

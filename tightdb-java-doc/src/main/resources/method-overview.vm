@@ -1,9 +1,0 @@
-				<tr bgcolor="white" class="TableRowColor">
-				<td align="right" valign="top" width="1%"><font size="-1">
-				<code>
-					&nbsp;${ret}</code></font></td>
-					<td><code><b><a href="${class.toLowerCase()}-${name}.html">${name}</a></b>(#foreach($p in $params)<i>${p.type}</i> ${p.name}#if($foreach.hasNext), #end#end)
-				</code>
-				<br>
-				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${doc}</td>
-				</tr>
