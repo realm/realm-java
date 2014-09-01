@@ -4,6 +4,7 @@ import com.google.dexmaker.stock.ProxyBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +31,9 @@ import io.realm.internal.Table;
 public class Realm {
 
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
+
+    private boolean readOnly;  // realm is read-only
+    private boolean autoFresh; // run autorefresh at certain points in app's mainloop
 
     private SharedGroup sg;
     private ImplicitTransaction transaction;
@@ -59,6 +64,20 @@ public class Realm {
         init();
     }
 
+    /**
+     *
+     * This constructor is not yet implemented.
+     *
+     * @param writeablePath
+     * @param filePath
+     * @param readOnly
+     * @throws IOException
+     */
+    public Realm(File writeablePath, String filePath, boolean readOnly) throws IOException, NoSuchMethodException {
+        throw new NoSuchMethodException("readOnly is not supported.");
+    }
+
+
     private void startEventHandler() {
         runEventHandler = true;
         RealmEventHandler realmEventHandler = new RealmEventHandler(this);
@@ -74,8 +93,52 @@ public class Realm {
 
     private void init() {
         this.sg = new SharedGroup(filePath, defaultDurability);
+        this.readOnly = false;
         this.transaction = sg.beginImplicitTransaction();
     }
+
+    /**
+     *
+     * Read-only realms are currently not implemented
+     *
+     * @return true if Realm is read-only, false otherwise
+     */
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
+    /**
+     *
+     * No realms are can be auto-freshed currently.
+     *
+     * @return true if Realm is read-only, false otherwise
+     */
+    public boolean isAutoFresh() {
+        return readOnly;
+    }
+
+    /**
+     *
+     * This method is currently not implemented.
+     *
+     * @param autoFresh update Realm automatically
+     */
+    public void setAutoFresh(boolean autoFresh) throws NoSuchMethodException {
+        throw new NoSuchMethodException("autoRefresh is not implemented.");
+        // this.autoFresh = autoFresh;
+    }
+
+    /**
+     *
+     * This method is currently not implemented.
+     *
+     * Open default Realm.
+     *
+     */
+    public void defaultRealm() throws NoSuchMethodException {
+        throw new NoSuchMethodException("defaultRealm is not implemented.");
+    }
+
 
     public static void setDefaultDurability(SharedGroup.Durability durability) {
         defaultDurability = durability;
@@ -132,6 +195,7 @@ public class Realm {
                         Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
                         if(RealmObject.class.equals(actual.getSuperclass())) {
                             initTable(actual);
+                            initTable(actual);
                             table.addColumnLink(ColumnType.LINK_LIST, f.getName().toLowerCase(Locale.getDefault()), getTable(actual));
                         }
                     }
@@ -167,6 +231,17 @@ public class Realm {
 
     public <E> void remove(Class<E> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
+    }
+
+    /**
+     *
+     * This method is not implemented yet.
+     *
+     * @param clazz
+     * @param array
+     */
+    public <E> void removeObjects(Class<E> clazz, ArrayList<E> array) {
+        throw new NoSuchElementException("removeObjects is not implemented");
     }
 
     private Map<String, List<Field>> cache = new HashMap<String, List<Field>>();
@@ -306,6 +381,17 @@ public class Realm {
             columnIndex++;
         }
 
+    }
+
+    /**
+     *
+     * This method is not implemented.
+     *
+     * @param clazz
+     * @param array
+     */
+    public <E extends RealmObject> void addObjectFromArray(Class<E> clazz, Array array) throws NoSuchMethodException {
+        throw new NoSuchMethodException("addObjectFromArray not implemented");
     }
 
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {

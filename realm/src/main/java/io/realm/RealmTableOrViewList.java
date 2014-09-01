@@ -1,9 +1,11 @@
 package io.realm;
 
 
+import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
@@ -59,6 +61,16 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         return new RealmQuery<E>(this, classSpec);
     }
 
+    @Override
+    public void addObject(E element) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public void addObjectFromArray(Array array) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
 
     @Override
     public E get(int rowIndex) {
@@ -91,6 +103,62 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     @Override
     public int size() {
         return ((Long)getTable().size()).intValue();
+    }
+
+    @Override
+    public String JSONString() throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public void replaceObjectWithObject(E oldElement, E newElement) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public void removeLastObject() throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public void insertObjectAtIndex(E element, int index) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public int indexOfObjectWhere() throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public int indexOfObject(E element) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+
+    @Override
+    public double averageOfProperty(String propertyName) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public double sumOfProperty(String propertyName) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public int maxOfProperty(String propertyName) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public int minOfProperty(String propertyName) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+
+    @Override
+    public RealmList<E> arraySortForProperty(String propertyName) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
     }
 
 }
