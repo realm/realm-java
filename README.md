@@ -16,3 +16,7 @@
  * `./gradlew assemble` will generate the `.aar` file
  * `./gradlew generatereleaseJavadoc` will generate the Javadocs
  * `./gradlew connectedCheck` will run the tests on a connected Android device
+
+## Test
+
+This is a test
