@@ -1,37 +1,40 @@
-package io.realm.tests.performance;
+package performance.realm.io.performance;
 
+import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
-import android.test.AndroidTestCase;
+import android.os.AsyncTask;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.realm.ColumnType;
-import io.realm.ImplicitTransaction;
-import io.realm.ReadTransaction;
-import io.realm.Row;
-import io.realm.SharedGroup;
-import io.realm.Table;
-import io.realm.TableOrView;
-import io.realm.TableQuery;
-import io.realm.TableView;
-import io.realm.WriteTransaction;
-import io.realm.tests.typed.entities.User;
-import io.realm.typed.Realm;
-import io.realm.typed.RealmList;
+import io.realm.Realm;
+import io.realm.RealmList;
+import io.realm.internal.ColumnType;
+import io.realm.internal.ReadTransaction;
+import io.realm.internal.SharedGroup;
+import io.realm.internal.Table;
+import io.realm.internal.WriteTransaction;
+import performance.realm.io.performance.entities.User;
 
-public class PerformanceTest extends AndroidTestCase {
+public class PerformanceTask extends AsyncTask<Integer, String, String> {
+    private Activity activity;
 
-    public void testPerformance() {
 
-        final int listSize = 10000;
+    public PerformanceTask(Activity activity) {
+        this.activity = activity;
+    }
+
+    @Override
+    protected String doInBackground(Integer... params) {
+        final int listSize = params[0];
         long timer;
         Map<String, Long> timings = new HashMap<String, Long>();
 
@@ -67,10 +70,10 @@ public class PerformanceTest extends AndroidTestCase {
         Realm.setDefaultDurability(SharedGroup.Durability.FULL);
         Realm realm = null;
         try {
-            realm = new Realm(getContext().getFilesDir());
+            realm = new Realm(activity.getFilesDir());
         } catch (IOException e) {
             e.printStackTrace();
-            return;
+            return null;
         }
 
         realm.clear();
@@ -82,13 +85,16 @@ public class PerformanceTest extends AndroidTestCase {
                 User user = realm.create(User.class);
 
                 user.setId(i);
-                user.setName("John Doe"+(i/3));
+                user.setName("John Doe");
                 user.setEmail("john@doe.com");
-           }
+
+                // realm.add(user);
+
+            }
             realm.commit();
         } catch(Throwable t) {
             t.printStackTrace();
-            fail();
+            return null;
         }
 
         timings.put("RealmList_Add", (System.currentTimeMillis() - timer));
@@ -96,78 +102,23 @@ public class PerformanceTest extends AndroidTestCase {
         timer = System.currentTimeMillis();
         RealmList<User> realmList = realm.where(User.class).findAll();
         for(int i = 0; i < listSize; i++) {
+            // IUser u = realmList.getTest(i, IUser.class);
             User u = realmList.get(i);
+            //       System.out.println(u.getId());
 
-            int id = u.getId();
-            String name = u.getName();
-            String email = u.getEmail();
-
-//            if (id != i)
-//            {
-//                fail("read does not match write (id)");
-//            }
-//            if (("John Doe"+(i/3)).compareTo(name) != 0)
-//            {
-//                fail("read does not match write (name)");
-//            }
-
+            u.getId();
+            u.getName();
+            u.getEmail();
 
         }
         timings.put("RealmList_Get", (System.currentTimeMillis() - timer));
 
 
-        System.out.println("################################ Testing raw");
-
-        realm.clear();
-        realm = null;
-
-        timer = System.currentTimeMillis();
-        String filePath = new File(getContext().getFilesDir(),  "default.realm").getAbsolutePath();
-        try {
-
-            SharedGroup sg = new SharedGroup(filePath,  SharedGroup.Durability.FULL);
-            ImplicitTransaction transaction = sg.beginImplicitTransaction();
-            transaction.promoteToWrite();
-            Table table = transaction.getTable("User");
-            table.addColumn(ColumnType.INTEGER, "id");
-            table.addColumn(ColumnType.STRING, "user");
-            table.addColumn(ColumnType.STRING, "email");
-
-            table = transaction.getTable("User");
-
-            for(int i = 0; i < listSize; i++) {
-                Row row = table.getRow(table.addEmptyRow());
-                row.setLong(0,i);
-                row.setString(1,"John Doe"+(i/3));
-                row.setString(2,"john@doe.com");
-            }
-            transaction.commitAndContinueAsRead();
-
-
-            timings.put("RealmList_RawW", (System.currentTimeMillis() - timer));
-
-            timer = System.currentTimeMillis();
-
-            TableOrView dataStore =  transaction.getTable("User");
-            TableQuery query = dataStore.where();
-            TableView tv = query.findAll();
-
-            for(int i = 0; i < listSize; i++) {
-                long v = tv.getLong(0,i);
-                String s1 = tv.getString(1,i);
-                String s2 = tv.getString(2,i);
-            }
-            } catch(Throwable t) {
-            t.printStackTrace();
-            fail();
-        }
-        timings.put("RealmList_RawG", (System.currentTimeMillis() - timer));
-
         // TightDB dyn
 
         System.out.println("################################ Testing dynamic interface");
 
-        SharedGroup sg = new SharedGroup(this.getContext().getFilesDir().getPath()+"/perfTest.tightdb");
+        SharedGroup sg = new SharedGroup(activity.getFilesDir().getPath()+"/perfTest.tightdb");
 
         WriteTransaction wt = sg.beginWrite();
         try {
@@ -222,7 +173,7 @@ public class PerformanceTest extends AndroidTestCase {
 
         System.out.println("################################ Testing SQLite");
 
-        SQLiteOpenHelper sqLiteOpenHelper = new SQLiteHelper(getContext());
+        SQLiteOpenHelper sqLiteOpenHelper = new SQLiteHelper(activity);
         SQLiteDatabase database = sqLiteOpenHelper.getWritableDatabase();
 
         database.execSQL("DELETE FROM t1 WHERE 1=1");
@@ -262,30 +213,36 @@ public class PerformanceTest extends AndroidTestCase {
         }
 
         timings.put("SQLite_Get", (System.currentTimeMillis() - timer));
-        System.out.println("SQL ROWS " + i);
+
+        final String newLine = System.getProperty("line.separator");
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("SQL ROWS ").append(i).append(newLine);
 
         // Output results
-        System.out.println("New Interface:");
-        System.out.println("Add: " + timings.get("RealmList_Add")+" ms");
-        System.out.println("Get: " + timings.get("RealmList_Get")+" ms");
+        stringBuilder.append("New Interface:").append(newLine);
+        stringBuilder.append("Add: ").append(timings.get("RealmList_Add")).append(" ms").append(newLine);
+        stringBuilder.append("Get: ").append(timings.get("RealmList_Get")).append(" ms").append(newLine);
 
-        // Output results
-        System.out.println("RAW Interface:");
-        System.out.println("Add: " + timings.get("RealmList_RawW")+" ms\t\t(x" + (timings.get("RealmList_Add").doubleValue() / timings.get("RealmList_RawW").doubleValue()) + ")");
-        System.out.println("Get: " + timings.get("RealmList_RawG")+" ms\t\t(x" + (timings.get("RealmList_Get").doubleValue() / timings.get("RealmList_RawG").doubleValue()) + ")");
+        stringBuilder.append("Old Dyn Interface:").append(newLine);
+        stringBuilder.append("Add: ").append(timings.get("TightDB_Add")).append(" ms\t\t(x").append(timings.get("RealmList_Add").doubleValue() / timings.get("TightDB_Add").doubleValue()).append(")").append(newLine);
+        stringBuilder.append("Get: ").append(timings.get("TightDB_Get")).append(" ms\t\t(x").append(timings.get("RealmList_Get").doubleValue() / timings.get("TightDB_Get").doubleValue()).append(")").append(newLine);
 
-        System.out.println("Old Dyn Interface:");
-        System.out.println("Add: " + timings.get("TightDB_Add") + " ms\t\t(x" + (timings.get("RealmList_Add").doubleValue() / timings.get("TightDB_Add").doubleValue()) + ")");
-        System.out.println("Get: " + timings.get("TightDB_Get") + " ms\t\t(x" + (timings.get("RealmList_Get").doubleValue() / timings.get("TightDB_Get").doubleValue()) + ")");
+        stringBuilder.append("ArrayList Interface:").append(newLine);
+        stringBuilder.append("Add: ").append(timings.get("ArrayList_Add")).append(" ms\t\t(x").append(timings.get("RealmList_Add").doubleValue() / timings.get("ArrayList_Add").doubleValue()).append(")").append(newLine);
+        stringBuilder.append("Get: ").append(timings.get("ArrayList_Get")).append(" ms\t\t(x").append(timings.get("RealmList_Get").doubleValue() / timings.get("ArrayList_Get").doubleValue()).append(")").append(newLine);
 
-        System.out.println("ArrayList Interface:");
-        System.out.println("Add: " + timings.get("ArrayList_Add") + " ms\t\t(x" + (timings.get("RealmList_Add").doubleValue() / timings.get("ArrayList_Add").doubleValue()) + ")");
-        System.out.println("Get: " + timings.get("ArrayList_Get") + " ms\t\t(x" + (timings.get("RealmList_Get").doubleValue() / timings.get("ArrayList_Get").doubleValue()) + ")");
+        stringBuilder.append("SQLite:").append(newLine);
+        stringBuilder.append("Add: ").append(timings.get("SQLite_Add")).append(" ms\t\t(x").append(timings.get("RealmList_Add").doubleValue() / timings.get("SQLite_Add").doubleValue()).append(")").append(newLine);
+        stringBuilder.append("Get: ").append(timings.get("SQLite_Get")).append(" ms\t\t(x").append(timings.get("RealmList_Get").doubleValue() / timings.get("SQLite_Get").doubleValue()).append(")").append(newLine);
 
-        System.out.println("SQLite:");
-        System.out.println("Add: " + timings.get("SQLite_Add") + " ms\t\t(x" + (timings.get("RealmList_Add").doubleValue() / timings.get("SQLite_Add").doubleValue()) + ")");
-        System.out.println("Get: " + timings.get("SQLite_Get") + " ms\t\t(x" + (timings.get("RealmList_Get").doubleValue() / timings.get("SQLite_Get").doubleValue()) + ")");
-
+        return stringBuilder.toString();
     }
 
+    @Override
+    protected void onPostExecute(String s) {
+        TextView textView = (TextView) activity.findViewById(R.id.resultText);
+        textView.setText(s);
+        Toast.makeText(activity, "Done!", Toast.LENGTH_LONG).show();
+    }
 }

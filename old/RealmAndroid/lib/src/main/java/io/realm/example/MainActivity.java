@@ -73,13 +73,13 @@ public class MainActivity extends Activity {
         }
         wrRealm.beginWrite();
 
-        User user = new User();
+        User user = realm.create(User.class);
 
         user.setId(0);
         user.setName("Username " + this.users.size());
         user.setEmail("");
 
-        wrRealm.add(user);
+
         wrRealm.commit();
 
 

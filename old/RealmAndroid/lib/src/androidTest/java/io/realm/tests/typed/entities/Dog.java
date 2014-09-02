@@ -3,7 +3,9 @@ package io.realm.tests.typed.entities;
 import io.realm.typed.RealmArrayList;
 import io.realm.typed.RealmList;
 import io.realm.typed.RealmObject;
+import io.realm.base.RealmClass;
 
+@RealmClass
 public class Dog extends RealmObject {
 
     private RealmList<User> owners = new RealmArrayList<User>();

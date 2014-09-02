@@ -3,16 +3,14 @@ package io.realm.tests.examples.entities;
 import io.realm.typed.RealmArrayList;
 import io.realm.typed.RealmList;
 import io.realm.typed.RealmObject;
+import io.realm.base.RealmClass;
 import io.realm.typed.RealmTableOrViewList;
 
+@RealmClass
 public class Person extends RealmObject {
 
     private String name;
     private RealmList<Dog> dogs = new RealmArrayList<Dog>();
-
-    public Person(String name) {
-        this.name = name;
-    }
 
     public String getName() {
         return name;
