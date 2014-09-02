@@ -1,14 +1,25 @@
 package io.realm.processor;
-
 import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+
+import com.squareup.javawriter.JavaWriter;
 
 import io.realm.ColumnType;
 
@@ -18,6 +29,40 @@ public class RealmSourceCodeGenerator {
 	private HashMap<String, Element> _methods = new HashMap<String, Element>();
 	private HashSet<String> ignoreFields = new HashSet<String>();
 	
+	public void setBufferedWriter(BufferedWriter bw) 
+	{
+		_bw = bw;
+	}
+
+
+	public void set_packageName(String packageName) 
+	{
+		_values.put("package", packageName);
+	}
+	
+	public void set_implements(String name) 
+	{
+		_values.put("implements", name);
+	}
+
+	public void set_className(String className) 
+	{
+		_values.put("class", className);
+	}
+
+	public void add_Field(String fieldName, Element element) 
+	{
+		_methods.put(fieldName, element);
+	}
+
+	public void add_Ignore(String symbolName) 
+	{
+		ignoreFields.add(symbolName);
+	}
+	
+
+	
+/***	
 	private final String _codeHeader =   "package <+package>;\n"+
 								         "\n\n"+
 								         "public class <+class>RealmProxy extends <+class> \n"+
@@ -51,37 +96,6 @@ public class RealmSourceCodeGenerator {
 								        "}\n"+
 									    "\n";
 								   
-	public void setBufferedWriter(BufferedWriter bw) 
-	{
-		_bw = bw;
-	}
-
-
-	public void set_packageName(String packageName) 
-	{
-		_values.put("package", packageName);
-	}
-	
-	public void set_implements(String name) 
-	{
-		_values.put("implements", name);
-	}
-
-	public void set_className(String className) 
-	{
-		_values.put("class", className);
-	}
-
-	public void add_Field(String fieldName, Element element) 
-	{
-		_methods.put(fieldName, element);
-	}
-
-	public void add_Ignore(String symbolName) 
-	{
-		ignoreFields.add(symbolName);
-	}
-	
 	public String generateFragment(String fragment) 
 	{
 		Set<String> keys = _values.keySet();
@@ -89,8 +103,8 @@ public class RealmSourceCodeGenerator {
 		
 		while (it.hasNext())
 		{
-			String k = it.next();
-			fragment = fragment.replace("<+"+k+">", _values.get(k));
+			String fieldName = it.next();
+			fragment = fragment.replace("<+"+fieldName+">", _values.get(fieldName));
 		}
 		
 		return fragment;
@@ -128,23 +142,13 @@ public class RealmSourceCodeGenerator {
 			fragment = fragment.replace("<+cast>","");
 		}
 		
-		if (fullType.compareTo("long") == 0)
+		
+		if (fullType.compareTo("long") == 0  || fullType.compareTo("float") == 0  || 
+		    fullType.compareTo("double") == 0  || fullType.compareTo("long") == 0  || 
+		    fullType.compareTo("boolean") == 0)
 		{
-			fullType = "Long";
+			fullType = Character.toUpperCase(fullType.charAt(0)) + fullType.substring(1);
 		}
-		
-		if (fullType.compareTo("float") == 0)
-			fullType = "Float";
-
-		if (fullType.compareTo("double") == 0)
-			fullType = "Double";
-		
-		if (fullType.compareTo("long") == 0)
-			fullType = "Long";
-		
-		if (fullType.compareTo("boolean") == 0)
-			fullType = "Boolean";
-		
 		fragment = fragment.replace("<+etter_type>", fullType);
 
 		return fragment;
@@ -163,22 +167,22 @@ public class RealmSourceCodeGenerator {
 
 		while (it.hasNext())
 		{
-			String k = it.next();
+			String fieldName = it.next();
 			
 			
-			if (ignoreFields.contains(k))
+			if (ignoreFields.contains(fieldName))
 			{
 				continue;
 			}
 
-			_bw.append(generateMethod(_codeGetter, k, fieldIndex));
-			_bw.append(generateMethod(_codeSetter, k, fieldIndex));
+			_bw.append(generateMethod(_codeGetter, fieldName, fieldIndex));
+			_bw.append(generateMethod(_codeSetter, fieldName, fieldIndex));
 			
 			fieldIndex++;
 			
-			Element e = _methods.get(k);
+			Element e = _methods.get(fieldName);
 			if (_fieldTable.length() > 0) _fieldTable += " ,";
-			_fieldTable += "\""+k+"\"";
+			_fieldTable += "\""+fieldName+"\"";
 			
 			if (_typeTable.length() > 0) _typeTable += " ,";
 			
@@ -233,4 +237,62 @@ public class RealmSourceCodeGenerator {
 
 		return true;
 	}
+*/
+	private String convertSimpleTypesToObject(String typeName)
+	{
+		if (typeName.compareTo("int") == 0)
+		{
+			typeName = "Integer";
+		}
+		else if (typeName.compareTo("long") == 0  || typeName.compareTo("float") == 0  || 
+				typeName.compareTo("double") == 0  || typeName.compareTo("boolean") == 0)
+		{
+			typeName = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
+		}
+		return typeName;
+	}
+	
+	public boolean generate() throws IOException
+	{
+		JavaWriter writer = new JavaWriter(_bw);
+
+		writer.emitPackage(_values.get("package")).beginType(_values.get("package")+"."+_values.get("class")+"RealmProxy", "class", EnumSet.of(Modifier.PUBLIC,Modifier.FINAL),_values.get("class"));
+
+		Iterator<String> methodNamesIterator = _methods.keySet().iterator();
+
+		while (methodNamesIterator.hasNext())
+		{
+			String fieldName = methodNamesIterator.next();
+			if (ignoreFields.contains(fieldName))
+			{
+				continue;
+			}
+			
+			Element e = _methods.get(fieldName);
+			String fullType =  convertSimpleTypesToObject(e.asType().toString());
+			String returnCast = "";
+			String camelCase = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+			String fieldId = camelCase+"Index";
+
+			if (fullType.compareTo("Integer") == 0)
+			{
+				fullType = "Long";
+				returnCast ="(int)";
+			}
+			
+			String getterStmt = "return "+returnCast+"row.get"+fullType+"( "+fieldId+" )";
+
+			writer.emitField("int", fieldId, EnumSet.of(Modifier.PUBLIC,Modifier.FINAL,Modifier.STATIC));
+
+			writer.beginMethod(fullType, "get"+camelCase, EnumSet.of(Modifier.PUBLIC))
+    		  .emitStatement(getterStmt)
+    	      .endMethod();
+		}
+		
+		writer.endType();
+		writer.close();
+		
+		return true;
+	}
+
 }

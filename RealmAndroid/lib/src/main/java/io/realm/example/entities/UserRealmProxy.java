@@ -1,54 +1,29 @@
 package io.realm.example.entities;
 
+public final class UserRealmProxy extends User {
 
-public class UserRealmProxy extends User 
-{
-    public static final String implName="User";
+  private static final int rowIndexEmail = 0;
+  public String getEmail() {
+    return row.getString( rowIndexEmail );
+  }
+  public void setEmail(String value) {
+    row.setString( rowIndexEmail, value );
+  }
 
-    final static int idIndex = 0;
+  private static final int rowIndexId = 1;
+  public int getId() {
+    return (int)row.getLong( rowIndexId );
+  }
+  public void setId(int value) {
+    row.setLong( rowIndexId, value );
+  }
 
-    public int getId()
-    {
-        return (int)row.getLong(idIndex);
-    }
+  private static final int rowIndexName = 2;
+  public String getName() {
+    return row.getString( rowIndexName );
+  }
+  public void setName(String value) {
+    row.setString( rowIndexName, value );
+  }
 
-    public void setId(int value)
-    {
-        row.setLong(idIndex, value);
-    }
-
-    final static int emailIndex = 1;
-
-    public java.lang.String getEmail()
-    {
-        return row.getString(emailIndex);
-    }
-
-    public void setEmail(java.lang.String value)
-    {
-        row.setString(emailIndex, value);
-    }
-
-    final static int nameIndex = 2;
-
-    public java.lang.String getName()
-    {
-        return row.getString(nameIndex);
-    }
-
-    public void setName(java.lang.String value)
-    {
-        row.setString(nameIndex, value);
-    }
-
-    final static int friendIndex = 3;
-
-    private static String[] fieldNames = {"id" ,"email" ,"name" };
-    public String[] getTableRowNames() {return fieldNames;}
-
-    private static int[] fieldTypes = {0 ,2 ,2 };
-    public int[] getTableRowTypes() {return fieldTypes;}
-
-    public String getTableName() {return implName;}
 }
-

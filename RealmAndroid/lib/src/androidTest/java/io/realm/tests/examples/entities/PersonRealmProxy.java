@@ -1,28 +1,13 @@
 package io.realm.tests.examples.entities;
 
+public final class PersonRealmProxy extends Person {
 
-public class PersonRealmProxy extends Person 
-{
-    public static final String implName="Person";
+  private static final int rowIndexName = 0;
+  public String getName() {
+    return row.getString( rowIndexName );
+  }
+  public void setName(String value) {
+    row.setString( rowIndexName, value );
+  }
 
-    final static int nameIndex = 0;
-
-    public java.lang.String getName()
-    {
-        return row.getString(nameIndex);
-    }
-
-    public void setName(java.lang.String value)
-    {
-        row.setString(nameIndex, value);
-    }
-
-    private static String[] fieldNames = {"name"};
-    public String[] getTableRowNames() {return fieldNames;}
-
-    private static int[] fieldTypes = {2};
-    public int[] getTableRowTypes() {return fieldTypes;}
-
-    public String getTableName() {return implName;}
 }
-

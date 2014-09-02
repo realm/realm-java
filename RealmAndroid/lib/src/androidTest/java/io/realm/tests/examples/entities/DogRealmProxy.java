@@ -1,40 +1,21 @@
 package io.realm.tests.examples.entities;
 
+public final class DogRealmProxy extends Dog {
 
-public class DogRealmProxy extends Dog 
-{
-    public static final String implName="Dog";
+  private static final int rowIndexAge = 0;
+  public int getAge() {
+    return (int)row.getLong( rowIndexAge );
+  }
+  public void setAge(int value) {
+    row.setLong( rowIndexAge, value );
+  }
 
-    final static int nameIndex = 0;
+  private static final int rowIndexName = 1;
+  public String getName() {
+    return row.getString( rowIndexName );
+  }
+  public void setName(String value) {
+    row.setString( rowIndexName, value );
+  }
 
-    public java.lang.String getName()
-    {
-        return row.getString(nameIndex);
-    }
-
-    public void setName(java.lang.String value)
-    {
-        row.setString(nameIndex, value);
-    }
-
-    final static int ageIndex = 1;
-
-    public int getAge()
-    {
-        return (int)row.getLong(ageIndex);
-    }
-
-    public void setAge(int value)
-    {
-        row.setLong(ageIndex, value);
-    }
-
-    private static String[] fieldNames = {"name" ,"age"};
-    public String[] getTableRowNames() {return fieldNames;}
-
-    private static int[] fieldTypes = {2 ,0};
-    public int[] getTableRowTypes() {return fieldTypes;}
-
-    public String getTableName() {return implName;}
 }
-
