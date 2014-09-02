@@ -14,12 +14,8 @@ public class RealmExample extends AndroidTestCase {
 
     public void testExample() {
 
-        // Create a standalone object
-        Dog myDog = new Dog();
 
         // Set & read properties
-        myDog.setName("Rex");
-        System.out.println(myDog.getName());
 
         // Realms are used to group data together
         Realm realm = null;
@@ -30,9 +26,13 @@ public class RealmExample extends AndroidTestCase {
             return;
         }
 
-        // Save your object
         realm.beginWrite();
-        realm.add(myDog);
+        // Create a standalone object
+        Dog myDog = realm.create(Dog.class);
+        myDog.setName("Rex");
+        System.out.println(myDog.getName());
+
+        // Save your object
         realm.commit();
 
         // Query
@@ -42,12 +42,15 @@ public class RealmExample extends AndroidTestCase {
         results.where().greaterThan("age", 8);
 
         // Link objects
-        Person person = new Person("Tim");
+
+        realm.beginWrite();
+
+        Person person = realm.create(Person.class);
+
+        person.setName("Tim");
 
         person.getDogs().add(myDog);
 
-        realm.beginWrite();
-        realm.add(person);
         realm.commit();
 
         // Query across links

@@ -1,8 +1,5 @@
 package io.realm.internal;
 
-import android.annotation.TargetApi;
-import android.os.Build;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -108,7 +105,6 @@ public class TightDB {
         gcOnExit();
     }
 
-    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     public static void loadLibrary() {
         if (libraryIsLoaded.get())
             // only load library once

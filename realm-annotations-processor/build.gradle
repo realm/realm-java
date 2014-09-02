@@ -1,0 +1,13 @@
+apply plugin: 'java'
+
+sourceSets {
+    main {
+        java {
+            srcDirs =  ['src/main/java', "${rootDir}/realm/src/main/java"]
+        }
+    }
+}
+
+dependencies {
+    compile project(':realm')
+}

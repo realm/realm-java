@@ -28,7 +28,7 @@ public class RealmListTest extends AndroidTestCase {
         realm.beginWrite();
 
         for(int i = 0; i < 10; i++) {
-            AllColumns allColumns = new AllColumns();
+            AllColumns allColumns = realm.create(AllColumns.class);
 
             allColumns.setColumnString("dsfs");
             allColumns.setColumnLong(i);
@@ -38,14 +38,12 @@ public class RealmListTest extends AndroidTestCase {
             allColumns.setColumnDate(new Date());
             allColumns.setColumnBinary(new byte[20]);
 
-            User user = new User();
+            User user = realm.create(User.class);
             user.setId(i);
             user.setName("Test User");
             user.setEmail("user@test.com");
 
             allColumns.setColumnRealmObject(user);
-
-            realm.add(allColumns);
         }
 
         realm.commit();
@@ -54,7 +52,9 @@ public class RealmListTest extends AndroidTestCase {
 
     public void testAddObject() {
 
-        AllColumns allColumns = new AllColumns();
+        realm.beginWrite();
+
+        AllColumns allColumns = realm.create(AllColumns.class);
 
         allColumns.setColumnString("dsfs");
         allColumns.setColumnLong(1);
@@ -65,15 +65,10 @@ public class RealmListTest extends AndroidTestCase {
         allColumns.setColumnBinary(new byte[20]);
 
 
-        realm.beginWrite();
-
         RealmTableOrViewList<AllColumns> list = realm.allObjects(AllColumns.class);
-
-        assertEquals(0, list.size());
+        assertEquals(1, list.size());
 
         try {
-            list.add(allColumns);
-            fail("Should throw UnsupportedOperationException");
             realm.commit();
 
         } catch (UnsupportedOperationException e) {

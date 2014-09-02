@@ -1,9 +1,8 @@
 package io.realm.typed;
 
-import com.google.dexmaker.stock.ProxyBuilder;
-
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -34,8 +33,9 @@ public class Realm {
     private ImplicitTransaction transaction;
     private String filePath;
     private int version;
-    private File bytecodeCache;
     private ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+
+    public ImplicitTransaction getTransaction() {return transaction;}
 
     private List<RealmChangeListener> changeListeners;
     boolean runEventHandler = false;
@@ -46,15 +46,7 @@ public class Realm {
 
     public Realm(File writeablePath, String filePath) throws IOException {
         this.filePath = new File(writeablePath, filePath).getAbsolutePath();
-        File bytecodeCache = new File(writeablePath, "dx");
-        if (!bytecodeCache.exists()) {
-            boolean success = bytecodeCache.mkdirs();
-            if (!success) {
-                throw new IOException("Could not create the bytecode cache folder");
-            }
-        }
 
-        this.bytecodeCache = bytecodeCache;
         this.changeListeners = new ArrayList<RealmChangeListener>();
         init();
     }
@@ -85,65 +77,95 @@ public class Realm {
         return transaction.getTable(classSpec.getSimpleName());
     }
 
-
-    private <E> void initTable(Class<E> classSpec) {
-
-        // Check for table existence
-        if(!transaction.hasTable(classSpec.getSimpleName())) {
-            // Create the table
-            Table table = transaction.getTable(classSpec.getSimpleName());
-
-            System.out.println(classSpec.getSimpleName());
-
-            Field[] fields = classSpec.getDeclaredFields();
-
-            for (int i = 0; i < fields.length; i++) {
-
-                Field f = fields[i];
-
-                Class<?> fieldType = f.getType();
-
-                System.out.println(f.getName() + " - " + fieldType.getName());
-
-
-                if (fieldType.equals(String.class)) {
-                    table.addColumn(ColumnType.STRING, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
-                    table.addColumn(ColumnType.INTEGER, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                    table.addColumn(ColumnType.DOUBLE, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-                    table.addColumn(ColumnType.FLOAT, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                    table.addColumn(ColumnType.BOOLEAN, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(Date.class)) {
-                    table.addColumn(ColumnType.DATE, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(byte[].class)) {
-                    table.addColumn(ColumnType.BINARY, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (RealmObject.class.equals(fieldType.getSuperclass())) {
-                    // Link
-                    initTable(fieldType);
-                    table.addColumnLink(ColumnType.LINK, f.getName().toLowerCase(Locale.getDefault()), getTable(fieldType));
-                } else if (RealmList.class.isAssignableFrom(fieldType)) {
-                    // Link List
-                    Type genericType = f.getGenericType();
-                    if (genericType instanceof ParameterizedType) {
-                        ParameterizedType pType = (ParameterizedType) genericType;
-                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
-                        if(RealmObject.class.equals(actual.getSuperclass())) {
-                            initTable(actual);
-                            table.addColumnLink(ColumnType.LINK_LIST, f.getName().toLowerCase(Locale.getDefault()), getTable(actual));
-                        }
-                    }
-                } else {
-                    System.err.println("Type not supported: " + fieldType.getName());
-                }
-
-
-            }
-
+    ColumnType columnTypeFromInt(int value)
+    {
+        switch (value)
+        {
+            case 1: return ColumnType.BOOLEAN;
+            case 0: return ColumnType.INTEGER;
+            case 9: return ColumnType.FLOAT;
+            case 10: return ColumnType.DOUBLE;
+            case 2: return ColumnType.STRING;
+            case 4: return ColumnType.BINARY;
+            case 7: return ColumnType.DATE;
+            case 8: return ColumnType.TABLE;
+            case 6: return ColumnType.MIXED;
+            case 12: return ColumnType.LINK;
+            case 13: return ColumnType.LINK_LIST;
+            default: return ColumnType.INTEGER;
         }
+    }
 
+//    private <E> void initTable(Class<E> classSpec) {
+//
+//        // Check for table existence
+//        if(!transaction.hasTable(classSpec.getSimpleName())) {
+//            // Create the table
+//            Table table = transaction.getTable(classSpec.getSimpleName());
+//
+//            Field[] fields = classSpec.getDeclaredFields();
+//
+//            for (int i = 0; i < fields.length; i++) {
+//
+//                Field f = fields[i];
+//
+//                Class<?> fieldType = f.getType();
+//
+//                if (fieldType.equals(String.class)) {
+//                    table.addColumn(ColumnType.STRING, f.getName().toLowerCase(Locale.getDefault()));
+//                } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
+//                    table.addColumn(ColumnType.INTEGER, f.getName().toLowerCase(Locale.getDefault()));
+//                } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
+//                    table.addColumn(ColumnType.DOUBLE, f.getName().toLowerCase(Locale.getDefault()));
+//                } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
+//                    table.addColumn(ColumnType.FLOAT, f.getName().toLowerCase(Locale.getDefault()));
+//                } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
+//                    table.addColumn(ColumnType.BOOLEAN, f.getName().toLowerCase(Locale.getDefault()));
+//                } else if (fieldType.equals(Date.class)) {
+//                    table.addColumn(ColumnType.DATE, f.getName().toLowerCase(Locale.getDefault()));
+//                } else if (fieldType.equals(byte[].class)) {
+//                    table.addColumn(ColumnType.BINARY, f.getName().toLowerCase(Locale.getDefault()));
+//                } else if (RealmObject.class.equals(fieldType.getSuperclass())) {
+//                    // Link
+//                    initTable(fieldType);
+//                    table.addColumnLink(ColumnType.LINK, f.getName().toLowerCase(Locale.getDefault()), getTable(fieldType));
+//                } else if (RealmList.class.isAssignableFrom(fieldType)) {
+//                    // Link List
+//                    Type genericType = f.getGenericType();
+//                    if (genericType instanceof ParameterizedType) {
+//                        ParameterizedType pType = (ParameterizedType) genericType;
+//                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
+//                        if(RealmObject.class.equals(actual.getSuperclass())) {
+//                            initTable(actual);
+//                            table.addColumnLink(ColumnType.LINK_LIST, f.getName().toLowerCase(Locale.getDefault()), getTable(actual));
+//                        }
+//                    }
+//                } else {
+//                    System.err.println("Type not supported: " + fieldType.getName());
+//                }
+//
+//
+//            }
+//
+//        }
+//
+//    }
+
+
+    private void initTable(RealmObject object) {
+        String tableName = object.getTableName();
+        // Check for table existence
+        if(!transaction.hasTable(tableName)) {
+            // Create the table
+            Table table = transaction.getTable(tableName);
+
+            String[] tableNames = object.getTableRowNames();
+            int[] tableTypes = object.getTableRowTypes();
+
+            for (int i = 0; i < tableNames.length; i++) {
+                table.addColumn(columnTypeFromInt(tableTypes[i]), tableNames[i].toLowerCase(Locale.getDefault()));
+            }
+        }
     }
 
 
@@ -153,17 +175,45 @@ public class Realm {
      * @return              The new object
      * @param <E>
      */
-    public <E extends RealmObject> E create(Class<E> classSpec) {
+//    public <E extends RealmObject> E create(Class<E> classSpec) {
+//
+//        initTable(classSpec);
+//
+//        Table table = getTable(classSpec);
+//
+//        long rowIndex = table.addEmptyRow();
+//        E obj = get(classSpec, rowIndex);
+//        obj.realmAddedAtRowIndex = rowIndex;
+//        return obj;
+//    }
 
-        initTable(classSpec);
+      public <E extends RealmObject> E create(Class<E> classSpec) {
 
-        Table table = getTable(classSpec);
+        E obj = null;
 
-        long rowIndex = table.addEmptyRow();
+        try {
+            String className = classSpec.getName()+"RealmProxy";
+            Class cl = Class.forName(className);
+            Constructor con = cl.getConstructor();
+            obj = (E)con.newInstance();
 
-        return get(classSpec, rowIndex);
+
+            initTable(obj);
+
+            Table table = getTable(classSpec);
+
+            long rowIndex = table.addEmptyRow();
+
+            obj.realmAddedAtRowIndex = rowIndex;
+
+            obj.row = transaction.getTable(classSpec.getSimpleName()).getRow(rowIndex);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return obj;
     }
-
 
     public <E> void remove(Class<E> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
@@ -178,149 +228,148 @@ public class Realm {
      * @param <E>
      * @return
      */
-    public <E extends RealmObject> void add(E element) {
-
-        System.out.println("Adding " + element.getClass().getName());
-
-        initTable(element.getClass());
-
-        String className = element.getClass().getSimpleName();
-
-        if(!cache.containsKey(className)) {
-
-
-            List<Field> fields = Arrays.asList(element.getClass().getDeclaredFields());
-            List<Field> persistedFields = new ArrayList<Field>();
-            for(Field f : fields) {
-                if(f.getType().equals(String.class) ||
-                        f.getType().equals(int.class) ||
-                        f.getType().equals(Integer.class) ||
-                        f.getType().equals(long.class) ||
-                        f.getType().equals(Long.class) ||
-                        f.getType().equals(float.class) ||
-                        f.getType().equals(Float.class) ||
-                        f.getType().equals(double.class) ||
-                        f.getType().equals(Double.class) ||
-                        f.getType().equals(boolean.class) ||
-                        f.getType().equals(Boolean.class) ||
-                        f.getType().equals(Date.class) ||
-                        f.getType().equals(byte[].class) ||
-                        RealmObject.class.equals(f.getType().getSuperclass())
-
-                        ) {
-
-                    f.setAccessible(true);
-                    persistedFields.add(f);
-                } else if (RealmList.class.isAssignableFrom(f.getType())) {
-                    // Link List
-                    Type genericType = f.getGenericType();
-                    if (genericType instanceof ParameterizedType) {
-                        ParameterizedType pType = (ParameterizedType) genericType;
-                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
-                        if(RealmObject.class.equals(actual.getSuperclass())) {
-                            f.setAccessible(true);
-                            persistedFields.add(f);
-                        }
-                    }
-                }
-            }
-
-            cache.put(className, persistedFields);
-
-        }
-
-        Table table = getTable(element.getClass());
-        long rowIndex = table.addEmptyRow();
-        long columnIndex = 0;
-
-        element.realmAddedAtRowIndex = rowIndex;
-
-        List<Field> fields = cache.get(className);
-
-        // Inspect fields and add them
-        for(Field f : fields) {
-
-            try {
-                Class<?> type = f.getType();
-
-                if(type.equals(String.class)) {
-                    table.setString(columnIndex, rowIndex, (String)f.get(element));
-                } else if(type.equals(int.class) || type.equals(Integer.class)) {
-                    table.setLong(columnIndex, rowIndex, f.getInt(element));
-                } else if(type.equals(long.class) || type.equals(Long.class)) {
-                    table.setLong(columnIndex, rowIndex, f.getLong(element));
-                } else if(type.equals(double.class) || type.equals(Double.class)) {
-                    table.setDouble(columnIndex, rowIndex, f.getDouble(element));
-                } else if(type.equals(float.class) || type.equals(Float.class)) {
-                    table.setFloat(columnIndex, rowIndex, f.getFloat(element));
-                } else if(type.equals(boolean.class) || type.equals(Boolean.class)) {
-                    table.setBoolean(columnIndex, rowIndex, f.getBoolean(element));
-                } else if(type.equals(Date.class)) {
-                    table.setDate(columnIndex, rowIndex, (Date)f.get(element));
-                } else if(type.equals(byte[].class)) {
-                    table.setBinaryByteArray(columnIndex, rowIndex, (byte[])f.get(element));
-                } else if(RealmObject.class.equals(f.getType().getSuperclass())) {
-
-                    RealmObject linkedObject = (RealmObject)f.get(element);
-                    if(linkedObject != null) {
-                        if(linkedObject.realmGetRow() == null) {
-                            if(linkedObject.realmAddedAtRowIndex == -1) {
-                                add(linkedObject);
-                            }
-                            table.setLink(columnIndex, rowIndex, linkedObject.realmAddedAtRowIndex);
-                        } else {
-                            table.setLink(columnIndex, rowIndex, linkedObject.realmGetRow().getIndex());
-                        }
-                    }
-
-                } else if (RealmList.class.isAssignableFrom(f.getType())) {
-                    // Link List
-                    Type genericType = f.getGenericType();
-                    if (genericType instanceof ParameterizedType) {
-                        ParameterizedType pType = (ParameterizedType) genericType;
-                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
-                        if(RealmObject.class.equals(actual.getSuperclass())) {
-
-                            LinkView links = table.getRow(rowIndex).getLinkList(columnIndex);
-
-                            // Loop through list and add them to the link list and possibly to the realm
-                            for(RealmObject linkedObject : (List<RealmObject>)f.get(element)) {
-
-                                if(linkedObject.realmGetRow() == null) {
-                                    if(linkedObject.realmAddedAtRowIndex == -1) {
-                                        add(linkedObject);
-                                    }
-                                    links.add(linkedObject.realmAddedAtRowIndex);
-                                } else {
-                                    links.add(linkedObject.realmGetRow().getIndex());
-                                }
-                            }
-                        }
-                    }
-                }
-
-            } catch(IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-            columnIndex++;
-        }
-
-    }
-
+//    public <E extends RealmObject> void add(E element) {
+//
+//        initTable(element.getClass());
+//
+//        String className = element.getClass().getSimpleName();
+//
+//        if(!cache.containsKey(className)) {
+//
+//
+//            List<Field> fields = Arrays.asList(element.getClass().getDeclaredFields());
+//            List<Field> persistedFields = new ArrayList<Field>();
+//            for(Field f : fields) {
+//                if(f.getType().equals(String.class) ||
+//                        f.getType().equals(int.class) ||
+//                        f.getType().equals(Integer.class) ||
+//                        f.getType().equals(long.class) ||
+//                        f.getType().equals(Long.class) ||
+//                        f.getType().equals(float.class) ||
+//                        f.getType().equals(Float.class) ||
+//                        f.getType().equals(double.class) ||
+//                        f.getType().equals(Double.class) ||
+//                        f.getType().equals(boolean.class) ||
+//                        f.getType().equals(Boolean.class) ||
+//                        f.getType().equals(Date.class) ||
+//                        f.getType().equals(byte[].class) ||
+//                        RealmObject.class.equals(f.getType().getSuperclass())
+//
+//                        ) {
+//
+//                    f.setAccessible(true);
+//                    persistedFields.add(f);
+//                } else if (RealmList.class.isAssignableFrom(f.getType())) {
+//                    // Link List
+//                    Type genericType = f.getGenericType();
+//                    if (genericType instanceof ParameterizedType) {
+//                        ParameterizedType pType = (ParameterizedType) genericType;
+//                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
+//                        if(RealmObject.class.equals(actual.getSuperclass())) {
+//                            f.setAccessible(true);
+//                            persistedFields.add(f);
+//                        }
+//                    }
+//                }
+//            }
+//
+//            cache.put(className, persistedFields);
+//
+//        }
+//
+//        Table table = getTable(element.getClass());
+//        long rowIndex = table.addEmptyRow();
+//        long columnIndex = 0;
+//
+//        element.realmAddedAtRowIndex = rowIndex;
+//
+//        List<Field> fields = cache.get(className);
+//
+//        // Inspect fields and add them
+//        for(Field f : fields) {
+//
+//            try {
+//                Class<?> type = f.getType();
+//
+//                if(type.equals(String.class)) {
+//                    table.setString(columnIndex, rowIndex, (String)f.get(element));
+//                } else if(type.equals(int.class) || type.equals(Integer.class)) {
+//                    table.setLong(columnIndex, rowIndex, f.getInt(element));
+//                } else if(type.equals(long.class) || type.equals(Long.class)) {
+//                    table.setLong(columnIndex, rowIndex, f.getLong(element));
+//                } else if(type.equals(double.class) || type.equals(Double.class)) {
+//                    table.setDouble(columnIndex, rowIndex, f.getDouble(element));
+//                } else if(type.equals(float.class) || type.equals(Float.class)) {
+//                    table.setFloat(columnIndex, rowIndex, f.getFloat(element));
+//                } else if(type.equals(boolean.class) || type.equals(Boolean.class)) {
+//                    table.setBoolean(columnIndex, rowIndex, f.getBoolean(element));
+//                } else if(type.equals(Date.class)) {
+//                    table.setDate(columnIndex, rowIndex, (Date)f.get(element));
+//                } else if(type.equals(byte[].class)) {
+//                    table.setBinaryByteArray(columnIndex, rowIndex, (byte[])f.get(element));
+//                } else if(RealmObject.class.equals(f.getType().getSuperclass())) {
+//
+//                    RealmObject linkedObject = (RealmObject)f.get(element);
+//                    if(linkedObject != null) {
+//                        if(linkedObject.row == null) {
+//                            if(linkedObject.realmAddedAtRowIndex == -1) {
+//                                add(linkedObject);
+//                            }
+//                            table.setLink(columnIndex, rowIndex, linkedObject.realmAddedAtRowIndex);
+//                        } else {
+//                            table.setLink(columnIndex, rowIndex, linkedObject.row.getIndex());
+//                        }
+//                    }
+//
+//                } else if (RealmList.class.isAssignableFrom(f.getType())) {
+//                    // Link List
+//                    Type genericType = f.getGenericType();
+//                    if (genericType instanceof ParameterizedType) {
+//                        ParameterizedType pType = (ParameterizedType) genericType;
+//                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
+//                        if(RealmObject.class.equals(actual.getSuperclass())) {
+//
+//                            LinkView links = table.getRow(rowIndex).getLinkList(columnIndex);
+//
+//                            // Loop through list and add them to the link list and possibly to the realm
+//                            for(RealmObject linkedObject : (List<RealmObject>)f.get(element)) {
+//
+//                                if(linkedObject.row == null) {
+//                                    if(linkedObject.realmAddedAtRowIndex == -1) {
+//                                        add(linkedObject);
+//                                    }
+//                                    links.add(linkedObject.realmAddedAtRowIndex);
+//                                } else {
+//                                    links.add(linkedObject.row.getIndex());
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//
+//            } catch(IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
+//
+//            columnIndex++;
+//        }
+//
+//    }
+//
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
 
         E obj = null;
 
         try {
             Row row = transaction.getTable(clazz.getSimpleName()).getRow(rowIndex);
-            obj = ProxyBuilder.forClass(clazz)
-                    .parentClassLoader(clazz.getClassLoader())
-                    .dexCache(getBytecodeCache())
-                    .handler(new RealmProxy(this, row))
-                    .build();
-            obj.realmSetRow(row);
-        } catch (IOException e) {
+
+            String className = clazz.getName()+"RealmProxy";
+
+            Class cl = Class.forName(className);
+            Constructor con = cl.getConstructor();
+            obj = (E)con.newInstance();
+            obj.row = row;
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -437,9 +486,4 @@ public class Realm {
     public void setVersion(int version) {
         this.version = version;
     }
-
-    private File getBytecodeCache() {
-        return bytecodeCache;
-    }
-
 }

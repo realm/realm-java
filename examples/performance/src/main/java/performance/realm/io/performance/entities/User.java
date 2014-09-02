@@ -1,4 +1,4 @@
-package io.realm.tests.typed.entities;
+package performance.realm.io.performance.entities;
 
 import io.realm.RealmObject;
 

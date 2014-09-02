@@ -21,24 +21,24 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
 
     @Override
     public void add(int location, E object) {
-        if(object.realmGetRow() == null) {
-            realm.add(object);
-            view.add(object.realmAddedAtRowIndex);
-        } else {
-            view.add(object.realmGetRow().getIndex());
-        }
+//        if(object.row == null) {
+//            realm.add(object);
+//            view.add(object.realmAddedAtRowIndex);
+//        } else {
+            view.add(object.row.getIndex());
+//        }
     }
 
     @Override
     public E set(int location, E object) {
-        if(object.realmGetRow() == null) {
-            realm.add(object);
-            view.set(location, object.realmAddedAtRowIndex);
-            return realm.get((Class<E>)object.getClass(), object.realmAddedAtRowIndex);
-        } else {
-            view.set(location, object.realmGetRow().getIndex());
+//        if(object.row == null) {
+//            realm.add(object);
+//            view.set(location, object.realmAddedAtRowIndex);
+//            return realm.get((Class<E>)object.getClass(), object.realmAddedAtRowIndex);
+//        } else {
+            view.set(location, object.row.getIndex());
             return object;
-        }
+//        }
     }
 
     @Override
@@ -59,6 +59,36 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
 
     @Override
     public E get(int i) {
+
+//  NOTE
+// Need to find out why this has changed:
+//        String outClass = clazz.getSimpleName()+"RealmProxy";
+//
+//        try {
+//            Class<E> clazzCreate = (Class<E>)Class.forName(outClass);
+//            Constructor<E> ctor = clazzCreate.getConstructor();
+//            E object = ctor.newInstance(new Object[]{});
+//
+//
+//
+//            TableOrView table =  realm.getTable(clazz);
+//            if(table instanceof TableView) {
+//                realm.get(clazz, ((TableView)table).getSourceRowIndex(i));
+//            } else {
+//                realm.get(clazz, i);
+//            }
+//
+//            return object;
+//
+//
+//        }
+//        catch (Exception ex)
+//        {
+//            System.out.print("Realm.create has failed: "+ex.getMessage());
+//        }
+//        return null;
+// END NOTE
+
         return realm.get(clazz, view.getTargetRowIndex(i));
     }
 
