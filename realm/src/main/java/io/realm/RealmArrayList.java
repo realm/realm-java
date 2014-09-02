@@ -2,7 +2,7 @@ package io.realm;
 
 import java.util.ArrayList;
 
-public class RealmArrayList<E extends RealmObject> extends ArrayList<E> implements RealmList<E> {
+public abstract class RealmArrayList<E extends RealmObject> extends ArrayList<E> implements RealmList<E> {
 
 
     @Override
