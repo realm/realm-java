@@ -2,6 +2,7 @@ package io.realm.processor;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.Override;
 import java.util.Iterator;
 import java.util.Set;
@@ -96,11 +97,11 @@ public class RealmProcessor extends AbstractProcessor {
 			            }
 			            
 			            codeGenerator.generate();
-			            bw.flush();
-			            bw.close();
+//			            bw.flush();
+//			            bw.close();
 	            	}
 	            }
-	            catch (Exception ex)
+	            catch (IOException ex)
 	            {
 	            	error("Unable to write file: "+ex.getMessage());
 	            }
