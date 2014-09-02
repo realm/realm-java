@@ -137,6 +137,7 @@ public class MyActivity extends Activity {
         user.setAge(15);
         user.setName("Username " + this.users.size());
         user.setEmail(null);
+        System.out.println("As JSON: "+user.JSONString());
         wrRealm.add(user);
         wrRealm.commit();
     }
@@ -197,6 +198,7 @@ public class MyActivity extends Activity {
             System.out.println("Sum    : "+users.sumOfProperty("age"));
             System.out.println("Minimum: "+users.minOfProperty("age"));
             System.out.println("Maximum: "+users.maxOfProperty("age"));
+            System.out.println("JSON   : "+users.JSONString());
         }
     }
 
@@ -263,7 +265,7 @@ public class MyActivity extends Activity {
     public void updateAnObjects() {
         Realm wrRealm = openRealm();
 
-        RealmList<User> users = wrRealm.allObjects(User.class);
+        RealmList<User> users = wrRealm.allObjects(User.class).arraySortForProperty("age");
         wrRealm.beginWrite();
         User user = new User();
         user.setId(2);
@@ -286,5 +288,4 @@ public class MyActivity extends Activity {
         users.insertObjectAtIndex(user, users.size()/2);
         wrRealm.commit();
     }
-
 }

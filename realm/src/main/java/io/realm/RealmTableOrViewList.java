@@ -5,7 +5,6 @@ import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
@@ -111,7 +110,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     }
 
     @Override
-    public void replaceObjectWithObject(E oldElement, E newElement) throws NoSuchMethodException {
+    public void replaceObjectAtIndexWithObject(int index, E newElement) throws NoSuchMethodException {
         throw new NoSuchMethodException();
     }
 

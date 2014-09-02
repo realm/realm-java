@@ -110,7 +110,7 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
     }
 
     @Override
-    public void replaceObjectWithObject(E oldElement, E newElement) throws NoSuchMethodException {
+    public void replaceObjectAtIndexWithObject(int index, E newElement) throws NoSuchMethodException {
         throw new NoSuchMethodException();
     }
 
