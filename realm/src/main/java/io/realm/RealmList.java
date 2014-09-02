@@ -144,7 +144,7 @@ public interface RealmList<E extends RealmObject> extends List<E> {
      * @param oldElement
      * @param newElement
      */
-    void replaceObjectWithObject(E oldElement, E newElement) throws NoSuchMethodException;
+    void replaceObjectAtIndexWithObject(int index, E newElement) throws NoSuchMethodException;
 
     /**
      * Not implemented.
