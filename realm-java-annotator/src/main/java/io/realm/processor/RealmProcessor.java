@@ -39,12 +39,13 @@ public class RealmProcessor extends AbstractProcessor {
 	                error("The Ignore annotation can only be applied to Fields");
 	                return false;
 	            }
-	            codeGenerator.add_Ignore(classElement.getSimpleName().toString());  
-	            
+	            if (!codeGenerator.add_Ignore(classElement.getSimpleName().toString()))
+	            {
+	            	error(codeGenerator.getError());
+	            	return false;
+	            }
 	        }
 
-		   
-		   
 		   for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
 	            // Check the annotation was applied to a Class
 	            if (!classElement.getKind().equals(ElementKind.CLASS)) {
@@ -69,14 +70,21 @@ public class RealmProcessor extends AbstractProcessor {
 	            	{
 	            		String qualifiedClassName = qName + "."+classElement.getSimpleName()+"RealmProxy";
 	            		qualifiedClassName = qualifiedClassName.replace(".", "/");
-	            		
-	            		codeGenerator.set_packageName(qName);
-	            		codeGenerator.set_className(classElement.getSimpleName().toString());
-	            		
+
 	            		JavaFileObject jfo = processingEnv.getFiler().createSourceFile(qualifiedClassName);
-			            
-			            BufferedWriter bw = new BufferedWriter(jfo.openWriter());
-			            codeGenerator.setBufferedWriter(bw);
+			            codeGenerator.setBufferedWriter(new BufferedWriter(jfo.openWriter()));
+
+			            if (!codeGenerator.setPackageName(qName))
+	    	            {
+	    	            	error(codeGenerator.getError());
+	    	            	return false;
+	    	            }
+
+	    	            if (!codeGenerator.setClassName(classElement.getSimpleName().toString()))
+	    	            {
+	    	            	error(codeGenerator.getError());
+	    	            	return false;
+	    	            }
 			            
 			            for (Element element : typeElement.getEnclosedElements()) {
 			                if (element.getKind().equals(ElementKind.FIELD)) {
@@ -90,15 +98,20 @@ public class RealmProcessor extends AbstractProcessor {
 			                		Modifier modifier = m.next();
 			                		if (modifier == Modifier.PRIVATE)
 			                		{
-			                			codeGenerator.add_Field(elementName, varElem);
+			    	    	            if (!codeGenerator.add_Field(elementName, varElem))
+			    	    	            {
+			    	    	            	error(codeGenerator.getError());
+			    	    	            	return false;
+			    	    	            }
 			                		}
 			                	}			                    
 			                }
 			            }
-			            
-			            codeGenerator.generate();
-//			            bw.flush();
-//			            bw.close();
+	    	            if (!codeGenerator.generate())
+	    	            {
+	    	            	error(codeGenerator.getError());
+	    	            	return false;
+	    	            }
 	            	}
 	            }
 	            catch (IOException ex)
@@ -113,4 +126,6 @@ public class RealmProcessor extends AbstractProcessor {
 	    private void error(String message) {
 	        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message);
 	    }
+	    
+	    
 }

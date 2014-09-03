@@ -36,14 +36,14 @@ public class RealmListTest extends AndroidTestCase {
             allColumns.setColumnDouble(1.1);
             allColumns.setColumnBoolean(true);
             allColumns.setColumnDate(new Date());
-            allColumns.setColumnBinary(new byte[20]);
+            //allColumns.setColumnBinary(new byte[20]);
 
             User user = realm.create(User.class);
             user.setId(i);
             user.setName("Test User");
             user.setEmail("user@test.com");
 
-            allColumns.setColumnRealmObject(user);
+            //allColumns.setColumnRealmObject(user);
         }
 
         realm.commit();
@@ -62,7 +62,7 @@ public class RealmListTest extends AndroidTestCase {
         allColumns.setColumnDouble(1.1);
         allColumns.setColumnBoolean(true);
         allColumns.setColumnDate(new Date());
-        allColumns.setColumnBinary(new byte[20]);
+        //allColumns.setColumnBinary(new byte[20]);
 
 
         RealmTableOrViewList<AllColumns> list = realm.allObjects(AllColumns.class);

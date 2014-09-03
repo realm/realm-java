@@ -10,7 +10,7 @@ import io.realm.typed.RealmTableOrViewList;
 public class Person extends RealmObject {
 
     private String name;
-    private RealmList<Dog> dogs = new RealmArrayList<Dog>();
+    public RealmList<Dog> dogs = new RealmArrayList<Dog>();
 
     public String getName() {
         return name;

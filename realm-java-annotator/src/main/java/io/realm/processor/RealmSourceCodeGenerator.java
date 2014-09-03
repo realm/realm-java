@@ -18,46 +18,124 @@ import java.util.Set;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.tools.Diagnostic;
 
 import com.squareup.javawriter.JavaWriter;
 
 import io.realm.ColumnType;
 
 public class RealmSourceCodeGenerator {
-	private BufferedWriter _bw;
-	private HashMap<String, String> _values = new HashMap<String, String>();
-	private HashMap<String, Element> _methods = new LinkedHashMap<String, Element>();
+	private JavaWriter writer = null;
 	private HashSet<String> ignoreFields = new HashSet<String>();
+	
+	private String packageName = null;
+	private int state = 0;
+	private int fieldIndex = 0;
+
+	String _errorMessage = "";
+	
+	private void error(String message) 
+    {
+		_errorMessage = message;
+    }
+	
+	public String getError() 
+    {
+		return _errorMessage;
+    }
+	
+	private boolean checkState(int checkState)
+	{
+		if (writer == null)
+		{
+			error("No output writer has been defined");
+			return false;
+		}
+		
+		if (state != checkState)
+		{
+			error("Annotations received in wrong order");
+			return false;
+		}
+		return true;
+	}
 	
 	public void setBufferedWriter(BufferedWriter bw) 
 	{
-		_bw = bw;
+		writer = new JavaWriter(bw);
 	}
 
-
-	public void set_packageName(String packageName) 
+	public boolean setPackageName(String packageName) throws IOException
 	{
-		_values.put("package", packageName);
+		if (!checkState(0)) return false;
+		
+		this.packageName = packageName;
+		writer.emitPackage(packageName).emitEmptyLine();
+		state = 1;
+		return true;
 	}
 	
-	public void set_implements(String name) 
+	public boolean setClassName(String className) throws IOException
 	{
-		_values.put("implements", name);
+		if (!checkState(1)) return false;
+
+		writer.beginType(packageName+"."+className+"RealmProxy", "class", 
+		           EnumSet.of(Modifier.PUBLIC,Modifier.FINAL),className).emitEmptyLine();
+		state = 2;
+		fieldIndex = 0;
+		return true;
 	}
 
-	public void set_className(String className) 
+	public boolean add_Field(String fieldName, Element e) throws IOException
 	{
-		_values.put("class", className);
+		if (!checkState(2)) return false;
+
+		String originalType = e.asType().toString();
+		String fullType =  convertSimpleTypesToObject(originalType);
+		String shortType = fullType.substring(fullType.lastIndexOf(".") + 1);
+		
+		String returnCast = "";
+		String camelCase = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+		String fieldId = "rowIndex"+camelCase;
+
+		if (originalType.compareTo("int") == 0)
+		{
+			fullType = "long";
+			shortType = "Long";
+			returnCast ="("+originalType+")";
+		}
+		
+		if (shortType.compareTo("Integer") == 0)
+		{
+			fullType = "long";
+			shortType = "Long";
+			returnCast ="(int)";
+		}
+		
+		String getterStmt = "return "+returnCast+"row.get"+shortType+"( "+fieldId+" )";
+		
+		String setterStmt = "row.set"+shortType+"( "+fieldId+", value )";
+
+		writer.emitField("int", fieldId, EnumSet.of(Modifier.PRIVATE,Modifier.FINAL,Modifier.STATIC),
+				Integer.toString(fieldIndex));
+		fieldIndex++;
+
+		writer.emitAnnotation("Override").beginMethod(originalType, "get"+camelCase, EnumSet.of(Modifier.PUBLIC))
+		  .emitStatement(getterStmt)
+	      .endMethod();
+
+		writer.emitAnnotation("Override").beginMethod("void", "set"+camelCase, EnumSet.of(Modifier.PUBLIC),
+				originalType, "value")
+		       .emitStatement(setterStmt)
+	           .endMethod().emitEmptyLine();
+		return true;
+
 	}
 
-	public void add_Field(String fieldName, Element element) 
+	public boolean add_Ignore(String symbolName) 
 	{
-		_methods.put(fieldName, element);
-	}
-
-	public void add_Ignore(String symbolName) 
-	{
-		ignoreFields.add(symbolName);
+		ignoreFields.add(symbolName);		
+		return true;
 	}
 	
 	private String convertSimpleTypesToObject(String typeName)
@@ -76,75 +154,11 @@ public class RealmSourceCodeGenerator {
 	
 	public boolean generate() throws IOException
 	{
-		JavaWriter writer = new JavaWriter(_bw);
-
-		writer.emitPackage(_values.get("package")).beginType(_values.get("package")+
-				           "."+_values.get("class")+"RealmProxy", "class", 
-				           EnumSet.of(Modifier.PUBLIC,Modifier.FINAL),_values.get("class")).emitEmptyLine();
-
-		Iterator<String> methodNamesIterator = _methods.keySet().iterator();
-		int fieldIndex = 0;
-
-		while (methodNamesIterator.hasNext())
-		{
-			String fieldName = methodNamesIterator.next();
-			
-			// For now ignore fields is not implemented at runtime
-//			if (ignoreFields.contains(fieldName))
-//			{
-//				continue;
-//			}
-			
-			Element e = _methods.get(fieldName);
-			String originalType = e.asType().toString();
-			String fullType =  convertSimpleTypesToObject(originalType);
-			String shortType = fullType.substring(fullType.lastIndexOf(".") + 1);
-			
-			String returnCast = "";
-			String camelCase = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
-			String fieldId = "rowIndex"+camelCase;
-
-			if (originalType.compareTo("int") == 0)
-			{
-				fullType = "long";
-				shortType = "Long";
-				returnCast ="("+originalType+")";
-			}
-			
-			if (shortType.compareTo("Integer") == 0)
-			{
-				fullType = "long";
-				shortType = "Long";
-				returnCast ="(int)";
-			}
-			
-			String getterStmt = "return "+returnCast+"row.get"+shortType+"( "+fieldId+" )";
-			
-			String setterStmt = "row.set"+shortType+"( "+fieldId+", value )";
-
-			writer.emitField("int", fieldId, EnumSet.of(Modifier.PRIVATE,Modifier.FINAL,Modifier.STATIC),
-					Integer.toString(fieldIndex));
-			fieldIndex++;
-
-			writer.beginMethod(originalType, "get"+camelCase, EnumSet.of(Modifier.PUBLIC))
-    		  .emitStatement(getterStmt)
-    	      .endMethod();
-
-			writer.beginMethod("void", "set"+camelCase, EnumSet.of(Modifier.PUBLIC),
-					originalType, "value")
-  		       .emitStatement(setterStmt)
-  	           .endMethod().emitEmptyLine();
-			
-		}
-		
+		if (!checkState(2)) return false;
 		writer.endType();
 		writer.close();
-		
-		_values.clear();
-		_methods.clear();
 		ignoreFields.clear();
-
-		
+		state = 0;
 		return true;
 	}
 

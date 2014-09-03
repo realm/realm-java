@@ -123,7 +123,7 @@ public class RealmTest extends AndroidTestCase {
         obj.setColumnDouble(1.1);
         obj.setColumnBoolean(true);
         obj.setColumnDate(new Date());
-        obj.setColumnBinary(new byte[20]);
+        //obj.setColumnBinary(new byte[20]);
 
         realm.commit();
 
@@ -145,7 +145,7 @@ public class RealmTest extends AndroidTestCase {
         obj.setColumnDouble(1.1);
         obj.setColumnBoolean(true);
         obj.setColumnDate(new Date());
-        obj.setColumnBinary(new byte[20]);
+        //obj.setColumnBinary(new byte[20]);
 
         User user = realm.create(User.class);
         user.setName("Rasmus");
