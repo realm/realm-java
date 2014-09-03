@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.Override;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -87,7 +88,8 @@ public class RealmProcessor extends AbstractProcessor {
 	    	            }
 			            
 			            for (Element element : typeElement.getEnclosedElements()) {
-			                if (element.getKind().equals(ElementKind.FIELD)) {
+			                if (element.getKind().equals(ElementKind.FIELD)) 
+			                {
 			                	String elementName = element.getSimpleName().toString();
 			                	VariableElement varElem = (VariableElement)element;
 			                	
@@ -98,7 +100,7 @@ public class RealmProcessor extends AbstractProcessor {
 			                		Modifier modifier = m.next();
 			                		if (modifier == Modifier.PRIVATE)
 			                		{
-			    	    	            if (!codeGenerator.add_Field(elementName, varElem))
+			    	    	            if (!codeGenerator.setField(elementName, varElem))
 			    	    	            {
 			    	    	            	error(codeGenerator.getError());
 			    	    	            	return false;
