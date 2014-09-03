@@ -86,7 +86,7 @@ public class RealmProcessor extends AbstractProcessor {
 	    	            	error(codeGenerator.getError());
 	    	            	return false;
 	    	            }
-			            
+
 			            for (Element element : typeElement.getEnclosedElements()) {
 			                if (element.getKind().equals(ElementKind.FIELD)) 
 			                {

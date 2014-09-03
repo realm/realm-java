@@ -1,7 +1,9 @@
 package io.realm.tests.typed.entities;
 
 
-import java.lang.reflect.Field;
+import io.realm.ColumnType;
+import io.realm.Table;
+
 public final class UserRealmProxy extends User {
 
   private static int index_email;
@@ -34,20 +36,18 @@ public final class UserRealmProxy extends User {
     row.setString( index_name, value );
   }
 
-  static {
-    Field[] fields=User.class.getDeclaredFields();
-    int i = 0;
-    for (Field f : fields) {
-      if (f.getName().compareTo("email") == 0) {
-        index_email = i;
-      }
-      if (f.getName().compareTo("id") == 0) {
-        index_id = i;
-      }
-      if (f.getName().compareTo("name") == 0) {
-        index_name = i;
-      }
-      ++i;;
+  public static Table initTable(io.realm.ImplicitTransaction transaction) {
+    if(!transaction.hasTable("User")) {
+      Table table = transaction.getTable("User");
+      index_email  = 0;
+      table.addColumn( ColumnType.STRING, "email" );
+      index_id  = 1;
+      table.addColumn( ColumnType.INTEGER, "id" );
+      index_name  = 2;
+      table.addColumn( ColumnType.STRING, "name" );
+      return table;
     }
+    return transaction.getTable("User");
   }
+
 }

@@ -4,19 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.ColumnType;
 import io.realm.ImplicitTransaction;
 import io.realm.Row;
 import io.realm.SharedGroup;
@@ -75,61 +71,6 @@ public class Realm {
         return transaction.getTable(classSpec.getSimpleName());
     }
 
-    private <E> void initTable(Class<E> classSpec) {
-
-        // Check for table existence
-        if(!transaction.hasTable(classSpec.getSimpleName())) {
-            // Create the table
-            Table table = transaction.getTable(classSpec.getSimpleName());
-
-            Field[] fields = classSpec.getDeclaredFields();
-
-            for (int i = 0; i < fields.length; i++) {
-
-                Field f = fields[i];
-
-                Class<?> fieldType = f.getType();
-
-                if (fieldType.equals(String.class)) {
-                    table.addColumn(ColumnType.STRING, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(int.class) || fieldType.equals(long.class) || fieldType.equals(Integer.class) || fieldType.equals(Long.class)) {
-                    table.addColumn(ColumnType.INTEGER, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                    table.addColumn(ColumnType.DOUBLE, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-                    table.addColumn(ColumnType.FLOAT, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                    table.addColumn(ColumnType.BOOLEAN, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(Date.class)) {
-                    table.addColumn(ColumnType.DATE, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (fieldType.equals(byte[].class)) {
-                    table.addColumn(ColumnType.BINARY, f.getName().toLowerCase(Locale.getDefault()));
-                } else if (RealmObject.class.equals(fieldType.getSuperclass())) {
-                    // Link
-                    initTable(fieldType);
-                    table.addColumnLink(ColumnType.LINK, f.getName().toLowerCase(Locale.getDefault()), getTable(fieldType));
-                } else if (RealmList.class.isAssignableFrom(fieldType)) {
-                    // Link List
-                    Type genericType = f.getGenericType();
-                    if (genericType instanceof ParameterizedType) {
-                        ParameterizedType pType = (ParameterizedType) genericType;
-                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
-                        if(RealmObject.class.equals(actual.getSuperclass())) {
-                            initTable(actual);
-                            table.addColumnLink(ColumnType.LINK_LIST, f.getName().toLowerCase(Locale.getDefault()), getTable(actual));
-                        }
-                    }
-                } else {
-                    System.err.println("Type not supported: " + fieldType.getName());
-                }
-
-
-            }
-
-        }
-
-    }
-
     /**
      * Instantiates and adds a new object to the realm
      *
@@ -137,44 +78,21 @@ public class Realm {
      * @param <E>
      */
     public <E extends RealmObject> E create(Class<E> classSpec) {
-
-        initTable(classSpec);
-
-        Table table = getTable(classSpec);
-
-        long rowIndex = table.addEmptyRow();
-        E obj = get(classSpec, rowIndex);
-        obj.realmAddedAtRowIndex = rowIndex;
-        return obj;
+        Table table = null;
+        try {
+            String className = classSpec.getName() + "RealmProxy";
+            Class cl = Class.forName(className);
+            Method method = cl.getMethod("initTable", new Class[] {io.realm.ImplicitTransaction.class});
+            table = (Table)method.invoke(null, new Object[] {transaction});
+            long rowIndex = table.addEmptyRow();
+            E obj = get(classSpec, rowIndex);
+            obj.realmAddedAtRowIndex = rowIndex;
+            return obj;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
-
-//      public <E extends RealmObject> E create(Class<E> classSpec) {
-//
-//        E obj = null;
-//
-//        try {
-//            String className = classSpec.getName()+"RealmProxy";
-//            Class cl = Class.forName(className);
-//            Constructor con = cl.getConstructor();
-//            obj = (E)con.newInstance();
-//
-//
-//            initTable(classSpec);
-//
-//            Table table = getTable(classSpec);
-//
-//            long rowIndex = table.addEmptyRow();
-//
-//            obj.realmAddedAtRowIndex = rowIndex;
-//
-//            obj.row = transaction.getTable(classSpec.getSimpleName()).getRow(rowIndex);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//
-//        return obj;
-//    }
 
     public <E> void remove(Class<E> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);

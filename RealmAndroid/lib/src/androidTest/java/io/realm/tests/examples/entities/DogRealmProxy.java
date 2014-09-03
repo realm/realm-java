@@ -1,7 +1,9 @@
 package io.realm.tests.examples.entities;
 
 
-import java.lang.reflect.Field;
+import io.realm.ColumnType;
+import io.realm.Table;
+
 public final class DogRealmProxy extends Dog {
 
   private static int index_age;
@@ -24,17 +26,16 @@ public final class DogRealmProxy extends Dog {
     row.setString( index_name, value );
   }
 
-  static {
-    Field[] fields=Dog.class.getDeclaredFields();
-    int i = 0;
-    for (Field f : fields) {
-      if (f.getName().compareTo("age") == 0) {
-        index_age = i;
-      }
-      if (f.getName().compareTo("name") == 0) {
-        index_name = i;
-      }
-      ++i;;
+  public static Table initTable(io.realm.ImplicitTransaction transaction) {
+    if(!transaction.hasTable("Dog")) {
+      Table table = transaction.getTable("Dog");
+      index_age  = 0;
+      table.addColumn( ColumnType.INTEGER, "age" );
+      index_name  = 1;
+      table.addColumn( ColumnType.STRING, "name" );
+      return table;
     }
+    return transaction.getTable("Dog");
   }
+
 }

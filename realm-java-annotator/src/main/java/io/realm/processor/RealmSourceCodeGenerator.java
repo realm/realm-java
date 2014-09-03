@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,15 +23,18 @@ import com.squareup.javawriter.JavaWriter;
 
 
 public class RealmSourceCodeGenerator {
-	private JavaWriter writer = null;
-	private HashSet<String> ignoreFields = new HashSet<String>();
-	private String packageName = null;
-	private String className = null;
-	private GeneratorStates generatorState = GeneratorStates.PACKAGE;
-	private String _errorMessage = "";
-	private ArrayList<String> fields = new ArrayList<String>();
+	private class FieldInfo
+	{
+		public String name;
+		public String columnType;
+		
+		public FieldInfo(String name,String columnType)
+		{
+			this.name = name;
+			this.columnType = columnType;
+		}
+	};
 	
-
 	private enum GeneratorStates 
 	{
 		PACKAGE,
@@ -38,15 +42,25 @@ public class RealmSourceCodeGenerator {
 		METHODS,
 	};
 	
+
+	private JavaWriter writer = null;
+	private Set<String> ignoreFields = new HashSet<String>();
+	private String packageName = null;
+	private String className = null;
+	private GeneratorStates generatorState = GeneratorStates.PACKAGE;
+	private String errorMessage = "";
+	private List<FieldInfo> fields = new ArrayList<FieldInfo>();
+	
+
 	
 	private void setError(String message) 
     {
-		_errorMessage = message;
+		errorMessage = message;
     }
 	
 	public String getError() 
     {
-		return _errorMessage;
+		return errorMessage;
     }
 	
 	private String convertSimpleTypesToObject(String typeName)
@@ -60,6 +74,36 @@ public class RealmSourceCodeGenerator {
 		{
 			typeName = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
 		}
+		return typeName;
+	}
+	
+	private String convertTypesToColumnType(String typeName)
+	{
+		if (typeName.compareTo("String") == 0)
+		{
+			typeName = "ColumnType.STRING";
+		}
+		else if (typeName.compareTo("Long") == 0  || typeName.compareTo("Integer") == 0)
+		{
+			typeName = "ColumnType.INTEGER";
+		}
+		else if (typeName.compareTo("Float") == 0)
+		{
+			typeName = "ColumnType.FLOAT";
+		}
+		else if (typeName.compareTo("Double") == 0)
+		{
+			typeName = "ColumnType.DOUBLE";
+		}
+		else if (typeName.compareTo("Boolean") == 0)
+		{
+			typeName = "ColumnType.BOOLEAN";
+		}
+		else if (typeName.compareTo("Date") == 0)
+		{
+			typeName = "ColumnType.DATE";
+		}
+
 		return typeName;
 	}
 	
@@ -89,7 +133,8 @@ public class RealmSourceCodeGenerator {
 		if (!checkState(GeneratorStates.PACKAGE)) return false;
 		
 		this.packageName = packageName;
-		writer.emitPackage(packageName).emitEmptyLine().emitImports("java.lang.reflect.Field");
+		writer.emitPackage(packageName).emitEmptyLine().
+		       emitImports("io.realm.ColumnType","io.realm.Table").emitEmptyLine();
 		generatorState = GeneratorStates.CLASS;
 		return true;
 	}
@@ -138,7 +183,7 @@ public class RealmSourceCodeGenerator {
 
 		writer.emitField("int", fieldId, EnumSet.of(Modifier.PRIVATE/*,Modifier.FINAL*/,Modifier.STATIC));
 
-		fields.add(fieldId);
+		fields.add(new FieldInfo(fieldId,convertTypesToColumnType(shortType)));
 		
 		writer.emitAnnotation("Override").beginMethod(originalType, "get"+camelCaseFieldName, EnumSet.of(Modifier.PUBLIC))
 		  .emitStatement(getterStmt)
@@ -151,6 +196,19 @@ public class RealmSourceCodeGenerator {
 		return true;
 
 	}
+	
+	
+	public boolean generateComment(String comment) throws IOException
+	{
+		if (writer == null)
+		{
+			setError("No output writer has been defined");
+			return false;
+		}
+		
+		writer.emitSingleLineComment(comment);
+		return true;
+	}
 
 	public boolean add_Ignore(String symbolName) 
 	{
@@ -162,20 +220,25 @@ public class RealmSourceCodeGenerator {
 	public boolean generate() throws IOException
 	{
 		if (!checkState(GeneratorStates.METHODS)) return false;
-		
-		writer.beginInitializer(true).emitStatement("Field[] fields="+className+".class.getDeclaredFields()").emitStatement("int i = 0");
-		
-		writer.beginControlFlow("for (Field f : fields)");
-		
-		for (String field : fields)
+
+		writer.beginMethod("Table", "initTable", EnumSet.of(Modifier.PUBLIC,Modifier.STATIC),
+				"io.realm.ImplicitTransaction", "transaction").
+				beginControlFlow("if(!transaction.hasTable(\""+this.className+"\"))").
+				emitStatement("Table table = transaction.getTable(\""+this.className+"\")");
+
+		for (int index=0;index<fields.size();++index)
 		{
-			String fieldName = field.substring("index_".length());
-			writer.beginControlFlow("if (f.getName().compareTo(\"%s\") == 0)",fieldName)
-			        .emitStatement("%s = i", field).endControlFlow();
+			FieldInfo field = fields.get(index);
+			String fieldName = field.name.substring("index_".length());
+			writer.emitStatement(field.name+"  = "+Integer.toString(index));
+			writer.emitStatement("table.addColumn( %s, \"%s\" )", field.columnType, fieldName.toLowerCase(Locale.getDefault()));
 		}
-		writer.emitStatement("++i;");
+		
+		writer.emitStatement("return table");
 		writer.endControlFlow();
-		writer.endInitializer();
+		writer.emitStatement("return transaction.getTable(\""+this.className+"\")");
+		writer.endMethod().emitEmptyLine();
+
 		writer.endType();
 		writer.close();
 		
@@ -185,5 +248,7 @@ public class RealmSourceCodeGenerator {
 		generatorState = GeneratorStates.PACKAGE;
 		return true;
 	}
+	
+	
 
 }

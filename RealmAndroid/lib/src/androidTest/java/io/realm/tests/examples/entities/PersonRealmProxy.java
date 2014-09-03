@@ -1,7 +1,9 @@
 package io.realm.tests.examples.entities;
 
 
-import java.lang.reflect.Field;
+import io.realm.ColumnType;
+import io.realm.Table;
+
 public final class PersonRealmProxy extends Person {
 
   private static int index_name;
@@ -14,14 +16,14 @@ public final class PersonRealmProxy extends Person {
     row.setString( index_name, value );
   }
 
-  static {
-    Field[] fields=Person.class.getDeclaredFields();
-    int i = 0;
-    for (Field f : fields) {
-      if (f.getName().compareTo("name") == 0) {
-        index_name = i;
-      }
-      ++i;;
+  public static Table initTable(io.realm.ImplicitTransaction transaction) {
+    if(!transaction.hasTable("Person")) {
+      Table table = transaction.getTable("Person");
+      index_name  = 0;
+      table.addColumn( ColumnType.STRING, "name" );
+      return table;
     }
+    return transaction.getTable("Person");
   }
+
 }

@@ -1,7 +1,9 @@
 package io.realm.tests.typed.entities;
 
 
-import java.lang.reflect.Field;
+import io.realm.ColumnType;
+import io.realm.Table;
+
 public final class AllColumnsRealmProxy extends AllColumns {
 
   private static int index_columnBoolean;
@@ -94,38 +96,30 @@ public final class AllColumnsRealmProxy extends AllColumns {
     row.setLong( index_integerNumber, value );
   }
 
-  static {
-    Field[] fields=AllColumns.class.getDeclaredFields();
-    int i = 0;
-    for (Field f : fields) {
-      if (f.getName().compareTo("columnBoolean") == 0) {
-        index_columnBoolean = i;
-      }
-      if (f.getName().compareTo("columnDate") == 0) {
-        index_columnDate = i;
-      }
-      if (f.getName().compareTo("columnDouble") == 0) {
-        index_columnDouble = i;
-      }
-      if (f.getName().compareTo("columnFloat") == 0) {
-        index_columnFloat = i;
-      }
-      if (f.getName().compareTo("columnLLong") == 0) {
-        index_columnLLong = i;
-      }
-      if (f.getName().compareTo("columnLong") == 0) {
-        index_columnLong = i;
-      }
-      if (f.getName().compareTo("columnString") == 0) {
-        index_columnString = i;
-      }
-      if (f.getName().compareTo("intNumber") == 0) {
-        index_intNumber = i;
-      }
-      if (f.getName().compareTo("integerNumber") == 0) {
-        index_integerNumber = i;
-      }
-      ++i;;
+  public static Table initTable(io.realm.ImplicitTransaction transaction) {
+    if(!transaction.hasTable("AllColumns")) {
+      Table table = transaction.getTable("AllColumns");
+      index_columnBoolean  = 0;
+      table.addColumn( ColumnType.BOOLEAN, "columnboolean" );
+      index_columnDate  = 1;
+      table.addColumn( ColumnType.DATE, "columndate" );
+      index_columnDouble  = 2;
+      table.addColumn( ColumnType.DOUBLE, "columndouble" );
+      index_columnFloat  = 3;
+      table.addColumn( ColumnType.FLOAT, "columnfloat" );
+      index_columnLLong  = 4;
+      table.addColumn( ColumnType.INTEGER, "columnllong" );
+      index_columnLong  = 5;
+      table.addColumn( ColumnType.INTEGER, "columnlong" );
+      index_columnString  = 6;
+      table.addColumn( ColumnType.STRING, "columnstring" );
+      index_intNumber  = 7;
+      table.addColumn( ColumnType.INTEGER, "intnumber" );
+      index_integerNumber  = 8;
+      table.addColumn( ColumnType.INTEGER, "integernumber" );
+      return table;
     }
+    return transaction.getTable("AllColumns");
   }
+
 }
