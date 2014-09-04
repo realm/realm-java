@@ -101,9 +101,8 @@ public class Realm {
      */
     public <E extends RealmObject> E create(Class<E> clazz) {
         Table table;
-        if (tables.containsKey(clazz)) {
-            table = tables.get(clazz);
-        } else {
+        table = tables.get(clazz);
+        if (table == null) {
             String generatedClassName;
             if (generatedClassNames.containsKey(clazz)) {
                 generatedClassName = generatedClassNames.get(clazz);
@@ -297,35 +296,43 @@ public class Realm {
 //        }
 //
 //    }
-    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
-        String generatedClassName;
-        if (generatedClassNames.containsKey(clazz)) {
-            generatedClassName = generatedClassNames.get(clazz);
-        } else {
-            generatedClassName = clazz.getName() + "RealmProxy";
-            generatedClassNames.put(clazz, generatedClassName);
-        }
-        return get(clazz, rowIndex, generatedClassName);
-    }
 
-
-    private <E extends RealmObject> E get(Class<E> clazz, long rowIndex, String generatedClassName) {
+    public <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         E result;
 
-        String simpleClassName;
-        if (simpleClassNames.containsKey(clazz)) {
-            simpleClassName = simpleClassNames.get(clazz);
-        } else {
-            simpleClassName = clazz.getSimpleName();
-            simpleClassNames.put(clazz, simpleClassName);
+        String generatedClassName = null;
+        Table table = tables.get(clazz);
+        if (table == null) {
+            if (generatedClassNames.containsKey(clazz)) {
+                generatedClassName = generatedClassNames.get(clazz);
+            } else {
+                generatedClassName = clazz.getName() + "RealmProxy";
+                generatedClassNames.put(clazz, generatedClassName);
+            }
+
+            String simpleClassName;
+            if (simpleClassNames.containsKey(clazz)) {
+                simpleClassName = simpleClassNames.get(clazz);
+            } else {
+                simpleClassName = clazz.getSimpleName();
+                simpleClassNames.put(clazz, simpleClassName);
+            }
+            table = transaction.getTable(simpleClassName);
+            tables.put(clazz, table);
         }
 
-        Row row = transaction.getTable(simpleClassName).getRow(rowIndex);
+        Row row = table.getRow(rowIndex);
 
         Constructor constructor;
-        if (generatedConstructors.containsKey(clazz)) {
-            constructor = generatedConstructors.get(clazz);
-        } else {
+        constructor = generatedConstructors.get(clazz);
+        if (constructor == null) {
+            if (generatedClassName == null) {
+                generatedClassName = generatedClassNames.get(clazz);
+                if (generatedClassName == null) {
+                    generatedClassName = clazz.getName() + "RealmProxy";
+                    generatedClassNames.put(clazz, generatedClassName);
+                }
+            }
 
             Class<?> generatedClass;
             try {
