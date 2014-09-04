@@ -1,83 +1,96 @@
 package io.realm.tests.typed.entities;
-
 import java.util.Date;
 
-import io.realm.typed.RealmObject;
-import io.realm.base.RealmClass;
-
-@RealmClass
-public class AllColumns extends RealmObject {
+@io.realm.base.RealmClass
+public class AllColumns extends io.realm.typed.RealmObject {
 
     private String columnString;
     private long columnLong;
+    private Long columnLLong;
     private float columnFloat;
     private double columnDouble;
     private boolean columnBoolean;
     private Date columnDate;
-    private byte[] columnBinary;
-    private User columnRealmObject;
+    private Integer integerNumber;
+    private int intNumber;
 
-    public String getColumnString() {
-        return columnString;
+    //private byte columnBinary;
+    //private User columnRealmObject;
+
+
+    public boolean getColumnBoolean() {
+        return columnBoolean;
     }
 
-    public void setColumnString(String columnString) {
-        this.columnString = columnString;
+    public void setColumnBoolean(boolean value) {
+        columnBoolean = value;
     }
 
-    public long getColumnLong() {
-        return columnLong;
+    public java.util.Date getColumnDate() {
+        return columnDate;
     }
 
-    public void setColumnLong(long columnLong) {
-        this.columnLong = columnLong;
-    }
-
-    public float getColumnFloat() {
-        return columnFloat;
-    }
-
-    public void setColumnFloat(float columnFloat) {
-        this.columnFloat = columnFloat;
+    public void setColumnDate(java.util.Date value) {
+        columnDate = value;
     }
 
     public double getColumnDouble() {
         return columnDouble;
     }
 
-    public void setColumnDouble(double columnDouble) {
-        this.columnDouble = columnDouble;
+    public void setColumnDouble(double value) {
+        columnDouble = value;
     }
 
-    public boolean isColumnBoolean() {
-        return columnBoolean;
+    public float getColumnFloat() {
+        return columnFloat;
     }
 
-    public void setColumnBoolean(boolean columnBoolean) {
-        this.columnBoolean = columnBoolean;
+    public void setColumnFloat(float value) {
+        columnFloat = value;
     }
 
-    public Date getColumnDate() {
-        return columnDate;
+    public Long getColumnLLong() {
+        return columnLLong;
     }
 
-    public void setColumnDate(Date columnDate) {
-        this.columnDate = columnDate;
+    public void setColumnLLong(Long value) {
+        columnLLong = value;
     }
 
-    public byte[] getColumnBinary() {
-        return columnBinary;
+    public long getColumnLong() {
+        return columnLong;
     }
 
-    public void setColumnBinary(byte[] columnBinary) {
-        this.columnBinary = columnBinary;
+    public void setColumnLong(long value) {
+        columnLong = value;
     }
 
-    public User getColumnRealmObject() {
-        return columnRealmObject;
+    public String getColumnString() {
+        return columnString;
     }
 
-    public void setColumnRealmObject(User columnRealmObject) {
-        this.columnRealmObject = columnRealmObject;
+    public void setColumnString(String value) {
+        columnString = value;
     }
+
+    public int getIntNumber() {
+        return intNumber;
+    }
+
+    public void setIntNumber(int value) {
+        intNumber = value;
+    }
+
+
+    public Integer getIntegerNumber() {
+        return integerNumber;
+    }
+
+    public void setIntegerNumber(Integer value) {
+        integerNumber = value;
+    }
+
+
+
 }

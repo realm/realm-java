@@ -1,8 +1,7 @@
 package io.realm.processor;
 
 import java.io.BufferedWriter;
-import java.lang.Override;
-import java.util.Iterator;
+import java.io.IOException;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -18,8 +17,8 @@ import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
-import io.realm.annotations.RealmClass;
 import io.realm.annotations.Ignore;
+import io.realm.annotations.RealmClass;
 
 
 
@@ -36,12 +35,13 @@ public class RealmProcessor extends AbstractProcessor {
 	                error("The Ignore annotation can only be applied to Fields");
 	                return false;
 	            }
-	            codeGenerator.add_Ignore(classElement.getSimpleName().toString());  
-	            
+	            if (!codeGenerator.addIgnore(classElement.getSimpleName().toString()))
+	            {
+	            	error(codeGenerator.getError());
+	            	return false;
+	            }
 	        }
 
-		   
-		   
 		   for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
 	            // Check the annotation was applied to a Class
 	            if (!classElement.getKind().equals(ElementKind.CLASS)) {
@@ -66,39 +66,48 @@ public class RealmProcessor extends AbstractProcessor {
 	            	{
 	            		String qualifiedClassName = qName + "."+classElement.getSimpleName()+"RealmProxy";
 	            		qualifiedClassName = qualifiedClassName.replace(".", "/");
-	            		
-	            		codeGenerator.set_packageName(qName);
-	            		codeGenerator.set_className(classElement.getSimpleName().toString());
-	            		
+
 	            		JavaFileObject jfo = processingEnv.getFiler().createSourceFile(qualifiedClassName);
-			            
-			            BufferedWriter bw = new BufferedWriter(jfo.openWriter());
-			            codeGenerator.setBufferedWriter(bw);
-			            
+			            codeGenerator.setBufferedWriter(new BufferedWriter(jfo.openWriter()));
+
+			            if (!codeGenerator.setPackageName(qName))
+	    	            {
+	    	            	error(codeGenerator.getError());
+	    	            	return false;
+	    	            }
+
+	    	            if (!codeGenerator.setClassName(classElement.getSimpleName().toString()))
+	    	            {
+	    	            	error(codeGenerator.getError());
+	    	            	return false;
+	    	            }
+
 			            for (Element element : typeElement.getEnclosedElements()) {
-			                if (element.getKind().equals(ElementKind.FIELD)) {
+			                if (element.getKind().equals(ElementKind.FIELD)) 
+			                {
 			                	String elementName = element.getSimpleName().toString();
 			                	VariableElement varElem = (VariableElement)element;
 			                	
 			                	Set<Modifier> modifiers = varElem.getModifiers();
-			                	
-			                	for (Iterator<Modifier> m = modifiers.iterator();m.hasNext();)
-			                	{
-			                		Modifier modifier = m.next();
-			                		if (modifier == Modifier.PRIVATE)
-			                		{
-			                			codeGenerator.add_Field(elementName, varElem);
-			                		}
-			                	}			                    
+
+                                for (Modifier modifier : modifiers) {
+                                    if (modifier == Modifier.PRIVATE) {
+                                        if (!codeGenerator.setField(elementName, varElem)) {
+                                            error(codeGenerator.getError());
+                                            return false;
+                                        }
+                                    }
+                                }
 			                }
 			            }
-			            
-			            codeGenerator.generate();
-			            bw.flush();
-			            bw.close();
+	    	            if (!codeGenerator.generate())
+	    	            {
+	    	            	error(codeGenerator.getError());
+	    	            	return false;
+	    	            }
 	            	}
 	            }
-	            catch (Exception ex)
+	            catch (IOException ex)
 	            {
 	            	error("Unable to write file: "+ex.getMessage());
 	            }
@@ -110,4 +119,6 @@ public class RealmProcessor extends AbstractProcessor {
 	    private void error(String message) {
 	        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message);
 	    }
+	    
+	    
 }
