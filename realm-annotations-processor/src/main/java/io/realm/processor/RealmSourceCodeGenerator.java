@@ -101,8 +101,13 @@ public class RealmSourceCodeGenerator {
         if (!checkState(GeneratorStates.PACKAGE)) return false;
 
         this.packageName = packageName;
-        writer.emitPackage(packageName).emitEmptyLine().
-                emitImports("io.realm.ColumnType", "io.realm.Table").emitEmptyLine();
+        writer.emitPackage(packageName)
+                .emitEmptyLine()
+                .emitImports(
+                        "io.realm.internal.ColumnType",
+                        "io.realm.internal.Table",
+                        "io.realm.internal.ImplicitTransaction")
+                .emitEmptyLine();
         generatorState = GeneratorStates.CLASS;
         return true;
     }
@@ -182,7 +187,7 @@ public class RealmSourceCodeGenerator {
         if (!checkState(GeneratorStates.METHODS)) return false;
 
         writer.beginMethod("Table", "initTable", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
-                "io.realm.ImplicitTransaction", "transaction").
+                "ImplicitTransaction", "transaction").
                 beginControlFlow("if(!transaction.hasTable(\"" + this.className + "\"))").
                 emitStatement("Table table = transaction.getTable(\"" + this.className + "\")");
 

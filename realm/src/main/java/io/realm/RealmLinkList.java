@@ -1,3 +1,4 @@
+/*
 package io.realm;
 
 import java.util.AbstractList;
@@ -89,3 +90,4 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
     }
 
 }
+*/

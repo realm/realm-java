@@ -4,7 +4,7 @@ import io.realm.internal.Row;
 
 public abstract class RealmObject {
 
-    private Row row;
+    protected Row row;
     long realmAddedAtRowIndex = -1;
 
     protected Row realmGetRow() {

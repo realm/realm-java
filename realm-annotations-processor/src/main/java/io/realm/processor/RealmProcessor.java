@@ -57,32 +57,50 @@ public class RealmProcessor extends AbstractProcessor {
 	                return false;
 	            }
 
-	            try 
-	            {
 	            	PackageElement packageElement = (PackageElement) enclosingElement;
 	            	String qName = packageElement.getQualifiedName().toString();
 	            	
 	            	if (qName != null)
 	            	{
 	            		String qualifiedClassName = qName + "."+classElement.getSimpleName()+"RealmProxy";
-	            		qualifiedClassName = qualifiedClassName.replace(".", "/");
+	            		//qualifiedClassName = qualifiedClassName.replace(".", "/");
 
-	            		JavaFileObject jfo = processingEnv.getFiler().createSourceFile(qualifiedClassName);
-			            codeGenerator.setBufferedWriter(new BufferedWriter(jfo.openWriter()));
+                        JavaFileObject jfo = null;
+                        try {
+                            jfo = processingEnv.getFiler().createSourceFile(qualifiedClassName);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            error("Unable to create file: " + e.getMessage());
+                            return false;
+                        }
 
-			            if (!codeGenerator.setPackageName(qName))
-	    	            {
-	    	            	error(codeGenerator.getError());
-	    	            	return false;
-	    	            }
+                        try {
+                            codeGenerator.setBufferedWriter(new BufferedWriter(jfo.openWriter()));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
 
-	    	            if (!codeGenerator.setClassName(classElement.getSimpleName().toString()))
-	    	            {
-	    	            	error(codeGenerator.getError());
-	    	            	return false;
-	    	            }
+                        try {
+                            if (!codeGenerator.setPackageName(qName))
+                            {
+                                error(codeGenerator.getError());
+                                return false;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
 
-			            for (Element element : typeElement.getEnclosedElements()) {
+                        try {
+                            if (!codeGenerator.setClassName(classElement.getSimpleName().toString()))
+                            {
+                                error(codeGenerator.getError());
+                                return false;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        for (Element element : typeElement.getEnclosedElements()) {
 			                if (element.getKind().equals(ElementKind.FIELD)) 
 			                {
 			                	String elementName = element.getSimpleName().toString();
@@ -92,26 +110,29 @@ public class RealmProcessor extends AbstractProcessor {
 
                                 for (Modifier modifier : modifiers) {
                                     if (modifier == Modifier.PRIVATE) {
-                                        if (!codeGenerator.setField(elementName, varElem)) {
-                                            error(codeGenerator.getError());
-                                            return false;
+                                        try {
+                                            if (!codeGenerator.setField(elementName, varElem)) {
+                                                error(codeGenerator.getError());
+                                                return false;
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
                                         }
                                     }
                                 }
 			                }
 			            }
-	    	            if (!codeGenerator.generate())
-	    	            {
-	    	            	error(codeGenerator.getError());
-	    	            	return false;
-	    	            }
-	            	}
+                        try {
+                            if (!codeGenerator.generate())
+                            {
+                                error(codeGenerator.getError());
+                                return false;
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
 	            }
-	            catch (IOException ex)
-	            {
-	            	error("Unable to write file: "+ex.getMessage());
-	            }
-	        }
 	        
 	        return true;
 	    }

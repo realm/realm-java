@@ -1,3 +1,4 @@
+/*
 package io.realm;
 
 
@@ -182,3 +183,4 @@ class RealmProxy implements InvocationHandler {
     }
 
 }
+*/

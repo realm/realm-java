@@ -68,7 +68,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
         System.out.println("################################ Testing new interface");
 
         Realm.setDefaultDurability(SharedGroup.Durability.FULL);
-        Realm realm = null;
+        Realm realm;
         try {
             realm = new Realm(activity.getFilesDir());
         } catch (IOException e) {
@@ -80,6 +80,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
 
         timer = System.currentTimeMillis();
         try {
+            //Debug.startMethodTracing("writes");
             realm.beginWrite();
             for(int i = 0; i < listSize; i++) {
                 User user = realm.create(User.class);
@@ -92,6 +93,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
 
             }
             realm.commit();
+            //Debug.stopMethodTracing();
         } catch(Throwable t) {
             t.printStackTrace();
             return null;
@@ -100,6 +102,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
         timings.put("RealmList_Add", (System.currentTimeMillis() - timer));
 
         timer = System.currentTimeMillis();
+        //Debug.startMethodTracing("reads");
         RealmList<User> realmList = realm.where(User.class).findAll();
         for(int i = 0; i < listSize; i++) {
             // IUser u = realmList.getTest(i, IUser.class);
@@ -111,6 +114,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
             u.getEmail();
 
         }
+        //Debug.stopMethodTracing();
         timings.put("RealmList_Get", (System.currentTimeMillis() - timer));
 
 
@@ -120,6 +124,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
 
         SharedGroup sg = new SharedGroup(activity.getFilesDir().getPath()+"/perfTest.tightdb");
 
+        //Debug.startMethodTracing("dyn");
         WriteTransaction wt = sg.beginWrite();
         try {
             if (!wt.hasTable("test")) {
@@ -153,7 +158,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
             t.printStackTrace();
             wt.rollback();
         }
-
+        //Debug.stopMethodTracing();
         timings.put("TightDB_Add", (System.currentTimeMillis() - timer));
         timer = System.currentTimeMillis();
 
