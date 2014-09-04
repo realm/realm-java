@@ -36,6 +36,7 @@ public class Realm {
     private Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
     private Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
     private Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
+    private Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
 
     private List<RealmChangeListener> changeListeners;
     boolean runEventHandler = false;
@@ -99,50 +100,54 @@ public class Realm {
      * @param <E>
      */
     public <E extends RealmObject> E create(Class<E> clazz) {
-        String generatedClassName;
-        if (generatedClassNames.containsKey(clazz)) {
-            generatedClassName = generatedClassNames.get(clazz);
-        } else {
-            generatedClassName = clazz.getName() + "RealmProxy";
-            generatedClassNames.put(clazz, generatedClassName);
-        }
-
-
-        Class<?> generatedClass;
-        try {
-            if (generatedClasses.containsKey(generatedClassName)) {
-                generatedClass = generatedClasses.get(generatedClassName);
-            } else {
-                generatedClass = Class.forName(generatedClassName);
-                generatedClasses.put(generatedClassName, generatedClass);
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
-        }
-
-        Method method;
-        try {
-            if (initTableMethods.containsKey(generatedClass)) {
-                method = initTableMethods.get(generatedClass);
-            } else {
-                method = generatedClass.getMethod("initTable", new Class[] {ImplicitTransaction.class});
-                initTableMethods.put(generatedClass, method);
-            }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
-        }
-
         Table table;
-        try {
-            table = (Table)method.invoke(null, transaction);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
+        if (tables.containsKey(clazz)) {
+            table = tables.get(clazz);
+        } else {
+            String generatedClassName;
+            if (generatedClassNames.containsKey(clazz)) {
+                generatedClassName = generatedClassNames.get(clazz);
+            } else {
+                generatedClassName = clazz.getName() + "RealmProxy";
+                generatedClassNames.put(clazz, generatedClassName);
+            }
+
+            Class<?> generatedClass;
+            try {
+                if (generatedClasses.containsKey(generatedClassName)) {
+                    generatedClass = generatedClasses.get(generatedClassName);
+                } else {
+                    generatedClass = Class.forName(generatedClassName);
+                    generatedClasses.put(generatedClassName, generatedClass);
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                return null; // TODO: throw RealmException
+            }
+
+            Method method;
+            try {
+                if (initTableMethods.containsKey(generatedClass)) {
+                    method = initTableMethods.get(generatedClass);
+                } else {
+                    method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
+                    initTableMethods.put(generatedClass, method);
+                }
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+                return null; // TODO: throw RealmException
+            }
+
+            try {
+                table = (Table) method.invoke(null, transaction);
+                tables.put(clazz, table);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                return null; // TODO: throw RealmException
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+                return null; // TODO: throw RealmException
+            }
         }
 
         long rowIndex = table.addEmptyRow();
