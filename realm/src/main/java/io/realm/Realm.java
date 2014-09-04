@@ -35,6 +35,7 @@ public class Realm {
     private Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>();
     private Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
     private Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
+    private Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
 
     private List<RealmChangeListener> changeListeners;
     boolean runEventHandler = false;
@@ -316,30 +317,36 @@ public class Realm {
 
         Row row = transaction.getTable(simpleClassName).getRow(rowIndex);
 
-        Class<?> generatedClass;
-        try {
-            if (generatedClasses.containsKey(generatedClassName)) {
-                generatedClass = generatedClasses.get(generatedClassName);
-            } else {
-                generatedClass = Class.forName(generatedClassName);
-                generatedClasses.put(generatedClassName, generatedClass);
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
-        }
+        Constructor constructor;
+        if (generatedConstructors.containsKey(clazz)) {
+            constructor = generatedConstructors.get(clazz);
+        } else {
 
-        Constructor constructor = null;
-        try {
-            if (constructors.containsKey(generatedClass)) {
-                constructor = constructors.get(generatedClass);
-            } else {
-                constructor = generatedClass.getConstructor();
-                constructors.put(generatedClass, constructor);
+            Class<?> generatedClass;
+            try {
+                if (generatedClasses.containsKey(generatedClassName)) {
+                    generatedClass = generatedClasses.get(generatedClassName);
+                } else {
+                    generatedClass = Class.forName(generatedClassName);
+                    generatedClasses.put(generatedClassName, generatedClass);
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                return null; // TODO: throw RealmException
             }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
+
+            try {
+                if (constructors.containsKey(generatedClass)) {
+                    constructor = constructors.get(generatedClass);
+                } else {
+                    constructor = generatedClass.getConstructor();
+                    constructors.put(generatedClass, constructor);
+                    generatedConstructors.put(clazz, constructor);
+                }
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+                return null; // TODO: throw RealmException
+            }
         }
 
         try {
