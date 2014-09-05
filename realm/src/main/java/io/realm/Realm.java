@@ -40,6 +40,17 @@ public class Realm {
     private List<RealmChangeListener> changeListeners;
     boolean runEventHandler = false;
 
+
+    /**
+     * Obtains an instance of the default Realm.
+     *
+     * @throws IOException
+     */
+    public Realm() throws IOException {
+        // FIXME: find a way to deduce default path
+        this("/", "default.realm");
+    }
+
     public Realm(File writeablePath) throws IOException {
         this(writeablePath, "default.realm");
     }

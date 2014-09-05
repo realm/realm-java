@@ -24,5 +24,4 @@ public class RealmArrayList<E extends RealmObject> extends ArrayList<E> implemen
     public RealmQuery<E> where() {
         return null;
     }
-
 }
