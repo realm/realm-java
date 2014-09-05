@@ -1,0 +1,7 @@
+include 'realm-jni'
+include 'realm'
+include 'realm-annotations-processor'
+include ':performance'
+project(':performance').projectDir = new File('examples/performance')
+
+rootProject.name = 'tightdb_java'

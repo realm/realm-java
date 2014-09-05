@@ -1,0 +1,31 @@
+apply plugin: 'com.android.library'
+
+dependencies {
+    compile 'com.google.dexmaker:dexmaker:1.1'
+    compile group: 'com.google.guava', name: 'guava', version: '15.0'
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion '20.0.0'
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 19
+    }
+}
+
+android.libraryVariants.all { variant ->
+    task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
+        group 'Docs'
+        description "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        exclude "**/internal/**"
+    }
+}
+
+tasks.preBuild {
+    dependsOn ':realm-jni:buildAndroidJni'
+}

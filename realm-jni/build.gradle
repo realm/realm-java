@@ -1,0 +1,198 @@
+apply plugin: 'download-task'
+
+Properties localProperties = new Properties()
+localProperties.load(new FileInputStream("${rootDir}/local.properties"))
+localProperties.entrySet().each() { entry ->
+    project.ext[entry.getKey()] = localProperties.setProperty(entry.getKey(), entry.getValue())
+}
+
+task checkProperties(group: 'check', description: 'Check the user provided gradle.properties') << {
+    if (!project.ext['ndk.dir']) {
+        throw new GradleException('The ndkDir property in the gradle.properties file is not set.')
+    } else if (project.ext['ndk.dir'].endsWith('/')) {
+        throw new GradleException('The path provided in the ndkProperty in the gradle.properties ends with /')
+    } else if (!file(project.ext['ndk.dir']).directory) {
+        throw new GradleException('The path provided in the ndkDir property in the gradle.properties is not a folder.')
+    } else if (!file(new File(project.ext['ndk.dir'], 'RELEASE.TXT')).file) {
+        throw new GradleException('The path provided in the ndkDir property in the gradle.properties does not seem to be an Android NDK.')
+    }
+}
+
+task downloadCore(group: 'build setup', description: 'Download the latest version of realm core', dependsOn: checkProperties) {
+    outputs.dir "${rootDir}/core-${project.coreVersion}"
+    doLast {
+        download {
+            src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
+            dest new File(buildDir, "core-android-${project.coreVersion}.tar.gz")
+            onlyIfNewer true
+        }
+        copy {
+            from tarTree(new File(buildDir, "core-android-${project.coreVersion}.tar.gz"))
+            into "${rootDir}/core-${project.coreVersion}"
+        }
+    }
+}
+
+for (platform in ['arm', 'mips', 'x86']) {
+    task "generateNdkToolchain${platform.capitalize()}"(type: Exec) {
+        group 'build setup'
+        description "Generate the NDK standalone toolchain for the ${platform.capitalize()} platform"
+        dependsOn { checkProperties }
+        outputs.dir new File("${buildDir}/standalone-toolchains/${platform}")
+        commandLine = [
+            "bash",
+            "${project.ext['ndk.dir']}/build/tools/make-standalone-toolchain.sh",
+            "--platform=android-${platform.contains('arm')?8:9}",
+            "--install-dir=${buildDir}/standalone-toolchains/${platform}",
+            "--arch=${platform}"
+        ]
+    }
+}
+
+task buildAndroidJniArm {
+    group 'build'
+    description 'Build the Android JNI shared library for the Arm platform'
+    dependsOn generateNdkToolchainArm
+    dependsOn downloadCore
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core-${project.coreVersion}/include",
+                'CFLAGS_ARCH=-mthumb',
+                'BASE_DENOM=arm',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -L${rootDir}/core-${project.coreVersion}",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-arm.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-arm.so"
+            into "${projectDir}/../realm/src/main/jniLibs/armeabi"
+            rename 'libtightdb-jni-arm.so', 'libtightdb-jni.so'
+        }
+    }
+}
+
+task buildAndroidJniArmv7a {
+    group 'build'
+    description 'Build the Android JNI shared library for the Arm-v7a platform'
+    dependsOn generateNdkToolchainArm
+    dependsOn downloadCore
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core-${project.coreVersion}/include",
+                'CFLAGS_ARCH=-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16',
+                'BASE_DENOM=arm-v7a',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -L${rootDir}/core-${project.coreVersion}",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-arm-v7a.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-arm-v7a.so"
+            into "${projectDir}/../realm/src/main/jniLibs/armeabi-v7a"
+            rename 'libtightdb-jni-arm-v7a.so', 'libtightdb-jni.so'
+        }
+    }
+}
+
+task buildAndroidJniMips {
+    group 'build'
+    description 'Build the Android JNI shared library for the Mips platform'
+    dependsOn generateNdkToolchainMips
+    dependsOn downloadCore
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/mips/mipsel-linux-android/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core-${project.coreVersion}/include",
+                'CFLAGS_ARCH=',
+                'BASE_DENOM=mips',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -L${rootDir}/core-${project.coreVersion}",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-mips.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-mips.so"
+            into "${projectDir}/../realm/src/main/jniLibs/mips"
+            rename 'libtightdb-jni-mips.so', 'libtightdb-jni.so'
+        }
+    }
+}
+
+task buildAndroidJniIntel {
+    group 'build'
+    description 'Build the Android JNI shared library for the Intel platform'
+    dependsOn generateNdkToolchainX86
+    dependsOn downloadCore
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/x86/i686-linux-android/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core-${project.coreVersion}/include",
+                'CFLAGS_ARCH=',
+                'BASE_DENOM=x86',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -L${rootDir}/core-${project.coreVersion}",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-x86.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-x86.so"
+            into "${projectDir}/../realm/src/main/jniLibs/x86"
+            rename 'libtightdb-jni-x86.so', 'libtightdb-jni.so'
+        }
+    }
+}
+
+task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared library for all the supported platforms') {
+    dependsOn buildAndroidJniArm
+    dependsOn buildAndroidJniArmv7a
+    dependsOn buildAndroidJniMips
+    dependsOn buildAndroidJniIntel
+}
+
+task clean(group: 'build', description: 'Clean the make artifacts') << {
+    for (target in ['arm', 'arm-v7a', 'mips', 'x86']) {
+        exec {
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                "BASE_DENOM=${target}",
+                'LIB_SUFFIX_SHARED=.so',
+                'clean'
+            ]
+        }
+    }
+    exec {
+        commandLine = [
+            'rm',
+            '-rf',
+            "${projectDir}/build/*"
+        ]
+    }
+}

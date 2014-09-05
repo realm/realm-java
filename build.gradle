@@ -1,0 +1,19 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.12.2'
+        classpath 'de.undercouch:gradle-download-task:1.0'
+    }
+}
+
+allprojects {
+  group = 'io.realm'
+  version = '0.80'
+  ext.coreVersion = '0.82.2'
+
+  repositories {
+    mavenCentral()
+  }
+}

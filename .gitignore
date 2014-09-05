@@ -1,110 +1,30 @@
-*~
-*.bat
-*.orig
-tightdb_jni??d*.dll
-tightdb_jni*.exp
+# Gradle build artifacts
+build
+realm/build
+realm-jni/build
 
-/examples/*/*/generated/*
-/examples/*/generated/*
-/examples/*/generated-sources/*
-/examples/*/lib
-*.tightdb
-*.realm
-.metadata/*
+# Gradle cache
+.gradle
 
-*.sdf
-*.opensdf
-*.ipch
-/bin
+# Core
+core
+core-*
 
-.classpath
-.project
-.factorypath
-target
-
-*/.classpath
-*/.project
-*/.factorypath
-
-#ignore thumbnails created by windows
-Thumbs.db
-#Ignore files build by Visual Studio
-*.obj
-*.exe
-*.pdb
-*.user
-*.aps
-*.pch
-*.vspscc
-*_i.c
-*_p.c
-*.ncb
-*.suo
-*.tlb
-*.tlh
-*.bak
-*.cache
-*.ilk
-*.log
-[Bb]in
-[Dd]ebug*/
-*.lib
-*.sbr
-obj/
-[Rr]elease*/
-_ReSharper*/
-[Tt]est[Rr]esult*
-*/target
-.settings/*
-*/.settings/*
-*/test-output
-
-# ref-doc
-/doc/ref/html
-
-# sh build.sh config
-/realm_jni/config.mk
-
-# sh build.sh build
-/lib
-
-# sh build.sh test
-/test_output
-
-# sh build.sh build-android
-/android-lib/
-
-.DS_Store
-
+# Android Studio
 .idea
 *.iml
 
-*.lock
+# DS_Store
+.DS_Store
+*/.DS_Store
 
-/realm-java-test/testng.xml
+# JNI libs
+/realm/src/main/jniLibs
 
-*.prefs
+# Build artifacts
+*.so
+*.d
+*.o
 
-# Ref doc generated classes
-
-/doc/ref/examples/generated/io/realm/refdoc/*.java
-
-# generated json output in ref doc json example
-
-/doc/ref/examples/fromServlet
-
-
-# debian packaging
-/debian/tightdb-java
-/debian/tightdb-java-dev
-/debian/.mh
-
-
-# generated json output in ref doc json example
-/doc/ref/examples/fromServlet
-
-# generated lib files
-/java/share/java/*.jar
-/realm_jni/src/*.dylib
-
-realm-java-test/*.realm
+# Backup files
+*.bak
