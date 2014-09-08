@@ -49,12 +49,4 @@ public interface RealmList<E extends RealmObject> extends List<E> {
      */
     @Override
     int size();
-
-    /**
-     * Returns a RealmQuery, used to filter this RealmList
-     *
-     * @return              A RealmQuery to filter the list
-     */
-    RealmQuery<E> where();
-
 }

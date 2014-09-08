@@ -69,9 +69,13 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
     }
 
     @Override
-    public E remove(int location) {
+    public remove(int location) {
         view.remove(location);
-        return null;
+    }
+
+    @Override
+    public void removeLast() {
+        view.remove(view.size()-1);
     }
 
     @Override
@@ -99,11 +103,5 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
     public int size() {
         return ((Long)view.size()).intValue();
     }
-
-    @Override
-    public RealmQuery<E> where() {
-        return null;
-    }
-
 }
 */

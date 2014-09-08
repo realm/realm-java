@@ -57,11 +57,8 @@ public class Realm {
     private List<RealmChangeListener> changeListeners;
     boolean runEventHandler = false;
 
-    public Realm(File writeablePath) throws IOException {
-        this(writeablePath, "default.realm");
-    }
 
-    public Realm(File writeablePath, String filePath) throws IOException {
+    private void openRealm(File writeablePath, String filePath) throws IOException {
         this.filePath = new File(writeablePath, filePath).getAbsolutePath();
         File bytecodeCache = new File(writeablePath, "dx");
         if (!bytecodeCache.exists()) {
@@ -74,6 +71,27 @@ public class Realm {
         this.bytecodeCache = bytecodeCache;
         this.changeListeners = new ArrayList<RealmChangeListener>();
         init();
+    }
+
+    /**
+     * Obtains an instance of the default Realm.
+     *
+     * @throws IOException
+     */
+    public Realm() throws IOException {
+        // FIXME: find a way to deduce default path
+        String path = "/";
+        String fileName = "default.realm";
+        File writeablePath = new File(path);
+        openRealm(writeablePath, fileName);
+    }
+
+    public Realm(File writeablePath) throws IOException {
+        openRealm(writeablePath, "default.realm");
+    }
+
+    public Realm(File writeablePath, String filePath) throws IOException {
+        openRealm(writeablePath, filePath);
     }
 
     private void startEventHandler() {
