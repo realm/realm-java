@@ -309,6 +309,71 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         }
     }
 
+
+    /**
+     * Calculate the sum.
+     *
+     * @param attrName    The property to sum. Only double is supported.
+     * @return            The returned value is the sum.
+     */
+    public double sumDouble(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.DOUBLE) {
+            return table.sumDouble(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
+    /**
+     * Calculate the sum.
+     *
+     * @param attrName    The property to sum. Only float is supported.
+     * @return            The returned value is the sum.
+     */
+    public double sumFloat(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.FLOAT) {
+            return table.sumFloat(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
+    /**
+     * Calculate the sum.
+     *
+     * @param attrName    The property to sum. Only int is supported.
+     * @return            The returned value is the sum.
+     */
+    public long sumLong(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.INTEGER) {
+            return table.sumLong(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
+
     /**
      * Returns the average of a given property for objects in a RealmList.
      *
