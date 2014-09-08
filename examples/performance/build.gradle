@@ -1,4 +1,14 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.1'
+    }
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
 
 android {
     compileSdkVersion 19
@@ -20,5 +30,6 @@ android {
 }
 
 dependencies {
+    apt project(':realm-annotations-processor')
     compile project(':realm')
 }

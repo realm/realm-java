@@ -10,4 +10,5 @@ sourceSets {
 
 dependencies {
     compile project(':realm')
+    compile group:'com.squareup', name:'javawriter', version:'2.5.0'
 }
