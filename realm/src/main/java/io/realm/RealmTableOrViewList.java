@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.internal.ColumnType;
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -294,7 +295,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      * @param attrName    The property to look for a minimum on. Only date is supported.
      * @return            The returned value is the maximum value.
      */
-    public Date miximumDate(String attrName) {
+    public Date maximumDate(String attrName) {
         long columnIndex;
         TableOrView table;
 
@@ -465,5 +466,72 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     public void clear() {
         TableOrView table = getTable();
         table.clear();
+    }
+
+    // Adding objects
+
+    /**
+     * Add an object.
+     *
+     * @param element    The object to add.
+     * @return           true if object was added.
+     */
+    public boolean add(E element) {
+        TableOrView table;
+
+        table = getTable();
+        if (table instanceof Table) {
+            ((Table)table).add(element);
+            return true;
+        }
+        else {
+            throw new RuntimeException("Cannot add objects to a result set.");
+        }
+    }
+
+    /**
+     * Add an object
+     *
+     * @param index        The place to add the object at.
+     * @param element      The object to add.
+     */
+    public void add(int index, E element) {
+        TableOrView table;
+
+        table = getTable();
+        if (table instanceof Table) {
+            if (index >= 0 && index < table.size()) {
+                ((Table) table).addAt(index, element);
+            }
+            else {
+                throw new RuntimeException("Out of range.");
+            }
+        }
+        else {
+            throw new RuntimeException("Cannot add objects to a result set.");
+        }
+    }
+
+    /**
+     * Replaces an object at the given index with a new object.
+     *
+     * @param index       The array index of the object to be replaced.
+     * @param element     An object.
+     */
+    public void replace(int index, E element) {
+        TableOrView table;
+
+        table = getTable();
+        if (index < 0 || index >= table.size()) {
+            throw new RuntimeException("Out of range.");
+        }
+
+        if (table instanceof Table) {
+            ((Table)table).set(index, element);
+        }
+        else {
+            // FIXME: TableView hasn't a set method
+            throw new NotImplementedException();
+        }
     }
 }
