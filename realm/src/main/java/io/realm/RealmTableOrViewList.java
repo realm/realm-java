@@ -296,7 +296,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
             case DOUBLE:
                 return table.averageDouble(columnIndex);
             case FLOAT:
-                return table.averageDouble(columnIndex);
+                return table.averageFloat(columnIndex);
             default:
                 throw new RuntimeException("Wrong type");
         }
