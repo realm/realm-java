@@ -141,13 +141,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.DOUBLE) {
-            return table.minimumDouble(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.minimumDouble(columnIndex);
     }
 
     /**
@@ -162,13 +156,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.FLOAT) {
-            return table.minimumFloat(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.minimumFloat(columnIndex);
     }
 
     /**
@@ -183,13 +171,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.INTEGER) {
-            return table.minimumLong(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.minimumLong(columnIndex);
     }
 
     /**
@@ -204,13 +186,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.DATE) {
-            return table.minimumDate(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.minimumDate(columnIndex);
     }
 
 
@@ -238,13 +214,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.DOUBLE) {
-            return table.maximumDouble(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.maximumDouble(columnIndex);
     }
 
     /**
@@ -259,13 +229,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.FLOAT) {
-            return table.maximumFloat(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.maximumFloat(columnIndex);
     }
 
     /**
@@ -280,13 +244,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.INTEGER) {
-            return table.maximumLong(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.maximumLong(columnIndex);
     }
 
     /**
@@ -301,13 +259,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.DATE) {
-            return table.maximumDate(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.maximumDate(columnIndex);
     }
 
 
@@ -323,13 +275,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.DOUBLE) {
-            return table.sumDouble(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.sumDouble(columnIndex);
     }
 
     /**
@@ -344,13 +290,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.FLOAT) {
-            return table.sumFloat(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.sumFloat(columnIndex);
     }
 
     /**
@@ -365,13 +305,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         columnIndex = table.getColumnIndex(attrName);
-
-        if (table.getColumnType(columnIndex) == ColumnType.INTEGER) {
-            return table.sumLong(columnIndex);
-        }
-        else {
-            throw new RuntimeException("No such attribute");
-        }
+        return table.sumLong(columnIndex);
     }
 
 
@@ -500,12 +434,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
         table = getTable();
         if (table instanceof Table) {
-            if (index >= 0 && index < table.size()) {
-                ((Table) table).addAt(index, element);
-            }
-            else {
-                throw new RuntimeException("Out of range.");
-            }
+            ((Table) table).addAt(index, element);
         }
         else {
             throw new RuntimeException("Cannot add objects to a result set.");
@@ -522,10 +451,6 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         TableOrView table;
 
         table = getTable();
-        if (index < 0 || index >= table.size()) {
-            throw new RuntimeException("Out of range.");
-        }
-
         if (table instanceof Table) {
             ((Table)table).set(index, element);
         }
