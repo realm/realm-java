@@ -98,4 +98,14 @@ public abstract class RealmObject {
         clazz = this.getClass();
         return realm.where(clazz);
     }
+
+    public boolean equals(Object obj) {
+        // FIXME: get the derived classes
+        if (this.getClass() != obj.getClass())
+            return false;
+
+        // FIXME: iterate through attributes
+        return true;
+    }
+
 }

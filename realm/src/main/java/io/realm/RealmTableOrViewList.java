@@ -534,4 +534,24 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
             throw new NotImplementedException();
         }
     }
+
+    // Finding objects
+
+    /**
+     * Returns the index of the first occurrence of the specific element.
+     *
+     * @param o     The object to look for.
+     * @return      The index, -1 if not found.
+     */
+    public int indexOf(Object o) {
+        int i;
+
+        i = 0;
+        while (i < this.size()) {
+            if (this.get(i).equals(o))
+                return i;
+            i++;
+        }
+        return -1;
+    }
 }
