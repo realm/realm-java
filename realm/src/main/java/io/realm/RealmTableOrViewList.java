@@ -18,6 +18,7 @@ package io.realm;
 
 
 import java.util.AbstractList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,4 +110,195 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         return ((Long)getTable().size()).intValue();
     }
 
+
+    /**
+     * Find the minimum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only double is supported.
+     * @return            The returned value is the minimum value.
+     */
+    public double minimumDouble(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.minimumDouble(columnIndex);
+    }
+
+    /**
+     * Find the minimum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only float is supported.
+     * @return            The returned value is the minimum value.
+     */
+    public float minimumFloat(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.minimumFloat(columnIndex);
+    }
+
+    /**
+     * Find the minimum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only int is supported.
+     * @return            The returned value is the minimum value.
+     */
+    public long minimumLong(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.minimumLong(columnIndex);
+    }
+
+    /**
+     * Find the minimum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only date is supported.
+     * @return            The returned value is the minimum value.
+     */
+    public Date minimumDate(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.minimumDate(columnIndex);
+    }
+
+    /**
+     * Find the maximum value.
+     *
+     * @param attrName    The property to look for a maximum on. Only double is supported.
+     * @return            The returned value is the maximum value.
+     */
+    public double maximumDouble(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.maximumDouble(columnIndex);
+    }
+
+    /**
+     * Find the maximum value.
+     *
+     * @param attrName    The property to look for a maximum on. Only float is supported.
+     * @return            The returned value is the maximum value.
+     */
+    public float maximumFloat(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.maximumFloat(columnIndex);
+    }
+
+    /**
+     * Find the maximum value.
+     *
+     * @param attrName    The property to look for a maximum on. Only int is supported.
+     * @return            The returned value is the maximum value.
+     */
+    public long maximumLong(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.maximumLong(columnIndex);
+    }
+
+    /**
+     * Find the maximum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only date is supported.
+     * @return            The returned value is the maximum value.
+     */
+    public Date maximumDate(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.maximumDate(columnIndex);
+    }
+
+
+    /**
+     * Calculate the sum.
+     *
+     * @param attrName    The property to sum. Only double is supported.
+     * @return            The returned value is the sum.
+     */
+    public double sumDouble(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.sumDouble(columnIndex);
+    }
+
+    /**
+     * Calculate the sum.
+     *
+     * @param attrName    The property to sum. Only float is supported.
+     * @return            The returned value is the sum.
+     */
+    public double sumFloat(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.sumFloat(columnIndex);
+    }
+
+    /**
+     * Calculate the sum.
+     *
+     * @param attrName    The property to sum. Only int is supported.
+     * @return            The returned value is the sum.
+     */
+    public long sumLong(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+        return table.sumLong(columnIndex);
+    }
+
+
+    /**
+     * Returns the average of a given property for objects in a RealmList.
+     *
+     * @param attrName   The property to calculate average on. Only properties of type int,
+     *                   float and double are supported.
+     * @return           The average for the given property amongst objects in an RealmList. This
+     *                   will be of type double for both float and double properties.
+     */
+    public double average(String attrName) {
+        TableOrView table = getTable();
+        long columnIndex;
+        columnIndex = table.getColumnIndex(attrName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return table.averageLong(columnIndex);
+            case DOUBLE:
+                return table.averageDouble(columnIndex);
+            case FLOAT:
+                return table.averageDouble(columnIndex);
+            default:
+                throw new RuntimeException("Wrong type");
+        }
+    }
 }
