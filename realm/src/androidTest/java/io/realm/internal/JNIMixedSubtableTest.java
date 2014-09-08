@@ -1,3 +1,4 @@
+/*
 package io.realm.internal;
 
 import junit.framework.TestCase;
@@ -122,3 +123,4 @@ public class JNIMixedSubtableTest extends TestCase {
     }
 
 }
+*/

@@ -11,7 +11,6 @@ public class JNI_nativeTests extends TestCase {
             try {
                 test.execute(0);
             } catch (Exception e) {
-
                 assertEquals(expect, e.toString());
             } catch (Error e) {
                 assertEquals(expect, e.toString());

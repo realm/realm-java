@@ -8,7 +8,7 @@ import junit.framework.TestCase;
 public class JNIDistinctTest extends TestCase {
     Table table;
 
-    public void setUp() {
+    void init() {
         table = new Table();
         table.addColumn(ColumnType.INTEGER, "number");
         table.addColumn(ColumnType.STRING, "name");
@@ -25,7 +25,7 @@ public class JNIDistinctTest extends TestCase {
     }
 
     public void testShouldTestDistinct() {
-        setUp();
+        init();
 
         // Must set index before using distinct()
         table.setIndex(1);
@@ -40,35 +40,32 @@ public class JNIDistinctTest extends TestCase {
     }
 
     public void testShouldTestDistinctErrorWhenNoIndex() {
-        setUp();
+        init();
         try {
             TableView view = table.getDistinctView(1);
             fail();
         } catch (UnsupportedOperationException e) {
-            e.printStackTrace();
             assertNotNull(e);
         }
     }
 
     public void testShouldTestDistinctErrorWhenIndexOutOfBounds() {
-        setUp();
+        init();
         try {
             TableView view = table.getDistinctView(3);
             fail();
         } catch (Exception e) {
-            e.printStackTrace();
             assertNotNull(e);
         }
     }
 
     public void testShouldTestDistinctErrorWhenWrongColumnType() {
-        setUp();
+        init();
         table.setIndex(1);
         try {
             TableView view = table.getDistinctView(0);
             fail();
         } catch (Exception e) {
-            e.printStackTrace();
             assertNotNull(e);
         }
     }

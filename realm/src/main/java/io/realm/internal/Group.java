@@ -29,7 +29,7 @@ public class Group implements Closeable {
             // of memory'. An out of memory condition in
             // createNative() must be handled by having createNative()
             // throw OutOfMemoryError.
-            throw new OutOfMemoryError("Out of native memory.");
+            throw new io.realm.exceptions.OutOfMemoryError("Out of native memory.");
     }
 
     public Group() {

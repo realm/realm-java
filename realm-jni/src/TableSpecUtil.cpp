@@ -7,7 +7,7 @@ using namespace tightdb;
 
 jclass GetClassTableSpec(JNIEnv* env)
 {
-    static jclass myClass = GetClass(env, "io/realm/TableSpec");
+    static jclass myClass = GetClass(env, "io/realm/internal/TableSpec");
     return myClass;
 }
 
@@ -35,7 +35,7 @@ jlong Java_io_realm_TableSpec_getColumnCount(JNIEnv* env, jobject jTableSpec)
 
 jobject Java_io_realm_TableSpec_getColumnType(JNIEnv* env, jobject jTableSpec, jlong columnIndex)
 {
-    static jmethodID jGetColumnTypeMethodId = GetTableSpecMethodID(env, "getColumnType", "(J)Lio/realm/ColumnType;");
+    static jmethodID jGetColumnTypeMethodId = GetTableSpecMethodID(env, "getColumnType", "(J)Lio/realm/internal/ColumnType;");
     if (jGetColumnTypeMethodId)
         return env->CallObjectMethod(jTableSpec, jGetColumnTypeMethodId, columnIndex);
     return NULL;
@@ -51,7 +51,7 @@ jstring Java_io_realm_TableSpec_getColumnName(JNIEnv* env, jobject jTableSpec, j
 
 jobject Java_io_realm_TableSpec_getTableSpec(JNIEnv* env, jobject jTableSpec, jlong columnIndex)
 {
-    static jmethodID jGetTableSpecMethodId = GetTableSpecMethodID(env, "getSubtableSpec", "(J)Lio/realm/TableSpec;");
+    static jmethodID jGetTableSpecMethodId = GetTableSpecMethodID(env, "getSubtableSpec", "(J)Lio/realm/internal/TableSpec;");
     if (jGetTableSpecMethodId)
         return env->CallObjectMethod(jTableSpec, jGetTableSpecMethodId, columnIndex);
     return NULL;
@@ -87,7 +87,7 @@ void get_descriptor(JNIEnv* env, const Descriptor& desc, jobject jTableSpec)
 {
     static jmethodID jAddColumnMethodId = GetTableSpecMethodID(env, "addColumn", "(ILjava/lang/String;)V");
     static jmethodID jAddSubtableColumnMethodId = GetTableSpecMethodID(env, "addSubtableColumn", 
-                                                                            "(Ljava/lang/String;)Lio/realm/TableSpec;");
+                                                                            "(Ljava/lang/String;)Lio/realm/internal/TableSpec;");
 
     if (jAddColumnMethodId == NULL || jAddSubtableColumnMethodId == NULL) {
         return;

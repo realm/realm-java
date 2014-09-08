@@ -1,12 +1,14 @@
 package io.realm.internal;
 
-import junit.framework.TestCase;
+import android.test.AndroidTestCase;
+import android.test.MoreAsserts;
 
+import java.io.File;
 import java.util.Date;
 
 import io.realm.internal.test.TestHelper;
 
-public class JNITableTest extends TestCase {
+public class JNITableTest extends AndroidTestCase {
 
     Table t = new Table();
 
@@ -102,13 +104,13 @@ public class JNITableTest extends TestCase {
         try { t.getInternalMethods().insertBinary(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
 
 
-        assertEquals(new byte[] { 1, 2, 3 }, t.getBinaryByteArray(0, 0));
+        MoreAsserts.assertEquals(new byte[]{1, 2, 3}, t.getBinaryByteArray(0, 0));
         assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[]{1, 2, 3});
 
         byte[] newRow0 = new byte[] { 7, 77, 77 };
         t.setBinaryByteArray(0, 0, newRow0);
 
-        assertEquals(new byte[] { 7, 77, 77 }, t.getBinaryByteArray(0, 0));
+        MoreAsserts.assertEquals(new byte[]{7, 77, 77}, t.getBinaryByteArray(0, 0));
         assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
 
         try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
@@ -336,7 +338,7 @@ public class JNITableTest extends TestCase {
 
     public void testImmutableInsertNotAllowed() {
 
-        String FILENAME = "only-test-file.realm";
+        String FILENAME = new File(this.getContext().getFilesDir(), "only-test-file.realm").toString();
         String TABLENAME = "tableName";
 
       //  new File(FILENAME).delete();

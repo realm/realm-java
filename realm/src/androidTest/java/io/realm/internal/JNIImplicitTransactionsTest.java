@@ -1,24 +1,35 @@
 package io.realm.internal;
 
-import junit.framework.TestCase;
+import android.test.AndroidTestCase;
 
 import java.io.File;
+import java.util.Arrays;
 
-public class JNIImplicitTransactionsTest extends TestCase {
+public class JNIImplicitTransactionsTest extends AndroidTestCase {
 
-    private void deleteFile(String filename) {
-        File f = new File(filename);
-        if (f.exists())
-            f.delete();
-        f = new File(filename + ".lock");
-        if (f.exists())
-            f.delete();
+    String testFile;
+
+    @Override
+    protected void setUp() throws Exception {
+        testFile = new File(this.getContext().getFilesDir(), "implicit.realm").toString();
+    }
+
+    private void deleteFile() {
+        for (String fileToDelete : Arrays.asList(testFile, testFile + ".lock")) {
+            File f = new File(fileToDelete);
+            if (f.exists()) {
+                boolean result = f.delete();
+                if (!result) {
+                    fail();
+                }
+            }
+        }
     }
 
     public void testImplicitTransactions() {
 
-        deleteFile("implicit.realm");
-        SharedGroup sg = new SharedGroup("implicit.realm", true);
+        deleteFile();
+        SharedGroup sg = new SharedGroup(testFile, true);
 
         WriteTransaction wt = sg.beginWrite();
 
@@ -48,7 +59,6 @@ public class JNIImplicitTransactionsTest extends TestCase {
             test.addEmptyRow();
             fail();
         } catch (IllegalStateException e) {
-            e.printStackTrace();
             assertNotNull(e);
         }
 

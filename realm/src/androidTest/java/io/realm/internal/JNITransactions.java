@@ -1,39 +1,44 @@
 package io.realm.internal;
 
 
-import junit.framework.TestCase;
+import android.test.AndroidTestCase;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
-public class JNITransactions extends TestCase {
+public class JNITransactions extends AndroidTestCase {
     
-    // List of created .realm-files to be deleted when all tests are done.
-    List<String> fileNameList = new ArrayList<String>();
+    String testFile;
 
     @Override
-    public void tearDown() {
-        for (String filename : fileNameList){
-            deleteFile(filename);
+    protected void setUp() throws Exception {
+        createDBFileName();
+    }
+
+    @Override
+    public void tearDown() throws IOException {
+        deleteFile(testFile);
+    }
+
+    protected void deleteFile(String filename) throws IOException {
+        for (String filePath : Arrays.asList(filename, filename + ".lock")) {
+            File f = new File(filePath);
+            if (f.exists()) {
+                boolean result = f.delete();
+                if (!result) {
+                    throw new java.io.IOException("Could not delete " + filePath);
+                }
+            }
         }
     }
 
-    protected void deleteFile(String filename) {
-        File f = new File(filename);
-        if (f.exists())
-            f.delete();
-        f = new File(filename + ".lock");
-        if (f.exists())
-            f.delete();
-    }
-
     
-    private String createDBFileName(){
-        String name = System.currentTimeMillis() + "_transact.realm";
-        fileNameList.add(name);
-        return name;
+    private void createDBFileName(){
+        testFile = new File(
+                this.getContext().getFilesDir(),
+                System.currentTimeMillis() + "_transact.realm").toString();
     }
 
     protected void writeOneTransaction(SharedGroup db, long rows) {
@@ -51,8 +56,9 @@ public class JNITransactions extends TestCase {
         // must throw exception as table is invalid now.
         try {
             assertEquals(1, tbl.size());
-            assert(false);
+            fail();
         } catch (IllegalStateException e) {
+            assertNotNull(e);
         }
 
     }
@@ -66,21 +72,24 @@ public class JNITransactions extends TestCase {
         trans.endRead();
     }
 
+    // TODO: tests should be done both for all Durability options
+
     public void testMustWriteAndReadEmpty() {
-        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
         writeOneTransaction(db, 0);
         checkRead(db, 0);
     }
 
     public void testMustWriteCommit() {
-        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
         writeOneTransaction(db, 10);
         checkRead(db, 10);
     }
 
 
     public void testShouldThrowExceptionAfterClosedReadTransaction() {
-        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        writeOneTransaction(db, 10);
         ReadTransaction rt = db.beginRead();
 
         try {
@@ -90,7 +99,8 @@ public class JNITransactions extends TestCase {
                 tbl.getColumnCount(); //Should throw exception, the table is invalid when transaction has been closed
                 fail();
             } catch (IllegalStateException e) {
-                assertNotNull(e);
+                assert(false);
+                //assertNotNull(e);
             }
         } finally {
             rt.endRead();
@@ -99,7 +109,8 @@ public class JNITransactions extends TestCase {
 
 
     public void testShouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
-        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        writeOneTransaction(db, 10);
         ReadTransaction rt = db.beginRead();
 
         try {
@@ -107,6 +118,23 @@ public class JNITransactions extends TestCase {
             rt.endRead();
             try {
                 tbl.addColumn(ColumnType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
+                fail();
+            } catch (IllegalStateException e) {
+                //assertNotNull(e);
+            }
+        } finally {
+            rt.endRead();
+        }
+    }
+
+
+    public void testShouldThrowExceptionWhenWritingInReadTrans() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            try {
+                rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
                 fail();
             } catch (IllegalStateException e) {
                 assertNotNull(e);
@@ -117,25 +145,8 @@ public class JNITransactions extends TestCase {
     }
 
 
-    public void testShouldThrowExceptionWhenWritingInReadTrans() {
-        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
-        ReadTransaction rt = db.beginRead();
-
-        try {
-            try {
-                rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
-                fail();
-            } catch (Exception e) {
-                assertNotNull(e);
-            }
-        } finally {
-            rt.endRead();
-        }
-    }
-
-
     public void testOnlyOneCommit() {
-        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
         WriteTransaction trans = db.beginWrite();
 
         try {
@@ -155,7 +166,7 @@ public class JNITransactions extends TestCase {
     }
 
     public void testMustRollback() {
-        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
         writeOneTransaction(db, 1);
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
@@ -168,7 +179,7 @@ public class JNITransactions extends TestCase {
     }
 
     public void testMustAllowDoubleCommitAndRollback() {
-        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
         {
             WriteTransaction trans = db.beginWrite();
             Table tbl = trans.getTable("EmployeeTable");
@@ -205,48 +216,48 @@ public class JNITransactions extends TestCase {
     // TableQuery.... in ReadTransactions
 
     public void testMustFailOnWriteInReadTransactions() {
-        SharedGroup db = new SharedGroup(createDBFileName(), SharedGroup.Durability.ASYNC);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
 
         writeOneTransaction(db, 1);
 
         ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
 
-        try { table.addAt(0, 0, false);             assert(false);} catch (IllegalStateException e) {}
-        try { table.add(0, false);                  assert(false);} catch (IllegalStateException e) {}
-        try { table.addEmptyRow();                  assert(false);} catch (IllegalStateException e) {}
-        try { table.addEmptyRows(1);                assert(false);} catch (IllegalStateException e) {}
-        try { table.adjust(0,0);                    assert(false);} catch (IllegalStateException e) {}
-        try { table.clear();                        assert(false);} catch (IllegalStateException e) {}
-        try { table.clearSubtable(0,0);             assert(false);} catch (IllegalStateException e) {}
-        try { table.optimize();                     assert(false);} catch (IllegalStateException e) {}
-        try { table.remove(0);                      assert(false);} catch (IllegalStateException e) {}
-        try { table.removeLast();                   assert(false);} catch (IllegalStateException e) {}
-        try { table.setBinaryByteArray(0,0,null);   assert(false);} catch (IllegalStateException e) {}
-        try { table.setBoolean(0,0,false);          assert(false);} catch (IllegalStateException e) {}
-        try { table.setDate(0,0,new Date(0));       assert(false);} catch (IllegalStateException e) {}
-        try { table.setIndex(0);                    assert(false);} catch (IllegalStateException e) {}
-        try { table.setLong(0,0,0);                 assert(false);} catch (IllegalStateException e) {}
-        try { table.setMixed(0,0,null);             assert(false);} catch (IllegalStateException e) {}
-        try { table.setString(0,0,"");              assert(false);} catch (IllegalStateException e) {}
-        try { table.updateFromSpec(null);           assert(false);} catch (IllegalStateException e) {}
+        try { table.addAt(0, 0, false);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.add(0, false);                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.addEmptyRow();                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.addEmptyRows(1);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.adjust(0,0);                    fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.clear();                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.clearSubtable(0,0);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.optimize();                     fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.remove(0);                      fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.removeLast();                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setBinaryByteArray(0,0,null);   fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setBoolean(0,0,false);          fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setDate(0,0,new Date(0));       fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setIndex(0);                    fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setLong(0,0,0);                 fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setMixed(0,0,null);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setString(0,0,"");              fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.updateFromSpec(null);           fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         TableQuery q = table.where();
-        try { q.remove();                           assert(false);} catch (IllegalStateException e) {}
-        try { q.remove(0,0);                        assert(false);} catch (IllegalStateException e) {}
+        try { q.remove();                           fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { q.remove(0,0);                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         TableView v = q.findAll();
-        try { v.adjust(0, 0);                       assert(false);} catch (IllegalStateException e) {}
-        try { v.clear();                            assert(false);} catch (IllegalStateException e) {}
-        try { v.clearSubtable(0, 0);                assert(false);} catch (IllegalStateException e) {}
-        try { v.remove(0);                          assert(false);} catch (IllegalStateException e) {}
-        try { v.removeLast();                       assert(false);} catch (IllegalStateException e) {}
-        try { v.setBinaryByteArray(0, 0, null);     assert(false);} catch (IllegalStateException e) {}
-        try { v.setBoolean(0, 0, false);            assert(false);} catch (IllegalStateException e) {}
-        try { v.setDate(0, 0, new Date());          assert(false);} catch (IllegalStateException e) {}
-        try { v.setLong(0, 0, 0);                   assert(false);} catch (IllegalStateException e) {}
-        try { v.setString(0,0,"");                  assert(false);} catch (IllegalStateException e) {}
-        try { v.setMixed(0, 0, null);               assert(false);} catch (IllegalStateException e) {}
+        try { v.adjust(0, 0);                       fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.clear();                            fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.clearSubtable(0, 0);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.remove(0);                          fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.removeLast();                       fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setBinaryByteArray(0, 0, null);     fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setBoolean(0, 0, false);            fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setDate(0, 0, new Date());          fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setLong(0, 0, 0);                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setString(0,0,"");                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setMixed(0, 0, null);               fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         t.endRead();
     }

@@ -1,6 +1,7 @@
 package io.realm.internal;
 
 import java.io.Closeable;
+import java.lang.*;
 import java.util.Date;
 
 
@@ -70,7 +71,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         // classes will work as a wrapper on top of table.
         this.nativePtr = createNative();
         if (nativePtr == 0)
-            throw new OutOfMemoryError("Out of native memory.");
+            throw new java.lang.OutOfMemoryError("Out of native memory.");
         if (DEBUG) {
             tableNo = ++TableCount;
             System.err.println("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
@@ -1371,13 +1372,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
             throw new UnsupportedOperationException("Group by column must be of type String");
         if (! this.getColumnType(intCol).equals(ColumnType.INTEGER ))
-            throw new UnsupportedOperationException("Aggregeation column must be of type Int");
+            throw new UnsupportedOperationException("Aggregation column must be of type Int");
         Table result = new Table();
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
         return result;
     }
 
-    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long resultPtr);
+    protected native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long resultPtr);
 
     //
 

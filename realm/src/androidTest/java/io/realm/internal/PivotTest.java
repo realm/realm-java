@@ -11,8 +11,8 @@ public class PivotTest extends TestCase {
     long colIndexAge;
     long colIndexHired;
     
-    public void setup(){
-    
+    @Override
+    public void setUp(){
         colIndexSex = t.addColumn(ColumnType.STRING, "sex");
         colIndexAge = t.addColumn(ColumnType.INTEGER, "age");
         colIndexHired = t.addColumn(ColumnType.BOOLEAN, "hired");

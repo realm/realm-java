@@ -1,5 +1,7 @@
 package io.realm.internal;
 
+import android.test.MoreAsserts;
+
 import junit.framework.TestCase;
 
 import java.util.Date;
@@ -9,10 +11,10 @@ import io.realm.internal.test.TestHelper;
 @SuppressWarnings("deprecation")
 public class JNIViewTest extends TestCase {
     Table t;
-    Date date1 = new Date(2010-1900, 01, 05);
-    Date date2 = new Date(1999-1900, 12, 01);
+    Date date1 = new Date(2010-1900,  1,  5);
+    Date date2 = new Date(1999-1900, 12,  1);
     Date date3 = new Date(1990-1900, 12, 24);
-    Date date4 = new Date(2010-1900, 01, 04);
+    Date date4 = new Date(2010-1900,  1,  4);
 
     @Override
     public void setUp() {
@@ -112,7 +114,7 @@ public class JNIViewTest extends TestCase {
 
         byte[] arr1 = new byte[] {1,2,3};
         table.add(arr1);
-        assertEquals(arr1, table.getBinaryByteArray(0, 0));
+        MoreAsserts.assertEquals(arr1, table.getBinaryByteArray(0, 0));
 
         TableView view = table.where().findAll();
 
@@ -120,7 +122,7 @@ public class JNIViewTest extends TestCase {
 
         view.setBinaryByteArray(0, 0, arr2);
 
-        assertEquals(arr2, view.getBinaryByteArray(0, 0));
+        MoreAsserts.assertEquals(arr2, view.getBinaryByteArray(0, 0));
     }
 
 
@@ -139,11 +141,10 @@ public class JNIViewTest extends TestCase {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add(new Object[] {"Mr X", "xx@xxxx.com", 
-                                  new Object[][] { { "X Street", 1234, new Object[][] {{ 12345678 }} },
-                                                   { "Y Street", 1234, new Object[][] {{ 12345678 }} }
-                                                 } 
-                                 });
+        persons.add("Mr X", "xx@xxxx.com",
+                new Object[][] { { "X Street", 1234, new Object[][] {{ 12345678 }} },
+                                 { "Y Street", 1234, new Object[][] {{ 12345678 }} }
+                               });
 
         TableView personsView = persons.where().findAll();
 

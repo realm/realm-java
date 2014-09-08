@@ -75,19 +75,25 @@ public class JNISubtableTest extends TestCase {
         try { 
             table.getSubtable(0, 0); 
             fail("rowIndex > available rows."); 
-        } catch (ArrayIndexOutOfBoundsException e) { }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            assertNotNull(e);
+        }
 
         try { 
             table.getSubtable(1, 0); 
             fail("columnIndex > available columns."); 
-        } catch (ArrayIndexOutOfBoundsException e) { }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            assertNotNull(e);
+        }
 
         table.addEmptyRow();
 
         try { 
             table.getSubtable(1, 0); 
             fail("columnIndex > available columns."); 
-        } catch (ArrayIndexOutOfBoundsException e) { }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            assertNotNull(e);
+        }
     }
 
     public void testSubtableSort() {
@@ -116,7 +122,9 @@ public class JNISubtableTest extends TestCase {
         try { 
             subView.sort(subtableStringColIndex); 
             fail("Sort not supported on String columns"); 
-        } catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) {
+            assertNotNull(e);
+        }
     }
 
     public void testAddColumnsToSubtables() {
@@ -137,7 +145,7 @@ public class JNISubtableTest extends TestCase {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
+        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }});
 
         // Assertions
         assertEquals(persons.getColumnName(2), "addresses");
@@ -158,7 +166,12 @@ public class JNISubtableTest extends TestCase {
         persons.addColumn(ColumnType.TABLE, "sub");
 
         TableSchema addresses = persons.getSubtableSchema(0);
-        try { addresses.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
+        try {
+            addresses.addColumn(ColumnType.STRING, "I am 64 chracters...............................................");
+            fail("Only 63 chracters supported"); }
+        catch (IllegalArgumentException e) {
+            assertNotNull(e);
+        }
 
         addresses.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
     }
@@ -180,7 +193,7 @@ public class JNISubtableTest extends TestCase {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
+        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }});
 
         // Assertions
         assertEquals(persons.getSubtable(2,0).getColumnCount(), 3);
@@ -206,7 +219,7 @@ public class JNISubtableTest extends TestCase {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
+        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }});
 
         // Assertions
         assertEquals("zipcode", persons.getSubtable(2,0).getColumnName(1));
@@ -230,19 +243,23 @@ public class JNISubtableTest extends TestCase {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }} });
+        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }});
 
         try {
             // Should throw
             persons.getSubtable(2,0).addColumn(ColumnType.INTEGER, "i");
             fail("expected exception.");
-        } catch (UnsupportedOperationException e) {}
+        } catch (UnsupportedOperationException e) {
+            assertNotNull(e);
+        }
 
         try {
             // Should throw
             persons.getSubtable(2,0).getSubtableSchema(2);
             fail("expected exception.");
-        } catch (UnsupportedOperationException e) {}
+        } catch (UnsupportedOperationException e) {
+            assertNotNull(e);
+        }
 
     }
 
