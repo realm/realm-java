@@ -145,7 +145,8 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public double average(String attrName) {
         TableOrView table = getTable();
-        int columnIndex = table.getColumnIndex(attrName);
+        long columnIndex;
+        columnIndex = table.getColumnIndex(attrName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return table.averageLong(columnIndex);
@@ -171,7 +172,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      * @param attrName   The attribute name to sort by.
      * @return           A sorted RealmList
      */
-    RealmList<E> sort(String attrName) {
+    public RealmList<E> sort(String attrName) {
         return sort(attrName, Order.ascending);
     }
 
@@ -182,9 +183,10 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      * @param sortOrder  The direction to sort by.
      * @return           A sorted RealmList.
      */
-    RealmList<E> sort(String attrName, Order sortOrder) {
+    public RealmList<E> sort(String attrName, Order sortOrder) {
+        long columnIndex;
         TableOrView table = getTable();
-        int columnIndex = table.getColumnIndex(attrName);
+        columnIndex = table.getColumnIndex(attrName);
         TableView newView = table.where().findAll();
         if (sortOrder == Order.ascending) {
             newView.sort(columnIndex, TableView.Order.ascending);
@@ -193,7 +195,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
             newView.sort(columnIndex, TableView.Order.descending);
         }
         RealmTableOrViewList<E> newList;
-        newList = new RealmTableOrViewList<E>(realm, table, E);
+        newList = new RealmTableOrViewList<E>(realm, newView, newView.getClass());
         return newList;
     }
 
@@ -203,7 +205,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      *
      * @param index      The array index identifying the object to be removed.
      */
-    void remove(int index) {
+    public void remove(int index) {
         TableOrView table = getTable();
         table.remove(index);
     }
@@ -212,7 +214,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      * Removes the last object in a RealmList.
      *
      */
-    void removeLast() {
+    public void removeLast() {
         TableOrView table = getTable();
         table.removeLast();
     }
@@ -221,10 +223,8 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      * Removes all objects from an RealmList.
      *
      */
-    void clear() {
+    public void clear() {
         TableOrView table = getTable();
         table.clear();
     }
-
-
 }

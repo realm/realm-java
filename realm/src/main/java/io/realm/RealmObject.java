@@ -32,7 +32,6 @@ public abstract class RealmObject {
         this.row = row;
     }
 
-    /*
     /**
      * Get all objects of this type from the default Realm.
      *
@@ -42,14 +41,14 @@ public abstract class RealmObject {
     public static RealmList<?> all() {
         Realm realm;
 
-        realm = NULL;
+        realm = null;
         try {
             realm = new Realm();
+            return realm.allObjects(this.getClass()); // FIXME: get the derived class
         }
-        catch (IOException e) {
+        catch (java.io.IOException e) {
             e.printStackTrace();
         }
-        return realm.allObjects();
     }
 
     /**
@@ -62,7 +61,7 @@ public abstract class RealmObject {
     public static RealmList all(Realm realm) {
         Class clazz;
 
-        clazz = this.getClass();
+        clazz = this.getClass(); // FIXME: get the derived class
         return realm.allObjects(clazz);
     }
 
@@ -76,9 +75,14 @@ public abstract class RealmObject {
         Class clazz;
         Realm realm;
 
-        realm = new Realm();
-        clazz = this.getClass();
-        return realm.where(clazz);
+        try {
+            realm = new Realm();
+            clazz = this.getClass(); // FIXME: get the derived class
+            return realm.where(clazz);
+        }
+        catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -94,7 +98,4 @@ public abstract class RealmObject {
         clazz = this.getClass();
         return realm.where(clazz);
     }
-
-    */
-
 }
