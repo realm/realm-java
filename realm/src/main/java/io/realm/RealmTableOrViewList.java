@@ -18,13 +18,14 @@ package io.realm;
 
 
 import java.util.AbstractList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.realm.internal.Table;
+import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
-import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  *
@@ -76,7 +77,6 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      *
      * @return              A RealmQuery to filter the list
      */
-    @Override
     public RealmQuery<E> where() {
         return new RealmQuery<E>(this, classSpec);
     }
@@ -123,7 +123,95 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      * @return           The returned object is the first object in the RealmList which has the
      *                   minimum value.
      */
-    public E min(String attrName);
+    public E min(String attrName) throws NotImplementedException {
+        throw new NotImplementedException();
+    }
+
+
+    /**
+     * Find the minimum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only double is supported.
+     * @return            The returned value is the minimum value.
+     */
+    public double minimumDouble(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.DOUBLE) {
+            return table.minimumDouble(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
+    /**
+     * Find the minimum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only float is supported.
+     * @return            The returned value is the minimum value.
+     */
+    public float minimumFloat(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.FLOAT) {
+            return table.minimumFloat(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
+    /**
+     * Find the minimum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only int is supported.
+     * @return            The returned value is the minimum value.
+     */
+    public long minimumLong(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.INTEGER) {
+            return table.minimumLong(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
+    /**
+     * Find the minimum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only date is supported.
+     * @return            The returned value is the minimum value.
+     */
+    public Date minimumDate(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.DATE) {
+            return table.minimumDate(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
 
     /**
      * Find an object with the maximum value.
@@ -133,7 +221,93 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      * @return           The returned object is the first object in the RealmList which has the
      *                   maximum value.
      */
-    public E max(String attrName);
+    public E max(String attrName) throws NotImplementedException {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Find the maximum value.
+     *
+     * @param attrName    The property to look for a maximum on. Only double is supported.
+     * @return            The returned value is the maximum value.
+     */
+    public double maximumDouble(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.DOUBLE) {
+            return table.maximumDouble(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
+    /**
+     * Find the maximum value.
+     *
+     * @param attrName    The property to look for a maximum on. Only float is supported.
+     * @return            The returned value is the maximum value.
+     */
+    public float maximumFloat(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.FLOAT) {
+            return table.maximumFloat(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
+    /**
+     * Find the maximum value.
+     *
+     * @param attrName    The property to look for a maximum on. Only int is supported.
+     * @return            The returned value is the maximum value.
+     */
+    public long maximumLong(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.INTEGER) {
+            return table.maximumLong(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
+
+    /**
+     * Find the maximum value.
+     *
+     * @param attrName    The property to look for a minimum on. Only date is supported.
+     * @return            The returned value is the maximum value.
+     */
+    public Date miximumDate(String attrName) {
+        long columnIndex;
+        TableOrView table;
+
+        table = getTable();
+        columnIndex = table.getColumnIndex(attrName);
+
+        if (table.getColumnType(columnIndex) == ColumnType.DATE) {
+            return table.maximumDate(columnIndex);
+        }
+        else {
+            throw new RuntimeException("No such attribute");
+        }
+    }
 
     /**
      * Returns the average of a given property for objects in a RealmList.
