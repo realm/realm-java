@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-package io.realm.tests.examples.entities;
+/* TODO: re-enable
 
+
+package io.realm.tests.api.entities;
+
+import io.realm.RealmArrayList;
+import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class Dog extends RealmObject {
 
+    private RealmList<User> owners = new RealmArrayList<User>();
     private String name;
-    private int age;
+
+    public RealmList<User> getOwners() {
+        return owners;
+    }
+
+    public void setOwners(RealmList<User> owners) {
+        this.owners = owners;
+    }
 
     public String getName() {
         return name;
@@ -30,13 +43,5 @@ public class Dog extends RealmObject {
     public void setName(String name) {
         this.name = name;
     }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
 }
+*/

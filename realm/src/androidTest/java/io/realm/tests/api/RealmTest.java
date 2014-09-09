@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/* TODO: translate to new object syntax
+
+
 package io.realm.tests.typed;
 
 import android.test.AndroidTestCase;
@@ -236,7 +239,8 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testMigration() {
-        /*
+        */
+/*
         realm.ensureRealmAtVersion(2, new RealmMigration() {
             @Override
             public void execute(Realm realm, int version) {
@@ -255,7 +259,9 @@ public class RealmTest extends AndroidTestCase {
 
             }
         });
-        */
+        *//*
+
     }
 
 }
+*/
