@@ -56,12 +56,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
                 ThrowException(env, ClassNotFound, "parm1", "parm2");
             break;
         case NoSuchField:
-            expect = "java.lang.NoSuchFieldException: Field 'parm2' could not be located in class com.tightdb.parm1";
+            expect = "java.lang.NoSuchFieldException: Field 'parm2' could not be located in class io.realm.parm1";
             if (dotest)
                 ThrowException(env, NoSuchField, "parm1", "parm2");
             break;
         case NoSuchMethod:
-            expect = "java.lang.NoSuchMethodException: Method 'parm2' could not be located in class com.tightdb.parm1";
+            expect = "java.lang.NoSuchMethodException: Method 'parm2' could not be located in class io.realm.parm1";
             if (dotest)
                 ThrowException(env, NoSuchMethod, "parm1", "parm2");
             break;
@@ -71,17 +71,17 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
                 ThrowException(env, IllegalArgument, "parm1", "parm2");
             break;
         case IOFailed:
-            expect = "io.realm.IOException: Failed to open parm1. parm2";
+            expect = "io.realm.exceptions.IOException: Failed to open parm1. parm2";
             if (dotest)
                 ThrowException(env, IOFailed, "parm1", "parm2");
             break;
         case FileNotFound:
-            expect = "io.realm.IOException: File not found: parm1.";
+            expect = "io.realm.exceptions.IOException: File not found: parm1.";
             if (dotest)
                 ThrowException(env, FileNotFound, "parm1", "parm2");
             break;
         case FileAccessError:
-            expect = "io.realm.IOException: Failed to access: parm1. parm2";
+            expect = "io.realm.exceptions.IOException: Failed to access: parm1. parm2";
             if (dotest)
                 ThrowException(env, FileAccessError, "parm1", "parm2");
             break;
@@ -102,7 +102,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             break;
                 ThrowException(env, OutOfMemory, "parm1", "parm2");
         case OutOfMemory:
-            expect = "io.realm.OutOfMemoryError: parm1 parm2";
+            expect = "io.realm.exceptions.OutOfMemoryError: parm1 parm2";
             if (dotest)
                 ThrowException(env, OutOfMemory, "parm1", "parm2");
             break;
@@ -116,6 +116,9 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, RuntimeError, "parm1", "parm2");
             break;
+    }
+    if (dotest) {
+        return NULL;
     }
     return to_jstring(env, expect);
 }
