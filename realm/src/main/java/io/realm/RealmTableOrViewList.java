@@ -23,6 +23,7 @@ import java.util.Map;
 
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  *
@@ -59,11 +60,6 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
     @Override
     public void move(int oldPos, int newPos) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean remove(Object o) {
         throw new UnsupportedOperationException();
     }
 
@@ -109,4 +105,64 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         return ((Long)getTable().size()).intValue();
     }
 
+
+
+    // Sorting
+    public static enum Order {
+        ascending, descending
+    }
+
+    /**
+     * Get a sorted (ascending) RealmList from an existing RealmList.
+     *
+     * @param propName   The property name to sort by.
+     * @return           A sorted RealmList
+     */
+    public RealmList<E> sort(String propName) {
+        return sort(propName, Order.ascending);
+    }
+
+    /**
+     * Get a sorted RealmList from an existing RealmList.
+     *
+     * @param propName   The property name to sort by.
+     * @param sortOrder  The direction to sort by.
+     * @return           A sorted RealmList.
+     */
+    public RealmList<E> sort(String propName, Order sortOrder) {
+        throw new NotImplementedException();
+    }
+
+
+    // Deleting
+    /**
+     * Removes an object at a given index.
+     *
+     * @param index      The array index identifying the object to be removed.
+     * @return           Always return null.
+     */
+    @Override
+    public E remove(int index) {
+        TableOrView table = getTable();
+        table.remove(index);
+        return null;
+    }
+
+    /**
+     * Removes the last object in a RealmList.
+     *
+     */
+    public void removeLast() {
+        TableOrView table = getTable();
+        table.removeLast();
+    }
+
+    /**
+     * Removes all objects from an RealmList.
+     *
+     */
+    public void clear() {
+        TableOrView table = getTable();
+        table.clear();
+    }
 }
