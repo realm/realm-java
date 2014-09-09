@@ -119,11 +119,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public double minimumDouble(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.minimumDouble(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.minimumDouble(columnIndex);
     }
 
     /**
@@ -134,11 +132,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public float minimumFloat(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.minimumFloat(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.minimumFloat(columnIndex);
     }
 
     /**
@@ -149,11 +145,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public long minimumLong(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.minimumLong(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.minimumLong(columnIndex);
     }
 
     /**
@@ -164,11 +158,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public Date minimumDate(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.minimumDate(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.minimumDate(columnIndex);
     }
 
     /**
@@ -179,11 +171,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public double maximumDouble(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.maximumDouble(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.maximumDouble(columnIndex);
     }
 
     /**
@@ -194,11 +184,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public float maximumFloat(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.maximumFloat(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.maximumFloat(columnIndex);
     }
 
     /**
@@ -209,11 +197,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public long maximumLong(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.maximumLong(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.maximumLong(columnIndex);
     }
 
     /**
@@ -224,11 +210,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public Date maximumDate(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.maximumDate(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.maximumDate(columnIndex);
     }
 
 
@@ -240,11 +224,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public double sumDouble(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.sumDouble(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.sumDouble(columnIndex);
     }
 
     /**
@@ -255,11 +237,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public double sumFloat(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.sumFloat(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.sumFloat(columnIndex);
     }
 
     /**
@@ -270,11 +250,9 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      */
     public long sumLong(String attrName) {
         long columnIndex;
-        TableOrView table;
 
-        table = getTable();
-        columnIndex = table.getColumnIndex(attrName);
-        return table.sumLong(columnIndex);
+        columnIndex = this.table.getColumnIndex(attrName);
+        return this.table.sumLong(columnIndex);
     }
 
 
@@ -287,16 +265,15 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      *                   will be of type double for both float and double properties.
      */
     public double average(String attrName) {
-        TableOrView table = getTable();
         long columnIndex;
-        columnIndex = table.getColumnIndex(attrName);
-        switch (table.getColumnType(columnIndex)) {
+        columnIndex = this.table.getColumnIndex(attrName);
+        switch (this.table.getColumnType(columnIndex)) {
             case INTEGER:
-                return table.averageLong(columnIndex);
+                return this.table.averageLong(columnIndex);
             case DOUBLE:
-                return table.averageDouble(columnIndex);
+                return this.table.averageDouble(columnIndex);
             case FLOAT:
-                return table.averageFloat(columnIndex);
+                return this.table.averageFloat(columnIndex);
             default:
                 throw new RuntimeException("Wrong type");
         }
