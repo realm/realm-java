@@ -1,21 +1,15 @@
-/*
 package io.realm.internal;
 
-import static org.junit.Assert.*;
+import junit.framework.TestCase;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.junit.annotations.DataProvider;
-import org.junit.Test;
-
 import io.realm.internal.test.DataProviderUtil;
-import io.realm.internal.TestHelper;
+import io.realm.internal.test.TestHelper;
 
-
-@SuppressWarnings("unused")
-public class TableIndexAndDistinctTest {
+public class TableIndexAndDistinctTest extends TestCase {
     Table table;
 
     void init() {
@@ -34,8 +28,7 @@ public class TableIndexAndDistinctTest {
         assertEquals(7, table.size());
     }
 
-    @Test
-    public void shouldTestDistinct() {
+    public void testShouldTestDistinct() {
         init();
 
         // Must set index before using distinct()
@@ -50,10 +43,8 @@ public class TableIndexAndDistinctTest {
         assertEquals(4, view.getLong(0, 3));
     }
 
-
-
-    */
-/**
+// TODO: parametric test
+/*    *//**
      * Should throw exception if trying to get distinct on columns where index has not been set
      * @param index
      *//*
@@ -65,22 +56,24 @@ public class TableIndexAndDistinctTest {
         Table t = TestHelper.getTableWithAllColumnTypes();
 
         TableView view = table.getDistinctView(1);
-    }
+    }*/
 
-    @Test(expectedExceptions = ArrayIndexOutOfBoundsException.class)
-    public void shouldTestDistinctErrorWhenIndexOutOfBounds() {
+    public void testShouldTestDistinctErrorWhenIndexOutOfBounds() {
         init();
 
-        TableView view = table.getDistinctView(3);
+        try {
+            TableView view = table.getDistinctView(3);
+            fail();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            assertNotNull(e);
+        }
     }
 
-    */
-/**
-     * Checkd that Index can be set on multiple columns, with the String
-     * @param index
-     *//*
-
-    public void shouldTestSettingIndexOnMultipleColumns() {
+    /**
+     * Check that Index can be set on multiple columns, with the String
+     * @param
+     */
+    public void testShouldTestSettingIndexOnMultipleColumns() {
 
         //Create a table only with String type columns
         Table t = new Table();
@@ -102,8 +95,8 @@ public class TableIndexAndDistinctTest {
     }
 
 
-    */
-/**
+// TODO: parametric test
+/*    *//**
      * Checks that all other column types than String throws exception.
      * @param o
      *//*
@@ -120,31 +113,33 @@ public class TableIndexAndDistinctTest {
         }
 
         t.setIndex(index);
-    }
+    }*/
 
-    @Test()
-    public void shouldCheckIndexIsOkOnColumn() {
+    public void testShouldCheckIndexIsOkOnColumn() {
         init();
         table.setIndex(1);
     }
 
-    @Test(expectedExceptions = UnsupportedOperationException.class)
-    public void shouldTestDistinctErrorWhenWrongColumnType() {
+    public void testShouldThrowDistinctErrorWhenWrongColumnType() {
         init();
         table.setIndex(1);
-        TableView view = table.getDistinctView(0);
+        try {
+            TableView view = table.getDistinctView(0);
+            fail();
+        } catch (UnsupportedOperationException e) {
+            assertNotNull(e);
+        }
     }
 
-
-    */
-/**
+    /**
      * Is used to run a test multiple times,
      * that corresponds to the number of columns in the Table generated
      * in TestHelper.getTableWithAllColumnTypes
      * @return
-     *//*
+     */
 
-    @DataProvider(name = "columnIndex")
+// TODO: parametric test
+/*    @DataProvider(name = "columnIndex")
     public Iterator<Object[]> mixedValuesProvider() {
         Long[] values = {
                0L,1L,2L,3L,4L,5L,6L,7L,8L
@@ -152,6 +147,6 @@ public class TableIndexAndDistinctTest {
 
         List<?> mixedValues = Arrays.asList(values);
         return DataProviderUtil.allCombinations(mixedValues);
-    }
+    }*/
 }
-*/
+

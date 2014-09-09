@@ -1,28 +1,23 @@
-/*
+
 package io.realm.internal;
 
-import static org.junit.Assert.*;
+import android.test.MoreAsserts;
 
-import java.util.Arrays;
+import junit.framework.TestCase;
+
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import io.realm.internal.test.DataProviderUtil;
 import io.realm.internal.test.TestHelper;
 
 
-public class JNITableInsertTest {
+public class JNITableInsertTest extends TestCase {
 
     public void verifyRow(Table tbl, long rowIndex, Object[] values) {
         assertTrue((Boolean)(values[0]) == tbl.getBoolean(0, rowIndex));
         assertEquals(((Number)values[1]).longValue(), tbl.getLong(1, rowIndex));
         assertEquals((String)values[2], tbl.getString(2, rowIndex));
         if (values[3] instanceof byte[])
-            assertEquals((byte[])values[3], tbl.getBinaryByteArray(3, rowIndex));
+            MoreAsserts.assertEquals((byte[])values[3], tbl.getBinaryByteArray(3, rowIndex));
         assertEquals(((Date)values[4]).getTime()/1000, tbl.getDate(4, rowIndex).getTime()/1000);
 
         //      Mixed mix1 = Mixed.mixedValue(values[5]);
@@ -39,8 +34,7 @@ public class JNITableInsertTest {
         assertTrue(tbl.isValid());
     }
 
-    @Test
-    public void ShouldInsertAddAndSetRows() {
+    public void testShouldInsertAddAndSetRows() {
         Table table = new Table();
         TableSpec tableSpec = new TableSpec();
         tableSpec.addColumn(ColumnType.BOOLEAN, "bool");
@@ -84,9 +78,9 @@ public class JNITableInsertTest {
         verifyRow(table, 3, rowData2);
 
         // Same test - but a one-liner...
-        table.add(new Object[] {false, (short)2, "hi", buf, date, mixed, new Object[][] {{234, "row0"},
+        table.add(false, (short)2, "hi", buf, date, mixed, new Object[][] {{234, "row0"},
             {345, "row1"},
-            {456, "row2"} }});
+            {456, "row2"} });
         verifyRow(table, 4, rowData0);
 
         // Test set()
@@ -101,8 +95,6 @@ public class JNITableInsertTest {
 
     }
 
-
-    @Test
     public void testAddAtMethod() {
         Table t = new Table();
         t.addColumn(ColumnType.STRING, "col1");
@@ -116,8 +108,7 @@ public class JNITableInsertTest {
         assertEquals(t.getString(0, 1), "s22");
     }
 
-    @Test
-    public void ShouldFailInsert() {
+    public void testShouldFailInsert() {
         Table table = new Table();
         TableSpec tableSpec = new TableSpec();
         tableSpec.addColumn(ColumnType.BOOLEAN, "bool");
@@ -201,8 +192,7 @@ public class JNITableInsertTest {
     }
 
 
-    @Test
-    public void incrementInColumnTest() {
+    public void testIncrementInColumnTest() {
 
         Table table = new Table();
         table.addColumn(ColumnType.STRING, "col0");
@@ -224,8 +214,7 @@ public class JNITableInsertTest {
     }
 
 
-    @Test
-    public void adjustColumnValuesOnUnsupportedColumnTypeTest() {
+    public void testAdjustColumnValuesOnUnsupportedColumnTypeTest() {
 
         Table table = TestHelper.getTableWithAllColumnTypes();
 
@@ -243,9 +232,7 @@ public class JNITableInsertTest {
         }
     }
 
-
-    @Test
-    public void shouldThrowExceptionWhenColumnNameIsTooLong() {
+    public void testShouldThrowExceptionWhenColumnNameIsTooLong() {
 
         Table table = new Table();
         try { 
@@ -255,7 +242,6 @@ public class JNITableInsertTest {
         catch (IllegalArgumentException e) { }
     }
 
-    @Test
     public void testWhenColumnNameIsExcactly63CharLong() {
 
         Table table = new Table();
@@ -263,8 +249,8 @@ public class JNITableInsertTest {
     }
 
 
-
-    //Generates a table with a a column with column typed determined from the first parameter, 
+// TODO: parametric tests
+/*    //Generates a table with a a column with column typed determined from the first parameter,
     // and then puts in a value from the second parameter.
     //In cases, where the 2 parameter types do not match, we expect an IllegalArgumentException
     @Test(dataProvider = "columnTypesProvider")
@@ -296,6 +282,6 @@ public class JNITableInsertTest {
 
         List<?> mixedValues = Arrays.asList(values);
         return DataProviderUtil.allCombinations(mixedValues,mixedValues);
-    }
+    }*/
 }
-*/
+

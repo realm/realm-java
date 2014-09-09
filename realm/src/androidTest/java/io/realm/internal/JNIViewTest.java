@@ -113,7 +113,7 @@ public class JNIViewTest extends TestCase {
         table.addColumn(ColumnType.BINARY, "binary");
 
         byte[] arr1 = new byte[] {1,2,3};
-        table.add(arr1);
+        table.add(new Object[]{arr1});
         MoreAsserts.assertEquals(arr1, table.getBinaryByteArray(0, 0));
 
         TableView view = table.where().findAll();

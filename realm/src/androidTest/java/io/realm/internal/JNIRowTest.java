@@ -23,14 +23,14 @@ public class JNIRowTest extends TestCase {
 
         byte[] data = new byte[2];
 
-        table.add("abc", 3, new Float(1.2), 1.3, true, new Date(0), data);
+        table.add("abc", 3, (float) 1.2, 1.3, true, new Date(0), data);
 
 
         Row row = table.getRow(0);
 
         assertEquals("abc", row.getString(0));
         assertEquals(3, row.getLong(1));
-        assertEquals(new Float(1.2), row.getFloat(2), 0.0001);
+        assertEquals((float) 1.2, row.getFloat(2), 0.0001);
         assertEquals(1.3, row.getDouble(3));
         assertEquals(true, row.getBoolean(4));
         assertEquals(new Date(0), row.getDate(5));
@@ -39,7 +39,7 @@ public class JNIRowTest extends TestCase {
 
         row.setString(0, "a");
         row.setLong(1, 1);
-        row.setFloat(2, new Float(8.8));
+        row.setFloat(2, (float) 8.8);
         row.setDouble(3, 9.9);
         row.setBoolean(4, false);
         row.setDate(5, new Date(10000));
@@ -49,7 +49,7 @@ public class JNIRowTest extends TestCase {
 
         assertEquals("a", row.getString(0));
         assertEquals(1, row.getLong(1));
-        assertEquals(new Float(8.8), row.getFloat(2), 0.0001);
+        assertEquals((float) 8.8, row.getFloat(2), 0.0001);
         assertEquals(9.9, row.getDouble(3));
         assertEquals(false, row.getBoolean(4));
         assertEquals(new Date(10000), row.getDate(5));
