@@ -30,7 +30,7 @@ import javax.lang.model.element.Modifier;
 
 public class RealmSourceCodeGenerator {
 
-	private class FieldInfo {
+    private class FieldInfo {
         public String fieldName;
         public String fieldId;
         public String columnType;
@@ -64,15 +64,15 @@ public class RealmSourceCodeGenerator {
     public String getError() {
         return errorMessage;
     }
-    
+
     private String convertSimpleTypesToObject(String typeName) {
         if (typeName.compareTo("int") == 0) {
             typeName = "Integer";
-    	} else if (typeName.compareTo("long") == 0 || typeName.compareTo("float") == 0 ||
-                   typeName.compareTo("double") == 0 ||typeName.compareTo("boolean") == 0) {
+        } else if (typeName.compareTo("long") == 0 || typeName.compareTo("float") == 0 ||
+                typeName.compareTo("double") == 0 || typeName.compareTo("boolean") == 0) {
             typeName = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
         }
-        
+
         return typeName;
     }
 
@@ -104,13 +104,13 @@ public class RealmSourceCodeGenerator {
             setError("Annotations received in wrong order");
             return false;
         }
-        
+
         return true;
     }
 
     public boolean setBufferedWriter(BufferedWriter bw) {
         writer = new JavaWriter(bw);
-        
+
         return true;
     }
 
@@ -118,19 +118,19 @@ public class RealmSourceCodeGenerator {
         if (!checkState(GeneratorStates.PACKAGE)) return false;
 
         this.packageName = packageName;
-        
+
         generatorState = GeneratorStates.CLASS;
         return true;
     }
 
     private boolean emitPackage() throws IOException {
         writer.emitPackage(packageName)
-              .emitEmptyLine()
-              .emitImports(
-                  "io.realm.internal.ColumnType",
-                  "io.realm.internal.Table",
-                  "io.realm.internal.ImplicitTransaction")
-              .emitEmptyLine();
+                .emitEmptyLine()
+                .emitImports(
+                        "io.realm.internal.ColumnType",
+                        "io.realm.internal.Table",
+                        "io.realm.internal.ImplicitTransaction")
+                .emitEmptyLine();
 
         return true;
     }
@@ -139,15 +139,15 @@ public class RealmSourceCodeGenerator {
         if (!checkState(GeneratorStates.CLASS)) return false;
 
         this.className = className;
-        
-        generatorState = GeneratorStates.METHODS;     
+
+        generatorState = GeneratorStates.METHODS;
         return true;
     }
 
     private boolean emitClass() throws IOException {
         writer.beginType(packageName + "." + className + "RealmProxy", "class",
-            EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), className).emitEmptyLine();
-        
+                EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), className).emitEmptyLine();
+
         return true;
     }
 
@@ -165,49 +165,49 @@ public class RealmSourceCodeGenerator {
     }
 
     public boolean emitFields() throws IOException {
-    	
-    	for (FieldInfo field : fields) {
-	        String originalType = field.fieldElement.asType().toString();
-	        String fullType = convertSimpleTypesToObject(originalType);
-	        String shortType = fullType.substring(fullType.lastIndexOf(".") + 1);
-	
-	        String returnCast = "";
-	        String camelCaseFieldName = Character.toUpperCase(field.fieldName.charAt(0)) + field.fieldName.substring(1);
-	
-	        if (originalType.compareTo("int") == 0) {
-	            fullType = "long";
-	            shortType = "Long";
-	            returnCast = "(" + originalType + ")";
-	        }
-	
-	        if (shortType.compareTo("Integer") == 0) {
-	            fullType = "long";
-	            shortType = "Long";
-	            returnCast = "(int)";
-	        }
-	
-	        String getterStmt = "return " + returnCast + "row.get" + shortType + "( " + field.fieldId + " )";
-	
-	        String setterStmt = "row.set" + shortType + "( " + field.fieldId + ", value )";
-	
-	        writer.emitField("int", field.fieldId, EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
-	
-	        writer.emitAnnotation("Override").beginMethod(originalType, "get" + camelCaseFieldName, EnumSet.of(Modifier.PUBLIC))
-	              .emitStatement(getterStmt)
-	              .endMethod();
-	
-	        writer.emitAnnotation("Override").beginMethod("void", "set" + camelCaseFieldName, EnumSet.of(Modifier.PUBLIC),
-	                originalType, "value")
-	              .emitStatement(setterStmt)
-	              .endMethod().emitEmptyLine();
-    	}
-    	
+
+        for (FieldInfo field : fields) {
+            String originalType = field.fieldElement.asType().toString();
+            String fullType = convertSimpleTypesToObject(originalType);
+            String shortType = fullType.substring(fullType.lastIndexOf(".") + 1);
+
+            String returnCast = "";
+            String camelCaseFieldName = Character.toUpperCase(field.fieldName.charAt(0)) + field.fieldName.substring(1);
+
+            if (originalType.compareTo("int") == 0) {
+                fullType = "long";
+                shortType = "Long";
+                returnCast = "(" + originalType + ")";
+            }
+
+            if (shortType.compareTo("Integer") == 0) {
+                fullType = "long";
+                shortType = "Long";
+                returnCast = "(int)";
+            }
+
+            String getterStmt = "return " + returnCast + "row.get" + shortType + "( " + field.fieldId + " )";
+
+            String setterStmt = "row.set" + shortType + "( " + field.fieldId + ", value )";
+
+            writer.emitField("int", field.fieldId, EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
+
+            writer.emitAnnotation("Override").beginMethod(originalType, "get" + camelCaseFieldName, EnumSet.of(Modifier.PUBLIC))
+                    .emitStatement(getterStmt)
+                    .endMethod();
+
+            writer.emitAnnotation("Override").beginMethod("void", "set" + camelCaseFieldName, EnumSet.of(Modifier.PUBLIC),
+                    originalType, "value")
+                    .emitStatement(setterStmt)
+                    .endMethod().emitEmptyLine();
+        }
+
         return true;
     }
 
     public boolean generate() throws IOException {
-    	
-    	writer.setIndent("    ");
+
+        writer.setIndent("    ");
 
         if (!emitPackage()) return false;
         if (!emitClass()) return false;
