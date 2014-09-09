@@ -20,7 +20,7 @@
 
 static jfieldID GetFieldIDColumnType(JNIEnv* env, const char* methodStr, const char* typeStr)
 {
-    static jclass myClass = GetClass(env, "io/realm/ColumnType");
+    static jclass myClass = GetClass(env, "io/realm/internal/ColumnType");
     if (myClass == NULL)
         return NULL;
 
@@ -45,7 +45,7 @@ DataType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType)
 jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType)
 {
     TR((env, "jni: Enter GetJColumnTypeFromColumnType(%d)\n", columnType));
-    static jclass jColumnTypeClass = GetClass(env, "io/realm/ColumnType");
+    static jclass jColumnTypeClass = GetClass(env, "io/realm/internal/ColumnType");
 
     if (jColumnTypeClass == NULL) {
         TR((env, "--class is NULL\n"));

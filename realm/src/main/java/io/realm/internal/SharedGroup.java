@@ -17,6 +17,7 @@
 package io.realm.internal;
 
 import java.io.Closeable;
+import java.lang.*;
 
 public class SharedGroup implements Closeable {
 
@@ -33,8 +34,8 @@ public class SharedGroup implements Closeable {
 
     public enum Durability {
         FULL(0),
-        MEM_ONLY(1),
-        ASYNC(2);
+        MEM_ONLY(1);
+        //ASYNC(2); // TODO: re-enable when possible
 
         final int value;
 
@@ -255,7 +256,7 @@ public class SharedGroup implements Closeable {
 
     private void checkNativePtrNotZero() {
         if (this.nativePtr == 0)
-            throw new OutOfMemoryError("Out of native memory.");
+            throw new java.lang.OutOfMemoryError("Out of native memory.");
     }
 
     protected static native void nativeClose(long nativePtr);
