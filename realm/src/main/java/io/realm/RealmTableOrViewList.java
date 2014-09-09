@@ -23,7 +23,6 @@ import java.util.Map;
 
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  *
@@ -109,28 +108,28 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
     // Sorting
     public static enum Order {
-        ascending, descending
+        ASCENDING, DESCENDING
     }
 
     /**
-     * Get a sorted (ascending) RealmList from an existing RealmList.
+     * Get a sorted (ASCENDING) RealmList from an existing RealmList.
      *
-     * @param propName   The property name to sort by.
+     * @param fieldName  The field name to sort by.
      * @return           A sorted RealmList
      */
-    public RealmList<E> sort(String propName) {
-        return sort(propName, Order.ascending);
+    public RealmList<E> sort(String fieldName) {
+        return sort(fieldName, Order.ASCENDING);
     }
 
     /**
      * Get a sorted RealmList from an existing RealmList.
      *
-     * @param propName   The property name to sort by.
+     * @param fieldName  The field name to sort by.
      * @param sortOrder  The direction to sort by.
      * @return           A sorted RealmList.
      */
-    public RealmList<E> sort(String propName, Order sortOrder) {
-        throw new NotImplementedException();
+    public RealmList<E> sort(String fieldName, Order sortOrder) {
+        throw new NoSuchMethodError();
     }
 
 
@@ -158,7 +157,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     }
 
     /**
-     * Removes all objects from an RealmList.
+     * Removes all objects from a RealmList.
      *
      */
     public void clear() {
@@ -174,18 +173,19 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      * @param element    The object to add.
      * @return           true if object was added.
      */
+    @Override
     public boolean add(E element) {
-        throw new NotImplementedException();
+        throw new NoSuchMethodError();
     }
 
     /**
      * Add an object
      *
-     * @param index        The place to add the object at.
+     * @param index        The array index to add the object at.
      * @param element      The object to add.
      */
     public void add(int index, E element) {
-        throw new NotImplementedException();
+        throw new NoSuchMethodError();
     }
 
     /**
@@ -195,6 +195,6 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
      * @param element     An object.
      */
     public void replace(int index, E element) {
-        throw new NotImplementedException();
+        throw new NoSuchMethodError();
     }
 }
