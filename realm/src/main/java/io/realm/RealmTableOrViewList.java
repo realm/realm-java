@@ -165,4 +165,36 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         TableOrView table = getTable();
         table.clear();
     }
+
+    // Adding objects
+
+    /**
+     * Add an object.
+     *
+     * @param element    The object to add.
+     * @return           true if object was added.
+     */
+    public boolean add(E element) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Add an object
+     *
+     * @param index        The place to add the object at.
+     * @param element      The object to add.
+     */
+    public void add(int index, E element) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Replaces an object at the given index with a new object.
+     *
+     * @param index       The array index of the object to be replaced.
+     * @param element     An object.
+     */
+    public void replace(int index, E element) {
+        throw new NotImplementedException();
+    }
 }
