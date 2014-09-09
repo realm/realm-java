@@ -23,7 +23,6 @@ import java.util.Map;
 
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  *
@@ -111,38 +110,38 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     }
 
     /**
-     * Find the minimum value of a property.
+     * Find the minimum value of a field.
      *
-     * @param propName    The property to look for a minimum on. Only int, float, double,
+     * @param fieldName   The field to look for a minimum on. Only int, float, double,
      *                    and date are supported.
      * @return            An object; the first occurrence with the minimum value.
      */
-    public E min(String propName) {
-        throw new NotImplementedException();
+    public E min(String fieldName) {
+        throw new NoSuchMethodError();
     }
 
 
     /**
-     * Find the maximum value of a property.
+     * Find the maximum value of a field.
      *
-     * @param propName    The property to look for a maximum on. Only int, float, double,
+     * @param fieldName   The field to look for a maximum on. Only int, float, double,
      *                    and date are supported.
      * @return            An object; the first occurrence with the maximum value.
      */
-    public E max(String propName) {
-        throw new NotImplementedException();
+    public E max(String fieldName) {
+        throw new NoSuchMethodError();
     }
 
 
     /**
-     * Calculate the sum of a property.
+     * Calculate the sum of a field.
      *
-     * @param propName    The property to sum. Only int, float, and double are supported.
+     * @param fieldName   The field to sum. Only int, float, and double are supported.
      * @return            The sum.
      */
 
-    public Number sum(String propName) {
-        long columnIndex = table.getColumnIndex(propName);
+    public Number sum(String fieldName) {
+        long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return new Long(table.sumLong(columnIndex));
@@ -157,15 +156,15 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
 
     /**
-     * Returns the average of a given property for objects in a RealmList.
+     * Returns the average of a given field for objects in a RealmList.
      *
-     * @param propName   The property to calculate average on. Only properties of type int,
+     * @param fieldName  The field to calculate average on. Only properties of type int,
      *                   float and double are supported.
-     * @return           The average for the given property amongst objects in an RealmList. This
-     *                   will be of type double for both float and double properties.
+     * @return           The average for the given field amongst objects in an RealmList. This
+     *                   will be of type double for both float and double field.
      */
-    public double average(String propName) {
-        long columnIndex = table.getColumnIndex(propName);
+    public double average(String fieldName) {
+        long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return table.averageLong(columnIndex);
