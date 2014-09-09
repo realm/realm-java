@@ -22,10 +22,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import java.util.List;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
@@ -33,10 +31,10 @@ import javax.lang.model.element.Modifier;
 
 public class RealmSourceCodeGenerator {
     private class FieldInfo {
-        public String name;
+    	public String name;
         public String columnType;
 
-        public FieldInfo(String name, String columnType) {
+        public FieldInfo(String name,String columnType) {
             this.name = name;
             this.columnType = columnType;
         }
@@ -50,9 +48,8 @@ public class RealmSourceCodeGenerator {
 
 
     private JavaWriter writer = null;
-    private Set<String> ignoreFields = new HashSet<String>();
-    private String packageName = null;
     private String className = null;
+    private String packageName = null;
     private GeneratorStates generatorState = GeneratorStates.PACKAGE;
     private String errorMessage = "";
     private List<FieldInfo> fields = new ArrayList<FieldInfo>();
@@ -65,14 +62,13 @@ public class RealmSourceCodeGenerator {
     public String getError() {
         return errorMessage;
     }
-
     private String convertSimpleTypesToObject(String typeName) {
         if (typeName.compareTo("int") == 0) {
             typeName = "Integer";
-        } else if (typeName.compareTo("long") == 0 ||
-                typeName.compareTo("float") == 0 ||
-                typeName.compareTo("double") == 0 ||
-                typeName.compareTo("boolean") == 0) {
+    	} else if (typeName.compareTo("long") == 0 ||
+              typeName.compareTo("float") == 0 ||
+              typeName.compareTo("double") == 0 ||
+              typeName.compareTo("boolean") == 0) {
             typeName = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
         }
         return typeName;
@@ -134,7 +130,7 @@ public class RealmSourceCodeGenerator {
         this.className = className;
 
         writer.beginType(packageName + "." + className + "RealmProxy", "class",
-                EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), className).emitEmptyLine();
+                EnumSet.of(Modifier.PUBLIC,Modifier.FINAL),className).emitEmptyLine();
         generatorState = GeneratorStates.METHODS;
         return true;
     }
@@ -166,7 +162,7 @@ public class RealmSourceCodeGenerator {
 
         String setterStmt = "row.set" + shortType + "( " + fieldId + ", value )";
 
-        writer.emitField("int", fieldId, EnumSet.of(Modifier.PRIVATE/*,Modifier.FINAL*/, Modifier.STATIC));
+        writer.emitField("int", fieldId, EnumSet.of(Modifier.PRIVATE,Modifier.STATIC));
 
         fields.add(new FieldInfo(fieldId, convertTypesToColumnType(shortType)));
 
@@ -193,12 +189,6 @@ public class RealmSourceCodeGenerator {
         return true;
     }
 
-    public boolean addIgnore(String symbolName) {
-        ignoreFields.add(symbolName);
-        return true;
-    }
-
-
     public boolean generate() throws IOException {
         if (!checkState(GeneratorStates.METHODS)) return false;
 
@@ -222,10 +212,10 @@ public class RealmSourceCodeGenerator {
         writer.endType();
         writer.close();
 
-        ignoreFields.clear();
         fields.clear();
 
         generatorState = GeneratorStates.PACKAGE;
+
         return true;
     }
 
