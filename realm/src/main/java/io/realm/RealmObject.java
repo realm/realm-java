@@ -45,6 +45,28 @@ public abstract class RealmObject {
         this.row = row;
     }
 
+    // Creating objects
+
+    /**
+     * Create a RealmObject in the default Realm with a set of given values.
+     *
+     * @param arguments   Values for the fields, encoded as plain Java objects.
+     */
+    public static void create(Object... arguments) {
+        throw new NoSuchMethodError();
+    }
+
+
+    /**
+     * Create a RealmObject in the specified Realm with a set of given values.
+     *
+     * @param realm        The Realm instance to add object to.
+     * @param arguments    Values for the fields, encoded as plain Java objects.
+     */
+    public static void create(Realm realm, Object... arguments) {
+        throw new NoSuchMethodError();
+    }
+
     // Find objects
 
     /**
@@ -64,7 +86,7 @@ public abstract class RealmObject {
      * @return         An RealmList of all objects of this type in the specified Realm.
      * @see io.realm.RealmList
      */
-    public static RealmList<?> all(Realm realm) {
+     public static RealmList<?> all(Realm realm) {
         throw new NoSuchMethodError();
     }
 
