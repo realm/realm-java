@@ -22,6 +22,20 @@ public abstract class RealmObject {
 
     protected Row row;
     long realmAddedAtRowIndex = -1;
+    protected Realm realm = null;
+
+    /**
+     * Get the Realm which the object belongs to.
+     *
+     * @return    The Realm.
+     */
+    protected Realm getRealm() {
+        return realm;
+    }
+
+    protected void setRealm(Realm realm) {
+        this.realm = realm;
+    }
 
     protected Row realmGetRow() {
         return row;
@@ -29,5 +43,59 @@ public abstract class RealmObject {
 
     protected void realmSetRow(Row row) {
         this.row = row;
+    }
+
+    // Find objects
+
+    /**
+     * Get all objects of this type from the default Realm.
+     *
+     * @return       A RealmList of objects of the same class
+     * @see          io.realm.RealmList
+     */
+    public static RealmList<?> all() {
+        throw new NoSuchMethodError();
+    }
+
+    /**
+     * Get all objects of this type from the specified Realm.
+     *
+     * @param realm    The Realm instance to query.
+     * @return         An RealmList of all objects of this type in the specified Realm.
+     * @see io.realm.RealmList
+     */
+    public static RealmList<?> all(Realm realm) {
+        throw new NoSuchMethodError();
+    }
+
+    /**
+     * Get a query for this type from the default Realm.
+     *
+     * @return        An RealmQuery object.
+     * @see io.realm.RealmQuery
+     */
+    public static RealmQuery where() {
+        throw new NoSuchMethodError();
+    }
+
+    /**
+     * Get a query for this type from the specified Realm.
+     *
+     * @param realm     The Realm instance to query.
+     * @return          An RealmQuery object.
+     * @see io.realm.RealmObject
+     */
+    public static RealmQuery where(Realm realm) {
+        throw new NoSuchMethodError();
+    }
+
+    /**
+     * Indicates whether some other object is "equal to" this one.
+     *
+     * @param obj     The object to compare with.
+     * @return        true if the objects are equal, false otherwise.
+     */
+    public boolean equals(Object obj) {
+        throw new NoSuchMethodError();
     }
 }
