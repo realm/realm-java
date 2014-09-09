@@ -121,20 +121,24 @@ public class JNICloseTest extends AndroidTestCase {
         view.getDouble(3, 0);
         view.getFloat(4, 0);
         view.getLong(5, 0);
-        //view.getMixed(6, 0); // TODO: re-enable
+        view.getMixed(6, 0);
         view.getString(7, 0);
 
         // TODO - add all methods from view
     }
 
-
+// TODO: this test is crashing
 /*    public void testShouldThrowWhenAccessingViewAfterTableIsDetached() {
         final String testFile = "closetest.realm";
         SharedGroup db;
-        File f = new File(testFile);
-        if (f.exists())
-            f.delete();
-        db = new SharedGroup(testFile);
+        File f = new File(this.getContext().getFilesDir(), testFile);
+        if (f.exists()) {
+            boolean result = f.delete();
+            if (!result) {
+                fail("Could not delete test file");
+            }
+        }
+        db = new SharedGroup(f.toString());
 
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
@@ -145,19 +149,22 @@ public class JNICloseTest extends AndroidTestCase {
         trans.commit();
 
         //methods below should throw exception, as table is invalid after commit
-        try{ view.size();                       assert(false); } catch (IllegalStateException e){}
-        try{ view.getBinaryByteArray(0, 0);     assert(false); } catch (IllegalStateException e){}
-        try{ view.getBoolean(1, 0);             assert(false); } catch (IllegalStateException e){}
-        try{ view.getDate(2, 0);                assert(false); } catch (IllegalStateException e){}
-        try{ view.getDouble(3, 0);              assert(false); } catch (IllegalStateException e){}
-        try{ view.getFloat(4, 0);               assert(false); } catch (IllegalStateException e){}
-        try{ view.getLong(5, 0);                assert(false); } catch (IllegalStateException e){}
-        try{ view.getMixed(6, 0);               assert(false); } catch (IllegalStateException e){}
-        try{ view.getString(7, 0);              assert(false); } catch (IllegalStateException e){}
-// TODO: Add more methods
+        try{ view.size();                       fail(); } catch (IllegalStateException e){}
+        try{ view.getBinaryByteArray(0, 0);     fail(); } catch (IllegalStateException e){}
+        try{ view.getBoolean(1, 0);             fail(); } catch (IllegalStateException e){}
+        try{ view.getDate(2, 0);                fail(); } catch (IllegalStateException e){}
+        try{ view.getDouble(3, 0);              fail(); } catch (IllegalStateException e){}
+        try{ view.getFloat(4, 0);               fail(); } catch (IllegalStateException e){}
+        try{ view.getLong(5, 0);                fail(); } catch (IllegalStateException e){}
+        try{ view.getMixed(6, 0);               fail(); } catch (IllegalStateException e){}
+        try{ view.getString(7, 0);              fail(); } catch (IllegalStateException e){}
+        // TODO: Add more methods
 
         db.close();
-        f.delete();
+        boolean result = f.delete();
+        if (!result) {
+            fail("Could not delete test file");
+        }
     }*/
 
 }
