@@ -145,11 +145,11 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         long columnIndex = table.getColumnIndex(propName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
-                return Number(table.sumLong(columnIndex));
+                return new Long(table.sumLong(columnIndex));
             case FLOAT:
-                return Number(table.sumFloat(columnIndex));
+                return new Float(table.sumFloat(columnIndex));
             case DOUBLE:
-                return Number(table.sumDouble(columnIndex));
+                return new Double(table.sumDouble(columnIndex));
             default:
                 throw new RuntimeException("Wrong type");
         }
