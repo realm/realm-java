@@ -1,0 +1,284 @@
+package io.realm.internal;
+
+
+import android.test.AndroidTestCase;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+
+public class JNITransactions extends AndroidTestCase {
+    
+    String testFile;
+
+    @Override
+    protected void setUp() throws Exception {
+        createDBFileName();
+    }
+
+    @Override
+    public void tearDown() throws IOException {
+        deleteFile(testFile);
+    }
+
+    protected void deleteFile(String filename) throws IOException {
+        for (String filePath : Arrays.asList(filename, filename + ".lock")) {
+            File f = new File(filePath);
+            if (f.exists()) {
+                boolean result = f.delete();
+                if (!result) {
+                    throw new java.io.IOException("Could not delete " + filePath);
+                }
+            }
+        }
+    }
+
+    
+    private void createDBFileName(){
+        testFile = new File(
+                this.getContext().getFilesDir(),
+                System.currentTimeMillis() + "_transact.realm").toString();
+    }
+
+    protected void writeOneTransaction(SharedGroup db, long rows) {
+        WriteTransaction trans = db.beginWrite();
+        Table tbl = trans.getTable("EmployeeTable");
+        tbl.addColumn(ColumnType.STRING, "name");
+        tbl.addColumn(ColumnType.INTEGER, "number");
+
+
+        for (long row=0; row < rows; row++)
+            tbl.add("Hi", 1);
+        assertEquals(rows, tbl.size());
+        trans.commit();
+
+        // must throw exception as table is invalid now.
+        try {
+            assertEquals(1, tbl.size());
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+
+    }
+
+    protected void checkRead(SharedGroup db, int rows) {
+        // Read transaction
+        ReadTransaction trans = db.beginRead();
+        Table tbl = trans.getTable("EmployeeTable");
+        assertEquals(true, tbl.isValid());
+        assertEquals(rows, tbl.size());
+        trans.endRead();
+    }
+
+    // TODO: tests should be done both for all Durability options
+
+    public void testMustWriteAndReadEmpty() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        writeOneTransaction(db, 0);
+        checkRead(db, 0);
+    }
+
+    public void testMustWriteCommit() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        writeOneTransaction(db, 10);
+        checkRead(db, 10);
+    }
+
+
+    public void testShouldThrowExceptionAfterClosedReadTransaction() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        writeOneTransaction(db, 10);
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            Table tbl = rt.getTable("EmployeeTable");
+            rt.endRead();
+            try {
+                tbl.getColumnCount(); //Should throw exception, the table is invalid when transaction has been closed
+                fail();
+            } catch (IllegalStateException e) {
+                assert(false);
+                //assertNotNull(e);
+            }
+        } finally {
+            rt.endRead();
+        }
+    }
+
+
+    public void testShouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        writeOneTransaction(db, 10);
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            Table tbl = rt.getTable("EmployeeTable");
+            rt.endRead();
+            try {
+                tbl.addColumn(ColumnType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
+                fail();
+            } catch (IllegalStateException e) {
+                //assertNotNull(e);
+            }
+        } finally {
+            rt.endRead();
+        }
+    }
+
+
+    public void testShouldThrowExceptionWhenWritingInReadTrans() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        ReadTransaction rt = db.beginRead();
+
+        try {
+            try {
+                rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
+                fail();
+            } catch (IllegalStateException e) {
+                assertNotNull(e);
+            }
+        } finally {
+            rt.endRead();
+        }
+    }
+
+
+    public void testOnlyOneCommit() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        WriteTransaction trans = db.beginWrite();
+
+        try {
+            Table tbl = trans.getTable("EmployeeTable");
+            tbl.addColumn(ColumnType.STRING, "name");
+            trans.commit();
+            try {
+                trans.commit(); // should throw
+                fail();
+            } catch (IllegalStateException e){
+                assertNotNull(e);
+            }
+
+        } catch (Throwable t){
+            trans.rollback();
+        }
+    }
+
+    public void testMustRollback() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        writeOneTransaction(db, 1);
+        WriteTransaction trans = db.beginWrite();
+        Table tbl = trans.getTable("EmployeeTable");
+
+        tbl.add("Hello", 1);
+        assertEquals(2, tbl.size());
+        trans.rollback();
+
+        checkRead(db, 1); // Only 1 row now.
+    }
+
+    public void testMustAllowDoubleCommitAndRollback() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        {
+            WriteTransaction trans = db.beginWrite();
+            Table tbl = trans.getTable("EmployeeTable");
+            tbl.addColumn(ColumnType.STRING, "name");
+            tbl.addColumn(ColumnType.INTEGER, "number");
+
+            // allow commit before any changes
+            assertEquals(0, tbl.size());
+            tbl.add("Hello", 1);
+            trans.commit();
+        }
+        {
+            WriteTransaction trans = db.beginWrite();
+            Table tbl = trans.getTable("EmployeeTable");
+            // allow double rollback
+            tbl.add("Hello", 2);
+            assertEquals(2, tbl.size());
+            trans.rollback();
+            trans.rollback();
+            trans.rollback();
+            trans.rollback();
+        }
+        {
+            ReadTransaction trans = db.beginRead();
+            Table tbl = trans.getTable("EmployeeTable");
+            assertEquals(1, tbl.size());
+            trans.endRead();
+        }
+    }
+
+    // TODO:
+    // Test: exception at all mutable methods in TableBase, TableView,
+    // Test: above in custom Typed Tables
+    // TableQuery.... in ReadTransactions
+
+    public void testMustFailOnWriteInReadTransactions() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+
+        writeOneTransaction(db, 1);
+
+        ReadTransaction t = db.beginRead();
+        Table table = t.getTable("EmployeeTable");
+
+        try { table.addAt(0, 0, false);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.add(0, false);                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.addEmptyRow();                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.addEmptyRows(1);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.adjust(0,0);                    fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.clear();                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.clearSubtable(0,0);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.optimize();                     fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.remove(0);                      fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.removeLast();                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setBinaryByteArray(0,0,null);   fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setBoolean(0,0,false);          fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setDate(0,0,new Date(0));       fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setIndex(0);                    fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setLong(0,0,0);                 fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setMixed(0,0,null);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.setString(0,0,"");              fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.updateFromSpec(null);           fail();} catch (IllegalStateException e) {assertNotNull(e);}
+
+        TableQuery q = table.where();
+        try { q.remove();                           fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { q.remove(0,0);                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
+
+        TableView v = q.findAll();
+        try { v.adjust(0, 0);                       fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.clear();                            fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.clearSubtable(0, 0);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.remove(0);                          fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.removeLast();                       fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setBinaryByteArray(0, 0, null);     fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setBoolean(0, 0, false);            fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setDate(0, 0, new Date());          fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setLong(0, 0, 0);                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setString(0,0,"");                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { v.setMixed(0, 0, null);               fail();} catch (IllegalStateException e) {assertNotNull(e);}
+
+        t.endRead();
+    }
+
+
+    /*  ARM Only works for Java 1.7 - NOT available in Android.
+
+    @Test(enabled=true)
+    public void mustReadARM() {
+        writeOneTransaction(1);
+
+        // Read from table
+        // System.out.println("mustReadARM.");
+        try (ReadTransaction t = new ReadTransaction(db)) {
+            EmployeeTable employees = new EmployeeTable(t);
+            assertEquals(true, employees.isValid());
+            assertEquals(1, employees.size());
+        }
+        catch (Throwable e) {
+
+        }
+    }
+     */
+}

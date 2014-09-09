@@ -43,12 +43,12 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
 
         case NoSuchField:
             jExceptionClass = env->FindClass("java/lang/NoSuchFieldException");
-            message = "Field '" + itemStr + "' could not be located in class com.tightdb." + classStr;
+            message = "Field '" + itemStr + "' could not be located in class io.realm." + classStr;
             break;
 
         case NoSuchMethod:
             jExceptionClass = env->FindClass("java/lang/NoSuchMethodException");
-            message = "Method '" + itemStr + "' could not be located in class com.tightdb." + classStr;
+            message = "Method '" + itemStr + "' could not be located in class io.realm." + classStr;
             break;
 
         case IllegalArgument:
@@ -62,17 +62,17 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case IOFailed:
-            jExceptionClass = env->FindClass("io/realm/IOException");
+            jExceptionClass = env->FindClass("io/realm/exceptions/IOException");
             message = "Failed to open " + classStr + ". " + itemStr;
             break;
 
         case FileNotFound:
-            jExceptionClass = env->FindClass("io/realm/IOException");
+            jExceptionClass = env->FindClass("io/realm/exceptions/IOException");
             message = "File not found: " + classStr + ".";
             break;
 
         case FileAccessError:
-            jExceptionClass = env->FindClass("io/realm/IOException");
+            jExceptionClass = env->FindClass("io/realm/exceptions/IOException");
             message = "Failed to access: " + classStr + ". " + itemStr;
             break;
 
@@ -87,7 +87,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case OutOfMemory:
-            jExceptionClass = env->FindClass("io/realm/OutOfMemoryError");
+            jExceptionClass = env->FindClass("io/realm/exceptions/OutOfMemoryError");
             message = classStr + " " + itemStr;
             break;
 
@@ -129,7 +129,7 @@ void jprint(JNIEnv *env, char *txt)
     static_cast<void>(env);
     fprintf(stderr, " -- JNI: %s", txt);  fflush(stderr);
 #else
-    static jclass myClass = GetClass(env, "io/realm/util");
+    static jclass myClass = GetClass(env, "io/realm/internal/util");
     static jmethodID myMethod = env->GetStaticMethodID(myClass, "javaPrint", "(Ljava/lang/String;)V");
     if (myMethod)
         env->CallStaticVoidMethod(myClass, myMethod, env->NewStringUTF(txt));
