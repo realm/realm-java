@@ -62,11 +62,6 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
     Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
 
 
@@ -101,12 +96,173 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         return get(size()-1);
     }
 
-    // Aggregates
+    // Sorting
 
+    public static enum Order {
+        ASCENDING, DESCENDING
+    }
+
+    /**
+     * Get a sorted (ASCENDING) RealmList from an existing RealmList.
+     *
+     * @param fieldName  The field name to sort by.
+     * @return           A sorted RealmList
+     */
+    public RealmList<E> sort(String fieldName) {
+        return sort(fieldName, Order.ASCENDING);
+    }
+
+    /**
+     * Get a sorted RealmList from an existing RealmList.
+     *
+     * @param fieldName  The field name to sort by.
+     * @param sortOrder  The direction to sort by.
+     * @return           A sorted RealmList.
+     */
+    public RealmList<E> sort(String fieldName, Order sortOrder) {
+        throw new NoSuchMethodError();
+    }
+
+
+    // Aggregates
 
     @Override
     public int size() {
         return ((Long)getTable().size()).intValue();
     }
 
+    /**
+     * Find the minimum value of a field.
+     *
+     * @param fieldName   The field to look for a minimum on. Only int, float, double,
+     *                    and date are supported.
+     * @return            An object; the first occurrence with the minimum value.
+     */
+    public E min(String fieldName) {
+        throw new NoSuchMethodError();
+    }
+
+
+    /**
+     * Find the maximum value of a field.
+     *
+     * @param fieldName   The field to look for a maximum on. Only int, float, double,
+     *                    and date are supported.
+     * @return            An object; the first occurrence with the maximum value.
+     */
+    public E max(String fieldName) {
+        throw new NoSuchMethodError();
+    }
+
+
+    /**
+     * Calculate the sum of a field.
+     *
+     * @param fieldName   The field to sum. Only int, float, and double are supported.
+     * @return            The sum.
+     */
+
+    public Number sum(String fieldName) {
+        long columnIndex = table.getColumnIndex(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return new Long(table.sumLong(columnIndex));
+            case FLOAT:
+                return new Float(table.sumFloat(columnIndex));
+            case DOUBLE:
+                return new Double(table.sumDouble(columnIndex));
+            default:
+                throw new RuntimeException("Wrong type");
+        }
+    }
+
+
+    /**
+     * Returns the average of a given field for objects in a RealmList.
+     *
+     * @param fieldName  The field to calculate average on. Only properties of type int,
+     *                   float and double are supported.
+     * @return           The average for the given field amongst objects in an RealmList. This
+     *                   will be of type double for both float and double field.
+     */
+    public double average(String fieldName) {
+        long columnIndex = table.getColumnIndex(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return table.averageLong(columnIndex);
+            case DOUBLE:
+                return table.averageDouble(columnIndex);
+            case FLOAT:
+                return table.averageFloat(columnIndex);
+            default:
+                throw new RuntimeException("Wrong type");
+        }
+    }
+
+
+    // Deleting
+
+    /**
+     * Removes an object at a given index.
+     *
+     * @param index      The array index identifying the object to be removed.
+     * @return           Always return null.
+     */
+    @Override
+    public E remove(int index) {
+        TableOrView table = getTable();
+        table.remove(index);
+        return null;
+    }
+
+    /**
+     * Removes the last object in a RealmList.
+     *
+     */
+    public void removeLast() {
+        TableOrView table = getTable();
+        table.removeLast();
+    }
+
+    /**
+     * Removes all objects from a RealmList.
+     *
+     */
+    public void clear() {
+        TableOrView table = getTable();
+        table.clear();
+    }
+
+    // Adding objects
+
+    /**
+     * Add an object.
+     *
+     * @param element    The object to add.
+     * @return           true if object was added.
+     */
+    @Override
+    public boolean add(E element) {
+        throw new NoSuchMethodError();
+    }
+
+    /**
+     * Add an object
+     *
+     * @param index        The array index to add the object at.
+     * @param element      The object to add.
+     */
+    public void add(int index, E element) {
+        throw new NoSuchMethodError();
+    }
+
+    /**
+     * Replaces an object at the given index with a new object.
+     *
+     * @param index       The array index of the object to be replaced.
+     * @param element     An object.
+     */
+    public void replace(int index, E element) {
+        throw new NoSuchMethodError();
+    }
 }

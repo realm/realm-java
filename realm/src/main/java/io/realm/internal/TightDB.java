@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -57,7 +58,7 @@ public class TightDB {
 
     public static boolean osIsWindows()
     {
-        String os = System.getProperty("os.name").toLowerCase();
+        String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
         return (os.indexOf("win") >= 0);
     }
 

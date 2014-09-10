@@ -1,18 +1,17 @@
 apply plugin: 'com.android.library'
 
-dependencies {
-    compile 'com.google.dexmaker:dexmaker:1.1'
-    compile group: 'com.google.guava', name: 'guava', version: '15.0'
-}
-
 android {
-    compileSdkVersion 19
+    compileSdkVersion 20
     buildToolsVersion '20.0.0'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 19
+        targetSdkVersion 20
     }
+}
+
+dependencies {
+    compile group: 'com.google.guava', name: 'guava', version: '15.0'
 }
 
 android.libraryVariants.all { variant ->
