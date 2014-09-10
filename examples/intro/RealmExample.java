@@ -28,28 +28,19 @@ import io.realm.RealmList;
 public class RealmExample extends AndroidTestCase {
 
 
-    public void testExample() {
-
-        // Create a standalone object
-        Dog myDog = new Dog();
-
-        // Set & read properties
-        myDog.setName("Rex");
-        System.out.println(myDog.getName());
+    public void testExample() throws IOException {
 
         // Realms are used to group data together
-        Realm realm = null;
-        try {
-            realm = new Realm(getContext().getFilesDir());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
+        Realm realm = new Realm(getContext().getFilesDir());
 
-        // Save your object
+        // Update your object in a transaction
         realm.beginWrite();
-        realm.add(myDog);
+        Dog myDog = realm.create(Dog.class);
+        myDog.setName("Rex");
         realm.commit();
+
+        // Read properties
+        System.out.println(myDog.getName());
 
         // Query
         RealmList<Dog> results = realm.where(Dog.class).contains("name", "x").findAll();
@@ -61,14 +52,14 @@ public class RealmExample extends AndroidTestCase {
         Person person = new Person("Tim");
 
 
-        person.getDogs().add(myDog);
+        //TODO:  person.getDogs().add(myDog);
 
         realm.beginWrite();
-        realm.add(person);
+        //TODO: realm.add(person);
         realm.commit();
 
         // Query across links
-       // RealmList<Person> persons = realm.where(Person.class).with("dogs").contains("name", "x").findAll();
+        // RealmList<Person> persons = realm.where(Person.class).with("dogs").contains("name", "x").findAll();
 
         // Query from another thread
         new Thread() {
@@ -79,7 +70,6 @@ public class RealmExample extends AndroidTestCase {
                     realm = new Realm(getContext().getFilesDir());
                 } catch (IOException e) {
                     e.printStackTrace();
-                    return;
                 }
                 realm.where(Dog.class).contains("name", "x").findAll();
 

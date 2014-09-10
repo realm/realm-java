@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/* TODO: re-enable
+
+
 package io.realm.tests.typed.entities;
 
 import java.util.Date;
@@ -95,3 +98,4 @@ public class AllColumns extends RealmObject {
         this.columnRealmObject = columnRealmObject;
     }
 }
+*/

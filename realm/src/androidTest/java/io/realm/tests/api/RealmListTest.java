@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/* TODO: translate to new object syntax
+
+
 package io.realm.tests.typed;
 
 import android.test.AndroidTestCase;
@@ -189,3 +192,4 @@ public class RealmListTest extends AndroidTestCase {
     }
 
 }
+*/

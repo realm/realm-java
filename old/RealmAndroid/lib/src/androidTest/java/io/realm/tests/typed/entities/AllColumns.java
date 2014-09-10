@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.tests.typed.entities;
+package io.realm.tests.api.entities;
 import java.util.Date;
 
 @io.realm.base.RealmClass

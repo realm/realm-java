@@ -39,7 +39,7 @@ import io.realm.TableOrView;
 import io.realm.TableQuery;
 import io.realm.TableView;
 import io.realm.WriteTransaction;
-import io.realm.tests.typed.entities.User;
+import io.realm.tests.api.entities.User;
 import io.realm.typed.Realm;
 import io.realm.typed.RealmList;
 

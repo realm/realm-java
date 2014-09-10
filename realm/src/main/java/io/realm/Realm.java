@@ -61,17 +61,8 @@ public class Realm {
         this(writeablePath, "default.realm");
     }
 
-    public Realm(File writeablePath, String filePath) throws IOException {
+    public Realm(File writeablePath, String filePath) {
         this.filePath = new File(writeablePath, filePath).getAbsolutePath();
-        File bytecodeCache = new File(writeablePath, "dx");
-        if (!bytecodeCache.exists()) {
-            boolean success = bytecodeCache.mkdirs();
-            if (!success) {
-                throw new IOException("Could not create the bytecode cache folder");
-            }
-        }
-
-        this.bytecodeCache = bytecodeCache;
         this.changeListeners = new ArrayList<RealmChangeListener>();
         init();
     }

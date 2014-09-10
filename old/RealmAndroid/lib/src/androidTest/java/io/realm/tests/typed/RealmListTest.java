@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.realm.tests.typed;
+package io.realm.tests.api;
 
 import android.test.AndroidTestCase;
 
 import java.util.Date;
 
-import io.realm.tests.typed.entities.AllColumns;
-import io.realm.tests.typed.entities.User;
+import io.realm.tests.api.entities.AllColumns;
+import io.realm.tests.api.entities.User;
 import io.realm.typed.Realm;
 import io.realm.typed.RealmList;
 import io.realm.typed.RealmTableOrViewList;
