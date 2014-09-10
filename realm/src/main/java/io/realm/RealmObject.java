@@ -24,11 +24,6 @@ public abstract class RealmObject {
     long realmAddedAtRowIndex = -1;
     protected Realm realm = null;
 
-    /**
-     * Get the Realm which the object belongs to.
-     *
-     * @return    The Realm.
-     */
     protected Realm getRealm() {
         return realm;
     }
@@ -50,7 +45,9 @@ public abstract class RealmObject {
     /**
      * Create a RealmObject in the default Realm with a set of given values.
      *
-     * @param arguments   Values for the fields, encoded as plain Java objects.
+     * @param arguments   Values for the fields, encoded as plain Java objects. The order
+     *                     of the arguments must match the order of the fields in the class
+     *                     declaration.
      */
     public static void create(Object... arguments) {
         throw new NoSuchMethodError();
@@ -61,7 +58,9 @@ public abstract class RealmObject {
      * Create a RealmObject in the specified Realm with a set of given values.
      *
      * @param realm        The Realm instance to add object to.
-     * @param arguments    Values for the fields, encoded as plain Java objects.
+     * @param arguments    Values for the fields, encoded as plain Java objects. The order
+     *                     of the arguments must match the order of the fields in the class
+     *                     declaration.
      */
     public static void create(Realm realm, Object... arguments) {
         throw new NoSuchMethodError();
@@ -83,7 +82,7 @@ public abstract class RealmObject {
      * Get all objects of this type from the specified Realm.
      *
      * @param realm    The Realm instance to query.
-     * @return         An RealmList of all objects of this type in the specified Realm.
+     * @return         A RealmList of all objects of this type in the specified Realm.
      * @see io.realm.RealmList
      */
      public static RealmList<?> all(Realm realm) {
@@ -93,7 +92,7 @@ public abstract class RealmObject {
     /**
      * Get a query for this type from the default Realm.
      *
-     * @return        An RealmQuery object.
+     * @return        A RealmQuery object.
      * @see io.realm.RealmQuery
      */
     public static RealmQuery where() {
@@ -104,7 +103,7 @@ public abstract class RealmObject {
      * Get a query for this type from the specified Realm.
      *
      * @param realm     The Realm instance to query.
-     * @return          An RealmQuery object.
+     * @return          A RealmQuery object.
      * @see io.realm.RealmObject
      */
     public static RealmQuery where(Realm realm) {
