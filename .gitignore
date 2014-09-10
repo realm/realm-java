@@ -6,6 +6,9 @@ realm-jni/build
 # Gradle cache
 .gradle
 
+# Gradle local properties
+local.properties
+
 # Core
 core
 core-*
