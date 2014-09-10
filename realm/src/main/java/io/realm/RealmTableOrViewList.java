@@ -62,11 +62,6 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
     Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
 
 
@@ -99,6 +94,33 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     @Override
     public E last() {
         return get(size()-1);
+    }
+
+    // Sorting
+
+    public static enum Order {
+        ASCENDING, DESCENDING
+    }
+
+    /**
+     * Get a sorted (ASCENDING) RealmList from an existing RealmList.
+     *
+     * @param fieldName  The field name to sort by.
+     * @return           A sorted RealmList
+     */
+    public RealmList<E> sort(String fieldName) {
+        return sort(fieldName, Order.ASCENDING);
+    }
+
+    /**
+     * Get a sorted RealmList from an existing RealmList.
+     *
+     * @param fieldName  The field name to sort by.
+     * @param sortOrder  The direction to sort by.
+     * @return           A sorted RealmList.
+     */
+    public RealmList<E> sort(String fieldName, Order sortOrder) {
+        throw new NoSuchMethodError();
     }
 
 
@@ -175,5 +197,72 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
             default:
                 throw new RuntimeException("Wrong type");
         }
+    }
+
+
+    // Deleting
+
+    /**
+     * Removes an object at a given index.
+     *
+     * @param index      The array index identifying the object to be removed.
+     * @return           Always return null.
+     */
+    @Override
+    public E remove(int index) {
+        TableOrView table = getTable();
+        table.remove(index);
+        return null;
+    }
+
+    /**
+     * Removes the last object in a RealmList.
+     *
+     */
+    public void removeLast() {
+        TableOrView table = getTable();
+        table.removeLast();
+    }
+
+    /**
+     * Removes all objects from a RealmList.
+     *
+     */
+    public void clear() {
+        TableOrView table = getTable();
+        table.clear();
+    }
+
+    // Adding objects
+
+    /**
+     * Add an object.
+     *
+     * @param element    The object to add.
+     * @return           true if object was added.
+     */
+    @Override
+    public boolean add(E element) {
+        throw new NoSuchMethodError();
+    }
+
+    /**
+     * Add an object
+     *
+     * @param index        The array index to add the object at.
+     * @param element      The object to add.
+     */
+    public void add(int index, E element) {
+        throw new NoSuchMethodError();
+    }
+
+    /**
+     * Replaces an object at the given index with a new object.
+     *
+     * @param index       The array index of the object to be replaced.
+     * @param element     An object.
+     */
+    public void replace(int index, E element) {
+        throw new NoSuchMethodError();
     }
 }
