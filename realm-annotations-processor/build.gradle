@@ -12,3 +12,7 @@ dependencies {
     compile project(':realm')
     compile group:'com.squareup', name:'javawriter', version:'2.5.0'
 }
+
+jar {
+    from configurations.compile.findAll {it.name.contains('javawriter')}.collect { zipTree(it) }
+}
