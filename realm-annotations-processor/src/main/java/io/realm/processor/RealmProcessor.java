@@ -65,7 +65,7 @@ public class RealmProcessor extends AbstractProcessor {
 
             if (qualifiedPackageName != null) {
                 String qualifiedClassName = qualifiedPackageName + "." + classElement.getSimpleName() + "RealmProxy";
-                qualifiedClassName = qualifiedClassName.replace(".", "/");
+                //qualifiedClassName = qualifiedClassName.replace(".", "/");
 
                 JavaFileObject javaFileObject = null;
                 BufferedWriter bufferWriter = null;
