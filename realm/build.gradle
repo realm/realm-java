@@ -23,6 +23,11 @@ android.libraryVariants.all { variant ->
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
         exclude "**/internal/**"
     }
+
+    task("javadoc${variant.name.capitalize()}Jar", type: Jar, dependsOn: tasks["generate${variant.name.capitalize()}Javadoc"]) {
+        classifier = 'javadoc'
+        from tasks["generate${variant.name.capitalize()}Javadoc"].destinationDir
+    }
 }
 
 tasks.preBuild {
