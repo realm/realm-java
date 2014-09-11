@@ -6,6 +6,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import java.io.File;
+import java.io.IOException;
 
 
 public class MyActivity extends Activity {
@@ -24,8 +25,13 @@ public class MyActivity extends Activity {
 
         // Run examples
         IntroExample ie = new IntroExample(this);
-        ie.WriteAndRead();
-        ie.QueryYourObjects();
+        try {
+            ie.WriteAndRead();
+            ie.QueryYourObjects();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
 
         setContentView(R.layout.activity_my);
     }

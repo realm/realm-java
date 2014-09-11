@@ -14,14 +14,9 @@ public class IntroExample {
         this.activity = activity;
     }
 
-    public void WriteAndRead() {
+    public void WriteAndRead() throws java.io.IOException {
         // open a default realm
-        Realm realm;
-        try {
-            realm = new Realm(activity.getFilesDir());
-        } catch (java.io.IOException e) {
-            return;
-        }
+        Realm realm = new Realm(activity.getFilesDir());
 
         // Add ten persons in small transactions
         for (int i = 0; i<10; i++) {
@@ -42,13 +37,8 @@ public class IntroExample {
     }
 
 
-    public void QueryYourObjects() {
-        Realm realm;
-        try {
-            realm = new Realm(activity.getFilesDir());
-        } catch (Exception e) {
-            return;
-        }
+    public void QueryYourObjects() throws java.io.IOException {
+        Realm realm = new Realm(activity.getFilesDir());
 
         Log.i(TAG, "Number of persons: " + realm.allObjects(Person.class).size());
 
@@ -62,14 +52,5 @@ public class IntroExample {
         realm.commit();
 
         Log.i(TAG, "Number of persons: " + realm.allObjects(Person.class).size());
-    }
-
-    public void ListenForUpdates() {
-        Realm realm;
-        try {
-            realm = new Realm(activity.getFilesDir());
-        } catch (Exception e) {
-            return;
-        }
     }
 }
