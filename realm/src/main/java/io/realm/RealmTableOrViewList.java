@@ -98,30 +98,30 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
     // Sorting
 
-    public static enum Order {
-        ASCENDING, DESCENDING
-    }
-
-    /**
-     * Get a sorted (ASCENDING) RealmList from an existing RealmList.
-     *
-     * @param fieldName  The field name to sort by.
-     * @return           A sorted RealmList
-     */
-    public RealmList<E> sort(String fieldName) {
-        return sort(fieldName, Order.ASCENDING);
-    }
-
-    /**
-     * Get a sorted RealmList from an existing RealmList.
-     *
-     * @param fieldName  The field name to sort by.
-     * @param sortOrder  The direction to sort by.
-     * @return           A sorted RealmList.
-     */
-    public RealmList<E> sort(String fieldName, Order sortOrder) {
-        throw new NoSuchMethodError();
-    }
+//    public static enum Order {
+//        ASCENDING, DESCENDING
+//    }
+//
+//    /**
+//     * Get a sorted (ASCENDING) RealmList from an existing RealmList.
+//     *
+//     * @param fieldName  The field name to sort by.
+//     * @return           A sorted RealmList
+//     */
+//    public RealmList<E> sort(String fieldName) {
+//        return sort(fieldName, Order.ASCENDING);
+//    }
+//
+//    /**
+//     * Get a sorted RealmList from an existing RealmList.
+//     *
+//     * @param fieldName  The field name to sort by.
+//     * @param sortOrder  The direction to sort by.
+//     * @return           A sorted RealmList.
+//     */
+//    public RealmList<E> sort(String fieldName, Order sortOrder) {
+//        throw new NoSuchMethodError();
+//    }
 
 
     // Aggregates
@@ -257,34 +257,34 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
     // Adding objects
 
-    /**
-     * Add an object.
-     *
-     * @param element    The object to add.
-     * @return           true if object was added.
-     */
-    @Override
-    public boolean add(E element) {
-        throw new NoSuchMethodError();
-    }
-
-    /**
-     * Add an object
-     *
-     * @param index        The array index to add the object at.
-     * @param element      The object to add.
-     */
-    public void add(int index, E element) {
-        throw new NoSuchMethodError();
-    }
-
-    /**
-     * Replaces an object at the given index with a new object.
-     *
-     * @param index       The array index of the object to be replaced.
-     * @param element     An object.
-     */
-    public void replace(int index, E element) {
-        throw new NoSuchMethodError();
-    }
+//    /**
+//     * Add an object.
+//     *
+//     * @param element    The object to add.
+//     * @return           true if object was added.
+//     */
+//    @Override
+//    public boolean add(E element) {
+//        throw new NoSuchMethodError();
+//    }
+//
+//    /**
+//     * Add an object
+//     *
+//     * @param index        The array index to add the object at.
+//     * @param element      The object to add.
+//     */
+//    public void add(int index, E element) {
+//        throw new NoSuchMethodError();
+//    }
+//
+//    /**
+//     * Replaces an object at the given index with a new object.
+//     *
+//     * @param index       The array index of the object to be replaced.
+//     * @param element     An object.
+//     */
+//    public void replace(int index, E element) {
+//        throw new NoSuchMethodError();
+//    }
 }
