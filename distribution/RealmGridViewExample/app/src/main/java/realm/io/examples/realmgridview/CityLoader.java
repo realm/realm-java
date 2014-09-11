@@ -1,4 +1,4 @@
-package realm.io.realmexample1;
+package realm.io.examples.realmgridview;
 
 import android.content.AsyncTaskLoader;
 import android.content.Context;

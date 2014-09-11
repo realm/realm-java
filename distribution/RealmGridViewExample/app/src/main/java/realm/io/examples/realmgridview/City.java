@@ -1,4 +1,4 @@
-package realm.io.realmexample1;
+package realm.io.examples.realmgridview;
 
 import io.realm.RealmObject;
 import io.realm.annotations.RealmClass;

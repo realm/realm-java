@@ -1,4 +1,4 @@
-package realm.io.realmexample1;
+package realm.io.examples.realmgridview;
 
 import android.app.Activity;
 import android.app.LoaderManager;
@@ -12,7 +12,6 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
