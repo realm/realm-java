@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".RealmGridLayoutActivity" >
+
+    <item android:id="@+id/action_reload"
+        android:title="@string/action_reload"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+
+</menu>
