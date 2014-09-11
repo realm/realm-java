@@ -11,7 +11,9 @@ cp realm-annotations-processor/build/libs/realm-annotations-processor-0.80.jar d
 cp realm/build/outputs/aar/realm-0.80.aar distribution/realm
 
 echo "Copying files to the distribution/RealmIntroExample folder"
+mkdir -p distribution/RealmIntroExample/app/libs
 cp realm-annotations-processor/build/libs/realm-annotations-processor-0.80.jar distribution/RealmIntroExample/app/libs
-cp realm/build/outputs/aar/realm-0.80.aar distribution/RealmIntroExample/realm
+mkdir -p distribution/RealmIntroExample/realm
+cp -R distribution/realm distribution/RealmIntroExample
 
 echo  "Done"
