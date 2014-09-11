@@ -17,7 +17,7 @@ dependencies {
 android.libraryVariants.all { variant ->
     task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
         group 'Docs'
-        description "Generates Javadoc for $variant.name."
+        description "Generates Javadoc for ${variant.name}."
         source = variant.javaCompile.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
@@ -25,6 +25,8 @@ android.libraryVariants.all { variant ->
     }
 
     task("javadoc${variant.name.capitalize()}Jar", type: Jar, dependsOn: tasks["generate${variant.name.capitalize()}Javadoc"]) {
+        group 'Docs'
+        description "Generates Javadoc for ${variant.name} in Jar format."
         classifier = 'javadoc'
         from tasks["generate${variant.name.capitalize()}Javadoc"].destinationDir
     }
