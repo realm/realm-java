@@ -134,24 +134,46 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     /**
      * Find the minimum value of a field.
      *
-     * @param fieldName   The field to look for a minimum on. Only int, float, double,
-     *                    and date are supported.
-     * @return            An object; the first occurrence with the minimum value.
+     * @param fieldName   The field to look for a minimum on. Only int, float, and double
+     *                    are supported.
+     * @return
      */
-    public E min(String fieldName) {
-        throw new NoSuchMethodError();
+    public Number min(String fieldName) {
+        // TODO: Date
+        long columnIndex = table.getColumnIndex(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return table.minimumLong(columnIndex);
+            case FLOAT:
+                return table.minimumFloat(columnIndex);
+            case DOUBLE:
+                return table.minimumDouble(columnIndex);
+            default:
+                throw new RuntimeException("Wrong type");
+        }
     }
 
 
     /**
      * Find the maximum value of a field.
      *
-     * @param fieldName   The field to look for a maximum on. Only int, float, double,
-     *                    and date are supported.
-     * @return            An object; the first occurrence with the maximum value.
+     * @param fieldName   The field to look for a maximum on. Only int, float, and double
+     *                    are supported.
+     * @return            The maximum value.
      */
-    public E max(String fieldName) {
-        throw new NoSuchMethodError();
+    public Number max(String fieldName) {
+        // TODO: Date
+        long columnIndex = table.getColumnIndex(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return table.maximumLong(columnIndex);
+            case FLOAT:
+                return table.maximumFloat(columnIndex);
+            case DOUBLE:
+                return table.maximumDouble(columnIndex);
+            default:
+                throw new RuntimeException("Wrong type");
+        }
     }
 
 
@@ -166,11 +188,11 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
-                return new Long(table.sumLong(columnIndex));
+                return table.sumLong(columnIndex);
             case FLOAT:
-                return new Float(table.sumFloat(columnIndex));
+                return table.sumFloat(columnIndex);
             case DOUBLE:
-                return new Double(table.sumDouble(columnIndex));
+                return table.sumDouble(columnIndex);
             default:
                 throw new RuntimeException("Wrong type");
         }
