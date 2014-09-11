@@ -22,8 +22,10 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.Locale;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
@@ -32,12 +34,10 @@ public class RealmSourceCodeGenerator {
 
     private class FieldInfo {
         public String fieldName;
-        public String fieldId;
         public String columnType;
         public Element fieldElement;
 
-        public FieldInfo(String fieldName, String fieldId, String columnType, Element fieldElement) {
-            this.fieldId = fieldId;
+        public FieldInfo(String fieldName, String columnType, Element fieldElement) {
             this.columnType = columnType;
             this.fieldElement = fieldElement;
             this.fieldName = fieldName;
@@ -65,33 +65,26 @@ public class RealmSourceCodeGenerator {
         return errorMessage;
     }
 
-    private String convertSimpleTypesToObject(String typeName) {
-        if (typeName.compareTo("int") == 0) {
-            typeName = "Integer";
-        } else if (typeName.compareTo("long") == 0 || typeName.compareTo("float") == 0 ||
-                typeName.compareTo("double") == 0 || typeName.compareTo("boolean") == 0) {
-            typeName = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
-        }
-
-        return typeName;
+    private static final Map<String, String> objectTypes;
+    static {
+        objectTypes = new HashMap<String, String>();
+        objectTypes.put("int",     "Integer");
+        objectTypes.put("long",    "Long");
+        objectTypes.put("float",   "Float");
+        objectTypes.put("double",  "Double");
+        objectTypes.put("boolean", "Boolean");
     }
 
-    private String convertTypesToColumnType(String typeName) {
-        if (typeName.compareTo("String") == 0) {
-            typeName = "ColumnType.STRING";
-        } else if (typeName.compareTo("Long") == 0 || typeName.compareTo("Integer") == 0) {
-            typeName = "ColumnType.INTEGER";
-        } else if (typeName.compareTo("Float") == 0) {
-            typeName = "ColumnType.FLOAT";
-        } else if (typeName.compareTo("Double") == 0) {
-            typeName = "ColumnType.DOUBLE";
-        } else if (typeName.compareTo("Boolean") == 0) {
-            typeName = "ColumnType.BOOLEAN";
-        } else if (typeName.compareTo("Date") == 0) {
-            typeName = "ColumnType.DATE";
-        }
-
-        return typeName;
+    private static final Map<String, String> columnTypes;
+    static {
+        columnTypes = new HashMap<String, String>();
+        columnTypes.put("String",  "ColumnType.STRING");
+        columnTypes.put("Long",    "ColumnType.INTEGER");
+        columnTypes.put("Integer", "ColumnType.INTEGER");
+        columnTypes.put("Float",   "ColumnType.FLOAT");
+        columnTypes.put("Double",  "ColumnType.DOUBLE");
+        columnTypes.put("Boolean", "ColumnType.BOOLEAN");
+        columnTypes.put("Date",    "ColumnType.DATE");
     }
 
     private boolean checkState(GeneratorStates checkState) {
@@ -154,21 +147,21 @@ public class RealmSourceCodeGenerator {
     public boolean setField(String fieldName, Element fieldElement) {
         if (!checkState(GeneratorStates.METHODS)) return false;
 
-        String fieldId = "index_" + fieldName;
-
-        String shortType = convertSimpleTypesToObject(fieldElement.asType().toString());
+        String shortType = objectTypes.get(fieldElement.asType().toString());
         shortType = shortType.substring(shortType.lastIndexOf(".") + 1);
 
-        fields.add(new FieldInfo(fieldName, fieldId, convertTypesToColumnType(shortType), fieldElement));
+        fields.add(new FieldInfo(fieldName, columnTypes.get(shortType), fieldElement));
 
         return true;
     }
 
     public boolean emitFields() throws IOException {
 
+        int columnIndex = 0;
+    	
         for (FieldInfo field : fields) {
             String originalType = field.fieldElement.asType().toString();
-            String fullType = convertSimpleTypesToObject(originalType);
+            String fullType = objectTypes.get(originalType);
             String shortType = fullType.substring(fullType.lastIndexOf(".") + 1);
 
             String returnCast = "";
@@ -184,10 +177,10 @@ public class RealmSourceCodeGenerator {
                 returnCast = "(int)";
             }
 
-            String getterStmt = String.format("return %s row.get%s(%s)", returnCast, shortType, field.fieldId);
-            String setterStmt = String.format("row.set%s(%s, value)", shortType, field.fieldId);
+            String getterStmt = String.format("return %s row.get%s(%s)", returnCast, shortType, columnIndex);
+            String setterStmt = String.format("row.set%s(%s, value)", shortType, columnIndex);
 
-            writer.emitField("int", field.fieldId, EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
+            columnIndex++;
 
             writer.emitAnnotation("Override").beginMethod(originalType, "get" + camelCaseFieldName, EnumSet.of(Modifier.PUBLIC))
                     .emitStatement(getterStmt)
@@ -217,9 +210,7 @@ public class RealmSourceCodeGenerator {
 
         for (int index = 0; index < fields.size(); ++index) {
             FieldInfo field = fields.get(index);
-            String fieldName = field.fieldId.substring("index_".length());
-            writer.emitStatement(field.fieldId + " = " + Integer.toString(index));
-            writer.emitStatement("table.addColumn( %s, \"%s\" )", field.columnType, fieldName.toLowerCase(Locale.getDefault()));
+            writer.emitStatement("table.addColumn( %s, \"%s\" )", field.columnType, field.fieldName.toLowerCase(Locale.getDefault()));
         }
 
         writer.emitStatement("return table");
