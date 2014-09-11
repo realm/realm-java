@@ -172,18 +172,21 @@ public class RealmSourceCodeGenerator {
             String returnCast = "";
             String camelCaseFieldName = Character.toUpperCase(field.fieldName.charAt(0)) + field.fieldName.substring(1);
 
-            if (originalType.equals("int")) {
+            if (originalType.compareTo("int") == 0) {
+                fullType = "long";
+                shortType = "Long";
+                returnCast = "(" + originalType + ")";
+            }
+
+            if (shortType.compareTo("Integer") == 0) {
+                fullType = "long";
                 shortType = "Long";
                 returnCast = "(int)";
             }
 
-            if (shortType.equals("Integer")) {
-                shortType = "Long";
-                returnCast = "(int)";
-            }
+            String getterStmt = "return " + returnCast + "row.get" + shortType + "( " + columnIndex + " )";
 
-            String getterStmt = String.format("return %s row.get%s(%s)", returnCast, shortType, columnIndex);
-            String setterStmt = String.format("row.set%s(%s, value)", shortType, columnIndex);
+            String setterStmt = "row.set" + shortType + "( " + columnIndex + ", value )";
 
             columnIndex++;
 
