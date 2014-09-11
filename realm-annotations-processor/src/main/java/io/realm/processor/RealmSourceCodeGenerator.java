@@ -162,7 +162,7 @@ public class RealmSourceCodeGenerator {
 
     public boolean emitFields() throws IOException {
 
-    	int columnIndex = 0;
+        int columnIndex = 0;
     	
         for (FieldInfo field : fields) {
             String originalType = field.fieldElement.asType().toString();
