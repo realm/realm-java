@@ -166,6 +166,8 @@ public class RealmSourceCodeGenerator {
 
     public boolean emitFields() throws IOException {
 
+    	int columnIndex = 0;
+    	
         for (FieldInfo field : fields) {
             String originalType = field.fieldElement.asType().toString();
             String fullType = convertSimpleTypesToObject(originalType);
@@ -190,8 +192,9 @@ public class RealmSourceCodeGenerator {
 
             String setterStmt = "row.set" + shortType + "( " + field.fieldId + ", value )";
 
-            writer.emitField("int", field.fieldId, EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
-
+            writer.emitField("int", field.fieldId, EnumSet.of(Modifier.PRIVATE, Modifier.STATIC),Integer.toString(columnIndex));
+            columnIndex++;
+            
             writer.emitAnnotation("Override").beginMethod(originalType, "get" + camelCaseFieldName, EnumSet.of(Modifier.PUBLIC))
                     .emitStatement(getterStmt)
                     .endMethod();
@@ -221,7 +224,6 @@ public class RealmSourceCodeGenerator {
         for (int index = 0; index < fields.size(); ++index) {
             FieldInfo field = fields.get(index);
             String fieldName = field.fieldId.substring("index_".length());
-            writer.emitStatement(field.fieldId + " = " + Integer.toString(index));
             writer.emitStatement("table.addColumn( %s, \"%s\" )", field.columnType, fieldName.toLowerCase(Locale.getDefault()));
         }
 
