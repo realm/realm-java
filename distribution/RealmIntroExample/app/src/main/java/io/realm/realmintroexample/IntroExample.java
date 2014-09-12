@@ -18,14 +18,14 @@ public class IntroExample {
         // open a default realm
         Realm realm = new Realm(activity.getFilesDir());
 
-        // Add ten persons in small transactions
+        // Add ten persons in one write transaction
+        realm.beginWrite();
         for (int i = 0; i<10; i++) {
-            realm.beginWrite();
             Person person = realm.create(Person.class);
             person.setName("Person no. " + i);
             person.setAge(i);
-            realm.commit();
         }
+        realm.commit();
 
         // Implicit read transactions allow you to access your objects
         Log.i(TAG, "Number of persons: " + realm.allObjects(Person.class).size());
@@ -42,7 +42,7 @@ public class IntroExample {
 
         Log.i(TAG, "Number of persons: " + realm.allObjects(Person.class).size());
 
-        // Find all objects where age > 5
+        // Find all persons where age > 5
         RealmList<Person> result = realm.where(Person.class).greaterThan("age", 5).findAll();
         Log.i(TAG, "Size of result set: " + result.size());
 
