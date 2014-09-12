@@ -1,4 +1,4 @@
-package realm.io.examples.realmgridview;
+package io.realm.examples.realmgridview;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,7 +8,6 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import io.realm.RealmTableOrViewList;
-
 
 public class CityAdapter extends BaseAdapter {
 

@@ -6,7 +6,7 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "realm.io.examples.realmgridview"
+        applicationId "io.realm.examples.realmgridview"
         minSdkVersion 14
         targetSdkVersion 20
         versionCode 1
