@@ -20,10 +20,14 @@ public class IntroExample {
 
         // Add ten persons in one write transaction
         realm.beginWrite();
+        Dog dog = realm.create(Dog.class);
+        dog.setName("Fido");
+
         for (int i = 0; i<10; i++) {
             Person person = realm.create(Person.class);
             person.setName("Person no. " + i);
             person.setAge(i);
+            person.setDog(dog);
         }
         realm.commit();
 
@@ -32,7 +36,7 @@ public class IntroExample {
 
         // Iterate over all objects
         for (Person p : realm.allObjects(Person.class)) {
-            Log.i(TAG, p.getName() + ":" + p.getAge());
+            Log.i(TAG, String.format("%s : %d : %s", p.getName(), p.getAge(), p.getDog().getName()));
         }
     }
 

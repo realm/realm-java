@@ -9,6 +9,7 @@ import io.realm.annotations.RealmClass;
 public class Person extends RealmObject {
     private String name;
     private int age;
+    private Dog dog;
 
     public String getName() {
         return name;
@@ -24,5 +25,13 @@ public class Person extends RealmObject {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public Dog getDog() {
+        return dog;
+    }
+
+    public void setDog(Dog dog) {
+        this.dog = dog;
     }
 }
