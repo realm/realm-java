@@ -203,7 +203,7 @@ public class RealmSourceCodeGenerator {
                 	// We now know this is a type derived from RealmObject - 
                 	// this has already been checked in the RealmProcessor
                 	setterStmt = String.format("if (value != null) {row.setLink( %d, value.realmGetRow().getIndex() );}", columnIndex);
-                	getterStmt = String.format("return realm.get( %s.class, realmGetRow().getLink( %d ) )", fullType, columnIndex);
+                	getterStmt = String.format("return realmGetRow().getLink(%d)==-1?null:realm.get(%s.class, realmGetRow().getLink(%d))", columnIndex, fullType, columnIndex);
                     field.columnType = "ColumnType.LINK";
                 }
             }
