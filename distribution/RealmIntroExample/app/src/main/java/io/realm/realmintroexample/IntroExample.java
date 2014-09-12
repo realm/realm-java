@@ -3,6 +3,8 @@ package io.realm.realmintroexample;
 import android.app.Activity;
 import android.util.Log;
 
+import java.util.Arrays;
+
 import io.realm.Realm;
 import io.realm.RealmList;
 
@@ -28,6 +30,7 @@ public class IntroExample {
             person.setName("Person no. " + i);
             person.setAge(i);
             person.setDog(dog);
+            person.setData(new byte[] {1,2,3});
         }
         realm.commit();
 
@@ -36,7 +39,7 @@ public class IntroExample {
 
         // Iterate over all objects
         for (Person p : realm.allObjects(Person.class)) {
-            Log.i(TAG, String.format("%s : %d : %s", p.getName(), p.getAge(), p.getDog().getName()));
+            Log.i(TAG, String.format("%s : %d : %s : %b", p.getName(), p.getAge(), p.getDog().getName(), Arrays.equals(p.getData(), new byte[] {1,2,3})));
         }
     }
 

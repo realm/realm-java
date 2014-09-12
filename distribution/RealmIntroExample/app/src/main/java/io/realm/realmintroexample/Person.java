@@ -10,6 +10,7 @@ public class Person extends RealmObject {
     private String name;
     private int age;
     private Dog dog;
+    private byte[] data;
 
     public String getName() {
         return name;
@@ -33,5 +34,13 @@ public class Person extends RealmObject {
 
     public void setDog(Dog dog) {
         this.dog = dog;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
     }
 }
