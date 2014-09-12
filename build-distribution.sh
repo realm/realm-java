@@ -17,9 +17,9 @@ cp realm/build/libs/realm-0.80-javadoc.jar distribution
 
 
 echo "Copying files to the distribution/RealmIntroExample folder"
-mkdir -p distribution/RealmIntroExample/app/libs
-cp realm-annotations-processor/build/libs/realm-annotations-processor-0.80.jar distribution/RealmIntroExample/app/libs
-mkdir -p distribution/RealmIntroExample/realm
+mkdir -p distribution/RealmBasicExample/app/libs
+cp realm-annotations-processor/build/libs/realm-annotations-processor-0.80.jar distribution/RealmBasicExample/app/libs
+mkdir -p distribution/RealmBasicExample/realm
 cp -R distribution/realm distribution/RealmIntroExample
 
 echo "Copying files to the distribution/RealmGridViewExample folder"
