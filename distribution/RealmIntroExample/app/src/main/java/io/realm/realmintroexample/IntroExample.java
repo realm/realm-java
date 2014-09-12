@@ -14,23 +14,18 @@ public class IntroExample {
         this.activity = activity;
     }
 
-    public void WriteAndRead() {
+    public void WriteAndRead() throws java.io.IOException {
         // open a default realm
-        Realm realm;
-        try {
-            realm = new Realm(activity.getFilesDir());
-        } catch (java.io.IOException e) {
-            return;
-        }
+        Realm realm = new Realm(activity.getFilesDir());
 
-        // Add ten persons in small transactions
+        // Add ten persons in one write transaction
+        realm.beginWrite();
         for (int i = 0; i<10; i++) {
-            realm.beginWrite();
             Person person = realm.create(Person.class);
             person.setName("Person no. " + i);
             person.setAge(i);
-            realm.commit();
         }
+        realm.commit();
 
         // Implicit read transactions allow you to access your objects
         Log.i(TAG, "Number of persons: " + realm.allObjects(Person.class).size());
@@ -42,17 +37,12 @@ public class IntroExample {
     }
 
 
-    public void QueryYourObjects() {
-        Realm realm;
-        try {
-            realm = new Realm(activity.getFilesDir());
-        } catch (Exception e) {
-            return;
-        }
+    public void QueryYourObjects() throws java.io.IOException {
+        Realm realm = new Realm(activity.getFilesDir());
 
         Log.i(TAG, "Number of persons: " + realm.allObjects(Person.class).size());
 
-        // Find all objects where age > 5
+        // Find all persons where age > 5
         RealmList<Person> result = realm.where(Person.class).greaterThan("age", 5).findAll();
         Log.i(TAG, "Size of result set: " + result.size());
 
@@ -62,14 +52,5 @@ public class IntroExample {
         realm.commit();
 
         Log.i(TAG, "Number of persons: " + realm.allObjects(Person.class).size());
-    }
-
-    public void ListenForUpdates() {
-        Realm realm;
-        try {
-            realm = new Realm(activity.getFilesDir());
-        } catch (Exception e) {
-            return;
-        }
     }
 }
