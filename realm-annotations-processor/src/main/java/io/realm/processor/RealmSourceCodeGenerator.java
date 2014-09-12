@@ -22,11 +22,12 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.Locale;
 import java.util.List;
+import java.util.Locale;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
+
 
 public class RealmSourceCodeGenerator {
 
@@ -64,10 +65,10 @@ public class RealmSourceCodeGenerator {
     }
 
     private String convertSimpleTypesToObject(String typeName) {
-        if (typeName.compareTo("int") == 0) {
+        if (typeName.equals("int")) {
             typeName = "Integer";
-        } else if (typeName.compareTo("long") == 0 || typeName.compareTo("float") == 0 ||
-                typeName.compareTo("double") == 0 || typeName.compareTo("boolean") == 0) {
+        } else if (typeName.equals("long") || typeName.equals("float") ||
+                typeName.equals("double") || typeName.equals("boolean")) {
             typeName = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
         }
 
@@ -75,18 +76,20 @@ public class RealmSourceCodeGenerator {
     }
 
     private String convertTypesToColumnType(String typeName) {
-        if (typeName.compareTo("String") == 0) {
+        if (typeName.equals("String")) {
             typeName = "ColumnType.STRING";
-        } else if (typeName.compareTo("Long") == 0 || typeName.compareTo("Integer") == 0) {
+        } else if (typeName.equals("Long") || typeName.equals("Integer")) {
             typeName = "ColumnType.INTEGER";
-        } else if (typeName.compareTo("Float") == 0) {
+        } else if (typeName.equals("Float")) {
             typeName = "ColumnType.FLOAT";
-        } else if (typeName.compareTo("Double") == 0) {
+        } else if (typeName.equals("Double")) {
             typeName = "ColumnType.DOUBLE";
-        } else if (typeName.compareTo("Boolean") == 0) {
+        } else if (typeName.equals("Boolean")) {
             typeName = "ColumnType.BOOLEAN";
-        } else if (typeName.compareTo("Date") == 0) {
+        } else if (typeName.equals("Date")) {
             typeName = "ColumnType.DATE";
+        } else if (typeName.equals("byte[]")) {
+            typeName = "ColumnType.BINARY";
         }
 
         return typeName;
@@ -121,16 +124,15 @@ public class RealmSourceCodeGenerator {
         return true;
     }
 
-    private boolean emitPackage() throws IOException {
+    private void emitPackage() throws IOException {
         writer.emitPackage(packageName)
                 .emitEmptyLine()
                 .emitImports(
                         "io.realm.internal.ColumnType",
                         "io.realm.internal.Table",
-                        "io.realm.internal.ImplicitTransaction")
+                        "io.realm.internal.ImplicitTransaction",
+                        "io.realm.internal.Row")
                 .emitEmptyLine();
-
-        return true;
     }
 
     public boolean setClassName(String className) {
@@ -142,11 +144,9 @@ public class RealmSourceCodeGenerator {
         return true;
     }
 
-    private boolean emitClass() throws IOException {
+    private void emitClass() throws IOException {
         writer.beginType(packageName + "." + className + "RealmProxy", "class",
                 EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), className).emitEmptyLine();
-
-        return true;
     }
 
     public boolean setField(String fieldName, Element fieldElement) {
@@ -160,10 +160,10 @@ public class RealmSourceCodeGenerator {
         return true;
     }
 
-    public boolean emitFields() throws IOException {
+    public void emitFields() throws IOException {
 
         int columnIndex = 0;
-    	
+
         for (FieldInfo field : fields) {
             String originalType = field.fieldElement.asType().toString();
             String fullType = convertSimpleTypesToObject(originalType);
@@ -172,22 +172,42 @@ public class RealmSourceCodeGenerator {
             String returnCast = "";
             String camelCaseFieldName = Character.toUpperCase(field.fieldName.charAt(0)) + field.fieldName.substring(1);
 
-            if (originalType.compareTo("int") == 0) {
+            if (originalType.equals("int")) {
                 fullType = "long";
                 shortType = "Long";
                 returnCast = "(" + originalType + ")";
-            }
-
-            if (shortType.compareTo("Integer") == 0) {
+            } else if (shortType.equals("Integer")) {
                 fullType = "long";
                 shortType = "Long";
                 returnCast = "(int)";
+            } else if (shortType.equals("byte[]")) {
+                shortType = "BinaryByteArray";
+                returnCast = "(byte[])";
             }
 
             String getterStmt = "return " + returnCast + "row.get" + shortType + "( " + columnIndex + " )";
 
             String setterStmt = "row.set" + shortType + "( " + columnIndex + ", value )";
 
+            if (!field.fieldElement.asType().getKind().isPrimitive())
+            {
+                if (!originalType.equals("java.lang.String") &&
+                	!originalType.equals("java.lang.Long") &&
+                	!originalType.equals("java.lang.Integer") &&
+                	!originalType.equals("java.lang.Float") &&
+                	!originalType.equals("java.lang.Double") &&
+                	!originalType.equals("java.lang.Boolean") &&
+                	!originalType.equals("java.util.Date") &&
+                	!originalType.equals("byte[]")) {
+                	
+                	// We now know this is a type derived from RealmObject - 
+                	// this has already been checked in the RealmProcessor
+                	setterStmt = String.format("if (value != null) {row.setLink( %d, value.realmGetRow().getIndex() );}", columnIndex);
+                	getterStmt = String.format("return realm.get( %s.class, realmGetRow().getLink( %d ) )", fullType, columnIndex);
+                    field.columnType = "ColumnType.LINK";
+                }
+            }
+            
             columnIndex++;
 
             writer.emitAnnotation("Override").beginMethod(originalType, "get" + camelCaseFieldName, EnumSet.of(Modifier.PUBLIC))
@@ -199,33 +219,52 @@ public class RealmSourceCodeGenerator {
                     .emitStatement(setterStmt)
                     .endMethod().emitEmptyLine();
         }
-
-        return true;
     }
+
 
     public boolean generate() throws IOException {
 
+    	// Set source code indent to 4 spaces
         writer.setIndent("    ");
 
-        if (!emitPackage()) return false;
-        if (!emitClass()) return false;
-        if (!emitFields()) return false;
+        // Emit java writer code in sections: 
+        
+        //   1. Package Header and imports
+        emitPackage();
+        
+        //   2. class definition
+        emitClass();
+        
+        //   3. public setters and getters for each field
+        emitFields();
+
+        // Generate initTable method, which is used to create the datqbase table
+
+        String tableName = this.className.toLowerCase(Locale.getDefault());
 
         writer.beginMethod("Table", "initTable", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
                 "ImplicitTransaction", "transaction").
-                beginControlFlow("if(!transaction.hasTable(\"" + this.className + "\"))").
-                emitStatement("Table table = transaction.getTable(\"" + this.className + "\")");
+                beginControlFlow("if(!transaction.hasTable(\"" + tableName + "\"))").
+                emitStatement("Table table = transaction.getTable(\"" + tableName + "\")");
 
-        for (int index = 0; index < fields.size(); ++index) {
-            FieldInfo field = fields.get(index);
-            writer.emitStatement("table.addColumn( %s, \"%s\" )", field.columnType, field.fieldName.toLowerCase(Locale.getDefault()));
+        // For each field generate corresponding table index constant
+        for (FieldInfo field : fields) {
+
+            if (field.columnType.equals("ColumnType.LINK")) {
+                writer.emitStatement("table.addColumnLink( %s, \"%s\", %s)", field.columnType,
+                    field.fieldName.toLowerCase(Locale.getDefault()), "table");
+            }
+            else {
+                writer.emitStatement("table.addColumn( %s, \"%s\" )", field.columnType, field.fieldName.toLowerCase(Locale.getDefault()));
+            }
         }
 
         writer.emitStatement("return table");
         writer.endControlFlow();
-        writer.emitStatement("return transaction.getTable(\"" + this.className + "\")");
+        writer.emitStatement("return transaction.getTable(\"" + tableName + "\")");
         writer.endMethod().emitEmptyLine();
 
+        // End the class definition 
         writer.endType();
         writer.close();
 

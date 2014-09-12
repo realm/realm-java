@@ -30,6 +30,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
@@ -60,12 +61,20 @@ public class RealmProcessor extends AbstractProcessor {
                 return false;
             }
 
+			Types typeUtils = processingEnv.getTypeUtils();
+			TypeElement parentElement = (TypeElement)typeUtils.asElement(typeElement.getSuperclass());
+			
+			
+			if (!parentElement.toString().endsWith(".RealmObject")) {
+				error("A RealmClass annotated object must be derived from RealmObject");
+				return false;
+			}
+
             PackageElement packageElement = (PackageElement) enclosingElement;
             String qualifiedPackageName = packageElement.getQualifiedName().toString();
 
             if (qualifiedPackageName != null) {
                 String qualifiedClassName = qualifiedPackageName + "." + classElement.getSimpleName() + "RealmProxy";
-                //qualifiedClassName = qualifiedClassName.replace(".", "/");
 
                 JavaFileObject javaFileObject = null;
                 BufferedWriter bufferWriter = null;
@@ -79,17 +88,10 @@ public class RealmProcessor extends AbstractProcessor {
                     return false;
                 }
 
-                if (!codeGenerator.setBufferedWriter(bufferWriter)) {
-                    error(codeGenerator.getError());
-                    return false;
-                }
+                codeGenerator.setBufferedWriter(bufferWriter);
 
-                if (!codeGenerator.setPackageName(qualifiedPackageName)) {
-                    error(codeGenerator.getError());
-                    return false;
-                }
-
-                if (!codeGenerator.setClassName(classElement.getSimpleName().toString())) {
+                if (!codeGenerator.setPackageName(qualifiedPackageName) ||
+                	!codeGenerator.setClassName(classElement.getSimpleName().toString())) {
                     error(codeGenerator.getError());
                     return false;
                 }
@@ -98,9 +100,29 @@ public class RealmProcessor extends AbstractProcessor {
                     if (element.getKind().equals(ElementKind.FIELD)) {
                         String elementName = element.getSimpleName().toString();
                         VariableElement varElem = (VariableElement) element;
-
+                        
                         if (varElem.getAnnotation(Ignore.class) != null) {
                             continue;
+                        }
+
+                        TypeElement fieldTypeElement = (TypeElement)typeUtils.asElement(element.asType());
+                        
+                        if (!element.asType().getKind().isPrimitive()) {
+                        	String fieldTypeName = element.asType().toString();
+                            if (fieldTypeName.compareTo("java.lang.String") != 0 &&
+                            	fieldTypeName.compareTo("java.lang.Long") != 0 &&
+                            	fieldTypeName.compareTo("java.lang.Integer") != 0 &&
+                            	fieldTypeName.compareTo("java.lang.Float") != 0 &&
+                            	fieldTypeName.compareTo("java.lang.Double") != 0 &&
+                            	fieldTypeName.compareTo("java.lang.Boolean") != 0 &&
+                            	fieldTypeName.compareTo("java.util.Date") != 0 &&
+                            	fieldTypeName.compareTo("byte[]") != 0) {
+                       			TypeElement fieldTypeParentElement = (TypeElement)typeUtils.asElement(fieldTypeElement.getSuperclass());
+                    			if (!fieldTypeParentElement.toString().endsWith(".RealmObject")) {
+                    				error("RealmClass fields must be derived from RealmObject: "+elementName+" "+fieldTypeElement.toString());
+                    				return false;
+                    			}
+                            }
                         }
 
                         Set<Modifier> modifiers = varElem.getModifiers();
