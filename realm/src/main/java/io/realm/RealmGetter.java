@@ -16,10 +16,10 @@
 
 package io.realm;
 
-import io.realm.internal.Row;
+//import io.realm.internal.Row;
 
 public interface RealmGetter {
 
-    public Object get(Row row);
+    //public Object get(Row row);
 
 }

@@ -239,19 +239,29 @@ public class RealmSourceCodeGenerator {
         emitFields();
 
         // Generate initTable method, which is used to create the datqbase table
+
+        String tableName = this.className.toLowerCase(Locale.getDefault());
+
         writer.beginMethod("Table", "initTable", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
                 "ImplicitTransaction", "transaction").
-                beginControlFlow("if(!transaction.hasTable(\"" + this.className + "\"))").
-                emitStatement("Table table = transaction.getTable(\"" + this.className + "\")");
+                beginControlFlow("if(!transaction.hasTable(\"" + tableName + "\"))").
+                emitStatement("Table table = transaction.getTable(\"" + tableName + "\")");
 
         // For each field generate corresponding table index constant
         for (FieldInfo field : fields) {
-            writer.emitStatement("table.addColumn( %s, \"%s\" )", field.columnType, field.fieldName.toLowerCase(Locale.getDefault()));
+
+            if (field.columnType.equals("ColumnType.LINK")) {
+                writer.emitStatement("table.addColumnLink( %s, \"%s\", %s)", field.columnType,
+                    field.fieldName.toLowerCase(Locale.getDefault()), "table");
+            }
+            else {
+                writer.emitStatement("table.addColumn( %s, \"%s\" )", field.columnType, field.fieldName.toLowerCase(Locale.getDefault()));
+            }
         }
 
         writer.emitStatement("return table");
         writer.endControlFlow();
-        writer.emitStatement("return transaction.getTable(\"" + this.className + "\")");
+        writer.emitStatement("return transaction.getTable(\"" + tableName + "\")");
         writer.endMethod().emitEmptyLine();
 
         // End the class definition 
