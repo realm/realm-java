@@ -21,6 +21,7 @@ import java.util.AbstractList;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
@@ -98,30 +99,53 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
     // Sorting
 
-//    public static enum Order {
-//        ASCENDING, DESCENDING
-//    }
-//
-//    /**
-//     * Get a sorted (ASCENDING) RealmList from an existing RealmList.
-//     *
-//     * @param fieldName  The field name to sort by.
-//     * @return           A sorted RealmList
-//     */
-//    public RealmList<E> sort(String fieldName) {
-//        return sort(fieldName, Order.ASCENDING);
-//    }
-//
-//    /**
-//     * Get a sorted RealmList from an existing RealmList.
-//     *
-//     * @param fieldName  The field name to sort by.
-//     * @param sortOrder  The direction to sort by.
-//     * @return           A sorted RealmList.
-//     */
-//    public RealmList<E> sort(String fieldName, Order sortOrder) {
-//        throw new NoSuchMethodError();
-//    }
+    public static enum Order {
+        ASCENDING, DESCENDING
+    }
+
+    /**
+     * Get a sorted (ASCENDING) RealmList from an existing RealmList.
+     *
+     * @param fieldName  The field name to sort by.
+     * @return           A sorted RealmList
+     */
+    public RealmList<E> sort(String fieldName) {
+        return sort(fieldName, Order.ASCENDING);
+    }
+
+    /**
+     * Get a sorted RealmList from an existing RealmList.
+     *
+     * @param fieldName  The field name to sort by.
+     * @param sortOrder  The direction to sort by.
+     * @return           A sorted RealmList.
+     */
+    public RealmList<E> sort(String fieldName, Order sortOrder) {
+        TableOrView table = getTable();
+        long columnIndex = table.getColumnIndex(fieldName);
+        TableView sorted;
+
+        if (table instanceof TableView) {
+            TableView v = (TableView)table;
+            sorted = v.where().findAll();
+            if (sortOrder == Order.ASCENDING) {
+                sorted.sort(columnIndex, TableView.Order.ascending);
+            }
+            else {
+                sorted.sort(columnIndex, TableView.Order.descending);
+            }
+        }
+        else {
+            Table t = (Table)table;
+            if (sortOrder == Order.ASCENDING) {
+                sorted = t.getSortedView(columnIndex, TableView.Order.ascending);
+            }
+            else {
+                sorted = t.getSortedView(columnIndex, TableView.Order.descending);
+            }
+        }
+        return new RealmTableOrViewList<E>(realm, sorted, classSpec);
+    }
 
 
     // Aggregates
