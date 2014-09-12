@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import io.realm.Realm;
 import io.realm.RealmList;
+import io.realm.examples.realmintroexample.model.Dog;
 import io.realm.examples.realmintroexample.model.Person;
 
 
@@ -120,10 +121,13 @@ public class RealmBasicExampleActivity extends Activity {
 
         // Add ten persons in one write transaction
         realm.beginWrite();
+        Dog fido = realm.create(Dog.class);
+        fido.setName("fido");
         for (int i = 0; i < 10; i++) {
             Person person = realm.create(Person.class);
             person.setName("Person no. " + i);
             person.setAge(i);
+            person.setDog(fido);
         }
         realm.commit();
 
@@ -132,7 +136,13 @@ public class RealmBasicExampleActivity extends Activity {
 
         // Iterate over all objects
         for (Person pers : realm.allObjects(Person.class)) {
-            status += "\n" + pers.getName() + ":" + pers.getAge();
+            String dogName;
+            if (pers.getDog() == null) {
+                dogName = "None";
+            } else {
+                dogName = pers.getDog().getName();
+            }
+            status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName;
         }
 
         return status;
