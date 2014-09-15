@@ -58,6 +58,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     }
 
     @Override
+    @Deprecated
     public void move(int oldPos, int newPos) {
         throw new UnsupportedOperationException();
     }
@@ -258,11 +259,13 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     // Adding objects
 
     @Override
+    @Deprecated
     public boolean add(E element) {
         throw new UnsupportedOperationException();
     }
 
     @Override
+    @Deprecated
     public void add(int index, E element) {
         throw new UnsupportedOperationException();
     }
