@@ -6,7 +6,7 @@ and you can play a little with it, but we don’t recommend you use it in produc
 
 We need your feedback to make it into something awesome!
 
-Please follow the instructions at http://realm.io/docs/android/beta1/
+Please follow the instructions at http://realm.io/docs/java/beta1/
 and send your feedback to https://groups.google.com/forum/#!forum/realm-java
 
 Thanks!
