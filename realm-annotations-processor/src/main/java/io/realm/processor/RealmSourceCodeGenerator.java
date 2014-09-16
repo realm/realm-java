@@ -34,7 +34,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
 
@@ -70,6 +69,7 @@ public class RealmSourceCodeGenerator {
         JAVA_TO_REALM_TYPES.put("Double", "Double");
         JAVA_TO_REALM_TYPES.put("Boolean", "Boolean");
         JAVA_TO_REALM_TYPES.put("java.lang.String", "String");
+        JAVA_TO_REALM_TYPES.put("byte[]", "BinaryByteArray");
         // TODO: add support for char and Char
     }
 
@@ -92,6 +92,29 @@ public class RealmSourceCodeGenerator {
         JAVA_TO_COLUMN_TYPES.put("Double", "ColumnType.DOUBLE");
         JAVA_TO_COLUMN_TYPES.put("Boolean", "ColumnType.BOOLEAN");
         JAVA_TO_COLUMN_TYPES.put("java.lang.String", "ColumnType.STRING");
+        JAVA_TO_COLUMN_TYPES.put("byte[]", "ColumnType.BINARY");
+    }
+
+    private static final Map<String, String> CASTING_TYPES;
+
+    static {
+        CASTING_TYPES = new HashMap<String, String>();
+        CASTING_TYPES.put("byte", "long");
+        CASTING_TYPES.put("short", "long");
+        CASTING_TYPES.put("int", "long");
+        CASTING_TYPES.put("long", "long");
+        CASTING_TYPES.put("float", "float");
+        CASTING_TYPES.put("double", "double");
+        CASTING_TYPES.put("boolean", "boolean");
+        CASTING_TYPES.put("Byte", "long");
+        CASTING_TYPES.put("Short", "long");
+        CASTING_TYPES.put("Integer", "long");
+        CASTING_TYPES.put("Long", "long");
+        CASTING_TYPES.put("Float", "float");
+        CASTING_TYPES.put("Double", "double");
+        CASTING_TYPES.put("Boolean", "boolean");
+        CASTING_TYPES.put("java.lang.String", "String");
+        CASTING_TYPES.put("byte[]", "byte[]");
     }
 
     public void generate() throws IOException, UnsupportedOperationException {
@@ -144,7 +167,7 @@ public class RealmSourceCodeGenerator {
                  * Primitives and boxed types
                  */
                 String realmType = JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
-                String castingType = "String".equals(realmType) ? "String" : realmType.toLowerCase(Locale.getDefault());
+                String castingType = CASTING_TYPES.get(fieldTypeCanonicalName);
 
                 // Getter
                 writer.emitAnnotation("Override");
@@ -283,9 +306,5 @@ public class RealmSourceCodeGenerator {
 
     private static String capitaliseFirstChar(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1);
-    }
-
-    private void info(String message) {
-        processingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, message);
     }
 }
