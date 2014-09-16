@@ -22,12 +22,18 @@ import java.io.IOException;
 import java.util.Date;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.tests.api.entities.AllColumns;
+import io.realm.tests.api.entities.AllColumnsRealmProxy;
+import io.realm.tests.api.entities.Dog;
+import io.realm.tests.api.entities.NoAnnotationObject;
 
-public class TestRealm extends AndroidTestCase {
+
+public class RealmApiTest extends AndroidTestCase {
 
     // Test setup methods:
     private void setupSharedGroup() {
@@ -36,28 +42,30 @@ public class TestRealm extends AndroidTestCase {
 
     private Realm getTestRealm() {
         setupSharedGroup();
+        
         Realm testRealm = null;
         try {
             testRealm = new Realm(getContext().getFilesDir());
-        } catch (IOException ex)
-        {
-            fail("Unexpected exception while initializing test case: "+ex.getMessage());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            fail("Unexpected exception while initializing test case");
         }
         return testRealm;
     }
 
     private <E extends RealmObject> E getTestObject(Realm realm, Class<E> clazz) {
         setupSharedGroup();
-        E result = realm.create(clazz);
-        return result;
+
+        return realm.create(clazz);
     }
 
-    private void buildAllColumnsTestData(Realm realm)
-    {
+    final static int TEST_DATA_SIZE = 2;
+    private void buildAllColumnsTestData(Realm realm) {
         realm.clear();
         realm.beginWrite();
 
-        AllColumns allColumns = getTestObject(realm, AllColumns.class);
+        AllColumns allColumns = null;
+        allColumns = getTestObject(realm, AllColumns.class);
         allColumns.setColumnBoolean(true);
         allColumns.setColumnBinary(new byte[]{1,2,3});
         allColumns.setColumnDate(new Date());
@@ -66,6 +74,7 @@ public class TestRealm extends AndroidTestCase {
         allColumns.setColumnString("test data");
         allColumns.setColumnLong(45);
 
+        allColumns = null;
         allColumns = getTestObject(realm, AllColumns.class);
         allColumns.setColumnBoolean(false);
         allColumns.setColumnBinary(new byte[]{4,5,6});
@@ -85,19 +94,21 @@ public class TestRealm extends AndroidTestCase {
         Realm.setDefaultDurability(SharedGroup.Durability.FULL);
     }
 
+    // setDefaultDurability(SharedGroup.Durability durability)
     public void testShouldSetDurabilityFullByName() {
         Realm.setDefaultDurability(SharedGroup.Durability.valueOf("FULL"));
     }
 
+    // setDefaultDurability(SharedGroup.Durability durability)
     public void testShouldSetDurabilityWithInvalidNameFail() {
         try {
             Realm.setDefaultDurability(SharedGroup.Durability.valueOf("INVALID"));
             fail("Expected IllegalArgumentException when providing illegal Durability value");
-        } catch (IllegalArgumentException ioe)
-        {
+        } catch (IllegalArgumentException ioe) {
         }
     }
 
+    // setDefaultDurability(SharedGroup.Durability durability)
     public void testShouldSetDurabilityMemOnly() {
         Realm.setDefaultDurability(SharedGroup.Durability.MEM_ONLY);
     }
@@ -109,7 +120,8 @@ public class TestRealm extends AndroidTestCase {
         try {
             Realm realm = new Realm(getContext().getFilesDir());
         } catch (Exception ex) {
-            fail("Unexpected Exception "+ex);
+            ex.printStackTrace();
+            fail("Unexpected Exception: "+ex.getMessage());
         }
     }
 
@@ -120,10 +132,11 @@ public class TestRealm extends AndroidTestCase {
             Realm realm = new Realm(null);
             fail("Expected IOException");
         } catch (IOException ioe) {
-        //} catch (NoClassDefFoundError ncdf) {
         } catch (Exception ex) {
-            fail("Unexpected exception: "+ex);
+            ex.printStackTrace();
+            fail("Unexpected exception");
         }
+        //} catch (NoClassDefFoundError ncdf) {
     }
 
     public void testShouldFailWithNullFileName() {
@@ -133,14 +146,16 @@ public class TestRealm extends AndroidTestCase {
             Realm realm = new Realm(getContext().getFilesDir(), null);
             fail("Expected IOException");
         } catch (IOException ioe) {
-        //} catch (NullPointerException npe) {
         } catch (Exception ex) {
-            fail("Unexpected exception: "+ex.toString());
+            ex.printStackTrace();
+            fail("Unexpected exception: " + ex.getMessage());
         }
+        //} catch (NullPointerException npe) {
     }
 
     // Table creation and manipulation
 
+    //Table getTable(Class<?> clazz)
     public void testShouldGetTable() {
         Realm testRealm = getTestRealm();
 
@@ -148,20 +163,41 @@ public class TestRealm extends AndroidTestCase {
         assertNotNull("getTable is returning a null Table object", table);
     }
 
+    //boolean contains(Class<?> clazz)
     public void testShouldContainTable() {
         Realm testRealm = getTestRealm();
         testRealm.getTable(AllColumns.class);
+
         boolean testIfContained = testRealm.contains(AllColumns.class);
         assertTrue("contains returns false for newly created table", testIfContained);
     }
 
+    //boolean contains(Class<?> clazz)
+    public void testShouldNotContainTable() {
+        Realm testRealm = getTestRealm();
+
+        boolean testIfContained = testRealm.contains(AllColumns.class);
+        assertFalse("contains returns true for non-existing table", testIfContained);
+    }
+
+    //<E extends RealmObject> E create(Class<E> clazz)
     public void testShouldCreateObject() {
         Realm testRealm = getTestRealm();
 
         RealmObject allColumns = testRealm.create(AllColumns.class);
-        assertTrue("Realm.create is returning wrong object type", allColumns instanceof AllColumns);
+        boolean instanceMatch = allColumns instanceof AllColumnsRealmProxy;
+        assertTrue("Realm.create is returning wrong object type", instanceMatch);
     }
 
+    //<E extends RealmObject> E create(Class<E> clazz)
+    public void testShouldNotCreateObject() {
+        Realm testRealm = getTestRealm();
+
+        RealmObject noAnnotationObject = testRealm.create(NoAnnotationObject.class);
+        assertNull("Realm create expected to fail", noAnnotationObject);
+    }
+
+    // <E> void remove(Class<E> clazz, long objectIndex)
     public void testShouldRemoveRow() {
         Realm realm = getTestRealm();
         buildAllColumnsTestData(realm);
@@ -169,28 +205,37 @@ public class TestRealm extends AndroidTestCase {
         realm.remove(AllColumns.class,0);
     }
 
+    // <E extends RealmObject> E get(Class<E> clazz, long rowIndex)
     public void testShouldGetObject() {
         Realm realm = getTestRealm();
         buildAllColumnsTestData(realm);
 
         RealmObject allColumns = realm.get(AllColumns.class,0);
-        assertTrue("Realm.get is returning wrong object type", allColumns instanceof AllColumns);
+        boolean instanceMatch = allColumns instanceof AllColumns;
+        assertTrue("Realm.get is returning wrong object type", instanceMatch);
     }
 
-    //<E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
+    // <E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
     public void testShouldReturnResultSet() {
+        Realm realm = getTestRealm();
+        buildAllColumnsTestData(realm);
+
+        RealmList<AllColumns> realmList = realm.where(AllColumns.class).findAll();
+        boolean checkListSize = realmList.size() == TEST_DATA_SIZE;
+        assertTrue("Realm.get is returning wrong object type",checkListSize);
     }
 
-
+    // <E extends RealmObject> RealmTableOrViewList<E> allObjects(Class<E> clazz)
     public void testShouldReturnTableOrViewList() {
         Realm realm = getTestRealm();
         buildAllColumnsTestData(realm);
 
-
-        realm.allObjects(AllColumns.class);
+        RealmList<AllColumns> realmList = realm.allObjects(AllColumns.class);
+        boolean checkListSize = realmList.size() == TEST_DATA_SIZE;
+        assertTrue("Realm.get is returning wrong object type",checkListSize);
     }
 
-    //void ensureRealmAtVersion(int version, RealmMigration migration)
+    // void ensureRealmAtVersion(int version, RealmMigration migration)
     public void testShouldVerifyVersion() {
     }
 
@@ -198,8 +243,34 @@ public class TestRealm extends AndroidTestCase {
     // Notifications
 
     //void addChangeListener(RealmChangeListener listener)
+    public void testChangeNotify() {
+        Realm realm = getTestRealm();
+        int testCount = 0;
 
-    //void removeChangeListener(RealmChangeListener listener)
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                testCount++;
+            }
+        });
+
+        try {
+            realm.beginWrite();
+            for (int i = 0; i < 5; i++) {
+
+                Dog dog = realm.create(Dog.class);
+                dog.setName("King "+Integer.toString(testCount) );
+            }
+
+            realm.commit();
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+
+        //void removeChangeListener(RealmChangeListener listener)
 
     //void removeAllChangeListeners()
 
