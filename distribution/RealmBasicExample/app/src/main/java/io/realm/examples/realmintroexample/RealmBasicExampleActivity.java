@@ -10,7 +10,7 @@ import android.widget.TextView;
 import java.io.IOException;
 
 import io.realm.Realm;
-import io.realm.RealmList;
+import io.realm.RelationList;
 import io.realm.examples.realmintroexample.model.Cat;
 import io.realm.examples.realmintroexample.model.Dog;
 import io.realm.examples.realmintroexample.model.Person;
@@ -85,7 +85,7 @@ public class RealmBasicExampleActivity extends Activity {
 
         Realm realm = new Realm(getFilesDir());
         showStatus("Number of persons: " + realm.allObjects(Person.class).size());
-        RealmList<Person> result = realm.where(Person.class).equalTo("age", 99).findAll();
+        RelationList<Person> result = realm.where(Person.class).equalTo("age", 99).findAll();
         showStatus("Size of result set: " + result.size());
     }
 

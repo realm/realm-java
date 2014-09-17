@@ -411,7 +411,7 @@ public class Realm {
     }
 
 
-    public <E extends RealmObject> RealmTableOrViewList<E> allObjects(Class<E> clazz) {
+    public <E extends RealmObject> ResultList<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
     }
 
