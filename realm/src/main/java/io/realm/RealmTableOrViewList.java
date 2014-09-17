@@ -58,6 +58,7 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
     }
 
     @Override
+    @Deprecated
     public void move(int oldPos, int newPos) {
         throw new UnsupportedOperationException();
     }
@@ -257,26 +258,17 @@ public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E>
 
     // Adding objects
 
-//    /**
-//     * Add an object.
-//     *
-//     * @param element    The object to add.
-//     * @return           true if object was added.
-//     */
-//    @Override
-//    public boolean add(E element) {
-//        throw new NoSuchMethodError();
-//    }
-//
-//    /**
-//     * Add an object
-//     *
-//     * @param index        The array index to add the object at.
-//     * @param element      The object to add.
-//     */
-//    public void add(int index, E element) {
-//        throw new NoSuchMethodError();
-//    }
+    @Override
+    @Deprecated
+    public boolean add(E element) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Deprecated
+    public void add(int index, E element) {
+        throw new UnsupportedOperationException();
+    }
 //
 //    /**
 //     * Replaces an object at the given index with a new object.
