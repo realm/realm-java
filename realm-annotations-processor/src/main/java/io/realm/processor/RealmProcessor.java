@@ -64,11 +64,11 @@ public class RealmProcessor extends AbstractProcessor {
                 return false;
             }
 
-			TypeElement parentElement = (TypeElement) processingEnv.getTypeUtils().asElement(typeElement.getSuperclass());
-			if (!parentElement.toString().endsWith(".RealmObject")) {
-				error("A RealmClass annotated object must be derived from RealmObject");
-				return false;
-			}
+            TypeElement parentElement = (TypeElement) processingEnv.getTypeUtils().asElement(typeElement.getSuperclass());
+            if (!parentElement.toString().endsWith(".RealmObject")) {
+                error("A RealmClass annotated object must be derived from RealmObject");
+                return false;
+            }
 
             PackageElement packageElement = (PackageElement) enclosingElement;
             packageName = packageElement.getQualifiedName().toString();
