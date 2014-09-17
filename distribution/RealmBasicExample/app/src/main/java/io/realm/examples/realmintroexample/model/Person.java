@@ -2,9 +2,7 @@ package io.realm.examples.realmintroexample.model;
 
 import io.realm.RelationList;
 import io.realm.RealmObject;
-import io.realm.annotations.RealmClass;
 
-@RealmClass
 public class Person extends RealmObject {
 
     private String name;
