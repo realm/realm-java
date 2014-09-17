@@ -36,11 +36,11 @@ public class Person extends RealmObject {
         this.dog = dog;
     }
 
-    public RealmList<Cat> getCats() {
+    public RelationList<Cat> getCats() {
         return cats;
     }
 
-    public void setCats(RealmList<Cat> cats) {
+    public void setCats(RelationList<Cat> cats) {
         this.cats = cats;
     }
 }
