@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import io.realm.Realm;
 import io.realm.RealmList;
+import io.realm.examples.realmintroexample.model.Cat;
 import io.realm.examples.realmintroexample.model.Dog;
 import io.realm.examples.realmintroexample.model.Person;
 
@@ -41,9 +42,9 @@ public class RealmBasicExampleActivity extends Activity {
 
         //More complex operations should not be
         //executed on the UI thread.
-        new AsyncTask() {
+        new AsyncTask<Void, Void, String>() {
             @Override
-            protected String doInBackground(Object[] params) {
+            protected String doInBackground(Void... voids) {
                 String info = null;
                 try {
                     info = complexReadWrite();
@@ -55,8 +56,8 @@ public class RealmBasicExampleActivity extends Activity {
             }
 
             @Override
-            protected void onPostExecute(Object result) {
-                showStatus((String) result);
+            protected void onPostExecute(String result) {
+                showStatus(result);
             }
         }.execute();
     }
@@ -128,6 +129,11 @@ public class RealmBasicExampleActivity extends Activity {
             person.setName("Person no. " + i);
             person.setAge(i);
             person.setDog(fido);
+            for (int j = 0; j < i; j++) {
+                Cat cat = realm.create(Cat.class);
+                cat.setName("Cat_" + j);
+                person.getCats().add(cat);
+            }
         }
         realm.commit();
 
@@ -142,7 +148,7 @@ public class RealmBasicExampleActivity extends Activity {
             } else {
                 dogName = pers.getDog().getName();
             }
-            status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName;
+            status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName + " : " + pers.getCats().size();
         }
 
         return status;
