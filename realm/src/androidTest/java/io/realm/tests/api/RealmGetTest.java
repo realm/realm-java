@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
+package io.realm.tests.api;
 
-package io.realm.tests.api.entities;
-
+import io.realm.Realm;
 import io.realm.RealmObject;
+import io.realm.tests.api.entities.AllColumns;
 
-public class Dog extends RealmObject {
 
-    //private RealmList<User> owners = new RealmArrayList<User>();
-    private String name;
+public class RealmGetTest extends RealmSetupTests {
+ 
+    // <E extends RealmObject> E get(Class<E> clazz, long rowIndex)
+    public void testShouldGetObject() {
+        Realm realm = getTestRealm();
+        buildAllColumnsTestData(realm);
 
-//    public RealmList<User> getOwners() {
-//        return owners;
-//    }
-//
-//    public void setOwners(RealmList<User> owners) {
-//        this.owners = owners;
-//    }
-
-    public String getName() {
-        return name;
+        RealmObject allColumns = realm.get(AllColumns.class,0);
+        boolean instanceMatch = allColumns instanceof AllColumns;
+        assertTrue("Realm.get is returning wrong object type", instanceMatch);
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 }

@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
+package io.realm.tests.api;
 
-package io.realm.tests.api.entities;
+import io.realm.Realm;
 
-import io.realm.RealmObject;
 
-public class Dog extends RealmObject {
+public class RealmBeginWriteTest extends RealmSetupTests {
 
-    //private RealmList<User> owners = new RealmArrayList<User>();
-    private String name;
 
-//    public RealmList<User> getOwners() {
-//        return owners;
-//    }
-//
-//    public void setOwners(RealmList<User> owners) {
-//        this.owners = owners;
-//    }
+    //void beginWrite()
+    public void testBeginWrite()
+    {
+        Realm realm = getTestRealm();
 
-    public String getName() {
-        return name;
+        realm.beginWrite();
+
+        realm.commit();
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 }

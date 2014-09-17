@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
+package io.realm.tests.api;
 
-package io.realm.tests.api.entities;
+import io.realm.Realm;
+import io.realm.internal.Table;
+import io.realm.tests.api.entities.AllColumns;
 
-import io.realm.RealmObject;
 
-public class Dog extends RealmObject {
+public class RealmGetTableTest extends RealmSetupTests {
 
-    //private RealmList<User> owners = new RealmArrayList<User>();
-    private String name;
+    //Table getTable(Class<?> clazz)
+    public void testShouldGetTable() {
+        Realm testRealm = getTestRealm();
 
-//    public RealmList<User> getOwners() {
-//        return owners;
-//    }
-//
-//    public void setOwners(RealmList<User> owners) {
-//        this.owners = owners;
-//    }
+        Table table = testRealm.getTable(AllColumns.class);
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        assertNotNull("getTable is returning a null Table object", table);
+        assertTrue("no columns are created", table.hasIndex(0));
     }
 }
