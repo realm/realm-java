@@ -28,8 +28,6 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.Locale;
-
 
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Row;
@@ -99,7 +97,7 @@ public class Realm {
             simpleClassName = clazz.getSimpleName();
             simpleClassNames.put(clazz, simpleClassName);
         }
-        return transaction.getTable(simpleClassName.toLowerCase(Locale.getDefault()));
+        return transaction.getTable(simpleClassName);
     }
 
     /**
@@ -326,7 +324,7 @@ public class Realm {
                 simpleClassName = clazz.getSimpleName();
                 simpleClassNames.put(clazz, simpleClassName);
             }
-            table = transaction.getTable(simpleClassName.toLowerCase(Locale.getDefault()));
+            table = transaction.getTable(simpleClassName);
             tables.put(clazz, table);
         }
 

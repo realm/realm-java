@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-/*
 package io.realm;
 
 import java.util.AbstractList;
@@ -33,29 +32,15 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
         this.realm = realm;
     }
 
-
-
-
     @Override
     public void add(int location, E object) {
-        if(object.realmGetRow() == null) {
-            realm.add(object);
-            view.add(object.realmAddedAtRowIndex);
-        } else {
-            view.add(object.realmGetRow().getIndex());
-        }
+        view.add(object.realmGetRow().getIndex());
     }
 
     @Override
     public E set(int location, E object) {
-        if(object.realmGetRow() == null) {
-            realm.add(object);
-            view.set(location, object.realmAddedAtRowIndex);
-            return realm.get((Class<E>)object.getClass(), object.realmAddedAtRowIndex);
-        } else {
-            view.set(location, object.realmGetRow().getIndex());
-            return object;
-        }
+        view.set(location, object.realmGetRow().getIndex());
+        return object;
     }
 
     @Override
@@ -106,4 +91,3 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
     }
 
 }
-*/

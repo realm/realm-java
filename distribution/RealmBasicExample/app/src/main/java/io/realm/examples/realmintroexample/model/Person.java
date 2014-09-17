@@ -1,7 +1,6 @@
 package io.realm.examples.realmintroexample.model;
 
-import java.lang.String;
-
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.RealmClass;
 
@@ -10,8 +9,8 @@ public class Person extends RealmObject {
 
     private String name;
     private int age;
-
     private Dog dog;
+    private RealmList<Cat> cats;
 
     public String getName() {
         return name;
@@ -35,5 +34,13 @@ public class Person extends RealmObject {
 
     public void setDog(Dog dog) {
         this.dog = dog;
+    }
+
+    public RealmList<Cat> getCats() {
+        return cats;
+    }
+
+    public void setCats(RealmList<Cat> cats) {
+        this.cats = cats;
     }
 }
