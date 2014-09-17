@@ -1,34 +1,13 @@
-Realm for Realm pre-alpha 1
-===========================
+Realm for Android Beta 1
+=================================
 
-Setting up a new Android Studio project
----------------------------------------
+This is an early beta of Realm for Android. It will give you an idea of where we’re headed
+and you can play a little with it, but we don’t recommend you use it in production yet.
 
-Prerequisites:
- * Android Studio verions >= 0.8.6
- * A recent Android SDK
+We need your feedback to make it into something awesome!
 
-Setup:
- 1) Create a new project with Android Studio
- 2) Copy the 'realm' folder into the root folder of the new project (beside 'app', not inside it)
- 3) Copy the 'realm-annotations-processor-0.80.jar' file to into 'app/libs'
- 4) Add the following line to the 'settins.gradle' file:
+Please follow the instructions at http://realm.io/docs/java/beta1/
+and send your feedback to https://groups.google.com/forum/#!forum/realm-java
 
-    include ':realm'
-
- 5) Add the following buildscript dependency to the 'build.gradle' file in the root folder of the project
-
-    classpath 'com.neenbedankt.gradle.plugins:android-apt:1.3'
-
- 6) Add the following plugin inclusion in the top of the 'app/build.gradle' file
-
- 	apply plugin: 'android-apt'
-
- 7) Replace the 'dependencies' section of the 'app/build.gradle' file with:
-
-	dependencies {
-		apt fileTree(dir: 'libs', include: ['*.jar'])
-		compile project(':realm')
-	}
-
- 8) In the Android Studio menu: Tools->Android->Sync Project with Gradle Files
+Thanks!
+The Realm team

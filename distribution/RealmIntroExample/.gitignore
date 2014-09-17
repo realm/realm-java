@@ -1,8 +1,0 @@
-.gradle
-/local.properties
-/.idea/workspace.xml
-/.idea/libraries
-.DS_Store
-/build
-/realm
-realm-annotations-processor-0.80.jar

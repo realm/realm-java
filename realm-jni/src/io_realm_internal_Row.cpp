@@ -174,7 +174,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Row_nativeGetLink
 {
     if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr)->get_table(), columnIndex, type_Link))
         return 0;
-
+    if (ROW(nativeRowPtr)->is_null_link( S(columnIndex) )) {
+        return jlong(-1);
+    }
     return ROW(nativeRowPtr)->get_link( S(columnIndex) );
 }
 
