@@ -57,6 +57,10 @@ public class RealmProcessor extends AbstractProcessor {
             TypeElement typeElement = (TypeElement) classElement;
             className = typeElement.getSimpleName().toString();
 
+            if (typeElement.toString().endsWith(".RealmObject") || typeElement.toString().endsWith("RealmProxy")) {
+                continue;
+            }
+
             // Get the package of the class
             Element enclosingElement = typeElement.getEnclosingElement();
             if (!enclosingElement.getKind().equals(ElementKind.PACKAGE)) {

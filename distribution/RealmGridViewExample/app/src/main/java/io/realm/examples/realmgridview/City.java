@@ -1,9 +1,7 @@
 package io.realm.examples.realmgridview;
 
 import io.realm.RealmObject;
-import io.realm.annotations.RealmClass;
 
-@RealmClass
 public class City extends RealmObject {
 
     private String name;
