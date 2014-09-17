@@ -203,6 +203,10 @@ public class RealmApiTest extends AndroidTestCase {
         buildAllColumnsTestData(realm);
 
         realm.remove(AllColumns.class,0);
+
+        RealmList<AllColumns> realmList = realm.where(AllColumns.class).findAll();
+        boolean checkListSize = realmList.size() == TEST_DATA_SIZE - 1;
+        assertTrue("Realm.delete has not deleted record correctly",checkListSize);
     }
 
     // <E extends RealmObject> E get(Class<E> clazz, long rowIndex)
@@ -235,17 +239,17 @@ public class RealmApiTest extends AndroidTestCase {
         assertTrue("Realm.get is returning wrong object type",checkListSize);
     }
 
-    // void ensureRealmAtVersion(int version, RealmMigration migration)
+    //ensureRealmAtVersion(int version, RealmMigration migration)
     public void testShouldVerifyVersion() {
     }
 
 
     // Notifications
 
-    //void addChangeListener(RealmChangeListener listener)
+    //addChangeListener(RealmChangeListener listener)
+    int testCount = 0;
     public void testChangeNotify() {
         Realm realm = getTestRealm();
-        int testCount = 0;
 
         realm.addChangeListener(new RealmChangeListener() {
             @Override
@@ -263,6 +267,7 @@ public class RealmApiTest extends AndroidTestCase {
             }
 
             realm.commit();
+            assertTrue("Have not received the expected number of events in ChangeListener", 5 == testCount);
 
         } catch (Throwable t) {
             t.printStackTrace();
@@ -270,27 +275,160 @@ public class RealmApiTest extends AndroidTestCase {
     }
 
 
-        //void removeChangeListener(RealmChangeListener listener)
+    //void removeChangeListener(RealmChangeListener listener)
+    public void testChangeNotifyRemove() {
+        Realm realm = getTestRealm();
+        RealmChangeListener realmChangeListener = null;
+        realmChangeListener = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+            }
+        };
+        realm.addChangeListener(realmChangeListener);
+
+        realm.removeChangeListener(realmChangeListener);
+    }
+
+    //void removeChangeListener(RealmChangeListener listener)
+    public void testFailChangeNotifyRemove() {
+        Realm realm = getTestRealm();
+        RealmChangeListener realmChangeListener = null;
+        realmChangeListener = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+            }
+        };
+
+        realm.removeChangeListener(realmChangeListener);
+    }
+
 
     //void removeAllChangeListeners()
+    public void testRemoveAllChangeListeners() {
+        Realm realm = getTestRealm();
 
-    //boolean hasChanged()
+        realm.removeAllChangeListeners();
+    }
 
-    // Transactions
+    //void removeAllChangeListeners()
+    public void testFailRemoveAllChangeListeners() {
+        Realm realm = getTestRealm();
+
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                testCount++;
+            }
+        });
+
+        realm.removeAllChangeListeners();
+    }
+
 
     //void refresh()
+    public void testRefresh()
+    {
+        Realm realm = getTestRealm();
+
+        realm.beginWrite();
+
+        AllColumns allColumns = null;
+        allColumns = getTestObject(realm, AllColumns.class);
+        allColumns.setColumnBoolean(true);
+        allColumns.setColumnBinary(new byte[]{1,2,3});
+        allColumns.setColumnDate(new Date());
+        allColumns.setColumnDouble(3.1415);
+        allColumns.setColumnFloat(1.234567f);
+        allColumns.setColumnString("test data");
+        allColumns.setColumnLong(45);
+        realm.commit();
+
+        realm.refresh();
+    }
 
 
     //void beginWrite()
+    public void testBeginWrite()
+    {
+        Realm realm = getTestRealm();
+
+        realm.beginWrite();
+
+        realm.commit();
+    }
 
     //void commit()
+    public void testCommit()
+    {
+        Realm realm = getTestRealm();
+
+        realm.beginWrite();
+
+        AllColumns allColumns = null;
+        allColumns = getTestObject(realm, AllColumns.class);
+        allColumns.setColumnBoolean(true);
+        allColumns.setColumnBinary(new byte[]{1,2,3});
+        allColumns.setColumnDate(new Date());
+        allColumns.setColumnDouble(3.1415);
+        allColumns.setColumnFloat(1.234567f);
+        allColumns.setColumnString("test data");
+        allColumns.setColumnLong(45);
+
+        realm.commit();
+    }
 
     //void clear(Class<?> classSpec)
+    public void testClassClear()
+    {
+        Realm realm = getTestRealm();
+        buildAllColumnsTestData(realm);
+
+        realm.clear(AllColumns.class);
+
+        realm.contains(AllColumns.class);
+        assertFalse("Realm.clear does not remove table", realm.contains(AllColumns.class));
+    }
 
     //void clear()
+    public void testClassClearAll()
+    {
+        Realm realm = getTestRealm();
+        buildAllColumnsTestData(realm);
+
+        realm.beginWrite();
+
+        Dog dog = null;
+        dog = getTestObject(realm, Dog.class);
+        dog.setName("Castro");
+        realm.commit();
+
+        realm.clear();
+
+        boolean allNotGone = realm.contains(AllColumns.class) || realm.contains(Dog.class);
+        assertTrue("Realm.clear does not remove table", allNotGone);
+    }
+
 
     //int getVersion()
+    public void testGetVersion()
+    {
+        Realm realm = getTestRealm();
+        int version = -1;
+        version = realm.getVersion();
 
-    //void setVersion(int version)
+        assertTrue("Realm.version seem to return invalid version number", version > 0);
+    }
+
+    //void setVersion(int version)setVersion(int version)
+    public void testSetVersion()
+    {
+        Realm realm = getTestRealm();
+        int version = 42;
+        realm.setVersion(version);
+
+        boolean versionOk = (version == realm.getVersion());
+        assertTrue("Realm.version has not been set by setVersion", versionOk);
+    }
+
 
 }
