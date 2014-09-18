@@ -18,15 +18,6 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -35,6 +26,9 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
 
 
 public class RealmSourceCodeGenerator {
@@ -172,7 +166,7 @@ public class RealmSourceCodeGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "return (%s) row.get%s(%d)",
+                        "return (%s) realmGetRow().get%s(%d)",
                         fieldTypeCanonicalName, realmType, columnNumber);
                 writer.endMethod();
                 writer.emitEmptyLine();
@@ -181,7 +175,7 @@ public class RealmSourceCodeGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement(
-                        "row.set%s(%d, (%s) value)",
+                        "realmGetRow().set%s(%d, (%s) value)",
                         realmType, columnNumber, castingType);
                 writer.endMethod();
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
@@ -296,12 +290,27 @@ public class RealmSourceCodeGenerator {
                         fieldName.toLowerCase(Locale.getDefault()), genericType);
             }
         }
-
         writer.emitStatement("return table");
         writer.endControlFlow();
         writer.emitStatement("return transaction.getTable(\"%s\")", this.className);
         writer.endMethod();
         writer.emitEmptyLine();
+
+        /**
+         * toString method
+         */
+        writer.emitAnnotation("Override");
+        writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
+        writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", className);
+        for (VariableElement field : fields) {
+            String fieldName = field.getSimpleName().toString();
+            writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
+            writer.emitStatement("stringBuilder.append(get%s())", capitaliseFirstChar(fieldName));
+            writer.emitStatement("stringBuilder.append(\"} \")", fieldName);
+        }
+        writer.emitStatement("stringBuilder.append(\"]\")");
+        writer.emitStatement("return stringBuilder.toString()");
+        writer.endMethod();
 
         // End the class definition
         writer.endType();
