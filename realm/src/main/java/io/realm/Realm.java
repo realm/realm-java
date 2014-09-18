@@ -88,7 +88,6 @@ public class Realm {
     @Override
     protected void finalize() throws Throwable {
         transaction.endRead();
-        System.out.println("finalize");
         super.finalize();
     }
 
