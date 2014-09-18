@@ -5,7 +5,7 @@ import io.realm.RealmObject;
 public class City extends RealmObject {
 
     private String name;
-    private Long votes;
+    private long votes;
 
     public String getName() {
         return name;
@@ -15,11 +15,11 @@ public class City extends RealmObject {
         this.name = name;
     }
 
-    public Long getVotes() {
+    public long getVotes() {
         return votes;
     }
 
-    public void setVotes(Long votes) {
+    public void setVotes(long votes) {
         this.votes = votes;
     }
 }

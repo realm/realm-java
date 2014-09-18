@@ -66,7 +66,7 @@ public class RealmBasicExampleActivity extends Activity {
         showStatus("Performing basic Read/Write operation...");
 
         // open a default realm
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
 
         // Add ten persons in one write transaction
         realm.beginWrite();
@@ -83,7 +83,7 @@ public class RealmBasicExampleActivity extends Activity {
     private void basicQuery() throws java.io.IOException {
         showStatus("\nPerforming basic Query operation...");
 
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
         showStatus("Number of persons: " + realm.allObjects(Person.class).size());
         ResultList<Person> result = realm.where(Person.class).equalTo("age", 99).findAll();
         showStatus("Size of result set: " + result.size());
@@ -93,7 +93,7 @@ public class RealmBasicExampleActivity extends Activity {
         showStatus("\nPerforming basic Update operation...");
 
         // open a default realm
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
 
         // Iterate over all objects
         Person person = realm.get(Person.class, 0);
@@ -118,7 +118,7 @@ public class RealmBasicExampleActivity extends Activity {
         String status = "\nPerforming complex Read/Write operation...";
 
         // open a default realm
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
 
         // Add ten persons in one write transaction
         realm.beginWrite();
@@ -157,7 +157,7 @@ public class RealmBasicExampleActivity extends Activity {
     private String complexQuery() throws IOException {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
         // Find all persons where age > 5
         ResultList<Person> result = realm.where(Person.class)
