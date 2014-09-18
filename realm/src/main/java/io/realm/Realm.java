@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.content.Context;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -56,20 +54,8 @@ public class Realm {
     private Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
     private Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
 
-    private List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
+    private List<RealmChangeListener> changeListeners;
     boolean runEventHandler = false;
-
-    public Realm(Context context) {
-        File filesDir = context.getFilesDir();
-        this.filePath = new File(filesDir, "default.realm").getAbsolutePath();
-        init();
-    }
-
-    public Realm(Context context, String filePath) {
-        File filesDir = context.getFilesDir();
-        this.filePath = new File(filesDir, filePath).getAbsolutePath();
-        init();
-    }
 
     public Realm(File writeablePath) throws IOException {
         this(writeablePath, "default.realm");
@@ -77,6 +63,7 @@ public class Realm {
 
     public Realm(File writeablePath, String filePath) {
         this.filePath = new File(writeablePath, filePath).getAbsolutePath();
+        this.changeListeners = new ArrayList<RealmChangeListener>();
         init();
     }
 
