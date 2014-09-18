@@ -1,5 +1,7 @@
 apply plugin: 'java'
 
+version = new File("${projectDir}/../version.txt").text
+
 repositories {
     mavenCentral()
 }
