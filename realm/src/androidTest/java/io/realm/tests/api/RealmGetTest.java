@@ -26,7 +26,7 @@ public class RealmGetTest extends RealmSetupTests {
     // <E extends RealmObject> E get(Class<E> clazz, long rowIndex)
     public void testShouldGetObject() {
         Realm realm = getTestRealm();
-        buildAllColumnsTestData(realm);
+        buildAllColumnsTestData(realm, 2);
 
         RealmObject allColumns = realm.get(AllColumns.class,0);
         boolean instanceMatch = allColumns instanceof AllColumns;

@@ -42,7 +42,6 @@ public class RealmSetupTests extends AndroidTestCase {
             testRealm = new Realm(getContext().getFilesDir());
         } catch (IOException ioe) {
         } catch (Exception ex) {
-            ex.printStackTrace();
             fail("Unexpected exception while initializing test case: "+ex.getMessage());
         }
         return testRealm;
@@ -54,31 +53,21 @@ public class RealmSetupTests extends AndroidTestCase {
         return realm.create(clazz);
     }
 
-    final static int TEST_DATA_SIZE = 2;
-    protected void buildAllColumnsTestData(Realm realm) {
+    protected void buildAllColumnsTestData(Realm realm, int numberOfRecords) {
         realm.clear();
         realm.beginWrite();
 
-        AllColumns allColumns = null;
-        allColumns = getTestObject(realm, AllColumns.class);
-        allColumns.setColumnBoolean(true);
-        allColumns.setColumnBinary(new byte[]{1,2,3});
-        allColumns.setColumnDate(new Date());
-        allColumns.setColumnDouble(3.1415);
-        allColumns.setColumnFloat(1.234567f);
-        allColumns.setColumnString("test data");
-        allColumns.setColumnLong(45);
-
-        allColumns = null;
-        allColumns = getTestObject(realm, AllColumns.class);
-        allColumns.setColumnBoolean(false);
-        allColumns.setColumnBinary(new byte[]{4,5,6});
-        allColumns.setColumnDate(new Date());
-        allColumns.setColumnDouble(9999.99);
-        allColumns.setColumnFloat(0.1f);
-        allColumns.setColumnString("more data");
-        allColumns.setColumnLong(46);
-
+        for (int i = 0; i < numberOfRecords; ++i) {
+            AllColumns allColumns = null;
+            allColumns = getTestObject(realm, AllColumns.class);
+            allColumns.setColumnBoolean((i % 3) == 0);
+            allColumns.setColumnBinary(new byte[]{1, 2, 3});
+            allColumns.setColumnDate(new Date());
+            allColumns.setColumnDouble(3.1415 + i);
+            allColumns.setColumnFloat(1.234567f + i);
+            allColumns.setColumnString("test data " + i);
+            allColumns.setColumnLong(45 + i);
+        }
         realm.commit();
     }
 

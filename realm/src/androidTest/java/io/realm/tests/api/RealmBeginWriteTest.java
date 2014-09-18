@@ -28,7 +28,6 @@ public class RealmBeginWriteTest extends RealmSetupTests {
         Realm realm = getTestRealm();
 
         realm.beginWrite();
-
         realm.commit();
     }
 

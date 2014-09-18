@@ -27,7 +27,7 @@ public class RealmClearAllTest extends RealmSetupTests {
     public void testClassClearAll()
     {
         Realm realm = getTestRealm();
-        buildAllColumnsTestData(realm);
+        buildAllColumnsTestData(realm, 2);
 
         realm.beginWrite();
 

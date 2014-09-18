@@ -35,6 +35,8 @@ public class RealmContainsTest extends RealmSetupTests {
     public void testShouldNotContainTable() {
         Realm testRealm = getTestRealm();
 
+        testRealm.clear();
+
         boolean testIfContained = testRealm.contains(AllColumns.class);
         assertFalse("contains returns true for non-existing table", testIfContained);
     }

@@ -26,10 +26,9 @@ public class RealmGetTableTest extends RealmSetupTests {
     //Table getTable(Class<?> clazz)
     public void testShouldGetTable() {
         Realm testRealm = getTestRealm();
+        testRealm.beginWrite();
 
         Table table = testRealm.getTable(AllColumns.class);
-
         assertNotNull("getTable is returning a null Table object", table);
-        assertTrue("no columns are created", table.hasIndex(0));
     }
 }

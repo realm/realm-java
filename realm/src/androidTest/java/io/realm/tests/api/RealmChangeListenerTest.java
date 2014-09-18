@@ -36,20 +36,16 @@ public class RealmChangeListenerTest extends RealmSetupTests {
             }
         });
 
-//        try {
-            realm.beginWrite();
-            for (int i = 0; i < 5; i++) {
+        realm.beginWrite();
+        for (int i = 0; i < 5; i++) {
 
-                Dog dog = realm.create(Dog.class);
-                dog.setName("King "+Integer.toString(testCount) );
-            }
+            Dog dog = realm.create(Dog.class);
+            dog.setName("King "+Integer.toString(testCount) );
+        }
 
-            realm.commit();
-            assertTrue("Have not received the expected number of events in ChangeListener", 5 == testCount);
+        realm.commit();
+        assertTrue("Have not received the expected number of events in ChangeListener", 1 == testCount);
 
-//        } catch (Throwable t) {
-//            fail();
-//        }
     }
 
 

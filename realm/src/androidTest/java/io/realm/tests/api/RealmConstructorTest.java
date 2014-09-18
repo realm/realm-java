@@ -41,8 +41,8 @@ public class RealmConstructorTest extends RealmSetupTests {
         Realm realm = new Realm(null);
         fail("Expected IOException");
         } catch (IOException ioe) {
+            // Expected exception
         } catch (Exception ex) {
-            ex.printStackTrace();
             fail("Unexpected exception: " + ex.getMessage());
         }
     }
@@ -55,7 +55,6 @@ public class RealmConstructorTest extends RealmSetupTests {
             fail("Expected IOException");
         } catch (Exception ex) {
             if (!(ex instanceof IOException)) {
-                ex.printStackTrace();
                 fail("Unexpected exception: " + ex.getMessage());
             }
         }
