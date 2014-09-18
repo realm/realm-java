@@ -11,7 +11,6 @@ buildscript {
 allprojects {
   group = 'io.realm'
   version = '0.1.0'
-  ext.coreVersion = '0.82.2'
 
   repositories {
     mavenCentral()

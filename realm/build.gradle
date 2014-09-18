@@ -32,6 +32,11 @@ android.libraryVariants.all { variant ->
     }
 }
 
+task compileJni(type: GradleBuild) {
+    dir = file('../realm-jni')
+    tasks = ['buildAndroidJni']
+}
+
 tasks.preBuild {
-    dependsOn ':realm-jni:buildAndroidJni'
+    dependsOn compileJni
 }
