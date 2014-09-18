@@ -24,7 +24,7 @@ import java.util.Date;
 import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.internal.SharedGroup;
-import io.realm.tests.api.entities.AllColumns;
+import io.realm.tests.api.entities.AllTypes;
 
 
 public class RealmSetupTests extends AndroidTestCase {
@@ -34,39 +34,31 @@ public class RealmSetupTests extends AndroidTestCase {
         Realm.setDefaultDurability(SharedGroup.Durability.FULL);
     }
 
-    protected Realm getTestRealm() {
+    protected Realm getTestRealm() throws IOException {
         setupSharedGroup();
         
-        Realm testRealm = null;
-        try {
-            testRealm = new Realm(getContext().getFilesDir());
-        } catch (IOException ioe) {
-        } catch (Exception ex) {
-            fail("Unexpected exception while initializing test case: "+ex.getMessage());
-        }
+        Realm testRealm = new Realm(getContext().getFilesDir());
+        testRealm.clear();
         return testRealm;
     }
 
     protected <E extends RealmObject> E getTestObject(Realm realm, Class<E> clazz) {
-        setupSharedGroup();
-
         return realm.create(clazz);
     }
 
-    protected void buildAllColumnsTestData(Realm realm, int numberOfRecords) {
+    protected void buildAllTypesTestData(Realm realm, int numberOfRecords) {
         realm.clear();
         realm.beginWrite();
 
         for (int i = 0; i < numberOfRecords; ++i) {
-            AllColumns allColumns = null;
-            allColumns = getTestObject(realm, AllColumns.class);
-            allColumns.setColumnBoolean((i % 3) == 0);
-            allColumns.setColumnBinary(new byte[]{1, 2, 3});
-            allColumns.setColumnDate(new Date());
-            allColumns.setColumnDouble(3.1415 + i);
-            allColumns.setColumnFloat(1.234567f + i);
-            allColumns.setColumnString("test data " + i);
-            allColumns.setColumnLong(45 + i);
+            AllTypes allTypes = getTestObject(realm, AllTypes.class);
+            allTypes.setColumnBoolean((i % 3) == 0);
+            allTypes.setColumnBinary(new byte[]{1, 2, 3});
+            allTypes.setColumnDate(new Date());
+            allTypes.setColumnDouble(3.1415 + i);
+            allTypes.setColumnFloat(1.234567f + i);
+            allTypes.setColumnString("test data " + i);
+            allTypes.setColumnLong(i);
         }
         realm.commit();
     }
