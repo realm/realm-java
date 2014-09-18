@@ -22,8 +22,8 @@ import io.realm.annotations.RealmClass;
 @RealmClass
 public abstract class RealmObject {
 
-    private Row row;
-    private Realm realm = null;
+    protected Row row;
+    protected Realm realm = null;
 
     protected Realm getRealm() {
         return realm;
@@ -33,11 +33,11 @@ public abstract class RealmObject {
         this.realm = realm;
     }
 
-    protected Row realmGetRow() {
+    public Row realmGetRow() {
         return row;
     }
 
-    protected void realmSetRow(Row row) {
+    public void realmSetRow(Row row) {
         this.row = row;
     }
 
