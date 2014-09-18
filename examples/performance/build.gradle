@@ -29,7 +29,16 @@ android {
     }
 }
 
+task buildApt(type: GradleBuild) {
+    dir = file('../../realm-annotations-processor')
+    tasks = ['build']
+}
+
+tasks.preBuild {
+    dependsOn buildApt
+}
+
 dependencies {
-    apt project(':realm-annotations-processor')
+    apt files('../../realm-annotations-processor/build/libs/realm-annotations-processor.jar')
     compile project(':realm')
 }

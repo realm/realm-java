@@ -20,13 +20,13 @@ import java.util.AbstractList;
 
 import io.realm.internal.LinkView;
 
-public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implements RealmList<E> {
+public class RelationList<E extends RealmObject> extends AbstractList<E> {
 
     private Class<E> clazz;
     private LinkView view;
     private Realm realm;
 
-    public RealmLinkList(Class<E> clazz, LinkView view, Realm realm) {
+    public RelationList(Class<E> clazz, LinkView view, Realm realm) {
         this.clazz = clazz;
         this.view = view;
         this.realm = realm;
@@ -43,7 +43,6 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
         return object;
     }
 
-    @Override
     public void move(int oldPos, int newPos) {
         view.move(oldPos, newPos);
     }
@@ -64,7 +63,6 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
         return realm.get(clazz, view.getTargetRowIndex(i));
     }
 
-    @Override
     public E first() {
         if(!view.isEmpty()) {
             return get(0);
@@ -72,7 +70,6 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
         return null;
     }
 
-    @Override
     public E last() {
         if(!view.isEmpty()) {
             return get(size()-1);
@@ -85,7 +82,6 @@ public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implem
         return ((Long)view.size()).intValue();
     }
 
-    @Override
     public RealmQuery<E> where() {
         return null;
     }

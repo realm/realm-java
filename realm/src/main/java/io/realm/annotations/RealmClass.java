@@ -17,8 +17,9 @@
 package io.realm.annotations;
 
 
+import java.lang.annotation.Inherited;
 
-
+@Inherited
 public @interface RealmClass {
 
 }

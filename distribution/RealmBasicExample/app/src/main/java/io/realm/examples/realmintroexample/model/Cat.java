@@ -2,7 +2,7 @@ package io.realm.examples.realmintroexample.model;
 
 import io.realm.RealmObject;
 
-public class Dog extends RealmObject {
+public class Cat extends RealmObject {
     private String name;
 
     public String getName() {

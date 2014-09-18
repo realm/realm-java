@@ -126,7 +126,7 @@ public class RealmSourceCodeGenerator {
         Types typeUtils = processingEnvironment.getTypeUtils();
 
         TypeMirror realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
-        DeclaredType realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        DeclaredType relationList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RelationList"), typeUtils.getWildcardType(null, null));
 
         // Set source code indent to 4 spaces
         writer.setIndent("    ");
@@ -140,9 +140,8 @@ public class RealmSourceCodeGenerator {
                 "io.realm.internal.ImplicitTransaction",
                 "io.realm.internal.Row",
                 "io.realm.internal.LinkView",
-                "io.realm.RealmLinkList",
-                "io.realm.RealmObject",
-                "io.realm.RealmList")
+                "io.realm.RelationList",
+                "io.realm.RealmObject")
                 .emitEmptyLine();
 
         // Begin the class definition
@@ -210,7 +209,7 @@ public class RealmSourceCodeGenerator {
                 writer.endControlFlow();
                 writer.emitStatement("realmGetRow().setLink(%d, value.realmGetRow().getIndex())", columnNumber);
                 writer.endMethod();
-            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
+            } else if (typeUtils.isAssignable(field.asType(), relationList)) {
                 /**
                  * LinkLists
                  */
@@ -226,7 +225,7 @@ public class RealmSourceCodeGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "return new RealmLinkList(%s.class, realmGetRow().getLinkList(%d), realm)",
+                        "return new RelationList(%s.class, realmGetRow().getLinkList(%d), realm)",
                         genericType, columnNumber);
                 writer.endMethod();
                 writer.emitEmptyLine();
@@ -238,7 +237,7 @@ public class RealmSourceCodeGenerator {
                 writer.beginControlFlow("if (value == null)");
                 writer.emitStatement("return"); // TODO: delete all the links instead
                 writer.endControlFlow();
-                writer.beginControlFlow("for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value)");
+                writer.beginControlFlow("for (RealmObject linkedObject : (RelationList<? extends RealmObject>) value)");
                 writer.emitStatement("links.add(linkedObject.realmGetRow().getIndex())");
                 writer.endControlFlow();
                 writer.endMethod();
@@ -282,7 +281,7 @@ public class RealmSourceCodeGenerator {
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(ColumnType.LINK, \"%s\", transaction.getTable(\"%s\"))",
                         fieldName.toLowerCase(Locale.getDefault()), fieldTypeName);
-            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
+            } else if (typeUtils.isAssignable(field.asType(), relationList)) {
                 String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
                 String genericType;
                 if (genericCanonicalType.contains(".")) {
