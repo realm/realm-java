@@ -16,6 +16,9 @@
 
 package io.realm.tests.api;
 
+import android.content.Context;
+
+import java.io.File;
 import java.io.IOException;
 
 import io.realm.Realm;
@@ -46,30 +49,22 @@ public class RealmTest extends RealmSetupTests {
         }
     }
 
-    public void testShouldFailCreateRealmWithNullDir() {
+    public void testShouldNotFailCreateRealmWithNullDir() {
         setupSharedGroup();
 
-        try {
-            Realm realm = new Realm(null);
-            fail("Expected IOException");
-        } catch (IOException ioe) {
-            // Expected exception
-        } catch (Exception ex) {
-            fail("Unexpected exception: " + ex.getMessage());
-        }
+        File f = null;
+        Realm realm = new Realm(f);
     }
 
-    public void testShouldFailWithNullFileName() {
+    public void testShouldNotFailCreateRealmWithNullContext() {
         setupSharedGroup();
+        Context c = null;
+        Realm realm = new Realm(c);
+    }
 
-        try {
-            Realm realm = new Realm(getContext().getFilesDir(), null);
-            fail("Expected Exception");
-        } catch (Exception ex) {
-            if (!(ex instanceof IOException)) {
-                fail("Unexpected exception: " + ex.getMessage());
-            }
-        }
+    public void testShouldNotFailWithNullFileName() {
+        setupSharedGroup();
+        Realm realm = new Realm(getContext().getFilesDir(), null);
     }
 
 
