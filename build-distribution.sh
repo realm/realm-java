@@ -22,6 +22,7 @@ echo "Building the Javadocs"
 
 echo "Copying files to the distribution folder"
 cp -f version.txt distribution
+cp -f changelog.txt distribution
 cp realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar distribution
 cp realm/build/outputs/aar/realm-${version}.aar distribution/realm
 cp -R realm/build/docs/javadoc distribution
