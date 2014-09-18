@@ -11,12 +11,11 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
-import java.io.IOException;
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmQuery;
-import io.realm.RealmTableOrViewList;
+import io.realm.ResultList;
 
 public class RealmExampleActivity extends Activity implements LoaderManager.LoaderCallbacks<List<City>>, AdapterView.OnItemClickListener {
 
@@ -64,13 +63,9 @@ public class RealmExampleActivity extends Activity implements LoaderManager.Load
     }
 
     public void updateCities() {
-        try {
-            Realm realm = new Realm(getFilesDir());
-            RealmTableOrViewList<City> cities = realm.where(City.class).findAll();
-            mAdapter.setData(cities);
-        } catch (IOException ioe) {
-            Log.e(TAG, "Realm failed to retrieve and update the User list");
-        }
+        Realm realm = new Realm(this);
+        ResultList<City> cities = realm.where(City.class).findAll();
+        mAdapter.setData(cities);
 
         mAdapter.notifyDataSetChanged();
     }
@@ -108,17 +103,13 @@ public class RealmExampleActivity extends Activity implements LoaderManager.Load
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         City modifiedCity = (City) mAdapter.getItem(position);
 
-        try {
-            //Update the realm object affected by the user
-            Realm realm = new Realm(RealmExampleActivity.this.getFilesDir());
-            RealmQuery<City> query = realm.where(City.class).beginsWith("name", modifiedCity.getName());
-            City city = query.findFirst();
-            realm.beginWrite();
-            city.setVotes(city.getVotes() + 1);
-            realm.commit();
-        } catch (IOException ioe) {
-            Log.e(TAG, "Realm failed to store a user vote");
-        }
+        //Update the realm object affected by the user
+        Realm realm = new Realm(this);
+        RealmQuery<City> query = realm.where(City.class).beginsWith("name", modifiedCity.getName());
+        City city = query.findFirst();
+        realm.beginWrite();
+        city.setVotes(city.getVotes() + 1);
+        realm.commit();
 
         updateCities();
     }

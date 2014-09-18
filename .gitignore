@@ -31,3 +31,13 @@ core-*
 
 # Backup files
 *.bak
+
+# Navigation Editor
+.navigation
+
+# Distribution files
+realm*.jar
+realm*.aar
+distribution/*/realm
+distribution/javadoc
+distribution/version.txt
