@@ -25,7 +25,6 @@ import android.os.AsyncTask;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,14 +83,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
         System.out.println("################################ Testing new interface");
 
         Realm.setDefaultDurability(SharedGroup.Durability.FULL);
-        Realm realm;
-        try {
-            realm = new Realm(activity.getFilesDir());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-
+        Realm realm = new Realm(activity);
         realm.clear();
 
         timer = System.currentTimeMillis();
