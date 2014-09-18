@@ -17,7 +17,7 @@
 package io.realm.tests.api;
 
 import io.realm.Realm;
-import io.realm.RealmList;
+import io.realm.ResultList;
 import io.realm.tests.api.entities.AllColumns;
 
 
@@ -33,7 +33,7 @@ public class RealmCommitTest extends RealmSetupTests {
 
         realm.commit();
 
-        RealmList<AllColumns> realmList = realm.where(AllColumns.class).findAll();
+        ResultList<AllColumns> realmList = realm.where(AllColumns.class).findAll();
         boolean checkListSize = realmList.size() == 1;
         assertTrue("Change has not been committed",checkListSize);
 

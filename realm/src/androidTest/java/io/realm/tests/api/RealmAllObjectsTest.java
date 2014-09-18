@@ -17,7 +17,7 @@
 package io.realm.tests.api;
 
 import io.realm.Realm;
-import io.realm.RealmList;
+import io.realm.ResultList;
 import io.realm.tests.api.entities.AllColumns;
 
 
@@ -29,7 +29,7 @@ public class RealmAllObjectsTest extends RealmSetupTests {
         Realm realm = getTestRealm();
         buildAllColumnsTestData(realm, TEST_DATA_SIZE);
 
-        RealmList<AllColumns> realmList = realm.allObjects(AllColumns.class);
+        ResultList<AllColumns> realmList = realm.allObjects(AllColumns.class);
 
         boolean checkListSize = realmList.size() == TEST_DATA_SIZE;
         assertTrue("Realm.get is returning wrong object type",checkListSize);

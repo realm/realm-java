@@ -17,7 +17,7 @@
 package io.realm.tests.api;
 
 import io.realm.Realm;
-import io.realm.RealmList;
+import io.realm.ResultList;
 import io.realm.tests.api.entities.AllColumns;
 
 
@@ -34,7 +34,7 @@ public class RealmRemoveTest extends RealmSetupTests {
         realm.remove(AllColumns.class,0);
 
         realm.commit();
-        RealmList<AllColumns> realmList = realm.where(AllColumns.class).findAll();
+        ResultList<AllColumns> realmList = realm.where(AllColumns.class).findAll();
         boolean checkListSize = realmList.size() == TEST_DATA_SIZE - 1;
         assertTrue("Realm.delete has not deleted record correctly",checkListSize);
     }
