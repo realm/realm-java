@@ -38,8 +38,8 @@ public class RealmConstructorTest extends RealmSetupTests {
         setupSharedGroup();
 
         try {
-        Realm realm = new Realm(null);
-        fail("Expected IOException");
+            Realm realm = new Realm(null);
+            fail("Expected IOException");
         } catch (IOException ioe) {
             // Expected exception
         } catch (Exception ex) {

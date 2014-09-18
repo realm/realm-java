@@ -26,6 +26,8 @@ public class RealmGetTableTest extends RealmSetupTests {
     //Table getTable(Class<?> clazz)
     public void testShouldGetTable() {
         Realm testRealm = getTestRealm();
+        testRealm.clear();
+
         testRealm.beginWrite();
 
         Table table = testRealm.getTable(AllColumns.class);

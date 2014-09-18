@@ -30,6 +30,7 @@ public class RealmAllObjectsTest extends RealmSetupTests {
         buildAllColumnsTestData(realm, TEST_DATA_SIZE);
 
         RealmList<AllColumns> realmList = realm.allObjects(AllColumns.class);
+
         boolean checkListSize = realmList.size() == TEST_DATA_SIZE;
         assertTrue("Realm.get is returning wrong object type",checkListSize);
     }

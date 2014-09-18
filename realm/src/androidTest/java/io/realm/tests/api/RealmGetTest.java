@@ -22,13 +22,15 @@ import io.realm.tests.api.entities.AllColumns;
 
 
 public class RealmGetTest extends RealmSetupTests {
- 
+    final static int TEST_DATA_SIZE = 2;
+
     // <E extends RealmObject> E get(Class<E> clazz, long rowIndex)
     public void testShouldGetObject() {
         Realm realm = getTestRealm();
-        buildAllColumnsTestData(realm, 2);
+        buildAllColumnsTestData(realm, TEST_DATA_SIZE);
 
         RealmObject allColumns = realm.get(AllColumns.class,0);
+        assertNotNull("get has returned null object", allColumns);
         boolean instanceMatch = allColumns instanceof AllColumns;
         assertTrue("Realm.get is returning wrong object type", instanceMatch);
     }

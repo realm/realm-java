@@ -25,16 +25,13 @@ public class RealmClearTest extends RealmSetupTests {
     final static int TEST_DATA_SIZE = 2;
 
     //void clear(Class<?> classSpec)
-    public void testClassClear()
-    {
+    public void testClassClear() {
         Realm realm = getTestRealm();
         buildAllColumnsTestData(realm, TEST_DATA_SIZE);
 
         realm.beginWrite();
         realm.clear(AllColumns.class);
         realm.commit();
-
-        //Boolean objectIsStillThere = realm.contains(AllColumns.class);
 
         RealmList<AllColumns> realmList = realm.where(AllColumns.class).findAll();
         boolean checkListSize = realmList.size() == 0;

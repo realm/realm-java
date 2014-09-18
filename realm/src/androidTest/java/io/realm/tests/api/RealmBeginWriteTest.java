@@ -17,18 +17,29 @@
 package io.realm.tests.api;
 
 import io.realm.Realm;
+import io.realm.RealmList;
+import io.realm.tests.api.entities.AllColumns;
 
 
 public class RealmBeginWriteTest extends RealmSetupTests {
 
 
     //void beginWrite()
-    public void testBeginWrite()
-    {
+    public void testBeginWrite() {
         Realm realm = getTestRealm();
 
+        realm.clear();
         realm.beginWrite();
+
+        AllColumns allColumns = null;
+        allColumns = getTestObject(realm, AllColumns.class);
+
+        allColumns.setColumnString("Test data");
         realm.commit();
+
+        RealmList<AllColumns> realmList = realm.where(AllColumns.class).findAll();
+        boolean checkListSize = realmList.size() == 1;
+        assertTrue("Change has not been committed",checkListSize);
     }
 
 }

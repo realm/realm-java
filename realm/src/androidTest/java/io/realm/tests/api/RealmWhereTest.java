@@ -30,8 +30,9 @@ public class RealmWhereTest extends RealmSetupTests {
         buildAllColumnsTestData(realm, TEST_DATA_SIZE);
 
         RealmList<AllColumns> realmList = realm.where(AllColumns.class).findAll();
+
         boolean checkListSize = realmList.size() == TEST_DATA_SIZE;
-        assertTrue("Realm.get is returning wrong object type",checkListSize);
+        assertTrue("Realm.get is returning wrong number of objects",checkListSize);
     }
 
 }

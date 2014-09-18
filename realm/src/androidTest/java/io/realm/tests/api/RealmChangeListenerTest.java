@@ -22,7 +22,6 @@ import io.realm.tests.api.entities.Dog;
 
 
 public class RealmChangeListenerTest extends RealmSetupTests {
-    // Notifications
 
     //addChangeListener(RealmChangeListener listener)
     int testCount = 0;
@@ -66,6 +65,8 @@ public class RealmChangeListenerTest extends RealmSetupTests {
     //void removeChangeListener(RealmChangeListener listener)
     public void testFailChangeNotifyRemove() {
         Realm realm = getTestRealm();
+
+        realm.clear();
         RealmChangeListener realmChangeListener = null;
         realmChangeListener = new RealmChangeListener() {
             @Override

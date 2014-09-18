@@ -22,12 +22,12 @@ import io.realm.tests.api.entities.Dog;
 
 
 public class RealmClearAllTest extends RealmSetupTests {
+    final static int TEST_DATA_SIZE = 2;
 
     //void clear()
-    public void testClassClearAll()
-    {
+    public void testClassClearAll() {
         Realm realm = getTestRealm();
-        buildAllColumnsTestData(realm, 2);
+        buildAllColumnsTestData(realm, TEST_DATA_SIZE);
 
         realm.beginWrite();
 

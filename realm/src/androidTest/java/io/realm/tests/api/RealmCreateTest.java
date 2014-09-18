@@ -31,7 +31,6 @@ public class RealmCreateTest extends RealmSetupTests {
         testRealm.beginWrite();
         RealmObject allColumns = testRealm.create(AllColumns.class);
         boolean instanceMatch = allColumns instanceof AllColumnsRealmProxy;
-        testRealm.commit();
         assertTrue("Realm.create is returning wrong object type", instanceMatch);
     }
 

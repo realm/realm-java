@@ -16,28 +16,13 @@
 
 package io.realm.tests.api;
 
-import android.test.AndroidTestCase;
-
-import java.io.IOException;
-import java.util.Date;
-
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.internal.SharedGroup;
-import io.realm.internal.Table;
-import io.realm.tests.api.entities.AllColumns;
-import io.realm.tests.api.entities.AllColumnsRealmProxy;
-import io.realm.tests.api.entities.Dog;
-import io.realm.tests.api.entities.NoAnnotationObject;
 
 
 public class RealmVersionTest extends RealmSetupTests {
 
     //int getVersion()
-    public void testGetVersion()
-    {
+    public void testGetVersion() {
         Realm realm = getTestRealm();
         int version = -1;
         version = realm.getVersion();
@@ -46,8 +31,7 @@ public class RealmVersionTest extends RealmSetupTests {
     }
 
     //void setVersion(int version)setVersion(int version)
-    public void testSetVersion()
-    {
+    public void testSetVersion() {
         Realm realm = getTestRealm();
         int version = 42;
         realm.setVersion(version);
@@ -55,6 +39,5 @@ public class RealmVersionTest extends RealmSetupTests {
         boolean versionOk = (version == realm.getVersion());
         assertTrue("Realm.version has not been set by setVersion", versionOk);
     }
-
 
 }
