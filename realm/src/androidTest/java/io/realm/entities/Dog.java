@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package io.realm.tests.api.entities;
 
-import java.util.Date;
+package io.realm.entities;
 
 import io.realm.RealmObject;
-import io.realm.annotations.RealmClass;
 
-public class NoAnnotationObject extends RealmObject {
-    
-    private String columnString;
+public class Dog extends RealmObject {
 
-    public String getColumnString() {
-        return columnString;
+    private String name;
+
+    public String getName() {
+        return name;
     }
 
-    public void setColumnString(String columnString) {
-        this.columnString = columnString;
+    public void setName(String name) {
+        this.name = name;
     }
-
 }

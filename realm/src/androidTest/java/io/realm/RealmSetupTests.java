@@ -14,44 +14,35 @@
  * limitations under the License.
  */
 
-package io.realm.tests.api;
+package io.realm;
 
 import android.test.AndroidTestCase;
 
-import java.io.IOException;
 import java.util.Date;
 
-import io.realm.Realm;
-import io.realm.RealmObject;
+import io.realm.entities.AllTypes;
 import io.realm.internal.SharedGroup;
-import io.realm.tests.api.entities.AllTypes;
 
 
 public class RealmSetupTests extends AndroidTestCase {
 
-    // Test setup methods:
-    protected void setupSharedGroup() {
-        Realm.setDefaultDurability(SharedGroup.Durability.FULL);
-    }
+    protected final static int TEST_DATA_SIZE = 159;
 
-    protected Realm getTestRealm() throws IOException {
-        setupSharedGroup();
-        
-        Realm testRealm = new Realm(getContext().getFilesDir());
+    protected Realm testRealm;
+
+    @Override
+    protected void setUp() throws Exception {
+
+        Realm.setDefaultDurability(SharedGroup.Durability.MEM_ONLY);
+
+        testRealm = new Realm(getContext());
+
         testRealm.clear();
-        return testRealm;
-    }
 
-    protected <E extends RealmObject> E getTestObject(Realm realm, Class<E> clazz) {
-        return realm.create(clazz);
-    }
+        testRealm.beginWrite();
 
-    protected void buildAllTypesTestData(Realm realm, int numberOfRecords) {
-        realm.clear();
-        realm.beginWrite();
-
-        for (int i = 0; i < numberOfRecords; ++i) {
-            AllTypes allTypes = getTestObject(realm, AllTypes.class);
+        for (int i = 0; i < TEST_DATA_SIZE; ++i) {
+            AllTypes allTypes = testRealm.create(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date());
@@ -60,7 +51,8 @@ public class RealmSetupTests extends AndroidTestCase {
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
         }
-        realm.commit();
+        testRealm.commit();
     }
+
 
 }

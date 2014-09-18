@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-
+/* TODO: translate to new object syntax
 package io.realm.tests.api.entities;
 
 import io.realm.RealmObject;
@@ -40,3 +40,4 @@ public class Dog extends RealmObject {
         this.name = name;
     }
 }
+*/

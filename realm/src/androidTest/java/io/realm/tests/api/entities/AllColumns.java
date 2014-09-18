@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/* TODO: translate to new object syntax
 package io.realm.tests.api.entities;
 
 import java.util.Date;
@@ -29,7 +30,7 @@ public class AllColumns extends RealmObject {
     private boolean columnBoolean;
     private Date columnDate;
     private byte[] columnBinary;
-    //private User columnRealmObject;
+    private User columnRealmObject;
 
     public String getColumnString() {
         return columnString;
@@ -87,11 +88,12 @@ public class AllColumns extends RealmObject {
         this.columnBinary = columnBinary;
     }
 
-//    public User getColumnRealmObject() {
-//        return columnRealmObject;
-//    }
-//
-//    public void setColumnRealmObject(User columnRealmObject) {
-//        this.columnRealmObject = columnRealmObject;
-//    }
+    public User getColumnRealmObject() {
+        return columnRealmObject;
+    }
+
+    public void setColumnRealmObject(User columnRealmObject) {
+        this.columnRealmObject = columnRealmObject;
+    }
 }
+*/
