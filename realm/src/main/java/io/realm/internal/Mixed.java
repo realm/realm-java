@@ -19,8 +19,6 @@ package io.realm.internal;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import io.realm.exceptions.IllegalMixedTypeException;
-
 public class Mixed {
 
     public static final int BINARY_TYPE_BYTE_ARRAY = 0;

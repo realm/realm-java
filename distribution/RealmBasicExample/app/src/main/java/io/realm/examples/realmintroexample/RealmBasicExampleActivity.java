@@ -10,7 +10,7 @@ import android.widget.TextView;
 import java.io.IOException;
 
 import io.realm.Realm;
-import io.realm.ResultList;
+import io.realm.RealmResults;
 import io.realm.examples.realmintroexample.model.Cat;
 import io.realm.examples.realmintroexample.model.Dog;
 import io.realm.examples.realmintroexample.model.Person;
@@ -85,8 +85,8 @@ public class RealmBasicExampleActivity extends Activity {
 
         Realm realm = new Realm(this);
         showStatus("Number of persons: " + realm.allObjects(Person.class).size());
-        ResultList<Person> result = realm.where(Person.class).equalTo("age", 99).findAll();
-        showStatus("Size of result set: " + result.size());
+        RealmResults<Person> results = realm.where(Person.class).equalTo("age", 99).findAll();
+        showStatus("Size of result set: " + results.size());
     }
 
     private void basicUpdate() throws java.io.IOException {
@@ -160,9 +160,9 @@ public class RealmBasicExampleActivity extends Activity {
         Realm realm = new Realm(this);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
         // Find all persons where age > 5
-        ResultList<Person> result = realm.where(Person.class)
+        RealmResults<Person> results = realm.where(Person.class)
                 .greaterThan("age", 5).between("age", 7, 9).beginsWith("name", "Person").findAll();
-        status += "\nSize of result set: " + result.size();
+        status += "\nSize of result set: " + results.size();
         return status;
     }
 }
