@@ -54,16 +54,20 @@ public class CityLoader extends AsyncTaskLoader<List<City>> {
         dataIsReady = true;
 
         //Store the retrieved items to the Realm
-        Realm realm = new Realm(context);
-        realm.clear(); //Delete the Realm (in the event of a Reset)
+        try {
+            Realm realm = new Realm(context.getFilesDir());
+            realm.clear(); //Delete the Realm (in the event of a Reset)
 
-        realm.beginWrite();
-        for (City city : items) {
-            City realmCity = realm.create(City.class);
-            realmCity.setName(city.getName());
-            realmCity.setVotes(city.getVotes());
+            realm.beginWrite();
+            for (City city : items) {
+                City realmCity = realm.create(City.class);
+                realmCity.setName(city.getName());
+                realmCity.setVotes(city.getVotes());
+            }
+            realm.commit();
+        } catch (IOException ioe) {
+            Log.e(TAG, "Realm failed to commit the retrieved info from JSON");
         }
-        realm.commit();
 
         return items;
     }

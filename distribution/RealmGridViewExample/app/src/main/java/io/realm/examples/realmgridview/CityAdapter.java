@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import io.realm.ResultList;
+import io.realm.RealmTableOrViewList;
 
 public class CityAdapter extends BaseAdapter {
 
@@ -15,13 +15,13 @@ public class CityAdapter extends BaseAdapter {
 
     private LayoutInflater inflater;
 
-    private ResultList<City> cities = null;
+    private RealmTableOrViewList<City> cities = null;
 
     public CityAdapter(Context context) {
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public void setData(ResultList<City> details) {
+    public void setData(RealmTableOrViewList<City> details) {
         this.cities = details;
     }
 
@@ -56,7 +56,7 @@ public class CityAdapter extends BaseAdapter {
 
         if (city != null) {
             ((TextView) currentView.findViewById(R.id.name)).setText(city.getName());
-            ((TextView) currentView.findViewById(R.id.votes)).setText(Long.toString(city.getVotes()));
+            ((TextView) currentView.findViewById(R.id.votes)).setText(city.getVotes().toString());
         }
 
         return currentView;

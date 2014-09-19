@@ -1,18 +1,7 @@
-ext.coreVersion = '0.82.2'
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'de.undercouch:gradle-download-task:1.0'
-    }
-}
-
 apply plugin: 'download-task'
 
 Properties localProperties = new Properties()
-localProperties.load(new FileInputStream("${projectDir}/../local.properties"))
+localProperties.load(new FileInputStream("${rootDir}/local.properties"))
 localProperties.entrySet().each() { entry ->
     project.ext[entry.getKey()] = localProperties.setProperty(entry.getKey(), entry.getValue())
 }
@@ -30,7 +19,7 @@ task checkProperties(group: 'check', description: 'Check the user provided gradl
 }
 
 task downloadCore(group: 'build setup', description: 'Download the latest version of realm core', dependsOn: checkProperties) {
-    outputs.dir "../core-${project.coreVersion}"
+    outputs.dir "${rootDir}/core-${project.coreVersion}"
     doLast {
         download {
             src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
@@ -39,7 +28,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
         }
         copy {
             from tarTree(new File(buildDir, "core-android-${project.coreVersion}.tar.gz"))
-            into "../core-${project.coreVersion}"
+            into "${rootDir}/core-${project.coreVersion}"
         }
     }
 }
@@ -74,10 +63,10 @@ task buildAndroidJniArm {
                 'make',
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=-mthumb',
                 'BASE_DENOM=arm',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -L${rootDir}/core-${project.coreVersion}",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-arm.so'
             ]
@@ -104,10 +93,10 @@ task buildAndroidJniArmv7a {
                 'make',
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16',
                 'BASE_DENOM=arm-v7a',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -L${rootDir}/core-${project.coreVersion}",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-arm-v7a.so'
             ]
@@ -134,10 +123,10 @@ task buildAndroidJniMips {
                 'make',
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=',
                 'BASE_DENOM=mips',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${rootDir}/core-${project.coreVersion}",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-mips.so'
             ]
@@ -164,10 +153,10 @@ task buildAndroidJniIntel {
                 'make',
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${rootDir}/core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=',
                 'BASE_DENOM=x86',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${rootDir}/core-${project.coreVersion}",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-x86.so'
             ]

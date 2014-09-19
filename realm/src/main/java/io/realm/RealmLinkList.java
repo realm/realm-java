@@ -14,35 +14,51 @@
  * limitations under the License.
  */
 
+/*
 package io.realm;
 
 import java.util.AbstractList;
 
 import io.realm.internal.LinkView;
 
-public class RelationList<E extends RealmObject> extends AbstractList<E> {
+public class RealmLinkList<E extends RealmObject> extends AbstractList<E> implements RealmList<E> {
 
     private Class<E> clazz;
     private LinkView view;
     private Realm realm;
 
-    public RelationList(Class<E> clazz, LinkView view, Realm realm) {
+    public RealmLinkList(Class<E> clazz, LinkView view, Realm realm) {
         this.clazz = clazz;
         this.view = view;
         this.realm = realm;
     }
 
+
+
+
     @Override
     public void add(int location, E object) {
-        view.add(object.realmGetRow().getIndex());
+        if(object.realmGetRow() == null) {
+            realm.add(object);
+            view.add(object.realmAddedAtRowIndex);
+        } else {
+            view.add(object.realmGetRow().getIndex());
+        }
     }
 
     @Override
     public E set(int location, E object) {
-        view.set(location, object.realmGetRow().getIndex());
-        return object;
+        if(object.realmGetRow() == null) {
+            realm.add(object);
+            view.set(location, object.realmAddedAtRowIndex);
+            return realm.get((Class<E>)object.getClass(), object.realmAddedAtRowIndex);
+        } else {
+            view.set(location, object.realmGetRow().getIndex());
+            return object;
+        }
     }
 
+    @Override
     public void move(int oldPos, int newPos) {
         view.move(oldPos, newPos);
     }
@@ -63,6 +79,7 @@ public class RelationList<E extends RealmObject> extends AbstractList<E> {
         return realm.get(clazz, view.getTargetRowIndex(i));
     }
 
+    @Override
     public E first() {
         if(!view.isEmpty()) {
             return get(0);
@@ -70,6 +87,7 @@ public class RelationList<E extends RealmObject> extends AbstractList<E> {
         return null;
     }
 
+    @Override
     public E last() {
         if(!view.isEmpty()) {
             return get(size()-1);
@@ -82,8 +100,10 @@ public class RelationList<E extends RealmObject> extends AbstractList<E> {
         return ((Long)view.size()).intValue();
     }
 
+    @Override
     public RealmQuery<E> where() {
         return null;
     }
 
 }
+*/

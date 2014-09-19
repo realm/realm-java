@@ -19,6 +19,7 @@ package io.realm.internal;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
+import io.realm.BuildConfig;
 import io.realm.exceptions.IllegalMixedTypeException;
 
 public class Mixed {
@@ -40,7 +41,7 @@ public class Mixed {
 
     public Mixed(ColumnType columnType) {
         // It's actually ok to call with any columnType - it will however be assumed to be a ColumnTypeTable.
-        if (columnType == null  || columnType == ColumnType.TABLE) {
+        if (BuildConfig.DEBUG && (columnType == null  || columnType == ColumnType.TABLE)) {
             throw new AssertionError();
         }
         this.value = null;

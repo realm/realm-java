@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.annotations;
+package io.realm;
 
+//import io.realm.internal.Row;
 
+public interface RealmGetter {
 
-
-public @interface RealmClass {
+    //public Object get(Row row);
 
 }

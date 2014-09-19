@@ -14,40 +14,31 @@
  * limitations under the License.
  */
 
-package performance.realm.io.performance.entities;
+package io.realm;
 
-import io.realm.RealmObject;
-import io.realm.annotations.RealmClass;
+import java.util.ArrayList;
 
-@RealmClass
-public class User extends RealmObject {
+public class RealmArrayList<E extends RealmObject> extends ArrayList<E> implements RealmList<E> {
 
-    private int id;
-    private String name;
-    private String email;
 
-    public int getId() {
-        return id;
+    @Override
+    public void move(int oldPos, int newPos) {
+        throw new UnsupportedOperationException();
     }
 
-    public void setId(int id) {
-        this.id = id;
+    @Override
+    public E first() {
+        return get(0);
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public E last() {
+        return get(size()-1);
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+    @Override
+    public RealmQuery<E> where() {
+        return null;
     }
 
 }

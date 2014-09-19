@@ -17,9 +17,7 @@
 package io.realm;
 
 import io.realm.internal.Row;
-import io.realm.annotations.RealmClass;
 
-@RealmClass
 public abstract class RealmObject {
 
     protected Row row;

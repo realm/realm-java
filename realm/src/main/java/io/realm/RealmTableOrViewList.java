@@ -28,18 +28,18 @@ import io.realm.internal.TableView;
  *
  * @param <E> The class of objects in this list
  */
-public class ResultList<E extends RealmObject> extends AbstractList<E> {
+public class RealmTableOrViewList<E extends RealmObject> extends AbstractList<E> implements RealmList<E> {
 
     private Class<E> classSpec;
     private Realm realm;
     private TableOrView table = null;
 
-    ResultList(Realm realm, Class<E> classSpec) {
+    RealmTableOrViewList(Realm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
     }
 
-    ResultList(Realm realm, TableOrView table, Class<E> classSpec) {
+    RealmTableOrViewList(Realm realm, TableOrView table, Class<E> classSpec) {
         this(realm, classSpec);
         this.table = table;
     }
@@ -57,9 +57,15 @@ public class ResultList<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
+    @Override
+    public void move(int oldPos, int newPos) {
+        throw new UnsupportedOperationException();
+    }
+
     Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
 
 
+    @Override
     public RealmQuery<E> where() {
         return new RealmQuery<E>(this, classSpec);
     }
@@ -80,10 +86,12 @@ public class ResultList<E extends RealmObject> extends AbstractList<E> {
         return obj;
     }
 
+    @Override
     public E first() {
         return get(0);
     }
 
+    @Override
     public E last() {
         return get(size()-1);
     }
@@ -249,17 +257,26 @@ public class ResultList<E extends RealmObject> extends AbstractList<E> {
 
     // Adding objects
 
-    @Override
-    @Deprecated
-    public boolean add(E element) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Deprecated
-    public void add(int index, E element) {
-        throw new UnsupportedOperationException();
-    }
+//    /**
+//     * Add an object.
+//     *
+//     * @param element    The object to add.
+//     * @return           true if object was added.
+//     */
+//    @Override
+//    public boolean add(E element) {
+//        throw new NoSuchMethodError();
+//    }
+//
+//    /**
+//     * Add an object
+//     *
+//     * @param index        The array index to add the object at.
+//     * @param element      The object to add.
+//     */
+//    public void add(int index, E element) {
+//        throw new NoSuchMethodError();
+//    }
 //
 //    /**
 //     * Replaces an object at the given index with a new object.

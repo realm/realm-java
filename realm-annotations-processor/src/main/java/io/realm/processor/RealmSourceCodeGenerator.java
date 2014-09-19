@@ -18,306 +18,260 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
-import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
+
+import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
 
 
 public class RealmSourceCodeGenerator {
-    private ProcessingEnvironment processingEnvironment;
-    private String className;
-    private String packageName;
-    private List<VariableElement> fields;
 
-    public RealmSourceCodeGenerator(ProcessingEnvironment processingEnvironment, String className, String packageName, List<VariableElement> fields) {
-        this.processingEnvironment = processingEnvironment;
-        this.className = className;
+    private class FieldInfo {
+        public String fieldName;
+        public String columnType;
+        public Element fieldElement;
+
+        public FieldInfo(String fieldName, String columnType, Element fieldElement) {
+            this.columnType = columnType;
+            this.fieldElement = fieldElement;
+            this.fieldName = fieldName;
+        }
+    }
+
+    private enum GeneratorStates {
+        PACKAGE,
+        CLASS,
+        METHODS,
+    }
+
+    private JavaWriter writer = null;
+    private String className = null;
+    private String packageName = null;
+    private GeneratorStates generatorState = GeneratorStates.PACKAGE;
+    private String errorMessage = "";
+    private List<FieldInfo> fields = new ArrayList<FieldInfo>();
+
+    private void setError(String message) {
+        errorMessage = message;
+    }
+
+    public String getError() {
+        return errorMessage;
+    }
+
+    private String convertSimpleTypesToObject(String typeName) {
+        if (typeName.equals("int")) {
+            typeName = "Integer";
+        } else if (typeName.equals("long") || typeName.equals("float") ||
+                typeName.equals("double") || typeName.equals("boolean")) {
+            typeName = Character.toUpperCase(typeName.charAt(0)) + typeName.substring(1);
+        }
+
+        return typeName;
+    }
+
+    private String convertTypesToColumnType(String typeName) {
+        if (typeName.equals("String")) {
+            typeName = "ColumnType.STRING";
+        } else if (typeName.equals("Long") || typeName.equals("Integer")) {
+            typeName = "ColumnType.INTEGER";
+        } else if (typeName.equals("Float")) {
+            typeName = "ColumnType.FLOAT";
+        } else if (typeName.equals("Double")) {
+            typeName = "ColumnType.DOUBLE";
+        } else if (typeName.equals("Boolean")) {
+            typeName = "ColumnType.BOOLEAN";
+        } else if (typeName.equals("Date")) {
+            typeName = "ColumnType.DATE";
+        } else if (typeName.equals("byte[]")) {
+            typeName = "ColumnType.BINARY";
+        }
+
+        return typeName;
+    }
+
+    private boolean checkState(GeneratorStates checkState) {
+        if (writer == null) {
+            setError("No output writer has been defined");
+            return false;
+        }
+
+        if (generatorState != checkState) {
+            setError("Annotations received in wrong order");
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean setBufferedWriter(BufferedWriter bw) {
+        writer = new JavaWriter(bw);
+
+        return true;
+    }
+
+    public boolean setPackageName(String packageName) {
+        if (!checkState(GeneratorStates.PACKAGE)) return false;
+
         this.packageName = packageName;
-        this.fields = fields;
+
+        generatorState = GeneratorStates.CLASS;
+        return true;
     }
 
-    private static final Map<String, String> JAVA_TO_REALM_TYPES;
-
-    static {
-        JAVA_TO_REALM_TYPES = new HashMap<String, String>();
-        JAVA_TO_REALM_TYPES.put("byte", "Long");
-        JAVA_TO_REALM_TYPES.put("short", "Long");
-        JAVA_TO_REALM_TYPES.put("int", "Long");
-        JAVA_TO_REALM_TYPES.put("long", "Long");
-        JAVA_TO_REALM_TYPES.put("float", "Float");
-        JAVA_TO_REALM_TYPES.put("double", "Double");
-        JAVA_TO_REALM_TYPES.put("boolean", "Boolean");
-        JAVA_TO_REALM_TYPES.put("Byte", "Long");
-        JAVA_TO_REALM_TYPES.put("Short", "Long");
-        JAVA_TO_REALM_TYPES.put("Integer", "Long");
-        JAVA_TO_REALM_TYPES.put("Long", "Long");
-        JAVA_TO_REALM_TYPES.put("Float", "Float");
-        JAVA_TO_REALM_TYPES.put("Double", "Double");
-        JAVA_TO_REALM_TYPES.put("Boolean", "Boolean");
-        JAVA_TO_REALM_TYPES.put("java.lang.String", "String");
-        JAVA_TO_REALM_TYPES.put("byte[]", "BinaryByteArray");
-        // TODO: add support for char and Char
+    private void emitPackage() throws IOException {
+        writer.emitPackage(packageName)
+                .emitEmptyLine()
+                .emitImports(
+                        "io.realm.internal.ColumnType",
+                        "io.realm.internal.Table",
+                        "io.realm.internal.ImplicitTransaction",
+                        "io.realm.internal.Row")
+                .emitEmptyLine();
     }
 
-    private static final Map<String, String> JAVA_TO_COLUMN_TYPES;
+    public boolean setClassName(String className) {
+        if (!checkState(GeneratorStates.CLASS)) return false;
 
-    static {
-        JAVA_TO_COLUMN_TYPES = new HashMap<String, String>();
-        JAVA_TO_COLUMN_TYPES.put("byte", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("short", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("int", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("long", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("float", "ColumnType.FLOAT");
-        JAVA_TO_COLUMN_TYPES.put("double", "ColumnType.DOUBLE");
-        JAVA_TO_COLUMN_TYPES.put("boolean", "ColumnType.BOOLEAN");
-        JAVA_TO_COLUMN_TYPES.put("Byte", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Short", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Integer", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Long", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Float", "ColumnType.FLOAT");
-        JAVA_TO_COLUMN_TYPES.put("Double", "ColumnType.DOUBLE");
-        JAVA_TO_COLUMN_TYPES.put("Boolean", "ColumnType.BOOLEAN");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.String", "ColumnType.STRING");
-        JAVA_TO_COLUMN_TYPES.put("byte[]", "ColumnType.BINARY");
+        this.className = className;
+
+        generatorState = GeneratorStates.METHODS;
+        return true;
     }
 
-    private static final Map<String, String> CASTING_TYPES;
-
-    static {
-        CASTING_TYPES = new HashMap<String, String>();
-        CASTING_TYPES.put("byte", "long");
-        CASTING_TYPES.put("short", "long");
-        CASTING_TYPES.put("int", "long");
-        CASTING_TYPES.put("long", "long");
-        CASTING_TYPES.put("float", "float");
-        CASTING_TYPES.put("double", "double");
-        CASTING_TYPES.put("boolean", "boolean");
-        CASTING_TYPES.put("Byte", "long");
-        CASTING_TYPES.put("Short", "long");
-        CASTING_TYPES.put("Integer", "long");
-        CASTING_TYPES.put("Long", "long");
-        CASTING_TYPES.put("Float", "float");
-        CASTING_TYPES.put("Double", "double");
-        CASTING_TYPES.put("Boolean", "boolean");
-        CASTING_TYPES.put("java.lang.String", "String");
-        CASTING_TYPES.put("byte[]", "byte[]");
+    private void emitClass() throws IOException {
+        writer.beginType(packageName + "." + className + "RealmProxy", "class",
+                EnumSet.of(Modifier.PUBLIC, Modifier.FINAL), className).emitEmptyLine();
     }
 
-    public void generate() throws IOException, UnsupportedOperationException {
-        String qualifiedGeneratedClassName = String.format("%s.%sRealmProxy", packageName, className);
-        JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
-        JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
+    public boolean setField(String fieldName, Element fieldElement) {
+        if (!checkState(GeneratorStates.METHODS)) return false;
 
-        Elements elementUtils = processingEnvironment.getElementUtils();
-        Types typeUtils = processingEnvironment.getTypeUtils();
+        String shortType = convertSimpleTypesToObject(fieldElement.asType().toString());
+        shortType = shortType.substring(shortType.lastIndexOf(".") + 1);
 
-        TypeMirror realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
-        DeclaredType relationList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RelationList"), typeUtils.getWildcardType(null, null));
+        fields.add(new FieldInfo(fieldName, convertTypesToColumnType(shortType), fieldElement));
 
-        // Set source code indent to 4 spaces
+        return true;
+    }
+
+    public void emitFields() throws IOException {
+
+        int columnIndex = 0;
+
+        for (FieldInfo field : fields) {
+            String originalType = field.fieldElement.asType().toString();
+            String fullType = convertSimpleTypesToObject(originalType);
+            String shortType = fullType.substring(fullType.lastIndexOf(".") + 1);
+
+            String returnCast = "";
+            String camelCaseFieldName = Character.toUpperCase(field.fieldName.charAt(0)) + field.fieldName.substring(1);
+
+            if (originalType.equals("int")) {
+                fullType = "long";
+                shortType = "Long";
+                returnCast = "(" + originalType + ")";
+            } else if (shortType.equals("Integer")) {
+                fullType = "long";
+                shortType = "Long";
+                returnCast = "(int)";
+            } else if (shortType.equals("byte[]")) {
+                shortType = "BinaryByteArray";
+                returnCast = "(byte[])";
+            }
+
+            String getterStmt = "return " + returnCast + "row.get" + shortType + "( " + columnIndex + " )";
+
+            String setterStmt = "row.set" + shortType + "( " + columnIndex + ", value )";
+
+            if (!field.fieldElement.asType().getKind().isPrimitive())
+            {
+                if (!originalType.equals("java.lang.String") &&
+                	!originalType.equals("java.lang.Long") &&
+                	!originalType.equals("java.lang.Integer") &&
+                	!originalType.equals("java.lang.Float") &&
+                	!originalType.equals("java.lang.Double") &&
+                	!originalType.equals("java.lang.Boolean") &&
+                	!originalType.equals("java.util.Date") &&
+                	!originalType.equals("byte[]")) {
+                	
+                	// We now know this is a type derived from RealmObject - 
+                	// this has already been checked in the RealmProcessor
+                	setterStmt = String.format("if (value != null) {row.setLink( %d, value.realmGetRow().getIndex() );}", columnIndex);
+                	getterStmt = String.format("return realmGetRow().getLink(%d)==-1?null:realm.get(%s.class, realmGetRow().getLink(%d))", columnIndex, fullType, columnIndex);
+                    field.columnType = "ColumnType.LINK";
+                }
+            }
+            
+            columnIndex++;
+
+            writer.emitAnnotation("Override").beginMethod(originalType, "get" + camelCaseFieldName, EnumSet.of(Modifier.PUBLIC))
+                    .emitStatement(getterStmt)
+                    .endMethod();
+
+            writer.emitAnnotation("Override").beginMethod("void", "set" + camelCaseFieldName, EnumSet.of(Modifier.PUBLIC),
+                    originalType, "value")
+                    .emitStatement(setterStmt)
+                    .endMethod().emitEmptyLine();
+        }
+    }
+
+
+    public boolean generate() throws IOException {
+
+    	// Set source code indent to 4 spaces
         writer.setIndent("    ");
 
-        writer.emitPackage(packageName)
-                .emitEmptyLine();
+        // Emit java writer code in sections: 
+        
+        //   1. Package Header and imports
+        emitPackage();
+        
+        //   2. class definition
+        emitClass();
+        
+        //   3. public setters and getters for each field
+        emitFields();
 
-        writer.emitImports(
-                "io.realm.internal.ColumnType",
-                "io.realm.internal.Table",
-                "io.realm.internal.ImplicitTransaction",
-                "io.realm.internal.Row",
-                "io.realm.internal.LinkView",
-                "io.realm.RelationList",
-                "io.realm.RealmObject")
-                .emitEmptyLine();
+        // Generate initTable method, which is used to create the datqbase table
 
-        // Begin the class definition
-        writer.beginType(
-                qualifiedGeneratedClassName, // full qualified name of the item to generate
-                "class",                     // the type of the item
-                EnumSet.of(Modifier.PUBLIC), // modifiers to apply
-                className)                   // class to extend
-                .emitEmptyLine();
+        String tableName = this.className.toLowerCase(Locale.getDefault());
 
-        // Accessors
-        ListIterator<VariableElement> iterator = fields.listIterator();
-        while (iterator.hasNext()) {
-            int columnNumber = iterator.nextIndex();
-            VariableElement field = iterator.next();
-
-            String fieldName = field.getSimpleName().toString();
-            String fieldTypeCanonicalName = field.asType().toString();
-
-            if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
-                /**
-                 * Primitives and boxed types
-                 */
-                String realmType = JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
-                String castingType = CASTING_TYPES.get(fieldTypeCanonicalName);
-
-                // Getter
-                writer.emitAnnotation("Override");
-                writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
-                writer.emitStatement(
-                        "return (%s) realmGetRow().get%s(%d)",
-                        fieldTypeCanonicalName, realmType, columnNumber);
-                writer.endMethod();
-                writer.emitEmptyLine();
-
-                // Setter
-                writer.emitAnnotation("Override");
-                writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                writer.emitStatement(
-                        "realmGetRow().set%s(%d, (%s) value)",
-                        realmType, columnNumber, castingType);
-                writer.endMethod();
-            } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
-                /**
-                 * Links
-                 */
-
-                // Getter
-                writer.emitAnnotation("Override");
-                writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
-                writer.beginControlFlow("if (realmGetRow().isNullLink(%d))", columnNumber);
-                writer.emitStatement("return null");
-                writer.endControlFlow();
-                writer.emitStatement(
-                        "return realm.get(%s.class, realmGetRow().getLink(%d))",
-                        fieldTypeCanonicalName, columnNumber);
-                writer.endMethod();
-                writer.emitEmptyLine();
-
-                // Setter
-                writer.emitAnnotation("Override");
-                writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                writer.beginControlFlow("if (value == null)");
-                writer.emitStatement("realmGetRow().nullifyLink(%d)", columnNumber);
-                writer.endControlFlow();
-                writer.emitStatement("realmGetRow().setLink(%d, value.realmGetRow().getIndex())", columnNumber);
-                writer.endMethod();
-            } else if (typeUtils.isAssignable(field.asType(), relationList)) {
-                /**
-                 * LinkLists
-                 */
-                String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
-                String genericType;
-                if (genericCanonicalType.contains(".")) {
-                    genericType = genericCanonicalType.substring(genericCanonicalType.lastIndexOf('.') + 1);
-                } else {
-                    genericType = genericCanonicalType;
-                }
-
-                // Getter
-                writer.emitAnnotation("Override");
-                writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
-                writer.emitStatement(
-                        "return new RelationList(%s.class, realmGetRow().getLinkList(%d), realm)",
-                        genericType, columnNumber);
-                writer.endMethod();
-                writer.emitEmptyLine();
-
-                // Setter
-                writer.emitAnnotation("Override");
-                writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                writer.emitStatement("LinkView links = realmGetRow().getLinkList(%d)", columnNumber);
-                writer.beginControlFlow("if (value == null)");
-                writer.emitStatement("return"); // TODO: delete all the links instead
-                writer.endControlFlow();
-                writer.beginControlFlow("for (RealmObject linkedObject : (RelationList<? extends RealmObject>) value)");
-                writer.emitStatement("links.add(linkedObject.realmGetRow().getIndex())");
-                writer.endControlFlow();
-                writer.endMethod();
-            } else {
-                throw new UnsupportedOperationException(
-                        String.format("Type %s of field %s is not supported", fieldTypeCanonicalName, fieldName));
-            }
-            writer.emitEmptyLine();
-        }
-
-        /**
-         * initTable method
-         */
-        writer.beginMethod(
-                "Table", // Return type
-                "initTable", // Method name
-                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "ImplicitTransaction", "transaction"); // Argument type & argument name
-
-        writer.beginControlFlow("if(!transaction.hasTable(\"" + this.className + "\"))");
-        writer.emitStatement("Table table = transaction.getTable(\"%s\")", this.className);
+        writer.beginMethod("Table", "initTable", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
+                "ImplicitTransaction", "transaction").
+                beginControlFlow("if(!transaction.hasTable(\"" + tableName + "\"))").
+                emitStatement("Table table = transaction.getTable(\"" + tableName + "\")");
 
         // For each field generate corresponding table index constant
-        for (VariableElement field : fields) {
-            String fieldName = field.getSimpleName().toString();
-            String fieldTypeCanonicalName = field.asType().toString();
-            String fieldTypeName;
-            if (fieldTypeCanonicalName.contains(".")) {
-                fieldTypeName = fieldTypeCanonicalName.substring(fieldTypeCanonicalName.lastIndexOf('.') + 1);
-            } else {
-                fieldTypeName = fieldTypeCanonicalName;
-            }
+        for (FieldInfo field : fields) {
 
-            if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
-                writer.emitStatement("table.addColumn(%s, \"%s\")",
-                        JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
-                        fieldName.toLowerCase(Locale.getDefault()));
-            } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
-                writer.beginControlFlow("if (!transaction.hasTable(\"%s\"))", fieldTypeName);
-                writer.emitStatement("%sRealmProxy.initTable(transaction)", fieldTypeCanonicalName);
-                writer.endControlFlow();
-                writer.emitStatement("table.addColumnLink(ColumnType.LINK, \"%s\", transaction.getTable(\"%s\"))",
-                        fieldName.toLowerCase(Locale.getDefault()), fieldTypeName);
-            } else if (typeUtils.isAssignable(field.asType(), relationList)) {
-                String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
-                String genericType;
-                if (genericCanonicalType.contains(".")) {
-                    genericType = genericCanonicalType.substring(genericCanonicalType.lastIndexOf('.') + 1);
-                } else {
-                    genericType = genericCanonicalType;
-                }
-                writer.beginControlFlow("if (!transaction.hasTable(\"%s\"))", genericType);
-                writer.emitStatement("%sRealmProxy.initTable(transaction)", genericCanonicalType);
-                writer.endControlFlow();
-                writer.emitStatement("table.addColumnLink(ColumnType.LINK_LIST, \"%s\", transaction.getTable(\"%s\"))",
-                        fieldName.toLowerCase(Locale.getDefault()), genericType);
+            if (field.columnType.equals("ColumnType.LINK")) {
+                writer.emitStatement("table.addColumnLink( %s, \"%s\", %s)", field.columnType,
+                    field.fieldName.toLowerCase(Locale.getDefault()), "table");
+            }
+            else {
+                writer.emitStatement("table.addColumn( %s, \"%s\" )", field.columnType, field.fieldName.toLowerCase(Locale.getDefault()));
             }
         }
+
         writer.emitStatement("return table");
         writer.endControlFlow();
-        writer.emitStatement("return transaction.getTable(\"%s\")", this.className);
-        writer.endMethod();
-        writer.emitEmptyLine();
+        writer.emitStatement("return transaction.getTable(\"" + tableName + "\")");
+        writer.endMethod().emitEmptyLine();
 
-        /**
-         * toString method
-         */
-        writer.emitAnnotation("Override");
-        writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", className);
-        for (VariableElement field : fields) {
-            String fieldName = field.getSimpleName().toString();
-            writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
-            writer.emitStatement("stringBuilder.append(get%s())", capitaliseFirstChar(fieldName));
-            writer.emitStatement("stringBuilder.append(\"} \")", fieldName);
-        }
-        writer.emitStatement("stringBuilder.append(\"]\")");
-        writer.emitStatement("return stringBuilder.toString()");
-        writer.endMethod();
-
-        // End the class definition
+        // End the class definition 
         writer.endType();
         writer.close();
-    }
 
-    private static String capitaliseFirstChar(String input) {
-        return input.substring(0, 1).toUpperCase() + input.substring(1);
+        fields.clear();
+
+        generatorState = GeneratorStates.PACKAGE;
+
+        return true;
     }
 }

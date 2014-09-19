@@ -1,11 +1,13 @@
 package io.realm.examples.realmgridview;
 
 import io.realm.RealmObject;
+import io.realm.annotations.RealmClass;
 
+@RealmClass
 public class City extends RealmObject {
 
     private String name;
-    private long votes;
+    private Long votes;
 
     public String getName() {
         return name;
@@ -15,11 +17,11 @@ public class City extends RealmObject {
         this.name = name;
     }
 
-    public long getVotes() {
+    public Long getVotes() {
         return votes;
     }
 
-    public void setVotes(long votes) {
+    public void setVotes(Long votes) {
         this.votes = votes;
     }
 }

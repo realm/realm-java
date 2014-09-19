@@ -1,3 +1,2 @@
 configurations.create("default")
-String realmVersion = new File("${rootDir}/../version.txt").text
-artifacts.add("default", file("realm-${realmVersion}.aar"))
+artifacts.add("default", file('realm-0.80.aar'))
