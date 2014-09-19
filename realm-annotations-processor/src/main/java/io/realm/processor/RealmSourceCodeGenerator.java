@@ -111,6 +111,52 @@ public class RealmSourceCodeGenerator {
         CASTING_TYPES.put("byte[]", "byte[]");
     }
 
+    private static final Map<String, String[]> HASHCODE;
+
+    static {
+        HASHCODE = new HashMap<String, String[]>();
+        HASHCODE.put("byte", new String[] {
+                "result = 31 * result + (int) get%s()" });
+        HASHCODE.put("short", new String[] {
+                "result = 31 * result + (int) get%s()" });
+        HASHCODE.put("int", new String[] {
+                "result = 31 * result + get%s()" });
+        HASHCODE.put("long", new String[] {
+                "long aLong_%d = get%s()",
+                "result = 31 * result + (int) (aLong_%d ^ (aLong_%d >>> 32))" });
+        HASHCODE.put("float", new String[] {
+                "float aFloat_%d = get%s()",
+                "result = 31 * result + (aFloat_%d != +0.0f ? Float.floatToIntBits(aFloat_%d) : 0)" });
+        HASHCODE.put("double", new String[] {
+                "long temp_%d = Double.doubleToLongBits(get%s())",
+                "result = 31 * result + (int) (temp_%d ^ (temp_%d >>> 32))" });
+        HASHCODE.put("boolean", new String[] {
+                "result = 31 * result + (get%s() ? 1 : 0)" });
+        HASHCODE.put("Byte", new String[] {
+                "result = 31 * result + (int) get%s()" });
+        HASHCODE.put("Short", new String[] {
+                "result = 31 * result + (int) get%s()" });
+        HASHCODE.put("Integer", new String[] {
+                "result = 31 * result + get%s()" });
+        HASHCODE.put("Long", new String[] {
+                "long aLong_%d = get%s()",
+                "result = 31 * result + (int) (aLong_%d ^ (aLong_%d >>> 32))" });
+        HASHCODE.put("Float", new String[] {
+                "float aFloat_%d = get%s()",
+                "result = 31 * result + (aFloat_%d != +0.0f ? Float.floatToIntBits(aFloat_%d) : 0)" });
+        HASHCODE.put("Double", new String[] {
+                "long temp_%d = Double.doubleToLongBits(get%s())",
+                "result = 31 * result + (int) (temp_%d ^ (temp_%d >>> 32))" });
+        HASHCODE.put("Boolean", new String[] {
+                "result = 31 * result + (get%s() ? 1 : 0)" });
+        HASHCODE.put("java.lang.String", new String[] {
+                "String aString_%d = get%s()",
+                "result = 31 * result + (aString_%d != null ? aString_%d.hashCode() : 0)" });
+        HASHCODE.put("byte[]", new String[] {
+                "byte[] aByteArray_%d = get%s()",
+                "result = 31 * result + (aByteArray_%d != null ? Arrays.hashCode(aByteArray_%d) : 0)" });
+    }
+
     public void generate() throws IOException, UnsupportedOperationException {
         String qualifiedGeneratedClassName = String.format("%s.%sRealmProxy", packageName, className);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
@@ -311,6 +357,44 @@ public class RealmSourceCodeGenerator {
         writer.emitStatement("stringBuilder.append(\"]\")");
         writer.emitStatement("return stringBuilder.toString()");
         writer.endMethod();
+        writer.emitEmptyLine();
+
+        /**
+         * hashCode method
+         */
+        writer.emitAnnotation("Override");
+        writer.beginMethod("int", "hashCode", EnumSet.of(Modifier.PUBLIC));
+        writer.emitStatement("int result = 17");
+        int counter = 0;
+        for (VariableElement field : fields) {
+            String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            if (HASHCODE.containsKey(fieldTypeCanonicalName)) {
+                for (String statement : HASHCODE.get(fieldTypeCanonicalName)) {
+                    if (statement.contains("%d") && statement.contains("%s")) {
+                        // This statement introduces a temporary variable
+                        writer.emitStatement(statement, counter, capitaliseFirstChar(fieldName));
+                    } else if(statement.contains("%d")) {
+                        // This statement uses the temporary variable
+                        writer.emitStatement(statement, counter, counter);
+                    } else if (statement.contains("%s")) {
+                        // This is a normal statement with only one assignment
+                        writer.emitStatement(statement, capitaliseFirstChar(fieldName));
+                    } else {
+                        // This should never happen
+                        throw new AssertionError();
+                    }
+                }
+            } else {
+                // Links and Link lists
+                writer.emitStatement("%s temp_%d = get%s()", fieldTypeCanonicalName, counter, fieldName);
+                writer.emitStatement("result = 31 * result + (temp_%d != null ? temp_%d.hashCode() : 0)", counter, counter);
+            }
+            counter++;
+        }
+        writer.emitStatement("return result");
+        writer.endMethod();
+        writer.emitEmptyLine();
 
         // End the class definition
         writer.endType();
