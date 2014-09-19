@@ -20,13 +20,13 @@ import java.util.AbstractList;
 
 import io.realm.internal.LinkView;
 
-public class RelationList<E extends RealmObject> extends AbstractList<E> {
+public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     private Class<E> clazz;
     private LinkView view;
     private Realm realm;
 
-    public RelationList(Class<E> clazz, LinkView view, Realm realm) {
+    public RealmList(Class<E> clazz, LinkView view, Realm realm) {
         this.clazz = clazz;
         this.view = view;
         this.realm = realm;

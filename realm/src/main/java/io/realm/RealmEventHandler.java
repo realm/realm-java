@@ -39,9 +39,6 @@ public class RealmEventHandler implements Runnable {
             if (realm.hasChanged()) {
                 realm.sendNotifications();
             }
-
-            System.out.println("check for changes " + myCount);
         }
-
     }
 }

@@ -18,15 +18,6 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.Map;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -35,6 +26,9 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
 
 
 public class RealmSourceCodeGenerator {
@@ -126,7 +120,7 @@ public class RealmSourceCodeGenerator {
         Types typeUtils = processingEnvironment.getTypeUtils();
 
         TypeMirror realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
-        DeclaredType relationList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RelationList"), typeUtils.getWildcardType(null, null));
+        DeclaredType realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
 
         // Set source code indent to 4 spaces
         writer.setIndent("    ");
@@ -140,7 +134,7 @@ public class RealmSourceCodeGenerator {
                 "io.realm.internal.ImplicitTransaction",
                 "io.realm.internal.Row",
                 "io.realm.internal.LinkView",
-                "io.realm.RelationList",
+                "io.realm.RealmList",
                 "io.realm.RealmObject")
                 .emitEmptyLine();
 
@@ -172,7 +166,7 @@ public class RealmSourceCodeGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "return (%s) row.get%s(%d)",
+                        "return (%s) realmGetRow().get%s(%d)",
                         fieldTypeCanonicalName, realmType, columnNumber);
                 writer.endMethod();
                 writer.emitEmptyLine();
@@ -181,7 +175,7 @@ public class RealmSourceCodeGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement(
-                        "row.set%s(%d, (%s) value)",
+                        "realmGetRow().set%s(%d, (%s) value)",
                         realmType, columnNumber, castingType);
                 writer.endMethod();
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
@@ -209,7 +203,7 @@ public class RealmSourceCodeGenerator {
                 writer.endControlFlow();
                 writer.emitStatement("realmGetRow().setLink(%d, value.realmGetRow().getIndex())", columnNumber);
                 writer.endMethod();
-            } else if (typeUtils.isAssignable(field.asType(), relationList)) {
+            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 /**
                  * LinkLists
                  */
@@ -225,7 +219,7 @@ public class RealmSourceCodeGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "return new RelationList(%s.class, realmGetRow().getLinkList(%d), realm)",
+                        "return new RealmList(%s.class, realmGetRow().getLinkList(%d), realm)",
                         genericType, columnNumber);
                 writer.endMethod();
                 writer.emitEmptyLine();
@@ -237,7 +231,7 @@ public class RealmSourceCodeGenerator {
                 writer.beginControlFlow("if (value == null)");
                 writer.emitStatement("return"); // TODO: delete all the links instead
                 writer.endControlFlow();
-                writer.beginControlFlow("for (RealmObject linkedObject : (RelationList<? extends RealmObject>) value)");
+                writer.beginControlFlow("for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value)");
                 writer.emitStatement("links.add(linkedObject.realmGetRow().getIndex())");
                 writer.endControlFlow();
                 writer.endMethod();
@@ -281,7 +275,7 @@ public class RealmSourceCodeGenerator {
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(ColumnType.LINK, \"%s\", transaction.getTable(\"%s\"))",
                         fieldName.toLowerCase(Locale.getDefault()), fieldTypeName);
-            } else if (typeUtils.isAssignable(field.asType(), relationList)) {
+            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
                 String genericType;
                 if (genericCanonicalType.contains(".")) {
@@ -296,12 +290,27 @@ public class RealmSourceCodeGenerator {
                         fieldName.toLowerCase(Locale.getDefault()), genericType);
             }
         }
-
         writer.emitStatement("return table");
         writer.endControlFlow();
         writer.emitStatement("return transaction.getTable(\"%s\")", this.className);
         writer.endMethod();
         writer.emitEmptyLine();
+
+        /**
+         * toString method
+         */
+        writer.emitAnnotation("Override");
+        writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
+        writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", className);
+        for (VariableElement field : fields) {
+            String fieldName = field.getSimpleName().toString();
+            writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
+            writer.emitStatement("stringBuilder.append(get%s())", capitaliseFirstChar(fieldName));
+            writer.emitStatement("stringBuilder.append(\"} \")", fieldName);
+        }
+        writer.emitStatement("stringBuilder.append(\"]\")");
+        writer.emitStatement("return stringBuilder.toString()");
+        writer.endMethod();
 
         // End the class definition
         writer.endType();

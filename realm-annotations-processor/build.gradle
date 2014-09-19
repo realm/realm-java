@@ -1,15 +1,20 @@
 apply plugin: 'java'
 
+version = new File("${projectDir}/../version.txt").text
+
+repositories {
+    mavenCentral()
+}
+
 sourceSets {
     main {
         java {
-            srcDirs =  ['src/main/java', "${rootDir}/realm/src/main/java/"]
+            srcDirs =  ['src/main/java', "../realm/src/main/java/io/realm/annotations"]
         }
     }
 }
 
 dependencies {
-    compile project(':realm')
     compile group:'com.squareup', name:'javawriter', version:'2.5.0'
 }
 

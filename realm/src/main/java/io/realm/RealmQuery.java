@@ -30,7 +30,7 @@ import io.realm.internal.TableQuery;
  */
 public class RealmQuery<E extends RealmObject> {
 
-    private ResultList realmList;
+    private RealmResults realmList;
     private Realm realm;
     private TableQuery query;
     private Map<String, Integer> columns = new HashMap<String, Integer>();
@@ -48,7 +48,7 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
-    public RealmQuery(ResultList realmList, Class<E> clazz) {
+    public RealmQuery(RealmResults realmList, Class<E> clazz) {
         this.realmList = realmList;
 
         this.realm = realmList.getRealm();
@@ -454,12 +454,12 @@ public class RealmQuery<E extends RealmObject> {
 
     // Execute
 
-    public ResultList<E> findAll() {
-        return new ResultList<E>(realm, query.findAll(), clazz);
+    public RealmResults<E> findAll() {
+        return new RealmResults<E>(realm, query.findAll(), clazz);
     }
 
     public E findFirst() {
-        ResultList<E> result = findAll();
+        RealmResults<E> result = findAll();
         if(result.size() > 0) {
             return findAll().get(0);
         } else {
