@@ -245,19 +245,14 @@ public class RealmTest extends RealmSetupTests {
     //void clear(Class<?> classSpec)
     public void testClassClear() {
 
-        testRealm.beginWrite();
-
         testRealm.clear(AllTypes.class);
-
-        testRealm.commit();
-
 
         ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("Realm.clear does not empty table", 0, resultList.size());
     }
 
     //void clear()
-    public void testClassClearAll() {
+    public void testClassClearAllWithTwoTables() {
         testRealm.beginWrite();
 
         Dog dog = testRealm.create(Dog.class);
