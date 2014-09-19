@@ -16,9 +16,9 @@ import io.realm.examples.realmintroexample.model.Dog;
 import io.realm.examples.realmintroexample.model.Person;
 
 
-public class RealmBasicExampleActivity extends Activity {
+public class RealmIntroExampleActivity extends Activity {
 
-    public static final String TAG = RealmBasicExampleActivity.class.getName();
+    public static final String TAG = RealmIntroExampleActivity.class.getName();
 
     private LinearLayout rootLayout = null;
 
