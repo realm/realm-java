@@ -149,6 +149,11 @@ public class RealmBasicExampleActivity extends Activity {
                 dogName = pers.getDog().getName();
             }
             status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName + " : " + pers.getCats().size();
+
+            // Note that the tempReference field has been annotated with @Ignore
+            // It is therefore not persisted:
+            assert(pers.getTempReference() == 0);
+
         }
 
         return status;
