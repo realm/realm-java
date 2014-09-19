@@ -15,7 +15,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmQuery;
-import io.realm.ResultList;
+import io.realm.RealmResults;
 
 public class RealmExampleActivity extends Activity implements LoaderManager.LoaderCallbacks<List<City>>, AdapterView.OnItemClickListener {
 
@@ -64,7 +64,7 @@ public class RealmExampleActivity extends Activity implements LoaderManager.Load
 
     public void updateCities() {
         Realm realm = new Realm(this);
-        ResultList<City> cities = realm.where(City.class).findAll();
+        RealmResults<City> cities = realm.where(City.class).findAll();
         mAdapter.setData(cities);
 
         mAdapter.notifyDataSetChanged();

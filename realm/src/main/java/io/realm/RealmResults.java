@@ -28,18 +28,18 @@ import io.realm.internal.TableView;
  *
  * @param <E> The class of objects in this list
  */
-public class ResultList<E extends RealmObject> extends AbstractList<E> {
+public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     private Class<E> classSpec;
     private Realm realm;
     private TableOrView table = null;
 
-    ResultList(Realm realm, Class<E> classSpec) {
+    RealmResults(Realm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
     }
 
-    ResultList(Realm realm, TableOrView table, Class<E> classSpec) {
+    RealmResults(Realm realm, TableOrView table, Class<E> classSpec) {
         this(realm, classSpec);
         this.table = table;
     }
