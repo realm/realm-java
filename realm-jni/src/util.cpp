@@ -62,17 +62,17 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case IOFailed:
-            jExceptionClass = env->FindClass("io/realm/exceptions/IOException");
+            jExceptionClass = env->FindClass("io/realm/exceptions/RealmIOException");
             message = "Failed to open " + classStr + ". " + itemStr;
             break;
 
         case FileNotFound:
-            jExceptionClass = env->FindClass("io/realm/exceptions/IOException");
+            jExceptionClass = env->FindClass("io/realm/exceptions/RealmIOException");
             message = "File not found: " + classStr + ".";
             break;
 
         case FileAccessError:
-            jExceptionClass = env->FindClass("io/realm/exceptions/IOException");
+            jExceptionClass = env->FindClass("io/realm/exceptions/RealmIOException");
             message = "Failed to access: " + classStr + ". " + itemStr;
             break;
 
@@ -87,7 +87,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             break;
 
         case OutOfMemory:
-            jExceptionClass = env->FindClass("io/realm/exceptions/OutOfMemoryError");
+            jExceptionClass = env->FindClass("io/realm/internal/OutOfMemoryError");
             message = classStr + " " + itemStr;
             break;
 
