@@ -1,12 +1,13 @@
-Alpha-0.2.0
+Beta-0.2.0
 
-  New Features
-  ============
+  Changes
+  =======
 
-  * Now only two types of Lists exist: ResultList and RelationList
+  * Now only two types of Lists exist: RealmResults and RealmList
   * It is not necessary to add the @RealmClass annotation to RealmObjects anymore
-  * Added support for byte, short and RelationList in model classes
+  * Added support for byte, short and RealmList in model classes
   * Added two new constructors for Realm, taking Context as an argument
+  * Simplification of the exceptions
 
   Bug Fixes
   =========
