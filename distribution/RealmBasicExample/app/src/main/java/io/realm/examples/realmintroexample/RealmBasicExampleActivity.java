@@ -10,7 +10,8 @@ import android.widget.TextView;
 import java.io.IOException;
 
 import io.realm.Realm;
-import io.realm.RealmList;
+import io.realm.ResultList;
+import io.realm.examples.realmintroexample.model.Cat;
 import io.realm.examples.realmintroexample.model.Dog;
 import io.realm.examples.realmintroexample.model.Person;
 
@@ -41,9 +42,9 @@ public class RealmBasicExampleActivity extends Activity {
 
         //More complex operations should not be
         //executed on the UI thread.
-        new AsyncTask() {
+        new AsyncTask<Void, Void, String>() {
             @Override
-            protected String doInBackground(Object[] params) {
+            protected String doInBackground(Void... voids) {
                 String info = null;
                 try {
                     info = complexReadWrite();
@@ -55,8 +56,8 @@ public class RealmBasicExampleActivity extends Activity {
             }
 
             @Override
-            protected void onPostExecute(Object result) {
-                showStatus((String) result);
+            protected void onPostExecute(String result) {
+                showStatus(result);
             }
         }.execute();
     }
@@ -65,7 +66,7 @@ public class RealmBasicExampleActivity extends Activity {
         showStatus("Performing basic Read/Write operation...");
 
         // open a default realm
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
 
         // Add ten persons in one write transaction
         realm.beginWrite();
@@ -82,9 +83,9 @@ public class RealmBasicExampleActivity extends Activity {
     private void basicQuery() throws java.io.IOException {
         showStatus("\nPerforming basic Query operation...");
 
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
         showStatus("Number of persons: " + realm.allObjects(Person.class).size());
-        RealmList<Person> result = realm.where(Person.class).equalTo("age", 99).findAll();
+        ResultList<Person> result = realm.where(Person.class).equalTo("age", 99).findAll();
         showStatus("Size of result set: " + result.size());
     }
 
@@ -92,7 +93,7 @@ public class RealmBasicExampleActivity extends Activity {
         showStatus("\nPerforming basic Update operation...");
 
         // open a default realm
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
 
         // Iterate over all objects
         Person person = realm.get(Person.class, 0);
@@ -117,7 +118,7 @@ public class RealmBasicExampleActivity extends Activity {
         String status = "\nPerforming complex Read/Write operation...";
 
         // open a default realm
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
 
         // Add ten persons in one write transaction
         realm.beginWrite();
@@ -128,6 +129,11 @@ public class RealmBasicExampleActivity extends Activity {
             person.setName("Person no. " + i);
             person.setAge(i);
             person.setDog(fido);
+            for (int j = 0; j < i; j++) {
+                Cat cat = realm.create(Cat.class);
+                cat.setName("Cat_" + j);
+                person.getCats().add(cat);
+            }
         }
         realm.commit();
 
@@ -142,7 +148,11 @@ public class RealmBasicExampleActivity extends Activity {
             } else {
                 dogName = pers.getDog().getName();
             }
-            status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName;
+            status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName + " : " + pers.getCats().size();
+
+            // Note that the tempReference field has been annotated with @Ignore
+            // It is therefore not persisted:
+            assert(pers.getTempReference() == 0);
         }
 
         return status;
@@ -151,10 +161,10 @@ public class RealmBasicExampleActivity extends Activity {
     private String complexQuery() throws IOException {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = new Realm(getFilesDir());
+        Realm realm = new Realm(this);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
         // Find all persons where age > 5
-        RealmList<Person> result = realm.where(Person.class)
+        ResultList<Person> result = realm.where(Person.class)
                 .greaterThan("age", 5).between("age", 7, 9).beginsWith("name", "Person").findAll();
         status += "\nSize of result set: " + result.size();
         return status;

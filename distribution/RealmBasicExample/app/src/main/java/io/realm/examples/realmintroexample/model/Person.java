@@ -1,20 +1,18 @@
 package io.realm.examples.realmintroexample.model;
 
-import java.lang.String;
-
+import io.realm.RelationList;
 import io.realm.RealmObject;
-import io.realm.annotations.RealmClass;
+
 import io.realm.annotations.Ignore;
 
-@RealmClass
 public class Person extends RealmObject {
 
     private String name;
     private int age;
-
     private Dog dog;
+    private RelationList<Cat> cats;
 
-    @Ignore private String codeWord;
+    @Ignore private int tempReference;
 
     public String getName() {
         return name;
@@ -40,12 +38,20 @@ public class Person extends RealmObject {
         this.dog = dog;
     }
 
-    public String getCodeWord() {
-        return codeWord;
+    public RelationList<Cat> getCats() {
+        return cats;
     }
 
-    public void setCodeWord(String codeWord) {
-        this.codeWord = codeWord;
+    public void setCats(RelationList<Cat> cats) {
+        this.cats = cats;
+    }
+
+    public int getTempReference() {
+        return tempReference;
+    }
+
+    public void setTempReference(int tempReference) {
+        this.tempReference = tempReference;
     }
 
 }
