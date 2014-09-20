@@ -65,17 +65,17 @@ public class RealmIntroExampleActivity extends Activity {
     private void basicReadWrite() throws java.io.IOException {
         showStatus("Performing basic Read/Write operation...");
 
-        // open a default realm
+        // Open a default realm
         Realm realm = new Realm(this);
 
-        // Add ten persons in one write transaction
+        // Add a person in a write transaction
         realm.beginWrite();
         Person person = realm.create(Person.class);
         person.setName("Happy Person");
         person.setAge(14);
         realm.commit();
 
-        // Iterate over all objects
+        // Find first person
         person = realm.where(Person.class).findFirst();
         showStatus(person.getName() + ":" + person.getAge());
     }
@@ -92,13 +92,13 @@ public class RealmIntroExampleActivity extends Activity {
     private void basicUpdate() throws java.io.IOException {
         showStatus("\nPerforming basic Update operation...");
 
-        // open a default realm
+        // Open a default realm
         Realm realm = new Realm(this);
 
-        // Iterate over all objects
-        Person person = realm.get(Person.class, 0);
+        // Get the first object
+        Person person = realm.where(Person.class).findFirst();
 
-        // Add ten persons in one write transaction
+        // Update person in a write transaction
         realm.beginWrite();
         person.setName("Senior Person");
         person.setAge(99);
@@ -117,7 +117,7 @@ public class RealmIntroExampleActivity extends Activity {
     private String complexReadWrite() throws IOException {
         String status = "\nPerforming complex Read/Write operation...";
 
-        // open a default realm
+        // Open a default realm
         Realm realm = new Realm(this);
 
         // Add ten persons in one write transaction
@@ -165,9 +165,11 @@ public class RealmIntroExampleActivity extends Activity {
 
         Realm realm = new Realm(this);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
-        // Find all persons where age > 5
+
+        // Find all persons where age between 7 and 9 and name begins with "Person".
         RealmResults<Person> results = realm.where(Person.class)
-                .greaterThan("age", 5).between("age", 7, 9).beginsWith("name", "Person").findAll();
+                .between("age", 7, 9)       // Notice implicit "and" operation
+                .beginsWith("name", "Person").findAll();
         status += "\nSize of result set: " + results.size();
         return status;
     }
