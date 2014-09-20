@@ -129,6 +129,7 @@ public class RealmBasicExampleActivity extends Activity {
             person.setName("Person no. " + i);
             person.setAge(i);
             person.setDog(fido);
+            person.setTempReference(42);
             for (int j = 0; j < i; j++) {
                 Cat cat = realm.create(Cat.class);
                 cat.setName("Cat_" + j);
@@ -152,7 +153,7 @@ public class RealmBasicExampleActivity extends Activity {
 
             // Note that the tempReference field has been annotated with @Ignore
             // It is therefore not persisted:
-            assert(pers.getTempReference() == 0);
+            if ((pers.getTempReference() != 0)) throw new AssertionError();
 
         }
 
