@@ -153,7 +153,7 @@ public class RealmBasicExampleActivity extends Activity {
 
             // Note that the tempReference field has been annotated with @Ignore
             // It is therefore not persisted:
-            if ((pers.getTempReference() != 0)) throw new AssertionError();
+            assert(pers.getTempReference() == 0);
 
         }
 
