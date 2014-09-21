@@ -8,6 +8,19 @@ android {
         minSdkVersion 9
         targetSdkVersion 20
     }
+
+// TODO: re-enable once bug-fix is released
+//    jacoco {
+//        version = '0.7.2.201409121644'
+//    }
+//
+//    buildTypes {
+//        debug {
+//            testCoverageEnabled true
+//        }
+//    }
+
+
 }
 
 dependencies {
