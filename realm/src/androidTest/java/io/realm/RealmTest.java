@@ -87,7 +87,7 @@ public class RealmTest extends RealmSetupTests {
         testRealm.remove(AllTypes.class, 0);
 
         testRealm.commit();
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("Realm.delete has not deleted record correctly", TEST_DATA_SIZE - 1, resultList.size());
 
     }
@@ -117,7 +117,7 @@ public class RealmTest extends RealmSetupTests {
     // <E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
     public void testShouldReturnResultSet()  {
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         assertEquals("Realm.get is returning wrong number of objects", TEST_DATA_SIZE, resultList.size());
     }
@@ -125,7 +125,7 @@ public class RealmTest extends RealmSetupTests {
     // <E extends RealmObject> RealmTableOrViewList<E> allObjects(Class<E> clazz)
     public void testShouldReturnTableOrViewList() {
         testRealm.beginWrite();
-        ResultList<AllTypes> resultList = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> resultList = testRealm.allObjects(AllTypes.class);
         assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
         testRealm.commit();
     }
@@ -223,7 +223,7 @@ public class RealmTest extends RealmSetupTests {
         allTypes.setColumnString("Test data");
         testRealm.commit();
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
         //tableInit();
 
@@ -237,7 +237,7 @@ public class RealmTest extends RealmSetupTests {
         testRealm.commit();
 
         testRealm.beginWrite();
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
         testRealm.commit();
     }
@@ -247,7 +247,7 @@ public class RealmTest extends RealmSetupTests {
 
         testRealm.clear(AllTypes.class);
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("Realm.clear does not empty table", 0, resultList.size());
     }
 
@@ -284,5 +284,10 @@ public class RealmTest extends RealmSetupTests {
         assertEquals("Realm.version has not been set by setVersion", version, testRealm.getVersion());
     }
 
+    public void testShouldFailOutsideTransaction() {
 
+        // These API calls should fail outside a Transaction:
+        try { AllTypes aT = testRealm.create(AllTypes.class); fail("Realm.create should fail outside write transaction"); } catch (IllegalStateException e) { }
+        try { testRealm.remove(AllTypes.class, 0); fail("Realm.remove should fail outside write transaction"); } catch (IllegalStateException e) { }
+    }
 }

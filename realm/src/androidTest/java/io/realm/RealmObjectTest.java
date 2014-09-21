@@ -22,7 +22,7 @@ public class RealmObjectTest extends RealmSetupTests {
 
     public void testResultListCheckSize() {
 
-        ResultList<AllTypes> allTypes = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAll();
 
         assertNotNull("ResultList.get has returned null", allTypes);
         assertEquals("ResultList.size returned invalid size", TEST_DATA_SIZE, allTypes.size());

@@ -29,7 +29,7 @@ public class ResultListTest extends RealmSetupTests {
 
         testRealm.beginWrite();
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("ResultList.clear test setup did not produce required test data", TEST_DATA_SIZE, resultList.size());
 
         resultList.clear();
@@ -40,7 +40,7 @@ public class ResultListTest extends RealmSetupTests {
 
     public void testResultListGet() {
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         AllTypes allTypes = resultList.get(0);
         assertNotNull("ResultList.get has returned null", allTypes);
@@ -50,7 +50,7 @@ public class ResultListTest extends RealmSetupTests {
 
     //void clear(Class<?> classSpec)
     public void testIsResultListSizeOk() throws IOException {
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertNotNull("ResultList.where has returned null", resultList);
         assertEquals("ResultList.where unexpected number of objects returned", TEST_DATA_SIZE, resultList.size());
     }
@@ -58,7 +58,7 @@ public class ResultListTest extends RealmSetupTests {
 
     public void testResultListFirstIsFirst() throws IOException {
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         AllTypes allTypes = resultList.first();
         assertNotNull("ResultList.first has returned null", allTypes);
@@ -67,7 +67,7 @@ public class ResultListTest extends RealmSetupTests {
 
     public void testResultListLastIsLast() throws IOException {
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         AllTypes allTypes = resultList.last();
         assertNotNull("ResultList.last has returned null", allTypes);
@@ -76,7 +76,7 @@ public class ResultListTest extends RealmSetupTests {
 
     public void testMinValueIsMinValue() throws IOException {
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number minimum = resultList.min("columnlong");
         assertEquals("ResultList.min returned wrong value", 0, minimum.intValue());
@@ -84,7 +84,7 @@ public class ResultListTest extends RealmSetupTests {
 
     public void testMaxValueIsMaxValue() throws IOException {
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number maximum = resultList.max("columnlong");
         assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE -1, maximum.intValue());
@@ -92,7 +92,7 @@ public class ResultListTest extends RealmSetupTests {
 
     public void testSumGivesCorrectValue() throws IOException {
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number sum = resultList.sum("columnlong");
 
@@ -105,7 +105,7 @@ public class ResultListTest extends RealmSetupTests {
 
     public void testAvgGivesCorrectValue() throws IOException {
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Double avg = resultList.average("columndouble");
 
@@ -124,7 +124,7 @@ public class ResultListTest extends RealmSetupTests {
 
         testRealm.beginWrite();
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         resultList.remove(0);
 
 
@@ -141,7 +141,7 @@ public class ResultListTest extends RealmSetupTests {
 
         testRealm.beginWrite();
 
-        ResultList<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         resultList.removeLast();
 
         testRealm.commit();

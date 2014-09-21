@@ -27,6 +27,8 @@ import io.realm.internal.SharedGroup;
 public class RealmSetupTests extends AndroidTestCase {
 
     protected final static int TEST_DATA_SIZE = 159;
+    //private   final static SharedGroup.Durability SG_DURABILITY = SharedGroup.Durability.MEM_ONLY;
+    private   final static SharedGroup.Durability SG_DURABILITY = SharedGroup.Durability.FULL;
 
     protected Realm testRealm;
 
