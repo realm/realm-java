@@ -422,7 +422,7 @@ public class Realm {
     }
 
 
-    public <E extends RealmObject> ResultList<E> allObjects(Class<E> clazz) {
+    public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
     }
 

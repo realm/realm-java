@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.realm.Realm;
-import io.realm.ResultList;
+import io.realm.RealmResults;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ReadTransaction;
 import io.realm.internal.SharedGroup;
@@ -111,7 +111,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
 
         timer = System.currentTimeMillis();
         //Debug.startMethodTracing("reads");
-        ResultList<User> realmList = realm.where(User.class).findAll();
+        RealmResults<User> realmList = realm.where(User.class).findAll();
         for(int i = 0; i < listSize; i++) {
             // IUser u = realmList.getTest(i, IUser.class);
             User u = realmList.get(i);

@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import io.realm.ResultList;
+import java.util.List;
 
 public class CityAdapter extends BaseAdapter {
 
@@ -15,13 +15,13 @@ public class CityAdapter extends BaseAdapter {
 
     private LayoutInflater inflater;
 
-    private ResultList<City> cities = null;
+    private List<City> cities = null;
 
     public CityAdapter(Context context) {
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public void setData(ResultList<City> details) {
+    public void setData(List<City> details) {
         this.cities = details;
     }
 

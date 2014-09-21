@@ -39,6 +39,6 @@ tasks.preBuild {
 }
 
 dependencies {
-    apt files('../../realm-annotations-processor/build/libs/realm-annotations-processor.jar')
+    apt files("../../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
     compile project(':realm')
 }

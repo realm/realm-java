@@ -10,15 +10,15 @@ import android.widget.TextView;
 import java.io.IOException;
 
 import io.realm.Realm;
-import io.realm.ResultList;
+import io.realm.RealmResults;
 import io.realm.examples.realmintroexample.model.Cat;
 import io.realm.examples.realmintroexample.model.Dog;
 import io.realm.examples.realmintroexample.model.Person;
 
 
-public class RealmBasicExampleActivity extends Activity {
+public class RealmIntroExampleActivity extends Activity {
 
-    public static final String TAG = RealmBasicExampleActivity.class.getName();
+    public static final String TAG = RealmIntroExampleActivity.class.getName();
 
     private LinearLayout rootLayout = null;
 
@@ -65,17 +65,17 @@ public class RealmBasicExampleActivity extends Activity {
     private void basicReadWrite() throws java.io.IOException {
         showStatus("Performing basic Read/Write operation...");
 
-        // open a default realm
+        // Open a default realm
         Realm realm = new Realm(this);
 
-        // Add ten persons in one write transaction
+        // Add a person in a write transaction
         realm.beginWrite();
         Person person = realm.create(Person.class);
         person.setName("Happy Person");
         person.setAge(14);
         realm.commit();
 
-        // Iterate over all objects
+        // Find first person
         person = realm.where(Person.class).findFirst();
         showStatus(person.getName() + ":" + person.getAge());
     }
@@ -85,20 +85,20 @@ public class RealmBasicExampleActivity extends Activity {
 
         Realm realm = new Realm(this);
         showStatus("Number of persons: " + realm.allObjects(Person.class).size());
-        ResultList<Person> result = realm.where(Person.class).equalTo("age", 99).findAll();
-        showStatus("Size of result set: " + result.size());
+        RealmResults<Person> results = realm.where(Person.class).equalTo("age", 99).findAll();
+        showStatus("Size of result set: " + results.size());
     }
 
     private void basicUpdate() throws java.io.IOException {
         showStatus("\nPerforming basic Update operation...");
 
-        // open a default realm
+        // Open a default realm
         Realm realm = new Realm(this);
 
-        // Iterate over all objects
-        Person person = realm.get(Person.class, 0);
+        // Get the first object
+        Person person = realm.where(Person.class).findFirst();
 
-        // Add ten persons in one write transaction
+        // Update person in a write transaction
         realm.beginWrite();
         person.setName("Senior Person");
         person.setAge(99);
@@ -117,7 +117,7 @@ public class RealmBasicExampleActivity extends Activity {
     private String complexReadWrite() throws IOException {
         String status = "\nPerforming complex Read/Write operation...";
 
-        // open a default realm
+        // Open a default realm
         Realm realm = new Realm(this);
 
         // Add ten persons in one write transaction
@@ -159,10 +159,12 @@ public class RealmBasicExampleActivity extends Activity {
 
         Realm realm = new Realm(this);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
-        // Find all persons where age > 5
-        ResultList<Person> result = realm.where(Person.class)
-                .greaterThan("age", 5).between("age", 7, 9).beginsWith("name", "Person").findAll();
-        status += "\nSize of result set: " + result.size();
+
+        // Find all persons where age between 7 and 9 and name begins with "Person".
+        RealmResults<Person> results = realm.where(Person.class)
+                .between("age", 7, 9)       // Notice implicit "and" operation
+                .beginsWith("name", "Person").findAll();
+        status += "\nSize of result set: " + results.size();
         return status;
     }
 }

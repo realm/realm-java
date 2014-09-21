@@ -28,12 +28,11 @@ cp realm/build/outputs/aar/realm-${version}.aar distribution/realm
 cp -R realm/build/docs/javadoc distribution
 cp realm/build/libs/realm-${version}-javadoc.jar distribution
 
-
-echo "Copying files to the distribution/RealmBasicExample folder"
-mkdir -p distribution/RealmBasicExample/app/libs
-cp realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar distribution/RealmBasicExample/app/libs
-mkdir -p distribution/RealmBasicExample/realm
-cp -R distribution/realm distribution/RealmBasicExample
+echo "Copying files to the distribution/RealmIntroExample folder"
+mkdir -p distribution/RealmIntroExample/app/libs
+cp realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar distribution/RealmIntroExample/app/libs
+mkdir -p distribution/RealmIntroExample/realm
+cp -R distribution/realm distribution/RealmIntroExample
 
 echo "Copying files to the distribution/RealmGridViewExample folder"
 mkdir -p distribution/RealmGridViewExample/app/libs
