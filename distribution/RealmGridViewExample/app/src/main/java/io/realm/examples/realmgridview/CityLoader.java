@@ -69,7 +69,7 @@ public class CityLoader extends AsyncTaskLoader<List<City>> {
         }
 
         //Store the retrieved items to the Realm
-        Realm realm = Realm.create(context);
+        Realm realm = Realm.getInstance(context);
 
         realm.beginWrite();
         for (City city : items) {

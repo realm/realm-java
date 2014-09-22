@@ -95,18 +95,40 @@ public class Realm {
         return transaction.getTable(simpleClassName);
     }
 
-    public static Realm create(Context context) {
-        return Realm.create(context, DEFAULT_REALM_NAME);
+    /**
+     * Realm static constructor
+     * @param context an Android context
+     * @return an instance of the Realm class
+     */
+    public static Realm getInstance(Context context) {
+        return Realm.getInstance(context, DEFAULT_REALM_NAME);
     }
 
-    public static Realm create(Context context, String fileName) {
+    /**
+     * Realm static constructor
+     * @param context an Android context
+     * @param fileName the name of the file to save the Realm to
+     * @return an instance of the Realm class
+     */
+    public static Realm getInstance(Context context, String fileName) {
         return Realm.create(context.getFilesDir(), fileName);
     }
 
-    public static Realm create(File writeableFolder) {
-        return Realm.create(writeableFolder, DEFAULT_REALM_NAME);
+    /**
+     * Realm static constructor
+     * @param writableFolder absolute path to a writable directory
+     * @return an instance of the Realm class
+     */
+    public static Realm getInstance(File writableFolder) {
+        return Realm.create(writableFolder, DEFAULT_REALM_NAME);
     }
 
+    /**
+     * Realm static constructor
+     * @param writableFolder absolute path to a writable directory
+     * @param filename the name of the file to save the Realm to
+     * @return an instance of the Realm class
+     */
     public static Realm create(File writableFolder, String filename) {
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
         return create(absolutePath);

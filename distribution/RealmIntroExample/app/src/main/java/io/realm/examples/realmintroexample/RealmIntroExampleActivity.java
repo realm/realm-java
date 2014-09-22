@@ -66,7 +66,7 @@ public class RealmIntroExampleActivity extends Activity {
         showStatus("Performing basic Read/Write operation...");
 
         // Open a default realm
-        Realm realm = Realm.create(this);
+        Realm realm = Realm.getInstance(this);
 
         // Add a person in a write transaction
         realm.beginWrite();
@@ -83,7 +83,7 @@ public class RealmIntroExampleActivity extends Activity {
     private void basicQuery() throws java.io.IOException {
         showStatus("\nPerforming basic Query operation...");
 
-        Realm realm = Realm.create(this);
+        Realm realm = Realm.getInstance(this);
         showStatus("Number of persons: " + realm.allObjects(Person.class).size());
         RealmResults<Person> results = realm.where(Person.class).equalTo("age", 99).findAll();
         showStatus("Size of result set: " + results.size());
@@ -93,7 +93,7 @@ public class RealmIntroExampleActivity extends Activity {
         showStatus("\nPerforming basic Update operation...");
 
         // Open a default realm
-        Realm realm = Realm.create(this);
+        Realm realm = Realm.getInstance(this);
 
         // Get the first object
         Person person = realm.where(Person.class).findFirst();
@@ -118,7 +118,7 @@ public class RealmIntroExampleActivity extends Activity {
         String status = "\nPerforming complex Read/Write operation...";
 
         // Open a default realm
-        Realm realm = Realm.create(this);
+        Realm realm = Realm.getInstance(this);
 
         // Add ten persons in one write transaction
         realm.beginWrite();
@@ -170,7 +170,7 @@ public class RealmIntroExampleActivity extends Activity {
     private String complexQuery() throws IOException {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = Realm.create(this);
+        Realm realm = Realm.getInstance(this);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
 
         // Find all persons where age between 7 and 9 and name begins with "Person".
