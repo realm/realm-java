@@ -1,3 +1,6 @@
+apply plugin: 'maven'
+apply plugin: 'signing'
+
 buildscript {
     repositories {
         mavenCentral()
@@ -15,4 +18,67 @@ allprojects {
   repositories {
     mavenCentral()
   }
+}
+
+
+task distribution {
+    javadoc       = file('realm/build/libs/realm-${version}-javadoc.jar')
+    realmclasses  = file('realm/build/outputs/aar/realm-${version}.aar')
+    annotation    = file('realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar')
+}
+
+artifacts {
+    archives file: distribution.javadoc, name: 'realm-${version}-javadoc', type: 'jar', builtBy: distribution
+    archives file: distribution.realmclasses, name: 'realm-${version}', type: 'aar', builtBy: distribution
+    archives file: distribution.annotation, name: 'realm-annotations-process-${version}', type: 'jar', builtBy: distribution
+}
+
+signing {
+    sign configurations.archives
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'Realm'
+                packaging 'jar'
+                // optionally artifactId can be defined here 
+                description 'Realm is a fast, embedded database.'
+                url 'http://realm.io'
+
+                scm {
+                    connection 'scm:git:https://github.com/Realm/realm-java.git'
+                    developerConnection 'scm:git:https://github.com/Realm/realm-java.git'
+                    url 'https://github.com/Realm/realm-java.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'kneth'
+                        name 'Kenneth Geisshirt'
+                        email 'kg@realm.io'
+                    }
+                }
+            }
+        }
+    }
 }
