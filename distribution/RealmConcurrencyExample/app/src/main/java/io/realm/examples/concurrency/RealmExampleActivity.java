@@ -2,7 +2,6 @@ package io.realm.examples.concurrency;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -30,7 +29,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_example);
 
-        findViewById(R.id.add_pet_button).setOnClickListener(this);
+        findViewById(R.id.add_record_button).setOnClickListener(this);
 
         try {
             realm = new Realm(getFilesDir());
