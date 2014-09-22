@@ -1,31 +1,18 @@
-package io.realm.examples.realmintroexample;
+package io.realm.examples.intro;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.GridView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import io.realm.Realm;
-import io.realm.RealmResults;
-import io.realm.examples.realmintroexample.adapters.TileAdapter;
-import io.realm.examples.realmintroexample.examples.BasicExampleFragment;
-import io.realm.examples.realmintroexample.examples.ComplexExampleFragment;
-import io.realm.examples.realmintroexample.model.Cat;
-import io.realm.examples.realmintroexample.model.Dog;
-import io.realm.examples.realmintroexample.model.Person;
-
+import io.realm.examples.intro.adapters.TileAdapter;
+import io.realm.examples.intro.fragments.BasicExampleFragment;
+import io.realm.examples.intro.fragments.ComplexExampleFragment;
 
 public class RealmIntroExampleActivity extends Activity {
 
     public static final String TAG = RealmIntroExampleActivity.class.getName();
-
-    private LinearLayout rootLayout = null;
 
     private TileAdapter mAdapter = null;
 
@@ -38,7 +25,7 @@ public class RealmIntroExampleActivity extends Activity {
         List<TileAdapter.RealmExample> list = buildExamples();
         mAdapter.setData(list);
 
-        GridView gridView = (GridView)findViewById(R.id.examples_list);
+        GridView gridView = (GridView) findViewById(R.id.examples_list);
         gridView.setVerticalSpacing(10);
         gridView.setHorizontalSpacing(10);
         gridView.setAdapter(mAdapter);

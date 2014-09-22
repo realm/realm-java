@@ -1,4 +1,4 @@
-package io.realm.examples.realmintroexample.adapters;
+package io.realm.examples.intro.adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,8 +11,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import io.realm.examples.realmintroexample.ContainerActivity;
-import io.realm.examples.realmintroexample.R;
+import io.realm.examples.intro.ContainerActivity;
+import io.realm.examples.intro.R;
 
 public class TileAdapter extends BaseAdapter {
 

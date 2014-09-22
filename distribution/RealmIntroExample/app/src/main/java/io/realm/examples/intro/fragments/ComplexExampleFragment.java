@@ -1,4 +1,4 @@
-package io.realm.examples.realmintroexample.examples;
+package io.realm.examples.intro.fragments;
 
 import android.app.Fragment;
 import android.os.AsyncTask;
@@ -14,10 +14,10 @@ import java.io.IOException;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
-import io.realm.examples.realmintroexample.R;
-import io.realm.examples.realmintroexample.model.Cat;
-import io.realm.examples.realmintroexample.model.Dog;
-import io.realm.examples.realmintroexample.model.Person;
+import io.realm.examples.intro.R;
+import io.realm.examples.intro.model.Cat;
+import io.realm.examples.intro.model.Dog;
+import io.realm.examples.intro.model.Person;
 
 public class ComplexExampleFragment extends Fragment {
 
@@ -29,6 +29,7 @@ public class ComplexExampleFragment extends Fragment {
         ComplexExampleFragment fragment = new ComplexExampleFragment();
         return fragment;
     }
+
     public ComplexExampleFragment() {
         // Required empty public constructor
     }
@@ -38,7 +39,7 @@ public class ComplexExampleFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_basic_example, null);
 
-        rootLayout = (LinearLayout)rootView.findViewById(R.id.container);
+        rootLayout = (LinearLayout) rootView.findViewById(R.id.container);
 
         //More complex operations should not be
         //executed on the UI thread.
