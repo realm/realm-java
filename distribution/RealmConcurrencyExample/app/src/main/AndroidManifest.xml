@@ -17,6 +17,12 @@
         </activity>
 
         <service
+            android:name=".BgSpawningService"
+            android:enabled="true"
+            android:exported="false"
+            android:label="Realm Service" />
+
+        <service
             android:name=".BgService"
             android:enabled="true"
             android:exported="false"

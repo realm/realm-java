@@ -21,11 +21,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
 
     public static final String TAG = RealmExampleActivity.class.getName();
 
-    public static final String UPDATE_UI_CALLBACK = "UPDATE_UI_CALLBACK";
-
     private Realm realm = null;
-
-    private BgThread bgThread = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +32,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
 
         try {
             realm = new Realm(getFilesDir());
-
             //This is just to create the tables in Realm
-
             realm.beginWrite();
             Person person = realm.create(Person.class);
             person.setName("Human Being");
@@ -47,19 +41,13 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
             dog.setName("Fido");
             realm.commit();
         } catch (IOException e) {
-
+            e.printStackTrace();
         }
-
-        bgThread = new BgThread(getFilesDir());
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-//        if(!bgThread.isAlive()) {
-//            bgThread.start();
-//        }
 
         Intent serviceIntent = new Intent(this, BgService.class);
         serviceIntent.putExtra(BgService.REALM_FILE_EXTRA, getFilesDir());
@@ -70,9 +58,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     public void onStop() {
         super.onStop();
 
-        //bgThread.interrupt();
-
-        Intent serviceIntent = new Intent(this, BgService.class);
+        Intent serviceIntent = new Intent(this, BgSpawningService.class);
         this.stopService(serviceIntent);
     }
 

@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class BgService extends IntentService {
 
-    public static final String TAG = BgService.class.getName();
+    public static final String TAG = BgSpawningService.class.getName();
 
     private Boolean serviceQuitting = false;
 
@@ -23,7 +23,7 @@ public class BgService extends IntentService {
     private File realmPath = null;
 
     public BgService() {
-        super(BgService.class.getName());
+        super(BgSpawningService.class.getName());
     }
 
     @Override
