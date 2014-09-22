@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-/* TODO: translate to new object syntax
-package io.realm.tests.api.entities;
+/* TODO: re-enable
+
+
+package io.realm.tests.typed.entities;
 
 import java.util.Date;
 

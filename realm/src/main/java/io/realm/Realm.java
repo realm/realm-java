@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -70,7 +71,7 @@ public class Realm {
         init();
     }
 
-    public Realm(File writeablePath) {
+    public Realm(File writeablePath) throws IOException {
         this(writeablePath, "default.realm");
     }
 
