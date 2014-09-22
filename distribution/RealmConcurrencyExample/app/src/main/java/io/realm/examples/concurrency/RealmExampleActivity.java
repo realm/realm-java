@@ -2,7 +2,9 @@ package io.realm.examples.concurrency;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,14 +34,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
 
         try {
             realm = new Realm(getFilesDir());
-            //This is just to create the tables in Realm
-            realm.beginWrite();
-            Person person = realm.create(Person.class);
-            person.setName("Human Being");
-            person.setAge(32);
-            Dog dog = realm.create(Dog.class);
-            dog.setName("Fido");
-            realm.commit();
+            initDb();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -51,6 +46,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
 
         Intent serviceIntent = new Intent(this, BgService.class);
         serviceIntent.putExtra(BgService.REALM_FILE_EXTRA, getFilesDir());
+        Log.d(TAG, "Starting service...");
         this.startService(serviceIntent);
     }
 
@@ -58,7 +54,8 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     public void onStop() {
         super.onStop();
 
-        Intent serviceIntent = new Intent(this, BgSpawningService.class);
+        Intent serviceIntent = new Intent(this, BgService.class);
+        Log.d(TAG, "Stopping service...");
         this.stopService(serviceIntent);
     }
 
@@ -72,6 +69,12 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_reload) {
+            Intent serviceIntent = new Intent(this, BgService.class);
+            Log.d(TAG, "Stopping service...");
+            this.stopService(serviceIntent);
+            serviceIntent.putExtra(BgService.REALM_FILE_EXTRA, getFilesDir());
+            Log.d(TAG, "Re-Starting service...");
+            this.startService(serviceIntent);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -109,5 +112,16 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
 
         realm.commit();
 
+    }
+
+    //This is just to create the tables in Realm so that subsequent R/W operations do not fail
+    private void initDb() {
+        realm.beginWrite();
+        Person person = realm.create(Person.class);
+        person.setName("Human Being");
+        person.setAge(32);
+        Dog dog = realm.create(Dog.class);
+        dog.setName("Fido");
+        realm.commit();
     }
 }

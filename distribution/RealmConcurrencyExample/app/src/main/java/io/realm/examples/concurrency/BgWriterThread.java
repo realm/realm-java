@@ -9,7 +9,7 @@ import io.realm.Realm;
 import io.realm.examples.concurrency.model.Dog;
 import io.realm.examples.concurrency.model.Person;
 
-public class BgWriterThread extends Thread implements KillableThread{
+public class BgWriterThread extends Thread implements KillableThread {
 
     public static final String TAG = BgWriterThread.class.getName();
 
@@ -42,6 +42,7 @@ public class BgWriterThread extends Thread implements KillableThread{
     }
 
     private boolean running = true;
+
     @Override
     public void terminate() {
         running = false;

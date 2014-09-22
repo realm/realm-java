@@ -2,6 +2,7 @@ package io.realm.examples.concurrency;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.util.Log;
 
 import io.realm.Realm;
@@ -55,6 +56,7 @@ public class BgService extends IntentService {
             Log.d(TAG, "Quitting Service");
             e.printStackTrace();
         }
+        Log.d(TAG, "Service has quit");
     }
 
     @Override

@@ -23,22 +23,23 @@ public class BgReaderThread extends Thread implements KillableThread {
     public void run() {
         try {
             realm = new Realm(realmDir);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        while(running) {
+        while (running) {
             try {
                 RealmQuery realmQuery = realm.where(Person.class);
                 List<Person> list = realmQuery.findAll();
                 Log.d(TAG, "First item: " + realmQuery.findFirst());
-            } catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
     private boolean running = true;
+
     @Override
     public void terminate() {
         running = false;

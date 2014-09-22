@@ -2,6 +2,7 @@ package io.realm.examples.concurrency;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -30,7 +31,7 @@ public class BgSpawningService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        this.realmPath = (File) intent.getSerializableExtra(REALM_FILE_EXTRA);
+        this.realmPath = (File)intent.getSerializableExtra(REALM_FILE_EXTRA);
         try {
             allThreads = new ArrayList<KillableThread>();
             wT = new BgWriterThread(realmPath);
@@ -48,7 +49,7 @@ public class BgSpawningService extends Service {
     @Override
     public void onDestroy() {
         this.serviceQuitting = true;
-        for(KillableThread t : allThreads) {
+        for (KillableThread t : allThreads) {
             t.terminate();
         }
     }
