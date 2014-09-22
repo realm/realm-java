@@ -1,4 +1,4 @@
-package io.realm.examples.intro.fragments;
+package io.realm.examples.intro.api_examples;
 
 import android.os.Bundle;
 import android.app.Fragment;

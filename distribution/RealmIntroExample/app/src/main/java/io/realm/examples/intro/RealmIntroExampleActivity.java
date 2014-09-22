@@ -7,8 +7,8 @@ import android.widget.GridView;
 import java.util.ArrayList;
 import java.util.List;
 import io.realm.examples.intro.adapters.TileAdapter;
-import io.realm.examples.intro.fragments.BasicExampleFragment;
-import io.realm.examples.intro.fragments.ComplexExampleFragment;
+import io.realm.examples.intro.api_examples.BasicExampleFragment;
+import io.realm.examples.intro.api_examples.ComplexExampleFragment;
 
 public class RealmIntroExampleActivity extends Activity {
 
