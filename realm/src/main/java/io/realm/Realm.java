@@ -19,7 +19,7 @@ package io.realm;
 import android.content.Context;
 
 import java.io.File;
-import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,13 +40,15 @@ import io.realm.internal.Table;
 public class Realm {
 
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
+    public static final String DEFAULT_REALM_NAME = "default.realm";
+    private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
 
-    private SharedGroup sg;
+    private SharedGroup sharedGroup;
     private ImplicitTransaction transaction;
     private String filePath;
     private int version;
-    private File bytecodeCache;
-    private ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService scheduledExecutorService
+            = Executors.newSingleThreadScheduledExecutor();
 
     private Map<Class<?>, String> generatedClassNames = new HashMap<Class<?>, String>();
     private Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>();
@@ -59,42 +61,23 @@ public class Realm {
     private List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     boolean runEventHandler = false;
 
-    public Realm(Context context) {
-        File filesDir = context.getFilesDir();
-        this.filePath = new File(filesDir, "default.realm").getAbsolutePath();
-        init();
-    }
-
-    public Realm(Context context, String filePath) {
-        File filesDir = context.getFilesDir();
-        this.filePath = new File(filesDir, filePath).getAbsolutePath();
-        init();
-    }
-
-    public Realm(File writeablePath) throws IOException {
-        this(writeablePath, "default.realm");
-    }
-
-    public Realm(File writeablePath, String filePath) {
-        this.filePath = new File(writeablePath, filePath).getAbsolutePath();
-        init();
+    // The constructor in private to enforce the use of the static one
+    private Realm(String absolutePath) {
+        this.filePath = absolutePath;
+        this.sharedGroup = new SharedGroup(filePath, defaultDurability);
+        this.transaction = sharedGroup.beginImplicitTransaction();
     }
 
     private void startEventHandler() {
         runEventHandler = true;
         RealmEventHandler realmEventHandler = new RealmEventHandler(this);
-        ses.scheduleWithFixedDelay(realmEventHandler, 0, 100, TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(realmEventHandler, 0, 100, TimeUnit.MILLISECONDS);
     }
 
     @Override
     protected void finalize() throws Throwable {
         transaction.endRead();
         super.finalize();
-    }
-
-    private void init() {
-        this.sg = new SharedGroup(filePath, defaultDurability);
-        this.transaction = sg.beginImplicitTransaction();
     }
 
     public static void setDefaultDurability(SharedGroup.Durability durability) {
@@ -113,12 +96,84 @@ public class Realm {
     }
 
     /**
+     * Realm static constructor
+     * @param context an Android context
+     * @return an instance of the Realm class
+     */
+    public static Realm getInstance(Context context) {
+        return Realm.getInstance(context, DEFAULT_REALM_NAME);
+    }
+
+    /**
+     * Realm static constructor
+     * @param context an Android context
+     * @param fileName the name of the file to save the Realm to
+     * @return an instance of the Realm class
+     */
+    public static Realm getInstance(Context context, String fileName) {
+        return Realm.create(context.getFilesDir(), fileName);
+    }
+
+    /**
+     * Realm static constructor
+     * @param writableFolder absolute path to a writable directory
+     * @return an instance of the Realm class
+     */
+    public static Realm getInstance(File writableFolder) {
+        return Realm.create(writableFolder, DEFAULT_REALM_NAME);
+    }
+
+    /**
+     * Realm static constructor
+     * @param writableFolder absolute path to a writable directory
+     * @param filename the name of the file to save the Realm to
+     * @return an instance of the Realm class
+     */
+    public static Realm create(File writableFolder, String filename) {
+        String absolutePath = new File(writableFolder, filename).getAbsolutePath();
+        return create(absolutePath);
+    }
+
+    private static Realm create(String absolutePath) {
+        ThreadRealm threadRealm = realms.get(absolutePath);
+        if (threadRealm == null) {
+            threadRealm = new ThreadRealm(absolutePath);
+            realms.put(absolutePath, threadRealm);
+        }
+        SoftReference<Realm> realmSoftReference = threadRealm.get();
+        Realm realm = realmSoftReference.get();
+        if (realm == null) {
+            // The garbage collector decided to get rid of the realm instance
+            threadRealm = new ThreadRealm(absolutePath);
+            realms.put(absolutePath, threadRealm);
+            realmSoftReference = threadRealm.get();
+            realm = realmSoftReference.get();
+        }
+        return realm;
+    }
+
+    // This class stores soft-references to realm objects per thread per realm file
+    private static class ThreadRealm extends ThreadLocal<SoftReference<Realm>> {
+        private String absolutePath;
+
+        private ThreadRealm(String absolutePath) {
+            this.absolutePath = absolutePath;
+        }
+
+        @Override
+        protected SoftReference<Realm> initialValue() {
+            Realm realm = new Realm(absolutePath);
+            return new SoftReference<Realm>(realm);
+        }
+    }
+
+    /**
      * Instantiates and adds a new object to the realm
      *
      * @return              The new object
      * @param <E>
      */
-    public <E extends RealmObject> E create(Class<E> clazz) {
+    public <E extends RealmObject> E createObject(Class<E> clazz) {
         Table table;
         table = tables.get(clazz);
         if (table == null) {
@@ -464,7 +519,7 @@ public class Realm {
     }
 
     boolean hasChanged() {
-        return sg.hasChanged();
+        return sharedGroup.hasChanged();
     }
 
     // Transactions
@@ -479,7 +534,7 @@ public class Realm {
     public void beginWrite() {
 
         // If we are moving the transaction forward, send local notifications
-        if (sg.hasChanged()) {
+        if (sharedGroup.hasChanged()) {
             sendNotifications();
         }
 
@@ -501,14 +556,6 @@ public class Realm {
         getTable(classSpec).clear();
     }
 
-    public void clear() {
-        transaction.endRead();
-        sg.close();
-        new File(filePath).delete();
-        new File(filePath+".lock").delete();
-        init();
-    }
-
     public int getVersion() {
         return version;
     }
@@ -517,8 +564,7 @@ public class Realm {
         this.version = version;
     }
 
-    private File getBytecodeCache() {
-        return bytecodeCache;
+    public String getFilePath() {
+        return filePath;
     }
-
 }
