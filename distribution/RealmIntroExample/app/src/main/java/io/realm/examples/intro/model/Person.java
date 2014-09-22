@@ -2,6 +2,7 @@ package io.realm.examples.intro.model;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
 
 public class Person extends RealmObject {
 
@@ -9,6 +10,9 @@ public class Person extends RealmObject {
     private int age;
     private Dog dog;
     private RealmList<Cat> cats;
+
+    @Ignore
+    private int tempReference;
 
     public String getName() {
         return name;
@@ -41,4 +45,14 @@ public class Person extends RealmObject {
     public void setCats(RealmList<Cat> cats) {
         this.cats = cats;
     }
+
+    public int getTempReference() {
+        return tempReference;
+    }
+
+    public void setTempReference(int tempReference) {
+        this.tempReference = tempReference;
+    }
+
+
 }

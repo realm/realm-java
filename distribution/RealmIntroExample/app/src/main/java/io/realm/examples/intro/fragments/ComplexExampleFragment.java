@@ -87,6 +87,13 @@ public class ComplexExampleFragment extends Fragment {
             person.setName("Person no. " + i);
             person.setAge(i);
             person.setDog(fido);
+
+            // The field tempReference is annotated with @Ignore.
+            // This means setTempReference sets the Person tempReference
+            // field directly. The tempReference is NOT saved as part of
+            // the RealmObject:
+            person.setTempReference(42);
+
             for (int j = 0; j < i; j++) {
                 Cat cat = realm.create(Cat.class);
                 cat.setName("Cat_" + j);
@@ -107,6 +114,12 @@ public class ComplexExampleFragment extends Fragment {
                 dogName = pers.getDog().getName();
             }
             status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName + " : " + pers.getCats().size();
+
+            // The field tempReference is annotated with @Ignore
+            // Though we initially set its value to 42, it has
+            // not been saved as part of the Person RealmObject:
+            assert(pers.getTempReference() == 0);
+
         }
 
         return status;
