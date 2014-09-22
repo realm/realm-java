@@ -1,4 +1,4 @@
-package io.realm.examples.realmintroexample.model;
+package io.realm.examples.intro.model;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;

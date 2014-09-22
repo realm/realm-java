@@ -6,7 +6,7 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "io.realm.examples.realmintroexample"
+        applicationId "io.realm.examples.intro"
         minSdkVersion 14
         targetSdkVersion 20
         versionCode 1
