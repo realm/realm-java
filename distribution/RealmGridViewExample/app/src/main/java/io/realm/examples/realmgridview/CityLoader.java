@@ -8,9 +8,11 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 
 import io.realm.Realm;
@@ -53,13 +55,25 @@ public class CityLoader extends AsyncTaskLoader<List<City>> {
 
         dataIsReady = true;
 
+        // Delete realm files
+        File writablePath = context.getFilesDir();
+        for (File file : Arrays.asList(
+                new File(writablePath, Realm.DEFAULT_REALM_NAME),
+                new File(writablePath, Realm.DEFAULT_REALM_NAME + ".lock"))) {
+            if (file.exists()) {
+                boolean deleteResult = file.delete();
+                if (!deleteResult) {
+                    throw new AssertionError("Could not delete file: " + file.getAbsolutePath());
+                }
+            }
+        }
+
         //Store the retrieved items to the Realm
-        Realm realm = new Realm(context);
-        realm.clear(); //Delete the Realm (in the event of a Reset)
+        Realm realm = Realm.create(context);
 
         realm.beginWrite();
         for (City city : items) {
-            City realmCity = realm.create(City.class);
+            City realmCity = realm.createObject(City.class);
             realmCity.setName(city.getName());
             realmCity.setVotes(city.getVotes());
         }

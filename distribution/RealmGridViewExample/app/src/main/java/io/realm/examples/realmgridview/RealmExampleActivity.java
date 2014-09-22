@@ -63,7 +63,7 @@ public class RealmExampleActivity extends Activity implements LoaderManager.Load
     }
 
     public void updateCities() {
-        Realm realm = new Realm(this);
+        Realm realm = Realm.create(this);
         RealmResults<City> cities = realm.where(City.class).findAll();
         mAdapter.setData(cities);
 
@@ -104,7 +104,7 @@ public class RealmExampleActivity extends Activity implements LoaderManager.Load
         City modifiedCity = (City) mAdapter.getItem(position);
 
         //Update the realm object affected by the user
-        Realm realm = new Realm(this);
+        Realm realm = Realm.create(this);
         RealmQuery<City> query = realm.where(City.class).beginsWith("name", modifiedCity.getName());
         City city = query.findFirst();
         realm.beginWrite();

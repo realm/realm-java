@@ -66,11 +66,11 @@ public class RealmIntroExampleActivity extends Activity {
         showStatus("Performing basic Read/Write operation...");
 
         // Open a default realm
-        Realm realm = new Realm(this);
+        Realm realm = Realm.create(this);
 
         // Add a person in a write transaction
         realm.beginWrite();
-        Person person = realm.create(Person.class);
+        Person person = realm.createObject(Person.class);
         person.setName("Happy Person");
         person.setAge(14);
         realm.commit();
@@ -83,7 +83,7 @@ public class RealmIntroExampleActivity extends Activity {
     private void basicQuery() throws java.io.IOException {
         showStatus("\nPerforming basic Query operation...");
 
-        Realm realm = new Realm(this);
+        Realm realm = Realm.create(this);
         showStatus("Number of persons: " + realm.allObjects(Person.class).size());
         RealmResults<Person> results = realm.where(Person.class).equalTo("age", 99).findAll();
         showStatus("Size of result set: " + results.size());
@@ -93,7 +93,7 @@ public class RealmIntroExampleActivity extends Activity {
         showStatus("\nPerforming basic Update operation...");
 
         // Open a default realm
-        Realm realm = new Realm(this);
+        Realm realm = Realm.create(this);
 
         // Get the first object
         Person person = realm.where(Person.class).findFirst();
@@ -118,19 +118,19 @@ public class RealmIntroExampleActivity extends Activity {
         String status = "\nPerforming complex Read/Write operation...";
 
         // Open a default realm
-        Realm realm = new Realm(this);
+        Realm realm = Realm.create(this);
 
         // Add ten persons in one write transaction
         realm.beginWrite();
-        Dog fido = realm.create(Dog.class);
+        Dog fido = realm.createObject(Dog.class);
         fido.setName("fido");
         for (int i = 0; i < 10; i++) {
-            Person person = realm.create(Person.class);
+            Person person = realm.createObject(Person.class);
             person.setName("Person no. " + i);
             person.setAge(i);
             person.setDog(fido);
             for (int j = 0; j < i; j++) {
-                Cat cat = realm.create(Cat.class);
+                Cat cat = realm.createObject(Cat.class);
                 cat.setName("Cat_" + j);
                 person.getCats().add(cat);
             }
@@ -157,7 +157,7 @@ public class RealmIntroExampleActivity extends Activity {
     private String complexQuery() throws IOException {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = new Realm(this);
+        Realm realm = Realm.create(this);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
 
         // Find all persons where age between 7 and 9 and name begins with "Person".
