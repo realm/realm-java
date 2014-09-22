@@ -44,19 +44,14 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     public void onResume() {
         super.onResume();
 
-        Intent serviceIntent = new Intent(this, BgService.class);
-        serviceIntent.putExtra(BgService.REALM_FILE_EXTRA, getFilesDir());
-        Log.d(TAG, "Starting service...");
-        this.startService(serviceIntent);
+        start();
     }
 
     @Override
     public void onStop() {
         super.onStop();
 
-        Intent serviceIntent = new Intent(this, BgService.class);
-        Log.d(TAG, "Stopping service...");
-        this.stopService(serviceIntent);
+        stop();
     }
 
     @Override
@@ -69,12 +64,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_reload) {
-            Intent serviceIntent = new Intent(this, BgService.class);
-            Log.d(TAG, "Stopping service...");
-            this.stopService(serviceIntent);
-            serviceIntent.putExtra(BgService.REALM_FILE_EXTRA, getFilesDir());
-            Log.d(TAG, "Re-Starting service...");
-            this.startService(serviceIntent);
+            restart();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -123,5 +113,23 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
         Dog dog = realm.create(Dog.class);
         dog.setName("Fido");
         realm.commit();
+    }
+
+    private void start() {
+        Intent serviceIntent = new Intent(this, BgService.class);
+        serviceIntent.putExtra(BgService.REALM_FILE_EXTRA, getFilesDir());
+        Log.d(TAG, "Starting service...");
+        this.startService(serviceIntent);
+    }
+
+    private void stop() {
+        Intent serviceIntent = new Intent(this, BgService.class);
+        Log.d(TAG, "Stopping service...");
+        this.stopService(serviceIntent);
+    }
+
+    private void restart() {
+        stop();
+        start();
     }
 }

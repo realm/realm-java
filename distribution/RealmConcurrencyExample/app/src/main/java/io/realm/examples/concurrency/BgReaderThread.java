@@ -24,6 +24,7 @@ public class BgReaderThread extends Thread implements KillableThread {
         try {
             realm = new Realm(realmDir);
         } catch (Exception e) {
+            terminate();
             e.printStackTrace();
         }
 
@@ -34,6 +35,7 @@ public class BgReaderThread extends Thread implements KillableThread {
                 Log.d(TAG, "First item: " + realmQuery.findFirst());
             } catch (Exception e) {
                 e.printStackTrace();
+                terminate();
             }
         }
     }

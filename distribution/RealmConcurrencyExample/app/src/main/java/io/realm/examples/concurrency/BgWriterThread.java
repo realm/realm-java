@@ -38,6 +38,7 @@ public class BgWriterThread extends Thread implements KillableThread {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            terminate();
         }
     }
 

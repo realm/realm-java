@@ -2,7 +2,6 @@ package io.realm.examples.concurrency;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -42,21 +41,26 @@ public class BgSpawningService extends Service {
             rT.start();
         } catch (Exception e) {
             e.printStackTrace();
+            quit();
         }
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
-        this.serviceQuitting = true;
-        for (KillableThread t : allThreads) {
-            t.terminate();
-        }
+        quit();
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private void quit() {
+        this.serviceQuitting = true;
+        for (KillableThread t : allThreads) {
+            t.terminate();
+        }
     }
 
 }
