@@ -210,7 +210,8 @@ public class RealmSourceCodeGenerator {
 
                 // Getter
                 writer.emitAnnotation("Override");
-                writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
+                String getterPrefix = fieldTypeCanonicalName.equals("boolean")?"is":"get";
+                writer.beginMethod(fieldTypeCanonicalName, getterPrefix + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
                         "return (%s) realmGetRow().get%s(%d)",
                         fieldTypeCanonicalName, realmType, columnNumber);
@@ -350,8 +351,10 @@ public class RealmSourceCodeGenerator {
         writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", className);
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            String getterPrefix = fieldTypeCanonicalName.equals("boolean")?"is":"get";
             writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
-            writer.emitStatement("stringBuilder.append(get%s())", capitaliseFirstChar(fieldName));
+            writer.emitStatement("stringBuilder.append(%s%s())", getterPrefix, capitaliseFirstChar(fieldName));
             writer.emitStatement("stringBuilder.append(\"} \")", fieldName);
         }
         writer.emitStatement("stringBuilder.append(\"]\")");
