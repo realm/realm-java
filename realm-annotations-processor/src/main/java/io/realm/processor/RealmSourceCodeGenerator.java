@@ -136,8 +136,6 @@ public class RealmSourceCodeGenerator {
         HASHCODE.put("double", new String[] {
                 "long temp_%d = Double.doubleToLongBits(get%s())",
                 "result = 31 * result + (int) (temp_%d ^ (temp_%d >>> 32))" });
-        HASHCODE.put("boolean", new String[] {
-                "result = 31 * result + (get%s() ? 1 : 0)" });
         HASHCODE.put("Byte", new String[] {
                 "result = 31 * result + (int) get%s()" });
         HASHCODE.put("Short", new String[] {
@@ -400,7 +398,7 @@ public class RealmSourceCodeGenerator {
                 }
             } else {
                 // Links and Link lists
-                writer.emitStatement("%s temp_%d = get%s()", fieldTypeCanonicalName, counter, fieldName);
+                writer.emitStatement("%s temp_%d = get%s()", fieldTypeCanonicalName, counter, capitaliseFirstChar(fieldName));
                 writer.emitStatement("result = 31 * result + (temp_%d != null ? temp_%d.hashCode() : 0)", counter, counter);
             }
             counter++;
