@@ -164,6 +164,29 @@ public class RealmSourceCodeGenerator {
                 "result = 31 * result + (aByteArray_%d != null ? Arrays.hashCode(aByteArray_%d) : 0)" });
     }
 
+    private static final Map<String, Integer> HOW_TO_EQUAL;
+
+    static {
+        HOW_TO_EQUAL = new HashMap<String, Integer>();
+        HOW_TO_EQUAL.put("boolean", 0);  // compare values directly
+        HOW_TO_EQUAL.put("byte", 0);
+        HOW_TO_EQUAL.put("short", 0);
+        HOW_TO_EQUAL.put("int", 0);
+        HOW_TO_EQUAL.put("long", 0);
+        HOW_TO_EQUAL.put("float", 3); // compare using compare method
+        HOW_TO_EQUAL.put("double", 3);
+        HOW_TO_EQUAL.put("Byte", 0);
+        HOW_TO_EQUAL.put("Short", 0);
+        HOW_TO_EQUAL.put("Integer", 0);
+        HOW_TO_EQUAL.put("Long", 0);
+        HOW_TO_EQUAL.put("Float", 0);
+        HOW_TO_EQUAL.put("Double", 0);
+        HOW_TO_EQUAL.put("Boolean", 0);
+        HOW_TO_EQUAL.put("java.lang.String", 1); // check for null
+        HOW_TO_EQUAL.put("java.util.Date", 1);
+        HOW_TO_EQUAL.put("byte[]", 2); // compare using array
+    }
+
     public void generate() throws IOException, UnsupportedOperationException {
         String qualifiedGeneratedClassName = String.format("%s.%sRealmProxy", packageName, className);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
@@ -414,8 +437,42 @@ public class RealmSourceCodeGenerator {
         writer.beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o");
         writer.emitStatement("if (this == o) return true");
         writer.emitStatement("if (o == null || getClass() != o.getClass()) return false");
-        writer.emitStatement(className + " a" + className + " = (" + className + ")o");  // Foo aFoo = (Foo)o
-        writer.emitStatement("return (hashCode() == a" + className + ".hashCode())"); // return (hashCode() == aFoo.hashCode())
+        writer.emitStatement("%s a%s = (%s)o", className, className, className);  // Foo aFoo = (Foo)o
+
+        for (VariableElement field : fields) {
+            String fieldName = field.getSimpleName().toString();
+            String capFieldName = capitaliseFirstChar(fieldName);
+            String fieldTypeCanonicalName = field.asType().toString();
+            switch (HOW_TO_EQUAL.get(fieldTypeCanonicalName)) {
+                case 0: // if (getField() != aFoo.getField()) return false
+                    writer.emitStatement("if (get%s() != a%s.get%s()) return false", capFieldName, className, capFieldName);
+                    break;
+                case 1: // if (getField() != null = !getField().equals(aFoo.getField()) : aFoo.getField() != null) return false
+                    writer.emitStatement("if (get%s() != null ? !get%s().equals(a%s.get%s()) : a%s.get%s() != null) return false",
+                            capFieldName,
+                            capFieldName, className, capFieldName,
+                            className, capFieldName);
+                    break;
+                case 2: // if (!Array.equals(getField(), aFoo.getField()) return false
+                    writer.emitStatement("if (!Array.equals(get%s(), a%s.get%s()) return false",
+                            capFieldName,
+                            className, capFieldName);
+                    break;
+                case 3:
+                    writer.emitStatement("if (%s.compare(get%s, %s.get%s) != 0) return false", capitaliseFirstChar(fieldName), className, capitaliseFirstChar(fieldName));
+                    break;
+            }
+
+            // TODO: Can object and list be added to HOW_TO_EQUAL?
+            if (typeUtils.isAssignable(field.asType(), realmObject) || typeUtils.isAssignable(field.asType(), realmList)) {
+                writer.emitStatement("if (get%s() != null ? !get%s().equals(%s.get%s()) : %s.get%s() != null) return false",
+                        capFieldName,
+                        capFieldName, className, capFieldName,
+                        className, capFieldName);
+
+            }
+        }
+        writer.emitStatement("return true");
         writer.endMethod();
         writer.emitEmptyLine();
 
