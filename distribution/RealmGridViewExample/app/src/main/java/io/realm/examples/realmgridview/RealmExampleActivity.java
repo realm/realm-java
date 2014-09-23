@@ -107,9 +107,9 @@ public class RealmExampleActivity extends Activity implements LoaderManager.Load
         Realm realm = Realm.getInstance(this);
         RealmQuery<City> query = realm.where(City.class).beginsWith("name", modifiedCity.getName());
         City city = query.findFirst();
-        realm.beginWrite();
+        realm.beginTransaction();
         city.setVotes(city.getVotes() + 1);
-        realm.commit();
+        realm.commitTransaction();
 
         updateCities();
     }
