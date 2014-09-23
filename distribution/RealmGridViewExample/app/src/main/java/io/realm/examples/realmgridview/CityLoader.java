@@ -71,13 +71,13 @@ public class CityLoader extends AsyncTaskLoader<List<City>> {
         //Store the retrieved items to the Realm
         Realm realm = Realm.getInstance(context);
 
-        realm.beginWrite();
+        realm.beginTransaction();
         for (City city : items) {
             City realmCity = realm.createObject(City.class);
             realmCity.setName(city.getName());
             realmCity.setVotes(city.getVotes());
         }
-        realm.commit();
+        realm.commitTransaction();
 
         return items;
     }
