@@ -54,12 +54,12 @@ public class RealmTest extends AndroidTestCase {
         });
 
         try {
-            realm.beginWrite();
+            realm.beginTransaction();
 
             // Insert
             for (int i = 0; i < 120; i++) {
 
-                User user = realm.create(User.class);
+                User user = realm.getInstance(User.class);
 
                 user.setId(i);
                 user.setName("Rasmus");
@@ -69,7 +69,7 @@ public class RealmTest extends AndroidTestCase {
 
             }
 
-            realm.commit();
+            realm.commitTransaction();
 
         } catch(Throwable t) {
             t.printStackTrace();
@@ -85,13 +85,13 @@ public class RealmTest extends AndroidTestCase {
 
         try {
 
-            realm.beginWrite();
+            realm.beginTransaction();
             users = realm.where(User.class).findAll();
             user1 = users.get(100);
 
             user1.setName("TestName");
 
-            realm.commit();
+            realm.commitTransaction();
 
         } catch(Throwable t) {
         }
@@ -112,12 +112,12 @@ public class RealmTest extends AndroidTestCase {
 
 
 
-        realm.beginWrite();
+        realm.beginTransaction();
         users = realm.where(User.class).findAll();
         user1 = users.get(100);
         user1.setId(100);
 
-        realm.commit();
+        realm.commitTransaction();
 
 
 
@@ -132,9 +132,9 @@ public class RealmTest extends AndroidTestCase {
 
     public void testCreate() {
 
-        realm.beginWrite();
+        realm.beginTransaction();
 
-        AllColumns obj = realm.create(AllColumns.class);
+        AllColumns obj = realm.getInstance(AllColumns.class);
 
         obj.setColumnString("dsfs");
         obj.setColumnLong(1);
@@ -144,7 +144,7 @@ public class RealmTest extends AndroidTestCase {
         obj.setColumnDate(new Date());
         obj.setColumnBinary(new byte[20]);
 
-        realm.commit();
+        realm.commitTransaction();
 
         RealmList<AllColumns> result = realm.where(AllColumns.class).findAll();
 
@@ -154,7 +154,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testAdd() {
 
-        realm.beginWrite();
+        realm.beginTransaction();
 
         AllColumns obj = new AllColumns();
 
@@ -176,7 +176,7 @@ public class RealmTest extends AndroidTestCase {
         realm.add(obj);
 
 
-        realm.commit();
+        realm.commitTransaction();
 
         assertEquals(1, realm.allObjects(AllColumns.class).size());
         assertEquals(1, realm.allObjects(User.class).size());
@@ -202,13 +202,13 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(false, realm.contains(Dog.class));
         assertEquals(false, realm.contains(User.class));
 
-        realm.beginWrite();
+        realm.beginTransaction();
 
-        Dog dog = realm.create(Dog.class);
+        Dog dog = realm.getInstance(Dog.class);
         dog.setName("Fido");
         dog.setOwners(users);
 
-        realm.commit();
+        realm.commitTransaction();
 
         Dog fido = realm.allObjects(Dog.class).first();
 
@@ -229,9 +229,9 @@ public class RealmTest extends AndroidTestCase {
         vuf.setName("Vuf");
         vuf.getOwners().add(user1);
 
-        realm.beginWrite();
+        realm.beginTransaction();
         realm.add(vuf);
-        realm.commit();
+        realm.commitTransaction();
 
         assertEquals(2, realm.allObjects(Dog.class).size());
         assertEquals(2, realm.allObjects(User.class).size());

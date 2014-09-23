@@ -44,7 +44,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void addObjectsToRealm() {
-        realm.beginWrite();
+        realm.beginTransaction();
 
         for(int i = 0; i < 10; i++) {
             AllColumns allColumns = new AllColumns();
@@ -67,7 +67,7 @@ public class RealmListTest extends AndroidTestCase {
             realm.add(allColumns);
         }
 
-        realm.commit();
+        realm.commitTransaction();
 
     }
 
@@ -84,7 +84,7 @@ public class RealmListTest extends AndroidTestCase {
         allColumns.setColumnBinary(new byte[20]);
 
 
-        realm.beginWrite();
+        realm.beginTransaction();
 
         RealmTableOrViewList<AllColumns> list = realm.allObjects(AllColumns.class);
 
@@ -93,7 +93,7 @@ public class RealmListTest extends AndroidTestCase {
         try {
             list.add(allColumns);
             fail("Should throw UnsupportedOperationException");
-            realm.commit();
+            realm.commitTransaction();
 
         } catch (UnsupportedOperationException e) {
             e.printStackTrace();
@@ -145,14 +145,14 @@ public class RealmListTest extends AndroidTestCase {
 
         addObjectsToRealm();
 
-        realm.beginWrite();
+        realm.beginTransaction();
 
         RealmList<AllColumns> allColumnsList = realm.allObjects(AllColumns.class);
 
         try {
             allColumnsList.remove(5);
             fail("Should throw UnsupportedOperationException");
-            realm.commit();
+            realm.commitTransaction();
         } catch(UnsupportedOperationException e) {
         }
 
@@ -162,7 +162,7 @@ public class RealmListTest extends AndroidTestCase {
 
         addObjectsToRealm();
 
-        realm.beginWrite();
+        realm.beginTransaction();
 
         RealmList<AllColumns> allColumnsList = realm.allObjects(AllColumns.class);
 
@@ -170,7 +170,7 @@ public class RealmListTest extends AndroidTestCase {
 
             allColumnsList.remove(allColumnsList.get(5));
             fail("Should throw UnsupportedOperationException");
-            realm.commit();
+            realm.commitTransaction();
 
         } catch(UnsupportedOperationException e) {
         }
