@@ -568,21 +568,21 @@ public class Realm {
     }
 
     /**
-     * Delete all Realm related files from the filesystem for the default Realm
+     * Delete the Realm file from the filesystem for the default Realm
      * @param context an Android context
-     * @return false if any of the files could not be deleted. The failing file will be logged.
+     * @return false if a file could not be deleted. The failing file will be logged.
      */
-    public static boolean deleteRealmFiles(Context context) {
-        return deleteRealmFiles(context, DEFAULT_REALM_NAME);
+    public static boolean deleteRealmFile(Context context) {
+        return deleteRealmFile(context, DEFAULT_REALM_NAME);
     }
 
     /**
-     * Delete all Realm related files from the filesystem for a custom Realm
+     * Delete the Realm file from the filesystem for a custom Realm
      * @param context an Android context
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm")
-     * @return false if any of the files could not be deleted. The failing file will be logged.
+     * @return false if a file could not be deleted. The failing file will be logged.
      */
-    public static boolean deleteRealmFiles(Context context, String fileName) {
+    public static boolean deleteRealmFile(Context context, String fileName) {
         boolean result = true;
         File writableFolder = context.getFilesDir();
         List<File> filesToDelete = Arrays.asList(
