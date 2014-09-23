@@ -1,4 +1,4 @@
-package io.realm.examples.performance.realm;
+package io.realm.examples.performance.greendao;
 
 import android.app.Activity;
 import android.os.AsyncTask;
@@ -11,24 +11,28 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import io.realm.Realm;
 import io.realm.examples.performance.R;
-import io.realm.examples.performance.model.Employee;
-import io.realm.examples.performance.sqlite.EmployeeDatabaseHelper;
 
+public class GreenDaoTestActivity extends Activity {
 
-public class RealmTestActivity extends Activity {
-
-    public static final String TAG = RealmTestActivity.class.getName();
+    public static final String TAG = GreenDaoTestActivity.class.getName();
 
     private LinearLayout rootLayout = null;
 
-    private EmployeeDatabaseHelper database = null;
+//    private DaoMaster daoMaster;
+//    private DaoSession daoSession;
+//    private EmployeeDao employeeDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_example);
+
+//        DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, "notes-db", null);
+//        db = helper.getWritableDatabase();
+//        daoMaster   = new DaoMaster(db);
+//        daoSession  = daoMaster.newSession();
+//        employeeDao = daoSession.getNoteDao();
 
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
@@ -55,31 +59,23 @@ public class RealmTestActivity extends Activity {
     private String testInserts() {
         long startTime = System.currentTimeMillis();
 
+        String ret = "";
         try {
-            for(int i = 0; i<NUM_TESTS; i++) {
-                Realm realm = new Realm(getFilesDir());
-                realm.beginWrite();
-                Employee employee = realm.create(Employee.class);
-                employee.setName("Name");
-                employee.setAge(14);
-                employee.setHired(1);
-                realm.commit();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "testInserts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+
+            ret += "testInserts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        } catch(Exception e) {}
+
+        try {
+
+            ret += "Completed "  + " inserts\n";
+        } catch(Exception e) {}
+        return ret;
     }
 
     private String testQueries() {
         long startTime = System.currentTimeMillis();
         try {
-            Realm realm = new Realm(getFilesDir());
-            List<Employee> results
-                    = realm.where(Employee.class)
-                    .equalTo("hired", 1)
-                    .between("age", 500, 50000)
-                    .equalTo("name", "Name").findAll();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -90,13 +86,7 @@ public class RealmTestActivity extends Activity {
         long startTime = System.currentTimeMillis();
 
         try {
-            Realm realm = new Realm(getFilesDir());
-            List<Employee> results
-                    = realm.where(Employee.class)
-                    .equalTo("hired", 1)
-                    .between("age", 500, 50000)
-                    .equalTo("name", "Name").findAll();
-            results.size();
+
         } catch (Exception e) {
             e.printStackTrace();
         }

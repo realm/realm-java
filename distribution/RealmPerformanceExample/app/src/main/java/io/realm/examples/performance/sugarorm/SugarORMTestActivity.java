@@ -12,11 +12,8 @@ import android.widget.TextView;
 import com.orm.query.Condition;
 import com.orm.query.Select;
 
-import io.realm.Realm;
 import io.realm.examples.performance.R;
-import io.realm.examples.performance.model.Employee;
 import io.realm.examples.performance.model.SugarEmployee;
-import io.realm.examples.performance.sqlite.SQLiteDatabase;
 
 
 public class SugarORMTestActivity extends Activity {
@@ -24,8 +21,6 @@ public class SugarORMTestActivity extends Activity {
     public static final String TAG = SugarORMTestActivity.class.getName();
 
     private LinearLayout rootLayout = null;
-
-    private SQLiteDatabase database = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,10 +53,9 @@ public class SugarORMTestActivity extends Activity {
         long startTime = System.currentTimeMillis();
 
         try {
-            for(int i = 0; i<NUM_TESTS; i++) {
+            for (int i = 0; i < NUM_TESTS; i++) {
                 SugarEmployee book = new SugarEmployee(SugarORMTestActivity.this, "Name", i, 1);
                 book.save();
-                book = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -86,7 +80,12 @@ public class SugarORMTestActivity extends Activity {
         long startTime = System.currentTimeMillis();
 
         try {
-            SugarEmployee.count(SugarEmployee.class, "WHERE hired = 1 AND age >= 500 AND age <= 50000 AND name = 'Name'", null);
+            Select outcome = Select.from(SugarEmployee.class)
+                    .where(Condition.prop("name").eq("Name"),
+                            Condition.prop("age").gt(500).lt(50000),
+                            Condition.prop("hired").eq(1));
+            outcome.list().size();
+            //SugarEmployee.count(SugarEmployee.class, "WHERE hired = 1 AND age >= 500 AND age <= 50000 AND name = 'Name'", null);
         } catch (Exception e) {
             e.printStackTrace();
         }

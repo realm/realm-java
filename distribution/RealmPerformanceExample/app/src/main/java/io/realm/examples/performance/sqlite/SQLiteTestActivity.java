@@ -20,14 +20,14 @@ public class SQLiteTestActivity extends Activity {
 
     private LinearLayout rootLayout = null;
 
-    private SQLiteDatabase database = null;
+    private EmployeeDatabaseHelper database = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_example);
 
-        database = new SQLiteDatabase(this);
+        database = new EmployeeDatabaseHelper(this);
 
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
@@ -36,7 +36,7 @@ public class SQLiteTestActivity extends Activity {
             @Override
             protected String doInBackground(Void... voids) {
                 String results = "";
-                //results += testInserts();
+                results += testInserts();
                 results += testQueries();
                 results += testCounts();
                 return results;
@@ -57,10 +57,10 @@ public class SQLiteTestActivity extends Activity {
         try {
             android.database.sqlite.SQLiteDatabase db = database.getWritableDatabase();
             ContentValues values = new ContentValues();
+            values.put(database.COLUMN_NAME, "Name");
+            values.put(database.COLUMN_AGE, 100);
+            values.put(database.COLUMN_HIRED, 1);
             for(int i=0; i< NUM_TESTS; i++) {
-                values.put(database.COLUMN_NAME, "Name");
-                values.put(database.COLUMN_AGE, i);
-                values.put(database.COLUMN_HIRED, i);
                 db.insert(database.TABLE_EMPLOYEES, null, values);
             }
         } catch (Exception e) {
@@ -74,8 +74,8 @@ public class SQLiteTestActivity extends Activity {
         try {
             android.database.sqlite.SQLiteDatabase db = database.getWritableDatabase();
             String query = "SELECT * FROM "
-                    + SQLiteDatabase.TABLE_EMPLOYEES
-                    + "WHERE hired = 1 AND age >= 500 AND age <= 50000 AND name = 'Name'";
+                    + EmployeeDatabaseHelper.TABLE_EMPLOYEES
+                    + " WHERE name = 'Name' AND age >= 500 AND age <= 50000 AND hired = 1";
             Cursor cursor = db.rawQuery(query, null);
             cursor.getCount();
             db.close();
@@ -91,8 +91,8 @@ public class SQLiteTestActivity extends Activity {
         try {
             android.database.sqlite.SQLiteDatabase db = database.getWritableDatabase();
             String count = "SELECT count(*) FROM "
-                    + SQLiteDatabase.TABLE_EMPLOYEES
-                    + " WHERE hired = 1 AND age >= 500 AND age <= 50000 AND name = 'Name'";
+                    + EmployeeDatabaseHelper.TABLE_EMPLOYEES
+                    + " WHERE name = 'Name' AND age >= 500 AND age <= 50000 AND hired = 1";
             Cursor mcursor = db.rawQuery(count, null);
             mcursor.moveToFirst();
             mcursor.getInt(0);

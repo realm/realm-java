@@ -5,9 +5,9 @@ import android.content.res.AssetManager;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-public class SQLiteDatabase extends SQLiteOpenHelper {
+public class EmployeeDatabaseHelper extends SQLiteOpenHelper {
 
-    private final static String TAG = SQLiteDatabase.class.getName();
+    private final static String TAG = EmployeeDatabaseHelper.class.getName();
 
     public static final String TABLE_EMPLOYEES = "employees";
 
@@ -30,11 +30,11 @@ public class SQLiteDatabase extends SQLiteOpenHelper {
             + COLUMN_AGE
             + " integer, "
             + COLUMN_HIRED
-            + " boolean);";
+            + " integer);";
 
     private AssetManager am;
 
-    public SQLiteDatabase(Context context) {
+    public EmployeeDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         am = context.getAssets();
     }
@@ -46,7 +46,7 @@ public class SQLiteDatabase extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(android.database.sqlite.SQLiteDatabase db, int oldVersion, int newVersion) {
-        Log.w(SQLiteTestHelper.class.getName(),
+        Log.w(EmployeeDatabaseHelper.class.getName(),
                 "Upgrading database from version " + oldVersion + " to "
                         + newVersion + ", which will destroy all old data");
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EMPLOYEES);

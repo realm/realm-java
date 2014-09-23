@@ -14,7 +14,12 @@ public class SugarEmployee extends SugarRecord<SugarEmployee> {
 
     }
 
-    public SugarEmployee(Context cxt, String name, int age, int hired) {
+    public SugarEmployee(Context context) {
+        super(context);
+    }
+
+    public SugarEmployee(Context context, String name, int age, int hired) {
+        super(context);
         this.name  = name;
         this.age   = age;
         this.hired = hired;

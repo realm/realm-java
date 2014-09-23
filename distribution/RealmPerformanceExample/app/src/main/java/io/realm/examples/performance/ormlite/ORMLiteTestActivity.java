@@ -1,6 +1,5 @@
 package io.realm.examples.performance.ormlite;
 
-import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,21 +8,23 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.stmt.PreparedQuery;
+import com.j256.ormlite.stmt.QueryBuilder;
+
 import java.util.List;
+import java.util.concurrent.Callable;
 
-import io.realm.Realm;
 import io.realm.examples.performance.R;
-import io.realm.examples.performance.model.Employee;
-import io.realm.examples.performance.sqlite.SQLiteDatabase;
+import io.realm.examples.performance.model.OrmLiteEmployee;
 
 
-public class ORMLiteTestActivity extends Activity {
+public class ORMLiteTestActivity extends OrmLiteBaseActivity<OrmLiteDatabaseHelper> {
 
     public static final String TAG = ORMLiteTestActivity.class.getName();
 
     private LinearLayout rootLayout = null;
-
-    private SQLiteDatabase database = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,44 +56,70 @@ public class ORMLiteTestActivity extends Activity {
     private String testInserts() {
         long startTime = System.currentTimeMillis();
 
-        try {
-            for(int i = 0; i<NUM_TESTS; i++) {
-                Realm realm = new Realm(getFilesDir());
-                realm.beginWrite();
-                Employee employee = realm.create(Employee.class);
-                employee.setName("Name");
-                employee.setAge(14);
-                employee.setHired(1);
-                realm.commit();
+        String ret = "";
+
+        final RuntimeExceptionDao<OrmLiteEmployee, Integer> employeeDao = getHelper().getEmployeeDao();
+
+        employeeDao.callBatchTasks(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                for (int i = 0; i < NUM_TESTS; i++) {
+                    OrmLiteEmployee employee = new OrmLiteEmployee();
+                    employee.setName("Name");
+                    employee.setAge(i);
+                    employee.setHired(true);
+                    employeeDao.create(employee);
+                }
+                return null;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "testInserts " + (System.currentTimeMillis() - startTime) + " ms.";
+        });
+
+        ret += "testInserts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+
+        try {
+            QueryBuilder<OrmLiteEmployee, Integer> queryBuilder =
+                    employeeDao.queryBuilder();
+            queryBuilder.where().eq("name", "Name");
+            PreparedQuery<OrmLiteEmployee> preparedQuery = queryBuilder.prepare();
+            List<OrmLiteEmployee> employeeList = employeeDao.query(preparedQuery);
+
+            ret += "Completed " + employeeList.size() + " inserts\n";
+        } catch(Exception e) {}
+        return ret;
     }
 
     private String testQueries() {
         long startTime = System.currentTimeMillis();
         try {
-            Realm realm = new Realm(getFilesDir());
-            List<Employee> results = realm.where(Employee.class).equalTo("age", 99).findAll();
+            final RuntimeExceptionDao<OrmLiteEmployee, Integer> employeeDao = getHelper().getEmployeeDao();
+
+            QueryBuilder<OrmLiteEmployee, Integer> queryBuilder =
+                    employeeDao.queryBuilder();
+            queryBuilder.where().eq("name", "Name").and().between("age",500,50000).and().eq("hired",true);
+            PreparedQuery<OrmLiteEmployee> preparedQuery = queryBuilder.prepare();
+            List<OrmLiteEmployee> employeeList = employeeDao.query(preparedQuery);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.";
+        return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
     }
 
     private String testCounts() {
         long startTime = System.currentTimeMillis();
 
         try {
-            Realm realm = new Realm(getFilesDir());
-            List<Employee> results = realm.where(Employee.class).equalTo("age", 99).findAll();
-            results.size();
+            final RuntimeExceptionDao<OrmLiteEmployee, Integer> employeeDao = getHelper().getEmployeeDao();
+
+            QueryBuilder<OrmLiteEmployee, Integer> queryBuilder =
+                    employeeDao.queryBuilder();
+            queryBuilder.where().eq("name", "Name").and().between("age",500,50000).and().eq("hired",true);
+            PreparedQuery<OrmLiteEmployee> preparedQuery = queryBuilder.prepare();
+            List<OrmLiteEmployee> employeeList = employeeDao.query(preparedQuery);
+            employeeList.size();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.";
+        return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
     }
 
     private void showStatus(String txt) {
