@@ -507,7 +507,7 @@ public class Realm {
     }
 
     /**
-     * Starts a write transaction, this must be closed with either commitTransaction()
+     * Starts a write transaction, this must be closed with commitTransaction()
      */
     public void beginTransaction() {
         // If we are moving the transaction forward, send local notifications
