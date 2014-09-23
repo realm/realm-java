@@ -63,6 +63,7 @@ public class RealmSourceCodeGenerator {
         JAVA_TO_REALM_TYPES.put("Double", "Double");
         JAVA_TO_REALM_TYPES.put("Boolean", "Boolean");
         JAVA_TO_REALM_TYPES.put("java.lang.String", "String");
+        JAVA_TO_REALM_TYPES.put("java.util.Date", "Date");
         JAVA_TO_REALM_TYPES.put("byte[]", "BinaryByteArray");
         // TODO: add support for char and Char
     }
@@ -86,6 +87,7 @@ public class RealmSourceCodeGenerator {
         JAVA_TO_COLUMN_TYPES.put("Double", "ColumnType.DOUBLE");
         JAVA_TO_COLUMN_TYPES.put("Boolean", "ColumnType.BOOLEAN");
         JAVA_TO_COLUMN_TYPES.put("java.lang.String", "ColumnType.STRING");
+        JAVA_TO_COLUMN_TYPES.put("java.util.Date", "ColumnType.DATE");
         JAVA_TO_COLUMN_TYPES.put("byte[]", "ColumnType.BINARY");
     }
 
@@ -108,6 +110,7 @@ public class RealmSourceCodeGenerator {
         CASTING_TYPES.put("Double", "double");
         CASTING_TYPES.put("Boolean", "boolean");
         CASTING_TYPES.put("java.lang.String", "String");
+        CASTING_TYPES.put("java.util.Date", "Date");
         CASTING_TYPES.put("byte[]", "byte[]");
     }
 
@@ -135,7 +138,8 @@ public class RealmSourceCodeGenerator {
                 "io.realm.internal.Row",
                 "io.realm.internal.LinkView",
                 "io.realm.RealmList",
-                "io.realm.RealmObject")
+                "io.realm.RealmObject",
+                "java.util.Date")
                 .emitEmptyLine();
 
         // Begin the class definition
@@ -164,7 +168,8 @@ public class RealmSourceCodeGenerator {
 
                 // Getter
                 writer.emitAnnotation("Override");
-                writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
+                String getterPrefix = fieldTypeCanonicalName.equals("boolean")?"is":"get";
+                writer.beginMethod(fieldTypeCanonicalName, getterPrefix + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
                         "return (%s) realmGetRow().get%s(%d)",
                         fieldTypeCanonicalName, realmType, columnNumber);
@@ -304,8 +309,10 @@ public class RealmSourceCodeGenerator {
         writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", className);
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            String getterPrefix = fieldTypeCanonicalName.equals("boolean")?"is":"get";
             writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
-            writer.emitStatement("stringBuilder.append(get%s())", capitaliseFirstChar(fieldName));
+            writer.emitStatement("stringBuilder.append(%s%s())", getterPrefix, capitaliseFirstChar(fieldName));
             writer.emitStatement("stringBuilder.append(\"} \")", fieldName);
         }
         writer.emitStatement("stringBuilder.append(\"]\")");
