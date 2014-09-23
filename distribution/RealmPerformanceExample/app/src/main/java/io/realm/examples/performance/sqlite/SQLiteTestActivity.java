@@ -57,12 +57,16 @@ public class SQLiteTestActivity extends Activity {
         try {
             android.database.sqlite.SQLiteDatabase db = database.getWritableDatabase();
             ContentValues values = new ContentValues();
-            values.put(database.COLUMN_NAME, "Name");
-            values.put(database.COLUMN_AGE, 100);
-            values.put(database.COLUMN_HIRED, 1);
+
+            db.beginTransaction();
             for(int i=0; i< NUM_TESTS; i++) {
+                values.put(database.COLUMN_NAME, "Name");
+                values.put(database.COLUMN_AGE, i);
+                values.put(database.COLUMN_HIRED, i);
                 db.insert(database.TABLE_EMPLOYEES, null, values);
             }
+            db.endTransaction();
+
         } catch (Exception e) {
             e.printStackTrace();
         }

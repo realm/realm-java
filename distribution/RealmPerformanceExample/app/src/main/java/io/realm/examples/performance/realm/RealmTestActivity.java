@@ -56,15 +56,15 @@ public class RealmTestActivity extends Activity {
         long startTime = System.currentTimeMillis();
 
         try {
+            Realm realm = new Realm(getFilesDir());
+            realm.beginWrite();
             for(int i = 0; i<NUM_TESTS; i++) {
-                Realm realm = new Realm(getFilesDir());
-                realm.beginWrite();
                 Employee employee = realm.create(Employee.class);
                 employee.setName("Name");
                 employee.setAge(14);
                 employee.setHired(1);
-                realm.commit();
             }
+            realm.commit();
         } catch (Exception e) {
             e.printStackTrace();
         }
