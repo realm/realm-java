@@ -16,9 +16,9 @@ import io.realm.examples.realmintroexample.model.Dog;
 import io.realm.examples.realmintroexample.model.Person;
 
 
-public class RealmBasicExampleActivity extends Activity {
+public class RealmIntroExampleActivity extends Activity {
 
-    public static final String TAG = RealmBasicExampleActivity.class.getName();
+    public static final String TAG = RealmIntroExampleActivity.class.getName();
 
     private LinearLayout rootLayout = null;
 
@@ -65,17 +65,17 @@ public class RealmBasicExampleActivity extends Activity {
     private void basicReadWrite() throws java.io.IOException {
         showStatus("Performing basic Read/Write operation...");
 
-        // open a default realm
-        Realm realm = new Realm(this);
+        // Open a default realm
+        Realm realm = Realm.getInstance(this);
 
-        // Add ten persons in one write transaction
-        realm.beginWrite();
-        Person person = realm.create(Person.class);
+        // Add a person in a write transaction
+        realm.beginTransaction();
+        Person person = realm.createObject(Person.class);
         person.setName("Happy Person");
         person.setAge(14);
-        realm.commit();
+        realm.commitTransaction();
 
-        // Iterate over all objects
+        // Find first person
         person = realm.where(Person.class).findFirst();
         showStatus(person.getName() + ":" + person.getAge());
     }
@@ -83,7 +83,7 @@ public class RealmBasicExampleActivity extends Activity {
     private void basicQuery() throws java.io.IOException {
         showStatus("\nPerforming basic Query operation...");
 
-        Realm realm = new Realm(this);
+        Realm realm = Realm.getInstance(this);
         showStatus("Number of persons: " + realm.allObjects(Person.class).size());
         RealmResults<Person> results = realm.where(Person.class).equalTo("age", 99).findAll();
         showStatus("Size of result set: " + results.size());
@@ -92,17 +92,17 @@ public class RealmBasicExampleActivity extends Activity {
     private void basicUpdate() throws java.io.IOException {
         showStatus("\nPerforming basic Update operation...");
 
-        // open a default realm
-        Realm realm = new Realm(this);
+        // Open a default realm
+        Realm realm = Realm.getInstance(this);
 
-        // Iterate over all objects
-        Person person = realm.get(Person.class, 0);
+        // Get the first object
+        Person person = realm.where(Person.class).findFirst();
 
-        // Add ten persons in one write transaction
-        realm.beginWrite();
+        // Update person in a write transaction
+        realm.beginTransaction();
         person.setName("Senior Person");
         person.setAge(99);
-        realm.commit();
+        realm.commitTransaction();
 
         showStatus(person.getName() + ":" + person.getAge());
     }
@@ -117,20 +117,27 @@ public class RealmBasicExampleActivity extends Activity {
     private String complexReadWrite() throws IOException {
         String status = "\nPerforming complex Read/Write operation...";
 
-        // open a default realm
-        Realm realm = new Realm(this);
+        // Open a default realm
+        Realm realm = Realm.getInstance(this);
 
         // Add ten persons in one write transaction
         realm.beginWrite();
-        Dog fido = realm.create(Dog.class);
+        Dog fido = realm.createObject(Dog.class);
         fido.setName("fido");
         for (int i = 0; i < 10; i++) {
-            Person person = realm.create(Person.class);
+            Person person = realm.createObject(Person.class);
             person.setName("Person no. " + i);
             person.setAge(i);
             person.setDog(fido);
+
+            // The field tempReference is annotated with @Ignore.
+            // This means setTempReference sets the Person tempReference
+            // field directly. The tempReference is NOT saved as part of
+            // the RealmObject:
+            person.setTempReference(42);
+
             for (int j = 0; j < i; j++) {
-                Cat cat = realm.create(Cat.class);
+                Cat cat = realm.createObject(Cat.class);
                 cat.setName("Cat_" + j);
                 person.getCats().add(cat);
             }
@@ -149,6 +156,12 @@ public class RealmBasicExampleActivity extends Activity {
                 dogName = pers.getDog().getName();
             }
             status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName + " : " + pers.getCats().size();
+
+            // The field tempReference is annotated with @Ignore
+            // Though we initially set its value to 42, it has
+            // not been saved as part of the Person RealmObject:
+            assert(pers.getTempReference() == 0);
+
         }
 
         return status;
@@ -157,11 +170,13 @@ public class RealmBasicExampleActivity extends Activity {
     private String complexQuery() throws IOException {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = new Realm(this);
+        Realm realm = Realm.getInstance(this);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
-        // Find all persons where age > 5
+
+        // Find all persons where age between 7 and 9 and name begins with "Person".
         RealmResults<Person> results = realm.where(Person.class)
-                .greaterThan("age", 5).between("age", 7, 9).beginsWith("name", "Person").findAll();
+                .between("age", 7, 9)       // Notice implicit "and" operation
+                .beginsWith("name", "Person").findAll();
         status += "\nSize of result set: " + results.size();
         return status;
     }

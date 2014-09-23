@@ -71,17 +71,17 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
                 ThrowException(env, IllegalArgument, "parm1", "parm2");
             break;
         case IOFailed:
-            expect = "io.realm.exceptions.IOException: Failed to open parm1. parm2";
+            expect = "io.realm.exceptions.RealmIOException: Failed to open parm1. parm2";
             if (dotest)
                 ThrowException(env, IOFailed, "parm1", "parm2");
             break;
         case FileNotFound:
-            expect = "io.realm.exceptions.IOException: File not found: parm1.";
+            expect = "io.realm.exceptions.RealmIOException: File not found: parm1.";
             if (dotest)
                 ThrowException(env, FileNotFound, "parm1", "parm2");
             break;
         case FileAccessError:
-            expect = "io.realm.exceptions.IOException: Failed to access: parm1. parm2";
+            expect = "io.realm.exceptions.RealmIOException: Failed to access: parm1. parm2";
             if (dotest)
                 ThrowException(env, FileAccessError, "parm1", "parm2");
             break;
@@ -102,7 +102,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             break;
                 ThrowException(env, OutOfMemory, "parm1", "parm2");
         case OutOfMemory:
-            expect = "io.realm.exceptions.OutOfMemoryError: parm1 parm2";
+            expect = "io.realm.internal.OutOfMemoryError: parm1 parm2";
             if (dotest)
                 ThrowException(env, OutOfMemory, "parm1", "parm2");
             break;
