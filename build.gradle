@@ -55,7 +55,7 @@ uploadArchives {
                 name 'Realm'
                 packaging 'jar'
                 // optionally artifactId can be defined here 
-                description 'Realm is a fast, embedded database.'
+                description 'Realm is a mobile database: a replacement for SQLite and ORM's. Realm lets you build apps faster, build apps that are faster, and craft amazing user experiences.'
                 url 'http://realm.io'
 
                 scm {
