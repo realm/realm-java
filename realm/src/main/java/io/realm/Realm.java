@@ -38,14 +38,12 @@ import io.realm.internal.Table;
 
 
 public class Realm {
-
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
     public static final String DEFAULT_REALM_NAME = "default.realm";
     private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
 
     private SharedGroup sharedGroup;
     private ImplicitTransaction transaction;
-    private String filePath;
     private int version;
     private ScheduledExecutorService scheduledExecutorService
             = Executors.newSingleThreadScheduledExecutor();
@@ -63,8 +61,7 @@ public class Realm {
 
     // The constructor in private to enforce the use of the static one
     private Realm(String absolutePath) {
-        this.filePath = absolutePath;
-        this.sharedGroup = new SharedGroup(filePath, defaultDurability);
+        this.sharedGroup = new SharedGroup(absolutePath, defaultDurability);
         this.transaction = sharedGroup.beginImplicitTransaction();
     }
 
@@ -84,11 +81,9 @@ public class Realm {
         defaultDurability = durability;
     }
 
-    public Table getTable(Class<?> clazz) {
-        String simpleClassName;
-        if (simpleClassNames.containsKey(clazz)) {
-            simpleClassName = simpleClassNames.get(clazz);
-        } else {
+    Table getTable(Class<?> clazz) {
+        String simpleClassName = simpleClassNames.get(clazz);
+        if (simpleClassName == null) {
             simpleClassName = clazz.getSimpleName();
             simpleClassNames.put(clazz, simpleClassName);
         }
@@ -169,46 +164,39 @@ public class Realm {
 
     /**
      * Instantiates and adds a new object to the realm
-     *
-     * @return              The new object
-     * @param <E>
+     * @return The new object
+     * @param clazz The Class of the object to create
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
         Table table;
         table = tables.get(clazz);
         if (table == null) {
-            String generatedClassName;
-            if (generatedClassNames.containsKey(clazz)) {
-                generatedClassName = generatedClassNames.get(clazz);
-            } else {
+            String generatedClassName = generatedClassNames.get(clazz);
+            if (generatedClassName == null) {
                 generatedClassName = clazz.getName() + "RealmProxy";
                 generatedClassNames.put(clazz, generatedClassName);
             }
 
-            Class<?> generatedClass;
-            try {
-                if (generatedClasses.containsKey(generatedClassName)) {
-                    generatedClass = generatedClasses.get(generatedClassName);
-                } else {
+            Class<?> generatedClass = generatedClasses.get(generatedClassName);
+            if (generatedClass == null) {
+                try {
                     generatedClass = Class.forName(generatedClassName);
-                    generatedClasses.put(generatedClassName, generatedClass);
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                    return null; // TODO: throw RealmException
                 }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                return null; // TODO: throw RealmException
+                generatedClasses.put(generatedClassName, generatedClass);
             }
 
-            Method method;
-            try {
-                if (initTableMethods.containsKey(generatedClass)) {
-                    method = initTableMethods.get(generatedClass);
-                } else {
+            Method method = initTableMethods.get(generatedClass);
+            if (method == null) {
+                try {
                     method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
-                    initTableMethods.put(generatedClass, method);
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                    return null; // TODO: throw RealmException
                 }
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-                return null; // TODO: throw RealmException
+                initTableMethods.put(generatedClass, method);
             }
 
             try {
@@ -228,7 +216,7 @@ public class Realm {
     }
 
 
-    public <E> void remove(Class<E> clazz, long objectIndex) {
+    <E> void remove(Class<E> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
@@ -371,34 +359,31 @@ public class Realm {
 //
 //    }
 
-    public <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
+    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         E result;
 
         String generatedClassName = null;
         Table table = tables.get(clazz);
         if (table == null) {
-            if (generatedClassNames.containsKey(clazz)) {
-                generatedClassName = generatedClassNames.get(clazz);
-            } else {
+            generatedClassName = generatedClassNames.get(clazz);
+            if (generatedClassName == null) {
                 generatedClassName = clazz.getName() + "RealmProxy";
                 generatedClassNames.put(clazz, generatedClassName);
             }
 
-            String simpleClassName;
-            if (simpleClassNames.containsKey(clazz)) {
-                simpleClassName = simpleClassNames.get(clazz);
-            } else {
+            String simpleClassName = simpleClassNames.get(clazz);
+            if (simpleClassName == null) {
                 simpleClassName = clazz.getSimpleName();
                 simpleClassNames.put(clazz, simpleClassName);
             }
+
             table = transaction.getTable(simpleClassName);
             tables.put(clazz, table);
         }
 
         Row row = table.getRow(rowIndex);
 
-        Constructor constructor;
-        constructor = generatedConstructors.get(clazz);
+        Constructor constructor = generatedConstructors.get(clazz);
         if (constructor == null) {
             if (generatedClassName == null) {
                 generatedClassName = generatedClassNames.get(clazz);
@@ -408,30 +393,27 @@ public class Realm {
                 }
             }
 
-            Class<?> generatedClass;
-            try {
-                if (generatedClasses.containsKey(generatedClassName)) {
-                    generatedClass = generatedClasses.get(generatedClassName);
-                } else {
+            Class<?> generatedClass = generatedClasses.get(generatedClassName);
+            if (generatedClass == null) {
+                try {
                     generatedClass = Class.forName(generatedClassName);
-                    generatedClasses.put(generatedClassName, generatedClass);
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                    return null; // TODO: throw RealmException
                 }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                return null; // TODO: throw RealmException
+                generatedClasses.put(generatedClassName, generatedClass);
             }
 
-            try {
-                if (constructors.containsKey(generatedClass)) {
-                    constructor = constructors.get(generatedClass);
-                } else {
+            constructor = constructors.get(generatedClass);
+            if (constructor == null) {
+                try {
                     constructor = generatedClass.getConstructor();
-                    constructors.put(generatedClass, constructor);
-                    generatedConstructors.put(clazz, constructor);
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                    return null; // TODO: throw RealmException
                 }
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-                return null; // TODO: throw RealmException
+                constructors.put(generatedClass, constructor);
+                generatedConstructors.put(clazz, constructor);
             }
         }
 
@@ -454,43 +436,39 @@ public class Realm {
         return result;
     }
 
-    public boolean contains(Class<?> clazz) {
-        String simpleClassName;
-        if (simpleClassNames.containsKey(clazz)) {
-            simpleClassName = simpleClassNames.get(clazz);
-            simpleClassNames.put(clazz, simpleClassName);
-        } else {
+    boolean contains(Class<?> clazz) {
+        String simpleClassName = simpleClassNames.get(clazz);
+        if (simpleClassName == null) {
             simpleClassName = clazz.getSimpleName();
+            simpleClassNames.put(clazz, simpleClassName);
         }
-
         return transaction.hasTable(simpleClassName);
     }
 
     /**
      * Returns a typed RealmQuery, which can be used to query for specific objects of this type
-     *
-     * @param clazz         The class of the object which is to be queried for
-     * @param <E extends RealmObject>
-     * @return
+     * @param clazz The class of the object which is to be queried for
+     * @return A typed RealmQuery, which can be used to query for specific objects of this type
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
         return new RealmQuery<E>(this, clazz);
     }
 
-
+    /**
+     * Get all objects of a specific Class
+     * @param clazz the Class to get objects of
+     * @return A RealmResult list containing the objects
+     */
     public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
     }
 
-
     // Migration
-
     public void ensureRealmAtVersion(int version, RealmMigration migration) {
         migration.execute(this, version);
     }
 
     // Notifications
-
     public void addChangeListener(RealmChangeListener listener) {
         changeListeners.add(listener);
         if(!runEventHandler) {
@@ -529,10 +507,9 @@ public class Realm {
     }
 
     /**
-     * Starts a write transaction, this must be closed with either commitTransaction() or rollback()
+     * Starts a write transaction, this must be closed with either commitTransaction()
      */
     public void beginTransaction() {
-
         // If we are moving the transaction forward, send local notifications
         if (sharedGroup.hasChanged()) {
             sendNotifications();
@@ -549,7 +526,6 @@ public class Realm {
 
         // Send notifications because we did a local change
         sendNotifications();
-
     }
 
     public void clear(Class<?> classSpec) {
@@ -562,9 +538,5 @@ public class Realm {
 
     public void setVersion(int version) {
         this.version = version;
-    }
-
-    public String getFilePath() {
-        return filePath;
     }
 }
