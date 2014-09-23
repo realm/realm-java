@@ -409,6 +409,18 @@ public class RealmSourceCodeGenerator {
         writer.endMethod();
         writer.emitEmptyLine();
 
+        /**
+         * equals method
+         */
+        writer.emitAnnotation("Override");
+        writer.beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o");
+        writer.emitStatement("if (this == o) return true");
+        writer.emitStatement("if (o == null || getClass() != o.getClass()) return false");
+        writer.emitStatement(className + " a" + className + " = (" + className + ")o");  // Foo aFoo = (Foo)o
+        writer.emitStatement("return (hashCode() == a" + className + ".hashCode())"); // return (hashCode() == aFoo.hashCode())
+        writer.endMethod();
+        writer.emitEmptyLine();
+
         // End the class definition
         writer.endType();
         writer.close();
