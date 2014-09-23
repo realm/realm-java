@@ -28,6 +28,7 @@ import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.lang.String;
 import java.util.*;
 
 
@@ -118,6 +119,8 @@ public class RealmSourceCodeGenerator {
 
     static {
         HASHCODE = new HashMap<String, String[]>();
+        HASHCODE.put("boolean", new String[] {
+                "result = 31 * result + (is%s() ? 1 : 0)" });
         HASHCODE.put("byte", new String[] {
                 "result = 31 * result + (int) get%s()" });
         HASHCODE.put("short", new String[] {
@@ -151,10 +154,13 @@ public class RealmSourceCodeGenerator {
                 "long temp_%d = Double.doubleToLongBits(get%s())",
                 "result = 31 * result + (int) (temp_%d ^ (temp_%d >>> 32))" });
         HASHCODE.put("Boolean", new String[] {
-                "result = 31 * result + (get%s() ? 1 : 0)" });
+                "result = 31 * result + (is%s() ? 1 : 0)" });
         HASHCODE.put("java.lang.String", new String[] {
                 "String aString_%d = get%s()",
                 "result = 31 * result + (aString_%d != null ? aString_%d.hashCode() : 0)" });
+        HASHCODE.put("java.lang.Date", new String[] {
+                "Date aDate_%d = get%s()",
+                "result = 31 * result + (aDate_%d != null ? aDate_%d.hashCode() : 0)" });
         HASHCODE.put("byte[]", new String[] {
                 "byte[] aByteArray_%d = get%s()",
                 "result = 31 * result + (aByteArray_%d != null ? Arrays.hashCode(aByteArray_%d) : 0)" });
