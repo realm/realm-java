@@ -2,7 +2,6 @@
 package io.realm.internal;
 
 import junit.framework.TestCase;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,16 +9,11 @@ import junit.framework.Test;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import io.realm.internal.test.ExpectedValue;
 import io.realm.internal.test.MixedData;
 
 public class TestJNIMixedType extends TestCase {
 
-
-    ExpectedValue expectedValue = new ExpectedValue(null);
-    static byte[] b = new byte[] { 1, 2, 3, 4, 5 };
     static List<MixedData> mixedDataList = new ArrayList<MixedData>();
-    static Date date = new Date(645342);
 
     public static Collection<Object[]> parameters() {
         //Adding MixedData to the list
@@ -28,25 +22,19 @@ public class TestJNIMixedType extends TestCase {
         mixedDataList.add(2,new MixedData(ColumnType.DOUBLE, 1234567.898d));
         mixedDataList.add(3,new MixedData(ColumnType.BOOLEAN, true));
         mixedDataList.add(4,new MixedData(ColumnType.STRING, "abc"));
-        mixedDataList.add(5,new MixedData(ColumnType.BINARY, b));
-        mixedDataList.add(6,new MixedData(ColumnType.DATE, date));
+        mixedDataList.add(5,new MixedData(ColumnType.BINARY, new byte[] { 1, 2, 3, 4, 5 }));
+        mixedDataList.add(6,new MixedData(ColumnType.DATE, new Date(645342)));
 
         return Arrays.asList(
-                new Object[] {new ExpectedValue(123L),mixedDataList},
-                new Object[] {new ExpectedValue(987.123f),mixedDataList},
-                new Object[] {new ExpectedValue(1234567.898d),mixedDataList},
-                new Object[] {new ExpectedValue(true),mixedDataList},
-                new Object[] {new ExpectedValue("abc"),mixedDataList},
-                new Object[] {new ExpectedValue (b),mixedDataList},
-                new Object[] {new ExpectedValue(date),mixedDataList}
+                new Object[] {mixedDataList},
+                new Object[] {mixedDataList},
+                new Object[] {mixedDataList},
+                new Object[] {mixedDataList}
         );
     }
 
-    public TestJNIMixedType(ExpectedValue expectedValue, ArrayList mixedDataList) {
-        this.expectedValue = expectedValue;
+    public TestJNIMixedType(ArrayList mixedDataList) {
         this.mixedDataList = mixedDataList;
-
-
 
     }
 
@@ -55,102 +43,21 @@ public class TestJNIMixedType extends TestCase {
             for(int j=0; j < mixedDataList.size();j++){
                 if(mixedDataList.get(i).value==mixedDataList.get(j).value){
                     assertEquals(mixedDataList.get(i).value, mixedDataList.get(j).value);
-                   // System.out.println(mixedDataList.get(i).value + "+" + mixedDataList.get(j).value);
-                   // System.out.println(mixedDataList.get(i).type);
-                   // System.out.println(mixedDataList.size() + "+" + j + "+" + i);
+
                 }else{
                     assertNotSame(mixedDataList.get(i).value, mixedDataList.get(j).value);
-                    
+
                 }
             }
         }
     }
 
-   /* public void testShouldFailOnWrongTypeRetrieval() {
-        switch (mixedData.type) {
-            case BINARY:
-                try {
-                    //mixed.getBinaryByteArray();
-                    System.out.println(mixedData.type + ": in BINARY");
-
-                    //fail("Wrong mixed type");
-                } catch (IllegalMixedTypeException e) { }
-                break;
-            case DATE:
-                try {
-                    //mixed.getDateValue();
-                    System.out.println(mixedData.type + ": in DATE");
-                    //fail("Wrong mixed type");
-                } catch (IllegalMixedTypeException e) { }
-                break;
-            case BOOLEAN:
-                try {
-                    //mixed.getBooleanValue();
-                    System.out.println(mixedData.type + ": in BOOLEAN");
-                    //fail("Wrong mixed type");
-                } catch (IllegalMixedTypeException e) { }
-                break;
-            case INTEGER:
-                try {
-                    //mixed.getLongValue();
-                    System.out.println(mixedData.type + ": in INTEGER");
-                    //fail("Wrong mixed type");
-                } catch (IllegalMixedTypeException e) { }
-                break;
-            case FLOAT:
-                try {
-                    //mixed.getFloatValue();
-                    System.out.println(mixedData.type + ": in FLOAT");
-                    //fail("Wrong mixed type");
-                } catch (IllegalMixedTypeException e) { }
-                break;
-            case DOUBLE:
-                try {
-                    //mixed.getDoubleValue();
-                    System.out.println(mixedData.type + ": in DOUBLE");
-                    //fail("Wrong mixed type");
-                } catch (IllegalMixedTypeException e) { }
-                break;
-            case STRING:
-                try {
-                    //mixed.getStringValue();
-                    System.out.println(mixedData.type + ": in STRING");
-                    //fail("Wrong mixed type");
-                } catch (IllegalMixedTypeException e) { }
-                break;
-            default:
-                System.out.println(mixedData.type + ": in DEFAULT");
-                fail("wrong type");
-                break;
-        }
-    }
-
-
-    public void testShouldStoreValuesOfMixedType() throws Throwable {
-        if(mixedData.type == ColumnType.MIXED){
-        Table table = new Table();
-        table.addColumn(mixedData.type, "mix");
-
-        table.add("test");
-
-        checkMixedCell(table, 0, 0, ColumnType.STRING, "test");
-
-        table.setMixed(0, 0, Mixed.mixedValue(5));
-
-        checkMixedCell(table, 0, 0, ColumnType.INTEGER, 20);
-
-        table.setMixed(0, 0, Mixed.mixedValue(2.4));
-
-        checkMixedCell(table, 0, 0, ColumnType.DOUBLE, 2.4);
-        table.close();
-    }}
-/*
-    @Test(dataProvider = "columnTypesProvider")
-    public void shouldFailOnWrongTypeRetrieval(ColumnType columnType) {
-        Object value = columnType != ColumnType.STRING ? "abc" : 123;
+    public void testShouldFailOnWrongTypeRetrieval() {
+        for(int i = 0; i < mixedDataList.size();i++){
+        Object value = mixedDataList.get(i).type != ColumnType.STRING ? "abc" : 123;
         Mixed mixed = Mixed.mixedValue(value);
 
-        switch (columnType) {
+        switch (mixedDataList.get(i).type) {
         case BINARY:
             try { 
                 mixed.getBinaryByteArray();
@@ -196,27 +103,33 @@ public class TestJNIMixedType extends TestCase {
         default:
             fail("wrong type");
             break;
+          }
         }
     }
 
-    @Test(dataProvider = "mixedValuesProvider")
-    public void shouldStoreValuesOfMixedType(MixedData value1,
-    										 MixedData value2, MixedData value3) throws Throwable {
-        Table table = new Table();
-        table.addColumn(ColumnType.MIXED, "mix");
+    public void testShouldStoreValuesOfMixedType() throws Throwable {
+        for(int i=0; i < mixedDataList.size();i++){
+            for(int j=0; j < mixedDataList.size();j++){
+                for(int k=0; k < mixedDataList.size();k++){
 
-        table.add(value1.value);
+                Table table = new Table();
+                table.addColumn(ColumnType.MIXED, "mix");
 
-        checkMixedCell(table, 0, 0, value1.type, value1.value);
+                table.add(mixedDataList.get(i).value);
 
-        table.setMixed(0, 0, Mixed.mixedValue(value2.value));
+                checkMixedCell(table, 0, 0, mixedDataList.get(i).type, mixedDataList.get(i).value);
 
-        checkMixedCell(table, 0, 0, value2.type, value2.value);
+                table.setMixed(0, 0, Mixed.mixedValue(mixedDataList.get(j).value));
 
-        table.setMixed(0, 0, Mixed.mixedValue(value3.value));
+                checkMixedCell(table, 0, 0, mixedDataList.get(j).type, mixedDataList.get(j).value);
 
-        checkMixedCell(table, 0, 0, value3.type, value3.value);
-        table.close();
+                table.setMixed(0, 0, Mixed.mixedValue(mixedDataList.get(k).value));
+
+                checkMixedCell(table, 0, 0, mixedDataList.get(k).type, mixedDataList.get(k).value);
+                table.close();
+             }
+           }
+        }
     }
 
     private void checkMixedCell(Table table, long col, long row, ColumnType columnType, Object value) throws IllegalMixedTypeException {
@@ -242,37 +155,6 @@ public class TestJNIMixedType extends TestCase {
             assertEquals(value, mixed.getValue());
         }
     }
-
-    @DataProvider(name = "mixedValuesProvider")
-    public Iterator<Object[]> mixedValuesProvider() {
-        Object[] values = {
-                new MixedData(ColumnType.BOOLEAN, true),
-                new MixedData(ColumnType.STRING, "abc"),
-                new MixedData(ColumnType.INTEGER, 123L),
-                new MixedData(ColumnType.FLOAT, 987.123f),
-                new MixedData(ColumnType.DOUBLE, 1234567.898d),
-                new MixedData(ColumnType.DATE, new Date(645342)),
-                new MixedData(ColumnType.BINARY, new byte[] { 1, 2, 3, 4, 5 }) };
-
-        List<?> mixedValues = Arrays.asList(values);
-        return DataProviderUtil.allCombinations(mixedValues, mixedValues,
-                mixedValues);
-    }
-
-    @DataProvider(name = "columnTypesProvider")
-    public Object[][] columnTypesProvider() {
-        Object[][] values = { 
-                {ColumnType.BOOLEAN},
-                {ColumnType.STRING}, 
-                {ColumnType.INTEGER},
-                {ColumnType.FLOAT}, 
-                {ColumnType.DOUBLE},
-                {ColumnType.DATE}, 
-                {ColumnType.BINARY} 
-        };
-
-        return values;
-    }*/
 
     public static Test suite() {
         return new RealmTestSuite(TestJNIMixedType.class, parameters());

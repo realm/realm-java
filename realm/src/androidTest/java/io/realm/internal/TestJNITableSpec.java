@@ -76,35 +76,6 @@ public class TestJNITableSpec extends TestCase {
     }
 
 
-/*
-    @DataProvider(name = "oneColumn")
-    public Iterator<Object[]> oneColumn() {
-        return DataProviderUtil.allCombinations(columnTypes());
-    }
-
-    @DataProvider(name = "twoColumns")
-    public Iterator<Object[]> twoColumns() {
-        return DataProviderUtil.allCombinations(columnTypes(), columnTypes());
-    }
-
-    private void checkSpecIdentity(TableSpec spec, TableSpec spec2) {
-        assertEquals(spec, spec2);
-        assertEquals(spec.hashCode(), spec2.hashCode());
-    }
-*/
-    /*
-    private List<?> columnTypes() {
-        ColumnType[] columns = ColumnType.values();
-        List<ColumnType> columnTypesToTest = new ArrayList<ColumnType>();
-        for(int i = 0; i < columns.length; i++) {
-            if(!columns[i].equals(ColumnType.LINK) && !columns[i].equals(ColumnType.LINK_LIST)) {
-                columnTypesToTest.add(columns[i]);
-            }
-        }
-        return columnTypesToTest;
-    }
-*/
-
     public void testShouldHandleColumnsDynamically() {
 
         table.addColumn(ColumnType.INTEGER, "0");
