@@ -532,9 +532,9 @@ public class Realm {
     }
 
     /**
-     * Starts a write transaction, this must be closed with either commit() or rollback()
+     * Starts a write transaction, this must be closed with either commitTransaction() or rollback()
      */
-    public void beginWrite() {
+    public void beginTransaction() {
 
         // If we are moving the transaction forward, send local notifications
         if (sharedGroup.hasChanged()) {
@@ -547,7 +547,7 @@ public class Realm {
     /**
      * Commits a write transaction
      */
-    public void commit() {
+    public void commitTransaction() {
         transaction.commitAndContinueAsRead();
 
         // Send notifications because we did a local change
