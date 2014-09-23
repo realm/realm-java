@@ -250,10 +250,10 @@ public class JNITableInsertTest extends TestCase {
 
 
 // TODO: parametric tests
-/*    //Generates a table with a a column with column typed determined from the first parameter,
+    //Generates a table with a a column with column typed determined from the first parameter,
     // and then puts in a value from the second parameter.
     //In cases, where the 2 parameter types do not match, we expect an IllegalArgumentException
-    @Test(dataProvider = "columnTypesProvider")
+    //@Test(dataProvider = "columnTypesProvider")
     public void testGenericAddOnTable(Object colTypeObject, Object value) {
         Table t  = new Table();
         //If the objects matches no exception will be thrown
@@ -267,7 +267,7 @@ public class JNITableInsertTest extends TestCase {
         }
     }
 
-    //Generates a list of different objects to be passed as parameter to the insert() on table
+ /*   //Generates a list of different objects to be passed as parameter to the insert() on table
     @DataProvider(name = "columnTypesProvider")
     public Iterator<Object[]> mixedValuesProvider() {
         Object[] values = {

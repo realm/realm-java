@@ -188,7 +188,7 @@ public class JNITableSpecTest extends TestCase {
     }
 
     public static Test suite() {
-        return new RealmTestSuite(JNITableSpecTest.class, parameters());
+        return new JNITestSuite(JNITableSpecTest.class, parameters());
 
     }
 

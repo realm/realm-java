@@ -165,7 +165,7 @@ public class JNIMixedTypeTest extends TestCase {
     }
 
     public static Test suite() {
-        return new RealmTestSuite(JNIMixedTypeTest.class, parameters());
+        return new JNITestSuite(JNIMixedTypeTest.class, parameters());
 
     }
 }
