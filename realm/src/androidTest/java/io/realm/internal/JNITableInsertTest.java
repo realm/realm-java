@@ -250,7 +250,7 @@ public class JNITableInsertTest extends TestCase {
 
 
 // TODO: parametric tests
-    //Generates a table with a a column with column typed determined from the first parameter,
+ /*   //Generates a table with a a column with column typed determined from the first parameter,
     // and then puts in a value from the second parameter.
     //In cases, where the 2 parameter types do not match, we expect an IllegalArgumentException
     //@Test(dataProvider = "columnTypesProvider")
@@ -265,7 +265,7 @@ public class JNITableInsertTest extends TestCase {
             //Add value
             try { t.add(value); fail("No matching type"); } catch (IllegalArgumentException e) { }
         }
-    }
+    }*/
 
  /*   //Generates a list of different objects to be passed as parameter to the insert() on table
     @DataProvider(name = "columnTypesProvider")
