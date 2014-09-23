@@ -136,8 +136,6 @@ public class RealmSourceCodeGenerator {
         HASHCODE.put("double", new String[] {
                 "long temp_%d = Double.doubleToLongBits(get%s())",
                 "result = 31 * result + (int) (temp_%d ^ (temp_%d >>> 32))" });
-        HASHCODE.put("boolean", new String[] {
-                "result = 31 * result + (get%s() ? 1 : 0)" });
         HASHCODE.put("Byte", new String[] {
                 "result = 31 * result + (int) get%s()" });
         HASHCODE.put("Short", new String[] {
