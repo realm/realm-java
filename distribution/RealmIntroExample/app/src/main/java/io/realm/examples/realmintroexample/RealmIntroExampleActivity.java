@@ -69,11 +69,11 @@ public class RealmIntroExampleActivity extends Activity {
         Realm realm = Realm.getInstance(this);
 
         // Add a person in a write transaction
-        realm.beginWrite();
+        realm.beginTransaction();
         Person person = realm.createObject(Person.class);
         person.setName("Happy Person");
         person.setAge(14);
-        realm.commit();
+        realm.commitTransaction();
 
         // Find first person
         person = realm.where(Person.class).findFirst();
@@ -99,10 +99,10 @@ public class RealmIntroExampleActivity extends Activity {
         Person person = realm.where(Person.class).findFirst();
 
         // Update person in a write transaction
-        realm.beginWrite();
+        realm.beginTransaction();
         person.setName("Senior Person");
         person.setAge(99);
-        realm.commit();
+        realm.commitTransaction();
 
         showStatus(person.getName() + ":" + person.getAge());
     }
