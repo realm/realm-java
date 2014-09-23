@@ -1,6 +1,4 @@
-package io.realm.internal; /**
- * Created by prakash on 9/18/14.
- */
+package io.realm.internal;
 
 import android.annotation.TargetApi;
 import android.os.Build;
@@ -64,27 +62,29 @@ public class RealmTestSuite extends TestSuite {
 
         }
     }
+
     private Collection<String> getTestMethods(
             final Class<? extends TestCase> testCaseClass) {
-        Class<?> superClass= testCaseClass;
-        final Collection<String> names= new ArrayList<String>();
+        Class<?> superClass = testCaseClass;
+        final Collection<String> names = new ArrayList<String>();
         while (Test.class.isAssignableFrom(superClass)) {
-            Method[] methods= superClass.getDeclaredMethods();
-            for (int i= 0; i < methods.length; i++) {
+            Method[] methods = superClass.getDeclaredMethods();
+            for (int i = 0; i < methods.length; i++) {
                 addTestMethod(methods[i], names, testCaseClass);
             }
             superClass = superClass.getSuperclass();
         }
         return names;
     }
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void addTestMethod(Method m, Collection<String> names, Class<?> theClass) {
-        String name= m.getName();
+        String name = m.getName();
         if (names.contains(name))
             return;
-        if (! isPublicTestMethod(m)) {
+        if (!isPublicTestMethod(m)) {
             if (isTestMethod(m))
-                addTest(warning("Test method isn't public: "+m.getName()));
+                addTest(warning("Test method isn't public: " + m.getName()));
             return;
         }
         names.add(name);
@@ -95,9 +95,9 @@ public class RealmTestSuite extends TestSuite {
     }
 
     private boolean isTestMethod(Method m) {
-        String name= m.getName();
-        Class<?>[] parameters= m.getParameterTypes();
-        Class<?> returnType= m.getReturnType();
+        String name = m.getName();
+        Class<?>[] parameters = m.getParameterTypes();
+        Class<?> returnType = m.getReturnType();
         return parameters.length == 0 && name.startsWith("test") && returnType.equals(Void.TYPE);
     }
 

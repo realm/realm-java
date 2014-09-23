@@ -2,6 +2,7 @@ package io.realm.internal;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
+
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -14,9 +15,9 @@ public class ParameterizedTestExample extends TestCase {
     //set up parameters for tests
     public static Collection<Object[]> parameters() {
         return Arrays.asList(
-                new Object[] { 2, 1 ,3},
-                new Object[] { 1, 1 ,2},
-                new Object[] { -2, 1 ,-1}
+                new Object[]{2, 1, 3},
+                new Object[]{1, 1, 2},
+                new Object[]{-2, 1, -1}
         );
     }
 
@@ -28,7 +29,7 @@ public class ParameterizedTestExample extends TestCase {
     }
 
     // The test suite is set to method name must start with 'test',return type void and empty parameters.
-    public void testIntAdd(){
+    public void testIntAdd() {
         final int actual_value = input_one + input_two;
         System.out.println(expected_value + "+" + actual_value);
         assertEquals(expected_value, actual_value);
