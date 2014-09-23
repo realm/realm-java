@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.File;
 import java.lang.ref.SoftReference;
@@ -24,6 +25,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,7 @@ public class Realm {
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
     public static final String DEFAULT_REALM_NAME = "default.realm";
     private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
+    private static final String TAG = "REALM";
 
     private SharedGroup sharedGroup;
     private ImplicitTransaction transaction;
@@ -564,7 +567,36 @@ public class Realm {
         this.version = version;
     }
 
-    public String getFilePath() {
-        return filePath;
+    /**
+     * Delete all Realm related files from the filesystem for the default Realm
+     * @param context an Android context
+     * @return false if any of the files could not be deleted. The failing file will be logged.
+     */
+    public static boolean deleteRealmFiles(Context context) {
+        return deleteRealmFiles(context, DEFAULT_REALM_NAME);
+    }
+
+    /**
+     * Delete all Realm related files from the filesystem for a custom Realm
+     * @param context an Android context
+     * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm")
+     * @return false if any of the files could not be deleted. The failing file will be logged.
+     */
+    public static boolean deleteRealmFiles(Context context, String fileName) {
+        boolean result = true;
+        File writableFolder = context.getFilesDir();
+        List<File> filesToDelete = Arrays.asList(
+                new File(writableFolder, fileName),
+                new File(writableFolder, fileName + ".lock"));
+        for (File fileToDelete : filesToDelete) {
+            if (fileToDelete.exists()) {
+                boolean deleteResult = fileToDelete.delete();
+                if (!deleteResult) {
+                    result = false;
+                    Log.w(TAG, "Could not delete the file " + fileToDelete);
+                }
+            }
+        }
+        return result;
     }
 }
