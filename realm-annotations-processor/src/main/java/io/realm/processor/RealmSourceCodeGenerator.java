@@ -398,7 +398,7 @@ public class RealmSourceCodeGenerator {
                 }
             } else {
                 // Links and Link lists
-                writer.emitStatement("%s temp_%d = get%s()", fieldTypeCanonicalName, counter, fieldName);
+                writer.emitStatement("%s temp_%d = get%s()", fieldTypeCanonicalName, counter, capitaliseFirstChar(fieldName));
                 writer.emitStatement("result = 31 * result + (temp_%d != null ? temp_%d.hashCode() : 0)", counter, counter);
             }
             counter++;
