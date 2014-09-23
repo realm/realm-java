@@ -82,7 +82,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
 
         System.out.println("################################ Testing new interface");
 
-        Realm.setDefaultDurability(SharedGroup.Durability.FULL);
+        // Realm.setDefaultDurability(SharedGroup.Durability.FULL);
         Realm realm = Realm.getInstance(activity);
 
         timer = System.currentTimeMillis();

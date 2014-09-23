@@ -83,9 +83,9 @@ public class Realm {
         super.finalize();
     }
 
-    public static void setDefaultDurability(SharedGroup.Durability durability) {
-        defaultDurability = durability;
-    }
+//    public static void setDefaultDurability(SharedGroup.Durability durability) {
+//        defaultDurability = durability;
+//    }
 
     public Table getTable(Class<?> clazz) {
         String simpleClassName;
