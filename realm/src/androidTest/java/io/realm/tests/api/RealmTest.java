@@ -32,7 +32,7 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 
 
-public class ParameterizedTestExample extends AndroidTestCase {
+public class RealmTest extends AndroidTestCase {
 
     private Realm realm;
 
