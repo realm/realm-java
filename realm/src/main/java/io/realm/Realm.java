@@ -568,8 +568,9 @@ public class Realm {
     }
 
     /**
-     * Delete the Realm file from the filesystem for the default Realm
-     * @param context an Android context
+     * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
+     * The realm must be unused and closed before calling this method.
+     * @param context an Android context.
      * @return false if a file could not be deleted. The failing file will be logged.
      */
     public static boolean deleteRealmFile(Context context) {
@@ -577,9 +578,10 @@ public class Realm {
     }
 
     /**
-     * Delete the Realm file from the filesystem for a custom Realm
-     * @param context an Android context
-     * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm")
+     * Delete the Realm file from the filesystem for a custom named Realm.
+     * The realm must be unused and closed before calling this method.
+     * @param context an Android context.
+     * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */
     public static boolean deleteRealmFile(Context context, String fileName) {
