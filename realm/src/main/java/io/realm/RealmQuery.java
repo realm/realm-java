@@ -72,245 +72,245 @@ public class RealmQuery<E extends RealmObject> {
 
     // Equal
 
-    public RealmQuery<E> equalTo(String columnName, String value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> equalTo(String fieldName, String value) {
+        int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> equalTo(String columnName, int value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> equalTo(String fieldName, int value) {
+        int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> equalTo(String columnName, long value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> equalTo(String fieldName, long value) {
+        int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> equalTo(String columnName, double value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> equalTo(String fieldName, double value) {
+        int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> equalTo(String columnName, float value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> equalTo(String fieldName, float value) {
+        int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> equalTo(String columnName, boolean value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> equalTo(String fieldName, boolean value) {
+        int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> equalTo(String columnName, Date value) {
+    public RealmQuery<E> equalTo(String fieldName, Date value) {
         
-        int columnIndex = columns.get(columnName);
+        int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
     // Not Equal
 
-    public RealmQuery<E> notEqualTo(String columnName, String value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> notEqualTo(String fieldName, String value) {
+        int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> notEqualTo(String columnName, int value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> notEqualTo(String fieldName, int value) {
+        int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> notEqualTo(String columnName, long value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> notEqualTo(String fieldName, long value) {
+        int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> notEqualTo(String columnName, double value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> notEqualTo(String fieldName, double value) {
+        int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> notEqualTo(String columnName, float value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> notEqualTo(String fieldName, float value) {
+        int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> notEqualTo(String columnName, boolean value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> notEqualTo(String fieldName, boolean value) {
+        int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, !value);
         return this;
     }
 
-    public RealmQuery<E> notEqualTo(String columnName, Date value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> notEqualTo(String fieldName, Date value) {
+        int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
     // Greater Than
 
-    public RealmQuery<E> greaterThan(String columnName, int value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThan(String fieldName, int value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> greaterThan(String columnName, long value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThan(String fieldName, long value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> greaterThan(String columnName, double value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThan(String fieldName, double value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> greaterThan(String columnName, float value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThan(String fieldName, float value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> greaterThan(String columnName, Date value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThan(String fieldName, Date value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> greaterThanOrEqualTo(String columnName, int value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> greaterThanOrEqualTo(String columnName, long value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> greaterThanOrEqualTo(String columnName, double value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> greaterThanOrEqualTo(String columnName, float value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> greaterThanOrEqualTo(String columnName, Date value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
+        int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
         return this;
     }
 
     // Less Than
 
-    public RealmQuery<E> lessThan(String columnName, int value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThan(String fieldName, int value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> lessThan(String columnName, long value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThan(String fieldName, long value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> lessThan(String columnName, double value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThan(String fieldName, double value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> lessThan(String columnName, float value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThan(String fieldName, float value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> lessThan(String columnName, Date value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThan(String fieldName, Date value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> lessThanOrEqualTo(String columnName, int value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> lessThanOrEqualTo(String columnName, long value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> lessThanOrEqualTo(String columnName, double value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> lessThanOrEqualTo(String columnName, float value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> lessThanOrEqualTo(String columnName, Date value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
+        int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
     // Between
 
-    public RealmQuery<E> between(String columnName, int from, int to) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> between(String fieldName, int from, int to) {
+        int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
-    public RealmQuery<E> between(String columnName, long from, long to) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> between(String fieldName, long from, long to) {
+        int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
-    public RealmQuery<E> between(String columnName, double from, double to) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> between(String fieldName, double from, double to) {
+        int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
-    public RealmQuery<E> between(String columnName, float from, float to) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> between(String fieldName, float from, float to) {
+        int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
-    public RealmQuery<E> between(String columnName, Date from, Date to) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> between(String fieldName, Date from, Date to) {
+        int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
         return this;
     }
@@ -318,38 +318,38 @@ public class RealmQuery<E extends RealmObject> {
 
     // Contains
 
-    public RealmQuery<E> contains(String columnName, String value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> contains(String fieldName, String value) {
+        int columnIndex = columns.get(fieldName);
         this.query.contains(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> contains(String columnName, String value, boolean caseSensitive) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> contains(String fieldName, String value, boolean caseSensitive) {
+        int columnIndex = columns.get(fieldName);
         this.query.contains(columnIndex, value, caseSensitive);
         return this;
     }
 
-    public RealmQuery<E> beginsWith(String columnName, String value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> beginsWith(String fieldName, String value) {
+        int columnIndex = columns.get(fieldName);
         this.query.beginsWith(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> beginsWith(String columnName, String value, boolean caseSensitive) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> beginsWith(String fieldName, String value, boolean caseSensitive) {
+        int columnIndex = columns.get(fieldName);
         this.query.beginsWith(columnIndex, value, caseSensitive);
         return this;
     }
 
-    public RealmQuery<E> endsWith(String columnName, String value) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> endsWith(String fieldName, String value) {
+        int columnIndex = columns.get(fieldName);
         this.query.endsWith(columnIndex, value);
         return this;
     }
 
-    public RealmQuery<E> endsWith(String columnName, String value, boolean caseSensitive) {
-        int columnIndex = columns.get(columnName);
+    public RealmQuery<E> endsWith(String fieldName, String value, boolean caseSensitive) {
+        int columnIndex = columns.get(fieldName);
         this.query.endsWith(columnIndex, value, caseSensitive);
         return this;
     }
@@ -376,79 +376,79 @@ public class RealmQuery<E extends RealmObject> {
 
     // Sum
 
-    public long sumInt(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public long sumInt(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.sumInt(columnIndex);
     }
 
-    public double sumDouble(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public double sumDouble(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.sumDouble(columnIndex);
     }
 
-    public double sumFloat(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public double sumFloat(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.sumFloat(columnIndex);
     }
 
     // Average
 
-    public double averageInt(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public double averageInt(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.averageInt(columnIndex);
     }
 
-    public double averageDouble(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public double averageDouble(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.averageDouble(columnIndex);
     }
 
-    public double averageFloat(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public double averageFloat(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.averageFloat(columnIndex);
     }
 
     // Min
 
-    public long minimumInt(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public long minimumInt(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.minimumInt(columnIndex);
     }
 
-    public double minimuDouble(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public double minimuDouble(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.minimumDouble(columnIndex);
     }
 
-    public float minimuFloat(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public float minimuFloat(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.minimumFloat(columnIndex);
     }
 
-    public Date minimumDate(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public Date minimumDate(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.minimumDate(columnIndex);
     }
 
     // Max
 
-    public long maximumInt(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public long maximumInt(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.maximumInt(columnIndex);
     }
 
-    public double maximuDouble(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public double maximuDouble(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.maximumDouble(columnIndex);
     }
 
-    public float maximuFloat(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public float maximuFloat(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.maximumFloat(columnIndex);
     }
 
-    public Date maximumDate(String columnName) {
-        int columnIndex = columns.get(columnName);
+    public Date maximumDate(String fieldName) {
+        int columnIndex = columns.get(fieldName);
         return this.query.maximumDate(columnIndex);
     }
 
