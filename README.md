@@ -7,12 +7,12 @@ This repository holds the source code for the Java version of Realm, which curre
 
 * **Mobile-first:** Realm is the first database built from the ground up to run directly inside phones, tablets and wearables.
 * **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to just 3 common classes](http://realm.io/docs/java/) (Objects, Lists and Realms): most of our users pick it up intuitively, getting simple apps up & running in minutes.
-* **Modern:** Realm supports encryption relationships and migrations.
+* **Modern:** Realm supports easy thread-safety, relationships & encryption.
 * **Fast:** Realm is faster than even raw SQLite on common operations, while maintaining an extremely rich feature set.
 
 ## Setting up Realm in your app
 
-See full instructions in our docs [http://realm.io/docs/java].
+See full instructions in our [docs](http://realm.io/docs/java).
 
 ## Documentation
 
@@ -28,12 +28,20 @@ Prerequisites:
 * _Also_ download & install the Android SDK, **Android 4.4.2 (API 19)** (for example through Android Studio’s **Android SDK Manager**)
 * Download the Android NDK (> r10b). For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
 * Modify the `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
-       sdk.dir=/Applications/Android Studio.app/sdk
-       ndk.dir=/usr/local/Cellar/android-ndk/r10b
 
-Once you have completed all the pre-requisites building Realm is done with a simple  `./gradlew assemble`. That will generate the `.aar` file and annotation processor jar for Realm. You will find them in realm/build/outputs/aar and realm-annotations-processor/build/libs, respectively.
+    ```
+    sdk.dir=/Applications/Android Studio.app/sdk
+    ndk.dir=/usr/local/Cellar/android-ndk/r10b
+    ```
 
- ### Other Commands
+Once you have completed all the pre-requisites building Realm is done with a simple command
+
+    ./gradlew assemble
+    
+    
+That command will generate the .aar file and annotation processor jar for Realm. You will find them in realm/build/outputs/aar and realm-annotations-processor/build/libs, respectively.
+
+### Other Commands
 
  * `./gradlew generatereleaseJavadoc` will generate the Javadocs
  * `./gradlew connectedCheck` will run the tests on a connected Android device
