@@ -52,11 +52,11 @@ public class CityLoader extends AsyncTaskLoader<List<City>> {
         }
 
         dataIsReady = true;
-
-        // Delete realm files
+        
+        // Delete previous database in case it's there from a previous run.
         Realm.deleteRealmFile(context);
 
-        //Store the retrieved items to the Realm
+        // Store the retrieved items to the Realm
         Realm realm = Realm.getInstance(context);
 
         realm.beginTransaction();
