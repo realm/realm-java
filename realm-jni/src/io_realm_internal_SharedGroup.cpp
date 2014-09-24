@@ -84,7 +84,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
   (JNIEnv* env, jobject, jlong native_replication_ptr)
 {
     try {
+#ifdef TIGHTDB_ENABLE_ENCRYPTION
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr), NULL);
+#else
         SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr));
+#endif
 
         return reinterpret_cast<jlong>(db);
     }

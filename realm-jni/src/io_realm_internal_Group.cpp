@@ -50,7 +50,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
             ThrowException(env, IllegalArgument, "Group(): Invalid mode parameter.");
             return 0;
         }
+#ifdef TIGHTDB_ENABLE_ENCRYPTION
+        pGroup = new Group(fileNameCharPtr, NULL, openmode);
+#else
         pGroup = new Group(fileNameCharPtr, openmode);
+#endif
 
         TR((env, "%x\n", pGroup));
         return reinterpret_cast<jlong>(pGroup);
