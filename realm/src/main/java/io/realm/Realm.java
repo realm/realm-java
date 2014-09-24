@@ -76,7 +76,7 @@ public class Realm {
         handler = new Handler() {
             @Override
             public void handleMessage(Message message) {
-                if (message.arg1 == LooperThread.REALM_CHANGED) {
+                if (message.what == LooperThread.REALM_CHANGED) {
                     sendNotifications();
                 }
             }
@@ -486,31 +486,19 @@ public class Realm {
     // Notifications
     public void addChangeListener(RealmChangeListener listener) {
         changeListeners.add(listener);
-        Message message = Message.obtain();
-        message.obj = handler;
-        message.arg1 = LooperThread.ADD_HANDLER;
-        message.arg2 = id;
-        looperThread.handler.sendMessage(message);
+        LooperThread.handlers.put(handler, id);
     }
 
     public void removeChangeListener(RealmChangeListener listener) {
         changeListeners.remove(listener);
         if (changeListeners.isEmpty()) {
-            Message message = Message.obtain();
-            message.obj = handler;
-            message.arg1 = LooperThread.REMOVE_HANDLER;
-            message.arg2 = id;
-            looperThread.handler.sendMessage(message);
+            LooperThread.handlers.remove(handler);
         }
     }
 
     public void removeAllChangeListeners() {
         changeListeners.clear();
-        Message message = Message.obtain();
-        message.obj = handler;
-        message.arg1 = LooperThread.REMOVE_HANDLER;
-        message.arg2 = id;
-        looperThread.handler.sendMessage(message);
+        LooperThread.handlers.remove(handler);
     }
 
     void sendNotifications() {
