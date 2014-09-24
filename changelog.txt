@@ -1,3 +1,15 @@
+Beta-0.3.0
+
+  Changes
+  =======
+
+  * Renaming beginWrite to beginTransaction and commit to commitTransaction
+
+  Bug Fixes
+  =========
+
+
+
 Beta-0.2.0
 
   Changes
