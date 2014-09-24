@@ -4,12 +4,14 @@ import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 import io.realm.examples.performance.PerformanceTestFragment;
+import io.realm.examples.performance.sugar_orm.SugarEmployee;
 
 public class ORMLiteFragment extends PerformanceTestFragment {
 
@@ -22,6 +24,11 @@ public class ORMLiteFragment extends PerformanceTestFragment {
 
     public ORMLiteFragment() {
         // Required empty public constructor
+    }
+
+    public void clearDevice() {
+        final ORMLiteDatabaseHelper helper = new ORMLiteDatabaseHelper(getActivity());
+        helper.onUpgrade(helper.getWritableDatabase(), 2, 3);
     }
 
     public String testInserts() {
@@ -37,7 +44,7 @@ public class ORMLiteFragment extends PerformanceTestFragment {
         employeeDao.callBatchTasks(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
-                for (int row = 0; row < NUM_INSERTS; row++) {
+                for (int row = 0; row < getNumInserts(); row++) {
                     ORMLiteEmployee employee = new ORMLiteEmployee();
                     employee.setName(getName(row));
                     employee.setAge(getAge(row));
@@ -81,19 +88,19 @@ public class ORMLiteFragment extends PerformanceTestFragment {
                                 "AND age >= 20 AND age <= 50 " +
                                 "AND hired = 0");
 
-        rawResults =
-                employeeDao.queryRaw(
-                        "SELECT * from Employee " +
-                                "WHERE name = 'Foo0' " +
-                                "AND age >= 20 AND age <= 40 " +
-                                "AND hired = 1");
-
-        rawResults =
-                employeeDao.queryRaw(
-                        "SELECT * from Employee " +
-                                "WHERE name = 'Foo1' " +
-                                "AND age >= 20 AND age <= 40 " +
-                                "AND hired = 1");
+//        rawResults =
+//                employeeDao.queryRaw(
+//                        "SELECT * from Employee " +
+//                                "WHERE name = 'Foo0' " +
+//                                "AND age >= 20 AND age <= 40 " +
+//                                "AND hired = 1");
+//
+//        rawResults =
+//                employeeDao.queryRaw(
+//                        "SELECT * from Employee " +
+//                                "WHERE name = 'Foo1' " +
+//                                "AND age >= 20 AND age <= 40 " +
+//                                "AND hired = 1");
 
         return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
     }
@@ -109,7 +116,7 @@ public class ORMLiteFragment extends PerformanceTestFragment {
 
         GenericRawResults<String[]> rawResults =
                 employeeDao.queryRaw(
-                        "SELECT * from Employee " +
+                        "SELECT COUNT(*) from Employee " +
                                 "WHERE name = 'Foo0' " +
                                 "AND age >= 20 AND age <= 50 " +
                                 "AND hired = 0");
@@ -121,34 +128,30 @@ public class ORMLiteFragment extends PerformanceTestFragment {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        rawResults =
-                employeeDao.queryRaw(
-                        "SELECT * from Employee " +
-                                "WHERE name = 'Foo0' " +
-                                "AND age >= 20 AND age <= 40 " +
-                                "AND hired = 1");
-
-        try {
-            results = rawResults.getResults();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        rawResults =
-                employeeDao.queryRaw(
-                        "SELECT * from Employee " +
-                                "WHERE name = 'Foo1' " +
-                                "AND age >= 20 AND age <= 40 " +
-                                "AND hired = 1");
-
-        try {
-            results = rawResults.getResults();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        results.size();
+//
+//        rawResults = employeeDao.queryRaw(
+//                        "SELECT * from Employee " +
+//                                "WHERE name = 'Foo0' " +
+//                                "AND age >= 20 AND age <= 40 " +
+//                                "AND hired = 1");
+//
+//        try {
+//            results = rawResults.getResults();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        rawResults = employeeDao.queryRaw(
+//                        "SELECT * from Employee " +
+//                                "WHERE name = 'Foo1' " +
+//                                "AND age >= 20 AND age <= 40 " +
+//                                "AND hired = 1");
+//
+//        try {
+//            results = rawResults.getResults();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
 
         return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
     }
@@ -168,9 +171,9 @@ public class ORMLiteFragment extends PerformanceTestFragment {
         PreparedQuery<ORMLiteEmployee> preparedQuery = null;
         try {
             queryBuilder.where()
-                    .eq("name", "Name")
-                    .and().between("age", 500, 50000)
-                    .and().eq("hired", true);
+                    .eq("name", "Foo0")
+                    .and().between("age", 20, 50)
+                    .and().eq("hired", false);
             preparedQuery = queryBuilder.prepare();
         } catch(SQLException e) {
             e.printStackTrace();

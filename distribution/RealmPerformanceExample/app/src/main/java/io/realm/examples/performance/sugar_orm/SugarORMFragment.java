@@ -4,6 +4,7 @@ import com.orm.query.Condition;
 import com.orm.query.Select;
 
 import io.realm.examples.performance.PerformanceTestFragment;
+import io.realm.examples.performance.sqlite.EmployeeDatabaseHelper;
 
 public class SugarORMFragment extends PerformanceTestFragment {
 
@@ -18,10 +19,14 @@ public class SugarORMFragment extends PerformanceTestFragment {
         // Required empty public constructor
     }
 
+    public void clearDevice() {
+        SugarEmployee.deleteAll(SugarEmployee.class);
+    }
+
     public String testInserts() {
         long startTime = System.currentTimeMillis();
 
-        for (int row = 0; row < NUM_INSERTS; row++) {
+        for (int row = 0; row < getNumInserts(); row++) {
             SugarEmployee employee
                     = new SugarEmployee(getName(row),
                                         getAge(row),

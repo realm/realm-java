@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -17,18 +18,30 @@ public abstract class PerformanceTestFragment extends Fragment {
 
     public static final String TAG = PerformanceTestFragment.class.getName();
 
-    public static final int NUM_INSERTS    = 100000;
-    public static final int MAX_AGE        = 50;
-    public static final int MIN_AGE        = 20;
+    public static final int MAX_AGE = 50;
+    public static final int MIN_AGE = 20;
     public static final int NUM_TEST_NAMES = 1000;
+    public static final int MIN_NUM_INSERTS = 10000;
+
+    private int numInserts = MIN_NUM_INSERTS;
+
+    public int getNumInserts() {
+        return numInserts;
+    }
+
+    public void setNumInserts(int numInserts) {
+        this.numInserts = numInserts;
+    }
 
     private List<String> employeeNames = null;
+
+    private View         rootView   = null;
     private LinearLayout rootLayout = null;
 
     public void initNames() {
         employeeNames = new ArrayList<String>();
-        for(int i=0;i<NUM_TEST_NAMES;i++) {
-            employeeNames.add("Foo"+i);
+        for (int i = 0; i < NUM_TEST_NAMES; i++) {
+            employeeNames.add("Foo" + i);
         }
     }
 
@@ -45,7 +58,7 @@ public abstract class PerformanceTestFragment extends Fragment {
     }
 
     public boolean getHiredBool(int row) {
-        if(row % 2 == 0) return false;
+        if (row % 2 == 0) return false;
         return true;
     }
 
@@ -55,17 +68,8 @@ public abstract class PerformanceTestFragment extends Fragment {
 
     AsyncTask<Void, Void, String> bgTask = null;
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState);
-
-        View rootView = inflater.inflate(R.layout.fragment_basic_example, null);
-
-        rootLayout = (LinearLayout) rootView.findViewById(R.id.container);
-
-        initNames();
-
+    private AsyncTask<Void, Void, String> getTask() {
+        bgTask = null;
         bgTask = new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {
@@ -80,7 +84,42 @@ public abstract class PerformanceTestFragment extends Fragment {
             protected void onPostExecute(String results) {
                 showStatus(results);
             }
-        }.execute();
+        };
+        return bgTask;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
+
+        rootView = inflater.inflate(R.layout.fragment_basic_example, null);
+
+        rootLayout = (LinearLayout) rootView.findViewById(R.id.container);
+
+        initNames();
+
+        rootView.findViewById(R.id.executeButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String txt = ((EditText)rootView.findViewById(R.id.input_field)).getText().toString();
+                try {
+                    PerformanceTestFragment.this.numInserts = new Integer(txt);
+                } catch (Exception e) {
+                    showStatus("Entry: " + txt + " not a valid integer");
+                    PerformanceTestFragment.this.numInserts = MIN_NUM_INSERTS;
+                }
+                showStatus("Executing for Insert Count: " + numInserts);
+                getTask().execute();
+            }
+        });
+
+        rootView.findViewById(R.id.clear_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearDevice();
+            }
+        });
 
         return rootView;
     }
@@ -99,8 +138,12 @@ public abstract class PerformanceTestFragment extends Fragment {
         bgTask.cancel(true);
     }
 
+    public abstract void clearDevice();
+
     public abstract String testQueries();
+
     public abstract String testInserts();
+
     public abstract String testCounts();
 
     private void showStatus(String txt) {

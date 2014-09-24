@@ -3,7 +3,6 @@ package io.realm.examples.performance.sqlite;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.util.Log;
 
 import io.realm.examples.performance.PerformanceTestFragment;
 
@@ -25,8 +24,11 @@ public class SQLiteFragment extends PerformanceTestFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-
         databaseHelper = new EmployeeDatabaseHelper(activity);
+    }
+
+    public void clearDevice() {
+        databaseHelper.onUpgrade(databaseHelper.getWritableDatabase(), 2, 3);
     }
 
     public String testInserts() {
@@ -36,7 +38,7 @@ public class SQLiteFragment extends PerformanceTestFragment {
 
         ContentValues values = new ContentValues();
         db.beginTransaction();
-        for(int row=0;row < NUM_INSERTS; row++) {
+        for(int row=0;row < getNumInserts(); row++) {
             values.put(databaseHelper.COLUMN_NAME, getName(row));
             values.put(databaseHelper.COLUMN_AGE, getAge(row));
             values.put(databaseHelper.COLUMN_HIRED, getHired(row));
@@ -70,17 +72,17 @@ public class SQLiteFragment extends PerformanceTestFragment {
         Cursor cursor = db.rawQuery(query, null);
         cursor.getCount();
 
-        query = "SELECT * FROM "
-                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-                + " WHERE name = 'Foo0' AND age >= 20 AND age <= 40 AND hired = 1";
-        cursor = db.rawQuery(query, null);
-        cursor.getCount();
-
-        query = "SELECT * FROM "
-                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-                + " WHERE name = 'Foo1' AND age >= 20 AND age <= 40 AND hired = 1";
-        cursor = db.rawQuery(query, null);
-        cursor.getCount();
+//        query = "SELECT * FROM "
+//                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
+//                + " WHERE name = 'Foo0' AND age >= 20 AND age <= 40 AND hired = 1";
+//        cursor = db.rawQuery(query, null);
+//        cursor.getCount();
+//
+//        query = "SELECT * FROM "
+//                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
+//                + " WHERE name = 'Foo1' AND age >= 20 AND age <= 40 AND hired = 1";
+//        cursor = db.rawQuery(query, null);
+//        cursor.getCount();
 
         db.close();
 
@@ -92,26 +94,26 @@ public class SQLiteFragment extends PerformanceTestFragment {
 
         long startTime = System.currentTimeMillis();
 
-        String count = "SELECT count(*) FROM "
+        String count = "SELECT COUNT(*) FROM "
                 + EmployeeDatabaseHelper.TABLE_EMPLOYEES
                 + " WHERE name = 'Foo0' AND age >= 20 AND age <= 50 AND hired = 0";
         Cursor mcursor = db.rawQuery(count, null);
         mcursor.moveToFirst();
         mcursor.getInt(0);
 
-        count = "SELECT count(*) FROM "
-                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-                + " WHERE name = 'Foo0' AND age >= 20 AND age <= 40 AND hired = 1";
-        mcursor = db.rawQuery(count, null);
-        mcursor.moveToFirst();
-        mcursor.getInt(0);
-
-        count = "SELECT count(*) FROM "
-                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-                + " WHERE name = 'Foo1' AND age >= 20 AND age <= 40 AND hired = 1";
-        mcursor = db.rawQuery(count, null);
-        mcursor.moveToFirst();
-        mcursor.getInt(0);
+//        count = "SELECT count(*) FROM "
+//                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
+//                + " WHERE name = 'Foo0' AND age >= 20 AND age <= 40 AND hired = 1";
+//        mcursor = db.rawQuery(count, null);
+//        mcursor.moveToFirst();
+//        mcursor.getInt(0);
+//
+//        count = "SELECT count(*) FROM "
+//                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
+//                + " WHERE name = 'Foo1' AND age >= 20 AND age <= 40 AND hired = 1";
+//        mcursor = db.rawQuery(count, null);
+//        mcursor.moveToFirst();
+//        mcursor.getInt(0);
 
         db.close();
 

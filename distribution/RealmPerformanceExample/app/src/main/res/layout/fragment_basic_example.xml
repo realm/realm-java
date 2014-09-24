@@ -16,8 +16,42 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
+            android:layout_margin="7dp"
+            android:text="Enter Inserts To Perform:"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/input_field"
+            android:hint="Insert Count"
+            android:layout_margin="7dp"
+            android:inputType="number"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:text="Execute"
+            android:id="@+id/executeButton"
+            android:layout_margin="7dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:text="Clear Database"
+            android:id="@+id/clear_button"
+            android:layout_margin="7dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:text="Status Output..."
-            android:textSize="18sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
         <LinearLayout
