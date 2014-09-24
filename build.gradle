@@ -55,13 +55,13 @@ uploadArchives {
                 name 'Realm'
                 packaging 'jar'
                 // optionally artifactId can be defined here 
-                description 'Realm is a mobile database: a replacement for SQLite and ORM's. Realm lets you build apps faster, build apps that are faster, and craft amazing user experiences.'
+                description 'Realm is a mobile database: a replacement for SQLite, OrmLite, greenDAO or Core Data. Realm lets you build apps faster, build apps that are faster, and craft amazing user experiences.'
                 url 'http://realm.io'
 
                 scm {
-                    connection 'scm:git:https://github.com/Realm/realm-java.git'
-                    developerConnection 'scm:git:https://github.com/Realm/realm-java.git'
-                    url 'https://github.com/Realm/realm-java.git'
+                    connection 'scm:git:https://github.com/realm/realm-java.git'
+                    developerConnection 'scm:git:https://github.com/realm/realm-java.git'
+                    url 'https://github.com/realm/realm-java.git'
                 }
 
                 licenses {
