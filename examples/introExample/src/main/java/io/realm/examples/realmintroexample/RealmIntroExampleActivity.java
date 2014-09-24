@@ -62,7 +62,7 @@ public class RealmIntroExampleActivity extends Activity {
         }.execute();
     }
 
-    private void basicReadWrite() throws java.io.IOException {
+    private void basicReadWrite() throws IOException {
         showStatus("Performing basic Read/Write operation...");
 
         // Open a default realm
@@ -80,7 +80,7 @@ public class RealmIntroExampleActivity extends Activity {
         showStatus(person.getName() + ":" + person.getAge());
     }
 
-    private void basicQuery() throws java.io.IOException {
+    private void basicQuery() throws IOException {
         showStatus("\nPerforming basic Query operation...");
 
         Realm realm = Realm.getInstance(this);
@@ -89,7 +89,7 @@ public class RealmIntroExampleActivity extends Activity {
         showStatus("Size of result set: " + results.size());
     }
 
-    private void basicUpdate() throws java.io.IOException {
+    private void basicUpdate() throws IOException {
         showStatus("\nPerforming basic Update operation...");
 
         // Open a default realm
@@ -121,7 +121,7 @@ public class RealmIntroExampleActivity extends Activity {
         Realm realm = Realm.getInstance(this);
 
         // Add ten persons in one write transaction
-        realm.beginWrite();
+        realm.beginTransaction();
         Dog fido = realm.createObject(Dog.class);
         fido.setName("fido");
         for (int i = 0; i < 10; i++) {
@@ -142,7 +142,7 @@ public class RealmIntroExampleActivity extends Activity {
                 person.getCats().add(cat);
             }
         }
-        realm.commit();
+        realm.commitTransaction();
 
         // Implicit read transactions allow you to access your objects
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
