@@ -218,6 +218,7 @@ public class RealmSourceCodeGenerator {
                 "io.realm.RealmList",
                 "io.realm.RealmObject",
                 "java.util.Date",
+                "java.util.Arrays",
                 packageName + ".*")
                 .emitEmptyLine();
 

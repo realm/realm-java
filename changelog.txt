@@ -5,6 +5,7 @@ Beta-0.3.0
 
   * Renaming beginWrite to beginTransaction and commit to commitTransaction
   * Adding equals to generated classes (RealmObjects)
+  * Added utility methods to delete Realm files
 
   Bug Fixes
   =========
