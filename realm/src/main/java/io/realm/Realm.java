@@ -70,7 +70,7 @@ public class Realm {
             looperThread.start();
         }
 
-        if (!Looper.myLooper().equals(Looper.getMainLooper())) {
+        if (Looper.myLooper() == null) {
             Looper.prepare();
         }
         handler = new Handler() {
@@ -81,7 +81,7 @@ public class Realm {
                 }
             }
         };
-        if (!Looper.myLooper().equals(Looper.getMainLooper())) {
+        if (Looper.myLooper() == null) {
             Looper.loop();
         }
     }
