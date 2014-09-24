@@ -48,7 +48,6 @@ public class Realm {
     private ScheduledExecutorService scheduledExecutorService
             = Executors.newSingleThreadScheduledExecutor();
 
-    private Map<Class<?>, String> generatedClassNames = new HashMap<Class<?>, String>();
     private Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>();
     private Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>();
     private Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
@@ -171,11 +170,12 @@ public class Realm {
         Table table;
         table = tables.get(clazz);
         if (table == null) {
-            String generatedClassName = generatedClassNames.get(clazz);
-            if (generatedClassName == null) {
-                generatedClassName = clazz.getName() + "RealmProxy";
-                generatedClassNames.put(clazz, generatedClassName);
+            String simpleClassName = simpleClassNames.get(clazz);
+            if (simpleClassName == null) {
+                simpleClassName = clazz.getSimpleName();
+                simpleClassNames.put(clazz, simpleClassName);
             }
+            String generatedClassName = "io.realm." + simpleClassName + "RealmProxy";
 
             Class<?> generatedClass = generatedClasses.get(generatedClassName);
             if (generatedClass == null) {
@@ -362,15 +362,8 @@ public class Realm {
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         E result;
 
-        String generatedClassName = null;
         Table table = tables.get(clazz);
         if (table == null) {
-            generatedClassName = generatedClassNames.get(clazz);
-            if (generatedClassName == null) {
-                generatedClassName = clazz.getName() + "RealmProxy";
-                generatedClassNames.put(clazz, generatedClassName);
-            }
-
             String simpleClassName = simpleClassNames.get(clazz);
             if (simpleClassName == null) {
                 simpleClassName = clazz.getSimpleName();
@@ -385,13 +378,13 @@ public class Realm {
 
         Constructor constructor = generatedConstructors.get(clazz);
         if (constructor == null) {
-            if (generatedClassName == null) {
-                generatedClassName = generatedClassNames.get(clazz);
-                if (generatedClassName == null) {
-                    generatedClassName = clazz.getName() + "RealmProxy";
-                    generatedClassNames.put(clazz, generatedClassName);
-                }
+            String simpleClassName = simpleClassNames.get(clazz);
+            if (simpleClassName == null) {
+                simpleClassName = clazz.getSimpleName();
+                simpleClassNames.put(clazz, simpleClassName);
             }
+            String generatedClassName = "io.realm." + simpleClassName + "RealmProxy";
+
 
             Class<?> generatedClass = generatedClasses.get(generatedClassName);
             if (generatedClass == null) {
