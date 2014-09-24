@@ -1,4 +1,4 @@
-package io.realm.examples.performance.model;
+package io.realm.examples.performance.ormlite;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;

@@ -1,12 +1,22 @@
-package io.realm.examples.performance.model;
+package io.realm.examples.performance.sugar_orm;
 
-import io.realm.RealmObject;
+import com.orm.SugarRecord;
 
-public class Employee extends RealmObject {
+public class SugarEmployee extends SugarRecord<SugarEmployee> {
 
     private String name;
     private int age;
     private int hired;
+
+    public SugarEmployee() {
+
+    }
+
+    public SugarEmployee(String name, int age, int hired) {
+        this.name  = name;
+        this.age   = age;
+        this.hired = hired;
+    }
 
     public String getName() {
         return name;
