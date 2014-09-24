@@ -60,6 +60,7 @@ public class ORMLiteFragment extends PerformanceTestFragment {
         } catch(SQLException e) {
             e.printStackTrace();
         }
+
         status += "...Completed " + results.size() + " inserts\n";
         return status;
     }
@@ -79,6 +80,20 @@ public class ORMLiteFragment extends PerformanceTestFragment {
                                 "WHERE name = 'Foo0' " +
                                 "AND age >= 20 AND age <= 50 " +
                                 "AND hired = 0");
+
+        rawResults =
+                employeeDao.queryRaw(
+                        "SELECT * from Employee " +
+                                "WHERE name = 'Foo0' " +
+                                "AND age >= 20 AND age <= 40 " +
+                                "AND hired = 1");
+
+        rawResults =
+                employeeDao.queryRaw(
+                        "SELECT * from Employee " +
+                                "WHERE name = 'Foo1' " +
+                                "AND age >= 20 AND age <= 40 " +
+                                "AND hired = 1");
 
         return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
     }
@@ -100,6 +115,33 @@ public class ORMLiteFragment extends PerformanceTestFragment {
                                 "AND hired = 0");
 
         List<String[]> results = null;
+
+        try {
+            results = rawResults.getResults();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        rawResults =
+                employeeDao.queryRaw(
+                        "SELECT * from Employee " +
+                                "WHERE name = 'Foo0' " +
+                                "AND age >= 20 AND age <= 40 " +
+                                "AND hired = 1");
+
+        try {
+            results = rawResults.getResults();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        rawResults =
+                employeeDao.queryRaw(
+                        "SELECT * from Employee " +
+                                "WHERE name = 'Foo1' " +
+                                "AND age >= 20 AND age <= 40 " +
+                                "AND hired = 1");
+
         try {
             results = rawResults.getResults();
         } catch (SQLException e) {

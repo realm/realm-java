@@ -1,13 +1,13 @@
 package io.realm.examples.performance.realm;
 
-import android.content.ContentValues;
-import android.database.Cursor;
+import com.j256.ormlite.dao.GenericRawResults;
 
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmQuery;
+import io.realm.RealmResults;
 import io.realm.examples.performance.PerformanceTestFragment;
-import io.realm.examples.performance.sqlite.EmployeeDatabaseHelper;
 
 public class RealmFragment extends PerformanceTestFragment {
 
@@ -29,14 +29,20 @@ public class RealmFragment extends PerformanceTestFragment {
 
         realm.beginWrite();
         for(int row = 0; row < NUM_INSERTS; row++) {
-            Employee employee = realm.create(Employee.class);
+            RealmEmployee employee = realm.create(RealmEmployee.class);
             employee.setName(getName(row));
             employee.setAge(getAge(row));
             employee.setHired(getHired(row));
         }
         realm.commit();
 
-        return "testInserts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        String status = "testInserts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+
+        //Verify writes were successful
+        RealmResults<RealmEmployee> results = realm.where(RealmEmployee.class).findAll();
+
+        status += "...Completed " + results.size() + " inserts\n";
+        return status;
     }
 
     public String testQueries() {
@@ -44,11 +50,21 @@ public class RealmFragment extends PerformanceTestFragment {
 
         long startTime = System.currentTimeMillis();
 
-        List<Employee> results
-                = realm.where(Employee.class)
+        List<RealmEmployee> results
+                = realm.where(RealmEmployee.class)
                 .equalTo("hired", 0)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo0").findAll();
+
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 1)
+                .between("age", 20, 40)
+                .equalTo("name", "Foo0").findAll();
+
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 1)
+                .between("age", 20, 40)
+                .equalTo("name", "Foo1").findAll();
 
         return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
     }
@@ -58,11 +74,22 @@ public class RealmFragment extends PerformanceTestFragment {
 
         long startTime = System.currentTimeMillis();
 
-        List<Employee> results
-                = realm.where(Employee.class)
+        List<RealmEmployee> results
+                = realm.where(RealmEmployee.class)
                 .equalTo("hired", 0)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo0").findAll();
+        results.size();
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 1)
+                .between("age", 20, 40)
+                .equalTo("name", "Foo0").findAll();
+        results.size();
+
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 1)
+                .between("age", 20, 40)
+                .equalTo("name", "Foo1").findAll();
         results.size();
 
         return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";

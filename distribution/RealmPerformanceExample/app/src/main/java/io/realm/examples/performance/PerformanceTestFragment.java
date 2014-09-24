@@ -86,8 +86,16 @@ public abstract class PerformanceTestFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onStop();
+        Log.d(TAG, "Cancelling tests");
+        bgTask.cancel(true);
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
+        Log.d(TAG, "Cancelling tests");
         bgTask.cancel(true);
     }
 

@@ -2,7 +2,7 @@ package io.realm.examples.performance.realm;
 
 import io.realm.RealmObject;
 
-public class Employee extends RealmObject {
+public class RealmEmployee extends RealmObject {
 
     private String name;
     private int age;
