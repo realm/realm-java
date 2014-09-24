@@ -18,9 +18,11 @@ package io.realm;
 
 
 import java.util.AbstractList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
@@ -128,7 +130,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName   The field to look for a minimum on. Only int, float, and double
      *                    are supported.
-     * @return
+     * @return            The minimum value.
      */
     public Number min(String fieldName) {
         // TODO: Date
@@ -145,6 +147,21 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
+    /**
+     * Find the oldest date.
+     *
+     * @param fieldName  The field to look for the old/minimum date.
+     * @return           The minimum date.
+     */
+    public Date minDate(String fieldName) {
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (table.getColumnType(columnIndex) == ColumnType.DATE) {
+            return table.minimumDate(columnIndex);
+        }
+        else {
+            throw new RuntimeException("Wrong type - Date excepted");
+        }
+    }
 
     /**
      * Find the maximum value of a field.
@@ -165,6 +182,22 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
                 return table.maximumDouble(columnIndex);
             default:
                 throw new RuntimeException("Wrong type");
+        }
+    }
+
+    /**
+     * Find the youngest date.
+     *
+     * @param fieldName  The field to look for the youngest/maximum date.
+     * @return           The maximum date.
+     */
+    public Date maxDate(String fieldName) {
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (table.getColumnType(columnIndex) == ColumnType.DATE) {
+            return table.minimumDate(columnIndex);
+        }
+        else {
+            throw new RuntimeException("Wrong type - Date excepted");
         }
     }
 
