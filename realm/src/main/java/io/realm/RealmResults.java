@@ -51,8 +51,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     TableOrView getTable() {
-
-        if(table == null) {
+        if (table == null) {
             return realm.getTable(classSpec);
         } else {
             return table;
@@ -69,11 +68,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     @Override
     public E get(int rowIndex) {
-
         E obj;
 
         TableOrView table = getTable();
-        if(table instanceof TableView) {
+        if (table instanceof TableView) {
             obj = realm.get(classSpec, ((TableView)table).getSourceRowIndex(rowIndex));
         } else {
             obj = realm.get(classSpec, rowIndex);
@@ -133,7 +131,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @return            The minimum value.
      */
     public Number min(String fieldName) {
-        // TODO: Date
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -143,14 +140,14 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.minimumDouble(columnIndex);
             default:
-                throw new RuntimeException("Wrong type");
+                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
     /**
      * Find the oldest date.
      *
-     * @param fieldName  The field to look for the old/minimum date.
+     * @param fieldName  The field to look for the oldest/minimum date.
      * @return           The minimum date.
      */
     public Date minDate(String fieldName) {
@@ -159,7 +156,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table.minimumDate(columnIndex);
         }
         else {
-            throw new RuntimeException("Wrong type - Date excepted");
+            throw new RuntimeException("Wrong type of field - Date type expected.");
         }
     }
 
@@ -171,7 +168,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @return            The maximum value.
      */
     public Number max(String fieldName) {
-        // TODO: Date
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -181,7 +177,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.maximumDouble(columnIndex);
             default:
-                throw new RuntimeException("Wrong type");
+                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
@@ -197,7 +193,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table.minimumDate(columnIndex);
         }
         else {
-            throw new RuntimeException("Wrong type - Date excepted");
+            throw new RuntimeException("Wrong type - Date expected");
         }
     }
 
@@ -219,7 +215,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.sumDouble(columnIndex);
             default:
-                throw new RuntimeException("Wrong type");
+                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
@@ -242,7 +238,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case FLOAT:
                 return table.averageFloat(columnIndex);
             default:
-                throw new RuntimeException("Wrong type");
+                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
