@@ -10,8 +10,8 @@ When filing an issue, please provide as much of the following information as pos
 2. **Expected results**
 3. **Actual results**
 4. **Steps to reproduce**
-5. **Code sample that highlights the issue** (full Xcode projects that we can compile ourselves are ideal)
-6. **Version of Realm/Xcode/OSX**
+5. **Code sample that highlights the issue** (full Android Studio projects that we can compile ourselves are ideal)
+6. **Version of Realm/Android Studio/OS**
 
 If you'd like to send us sensitive sample code to help troubleshoot your issue, you can email <help@realm.io> directly.
 
