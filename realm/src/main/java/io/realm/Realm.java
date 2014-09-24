@@ -17,6 +17,9 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 
 import java.io.File;
 import java.lang.ref.SoftReference;
@@ -27,48 +30,60 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
+import io.realm.internal.android.LooperThread;
 
 
 public class Realm {
-    private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
     public static final String DEFAULT_REALM_NAME = "default.realm";
+
+    private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
+
     private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
 
-    private SharedGroup sharedGroup;
-    private ImplicitTransaction transaction;
+    private final int id;
+    private final LooperThread looperThread = LooperThread.getInstance();
+    private final SharedGroup sharedGroup;
+    private final ImplicitTransaction transaction;
+    private final Map<Class<?>, String> generatedClassNames = new HashMap<Class<?>, String>();
+    private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>();
+    private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>();
+    private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
+    private final Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
+    private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
+    private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
+    private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
+
     private int version;
-    private ScheduledExecutorService scheduledExecutorService
-            = Executors.newSingleThreadScheduledExecutor();
-
-    private Map<Class<?>, String> generatedClassNames = new HashMap<Class<?>, String>();
-    private Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>();
-    private Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>();
-    private Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
-    private Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
-    private Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
-    private Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
-
-    private List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
-    boolean runEventHandler = false;
+    private Handler handler;
 
     // The constructor in private to enforce the use of the static one
     private Realm(String absolutePath) {
         this.sharedGroup = new SharedGroup(absolutePath, defaultDurability);
         this.transaction = sharedGroup.beginImplicitTransaction();
-    }
+        this.id = absolutePath.hashCode();
+        if (!looperThread.isAlive()) {
+            looperThread.start();
+        }
 
-    private void startEventHandler() {
-        runEventHandler = true;
-        RealmEventHandler realmEventHandler = new RealmEventHandler(this);
-        scheduledExecutorService.scheduleWithFixedDelay(realmEventHandler, 0, 100, TimeUnit.MILLISECONDS);
+        if (!Looper.myLooper().equals(Looper.getMainLooper())) {
+            Looper.prepare();
+        }
+        handler = new Handler() {
+            @Override
+            public void handleMessage(Message message) {
+                if (message.arg1 == LooperThread.REALM_CHANGED) {
+                    sendNotifications();
+                }
+            }
+        };
+        if (!Looper.myLooper().equals(Looper.getMainLooper())) {
+            Looper.loop();
+        }
     }
 
     @Override
@@ -471,28 +486,36 @@ public class Realm {
     // Notifications
     public void addChangeListener(RealmChangeListener listener) {
         changeListeners.add(listener);
-        if(!runEventHandler) {
-            startEventHandler();
-        }
+        Message message = Message.obtain();
+        message.obj = handler;
+        message.arg1 = LooperThread.ADD_HANDLER;
+        message.arg2 = id;
+        looperThread.handler.sendMessage(message);
     }
 
     public void removeChangeListener(RealmChangeListener listener) {
         changeListeners.remove(listener);
-        if(runEventHandler && changeListeners.isEmpty()) {
-            runEventHandler = false;
+        if (changeListeners.isEmpty()) {
+            Message message = Message.obtain();
+            message.obj = handler;
+            message.arg1 = LooperThread.REMOVE_HANDLER;
+            message.arg2 = id;
+            looperThread.handler.sendMessage(message);
         }
     }
 
     public void removeAllChangeListeners() {
         changeListeners.clear();
+        Message message = Message.obtain();
+        message.obj = handler;
+        message.arg1 = LooperThread.REMOVE_HANDLER;
+        message.arg2 = id;
+        looperThread.handler.sendMessage(message);
     }
 
     void sendNotifications() {
         for(RealmChangeListener listener : changeListeners) {
             listener.onChange();
-        }
-        if(runEventHandler && changeListeners.isEmpty()) {
-            runEventHandler = false;
         }
     }
 
@@ -510,11 +533,6 @@ public class Realm {
      * Starts a write transaction, this must be closed with commitTransaction()
      */
     public void beginTransaction() {
-        // If we are moving the transaction forward, send local notifications
-        if (sharedGroup.hasChanged()) {
-            sendNotifications();
-        }
-
         transaction.promoteToWrite();
     }
 
@@ -524,8 +542,10 @@ public class Realm {
     public void commitTransaction() {
         transaction.commitAndContinueAsRead();
 
-        // Send notifications because we did a local change
-        sendNotifications();
+        Message message = Message.obtain();
+        message.arg1 = LooperThread.REALM_CHANGED;
+        message.arg2 = id;
+        looperThread.handler.sendMessage(message);
     }
 
     public void clear(Class<?> classSpec) {
