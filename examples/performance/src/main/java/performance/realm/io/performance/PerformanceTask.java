@@ -82,13 +82,13 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
 
         System.out.println("################################ Testing new interface");
 
-        Realm.setDefaultDurability(SharedGroup.Durability.FULL);
+        // Realm.setDefaultDurability(SharedGroup.Durability.FULL);
         Realm realm = Realm.getInstance(activity);
 
         timer = System.currentTimeMillis();
         try {
             //Debug.startMethodTracing("writes");
-            realm.beginWrite();
+            realm.beginTransaction();
             for(int i = 0; i < listSize; i++) {
                 User user = realm.createObject(User.class);
 
@@ -99,7 +99,7 @@ public class PerformanceTask extends AsyncTask<Integer, String, String> {
                 // realm.add(user);
 
             }
-            realm.commit();
+            realm.commitTransaction();
             //Debug.stopMethodTracing();
         } catch(Throwable t) {
             t.printStackTrace();
