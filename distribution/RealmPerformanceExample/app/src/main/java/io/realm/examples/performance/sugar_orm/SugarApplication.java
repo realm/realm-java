@@ -1,4 +1,4 @@
-package io.realm.examples.performance;
+package io.realm.examples.performance.sugar_orm;
 
 import android.content.Context;
 

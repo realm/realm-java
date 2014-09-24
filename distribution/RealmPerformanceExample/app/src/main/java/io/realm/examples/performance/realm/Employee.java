@@ -6,7 +6,7 @@ public class Employee extends RealmObject {
 
     private String name;
     private int age;
-    private boolean hired;
+    private int hired;
 
     public String getName() {
         return name;
@@ -24,5 +24,11 @@ public class Employee extends RealmObject {
         this.age = age;
     }
 
+    public int getHired() {
+        return hired;
+    }
 
+    public void setHired(int hired) {
+        this.hired = hired;
+    }
 }

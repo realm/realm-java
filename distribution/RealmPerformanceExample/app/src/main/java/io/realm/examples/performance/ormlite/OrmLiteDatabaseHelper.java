@@ -16,7 +16,7 @@ import java.sql.SQLException;
  * Database helper class used to manage the creation and upgrading of your database. This class also usually provides
  * the DAOs used by the other classes.
  */
-public class OrmLiteDatabaseHelper extends OrmLiteSqliteOpenHelper {
+public class ORMLiteDatabaseHelper extends OrmLiteSqliteOpenHelper {
 
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = "helloAndroid.db";
@@ -24,10 +24,10 @@ public class OrmLiteDatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     // the DAO object we use to access the Person table
-    private Dao<OrmLiteEmployee, Integer> simpleDao = null;
-    private RuntimeExceptionDao<OrmLiteEmployee, Integer> simpleRuntimeDao = null;
+    private Dao<ORMLiteEmployee, Integer> simpleDao = null;
+    private RuntimeExceptionDao<ORMLiteEmployee, Integer> simpleRuntimeDao = null;
 
-    public OrmLiteDatabaseHelper(Context context) {
+    public ORMLiteDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -38,10 +38,10 @@ public class OrmLiteDatabaseHelper extends OrmLiteSqliteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db, ConnectionSource connectionSource) {
         try {
-            Log.i(OrmLiteDatabaseHelper.class.getName(), "onCreate");
-            TableUtils.createTable(connectionSource, OrmLiteEmployee.class);
+            Log.i(ORMLiteDatabaseHelper.class.getName(), "onCreate");
+            TableUtils.createTable(connectionSource, ORMLiteEmployee.class);
         } catch (SQLException e) {
-            Log.e(OrmLiteDatabaseHelper.class.getName(), "Can't create database", e);
+            Log.e(ORMLiteDatabaseHelper.class.getName(), "Can't create database", e);
             throw new RuntimeException(e);
         }
     }
@@ -53,12 +53,12 @@ public class OrmLiteDatabaseHelper extends OrmLiteSqliteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, ConnectionSource connectionSource, int oldVersion, int newVersion) {
         try {
-            Log.i(OrmLiteDatabaseHelper.class.getName(), "onUpgrade");
-            TableUtils.dropTable(connectionSource, OrmLiteEmployee.class, true);
+            Log.i(ORMLiteDatabaseHelper.class.getName(), "onUpgrade");
+            TableUtils.dropTable(connectionSource, ORMLiteEmployee.class, true);
             // after we drop the old databases, we create the new ones
             onCreate(db, connectionSource);
         } catch (SQLException e) {
-            Log.e(OrmLiteDatabaseHelper.class.getName(), "Can't drop databases", e);
+            Log.e(ORMLiteDatabaseHelper.class.getName(), "Can't drop databases", e);
             throw new RuntimeException(e);
         }
     }
@@ -67,9 +67,9 @@ public class OrmLiteDatabaseHelper extends OrmLiteSqliteOpenHelper {
      * Returns the Database Access Object (DAO) for our Person class. It will create it or just give the cached
      * value.
      */
-    public Dao<OrmLiteEmployee, Integer> getDao() throws SQLException {
+    public Dao<ORMLiteEmployee, Integer> getDao() throws SQLException {
         if (simpleDao == null) {
-            simpleDao = getDao(OrmLiteEmployee.class);
+            simpleDao = getDao(ORMLiteEmployee.class);
         }
         return simpleDao;
     }
@@ -78,9 +78,9 @@ public class OrmLiteDatabaseHelper extends OrmLiteSqliteOpenHelper {
      * Returns the RuntimeExceptionDao (Database Access Object) version of a Dao for our Person class. It will
      * create it or just give the cached value. RuntimeExceptionDao only through RuntimeExceptions.
      */
-    public RuntimeExceptionDao<OrmLiteEmployee, Integer> getEmployeeDao() {
+    public RuntimeExceptionDao<ORMLiteEmployee, Integer> getEmployeeDao() {
         if (simpleRuntimeDao == null) {
-            simpleRuntimeDao = getRuntimeExceptionDao(OrmLiteEmployee.class);
+            simpleRuntimeDao = getRuntimeExceptionDao(ORMLiteEmployee.class);
         }
         return simpleRuntimeDao;
     }

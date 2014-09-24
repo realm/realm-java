@@ -4,25 +4,21 @@
 
     <application
         android:allowBackup="true"
-        android:name=".SugarApplication"
+        android:name=".sugar_orm.SugarApplication"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".sqlite.SQLiteTestActivity"
-            android:label="@string/app_name" >
+            android:name=".PerformanceExampleActivity"
+            android:label="Performance Comparisons" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
-            android:name=".realm.RealmTestActivity"
-            android:label="RealmTestActivity" >
-        </activity>
-        <activity
-            android:name=".sugar_orm.SugarORMTestActivity"
-            android:label="SugarORMTestActivity" >
-        </activity>
-        <activity
-            android:name=".ormlite.ORMLiteTestActivity"
-            android:label="ORMLiteTestActivity" >
+            android:name=".ContainerActivity"
+            android:label="Performance Comparisons" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
