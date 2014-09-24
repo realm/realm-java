@@ -37,6 +37,7 @@ public class RealmSourceCodeGenerator {
     private String className;
     private String packageName;
     private List<VariableElement> fields;
+    private static final String realmPackageName = "io.realm";
 
     private static final String table_prefix = "class_";
 
@@ -167,7 +168,7 @@ public class RealmSourceCodeGenerator {
     }
 
     public void generate() throws IOException, UnsupportedOperationException {
-        String qualifiedGeneratedClassName = String.format("%s.%sRealmProxy", packageName, className);
+        String qualifiedGeneratedClassName = String.format("%s.%sRealmProxy", realmPackageName, className);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
 
@@ -180,7 +181,7 @@ public class RealmSourceCodeGenerator {
         // Set source code indent to 4 spaces
         writer.setIndent("    ");
 
-        writer.emitPackage(packageName)
+        writer.emitPackage(realmPackageName)
                 .emitEmptyLine();
 
         writer.emitImports(
@@ -191,7 +192,9 @@ public class RealmSourceCodeGenerator {
                 "io.realm.internal.LinkView",
                 "io.realm.RealmList",
                 "io.realm.RealmObject",
-                "java.util.Date")
+                "java.util.Date",
+                "java.util.Arrays",
+                packageName + ".*")
                 .emitEmptyLine();
 
         // Begin the class definition
@@ -328,7 +331,7 @@ public class RealmSourceCodeGenerator {
                         fieldName.toLowerCase(Locale.getDefault()));
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", table_prefix, fieldTypeName);
-                writer.emitStatement("%sRealmProxy.initTable(transaction)", fieldTypeCanonicalName);
+                writer.emitStatement("%sRealmProxy.initTable(transaction)", fieldTypeName);
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(ColumnType.LINK, \"%s\", transaction.getTable(\"%s%s\"))",
                         fieldName.toLowerCase(Locale.getDefault()), table_prefix, fieldTypeName);
@@ -341,7 +344,7 @@ public class RealmSourceCodeGenerator {
                     genericType = genericCanonicalType;
                 }
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", table_prefix, genericType);
-                writer.emitStatement("%sRealmProxy.initTable(transaction)", genericCanonicalType);
+                writer.emitStatement("%sRealmProxy.initTable(transaction)", genericType);
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(ColumnType.LINK_LIST, \"%s\", transaction.getTable(\"%s%s\"))",
                         fieldName.toLowerCase(Locale.getDefault()), table_prefix, genericType);
