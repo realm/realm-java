@@ -166,30 +166,30 @@ public class RealmSourceCodeGenerator {
     }
 
     private static final Map<String, Integer> HOW_TO_EQUAL;
-    private static final int equals_direct = 0;  // compare values directly
-    private static final int equals_null = 1;    // check for null
-    private static final int equals_array = 2;   // compare using array
-    private static final int equals_compare = 3; // use the compare method
+    private static final int EQUALS_DIRECT = 0;  // compare values directly
+    private static final int EQUALS_NULL = 1;    // check for null
+    private static final int EQUALS_ARRAY = 2;   // compare using array
+    private static final int EQUALS_COMPARE = 3; // use the compare method
 
     static {
         HOW_TO_EQUAL = new HashMap<String, Integer>();
-        HOW_TO_EQUAL.put("boolean", equals_direct);
-        HOW_TO_EQUAL.put("byte", equals_direct);
-        HOW_TO_EQUAL.put("short", equals_direct);
-        HOW_TO_EQUAL.put("int", equals_direct);
-        HOW_TO_EQUAL.put("long", equals_direct);
-        HOW_TO_EQUAL.put("float", equals_compare);
-        HOW_TO_EQUAL.put("double", equals_compare);
-        HOW_TO_EQUAL.put("Byte", equals_direct);
-        HOW_TO_EQUAL.put("Short", equals_direct);
-        HOW_TO_EQUAL.put("Integer", equals_direct);
-        HOW_TO_EQUAL.put("Long", equals_direct);
-        HOW_TO_EQUAL.put("Float", equals_direct);
-        HOW_TO_EQUAL.put("Double", equals_direct);
-        HOW_TO_EQUAL.put("Boolean", equals_direct);
-        HOW_TO_EQUAL.put("java.lang.String", equals_null); // check for null
-        HOW_TO_EQUAL.put("java.util.Date", equals_direct);
-        HOW_TO_EQUAL.put("byte[]", equals_array); // compare using array
+        HOW_TO_EQUAL.put("boolean", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("byte", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("short", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("int", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("long", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("float", EQUALS_COMPARE);
+        HOW_TO_EQUAL.put("double", EQUALS_COMPARE);
+        HOW_TO_EQUAL.put("Byte", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("Short", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("Integer", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("Long", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("Float", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("Double", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("Boolean", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("java.lang.String", EQUALS_NULL); // check for null
+        HOW_TO_EQUAL.put("java.util.Date", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("byte[]", EQUALS_ARRAY); // compare using array
     }
 
     public void generate() throws IOException, UnsupportedOperationException {
@@ -440,11 +440,12 @@ public class RealmSourceCodeGenerator {
         /**
          * equals method
          */
+        String proxyClassName = className + "RealmProxy";
         writer.emitAnnotation("Override");
         writer.beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o");
         writer.emitStatement("if (this == o) return true");
         writer.emitStatement("if (o == null || getClass() != o.getClass()) return false");
-        writer.emitStatement("%s a%s = (%s)o", className, className, className);  // Foo aFoo = (Foo)o
+        writer.emitStatement("%s a%s = (%s)o", proxyClassName, className, proxyClassName);  // FooRealmProxy aFoo = (FooRealmProxy)o
 
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
@@ -452,34 +453,33 @@ public class RealmSourceCodeGenerator {
             String fieldTypeCanonicalName = field.asType().toString();
             if (HOW_TO_EQUAL.containsKey(fieldTypeCanonicalName)) {
                 switch (HOW_TO_EQUAL.get(fieldTypeCanonicalName)) {
-                    case equals_direct: // if (getField() != aFoo.getField()) return false
+                    case EQUALS_DIRECT: // if (getField() != aFoo.getField()) return false
                         String getterPrefix = fieldTypeCanonicalName.equals("boolean") ? "is" : "get";
                         writer.emitStatement("if (get%s() != a%s.%s%s()) return false", capFieldName, className, getterPrefix, capFieldName);
                         break;
-                    case equals_null: // if (getField() != null = !getField().equals(aFoo.getField()) : aFoo.getField() != null) return false
+                    case EQUALS_NULL: // if (getField() != null = !getField().equals(aFoo.getField()) : aFoo.getField() != null) return false
                         writer.emitStatement("if (get%s() != null ? !get%s().equals(a%s.get%s()) : a%s.get%s() != null) return false",
                                 capFieldName,
                                 capFieldName, className, capFieldName,
                                 className, capFieldName);
                         break;
-                    case equals_array: // if (!Array.equals(getField(), aFoo.getField()) return false
+                    case EQUALS_ARRAY: // if (!Array.equals(getField(), aFoo.getField()) return false
                         writer.emitStatement("if (!Array.equals(get%s(), a%s.get%s()) return false",
                                 capFieldName,
                                 className, capFieldName);
                         break;
-                    case equals_compare:
-                        writer.emitStatement("if (%s.compare(get%s, a%s.get%s) != 0) return false", capitaliseFirstChar(fieldName), className, capitaliseFirstChar(fieldName));
+                    case EQUALS_COMPARE: // if (
+                        writer.emitStatement("if (%s.compare(get%s, a%s.get%s) != 0) return false",
+                                fieldTypeCanonicalName, capitaliseFirstChar(fieldName), className,
+                                capitaliseFirstChar(fieldName));
                         break;
                 }
             }
-            else {
-                if (typeUtils.isAssignable(field.asType(), realmObject) || typeUtils.isAssignable(field.asType(), realmList)) {
-                    writer.emitStatement("if (get%s() != null ? !get%s().equals(a%s.get%s()) : a%s.get%s() != null) return false",
-                            capFieldName,
-                            capFieldName, className, capFieldName,
-                            className, capFieldName);
-
-                }
+            else if (typeUtils.isAssignable(field.asType(), realmObject) || typeUtils.isAssignable(field.asType(), realmList)) {
+                writer.emitStatement("if (get%s() != null ? !get%s().equals(a%s.get%s()) : a%s.get%s() != null) return false",
+                        capFieldName,
+                        capFieldName, className, capFieldName,
+                         className, capFieldName);
             }
         }
         writer.emitStatement("return true");
