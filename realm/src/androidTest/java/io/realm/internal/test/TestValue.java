@@ -1,10 +1,10 @@
 package io.realm.internal.test;
 
-public class ExpectedValue {
+public class TestValue {
 
     public Object value;
 
-    public ExpectedValue(Object value) {
+    public TestValue(Object value) {
         this.value = value;
     }
 }
