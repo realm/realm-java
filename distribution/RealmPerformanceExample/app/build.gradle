@@ -1,0 +1,35 @@
+apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
+
+android {
+    compileSdkVersion 20
+    buildToolsVersion "20.0.0"
+
+    defaultConfig {
+        applicationId "io.realm.examples.performance"
+        minSdkVersion 15
+        targetSdkVersion 20
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    apt fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':realm')
+
+    // SugarORM
+    compile 'com.github.satyan:sugar:1.3'
+
+    // OrmLite dependencies
+    compile 'com.j256.ormlite:ormlite-android:4.48'
+
+    // GreenDAO
+    //compile 'de.greenrobot:greendao:1.3.0'
+}
