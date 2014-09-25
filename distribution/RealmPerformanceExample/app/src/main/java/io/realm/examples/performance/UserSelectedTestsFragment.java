@@ -5,22 +5,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Switch;
+import android.widget.RadioButton;
 
-import io.realm.examples.performance.ormlite.ORMLiteTests;
-import io.realm.examples.performance.realm.RealmTests;
-import io.realm.examples.performance.sqlite.SQLiteTests;
-import io.realm.examples.performance.sugar_orm.SugarORMTests;
-
-public class UserSelectedTestsFragment extends PerformanceTestFragment implements CompoundButton.OnCheckedChangeListener {
+public class UserSelectedTestsFragment extends PerformanceTestFragment {
 
     public static final String TAG = UserSelectedTestsFragment.class.getName();
-
-    private Class[] possibleTests = new Class[] { RealmTests.class,
-            SQLiteTests.class, ORMLiteTests.class, SugarORMTests.class };
 
     private View rootView = null;
 
@@ -42,21 +33,20 @@ public class UserSelectedTestsFragment extends PerformanceTestFragment implement
         rootLayout = (LinearLayout) rootView.findViewById(R.id.message_container);
 
         for(Class c : possibleTests) {
-            Switch switchButton = new Switch(getActivity());
-            switchButton.setText(c.getSimpleName());
-            switchButton.setOnCheckedChangeListener(this);
-            ((LinearLayout)rootView.findViewById(R.id.selected_tests)).addView(switchButton);
+            RadioButton button = new RadioButton(getActivity());
+            button.setText(c.getSimpleName());
+            ((LinearLayout)rootView.findViewById(R.id.selected_tests)).addView(button);
         }
 
         rootView.findViewById(R.id.executeButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int numSwitches = ((LinearLayout)rootView.findViewById(R.id.selected_tests)).getChildCount();
+                int numButtons = ((LinearLayout)rootView.findViewById(R.id.selected_tests)).getChildCount();
 
-                for(int i=0; i<numSwitches; i++) {
-                    Switch switchButton = (Switch)((LinearLayout)rootView
-                            .findViewById(R.id.selected_tests)).getChildAt(0);
-                    if(switchButton.isChecked()) {
+                for(int i=0; i<numButtons; i++) {
+                      RadioButton button = (RadioButton)((LinearLayout)rootView
+                            .findViewById(R.id.selected_tests)).getChildAt(i);
+                      if(button.isChecked()) {
                         try {
                             PerformanceTest test = (PerformanceTest)possibleTests[i].newInstance();
                             Log.d(TAG, "Adding test: " + test.getName());
@@ -75,23 +65,25 @@ public class UserSelectedTestsFragment extends PerformanceTestFragment implement
                 } catch (Exception e) {
                     showStatus("Entry: " + txt + " not a valid integer");
                 }
-                getTask().execute();
-            }
-        });
 
-        rootView.findViewById(R.id.clear_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                for (PerformanceTest t : tests) {
-                    t.clearDevice();
+                getTask().execute();
+
+                //Clear the buttons
+                for(int i=0; i<numButtons; i++) {
+                    RadioButton button = (RadioButton)((LinearLayout)rootView
+                            .findViewById(R.id.selected_tests)).getChildAt(i);
+                    button.setChecked(false);
                 }
             }
         });
 
-        return rootView;
-    }
+        rootView.findViewById(R.id.clear_all_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearAllDatabases();
+            }
+        });
 
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        return rootView;
     }
 }

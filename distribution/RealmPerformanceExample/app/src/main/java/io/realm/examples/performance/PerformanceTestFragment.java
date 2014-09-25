@@ -14,6 +14,11 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.examples.performance.ormlite.ORMLiteTests;
+import io.realm.examples.performance.realm.RealmTests;
+import io.realm.examples.performance.sqlite.SQLiteTests;
+import io.realm.examples.performance.sugar_orm.SugarORMTests;
+
 public abstract class PerformanceTestFragment extends Fragment {
 
     public static final String TAG = PerformanceTestFragment.class.getName();
@@ -21,13 +26,16 @@ public abstract class PerformanceTestFragment extends Fragment {
     protected View         rootView   = null;
     protected LinearLayout rootLayout = null;
 
-    public PerformanceTestFragment() {
-        // Required empty public constructor
-    }
-
     protected List<PerformanceTest> tests = new ArrayList<PerformanceTest>();
 
     private AsyncTask<Void, String, Void> bgTask = null;
+
+    protected Class[] possibleTests = new Class[] { RealmTests.class,
+            SQLiteTests.class, ORMLiteTests.class, SugarORMTests.class };
+
+    public PerformanceTestFragment() {
+        // Required empty public constructor
+    }
 
     protected AsyncTask<Void, String, Void> getTask() {
         bgTask = null;
@@ -48,8 +56,13 @@ public abstract class PerformanceTestFragment extends Fragment {
                 return null;
             }
 
+            @Override
             protected void onProgressUpdate(String... progress) {
                 showStatus(progress[0]);
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
             }
         };
         return bgTask;
@@ -81,13 +94,34 @@ public abstract class PerformanceTestFragment extends Fragment {
         rootView.findViewById(R.id.clear_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for(PerformanceTest t : tests) {
-                    t.clearDevice();
-                }
+                clearDatabase();
             }
         });
 
         return rootView;
+    }
+
+    protected void clearDatabase() {
+        for(PerformanceTest t : tests) {
+            t.clearDevice();
+        }
+    }
+
+    protected void clearAllDatabases() {
+        for (Class c : possibleTests) {
+            PerformanceTest t = null;
+            try {
+                t = (PerformanceTest)c.newInstance();
+                t.setActivity(getActivity());
+            } catch (java.lang.InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+            t.clearDevice();
+        }
+        tests = new ArrayList<PerformanceTest>();
     }
 
     @Override
