@@ -38,7 +38,8 @@ public class RealmTests extends PerformanceTest {
         //Verify writes were successful
         RealmResults<RealmEmployee> results = realm.where(RealmEmployee.class).findAll();
 
-        status += "...Completed " + results.size() + " inserts\n";
+        status += "...Found " + results.size() + " inserts\n";
+
         return status;
     }
 

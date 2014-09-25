@@ -45,7 +45,7 @@ public class SQLiteTests extends PerformanceTest {
         Cursor cursor = db.rawQuery(query, null);
         cursor.getCount();
 
-        status += "...Completed " + cursor.getCount() + " inserts\n";
+        status += "...Found " + cursor.getCount() + " inserts\n";
 
         db.close();
 
