@@ -41,7 +41,6 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public boolean add(E object) {
         view.add(object.realmGetRow().getIndex());
         return true;
-
     }
 
     @Override
@@ -71,14 +70,14 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     public E first() {
-        if(!view.isEmpty()) {
+        if (!view.isEmpty()) {
             return get(0);
         }
         return null;
     }
 
     public E last() {
-        if(!view.isEmpty()) {
+        if (!view.isEmpty()) {
             return get(size()-1);
         }
         return null;
