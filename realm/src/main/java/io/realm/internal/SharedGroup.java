@@ -24,7 +24,7 @@ public class SharedGroup implements Closeable {
     private long nativePtr;
     private long nativeReplicationPtr;
     private long nativeTransactLogRegistryPtr;
-    private boolean implicistTransactionsEnabled = false;
+    private boolean implicitTransactionsEnabled = false;
     private boolean activeTransaction;
     private final Context context;
 
@@ -54,7 +54,7 @@ public class SharedGroup implements Closeable {
             nativeTransactLogRegistryPtr = nativeCreateTransactLogRegistry(databaseFile);
             nativeReplicationPtr = nativeCreateReplication(databaseFile);
             nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr);
-            implicistTransactionsEnabled = true;
+            implicitTransactionsEnabled = true;
         } else {
             nativePtr = createNative(databaseFile, Durability.FULL.value, false, false);
         }
@@ -171,7 +171,7 @@ public class SharedGroup implements Closeable {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
                 nativePtr = 0;
-                if (implicistTransactionsEnabled) {
+                if (implicitTransactionsEnabled) {
                     if (nativeTransactLogRegistryPtr != 0) {
                         nativeCloseTransactRegistryLog(nativeTransactLogRegistryPtr);
                         nativeTransactLogRegistryPtr = 0;
@@ -190,7 +190,7 @@ public class SharedGroup implements Closeable {
             if (nativePtr != 0) {
                 context.asyncDisposeSharedGroup(nativePtr); 
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-                if (implicistTransactionsEnabled) {
+                if (implicitTransactionsEnabled) {
                     if (nativeTransactLogRegistryPtr != 0) {
                         nativeCloseTransactRegistryLog(nativeTransactLogRegistryPtr);
                         nativeTransactLogRegistryPtr = 0;
