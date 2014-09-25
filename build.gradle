@@ -22,15 +22,15 @@ allprojects {
 
 
 task distribution {
-    javadoc       = file('realm/build/libs/realm-${version}-javadoc.jar')
-    realmclasses  = file('realm/build/outputs/aar/realm-${version}.aar')
-    annotation    = file('realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar')
+    javadoc       = file("realm/build/libs/realm-${version}-javadoc.jar")
+    realmclasses  = file("realm/build/outputs/aar/realm-${version}.aar")
+    annotation    = file("realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
 }
 
 artifacts {
-    archives file: distribution.javadoc, name: 'realm-${version}-javadoc', type: 'jar', builtBy: distribution
-    archives file: distribution.realmclasses, name: 'realm-${version}', type: 'aar', builtBy: distribution
-    archives file: distribution.annotation, name: 'realm-annotations-process-${version}', type: 'jar', builtBy: distribution
+    archives file: distribution.javadoc, name: "realm-${version}-javadoc", type: 'jar', builtBy: distribution
+    archives file: distribution.realmclasses, name: "realm-${version}", type: 'aar', builtBy: distribution
+    archives file: distribution.annotation, name: "realm-annotations-process-${version}", type: 'jar', builtBy: distribution
 }
 
 signing {
@@ -41,13 +41,14 @@ signing {
 uploadArchives {
     repositories {
         mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
+            beforeDeployment { 
+                MavenDeployment deployment -> signing.signPom(deployment) 
+            }
             repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
                 authentication(userName: ossrhUsername, password: ossrhPassword)
             }
 
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+            snapshotRepository(url: "Https://oss.sonatype.org/content/repositories/snapshots/") {
                 authentication(userName: ossrhUsername, password: ossrhPassword)
             }
 
