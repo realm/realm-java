@@ -145,10 +145,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Find the oldest date.
+     * Find the minimum date.
      *
-     * @param fieldName  The field to look for the oldest/minimum date.
+     * @param fieldName  The field to look for the minimum date. If fieldName is not of Date type,
+     *                   an exception is thrown.
      * @return           The minimum date.
+     * @throws           java.lang.RuntimeException if fieldName is not a Date field.
      */
     public Date minDate(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -182,10 +184,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Find the youngest date.
+     * Find the maximum date.
      *
-     * @param fieldName  The field to look for the youngest/maximum date.
+     * @param fieldName  The field to look for the maximum date. If fieldName is not of Date type,
+     *                   an exception is thrown.
      * @return           The maximum date.
+     * @throws           java.lang.RuntimeException if fieldName is not a Date field.
      */
     public Date maxDate(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -193,7 +197,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table.minimumDate(columnIndex);
         }
         else {
-            throw new RuntimeException("Wrong type - Date expected");
+            throw new RuntimeException("Wrong type of field - Date expected");
         }
     }
 
