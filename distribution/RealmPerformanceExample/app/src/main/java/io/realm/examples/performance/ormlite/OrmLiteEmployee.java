@@ -4,14 +4,14 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "Employee")
-public class ORMLiteEmployee {
+public class OrmLiteEmployee {
 
     @DatabaseField(generatedId = true) int id;
     @DatabaseField String name;
     @DatabaseField int age;
     @DatabaseField boolean hired;
 
-    public ORMLiteEmployee() {
+    public OrmLiteEmployee() {
         // Required by OrmLite
     }
 

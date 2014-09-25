@@ -21,7 +21,7 @@ public class PerformanceExampleActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_realm_examples);
+        setContentView(R.layout.activity_performance_test);
 
         mAdapter = new TileAdapter(this);
         List<TileAdapter.PerformanceTestExample> list = buildExamples();
@@ -58,6 +58,12 @@ public class PerformanceExampleActivity extends Activity {
         example.descriptor = "Realm";
         example.color = "#3333aa";
         example.type = RealmFragment.class;
+        list.add(example);
+
+        example = mAdapter.new PerformanceTestExample();
+        example.descriptor = "User Selected";
+        example.color = "#ffaa00";
+        example.type = UserSelectedTestsFragment.class;
         list.add(example);
 
         return list;

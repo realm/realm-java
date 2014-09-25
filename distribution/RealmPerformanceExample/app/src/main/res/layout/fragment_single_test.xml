@@ -55,7 +55,7 @@
             android:textStyle="bold" />
 
         <LinearLayout
-            android:id="@+id/container"
+            android:id="@+id/message_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
