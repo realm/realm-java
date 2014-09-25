@@ -62,10 +62,11 @@ public class Realm {
 
     private int version;
     private Handler handler;
+    private static boolean autoRefresh = true;
 
     // The constructor in private to enforce the use of the static one
     private Realm(String absolutePath) {
-        this.sharedGroup = new SharedGroup(absolutePath, defaultDurability);
+        this.sharedGroup = new SharedGroup(absolutePath, true);
         this.transaction = sharedGroup.beginImplicitTransaction();
         this.id = absolutePath.hashCode();
         if (!looperThread.isAlive()) {
@@ -79,6 +80,9 @@ public class Realm {
             @Override
             public void handleMessage(Message message) {
                 if (message.what == LooperThread.REALM_CHANGED) {
+                    if (autoRefresh) {
+                        transaction.advanceRead();
+                    }
                     sendNotifications();
                 }
             }
@@ -86,6 +90,7 @@ public class Realm {
         if (Looper.myLooper() == null) {
             Looper.loop();
         }
+        LooperThread.handlers.put(handler, id);
     }
 
     @Override
