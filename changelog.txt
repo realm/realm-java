@@ -10,6 +10,8 @@ Beta-0.3.0
   Bug Fixes
   =========
 
+  * Fix notifications robustness
+
 
 
 Beta-0.2.0
