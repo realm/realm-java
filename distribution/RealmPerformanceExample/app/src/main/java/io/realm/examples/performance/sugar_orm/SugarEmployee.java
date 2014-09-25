@@ -13,8 +13,8 @@ public class SugarEmployee extends SugarRecord<SugarEmployee> {
     }
 
     public SugarEmployee(String name, int age, int hired) {
-        this.name  = name;
-        this.age   = age;
+        this.name = name;
+        this.age = age;
         this.hired = hired;
     }
 

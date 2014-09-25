@@ -28,11 +28,16 @@ public class SugarORMTests extends PerformanceTest {
             employee.save();
         }
 
-        String status = "testInserts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        long duration = (System.currentTimeMillis() - startTime);
+        String status = "testInserts " + duration + " ms.";
 
         List<SugarEmployee> list = SugarEmployee.listAll(SugarEmployee.class);
+        if(list.size() < getNumInserts()) {
+            status = "Failed to complete " + getNumInserts();
+        }
 
-        status += "...Found " + list.size() + " inserts\n";
+        timings.put("testInserts", (getNumInserts() / (double)duration));
+        //status += "...Found " + list.size() + " inserts\n";
 
         return status;
     }
@@ -71,12 +76,15 @@ public class SugarORMTests extends PerformanceTest {
                         Condition.prop("hired").eq(0));
         loopResults(outcome);
 
-        return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        long duration = (System.currentTimeMillis() - startTime);
+        timings.put("testQueries", (getNumInserts() / (double)duration));
+
+        return "testQueries " + duration + " ms.";
     }
 
     private void loopResults(Select results) {
-        for(Object e : results.list()) {
-            SugarEmployee emp = (SugarEmployee)e;
+        for (Object e : results.list()) {
+            SugarEmployee emp = (SugarEmployee) e;
             emp.getId();
         }
     }
@@ -115,6 +123,9 @@ public class SugarORMTests extends PerformanceTest {
                         Condition.prop("hired").eq(0));
         outcome.list().size();
 
-        return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        long duration = (System.currentTimeMillis() - startTime);
+        timings.put("testCounts", (getNumInserts() / (double)duration));
+
+        return "testCounts " + duration + " ms.";
     }
 }

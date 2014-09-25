@@ -11,14 +11,14 @@ public class EmployeeDatabaseHelper extends SQLiteOpenHelper {
 
     public static final String TABLE_EMPLOYEES = "Employee";
 
-    public static final String COLUMN_ID    = "_id";
-    public static final String COLUMN_NAME  = "name";
-    public static final String COLUMN_AGE   = "age";
+    public static final String COLUMN_ID = "_id";
+    public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_AGE = "age";
     public static final String COLUMN_HIRED = "hired";
 
     private static final String DATABASE_NAME = "sqlite_employees.db";
     private static final int DATABASE_VERSION = 1;
-    public static final String[] ALL_COLUMNS = new String[]{ COLUMN_ID, COLUMN_NAME, COLUMN_AGE, COLUMN_HIRED };
+    public static final String[] ALL_COLUMNS = new String[]{COLUMN_ID, COLUMN_NAME, COLUMN_AGE, COLUMN_HIRED};
 
     // Database creation sql statement
     private static final String DATABASE_CREATE = "create table "

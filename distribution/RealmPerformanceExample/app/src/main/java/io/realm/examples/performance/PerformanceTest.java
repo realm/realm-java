@@ -5,13 +5,14 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public abstract class PerformanceTest {
 
-    public static final int MAX_AGE         = 50;
-    public static final int MIN_AGE         = 20;
-    public static final int NUM_TEST_NAMES  = 1000;
+    public static final int MAX_AGE = 50;
+    public static final int MIN_AGE = 20;
+    public static final int NUM_TEST_NAMES = 1000;
     public static final int MIN_NUM_INSERTS = 10000;
 
     public static final String QUERY1 =
@@ -142,9 +143,12 @@ public abstract class PerformanceTest {
 
     private List<String> employeeNames = null;
 
-    private Activity activity          = null;
-    private View rootView              = null;
-    private LinearLayout rootLayout    = null;
+    //Timings are stored as events/ms
+    protected HashMap<String, Double> timings;
+
+    private Activity activity = null;
+    private View rootView = null;
+    private LinearLayout rootLayout = null;
 
     public int getNumInserts() {
         return numInserts;

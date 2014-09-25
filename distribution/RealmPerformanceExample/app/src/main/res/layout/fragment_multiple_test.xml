@@ -26,7 +26,8 @@
             android:layout_gravity="center_horizontal"
             android:orientation="vertical"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content">
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
@@ -54,13 +55,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <Button
-            android:text="Clear All Databases"
-            android:id="@+id/clear_all_button"
-            android:layout_margin="7dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        <!--<Button-->
+            <!--android:text="Clear All Databases"-->
+            <!--android:id="@+id/clear_all_button"-->
+            <!--android:layout_margin="7dp"-->
+            <!--android:layout_gravity="center_horizontal"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content" />-->
 
         <TextView
             android:layout_width="match_parent"

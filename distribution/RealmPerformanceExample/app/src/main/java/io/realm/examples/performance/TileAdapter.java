@@ -65,7 +65,7 @@ public class TileAdapter extends BaseAdapter {
 
         final PerformanceTestExample ex = examples.get(position);
 
-        ((TextView)currentView.findViewById(R.id.name)).setText(ex.descriptor);
+        ((TextView) currentView.findViewById(R.id.name)).setText(ex.descriptor);
         currentView.findViewById(R.id.name).setBackgroundColor(Color.parseColor(ex.color));
 
         currentView.setOnClickListener(new View.OnClickListener() {

@@ -46,12 +46,15 @@ public class ORMLiteTests extends PerformanceTest {
             }
         });
 
-        status += "testInserts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        long duration = (System.currentTimeMillis() - startTime);
+        status += "testInserts " + duration + " ms.";
 
         //Verify writes were successful
         GenericRawResults<String[]> rawResults =
                 employeeDao.queryRaw(
                         "SELECT * from Employee");
+
+        timings.put("testInserts", (getNumInserts() / (double)duration));
 
 //This was removed because in large data sizes sometimes there is a memory leak created.
 //        List<String[]> results = null;
@@ -97,7 +100,10 @@ public class ORMLiteTests extends PerformanceTest {
             e.printStackTrace();
         }
 
-        return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        long duration = (System.currentTimeMillis() - startTime);
+        timings.put("testQueries", (getNumInserts() / (double)duration));
+
+        return "testQueries " + duration + " ms.";
     }
 
     private void loopResults(List<String[]> results) {
@@ -119,27 +125,30 @@ public class ORMLiteTests extends PerformanceTest {
         try {
             //Throw away first query
             List<String[]> rawResults = employeeDao.queryRaw(COUNT_QUERY1).getResults();
-            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
 
             startTime = System.currentTimeMillis();
 
             rawResults = employeeDao.queryRaw(COUNT_QUERY2).getResults();
-            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
 
             rawResults = employeeDao.queryRaw(COUNT_QUERY3).getResults();
-            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
 
             rawResults = employeeDao.queryRaw(COUNT_QUERY4).getResults();
-            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
 
             rawResults = employeeDao.queryRaw(COUNT_QUERY5).getResults();
-            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        status += "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        long duration = (System.currentTimeMillis() - startTime);
+        timings.put("testCounts", (getNumInserts() / (double)duration));
+
+        status += "testCounts " + duration + " ms.";
         return status;
     }
 
@@ -163,13 +172,13 @@ public class ORMLiteTests extends PerformanceTest {
                     .and().between("age", 20, 50)
                     .and().eq("hired", false);
             preparedQuery = queryBuilder.prepare();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
         List<OrmLiteEmployee> employeeList = employeeDao.query(preparedQuery);
         employeeList.size();
 
-        return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.";
     }
 }

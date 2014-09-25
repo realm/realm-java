@@ -38,13 +38,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <Button
-            android:text="Clear Database"
-            android:id="@+id/clear_button"
-            android:layout_margin="7dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        <!--<Button-->
+            <!--android:text="Clear Database"-->
+            <!--android:id="@+id/clear_button"-->
+            <!--android:layout_margin="7dp"-->
+            <!--android:layout_gravity="center_horizontal"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content" />-->
 
         <TextView
             android:layout_width="match_parent"

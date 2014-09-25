@@ -29,7 +29,7 @@ public class SQLiteTests extends PerformanceTest {
 
         ContentValues values = new ContentValues();
         db.beginTransaction();
-        for(int row=0;row < getNumInserts(); row++) {
+        for (int row = 0; row < getNumInserts(); row++) {
             values.put(databaseHelper.COLUMN_NAME, getEmployeeName(row));
             values.put(databaseHelper.COLUMN_AGE, getEmployeeAge(row));
             values.put(databaseHelper.COLUMN_HIRED, getEmployeeHiredStatus(row));
@@ -38,14 +38,17 @@ public class SQLiteTests extends PerformanceTest {
         db.setTransactionSuccessful();
         db.endTransaction();
 
-        String status = "testInserts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        String status = "testInserts " + (System.currentTimeMillis() - startTime) + " ms.";
 
         //Verify writes were successful
         String query = "SELECT * FROM " + EmployeeDatabaseHelper.TABLE_EMPLOYEES;
         Cursor cursor = db.rawQuery(query, null);
-        cursor.getCount();
 
-        status += "...Found " + cursor.getCount() + " inserts\n";
+        if(cursor.getCount() < getNumInserts()) {
+            status = "Failed to complete " + getNumInserts();
+        }
+
+        //status += "...Found " + cursor.getCount() + " inserts\n";
 
         db.close();
 
@@ -84,7 +87,7 @@ public class SQLiteTests extends PerformanceTest {
         cursor.close();
         db.close();
 
-        return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.";
     }
 
     private void loopCursor(Cursor cursor) {
@@ -100,33 +103,35 @@ public class SQLiteTests extends PerformanceTest {
         //Skip the first as a "warmup"
         Cursor cursor = db.rawQuery(COUNT_QUERY1, null);
         cursor.moveToFirst();
-        String status = "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        //String status = "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
 
         long startTime = System.currentTimeMillis();
 
         cursor = db.rawQuery(COUNT_QUERY2, null);
         cursor.moveToFirst();
-        status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        //status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
 
         cursor = db.rawQuery(COUNT_QUERY3, null);
         cursor.moveToFirst();
-        status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        //status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
 
         cursor = db.rawQuery(COUNT_QUERY4, null);
         cursor.moveToFirst();
-        status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        //status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
 
         cursor = db.rawQuery(COUNT_QUERY5, null);
         cursor.moveToFirst();
-        status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        //status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
         db.close();
 
-        status += "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
-        return status;
+        long duration = (System.currentTimeMillis() - startTime);
+        timings.put("testCounts", (getNumInserts() / (double)duration));
+
+        return "testCounts " + duration + " ms.";
     }
 }

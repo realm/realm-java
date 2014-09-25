@@ -25,7 +25,7 @@ public class RealmTests extends PerformanceTest {
         long startTime = System.currentTimeMillis();
 
         realm.beginWrite();
-        for(int row = 0; row < getNumInserts(); row++) {
+        for (int row = 0; row < getNumInserts(); row++) {
             RealmEmployee employee = realm.create(RealmEmployee.class);
             employee.setName(getEmployeeName(row));
             employee.setAge(getEmployeeAge(row));
@@ -33,12 +33,19 @@ public class RealmTests extends PerformanceTest {
         }
         realm.commit();
 
-        String status = "testInserts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        long duration = (System.currentTimeMillis() - startTime);
+
+        String status = "testInserts " + duration + " ms.";
 
         //Verify writes were successful
         RealmResults<RealmEmployee> results = realm.where(RealmEmployee.class).findAll();
 
-        status += "...Found " + results.size() + " inserts\n";
+        if(results.size() < getNumInserts()) {
+            status = "Failed to complete " + getNumInserts();
+        }
+
+        //status += "...Found " + results.size() + " inserts\n";
+        timings.put("testInserts", (getNumInserts() / (double)duration));
 
         return status;
     }
@@ -79,11 +86,14 @@ public class RealmTests extends PerformanceTest {
                 .equalTo("name", "Foo330").findAll();
         loopResults(results);
 
-        return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        long duration = (System.currentTimeMillis() - startTime);
+        timings.put("testQueries", (getNumInserts() / (double)duration));
+
+        return "testQueries " + duration + " ms.";
     }
 
     private void loopResults(List<RealmEmployee> results) {
-        for(RealmEmployee e : results) {
+        for (RealmEmployee e : results) {
             e.getHired();
         }
     }
@@ -97,35 +107,37 @@ public class RealmTests extends PerformanceTest {
                 .equalTo("hired", 0)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo0").findAll();
-        String status = "...Count Acquired: " + results.size() + " inserts\n";
+        //String status = "...Count Acquired: " + results.size() + " inserts\n";
 
         long startTime = System.currentTimeMillis();
         results = realm.where(RealmEmployee.class)
                 .equalTo("hired", 1)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo1").findAll();
-        status += "...Count Acquired: " + results.size() + " inserts\n";
+        //status += "...Count Acquired: " + results.size() + " inserts\n";
 
         results = realm.where(RealmEmployee.class)
                 .equalTo("hired", 1)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo3").findAll();
-        status += "...Count Acquired: " + results.size() + " inserts\n";
+        //status += "...Count Acquired: " + results.size() + " inserts\n";
 
         results = realm.where(RealmEmployee.class)
                 .equalTo("hired", 0)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo2").findAll();
-        status += "...Count Acquired: " + results.size() + " inserts\n";
+        //status += "...Count Acquired: " + results.size() + " inserts\n";
 
         results = realm.where(RealmEmployee.class)
                 .equalTo("hired", 0)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo330").findAll();
-        status += "...Count Acquired: " + results.size() + " inserts\n";
+        //status += "...Count Acquired: " + results.size() + " inserts\n";
 
-        status += "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
-        return status;
+        long duration = (System.currentTimeMillis() - startTime);
+        timings.put("testCounts", (getNumInserts() / (double)duration));
+
+        return "testCounts " + duration + " ms.";
     }
 
 }

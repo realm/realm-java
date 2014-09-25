@@ -3,6 +3,7 @@ package io.realm.examples.performance;
 import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import io.realm.examples.performance.ormlite.ORMLiteTests;
@@ -23,15 +25,15 @@ public abstract class PerformanceTestFragment extends Fragment {
 
     public static final String TAG = PerformanceTestFragment.class.getName();
 
-    protected View         rootView   = null;
+    protected View rootView = null;
     protected LinearLayout rootLayout = null;
 
     protected List<PerformanceTest> tests = new ArrayList<PerformanceTest>();
 
     private AsyncTask<Void, String, Void> bgTask = null;
 
-    protected Class[] possibleTests = new Class[] { RealmTests.class,
-            SQLiteTests.class, ORMLiteTests.class, SugarORMTests.class };
+    protected Class[] possibleTests = new Class[]{RealmTests.class,
+            SQLiteTests.class, ORMLiteTests.class, SugarORMTests.class};
 
     public PerformanceTestFragment() {
         // Required empty public constructor
@@ -43,11 +45,12 @@ public abstract class PerformanceTestFragment extends Fragment {
 
             @Override
             protected Void doInBackground(Void... voids) {
-                for(PerformanceTest t : tests) {
+                for (PerformanceTest t : tests) {
                     t.setActivity(getActivity());
                     t.initNames();
+                    t.timings = new HashMap<String, Double>();
 
-                    publishProgress("Executing " + t.getName() + " for Insert Count: " + t.getNumInserts());
+                    publishProgress("<b>Executing " + t.getName() + " for Insert Count: " + t.getNumInserts() + "</b>...");
 
                     publishProgress(t.testInserts());
                     publishProgress(t.testQueries());
@@ -63,9 +66,27 @@ public abstract class PerformanceTestFragment extends Fragment {
 
             @Override
             protected void onPostExecute(Void result) {
+                clearDatabase();
+                printResults();
             }
         };
         return bgTask;
+    }
+
+    private void printResults() {
+        showStatus("---");
+        showStatus("<b>Inserts per Second:</b>");
+        for(PerformanceTest t : tests) {
+            showStatus(String.format(t.getName() + " %.2f", t.timings.get("testInserts")));
+        }
+        showStatus("<b>Queries per Second:</b>");
+        for(PerformanceTest t : tests) {
+            showStatus(String.format(t.getName() + " %.2f", t.timings.get("testQueries")));
+        }
+        showStatus("<b>Counts per Second:</b>");
+        for(PerformanceTest t : tests) {
+            showStatus(String.format(t.getName() + " %.2f", t.timings.get("testCounts")));
+        }
     }
 
     @Override
@@ -79,22 +100,15 @@ public abstract class PerformanceTestFragment extends Fragment {
         rootView.findViewById(R.id.executeButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String txt = ((EditText)rootView.findViewById(R.id.input_field)).getText().toString();
+                String txt = ((EditText) rootView.findViewById(R.id.input_field)).getText().toString();
                 try {
-                    for(PerformanceTest t : tests) {
+                    for (PerformanceTest t : tests) {
                         t.setNumInserts(new Integer(txt));
                     }
                 } catch (Exception e) {
-                    showStatus("Entry: " + txt + " not a valid integer");
+                    showStatus("Entry for Inserts: " + txt + " not a valid integer...using default");
                 }
                 getTask().execute();
-            }
-        });
-
-        rootView.findViewById(R.id.clear_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearDatabase();
             }
         });
 
@@ -102,7 +116,7 @@ public abstract class PerformanceTestFragment extends Fragment {
     }
 
     protected void clearDatabase() {
-        for(PerformanceTest t : tests) {
+        for (PerformanceTest t : tests) {
             t.clearDevice();
         }
     }
@@ -111,7 +125,7 @@ public abstract class PerformanceTestFragment extends Fragment {
         for (Class c : possibleTests) {
             PerformanceTest t = null;
             try {
-                t = (PerformanceTest)c.newInstance();
+                t = (PerformanceTest) c.newInstance();
                 t.setActivity(getActivity());
             } catch (java.lang.InstantiationException e) {
                 e.printStackTrace();
@@ -143,7 +157,7 @@ public abstract class PerformanceTestFragment extends Fragment {
     protected void showStatus(String txt) {
         Log.i(TAG, txt);
         TextView tv = new TextView(getActivity());
-        tv.setText(txt);
+        tv.setText(Html.fromHtml(txt));
         rootLayout.addView(tv);
     }
 }
