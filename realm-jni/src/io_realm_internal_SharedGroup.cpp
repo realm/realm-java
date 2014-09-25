@@ -30,14 +30,21 @@ using namespace tightdb;
 
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
-#define ENC_KEY (const uint8_t *)"1234567890123456789012345678901"
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
-    JNIEnv* env, jobject, jstring file_name, jint durability, jboolean no_create, jboolean enable_replication)
+    JNIEnv* env, jobject, jstring file_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray key)
 {
     const char* file_name_ptr = env->GetStringUTFChars(file_name, 0);
     if (!file_name_ptr)
         return 0; // Exception is thrown by GetStringUTFChars()
+
+#ifdef TIGHTDB_ENABLE_ENCRYPTION
+    if (key != NULL && env->GetArrayLength(key) != 32)
+        ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 32 bytes.");
+#else
+    if (key != NULL)
+        ThrowException(env, UnsupportedOperation,
+                       "Encryption was disabled in the native library at compile time.");
+#endif
 
     SharedGroup* db = 0;
     try {
@@ -68,7 +75,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
                 return 0;
             }
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-            db = new SharedGroup(file_name_ptr, no_create!=0, level, ENC_KEY);
+            jbyte* keyBuffer = env->GetByteArrayElements(key, NULL);
+            db = new SharedGroup(file_name_ptr, no_create!=0, level, (const uint8_t *)keyBuffer);
+            env->ReleaseByteArrayElements(key, keyBuffer, JNI_ABORT);
 #else
             db = new SharedGroup(file_name_ptr, no_create!=0, level);
 #endif
@@ -87,11 +96,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImplicitTransactions
-  (JNIEnv* env, jobject, jlong native_replication_ptr)
+  (JNIEnv* env, jobject, jlong native_replication_ptr, jbyteArray key)
 {
     try {
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr), ENC_KEY);
+        jbyte* keyBuffer = env->GetByteArrayElements(key, NULL);
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr), (const uint8_t *)keyBuffer);
+        env->ReleaseByteArrayElements(key, keyBuffer, JNI_ABORT);
 #else
         SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr));
 #endif

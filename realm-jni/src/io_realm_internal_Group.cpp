@@ -22,8 +22,6 @@
 using namespace tightdb;
 using std::string;
 
-#define ENC_KEY (const uint8_t *)"1234567890123456789012345678901"
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
     JNIEnv* env, jobject)
 {
@@ -33,7 +31,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_String_2I(
-    JNIEnv* env, jobject, jstring jFileName, jint mode)
+    JNIEnv* env, jobject, jstring jFileName, jint mode, jbyteArray key)
 {
     TR((env, "Group::createNative(file): "));
     const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
@@ -53,7 +51,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
             return 0;
         }
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        pGroup = new Group(fileNameCharPtr, ENC_KEY, openmode);
+        jbyte* keyBuffer = env->GetByteArrayElements(key, NULL);
+        pGroup = new Group(fileNameCharPtr, (const uint8_t *)keyBuffer, openmode);
+        env->ReleaseByteArrayElements(key, keyBuffer, JNI_ABORT);
 #else
         pGroup = new Group(fileNameCharPtr, openmode);
 #endif
@@ -166,13 +166,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr(
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
-    JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName)
+    JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName, jbyteArray key)
 {
     const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
     if (fileNameCharPtr) {
         try {
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-            G(nativeGroupPtr)->write(fileNameCharPtr, ENC_KEY);
+            jbyte* keyBuffer = env->GetByteArrayElements(key, NULL);
+            G(nativeGroupPtr)->write(fileNameCharPtr, (const uint8_t *)keyBuffer);
+            env->ReleaseByteArrayElements(key, keyBuffer, JNI_ABORT);
 #else
             G(nativeGroupPtr)->write(fileNameCharPtr);
 #endif
