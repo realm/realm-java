@@ -40,7 +40,7 @@ public class LooperThread extends Thread {
         handler = new Handler() {
             @Override
             public void handleMessage(Message message) {
-                if(message.arg1 == REALM_CHANGED) {
+                if (message.arg1 == REALM_CHANGED) {
                     for (Map.Entry<Handler, Integer> entry : handlers.entrySet()) {
                         if (entry.getValue() == message.arg2) {
                             if (!entry.getKey().hasMessages(REALM_CHANGED)) {
