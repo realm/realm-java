@@ -15,6 +15,6 @@ public class SQLiteFragment extends PerformanceTestFragment {
     }
 
     public SQLiteFragment() {
-        this.tests.add(new RealmTests());
+        this.tests.add(new SQLiteTests());
     }
 }

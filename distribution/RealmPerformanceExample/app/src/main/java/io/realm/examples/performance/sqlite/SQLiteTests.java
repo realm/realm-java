@@ -38,7 +38,8 @@ public class SQLiteTests extends PerformanceTest {
         db.setTransactionSuccessful();
         db.endTransaction();
 
-        String status = "testInserts " + (System.currentTimeMillis() - startTime) + " ms.";
+        long duration = (System.currentTimeMillis() - startTime);
+        String status = "testInserts " + duration + " ms.";
 
         //Verify writes were successful
         String query = "SELECT * FROM " + EmployeeDatabaseHelper.TABLE_EMPLOYEES;
@@ -51,6 +52,8 @@ public class SQLiteTests extends PerformanceTest {
         //status += "...Found " + cursor.getCount() + " inserts\n";
 
         db.close();
+
+        timings.put("testInserts", (getNumInserts() / (double)duration));
 
         return status;
     }
@@ -87,7 +90,10 @@ public class SQLiteTests extends PerformanceTest {
         cursor.close();
         db.close();
 
-        return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.";
+        long duration = (System.currentTimeMillis() - startTime);
+        timings.put("testQueries", (getNumInserts() / (double)duration));
+
+        return "testQueries " + duration + " ms.";
     }
 
     private void loopCursor(Cursor cursor) {

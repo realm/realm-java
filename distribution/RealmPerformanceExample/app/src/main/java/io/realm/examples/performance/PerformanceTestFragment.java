@@ -143,7 +143,8 @@ public abstract class PerformanceTestFragment extends Fragment {
         super.onStop();
         Log.d(TAG, "Cancelling tests");
         showStatus("Cancelling test due to screen Pause");
-        bgTask.cancel(true);
+        if(bgTask != null)
+            bgTask.cancel(true);
     }
 
     @Override
@@ -151,7 +152,8 @@ public abstract class PerformanceTestFragment extends Fragment {
         super.onStop();
         Log.d(TAG, "Cancelling tests");
         showStatus("Cancelling test due to screen Stop");
-        bgTask.cancel(true);
+        if(bgTask != null)
+            bgTask.cancel(true);
     }
 
     protected void showStatus(String txt) {
