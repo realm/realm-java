@@ -30,6 +30,8 @@ using namespace tightdb;
 
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
+#define ENC_KEY (const uint8_t *)"1234567890123456789012345678901"
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
     JNIEnv* env, jobject, jstring file_name, jint durability, jboolean no_create, jboolean enable_replication)
 {
@@ -65,7 +67,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
                 ThrowException(env, UnsupportedOperation, "Unsupported durability.");
                 return 0;
             }
+#ifdef TIGHTDB_ENABLE_ENCRYPTION
+            db = new SharedGroup(file_name_ptr, no_create!=0, level, ENC_KEY);
+#else
             db = new SharedGroup(file_name_ptr, no_create!=0, level);
+#endif
         }
         return reinterpret_cast<jlong>(db);
     }
@@ -85,7 +91,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 {
     try {
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr), NULL);
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr), ENC_KEY);
 #else
         SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr));
 #endif

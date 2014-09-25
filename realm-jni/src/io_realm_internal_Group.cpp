@@ -22,6 +22,8 @@
 using namespace tightdb;
 using std::string;
 
+#define ENC_KEY (const uint8_t *)"1234567890123456789012345678901"
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
     JNIEnv* env, jobject)
 {
@@ -51,7 +53,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
             return 0;
         }
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        pGroup = new Group(fileNameCharPtr, NULL, openmode);
+        pGroup = new Group(fileNameCharPtr, ENC_KEY, openmode);
 #else
         pGroup = new Group(fileNameCharPtr, openmode);
 #endif
@@ -169,7 +171,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
     const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
     if (fileNameCharPtr) {
         try {
+#ifdef TIGHTDB_ENABLE_ENCRYPTION
+            G(nativeGroupPtr)->write(fileNameCharPtr, ENC_KEY);
+#else
             G(nativeGroupPtr)->write(fileNameCharPtr);
+#endif
         }
         CATCH_FILE(fileNameCharPtr)
         CATCH_STD()
