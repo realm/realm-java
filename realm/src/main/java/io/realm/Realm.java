@@ -44,6 +44,7 @@ public class Realm {
     public static final String DEFAULT_REALM_NAME = "default.realm";
     private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
     private static final String TAG = "REALM";
+    private static final String TABLE_PREFIX = "class_";
 
     private SharedGroup sharedGroup;
     private ImplicitTransaction transaction;
@@ -89,7 +90,7 @@ public class Realm {
             simpleClassName = clazz.getSimpleName();
             simpleClassNames.put(clazz, simpleClassName);
         }
-        return transaction.getTable(simpleClassName);
+        return transaction.getTable(TABLE_PREFIX + simpleClassName);
     }
 
     /**
@@ -373,7 +374,7 @@ public class Realm {
                 simpleClassNames.put(clazz, simpleClassName);
             }
 
-            table = transaction.getTable(simpleClassName);
+            table = transaction.getTable(TABLE_PREFIX + simpleClassName);
             tables.put(clazz, table);
         }
 
