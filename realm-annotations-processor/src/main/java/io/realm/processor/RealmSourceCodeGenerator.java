@@ -169,7 +169,7 @@ public class RealmSourceCodeGenerator {
 
     private static final Map<String, Integer> HOW_TO_EQUAL;
     private static final int EQUALS_DIRECT = 0;  // compare values directly
-    private static final int EQUALS_NULL = 1;    // check for null
+    private static final int EQUALS_NULL = 1;    // check for null and use .equals()
     private static final int EQUALS_ARRAY = 2;   // compare using array
     private static final int EQUALS_COMPARE = 3; // use the compare method
 
@@ -190,7 +190,7 @@ public class RealmSourceCodeGenerator {
         HOW_TO_EQUAL.put("Double", EQUALS_DIRECT);
         HOW_TO_EQUAL.put("Boolean", EQUALS_DIRECT);
         HOW_TO_EQUAL.put("java.lang.String", EQUALS_NULL); // check for null
-        HOW_TO_EQUAL.put("java.util.Date", EQUALS_DIRECT);
+        HOW_TO_EQUAL.put("java.util.Date", EQUALS_NULL);
         HOW_TO_EQUAL.put("byte[]", EQUALS_ARRAY); // compare using array
     }
 
@@ -457,7 +457,7 @@ public class RealmSourceCodeGenerator {
                 switch (HOW_TO_EQUAL.get(fieldTypeCanonicalName)) {
                     case EQUALS_DIRECT: // if (getField() != aFoo.getField()) return false
                         String getterPrefix = fieldTypeCanonicalName.equals("boolean") ? "is" : "get";
-                        writer.emitStatement("if (get%s() != a%s.%s%s()) return false", capFieldName, className, getterPrefix, capFieldName);
+                        writer.emitStatement("if (%s%s() != a%s.%s%s()) return false", getterPrefix, capFieldName, className, getterPrefix, capFieldName);
                         break;
                     case EQUALS_NULL: // if (getField() != null = !getField().equals(aFoo.getField()) : aFoo.getField() != null) return false
                         writer.emitStatement("if (get%s() != null ? !get%s().equals(a%s.get%s()) : a%s.get%s() != null) return false",
@@ -465,14 +465,14 @@ public class RealmSourceCodeGenerator {
                                 capFieldName, className, capFieldName,
                                 className, capFieldName);
                         break;
-                    case EQUALS_ARRAY: // if (!Array.equals(getField(), aFoo.getField()) return false
-                        writer.emitStatement("if (!Array.equals(get%s(), a%s.get%s()) return false",
+                    case EQUALS_ARRAY: // if (!Arrays.equals(getField(), aFoo.getField())) return false
+                        writer.emitStatement("if (!Arrays.equals(get%s(), a%s.get%s())) return false",
                                 capFieldName,
                                 className, capFieldName);
                         break;
                     case EQUALS_COMPARE: // if (
-                        writer.emitStatement("if (%s.compare(get%s, a%s.get%s) != 0) return false",
-                                fieldTypeCanonicalName, capitaliseFirstChar(fieldName), className,
+                        writer.emitStatement("if (%s.compare(get%s(), a%s.get%s()) != 0) return false",
+                                capitaliseFirstChar(fieldTypeCanonicalName), capitaliseFirstChar(fieldName), className,
                                 capitaliseFirstChar(fieldName));
                         break;
                 }
