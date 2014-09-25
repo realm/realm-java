@@ -7,6 +7,10 @@ import io.realm.examples.performance.PerformanceTest;
 
 public class SugarORMTests extends PerformanceTest {
 
+    public SugarORMTests() {
+        testName = "SugarORM";
+    }
+
     public void clearDevice() {
         SugarEmployee.deleteAll(SugarEmployee.class);
     }
@@ -16,9 +20,9 @@ public class SugarORMTests extends PerformanceTest {
 
         for (int row = 0; row < getNumInserts(); row++) {
             SugarEmployee employee
-                    = new SugarEmployee(getName(row),
-                    getAge(row),
-                    getHired(row));
+                    = new SugarEmployee(getEmployeeName(row),
+                    getEmployeeAge(row),
+                    getEmployeeHiredStatus(row));
             employee.save();
         }
 

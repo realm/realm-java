@@ -10,6 +10,10 @@ public class RealmTests extends PerformanceTest {
 
     private Realm realm = null;
 
+    public RealmTests() {
+        testName = "Realm";
+    }
+
     public void clearDevice() {
         realm = new Realm(getActivity());
         realm.clear();
@@ -23,9 +27,9 @@ public class RealmTests extends PerformanceTest {
         realm.beginWrite();
         for(int row = 0; row < getNumInserts(); row++) {
             RealmEmployee employee = realm.create(RealmEmployee.class);
-            employee.setName(getName(row));
-            employee.setAge(getAge(row));
-            employee.setHired(getHired(row));
+            employee.setName(getEmployeeName(row));
+            employee.setAge(getEmployeeAge(row));
+            employee.setHired(getEmployeeHiredStatus(row));
         }
         realm.commit();
 

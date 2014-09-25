@@ -13,6 +13,10 @@ import io.realm.examples.performance.PerformanceTest;
 
 public class ORMLiteTests extends PerformanceTest {
 
+    public ORMLiteTests() {
+        testName = "ORMLite";
+    }
+
     public void clearDevice() {
         final OrmLiteDatabaseHelper helper = new OrmLiteDatabaseHelper(getActivity());
         helper.onUpgrade(helper.getWritableDatabase(), 2, 3);
@@ -33,8 +37,8 @@ public class ORMLiteTests extends PerformanceTest {
             public Object call() throws Exception {
                 OrmLiteEmployee employee = new OrmLiteEmployee();
                 for (int row = 0; row < getNumInserts(); row++) {
-                    employee.setName(getName(row));
-                    employee.setAge(getAge(row));
+                    employee.setName(getEmployeeName(row));
+                    employee.setAge(getEmployeeAge(row));
                     employee.setHired(getHiredBool(row));
                     employeeDao.create(employee);
                 }

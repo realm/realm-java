@@ -1,9 +1,11 @@
 package io.realm.examples.performance;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Switch;
@@ -13,7 +15,7 @@ import io.realm.examples.performance.realm.RealmTests;
 import io.realm.examples.performance.sqlite.SQLiteTests;
 import io.realm.examples.performance.sugar_orm.SugarORMTests;
 
-public class UserSelectedTestsFragment extends PerformanceTestFragment {
+public class UserSelectedTestsFragment extends PerformanceTestFragment implements CompoundButton.OnCheckedChangeListener {
 
     public static final String TAG = UserSelectedTestsFragment.class.getName();
 
@@ -41,20 +43,23 @@ public class UserSelectedTestsFragment extends PerformanceTestFragment {
 
         for(Class c : possibleTests) {
             Switch switchButton = new Switch(getActivity());
-            switchButton.setText(c.getName());
+            switchButton.setText(c.getSimpleName());
+            switchButton.setOnCheckedChangeListener(this);
             ((LinearLayout)rootView.findViewById(R.id.selected_tests)).addView(switchButton);
         }
 
         rootView.findViewById(R.id.executeButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int switchCount = ((LinearLayout)rootView.findViewById(R.id.selected_tests)).getChildCount();
+                int numSwitches = ((LinearLayout)rootView.findViewById(R.id.selected_tests)).getChildCount();
 
-                for(int i=0; i<switchCount; i++) {
-                    Switch switchButton = (Switch)((LinearLayout)rootView.findViewById(R.id.selected_tests)).getChildAt(0);
+                for(int i=0; i<numSwitches; i++) {
+                    Switch switchButton = (Switch)((LinearLayout)rootView
+                            .findViewById(R.id.selected_tests)).getChildAt(0);
                     if(switchButton.isChecked()) {
                         try {
                             PerformanceTest test = (PerformanceTest)possibleTests[i].newInstance();
+                            Log.d(TAG, "Adding test: " + test.getName());
                             tests.add(test);
                         } catch(Exception e) {
                             e.printStackTrace();
@@ -84,5 +89,9 @@ public class UserSelectedTestsFragment extends PerformanceTestFragment {
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     }
 }

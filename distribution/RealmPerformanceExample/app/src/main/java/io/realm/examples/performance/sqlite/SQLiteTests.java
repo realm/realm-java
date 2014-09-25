@@ -10,6 +10,10 @@ public class SQLiteTests extends PerformanceTest {
 
     private EmployeeDatabaseHelper databaseHelper = null;
 
+    public SQLiteTests() {
+        testName = "SQLite";
+    }
+
     public void setActivity(Activity activity) {
         databaseHelper = new EmployeeDatabaseHelper(activity);
     }
@@ -26,9 +30,9 @@ public class SQLiteTests extends PerformanceTest {
         ContentValues values = new ContentValues();
         db.beginTransaction();
         for(int row=0;row < getNumInserts(); row++) {
-            values.put(databaseHelper.COLUMN_NAME, getName(row));
-            values.put(databaseHelper.COLUMN_AGE, getAge(row));
-            values.put(databaseHelper.COLUMN_HIRED, getHired(row));
+            values.put(databaseHelper.COLUMN_NAME, getEmployeeName(row));
+            values.put(databaseHelper.COLUMN_AGE, getEmployeeAge(row));
+            values.put(databaseHelper.COLUMN_HIRED, getEmployeeHiredStatus(row));
             db.insert(databaseHelper.TABLE_EMPLOYEES, null, values);
         }
         db.setTransactionSuccessful();

@@ -39,7 +39,7 @@ public abstract class PerformanceTestFragment extends Fragment {
                     t.setActivity(getActivity());
                     t.initNames();
 
-                    publishProgress("Executing for Insert Count: " + t.getNumInserts());
+                    publishProgress("Executing " + t.getName() + " for Insert Count: " + t.getNumInserts());
 
                     publishProgress(t.testInserts());
                     publishProgress(t.testQueries());

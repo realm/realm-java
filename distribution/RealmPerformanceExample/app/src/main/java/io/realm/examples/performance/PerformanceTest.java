@@ -138,7 +138,10 @@ public abstract class PerformanceTest {
 
     private int numInserts = MIN_NUM_INSERTS;
 
+    protected String testName;
+
     private List<String> employeeNames = null;
+
     private Activity activity          = null;
     private View rootView              = null;
     private LinearLayout rootLayout    = null;
@@ -166,15 +169,15 @@ public abstract class PerformanceTest {
         }
     }
 
-    public String getName(int row) {
+    public String getEmployeeName(int row) {
         return employeeNames.get(row % NUM_TEST_NAMES);
     }
 
-    public int getAge(int row) {
+    public int getEmployeeAge(int row) {
         return row % MAX_AGE + MIN_AGE;
     }
 
-    public int getHired(int row) {
+    public int getEmployeeHiredStatus(int row) {
         return row % 2;
     }
 
@@ -190,5 +193,13 @@ public abstract class PerformanceTest {
     public abstract String testInserts();
 
     public abstract String testCounts();
+
+    public String getName() {
+        return testName;
+    }
+
+    public void setName(String name) {
+        this.testName = name;
+    }
 
 }

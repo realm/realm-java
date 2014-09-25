@@ -23,6 +23,7 @@
 
         <LinearLayout
             android:id="@+id/selected_tests"
+            android:layout_gravity="center_horizontal"
             android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
