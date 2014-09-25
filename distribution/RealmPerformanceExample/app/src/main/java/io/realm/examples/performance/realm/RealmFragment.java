@@ -52,51 +52,85 @@ public class RealmFragment extends PerformanceTestFragment {
     public String testQueries() {
         realm = new Realm(getActivity());
 
-        long startTime = System.currentTimeMillis();
-
+        //Throw away first query
         List<RealmEmployee> results
                 = realm.where(RealmEmployee.class)
                 .equalTo("hired", 0)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo0").findAll();
+        loopResults(results);
 
-//        results = realm.where(RealmEmployee.class)
-//                .equalTo("hired", 1)
-//                .between("age", 20, 40)
-//                .equalTo("name", "Foo0").findAll();
-//
-//        results = realm.where(RealmEmployee.class)
-//                .equalTo("hired", 1)
-//                .between("age", 20, 40)
-//                .equalTo("name", "Foo1").findAll();
+        long startTime = System.currentTimeMillis();
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 1)
+                .between("age", 20, 50)
+                .equalTo("name", "Foo1").findAll();
+        loopResults(results);
+
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 1)
+                .between("age", 20, 50)
+                .equalTo("name", "Foo3").findAll();
+        loopResults(results);
+
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 0)
+                .between("age", 20, 50)
+                .equalTo("name", "Foo2").findAll();
+        loopResults(results);
+
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 0)
+                .between("age", 20, 50)
+                .equalTo("name", "Foo330").findAll();
+        loopResults(results);
 
         return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
+    }
+
+    private void loopResults(List<RealmEmployee> results) {
+        for(RealmEmployee e : results) {
+            e.getHired();
+        }
     }
 
     public String testCounts() {
         realm = new Realm(getActivity());
 
-        long startTime = System.currentTimeMillis();
-
+        //Throw away first query
         List<RealmEmployee> results
                 = realm.where(RealmEmployee.class)
                 .equalTo("hired", 0)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo0").findAll();
-        results.size();
+        String status = "...Count Acquired: " + results.size() + " inserts\n";
 
-//        results = realm.where(RealmEmployee.class)
-//                .equalTo("hired", 1)
-//                .between("age", 20, 40)
-//                .equalTo("name", "Foo0").findAll();
-//        results.size();
-//
-//        results = realm.where(RealmEmployee.class)
-//                .equalTo("hired", 1)
-//                .between("age", 20, 40)
-//                .equalTo("name", "Foo1").findAll();
-//        results.size();
+        long startTime = System.currentTimeMillis();
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 1)
+                .between("age", 20, 50)
+                .equalTo("name", "Foo1").findAll();
+        status += "...Count Acquired: " + results.size() + " inserts\n";
 
-        return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 1)
+                .between("age", 20, 50)
+                .equalTo("name", "Foo3").findAll();
+        status += "...Count Acquired: " + results.size() + " inserts\n";
+
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 0)
+                .between("age", 20, 50)
+                .equalTo("name", "Foo2").findAll();
+        status += "...Count Acquired: " + results.size() + " inserts\n";
+
+        results = realm.where(RealmEmployee.class)
+                .equalTo("hired", 0)
+                .between("age", 20, 50)
+                .equalTo("name", "Foo330").findAll();
+        status += "...Count Acquired: " + results.size() + " inserts\n";
+
+        status += "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        return status;
     }
 }

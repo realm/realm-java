@@ -44,8 +44,8 @@ public class ORMLiteFragment extends PerformanceTestFragment {
         employeeDao.callBatchTasks(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
+                ORMLiteEmployee employee = new ORMLiteEmployee();
                 for (int row = 0; row < getNumInserts(); row++) {
-                    ORMLiteEmployee employee = new ORMLiteEmployee();
                     employee.setName(getName(row));
                     employee.setAge(getAge(row));
                     employee.setHired(getHiredBool(row));
@@ -61,14 +61,14 @@ public class ORMLiteFragment extends PerformanceTestFragment {
         GenericRawResults<String[]> rawResults =
                 employeeDao.queryRaw(
                         "SELECT * from Employee");
-        List<String[]> results = null;
-        try {
-            results = rawResults.getResults();
-        } catch(SQLException e) {
-            e.printStackTrace();
-        }
+//        List<String[]> results = null;
+//        try {
+//            results = rawResults.getResults();
+//        } catch(SQLException e) {
+//            e.printStackTrace();
+//        }
 
-        status += "...Completed " + results.size() + " inserts\n";
+//        status += "...Completed " + results.size() + " inserts\n";
         return status;
     }
 
@@ -79,30 +79,38 @@ public class ORMLiteFragment extends PerformanceTestFragment {
         final RuntimeExceptionDao<ORMLiteEmployee, Integer> employeeDao
                 = helper.getEmployeeDao();
 
-        long startTime = System.currentTimeMillis();
+        long startTime = -1;
 
-        GenericRawResults<String[]> rawResults =
-                employeeDao.queryRaw(
-                        "SELECT * from Employee " +
-                                "WHERE name = 'Foo0' " +
-                                "AND age >= 20 AND age <= 50 " +
-                                "AND hired = 0");
+        try {
+            //Throw away first query
+            List<String[]> rawResults = employeeDao.queryRaw(QUERY1).getResults();
+            loopResults(rawResults);
 
-//        rawResults =
-//                employeeDao.queryRaw(
-//                        "SELECT * from Employee " +
-//                                "WHERE name = 'Foo0' " +
-//                                "AND age >= 20 AND age <= 40 " +
-//                                "AND hired = 1");
-//
-//        rawResults =
-//                employeeDao.queryRaw(
-//                        "SELECT * from Employee " +
-//                                "WHERE name = 'Foo1' " +
-//                                "AND age >= 20 AND age <= 40 " +
-//                                "AND hired = 1");
+            startTime = System.currentTimeMillis();
+
+            rawResults = employeeDao.queryRaw(QUERY2).getResults();
+            loopResults(rawResults);
+
+            rawResults = employeeDao.queryRaw(QUERY3).getResults();
+            loopResults(rawResults);
+
+            rawResults = employeeDao.queryRaw(QUERY4).getResults();
+            loopResults(rawResults);
+
+            rawResults = employeeDao.queryRaw(QUERY5).getResults();
+            loopResults(rawResults);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
+    }
+
+    private void loopResults(List<String[]> results) {
+        for (String[] arr : results) {
+            int var = arr.length;
+        }
     }
 
     public String testCounts() {
@@ -112,50 +120,37 @@ public class ORMLiteFragment extends PerformanceTestFragment {
         final RuntimeExceptionDao<ORMLiteEmployee, Integer> employeeDao
                 = helper.getEmployeeDao();
 
-        long startTime = System.currentTimeMillis();
-
-        GenericRawResults<String[]> rawResults =
-                employeeDao.queryRaw(
-                        "SELECT COUNT(*) from Employee " +
-                                "WHERE name = 'Foo0' " +
-                                "AND age >= 20 AND age <= 50 " +
-                                "AND hired = 0");
-
-        List<String[]> results = null;
+        long startTime = -1;
+        String status = "";
 
         try {
-            results = rawResults.getResults();
+            //Throw away first query
+            List<String[]> rawResults = employeeDao.queryRaw(COUNT_QUERY1).getResults();
+            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+
+            startTime = System.currentTimeMillis();
+
+            rawResults = employeeDao.queryRaw(COUNT_QUERY2).getResults();
+            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+
+            rawResults = employeeDao.queryRaw(COUNT_QUERY3).getResults();
+            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+
+            rawResults = employeeDao.queryRaw(COUNT_QUERY4).getResults();
+            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+
+            rawResults = employeeDao.queryRaw(COUNT_QUERY5).getResults();
+            status += "...Count Acquired: " + rawResults.size() + " inserts\n";
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
-//
-//        rawResults = employeeDao.queryRaw(
-//                        "SELECT * from Employee " +
-//                                "WHERE name = 'Foo0' " +
-//                                "AND age >= 20 AND age <= 40 " +
-//                                "AND hired = 1");
-//
-//        try {
-//            results = rawResults.getResults();
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//
-//        rawResults = employeeDao.queryRaw(
-//                        "SELECT * from Employee " +
-//                                "WHERE name = 'Foo1' " +
-//                                "AND age >= 20 AND age <= 40 " +
-//                                "AND hired = 1");
-//
-//        try {
-//            results = rawResults.getResults();
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
 
-        return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        status += "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        return status;
     }
 
+    //This is just an example in case you want to test the (longer) timings using the querybuilder
     public String testCountsBuilder() {
 
         final ORMLiteDatabaseHelper helper = new ORMLiteDatabaseHelper(getActivity());

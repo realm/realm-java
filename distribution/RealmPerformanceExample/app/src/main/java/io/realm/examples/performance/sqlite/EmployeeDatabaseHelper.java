@@ -9,7 +9,7 @@ public class EmployeeDatabaseHelper extends SQLiteOpenHelper {
 
     private final static String TAG = EmployeeDatabaseHelper.class.getName();
 
-    public static final String TABLE_EMPLOYEES = "employees";
+    public static final String TABLE_EMPLOYEES = "Employee";
 
     public static final String COLUMN_ID    = "_id";
     public static final String COLUMN_NAME  = "name";

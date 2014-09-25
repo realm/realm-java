@@ -64,59 +64,78 @@ public class SQLiteFragment extends PerformanceTestFragment {
     public String testQueries() {
         android.database.sqlite.SQLiteDatabase db = databaseHelper.getWritableDatabase();
 
+        //Skip the first as a "warmup"
+        String query = QUERY1;
+        Cursor cursor = db.rawQuery(query, null);
+        loopCursor(cursor);
+        cursor.close();
+
         long startTime = System.currentTimeMillis();
 
-        String query = "SELECT * FROM "
-                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-                + " WHERE name = 'Foo0' AND age >= 20 AND age <= 50 AND hired = 0";
-        Cursor cursor = db.rawQuery(query, null);
-        cursor.getCount();
+        query = QUERY2;
+        cursor = db.rawQuery(query, null);
+        loopCursor(cursor);
+        cursor.close();
 
-//        query = "SELECT * FROM "
-//                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-//                + " WHERE name = 'Foo0' AND age >= 20 AND age <= 40 AND hired = 1";
-//        cursor = db.rawQuery(query, null);
-//        cursor.getCount();
-//
-//        query = "SELECT * FROM "
-//                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-//                + " WHERE name = 'Foo1' AND age >= 20 AND age <= 40 AND hired = 1";
-//        cursor = db.rawQuery(query, null);
-//        cursor.getCount();
+        query = QUERY3;
+        cursor = db.rawQuery(query, null);
+        loopCursor(cursor);
+        cursor.close();
 
+        query = QUERY4;
+        cursor = db.rawQuery(query, null);
+        loopCursor(cursor);
+        cursor.close();
+
+        query = QUERY5;
+        cursor = db.rawQuery(query, null);
+        loopCursor(cursor);
+        cursor.close();
         db.close();
 
         return "testQueries " + (System.currentTimeMillis() - startTime) + " ms.\n";
     }
 
+    private void loopCursor(Cursor cursor) {
+        cursor.moveToFirst();
+        while (cursor.isAfterLast() == false) {
+            cursor.moveToNext();
+        }
+    }
+
     public String testCounts() {
         android.database.sqlite.SQLiteDatabase db = databaseHelper.getWritableDatabase();
 
+        //Skip the first as a "warmup"
+        Cursor cursor = db.rawQuery(COUNT_QUERY1, null);
+        cursor.moveToFirst();
+        String status = "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        cursor.close();
+
         long startTime = System.currentTimeMillis();
 
-        String count = "SELECT COUNT(*) FROM "
-                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-                + " WHERE name = 'Foo0' AND age >= 20 AND age <= 50 AND hired = 0";
-        Cursor mcursor = db.rawQuery(count, null);
-        mcursor.moveToFirst();
-        mcursor.getInt(0);
+        cursor = db.rawQuery(COUNT_QUERY2, null);
+        cursor.moveToFirst();
+        status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        cursor.close();
 
-//        count = "SELECT count(*) FROM "
-//                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-//                + " WHERE name = 'Foo0' AND age >= 20 AND age <= 40 AND hired = 1";
-//        mcursor = db.rawQuery(count, null);
-//        mcursor.moveToFirst();
-//        mcursor.getInt(0);
-//
-//        count = "SELECT count(*) FROM "
-//                + EmployeeDatabaseHelper.TABLE_EMPLOYEES
-//                + " WHERE name = 'Foo1' AND age >= 20 AND age <= 40 AND hired = 1";
-//        mcursor = db.rawQuery(count, null);
-//        mcursor.moveToFirst();
-//        mcursor.getInt(0);
+        cursor = db.rawQuery(COUNT_QUERY3, null);
+        cursor.moveToFirst();
+        status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        cursor.close();
 
+        cursor = db.rawQuery(COUNT_QUERY4, null);
+        cursor.moveToFirst();
+        status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        cursor.close();
+
+        cursor = db.rawQuery(COUNT_QUERY5, null);
+        cursor.moveToFirst();
+        status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
+        cursor.close();
         db.close();
 
-        return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        status += "testCounts " + (System.currentTimeMillis() - startTime) + " ms.\n";
+        return status;
     }
 }
