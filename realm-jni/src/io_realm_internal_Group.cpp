@@ -31,7 +31,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_String_2I(
-    JNIEnv* env, jobject, jstring jFileName, jint mode, jbyteArray key)
+    JNIEnv* env, jobject, jstring jFileName, jint mode, jbyteArray keyArray)
 {
     TR((env, "Group::createNative(file): "));
     const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
@@ -50,10 +50,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
             ThrowException(env, IllegalArgument, "Group(): Invalid mode parameter.");
             return 0;
         }
+
+        KeyBuffer key(env, keyArray);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        jbyte* keyBuffer = env->GetByteArrayElements(key, NULL);
-        pGroup = new Group(fileNameCharPtr, (const uint8_t *)keyBuffer, openmode);
-        env->ReleaseByteArrayElements(key, keyBuffer, JNI_ABORT);
+        pGroup = new Group(fileNameCharPtr, key.data(), openmode);
 #else
         pGroup = new Group(fileNameCharPtr, openmode);
 #endif
@@ -166,15 +166,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr(
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
-    JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName, jbyteArray key)
+    JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName, jbyteArray keyArray)
 {
     const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
     if (fileNameCharPtr) {
+        KeyBuffer key(env, keyArray);
         try {
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-            jbyte* keyBuffer = env->GetByteArrayElements(key, NULL);
-            G(nativeGroupPtr)->write(fileNameCharPtr, (const uint8_t *)keyBuffer);
-            env->ReleaseByteArrayElements(key, keyBuffer, JNI_ABORT);
+            G(nativeGroupPtr)->write(fileNameCharPtr, key.data());
 #else
             G(nativeGroupPtr)->write(fileNameCharPtr);
 #endif
