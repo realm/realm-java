@@ -20,6 +20,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import java.io.File;
 import java.lang.ref.SoftReference;
@@ -27,6 +28,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,16 +42,16 @@ import io.realm.internal.android.LooperThread;
 
 public class Realm {
     public static final String DEFAULT_REALM_NAME = "default.realm";
+    private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
+    private static final String TAG = "REALM";
+    private static final String TABLE_PREFIX = "class_";
 
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
-
-    private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
 
     private final int id;
     private final LooperThread looperThread = LooperThread.getInstance();
     private final SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
-    private final Map<Class<?>, String> generatedClassNames = new HashMap<Class<?>, String>();
     private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>();
     private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>();
     private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
@@ -102,7 +104,7 @@ public class Realm {
             simpleClassName = clazz.getSimpleName();
             simpleClassNames.put(clazz, simpleClassName);
         }
-        return transaction.getTable(simpleClassName);
+        return transaction.getTable(TABLE_PREFIX + simpleClassName);
     }
 
     /**
@@ -186,11 +188,12 @@ public class Realm {
         Table table;
         table = tables.get(clazz);
         if (table == null) {
-            String generatedClassName = generatedClassNames.get(clazz);
-            if (generatedClassName == null) {
-                generatedClassName = clazz.getName() + "RealmProxy";
-                generatedClassNames.put(clazz, generatedClassName);
+            String simpleClassName = simpleClassNames.get(clazz);
+            if (simpleClassName == null) {
+                simpleClassName = clazz.getSimpleName();
+                simpleClassNames.put(clazz, simpleClassName);
             }
+            String generatedClassName = "io.realm." + simpleClassName + "RealmProxy";
 
             Class<?> generatedClass = generatedClasses.get(generatedClassName);
             if (generatedClass == null) {
@@ -377,22 +380,15 @@ public class Realm {
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         E result;
 
-        String generatedClassName = null;
         Table table = tables.get(clazz);
         if (table == null) {
-            generatedClassName = generatedClassNames.get(clazz);
-            if (generatedClassName == null) {
-                generatedClassName = clazz.getName() + "RealmProxy";
-                generatedClassNames.put(clazz, generatedClassName);
-            }
-
             String simpleClassName = simpleClassNames.get(clazz);
             if (simpleClassName == null) {
                 simpleClassName = clazz.getSimpleName();
                 simpleClassNames.put(clazz, simpleClassName);
             }
 
-            table = transaction.getTable(simpleClassName);
+            table = transaction.getTable(TABLE_PREFIX + simpleClassName);
             tables.put(clazz, table);
         }
 
@@ -400,13 +396,13 @@ public class Realm {
 
         Constructor constructor = generatedConstructors.get(clazz);
         if (constructor == null) {
-            if (generatedClassName == null) {
-                generatedClassName = generatedClassNames.get(clazz);
-                if (generatedClassName == null) {
-                    generatedClassName = clazz.getName() + "RealmProxy";
-                    generatedClassNames.put(clazz, generatedClassName);
-                }
+            String simpleClassName = simpleClassNames.get(clazz);
+            if (simpleClassName == null) {
+                simpleClassName = clazz.getSimpleName();
+                simpleClassNames.put(clazz, simpleClassName);
             }
+            String generatedClassName = "io.realm." + simpleClassName + "RealmProxy";
+
 
             Class<?> generatedClass = generatedClasses.get(generatedClassName);
             if (generatedClass == null) {
@@ -546,5 +542,40 @@ public class Realm {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    /**
+     * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
+     * The realm must be unused and closed before calling this method.
+     * @param context an Android context.
+     * @return false if a file could not be deleted. The failing file will be logged.
+     */
+    public static boolean deleteRealmFile(Context context) {
+        return deleteRealmFile(context, DEFAULT_REALM_NAME);
+    }
+
+    /**
+     * Delete the Realm file from the filesystem for a custom named Realm.
+     * The realm must be unused and closed before calling this method.
+     * @param context an Android context.
+     * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
+     * @return false if a file could not be deleted. The failing file will be logged.
+     */
+    public static boolean deleteRealmFile(Context context, String fileName) {
+        boolean result = true;
+        File writableFolder = context.getFilesDir();
+        List<File> filesToDelete = Arrays.asList(
+                new File(writableFolder, fileName),
+                new File(writableFolder, fileName + ".lock"));
+        for (File fileToDelete : filesToDelete) {
+            if (fileToDelete.exists()) {
+                boolean deleteResult = fileToDelete.delete();
+                if (!deleteResult) {
+                    result = false;
+                    Log.w(TAG, "Could not delete the file " + fileToDelete);
+                }
+            }
+        }
+        return result;
     }
 }
