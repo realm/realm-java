@@ -16,11 +16,42 @@
 
 package io.realm;
 
+import android.test.AndroidTestCase;
+
 import java.io.IOException;
+import java.util.Date;
 
 import io.realm.entities.AllTypes;
 
-public class RealmResultsTest extends RealmSetupTests {
+public class RealmResultsTest extends AndroidTestCase {
+
+
+    protected final static int TEST_DATA_SIZE = 516;
+
+    protected Realm testRealm;
+
+    @Override
+    protected void setUp() throws Exception {
+
+        testRealm = Realm.getInstance(getContext());
+
+        testRealm.beginTransaction();
+
+        testRealm.allObjects(AllTypes.class).clear();
+
+        for (int i = 0; i < TEST_DATA_SIZE; ++i) {
+            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            allTypes.setColumnBoolean((i % 3) == 0);
+            allTypes.setColumnBinary(new byte[]{1, 2, 3});
+            allTypes.setColumnDate(new Date());
+            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnFloat(1.234567f + i);
+            allTypes.setColumnString("test data " + i);
+            allTypes.setColumnLong(i);
+        }
+        testRealm.commitTransaction();
+    }
+
 
     // test io.realm.ResultList Api
 

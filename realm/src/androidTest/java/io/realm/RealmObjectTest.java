@@ -16,11 +16,20 @@
 
 package io.realm;
 
+import android.test.AndroidTestCase;
 import io.realm.entities.AllTypes;
 import io.realm.internal.Row;
 
 
-public class RealmObjectTest extends RealmSetupTests {
+public class RealmObjectTest extends AndroidTestCase {
+
+    protected Realm testRealm;
+
+    @Override
+    protected void setUp() throws Exception {
+        testRealm = Realm.getInstance(getContext());
+    }
+
 
     // test io.realm.RealmObject Api
 

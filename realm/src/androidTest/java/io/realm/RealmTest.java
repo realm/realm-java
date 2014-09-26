@@ -16,15 +16,45 @@
 package io.realm;
 
 import android.content.Context;
+import android.test.AndroidTestCase;
 
 import java.io.IOException;
+import java.util.Date;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.internal.Table;
 
 
-public class RealmTest extends RealmSetupTests {
+public class RealmTest extends AndroidTestCase {
+
+
+    protected final static int TEST_DATA_SIZE = 159;
+
+    protected Realm testRealm;
+
+    @Override
+    protected void setUp() throws Exception {
+
+        testRealm = Realm.getInstance(getContext());
+
+        testRealm.beginTransaction();
+
+        testRealm.allObjects(AllTypes.class).clear();
+
+        for (int i = 0; i < TEST_DATA_SIZE; ++i) {
+            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            allTypes.setColumnBoolean((i % 3) == 0);
+            allTypes.setColumnBinary(new byte[]{1, 2, 3});
+            allTypes.setColumnDate(new Date());
+            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnFloat(1.234567f + i);
+            allTypes.setColumnString("test data " + i);
+            allTypes.setColumnLong(i);
+        }
+        testRealm.commitTransaction();
+    }
+
 
     private final static int BACKGROUND_COMMIT_TEST_DATA_SET_SIZE = 5;
 
@@ -81,7 +111,7 @@ public class RealmTest extends RealmSetupTests {
     public void testShouldGetTable() {
         Table table = testRealm.getTable(AllTypes.class);
         assertNotNull("getTable is returning a null Table object", table);
-        assertEquals("Unexpected query result after getTable", TEST_DATA_SIZE, table.count(table.getColumnIndex("columndouble"),3.1415));
+        assertEquals("Unexpected query result after getTable", TEST_DATA_SIZE, table.count(table.getColumnIndex("columndouble"), 3.1415));
     }
 
     // <E> void remove(Class<E> clazz, long objectIndex)
@@ -99,7 +129,7 @@ public class RealmTest extends RealmSetupTests {
     // <E extends RealmObject> E get(Class<E> clazz, long rowIndex)
     public void testShouldGetObject() {
 
-        AllTypes allTypes = testRealm.get(AllTypes.class,0);
+        AllTypes allTypes = testRealm.get(AllTypes.class, 0);
         assertNotNull("get has returned null object", allTypes);
         assertEquals("get has returned wrong object", "test data 0", allTypes.getColumnString());
     }
@@ -120,7 +150,7 @@ public class RealmTest extends RealmSetupTests {
     }
 
     // <E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
-    public void testShouldReturnResultSet()  {
+    public void testShouldReturnResultSet() {
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
@@ -129,10 +159,10 @@ public class RealmTest extends RealmSetupTests {
 
     // Note that this test is relying on the values set while initializing the test dataset
     public void testQueriesResults() throws IOException {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("columnlong",33).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("columnlong", 33).findAll();
         assertEquals("ResultList.where not returning expected result", 1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnlong",3333).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("columnlong", 3333).findAll();
         assertEquals("ResultList.where not returning expected result", 0, resultList.size());
 
 
@@ -142,52 +172,132 @@ public class RealmTest extends RealmSetupTests {
     public void testQueriesFailWithWrongDataTypes() throws IOException {
         RealmResults<AllTypes> resultList = null;
 
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnstring",3333).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnstring",true).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnstring",3.1415f).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnstring",3.1415d).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnstring", 3333).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnstring", true).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnstring", 3.1415f).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnstring", 3.1415d).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
 
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnfloat",12).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnfloat",true).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnfloat","string").findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnfloat", 3.1415d).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnfloat", 12).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnfloat", true).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnfloat", "string").findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnfloat", 3.1415d).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
 
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnlong",true).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnlong","string").findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnlong",3.1415f).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnlong",3.1415d).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnlong", true).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnlong", "string").findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnlong", 3.1415f).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnlong", 3.1415d).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
 
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnboolean","test").findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnboolean",7).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnboolean",3.1415f).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnboolean",3.1415d).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnboolean", "test").findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnboolean", 7).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnboolean", 3.1415f).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnboolean", 3.1415d).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
 
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnbinary","test").findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnbinary",7).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnbinary",3.1415f).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnbinary",3.1415d).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnbinary", "test").findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnbinary", 7).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnbinary", 3.1415f).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnbinary", 3.1415d).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     public void testQueriesFailWithInvalidDataTypes() throws IOException {
         RealmResults<AllTypes> resultList = null;
 
-        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname",33).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", 33).findAll();
         assertNotNull("ResultList.where.equalTo returns null when column name is non-existing", resultList);
         assertEquals("ResultList.where.equalTo returns wrong result", 0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname","test").findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", "test").findAll();
         assertNotNull("ResultList.where.equalTo returns null when column name is non-existing", resultList);
         assertEquals("ResultList.where.equalTo returns wrong result", 0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname",true).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", true).findAll();
         assertNotNull("ResultList.where.equalTo returns null when column name is non-existing", resultList);
         assertEquals("ResultList.where.equalTo returns wrong result", 0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname",3.1415d).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415d).findAll();
         assertNotNull("ResultList.where.equalTo returns null when column name is non-existing", resultList);
         assertEquals("ResultList.where.equalTo returns wrong result", 0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname",3.1415f).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415f).findAll();
         assertNotNull("ResultList.where.equalTo returns null when column name is non-existing", resultList);
         assertEquals("ResultList.where.equalTo returns wrong result", 0, resultList.size());
     }
@@ -200,10 +310,26 @@ public class RealmTest extends RealmSetupTests {
         Long nullLong = null;
         Boolean nullBoolean = null;
 
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnstring", nullString).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnlong", nullLong).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnboolean", nullBoolean).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
-        try { resultList = testRealm.where(AllTypes.class).equalTo("columnfloat", nullFloat).findAll(); fail("Realm.where should fail with illegal argument"); } catch (IllegalArgumentException e) { }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnstring", nullString).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnlong", nullLong).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnboolean", nullBoolean).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo("columnfloat", nullFloat).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     // <E extends RealmObject> RealmTableOrViewList<E> allObjects(Class<E> clazz)
@@ -214,7 +340,9 @@ public class RealmTest extends RealmSetupTests {
 
     // addChangeListener(RealmChangeListener listener)
     static int testCount = 0;
+
     public void testChangeNotify() {
+        fail("Change listeners are not presently working");
 
         testRealm.addChangeListener(new RealmChangeListener() {
             @Override
@@ -227,15 +355,15 @@ public class RealmTest extends RealmSetupTests {
         for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
 
             Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("King"+Integer.toString(i) );
+            dog.setName("King" + Integer.toString(i));
         }
 
         testRealm.commitTransaction();
 
         getNotifications(1); // This really should be BACKGROUND_COMMIT_TEST_DATA_SET_SIZE
-                             // But there is a bug that prevents us from getting the right
-                             // number of notifications back. So for now we are only checking
-                             // that we do get at least one notification.
+        // But there is a bug that prevents us from getting the right
+        // number of notifications back. So for now we are only checking
+        // that we do get at least one notification.
 
         testRealm.removeAllChangeListeners();
 
@@ -246,6 +374,7 @@ public class RealmTest extends RealmSetupTests {
 
     // void removeChangeListener(RealmChangeListener listener)
     public void testChangeNotifyRemove() {
+        fail("Change listeners are not presently working");
 
         testCount = 0;
 
@@ -262,15 +391,15 @@ public class RealmTest extends RealmSetupTests {
         for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
 
             Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("King"+Integer.toString(i) );
+            dog.setName("King" + Integer.toString(i));
         }
 
         testRealm.commitTransaction();
 
         getNotifications(1);  // This really should be BACKGROUND_COMMIT_TEST_DATA_SET_SIZE
-                              // But there is a bug that prevents us from getting the right
-                              // number of notifications back. So for now we are only checking
-                              // that we do get at least one notification.
+        // But there is a bug that prevents us from getting the right
+        // number of notifications back. So for now we are only checking
+        // that we do get at least one notification.
 
         testRealm.removeAllChangeListeners();
 
@@ -282,7 +411,7 @@ public class RealmTest extends RealmSetupTests {
         for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
 
             Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Fido"+Integer.toString(i) );
+            dog.setName("Fido" + Integer.toString(i));
         }
 
         testRealm.commitTransaction();
@@ -293,6 +422,7 @@ public class RealmTest extends RealmSetupTests {
 
     // void removeChangeListener(RealmChangeListener listener)
     public void testFailChangeNotifyNoListener() {
+        fail("Change listeners are not presently working");
 
         // Invalid input parameter to removeChangeListener:
         testRealm.removeChangeListener(null);
@@ -317,15 +447,15 @@ public class RealmTest extends RealmSetupTests {
         for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
 
             Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Fido"+Integer.toString(i) );
+            dog.setName("Fido" + Integer.toString(i));
         }
 
         testRealm.commitTransaction();
 
         getNotifications(1);  // This really should be BACKGROUND_COMMIT_TEST_DATA_SET_SIZE
-                              // But there is a bug that prevents us from getting the right
-                              // number of notifications back. So for now we are only checking
-                              // that we do get at least one notification.
+        // But there is a bug that prevents us from getting the right
+        // number of notifications back. So for now we are only checking
+        // that we do get at least one notification.
 
         testRealm.removeAllChangeListeners();
         assertTrue("Should receive change notifications after adding addChangeListener", 0 < testCount);
@@ -333,6 +463,7 @@ public class RealmTest extends RealmSetupTests {
 
     // void removeAllChangeListeners()
     public void testRemoveAllChangeListeners() {
+        fail("Change listeners are not presently working");
 
         RealmChangeListener realmChangeListener = new RealmChangeListener() {
             @Override
@@ -352,7 +483,7 @@ public class RealmTest extends RealmSetupTests {
         for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
 
             Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Fido"+Integer.toString(i) );
+            dog.setName("Fido" + Integer.toString(i));
         }
 
         testRealm.commitTransaction();
@@ -365,6 +496,8 @@ public class RealmTest extends RealmSetupTests {
 
     // void removeAllChangeListeners()
     public void testFailRemoveAllChangeListeners() {
+
+        fail("Change listeners are not presently working");
 
         // Calling removeAllChangeListeners w/o any ChangeListeners installed:
         testRealm.removeAllChangeListeners();
@@ -386,15 +519,15 @@ public class RealmTest extends RealmSetupTests {
         for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
 
             Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Fido"+Integer.toString(i) );
+            dog.setName("Fido" + Integer.toString(i));
         }
 
         testRealm.commitTransaction();
 
         getNotifications(1);  // This really should be BACKGROUND_COMMIT_TEST_DATA_SET_SIZE
-                              // But there is a bug that prevents us from getting the right
-                              // number of notifications back. So for now we are only checking
-                              // that we do get at least one notification.
+        // But there is a bug that prevents us from getting the right
+        // number of notifications back. So for now we are only checking
+        // that we do get at least one notification.
 
         testRealm.removeAllChangeListeners();
 
@@ -417,7 +550,7 @@ public class RealmTest extends RealmSetupTests {
 
         testRealm.addChangeListener(realmChangeListener);
 
-        Thread addFromThread = new Thread( new Runnable() {
+        Thread addFromThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Realm localRealm = Realm.getInstance(getContext());
@@ -431,8 +564,7 @@ public class RealmTest extends RealmSetupTests {
 
                 try {
                     Thread.sleep(1000);
-                } catch (Exception ex)
-                {
+                } catch (Exception ex) {
 
                 }
             }
@@ -453,43 +585,6 @@ public class RealmTest extends RealmSetupTests {
         }
     }
 
-    // void refresh()
-    public void testRefresh() {
-
-        fail("testRefresh has been disabled because it currently causes a native crash, terminating the rest of the tests");
-
-        testRealm.beginTransaction();
-        testRealm.clear(Dog.class);
-        testRealm.commitTransaction();
-
-        Thread addFromThread = new Thread() {
-            @Override
-            public void run() {
-                Realm localRealm = Realm.getInstance(getContext());
-                localRealm.beginTransaction();
-                for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
-
-                    Dog dog = localRealm.createObject(Dog.class);
-                    dog.setName("Fido" + Integer.toString(i));
-                }
-                localRealm.commitTransaction();
-            }
-        };
-
-        addFromThread.start();
-        try {
-            addFromThread.join();
-        } catch(InterruptedException ex) {
-            fail("Thread.join has unexpectedly failed");
-        }
-
-
-        // Here refresh will fail because of a "Native crash"
-        testRealm.refresh();
-
-        RealmResults<Dog> resultList = testRealm.where(Dog.class).findAll();
-        assertEquals("Change has not been committed", BACKGROUND_COMMIT_TEST_DATA_SET_SIZE, resultList.size());
-    }
 
     // void beginTransaction()
     public void testBeginTransaction() throws IOException {
@@ -504,9 +599,9 @@ public class RealmTest extends RealmSetupTests {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnstring","a unique string").findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("columnstring", "a unique string").findAll();
         assertEquals("Change has not been committed correctly", 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).equalTo("columnfloat",3.1415f).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("columnfloat", 3.1415f).findAll();
         assertEquals("Change has not been committed", 1, resultList.size());
     }
 
@@ -586,7 +681,112 @@ public class RealmTest extends RealmSetupTests {
     public void testShouldFailOutsideTransaction() {
 
         // These API calls should fail outside a Transaction:
-        try { AllTypes aT = testRealm.createObject(AllTypes.class); fail("Realm.createObject should fail outside write transaction"); } catch (IllegalStateException e) { }
-        try { testRealm.remove(AllTypes.class, 0); fail("Realm.remove should fail outside write transaction"); } catch (IllegalStateException e) { }
+        try {
+            AllTypes aT = testRealm.createObject(AllTypes.class);
+            fail("Realm.createObject should fail outside write transaction");
+        } catch (IllegalStateException e) {
+        }
+        try {
+            testRealm.remove(AllTypes.class, 0);
+            fail("Realm.remove should fail outside write transaction");
+        } catch (IllegalStateException e) {
+        }
+    }
+
+    public void testRealmQueryBetween() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).between("columnlong", 0, 9).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).beginsWith("columnstring", "test data ").findAll();
+        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).beginsWith("columnstring", "test data 1").between("columnlong", 2, 20).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).between("columnlong", 2, 20).beginsWith("columnstring", "test data 1").findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+    }
+
+
+    public void testRealmQueryGreaterThan() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThan("columnfloat", 10.234567f).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 10, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).beginsWith("columnstring", "test data 1").greaterThan("columnfloat", 50.234567f).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 100, resultList.size());
+
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan("columnfloat", 11.234567f);
+        resultList = query.between("columnlong", 1, 20).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+    }
+
+
+    public void testRealmQueryGreaterThanOrEqualTo() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo("columnfloat", 10.234567f).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 9, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).beginsWith("columnstring", "test data 1").greaterThanOrEqualTo("columnfloat", 50.234567f).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 100, resultList.size());
+
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThanOrEqualTo("columnfloat", 11.234567f);
+        query =  query.between("columnlong", 1, 20);
+
+        resultList = query.beginsWith("columnstring", "test data 15").findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+    }
+
+    public void testRealmQueryOr() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo("columnfloat", 31.234567f);
+        RealmResults<AllTypes> resultList = query.or().between("columnlong", 1, 20).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 21, resultList.size());
+
+        resultList = query.or().equalTo("columnstring", "test data 15").findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 21, resultList.size());
+
+        resultList = query.or().equalTo("columnstring", "test data 117").findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 22, resultList.size());
+    }
+
+    public void testRealmQueryImplicitAnd() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo("columnfloat", 31.234567f);
+        RealmResults<AllTypes> resultList = query.between("columnlong", 1, 10).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+
+        query = testRealm.where(AllTypes.class).equalTo("columnfloat", 81.234567f);
+        resultList = query.between("columnlong", 1, 100).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+    }
+
+    public void testRealmQueryLessThan() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThan("columnfloat", 31.234567f).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 30, resultList.size());
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).lessThan("columnfloat", 31.234567f);
+        resultList = query.between("columnlong", 1, 10).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+    }
+
+    public void testRealmQueryLessThanOrEqual() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo("columnfloat", 31.234567f).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 31, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo("columnfloat", 31.234567f).between("columnlong", 11, 20).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+    }
+
+    public void testRealmQueryEqualTo() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("columnfloat", 31.234567f).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan("columnfloat", 11.0f).equalTo("columnlong", 10).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan("columnfloat", 11.0f).equalTo("columnlong", 1).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+    }
+
+    public void testRealmQueryNotEqualTo() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).notEqualTo("columnlong", 31).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo("columnfloat", 11.234567f).equalTo("columnlong", 10).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo("columnfloat", 11.234567f).equalTo("columnlong", 1).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
     }
 }
