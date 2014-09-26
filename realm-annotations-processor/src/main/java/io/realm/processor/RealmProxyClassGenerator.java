@@ -32,7 +32,7 @@ import java.lang.String;
 import java.util.*;
 
 
-public class RealmSourceCodeGenerator {
+public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
     private String className;
     private String packageName;
@@ -41,7 +41,7 @@ public class RealmSourceCodeGenerator {
 
     private static final String tablePrefix = "class_";
 
-    public RealmSourceCodeGenerator(ProcessingEnvironment processingEnvironment, String className, String packageName, List<VariableElement> fields) {
+    public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment, String className, String packageName, List<VariableElement> fields) {
         this.processingEnvironment = processingEnvironment;
         this.className = className;
         this.packageName = packageName;
