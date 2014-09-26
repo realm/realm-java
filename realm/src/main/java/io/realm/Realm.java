@@ -24,6 +24,7 @@ import android.util.Log;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.google.common.base.Throwables;
 
 import java.io.File;
 import java.lang.ref.SoftReference;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
@@ -191,17 +193,13 @@ public class Realm {
                         validateMethod.invoke(null, realm.transaction);
                     }
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find the generated proxy class");
                 } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find initTable() or validateTable() methods in generated proxy class");
                 } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw Throwables.propagate(e); // Wrap the exception in a runtime one
                 } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw Throwables.propagate(e); // Wrap the exception in a runtime one
                 }
                 validatedPaths.add(absolutePath);
             }
@@ -245,8 +243,7 @@ public class Realm {
                 try {
                     generatedClass = Class.forName(generatedClassName);
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find the generated proxy class");
                 }
                 generatedClasses.put(generatedClassName, generatedClass);
             }
@@ -256,8 +253,7 @@ public class Realm {
                 try {
                     method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
                 } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find the initTable() method in generated proxy class");
                 }
                 initTableMethods.put(generatedClass, method);
             }
@@ -266,11 +262,9 @@ public class Realm {
                 table = (Table) method.invoke(null, transaction);
                 tables.put(clazz, table);
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
-                return null; // TODO: throw RealmException
+                throw Throwables.propagate(e); // Wrap the exception in a runtime one
             } catch (InvocationTargetException e) {
-                e.printStackTrace();
-                return null; // TODO: throw RealmException
+                throw Throwables.propagate(e); // Wrap the exception in a runtime one
             }
         }
 
@@ -314,8 +308,7 @@ public class Realm {
                 try {
                     generatedClass = Class.forName(generatedClassName);
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find the generated proxy class");
                 }
                 generatedClasses.put(generatedClassName, generatedClass);
             }
@@ -325,8 +318,7 @@ public class Realm {
                 try {
                     constructor = generatedClass.getConstructor();
                 } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find the constructor in generated proxy class");
                 }
                 constructors.put(generatedClass, constructor);
                 generatedConstructors.put(clazz, constructor);
@@ -338,14 +330,11 @@ public class Realm {
             //noinspection unchecked
             result = (E) constructor.newInstance();
         } catch (InstantiationException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
+            throw Throwables.propagate(e); // Wrap the exception in a runtime one
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
+            throw Throwables.propagate(e); // Wrap the exception in a runtime one
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
+            throw Throwables.propagate(e); // Wrap the exception in a runtime one
         }
         result.realmSetRow(row);
         result.setRealm(this);
@@ -407,11 +396,13 @@ public class Realm {
         return sharedGroup.hasChanged();
     }
 
-    // Transactions
+    /**
+     * Transactions
+     */
 
-    public void refresh() {
-        transaction.advanceRead();
-    }
+//    public void refresh() {
+//        transaction.advanceRead();
+//    }
 
     /**
      * Starts a write transaction, this must be closed with commitTransaction()
