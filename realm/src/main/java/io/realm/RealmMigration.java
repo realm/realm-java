@@ -18,6 +18,11 @@ package io.realm;
 
 public interface RealmMigration {
 
-    public void execute(Realm realm, int version);
-
+    /**
+     * Implement this method in your sublcass to perform
+     * @return The version of the Realm after executing the migration
+     * @param realm The Realm on which to perform the migration
+     * @param version The version of the Realm at the start of the migration
+     */
+    public int execute(Realm realm, int version);
 }

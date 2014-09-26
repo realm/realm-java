@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.lang.String;
 import java.util.*;
 
-
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
     private String className;
@@ -221,6 +220,7 @@ public class RealmProxyClassGenerator {
                 "io.realm.RealmObject",
                 "java.util.Date",
                 "java.util.Arrays",
+                "java.util.HashMap",
                 packageName + ".*")
                 .emitEmptyLine();
 
@@ -380,6 +380,75 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return table");
         writer.endControlFlow();
         writer.emitStatement("return transaction.getTable(\"%s%s\")", tablePrefix, this.className);
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        /**
+         * validateTable method
+         */
+        writer.beginMethod(
+                "void", // Return type
+                "validateTable", // Method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
+                "ImplicitTransaction", "transaction"); // Argument type & argument name
+
+        writer.beginControlFlow("if(transaction.hasTable(\"" + tablePrefix + this.className + "\"))");
+        writer.emitStatement("Table table = transaction.getTable(\"%s%s\")", tablePrefix, this.className);
+
+        // verify number of columns
+        writer.beginControlFlow("if(table.getColumnCount() != " + fields.size() + ")");
+        writer.emitStatement("throw new IllegalStateException(\"Column count does not match\")");
+        writer.endControlFlow();
+
+        // create type dictionary for lookup
+        writer.emitStatement("HashMap<String, ColumnType> columnTypes = new HashMap<String, ColumnType>()");
+        writer.beginControlFlow("for(long i = 0; i < " + fields.size() + "; i++)");
+        writer.emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))");
+        writer.endControlFlow();
+
+        // For each field verfiy there is a corresponding column
+        for (VariableElement field : fields) {
+            String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            String fieldTypeName;
+            if (fieldTypeCanonicalName.contains(".")) {
+                fieldTypeName = fieldTypeCanonicalName.substring(fieldTypeCanonicalName.lastIndexOf('.') + 1);
+            } else {
+                fieldTypeName = fieldTypeCanonicalName;
+            }
+
+            // make sure types align
+            writer.beginControlFlow("if(!columnTypes.containsKey(\"%s\"))", fieldName);
+            writer.emitStatement("throw new IllegalStateException(\"Missing column for '%s'\")", fieldName);
+            writer.endControlFlow();
+            writer.beginControlFlow("if(columnTypes.get(\"%s\") != %s)", fieldName, JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
+            writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column for '%s'\")",
+                    fieldName, fieldTypeName);
+            writer.endControlFlow();
+
+            /* FIXME - add validatoin for link and array types by comparing link targets
+            if (typeUtils.isAssignable(field.asType(), realmObject)) {
+                writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", tablePrefix, fieldTypeName);
+                writer.emitStatement("%sRealmProxy.initTable(transaction)", fieldTypeName);
+                writer.endControlFlow();
+                writer.emitStatement("table.addColumnLink(ColumnType.LINK, \"%s\", transaction.getTable(\"%s%s\"))",
+                        fieldName.toLowerCase(Locale.getDefault()), tablePrefix, fieldTypeName);
+            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
+                String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
+                String genericType;
+                if (genericCanonicalType.contains(".")) {
+                    genericType = genericCanonicalType.substring(genericCanonicalType.lastIndexOf('.') + 1);
+                } else {
+                    genericType = genericCanonicalType;
+                }
+                writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", tablePrefix, genericType);
+                writer.emitStatement("%sRealmProxy.initTable(transaction)", genericType);
+                writer.endControlFlow();
+                writer.emitStatement("table.addColumnLink(ColumnType.LINK_LIST, \"%s\", transaction.getTable(\"%s%s\"))",
+                        fieldName.toLowerCase(Locale.getDefault()), tablePrefix, genericType);
+            }*/
+        }
+        writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
 

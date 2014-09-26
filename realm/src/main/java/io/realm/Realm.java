@@ -45,6 +45,7 @@ public class Realm {
     private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
+    private static boolean validated = false;
 
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
 
@@ -148,10 +149,10 @@ public class Realm {
      */
     public static Realm create(File writableFolder, String filename) {
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
-        return create(absolutePath);
+        return createAndValidate(absolutePath, true);
     }
 
-    private static Realm create(String absolutePath) {
+    private static Realm createAndValidate(String absolutePath, boolean validateSchema) {
         ThreadRealm threadRealm = realms.get(absolutePath);
         if (threadRealm == null) {
             threadRealm = new ThreadRealm(absolutePath);
@@ -165,6 +166,34 @@ public class Realm {
             realms.put(absolutePath, threadRealm);
             realmSoftReference = threadRealm.get();
             realm = realmSoftReference.get();
+        }
+        if (validateSchema) {
+            // FIXME - thread safety
+            if (!validated) {
+                try {
+                    Class<?> validationClass = Class.forName("io.realm.ValidationList");
+                    Method getProxyClassesMethod = validationClass.getMethod("getProxyClasses");
+                    List<String> proxyClasses = (List<String>)getProxyClassesMethod.invoke(null);
+                    for (String className : proxyClasses) {
+                        Class<?> modelClass = Class.forName(className);
+                        Method validateMethod = modelClass.getMethod("validateTable");
+                        validateMethod.invoke(null, realm.transaction);
+                    }
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                    return null; // TODO: throw RealmException
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                    return null; // TODO: throw RealmException
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                    return null; // TODO: throw RealmException
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                    return null; // TODO: throw RealmException
+                }
+                validated = true;
+            }
         }
         return realm;
     }
@@ -479,11 +508,6 @@ public class Realm {
         return where(clazz).findAll();
     }
 
-    // Migration
-    public void ensureRealmAtVersion(int version, RealmMigration migration) {
-        migration.execute(this, version);
-    }
-
     // Notifications
     public void addChangeListener(RealmChangeListener listener) {
         changeListeners.add(listener);
@@ -541,12 +565,22 @@ public class Realm {
         getTable(classSpec).clear();
     }
 
-    public int getVersion() {
+    private int getVersion() {
         return version;
     }
 
-    public void setVersion(int version) {
+    private void setVersion(int version) {
         this.version = version;
+    }
+
+    /**
+     * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
+     * The realm must be unused and closed before calling this method.
+     * @param context an Android context.
+     * @return false if a file could not be deleted. The failing file will be logged.
+     */
+    public void migrateRealmAtPath(String realmPath, RealmMigration migration) {
+        migration.execute(this, version);
     }
 
     /**
