@@ -16,30 +16,27 @@
 
 package io.realm.processor;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import io.realm.annotations.Ignore;
+import io.realm.annotations.RealmClass;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
-
-import io.realm.annotations.Ignore;
-import io.realm.annotations.RealmClass;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 @SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore"})
 @SupportedSourceVersion(javax.lang.model.SourceVersion.RELEASE_6)
 public class RealmProcessor extends AbstractProcessor {
+    Set<String> classesToValidate = new HashSet<>();
+    boolean done = false;
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -56,6 +53,7 @@ public class RealmProcessor extends AbstractProcessor {
             }
             TypeElement typeElement = (TypeElement) classElement;
             className = typeElement.getSimpleName().toString();
+            classesToValidate.add(className);
 
             if (typeElement.toString().endsWith(".RealmObject") || typeElement.toString().endsWith("RealmProxy")) {
                 continue;
@@ -94,8 +92,8 @@ public class RealmProcessor extends AbstractProcessor {
                 }
             }
 
-            RealmSourceCodeGenerator sourceCodeGenerator =
-                    new RealmSourceCodeGenerator(processingEnv, className, packageName, fields);
+            RealmProxyClassGenerator sourceCodeGenerator =
+                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {
@@ -105,6 +103,15 @@ public class RealmProcessor extends AbstractProcessor {
             }
         }
 
+        if (!done) {
+            RealmValidationListGenerator validationGenerator = new RealmValidationListGenerator(processingEnv, classesToValidate);
+            done = true;
+            try {
+                validationGenerator.generate();
+            } catch (IOException e) {
+                error(e.getMessage());
+            }
+        }
 
         return true;
     }
