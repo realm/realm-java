@@ -4,10 +4,16 @@ Beta-0.3.0
   =======
 
   * Renaming beginWrite to beginTransaction and commit to commitTransaction
+  * Adding minDate and maxDate to RealmResults
+  * Adding add(object) to RealmList
+  * Adding equals to generated classes (RealmObjects)
   * Added utility methods to delete Realm files
+  * Enables auto-refresh of read transactions
 
   Bug Fixes
   =========
+
+  * Fix notifications robustness
 
 
 
