@@ -35,8 +35,8 @@ import java.util.Set;
 @SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore"})
 @SupportedSourceVersion(javax.lang.model.SourceVersion.RELEASE_6)
 public class RealmProcessor extends AbstractProcessor {
-    static HashSet<String> classesToValidate = new HashSet<>();
-    static boolean done = false;
+    Set<String> classesToValidate = new HashSet<String>();
+    boolean done = false;
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

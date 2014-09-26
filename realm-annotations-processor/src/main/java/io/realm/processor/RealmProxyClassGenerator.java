@@ -419,11 +419,11 @@ public class RealmProxyClassGenerator {
 
             // make sure types align
             writer.beginControlFlow("if(!columnTypes.containsKey(\"%s\"))", fieldName);
-            writer.emitStatement("throw new IllegalStateException(\"Missing column for '%s'\")", fieldName);
+            writer.emitStatement("throw new IllegalStateException(\"Missing column '%s'\")", fieldName);
             writer.endControlFlow();
             writer.beginControlFlow("if(columnTypes.get(\"%s\") != %s)", fieldName, JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
-            writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column for '%s'\")",
-                    fieldName, fieldTypeName);
+            writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column '%s'\")",
+                    fieldTypeName, fieldName);
             writer.endControlFlow();
 
             /* FIXME - add validatoin for link and array types by comparing link targets

@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +46,7 @@ public class Realm {
     private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
-    private static boolean validated = false;
+    private static final HashSet<String> validatedPaths = new HashSet<String>();
 
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
 
@@ -169,7 +170,7 @@ public class Realm {
         }
         if (validateSchema) {
             // FIXME - thread safety
-            if (!validated) {
+            if (!validatedPaths.contains(absolutePath)) {
                 try {
                     Class<?> validationClass = Class.forName("io.realm.ValidationList");
                     Method getProxyClassesMethod = validationClass.getMethod("getProxyClasses");
@@ -192,7 +193,7 @@ public class Realm {
                     e.printStackTrace();
                     return null; // TODO: throw RealmException
                 }
-                validated = true;
+                validatedPaths.add(absolutePath);
             }
         }
         return realm;
