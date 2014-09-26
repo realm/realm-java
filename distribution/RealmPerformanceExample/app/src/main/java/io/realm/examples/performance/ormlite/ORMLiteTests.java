@@ -101,7 +101,7 @@ public class ORMLiteTests extends PerformanceTest {
         }
 
         long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testQueries", (getNumInserts() / (double)duration));
+        timings.put("testQueries", (4 / (double)duration));
 
         return "testQueries " + duration + " ms.";
     }
@@ -146,7 +146,7 @@ public class ORMLiteTests extends PerformanceTest {
         }
 
         long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testCounts", (getNumInserts() / (double)duration));
+        timings.put("testCounts", (4 / (double)duration));
 
         status += "testCounts " + duration + " ms.";
         return status;

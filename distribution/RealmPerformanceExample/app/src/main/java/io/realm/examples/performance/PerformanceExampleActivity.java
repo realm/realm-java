@@ -7,6 +7,7 @@ import android.widget.GridView;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.examples.performance.greendao.GreenDAOFragment;
 import io.realm.examples.performance.ormlite.ORMLiteFragment;
 import io.realm.examples.performance.realm.RealmFragment;
 import io.realm.examples.performance.sqlite.SQLiteFragment;
@@ -50,7 +51,7 @@ public class PerformanceExampleActivity extends Activity {
 
         example = mAdapter.new PerformanceTestExample();
         example.descriptor = "ORMLite";
-        example.color = "#338833";
+        example.color = "#778899";
         example.type = ORMLiteFragment.class;
         list.add(example);
 
@@ -58,6 +59,12 @@ public class PerformanceExampleActivity extends Activity {
         example.descriptor = "Realm";
         example.color = "#3333aa";
         example.type = RealmFragment.class;
+        list.add(example);
+
+        example = mAdapter.new PerformanceTestExample();
+        example.descriptor = "GreenDAO";
+        example.color = "#338833";
+        example.type = GreenDAOFragment.class;
         list.add(example);
 
         example = mAdapter.new PerformanceTestExample();

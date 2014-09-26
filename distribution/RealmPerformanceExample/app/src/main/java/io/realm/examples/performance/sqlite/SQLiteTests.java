@@ -91,7 +91,7 @@ public class SQLiteTests extends PerformanceTest {
         db.close();
 
         long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testQueries", (getNumInserts() / (double)duration));
+        timings.put("testQueries", (4 / (double)duration));
 
         return "testQueries " + duration + " ms.";
     }
@@ -136,7 +136,7 @@ public class SQLiteTests extends PerformanceTest {
         db.close();
 
         long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testCounts", (getNumInserts() / (double)duration));
+        timings.put("testCounts", (4 / (double)duration));
 
         return "testCounts " + duration + " ms.";
     }

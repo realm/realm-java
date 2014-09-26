@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import io.realm.examples.performance.greendao.GreenDAOTests;
 import io.realm.examples.performance.ormlite.ORMLiteTests;
 import io.realm.examples.performance.realm.RealmTests;
 import io.realm.examples.performance.sqlite.SQLiteTests;
@@ -33,7 +34,7 @@ public abstract class PerformanceTestFragment extends Fragment {
     private AsyncTask<Void, String, Void> bgTask = null;
 
     protected Class[] possibleTests = new Class[]{RealmTests.class,
-            SQLiteTests.class, ORMLiteTests.class, SugarORMTests.class};
+            SQLiteTests.class, ORMLiteTests.class, SugarORMTests.class, GreenDAOTests.class};
 
     public PerformanceTestFragment() {
         // Required empty public constructor
@@ -50,7 +51,7 @@ public abstract class PerformanceTestFragment extends Fragment {
                     t.initNames();
                     t.timings = new HashMap<String, Double>();
 
-                    publishProgress("<b>Executing " + t.getName() + " for Insert Count: " + t.getNumInserts() + "</b>...");
+                    publishProgress("---<br><b>Executing " + t.getName() + " for Insert Count: " + t.getNumInserts() + "</b>...");
 
                     publishProgress(t.testInserts());
                     publishProgress(t.testQueries());
@@ -75,17 +76,19 @@ public abstract class PerformanceTestFragment extends Fragment {
 
     private void printResults() {
         showStatus("---");
+        showStatus("<b>Combined Results...</b>");
         showStatus("<b>Inserts per Second:</b>");
+        //Multiply by 1000 to move from operations/ms to operations/second
         for(PerformanceTest t : tests) {
-            showStatus(String.format(t.getName() + " %.2f", t.timings.get("testInserts")));
+            showStatus(String.format(t.getName() + " %.2f", t.timings.get("testInserts") * 1000));
         }
         showStatus("<b>Queries per Second:</b>");
         for(PerformanceTest t : tests) {
-            showStatus(String.format(t.getName() + " %.2f", t.timings.get("testQueries")));
+            showStatus(String.format(t.getName() + " %.2f", t.timings.get("testQueries") * 1000));
         }
         showStatus("<b>Counts per Second:</b>");
         for(PerformanceTest t : tests) {
-            showStatus(String.format(t.getName() + " %.2f", t.timings.get("testCounts")));
+            showStatus(String.format(t.getName() + " %.2f", t.timings.get("testCounts") * 1000));
         }
     }
 

@@ -31,5 +31,5 @@ dependencies {
     compile 'com.j256.ormlite:ormlite-android:4.48'
 
     // GreenDAO
-    //compile 'de.greenrobot:greendao:1.3.0'
+    compile 'de.greenrobot:greendao:1.3.0'
 }

@@ -5,5 +5,5 @@
     android:gravity="bottom|left"
     android:padding="7dp"
     android:textColor="#ffffff"
-    android:textSize="24sp"
+    android:textSize="22sp"
     android:typeface="sans" />
