@@ -1,5 +1,3 @@
-apply plugin: 'maven'
-apply plugin: 'signing'
 apply plugin: 'com.android.library'
 
 android {
@@ -54,64 +52,4 @@ task compileJni(type: GradleBuild) {
 
 tasks.preBuild {
     dependsOn compileJni
-}
-
-task distribution {
-    javadoc       = file("build/libs/realm-${version}-javadoc.jar")
-    realmclasses  = file("build/outputs/aar/realm-${version}.aar")
-}
-
-artifacts {
-    archives file: distribution.realmclasses, name: "realm", type: 'aar', builtBy: distribution
-    archives file: distribution.javadoc, name: "realm", type: 'jar', builtBy: distribution
-}
-
-signing {
-    sign configurations.archives
-}
-
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { 
-                MavenDeployment deployment -> signing.signPom(deployment) 
-            }
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            snapshotRepository(url: "Https://oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            pom.project {
-                name 'Realm'
-                packaging 'jar'
-                description 'Realm is a mobile database: a replacement for SQLite, OrmLite, greenDAO or Core Data. Realm lets you build apps faster, build apps that are faster, and craft amazing user experiences.'
-                url 'http://realm.io'
-
-                scm {
-                    connection 'scm:git:https://github.com/realm/realm-java.git'
-                    developerConnection 'scm:git:https://github.com/realm/realm-java.git'
-                    url 'https://github.com/realm/realm-java.git'
-                }
-
-                licenses {
-                    license {
-                        name 'The Apache License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'kneth'
-                        name 'Kenneth Geisshirt'
-                        email 'kg@realm.io'
-                    }
-                }
-            }
-        }
-    }
 }

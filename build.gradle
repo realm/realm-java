@@ -1,6 +1,3 @@
-apply plugin: 'maven'
-apply plugin: 'signing'
-
 buildscript {
     repositories {
         mavenCentral()

@@ -8,7 +8,6 @@ realm-jni/build
 
 # Gradle local properties
 local.properties
-gradle.properties
 
 # Core
 core
