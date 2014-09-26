@@ -16,17 +16,15 @@
 
 package io.realm.processor;
 
+import com.google.common.base.Joiner;
 import com.squareup.javawriter.JavaWriter;
-
-import java.util.*;
-import java.io.BufferedWriter;
-import java.io.IOException;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
-
-import com.google.common.base.Joiner;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
 
 public class RealmValidationListGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -65,7 +63,7 @@ public class RealmValidationListGenerator {
         writer.beginMethod("List<String>", "getProxyClasses", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
         List<String> entries = new ArrayList<String>();
         for (String classToValidate : classesToValidate) {
-            entries.add(String.format("\"%s.%s%s\"", REALM_PACKAGE_NAME, classToValidate, PROXY_CLASS_SUFFIX));
+            entries.add(String.format("\"%s\"", classToValidate));
         }
         String statementSection = Joiner.on(", ").join(entries);
         writer.emitStatement("return Arrays.asList(%s)", statementSection);
