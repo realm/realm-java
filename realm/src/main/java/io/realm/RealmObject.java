@@ -33,11 +33,11 @@ public abstract class RealmObject {
         this.realm = realm;
     }
 
-    public Row realmGetRow() {
+    protected Row realmGetRow() {
         return row;
     }
 
-    public void realmSetRow(Row row) {
+    protected void realmSetRow(Row row) {
         this.row = row;
     }
 }
