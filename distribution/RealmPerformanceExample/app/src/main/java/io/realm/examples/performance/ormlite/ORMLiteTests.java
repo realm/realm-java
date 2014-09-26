@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import io.realm.examples.performance.PerformanceTest;
+import io.realm.examples.performance.PerformanceTestException;
 
 public class ORMLiteTests extends PerformanceTest {
 
@@ -17,21 +18,29 @@ public class ORMLiteTests extends PerformanceTest {
         testName = "ORMLite";
     }
 
-    public void clearDevice() {
+    private OrmLiteDatabaseHelper helper = null;
+    private RuntimeExceptionDao<OrmLiteEmployee, Integer> employeeDao = null;
+
+    public void clearDatabase() throws PerformanceTestException {
         final OrmLiteDatabaseHelper helper = new OrmLiteDatabaseHelper(getActivity());
         helper.onUpgrade(helper.getWritableDatabase(), 2, 3);
     }
 
-    public String testInserts() {
-        String status = "";
+    public void testBootstrap() throws PerformanceTestException {
+        helper = new OrmLiteDatabaseHelper(getActivity());
+        employeeDao = helper.getEmployeeDao();
 
-        final OrmLiteDatabaseHelper helper = new OrmLiteDatabaseHelper(getActivity());
+        List<String[]> rawResults = null;
+        try {
+            rawResults = employeeDao.queryRaw(QUERY1).getResults();
+            loopResults(rawResults);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        loopResults(rawResults);
+    }
 
-        final RuntimeExceptionDao<OrmLiteEmployee, Integer> employeeDao
-                = helper.getEmployeeDao();
-
-        long startTime = System.currentTimeMillis();
-
+    public void testInserts() throws PerformanceTestException {
         employeeDao.callBatchTasks(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
@@ -46,64 +55,37 @@ public class ORMLiteTests extends PerformanceTest {
             }
         });
 
-        long duration = (System.currentTimeMillis() - startTime);
-        status += "testInserts " + duration + " ms.";
-
         //Verify writes were successful
         GenericRawResults<String[]> rawResults =
                 employeeDao.queryRaw(
                         "SELECT * from Employee");
 
-        timings.put("testInserts", (getNumInserts() / (double)duration));
+        helper.close();
 
-//This was removed because in large data sizes sometimes there is a memory leak created.
-//        List<String[]> results = null;
-//        try {
-//            results = rawResults.getResults();
-//        } catch(SQLException e) {
-//            e.printStackTrace();
-//        }
-//        status += "...Completed " + results.size() + " inserts\n";
-
-        return status;
+        //This was removed because in large data sizes sometimes there is a memory leak created.
+        //        List<String[]> results = null;
+        //        try {
+        //            results = rawResults.getResults();
+        //        } catch(SQLException e) {
+        //            e.printStackTrace();
+        //        }
+        //        status += "...Completed " + results.size() + " inserts\n";
     }
 
-    public String testQueries() {
-
-        final OrmLiteDatabaseHelper helper = new OrmLiteDatabaseHelper(getActivity());
-
-        final RuntimeExceptionDao<OrmLiteEmployee, Integer> employeeDao
-                = helper.getEmployeeDao();
-
-        long startTime = -1;
-
+    public void testQueries() throws PerformanceTestException {
         try {
-            //Throw away first query
-            List<String[]> rawResults = employeeDao.queryRaw(QUERY1).getResults();
+            List<String[]> rawResults= employeeDao.queryRaw(QUERY2).getResults();
             loopResults(rawResults);
-
-            startTime = System.currentTimeMillis();
-
-            rawResults = employeeDao.queryRaw(QUERY2).getResults();
-            loopResults(rawResults);
-
             rawResults = employeeDao.queryRaw(QUERY3).getResults();
             loopResults(rawResults);
-
             rawResults = employeeDao.queryRaw(QUERY4).getResults();
             loopResults(rawResults);
-
             rawResults = employeeDao.queryRaw(QUERY5).getResults();
             loopResults(rawResults);
-
+            helper.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testQueries", (4 / (double)duration));
-
-        return "testQueries " + duration + " ms.";
     }
 
     private void loopResults(List<String[]> results) {
@@ -112,56 +94,24 @@ public class ORMLiteTests extends PerformanceTest {
         }
     }
 
-    public String testCounts() {
-
-        final OrmLiteDatabaseHelper helper = new OrmLiteDatabaseHelper(getActivity());
-
-        final RuntimeExceptionDao<OrmLiteEmployee, Integer> employeeDao
-                = helper.getEmployeeDao();
-
-        long startTime = -1;
-        String status = "";
-
+    public void testCounts() throws PerformanceTestException {
         try {
-            //Throw away first query
-            List<String[]> rawResults = employeeDao.queryRaw(COUNT_QUERY1).getResults();
-            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
-
-            startTime = System.currentTimeMillis();
-
-            rawResults = employeeDao.queryRaw(COUNT_QUERY2).getResults();
-            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
-
+            List<String[]> rawResults = employeeDao.queryRaw(COUNT_QUERY2).getResults();
+            rawResults.size();
             rawResults = employeeDao.queryRaw(COUNT_QUERY3).getResults();
-            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
-
+            rawResults.size();
             rawResults = employeeDao.queryRaw(COUNT_QUERY4).getResults();
-            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
-
+            rawResults.size();
             rawResults = employeeDao.queryRaw(COUNT_QUERY5).getResults();
-            //status += "...Count Acquired: " + rawResults.size() + " inserts\n";
-
+            rawResults.size();
+            helper.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testCounts", (4 / (double)duration));
-
-        status += "testCounts " + duration + " ms.";
-        return status;
     }
 
     //This is just an example in case you want to test the (longer) timings using the querybuilder
-    public String testCountsBuilder() {
-
-        final OrmLiteDatabaseHelper helper = new OrmLiteDatabaseHelper(getActivity());
-
-        final RuntimeExceptionDao<OrmLiteEmployee, Integer> employeeDao
-                = helper.getEmployeeDao();
-
-        long startTime = System.currentTimeMillis();
-
+    public void testCountsBuilder() {
         QueryBuilder<OrmLiteEmployee, Integer> queryBuilder =
                 employeeDao.queryBuilder();
 
@@ -178,7 +128,5 @@ public class ORMLiteTests extends PerformanceTest {
 
         List<OrmLiteEmployee> employeeList = employeeDao.query(preparedQuery);
         employeeList.size();
-
-        return "testCounts " + (System.currentTimeMillis() - startTime) + " ms.";
     }
 }

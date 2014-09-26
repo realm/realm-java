@@ -3,12 +3,10 @@ package io.realm.examples.performance.greendao;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import io.realm.Realm;
 import io.realm.examples.performance.PerformanceTest;
+import io.realm.examples.performance.PerformanceTestException;
 
 public class GreenDAOTests extends PerformanceTest {
-
-    private Realm realm = null;
 
     private SQLiteDatabase db;
     private DaoMaster daoMaster;
@@ -18,18 +16,29 @@ public class GreenDAOTests extends PerformanceTest {
         testName = "GreenDAO";
     }
 
-    public void clearDevice() {
-
-    }
-
-    public String testInserts() {
+    public void clearDatabase() throws PerformanceTestException {
         DaoMaster.DevOpenHelper helper
                 = new DaoMaster.DevOpenHelper(getActivity(), "Employee-db", null);
         db = helper.getWritableDatabase();
         daoMaster = new DaoMaster(db);
+        EmployeeDao employeeDao = daoSession.getEmployeeDao();
+        employeeDao.dropTable(db, true);
+    }
 
-        long startTime = System.currentTimeMillis();
+    public void testBootstrap() throws PerformanceTestException {
+        DaoMaster.DevOpenHelper helper
+                = new DaoMaster.DevOpenHelper(getActivity(), "Employee-db", null);
+        db = helper.getWritableDatabase();
 
+        //Skip the first as a "warmup"
+        String query = QUERY1;
+        Cursor cursor = db.rawQuery(query, null);
+        cursor.getCount();
+        cursor.close();
+    }
+
+    public void testInserts() throws PerformanceTestException {
+        daoMaster = new DaoMaster(db);
         daoSession = daoMaster.newSession();
         EmployeeDao employeeDao = daoSession.getEmployeeDao();
 
@@ -41,30 +50,17 @@ public class GreenDAOTests extends PerformanceTest {
             employeeDao.insert(employee);
         }
 
-        long duration = (System.currentTimeMillis() - startTime);
-        String status = "testInserts " + duration + " ms.";
-
         Cursor cursor = db.query(employeeDao.getTablename(),
                 employeeDao.getAllColumns(), null, null, null, null, null);
+        cursor.getCount();
 
-        status += "...Found " + cursor.getCount() + " inserts\n";
-        timings.put("testInserts", (getNumInserts() / (double)duration));
-
-        return status;
+        db.close();
     }
 
-    public String testQueries() {
-        DaoMaster.DevOpenHelper helper
-                = new DaoMaster.DevOpenHelper(getActivity(), "Employee-db", null);
-        db = helper.getWritableDatabase();
-
-        //Skip the first as a "warmup"
-        String query = QUERY1;
-        Cursor cursor = db.rawQuery(query, null);
-        loopCursor(cursor);
-        cursor.close();
-
+    public void testQueries() throws PerformanceTestException {
         long startTime = System.currentTimeMillis();
+        String query;
+        Cursor cursor;
 
         query = QUERY2;
         cursor = db.rawQuery(query, null);
@@ -86,11 +82,6 @@ public class GreenDAOTests extends PerformanceTest {
         loopCursor(cursor);
         cursor.close();
         db.close();
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testQueries", (4 / (double)duration));
-
-        return "testQueries " + duration + " ms.";
     }
 
     private void loopCursor(Cursor cursor) {
@@ -100,18 +91,9 @@ public class GreenDAOTests extends PerformanceTest {
         }
     }
 
-    public String testCounts() {
-        DaoMaster.DevOpenHelper helper
-                = new DaoMaster.DevOpenHelper(getActivity(), "Employee-db", null);
-        db = helper.getWritableDatabase();
-
-        //Skip the first as a "warmup"
-        String query = QUERY1;
-        Cursor cursor = db.rawQuery(query, null);
-        cursor.getCount();
-        cursor.close();
-
-        long startTime = System.currentTimeMillis();
+    public void testCounts() throws PerformanceTestException {
+        String query;
+        Cursor cursor;
 
         query = QUERY2;
         cursor = db.rawQuery(query, null);
@@ -133,11 +115,6 @@ public class GreenDAOTests extends PerformanceTest {
         loopCursor(cursor);
         cursor.getCount();
         db.close();
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testCounts", (4 / (double)duration));
-
-        return "testCounts " + duration + " ms.";
     }
 
 }

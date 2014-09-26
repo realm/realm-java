@@ -14,6 +14,7 @@ public abstract class PerformanceTest {
     public static final int MIN_AGE = 20;
     public static final int NUM_TEST_NAMES = 1000;
     public static final int MIN_NUM_INSERTS = 10000;
+    public static final int MIN_NUM_QUERIES = 4;
 
     public static final String QUERY1 =
             "SELECT * from Employee " +
@@ -139,11 +140,12 @@ public abstract class PerformanceTest {
 
     private int numInserts = MIN_NUM_INSERTS;
 
+    private int numQueries = MIN_NUM_QUERIES;
+
     protected String testName;
 
     private List<String> employeeNames = null;
 
-    //Timings are stored as events/ms
     protected HashMap<String, Double> timings;
 
     private Activity activity = null;
@@ -156,6 +158,14 @@ public abstract class PerformanceTest {
 
     public void setNumInserts(int numInserts) {
         this.numInserts = numInserts;
+    }
+
+    public int getNumQueries() {
+        return numQueries;
+    }
+
+    public void setNumQueries(int numQueries) {
+        this.numQueries = numQueries;
     }
 
     public Activity getActivity() {
@@ -190,13 +200,15 @@ public abstract class PerformanceTest {
         return true;
     }
 
-    public abstract void clearDevice();
+    public abstract void testBootstrap() throws PerformanceTestException;
 
-    public abstract String testQueries();
+    public abstract void testQueries() throws PerformanceTestException;
 
-    public abstract String testInserts();
+    public abstract void testInserts() throws PerformanceTestException;
 
-    public abstract String testCounts();
+    public abstract void testCounts() throws PerformanceTestException;
+
+    public abstract void clearDatabase() throws PerformanceTestException;
 
     public String getName() {
         return testName;

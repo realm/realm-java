@@ -53,9 +53,36 @@ public abstract class PerformanceTestFragment extends Fragment {
 
                     publishProgress("---<br><b>Executing " + t.getName() + " for Insert Count: " + t.getNumInserts() + "</b>...");
 
-                    publishProgress(t.testInserts());
-                    publishProgress(t.testQueries());
-                    publishProgress(t.testCounts());
+
+                    try {
+                        t.testBootstrap();
+                        long startTime = System.currentTimeMillis();
+                        t.testInserts();
+                        long duration = System.currentTimeMillis() - startTime;
+                        t.timings.put("Inserts", (t.getNumInserts() * 1000.0 / duration));
+                    } catch(PerformanceTestException e) {
+
+                    }
+
+                    try {
+                        t.testBootstrap();
+                        long startTime = System.currentTimeMillis();
+                        t.testQueries();
+                        long duration = System.currentTimeMillis() - startTime;
+                        t.timings.put("Queries", (t.getNumQueries() * 1000.0 / duration));
+                    } catch(PerformanceTestException e) {
+
+                    }
+
+                    try {
+                        t.testBootstrap();
+                        long startTime = System.currentTimeMillis();
+                        t.testCounts();
+                        long duration = System.currentTimeMillis() - startTime;
+                        t.timings.put("Counts", (t.getNumQueries() * 1000.0 / duration));
+                    } catch(PerformanceTestException e) {
+
+                    }
                 }
                 return null;
             }
@@ -109,7 +136,7 @@ public abstract class PerformanceTestFragment extends Fragment {
                         t.setNumInserts(new Integer(txt));
                     }
                 } catch (Exception e) {
-                    showStatus("Entry for Inserts: " + txt + " not a valid integer...using default");
+                    showStatus("User entry for Inserts: " + txt + " not a valid integer...using default");
                 }
                 getTask().execute();
             }
@@ -120,7 +147,11 @@ public abstract class PerformanceTestFragment extends Fragment {
 
     protected void clearDatabase() {
         for (PerformanceTest t : tests) {
-            t.clearDevice();
+            try {
+                t.clearDatabase();
+            } catch (PerformanceTestException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -136,7 +167,11 @@ public abstract class PerformanceTestFragment extends Fragment {
                 e.printStackTrace();
             }
 
-            t.clearDevice();
+            try {
+                t.clearDatabase();
+            } catch (PerformanceTestException e) {
+                e.printStackTrace();
+            }
         }
         tests = new ArrayList<PerformanceTest>();
     }

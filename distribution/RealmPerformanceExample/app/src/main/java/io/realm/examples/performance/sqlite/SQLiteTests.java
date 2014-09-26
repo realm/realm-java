@@ -5,10 +5,12 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import io.realm.examples.performance.PerformanceTest;
+import io.realm.examples.performance.PerformanceTestException;
 
 public class SQLiteTests extends PerformanceTest {
 
     private EmployeeDatabaseHelper databaseHelper = null;
+    private android.database.sqlite.SQLiteDatabase db = null;
 
     public SQLiteTests() {
         testName = "SQLite";
@@ -18,15 +20,15 @@ public class SQLiteTests extends PerformanceTest {
         databaseHelper = new EmployeeDatabaseHelper(activity);
     }
 
-    public void clearDevice() {
+    public void clearDatabase() throws PerformanceTestException {
         databaseHelper.onUpgrade(databaseHelper.getWritableDatabase(), 2, 3);
     }
 
-    public String testInserts() {
-        android.database.sqlite.SQLiteDatabase db = databaseHelper.getWritableDatabase();
+    public void testBootstrap() throws PerformanceTestException {
+        db = databaseHelper.getWritableDatabase();
+    }
 
-        long startTime = System.currentTimeMillis();
-
+    public void testInserts() throws PerformanceTestException {
         ContentValues values = new ContentValues();
         db.beginTransaction();
         for (int row = 0; row < getNumInserts(); row++) {
@@ -38,27 +40,18 @@ public class SQLiteTests extends PerformanceTest {
         db.setTransactionSuccessful();
         db.endTransaction();
 
-        long duration = (System.currentTimeMillis() - startTime);
-        String status = "testInserts " + duration + " ms.";
-
         //Verify writes were successful
         String query = "SELECT * FROM " + EmployeeDatabaseHelper.TABLE_EMPLOYEES;
         Cursor cursor = db.rawQuery(query, null);
 
         if(cursor.getCount() < getNumInserts()) {
-            status = "Failed to complete " + getNumInserts();
+            throw new PerformanceTestException();
         }
 
-        //status += "...Found " + cursor.getCount() + " inserts\n";
-
         db.close();
-
-        timings.put("testInserts", (getNumInserts() / (double)duration));
-
-        return status;
     }
 
-    public String testQueries() {
+    public void testQueries() throws PerformanceTestException {
         android.database.sqlite.SQLiteDatabase db = databaseHelper.getWritableDatabase();
 
         //Skip the first as a "warmup"
@@ -89,11 +82,6 @@ public class SQLiteTests extends PerformanceTest {
         loopCursor(cursor);
         cursor.close();
         db.close();
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testQueries", (4 / (double)duration));
-
-        return "testQueries " + duration + " ms.";
     }
 
     private void loopCursor(Cursor cursor) {
@@ -103,41 +91,28 @@ public class SQLiteTests extends PerformanceTest {
         }
     }
 
-    public String testCounts() {
+    public void testCounts() throws PerformanceTestException {
         android.database.sqlite.SQLiteDatabase db = databaseHelper.getWritableDatabase();
 
-        //Skip the first as a "warmup"
         Cursor cursor = db.rawQuery(COUNT_QUERY1, null);
         cursor.moveToFirst();
-        //String status = "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
-
-        long startTime = System.currentTimeMillis();
 
         cursor = db.rawQuery(COUNT_QUERY2, null);
         cursor.moveToFirst();
-        //status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
 
         cursor = db.rawQuery(COUNT_QUERY3, null);
         cursor.moveToFirst();
-        //status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
 
         cursor = db.rawQuery(COUNT_QUERY4, null);
         cursor.moveToFirst();
-        //status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
 
         cursor = db.rawQuery(COUNT_QUERY5, null);
         cursor.moveToFirst();
-        //status += "...Count Acquired: " + cursor.getInt(0) + " inserts\n";
         cursor.close();
         db.close();
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testCounts", (4 / (double)duration));
-
-        return "testCounts " + duration + " ms.";
     }
 }

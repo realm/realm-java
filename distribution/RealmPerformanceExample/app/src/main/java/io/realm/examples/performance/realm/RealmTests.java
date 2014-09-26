@@ -5,6 +5,7 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.examples.performance.PerformanceTest;
+import io.realm.examples.performance.PerformanceTestException;
 
 public class RealmTests extends PerformanceTest {
 
@@ -14,16 +15,22 @@ public class RealmTests extends PerformanceTest {
         testName = "Realm";
     }
 
-    public void clearDevice() {
+    public void clearDatabase() throws PerformanceTestException {
         realm = new Realm(getActivity());
         realm.clear();
     }
 
-    public String testInserts() {
+    public void testBootstrap() throws PerformanceTestException {
         realm = new Realm(getActivity());
+        //Throw away first query
+        List<RealmEmployee> results
+                = realm.where(RealmEmployee.class)
+                .equalTo("hired", 0)
+                .between("age", 20, 50)
+                .equalTo("name", "Foo0").findAll();
+    }
 
-        long startTime = System.currentTimeMillis();
-
+    public void testInserts() throws PerformanceTestException {
         realm.beginWrite();
         for (int row = 0; row < getNumInserts(); row++) {
             RealmEmployee employee = realm.create(RealmEmployee.class);
@@ -33,36 +40,17 @@ public class RealmTests extends PerformanceTest {
         }
         realm.commit();
 
-        long duration = (System.currentTimeMillis() - startTime);
-
-        String status = "testInserts " + duration + " ms.";
-
         //Verify writes were successful
         RealmResults<RealmEmployee> results = realm.where(RealmEmployee.class).findAll();
 
         if(results.size() < getNumInserts()) {
-            status = "Failed to complete " + getNumInserts();
+            throw new PerformanceTestException();
         }
-
-        //status += "...Found " + results.size() + " inserts\n";
-        timings.put("testInserts", (getNumInserts() / (double)duration));
-
-        return status;
     }
 
-    public String testQueries() {
-        realm = new Realm(getActivity());
-
-        //Throw away first query
+    public void testQueries() throws PerformanceTestException {
         List<RealmEmployee> results
                 = realm.where(RealmEmployee.class)
-                .equalTo("hired", 0)
-                .between("age", 20, 50)
-                .equalTo("name", "Foo0").findAll();
-        loopResults(results);
-
-        long startTime = System.currentTimeMillis();
-        results = realm.where(RealmEmployee.class)
                 .equalTo("hired", 1)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo1").findAll();
@@ -85,11 +73,6 @@ public class RealmTests extends PerformanceTest {
                 .between("age", 20, 50)
                 .equalTo("name", "Foo330").findAll();
         loopResults(results);
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testQueries", (4 / (double)duration));
-
-        return "testQueries " + duration + " ms.";
     }
 
     private void loopResults(List<RealmEmployee> results) {
@@ -98,46 +81,28 @@ public class RealmTests extends PerformanceTest {
         }
     }
 
-    public String testCounts() {
-        realm = new Realm(getActivity());
-
-        //Throw away first query
+    public void testCounts() throws PerformanceTestException {
         List<RealmEmployee> results
                 = realm.where(RealmEmployee.class)
-                .equalTo("hired", 0)
-                .between("age", 20, 50)
-                .equalTo("name", "Foo0").findAll();
-        //String status = "...Count Acquired: " + results.size() + " inserts\n";
-
-        long startTime = System.currentTimeMillis();
-        results = realm.where(RealmEmployee.class)
                 .equalTo("hired", 1)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo1").findAll();
-        //status += "...Count Acquired: " + results.size() + " inserts\n";
-
+        results.size();
         results = realm.where(RealmEmployee.class)
                 .equalTo("hired", 1)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo3").findAll();
-        //status += "...Count Acquired: " + results.size() + " inserts\n";
-
+        results.size();
         results = realm.where(RealmEmployee.class)
                 .equalTo("hired", 0)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo2").findAll();
-        //status += "...Count Acquired: " + results.size() + " inserts\n";
-
+        results.size();
         results = realm.where(RealmEmployee.class)
                 .equalTo("hired", 0)
                 .between("age", 20, 50)
                 .equalTo("name", "Foo330").findAll();
-        //status += "...Count Acquired: " + results.size() + " inserts\n";
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testCounts", (4 / (double)duration));
-
-        return "testCounts " + duration + " ms.";
+        results.size();
     }
 
 }

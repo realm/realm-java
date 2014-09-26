@@ -6,6 +6,7 @@ import com.orm.query.Select;
 import java.util.List;
 
 import io.realm.examples.performance.PerformanceTest;
+import io.realm.examples.performance.PerformanceTestException;
 
 public class SugarORMTests extends PerformanceTest {
 
@@ -13,13 +14,23 @@ public class SugarORMTests extends PerformanceTest {
         testName = "SugarORM";
     }
 
-    public void clearDevice() {
+    public void clearDatabase() throws PerformanceTestException {
         SugarEmployee.deleteAll(SugarEmployee.class);
     }
 
-    public String testInserts() {
-        long startTime = System.currentTimeMillis();
+    public void testBootstrap() throws PerformanceTestException {
+        SugarEmployee employee = new SugarEmployee();
+        employee.setName("EmployeeBootstrap");
+        employee.save();
+        employee.delete();
+        Select outcome = Select.from(SugarEmployee.class)
+                .where(Condition.prop("name").eq("Foo0"),
+                        Condition.prop("age").gt(20).lt(50),
+                        Condition.prop("hired").eq(0));
+        outcome.list().size();
+    }
 
+    public void testInserts() throws PerformanceTestException {
         for (int row = 0; row < getNumInserts(); row++) {
             SugarEmployee employee
                     = new SugarEmployee(getEmployeeName(row),
@@ -28,31 +39,14 @@ public class SugarORMTests extends PerformanceTest {
             employee.save();
         }
 
-        long duration = (System.currentTimeMillis() - startTime);
-        String status = "testInserts " + duration + " ms.";
-
         List<SugarEmployee> list = SugarEmployee.listAll(SugarEmployee.class);
         if(list.size() < getNumInserts()) {
-            status = "Failed to complete " + getNumInserts();
+            throw new PerformanceTestException();
         }
-
-        timings.put("testInserts", (getNumInserts() / (double)duration));
-        //status += "...Found " + list.size() + " inserts\n";
-
-        return status;
     }
 
-    public String testQueries() {
-
+    public void testQueries() throws PerformanceTestException {
         Select outcome = Select.from(SugarEmployee.class)
-                .where(Condition.prop("name").eq("Foo0"),
-                        Condition.prop("age").gt(20).lt(50),
-                        Condition.prop("hired").eq(0));
-        loopResults(outcome);
-
-        //Throw away the first query
-        long startTime = System.currentTimeMillis();
-        outcome = Select.from(SugarEmployee.class)
                 .where(Condition.prop("name").eq("Foo1"),
                         Condition.prop("age").gt(20).lt(50),
                         Condition.prop("hired").eq(1));
@@ -75,11 +69,6 @@ public class SugarORMTests extends PerformanceTest {
                         Condition.prop("age").gt(20).lt(50),
                         Condition.prop("hired").eq(0));
         loopResults(outcome);
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testQueries", (4 / (double)duration));
-
-        return "testQueries " + duration + " ms.";
     }
 
     private void loopResults(Select results) {
@@ -89,17 +78,8 @@ public class SugarORMTests extends PerformanceTest {
         }
     }
 
-    public String testCounts() {
+    public void testCounts() throws PerformanceTestException {
         Select outcome = Select.from(SugarEmployee.class)
-                .where(Condition.prop("name").eq("Foo0"),
-                        Condition.prop("age").gt(20).lt(50),
-                        Condition.prop("hired").eq(0));
-        outcome.list().size();
-
-        //Throw away the first query
-        long startTime = System.currentTimeMillis();
-
-        outcome = Select.from(SugarEmployee.class)
                 .where(Condition.prop("name").eq("Foo1"),
                         Condition.prop("age").gt(20).lt(50),
                         Condition.prop("hired").eq(1));
@@ -122,10 +102,5 @@ public class SugarORMTests extends PerformanceTest {
                         Condition.prop("age").gt(20).lt(50),
                         Condition.prop("hired").eq(0));
         outcome.list().size();
-
-        long duration = (System.currentTimeMillis() - startTime);
-        timings.put("testCounts", (4 / (double)duration));
-
-        return "testCounts " + duration + " ms.";
     }
 }

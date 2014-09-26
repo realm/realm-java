@@ -71,7 +71,7 @@ public class UserSelectedTestsFragment extends PerformanceTestFragment {
                         t.setNumInserts(new Integer(txt));
                     }
                 } catch (Exception e) {
-                    showStatus("Entry for Inserts: " + txt + " not a valid integer...using default");
+                    showStatus("User entry for Inserts: " + txt + " not a valid integer...using default");
                 }
 
                 getTask().execute();
