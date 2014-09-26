@@ -22,6 +22,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import com.google.common.base.Throwables;
+
 import java.io.File;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
@@ -33,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
@@ -205,8 +208,7 @@ public class Realm {
                 try {
                     generatedClass = Class.forName(generatedClassName);
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find the generated proxy class");
                 }
                 generatedClasses.put(generatedClassName, generatedClass);
             }
@@ -216,8 +218,7 @@ public class Realm {
                 try {
                     method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
                 } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find the initTable() method in generated proxy class");
                 }
                 initTableMethods.put(generatedClass, method);
             }
@@ -226,11 +227,9 @@ public class Realm {
                 table = (Table) method.invoke(null, transaction);
                 tables.put(clazz, table);
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
-                return null; // TODO: throw RealmException
+                throw Throwables.propagate(e); // Wrap the exception in a runtime one
             } catch (InvocationTargetException e) {
-                e.printStackTrace();
-                return null; // TODO: throw RealmException
+                throw Throwables.propagate(e); // Wrap the exception in a runtime one
             }
         }
 
@@ -242,145 +241,6 @@ public class Realm {
     <E> void remove(Class<E> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
     }
-
-//    private Map<String, List<Field>> cache = new HashMap<String, List<Field>>();
-
-//    /**
-//     * Adds an object to the realm, and returns a new instance which is backed by the Realm
-//     *
-//     * @param element           The element to add to this realm.
-//     * @param <E>
-//     * @return
-//     */
-//    public <E extends RealmObject> void add(E element) {
-//
-//        System.out.println("Adding " + element.getClass().getName());
-//
-//        initTable(element.getClass());
-//
-//        String className = element.getClass().getSimpleName();
-//
-//        if(!cache.containsKey(className)) {
-//
-//
-//            List<Field> fields = Arrays.asList(element.getClass().getDeclaredFields());
-//            List<Field> persistedFields = new ArrayList<Field>();
-//            for(Field f : fields) {
-//                if(f.getType().equals(String.class) ||
-//                        f.getType().equals(int.class) ||
-//                        f.getType().equals(Integer.class) ||
-//                        f.getType().equals(long.class) ||
-//                        f.getType().equals(Long.class) ||
-//                        f.getType().equals(float.class) ||
-//                        f.getType().equals(Float.class) ||
-//                        f.getType().equals(double.class) ||
-//                        f.getType().equals(Double.class) ||
-//                        f.getType().equals(boolean.class) ||
-//                        f.getType().equals(Boolean.class) ||
-//                        f.getType().equals(Date.class) ||
-//                        f.getType().equals(byte[].class) ||
-//                        RealmObject.class.equals(f.getType().getSuperclass())
-//
-//                        ) {
-//
-//                    f.setAccessible(true);
-//                    persistedFields.add(f);
-//                } else if (RealmList.class.isAssignableFrom(f.getType())) {
-//                    // Link List
-//                    Type genericType = f.getGenericType();
-//                    if (genericType instanceof ParameterizedType) {
-//                        ParameterizedType pType = (ParameterizedType) genericType;
-//                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
-//                        if(RealmObject.class.equals(actual.getSuperclass())) {
-//                            f.setAccessible(true);
-//                            persistedFields.add(f);
-//                        }
-//                    }
-//                }
-//            }
-//
-//            cache.put(className, persistedFields);
-//
-//        }
-//
-//        Table table = getTable(element.getClass());
-//        long rowIndex = table.addEmptyRow();
-//        long columnIndex = 0;
-//
-//        element.realmAddedAtRowIndex = rowIndex;
-//
-//        List<Field> fields = cache.get(className);
-//
-//        // Inspect fields and add them
-//        for(Field f : fields) {
-//
-//            try {
-//                Class<?> type = f.getType();
-//
-//                if(type.equals(String.class)) {
-//                    table.setString(columnIndex, rowIndex, (String)f.get(element));
-//                } else if(type.equals(int.class) || type.equals(Integer.class)) {
-//                    table.setLong(columnIndex, rowIndex, f.getInt(element));
-//                } else if(type.equals(long.class) || type.equals(Long.class)) {
-//                    table.setLong(columnIndex, rowIndex, f.getLong(element));
-//                } else if(type.equals(double.class) || type.equals(Double.class)) {
-//                    table.setDouble(columnIndex, rowIndex, f.getDouble(element));
-//                } else if(type.equals(float.class) || type.equals(Float.class)) {
-//                    table.setFloat(columnIndex, rowIndex, f.getFloat(element));
-//                } else if(type.equals(boolean.class) || type.equals(Boolean.class)) {
-//                    table.setBoolean(columnIndex, rowIndex, f.getBoolean(element));
-//                } else if(type.equals(Date.class)) {
-//                    table.setDate(columnIndex, rowIndex, (Date)f.get(element));
-//                } else if(type.equals(byte[].class)) {
-//                    table.setBinaryByteArray(columnIndex, rowIndex, (byte[])f.get(element));
-//                } else if(RealmObject.class.equals(f.getType().getSuperclass())) {
-//
-//                    RealmObject linkedObject = (RealmObject)f.get(element);
-//                    if(linkedObject != null) {
-//                        if(linkedObject.realmGetRow() == null) {
-//                            if(linkedObject.realmAddedAtRowIndex == -1) {
-//                                add(linkedObject);
-//                            }
-//                            table.setLink(columnIndex, rowIndex, linkedObject.realmAddedAtRowIndex);
-//                        } else {
-//                            table.setLink(columnIndex, rowIndex, linkedObject.realmGetRow().getIndex());
-//                        }
-//                    }
-//
-//                } else if (RealmList.class.isAssignableFrom(f.getType())) {
-//                    // Link List
-//                    Type genericType = f.getGenericType();
-//                    if (genericType instanceof ParameterizedType) {
-//                        ParameterizedType pType = (ParameterizedType) genericType;
-//                        Class<?> actual = (Class<?>) pType.getActualTypeArguments()[0];
-//                        if(RealmObject.class.equals(actual.getSuperclass())) {
-//
-//                            LinkView links = table.getRow(rowIndex).getLinkList(columnIndex);
-//
-//                            // Loop through list and add them to the link list and possibly to the realm
-//                            for(RealmObject linkedObject : (List<RealmObject>)f.get(element)) {
-//
-//                                if(linkedObject.realmGetRow() == null) {
-//                                    if(linkedObject.realmAddedAtRowIndex == -1) {
-//                                        add(linkedObject);
-//                                    }
-//                                    links.add(linkedObject.realmAddedAtRowIndex);
-//                                } else {
-//                                    links.add(linkedObject.realmGetRow().getIndex());
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//
-//            } catch(IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
-//
-//            columnIndex++;
-//        }
-//
-//    }
 
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         E result;
@@ -414,8 +274,7 @@ public class Realm {
                 try {
                     generatedClass = Class.forName(generatedClassName);
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find the generated proxy class");
                 }
                 generatedClasses.put(generatedClassName, generatedClass);
             }
@@ -425,8 +284,7 @@ public class Realm {
                 try {
                     constructor = generatedClass.getConstructor();
                 } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                    return null; // TODO: throw RealmException
+                    throw new RealmException("Could not find the constructor in generated proxy class");
                 }
                 constructors.put(generatedClass, constructor);
                 generatedConstructors.put(clazz, constructor);
@@ -438,14 +296,11 @@ public class Realm {
             //noinspection unchecked
             result = (E) constructor.newInstance();
         } catch (InstantiationException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
+            throw Throwables.propagate(e); // Wrap the exception in a runtime one
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
+            throw Throwables.propagate(e); // Wrap the exception in a runtime one
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
-            return null; // TODO: throw RealmException
+            throw Throwables.propagate(e); // Wrap the exception in a runtime one
         }
         result.realmSetRow(row);
         result.setRealm(this);
