@@ -1,8 +1,9 @@
-include 'realm', ':introExample', ':gridViewExample', ':concurrencyExample'
+include 'realm', ':introExample', ':gridViewExample', ':concurrencyExample', ':performanceExample'
 include ':performance'
-project(':performance').projectDir = new File('examples/performance')
+project(':performance').projectDir = new File('tests/performance')
 
 rootProject.name = 'tightdb_java'
 project(':introExample').projectDir = new File('examples/introExample')
 project(':gridViewExample').projectDir = new File('examples/gridViewExample')
 project(':concurrencyExample').projectDir = new File('examples/concurrencyExample')
+project(':performanceExample').projectDir = new File('tests/performanceExample')

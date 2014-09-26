@@ -1,0 +1,53 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.1'
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "20.0.0"
+
+    defaultConfig {
+        applicationId "io.realm.examples.performance"
+        minSdkVersion 15
+        targetSdkVersion 19
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            runProguard false
+            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+task buildApt(type: GradleBuild) {
+    dir = file('../../realm-annotations-processor')
+    tasks = ['build']
+}
+
+tasks.preBuild {
+    dependsOn buildApt
+}
+
+dependencies {
+    apt files("../../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
+
+    // SugarORM
+    compile 'com.github.satyan:sugar:1.3'
+
+    // OrmLite dependencies
+    compile 'com.j256.ormlite:ormlite-android:4.48'
+
+    // GreenDAO
+    compile 'de.greenrobot:greendao:1.3.0'
+    compile project(':realm')
+}
