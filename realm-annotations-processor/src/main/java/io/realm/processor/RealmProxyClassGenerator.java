@@ -218,9 +218,7 @@ public class RealmProxyClassGenerator {
                 "io.realm.internal.LinkView",
                 "io.realm.RealmList",
                 "io.realm.RealmObject",
-                "java.util.Date",
-                "java.util.Arrays",
-                "java.util.HashMap",
+                "java.util.*",
                 packageName + ".*")
                 .emitEmptyLine();
 
@@ -401,7 +399,7 @@ public class RealmProxyClassGenerator {
         writer.endControlFlow();
 
         // create type dictionary for lookup
-        writer.emitStatement("HashMap<String, ColumnType> columnTypes = new HashMap<String, ColumnType>()");
+        writer.emitStatement("Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>()");
         writer.beginControlFlow("for(long i = 0; i < " + fields.size() + "; i++)");
         writer.emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))");
         writer.endControlFlow();

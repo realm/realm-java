@@ -29,10 +29,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Row;
@@ -46,7 +48,7 @@ public class Realm {
     private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
-    private static final HashSet<String> validatedPaths = new HashSet<String>();
+    private static final Set<String> validatedPaths = Collections.synchronizedSet(new HashSet<String>());
 
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
 
@@ -169,12 +171,11 @@ public class Realm {
             realm = realmSoftReference.get();
         }
         if (validateSchema) {
-            // FIXME - thread safety
             if (!validatedPaths.contains(absolutePath)) {
                 try {
                     Class<?> validationClass = Class.forName("io.realm.ValidationList");
                     Method getProxyClassesMethod = validationClass.getMethod("getProxyClasses");
-                    List<String> proxyClasses = (List<String>)getProxyClassesMethod.invoke(null);
+                    List<String> proxyClasses = (List<String>) getProxyClassesMethod.invoke(null);
                     for (String className : proxyClasses) {
                         Class<?> modelClass = Class.forName(className);
                         Method validateMethod = modelClass.getMethod("validateTable");
@@ -574,12 +575,6 @@ public class Realm {
         this.version = version;
     }
 
-    /**
-     * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
-     * The realm must be unused and closed before calling this method.
-     * @param context an Android context.
-     * @return false if a file could not be deleted. The failing file will be logged.
-     */
     public void migrateRealmAtPath(String realmPath, RealmMigration migration) {
         migration.execute(this, version);
     }
