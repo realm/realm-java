@@ -1,9 +1,6 @@
-apply plugin: 'maven'
-apply plugin: 'signing'
 apply plugin: 'java'
 
 version = new File("${projectDir}/../version.txt").text
-group 'io.realm'
 
 repositories {
     mavenCentral()
@@ -24,77 +21,4 @@ dependencies {
 
 jar {
     from configurations.compile.findAll {it.name.contains('javawriter')}.collect { zipTree(it) }
-}
-
-task(javadocJar, type: Jar, dependsOn: tasks["javadoc"]) {
-    group "Docs"
-    description "Generates Javadoc in Jar format."
-    classifier = 'javadoc'
-    from tasks["javadoc"].destinationDir
-}
-
-task(sourcesJar, type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.java
-}
-
-task distribution {
-    annotation    = file("build/libs/realm-annotations-processor-${version}.jar")
-    javadoc       = file("build/libs/realm-annotations-processor-${version}-javadoc.jar")
-}
-
-artifacts {
-    archives file: distribution.annotation, name: "realm-annotations-processor", type: 'jar', builtBy: distribution
-    archives file: distribution.javadoc, name: "realm", type: 'jar', builtBy: distribution
-    archives sourcesJar
-}
-
-signing {
-    sign configurations.archives
-}
-
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { 
-                MavenDeployment deployment -> signing.signPom(deployment) 
-            }
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            pom.project {
-                name 'Realm-annotations-processor'
-                packaging 'jar'
-                description 'Realm is a mobile database: a replacement for SQLite, OrmLite, greenDAO or Core Data. Realm lets you build apps faster, build apps that are faster, and craft amazing user experiences.'
-                url 'http://realm.io'
-
-                scm {
-                    connection 'scm:git:https://github.com/realm/realm-java.git'
-                    developerConnection 'scm:git:https://github.com/realm/realm-java.git'
-                    url 'https://github.com/realm/realm-java.git'
-                }
-
-                licenses {
-                    license {
-                        name 'The Apache License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'kneth'
-                        name 'Kenneth Geisshirt'
-                        email 'kg@realm.io'
-                    }
-                }
-            }
-        }
-    }
 }
