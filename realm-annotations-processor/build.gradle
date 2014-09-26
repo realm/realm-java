@@ -16,6 +16,7 @@ sourceSets {
 
 dependencies {
     compile group:'com.squareup', name:'javawriter', version:'2.5.0'
+    compile group: 'com.google.guava', name: 'guava', version: '15.0'
 }
 
 jar {
