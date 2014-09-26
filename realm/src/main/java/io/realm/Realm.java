@@ -512,11 +512,13 @@ public class Realm {
         return sharedGroup.hasChanged();
     }
 
-    // Transactions
+    /**
+     * Transactions
+     */
 
-    public void refresh() {
-        transaction.advanceRead();
-    }
+//    public void refresh() {
+//        transaction.advanceRead();
+//    }
 
     /**
      * Starts a write transaction, this must be closed with commitTransaction()
