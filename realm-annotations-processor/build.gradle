@@ -25,12 +25,27 @@ jar {
     from configurations.compile.findAll {it.name.contains('javawriter')}.collect { zipTree(it) }
 }
 
+task(javadocJar, type: Jar, dependsOn: tasks["javadoc"]) {
+    group "Docs"
+    description "Generates Javadoc in Jar format."
+    classifier = 'javadoc'
+    from tasks["javadoc"].destinationDir
+}
+
+task(sourcesJar, type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.java
+}
+
 task distribution {
     annotation    = file("build/libs/realm-annotations-processor-${version}.jar")
+    javadoc       = file("build/libs/realm-annotations-processor-${version}-javadoc.jar")
 }
 
 artifacts {
     archives file: distribution.annotation, name: "realm-annotations-processor", type: 'jar', builtBy: distribution
+    archives file: distribution.javadoc, name: "realm", type: 'jar', builtBy: distribution
+    archives sourcesJar
 }
 
 signing {
