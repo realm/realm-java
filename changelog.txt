@@ -8,7 +8,8 @@ Beta-0.3.0
   * Adding add(object) to RealmList
   * Adding equals to generated classes (RealmObjects)
   * Added utility methods to delete Realm files
-  * Enables auto-refresh of read transactions
+  * Enables auto-refresh of read transactions (removed the refresh method)
+  * Throw RealmException if the annotation processor is not run properly
 
   Bug Fixes
   =========

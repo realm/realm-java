@@ -14,30 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.exceptions;
 
-import io.realm.internal.Row;
-import io.realm.annotations.RealmClass;
-
-@RealmClass
-public abstract class RealmObject {
-
-    protected Row row;
-    protected Realm realm;
-
-    protected Realm getRealm() {
-        return realm;
-    }
-
-    protected void setRealm(Realm realm) {
-        this.realm = realm;
-    }
-
-    protected Row realmGetRow() {
-        return row;
-    }
-
-    protected void realmSetRow(Row row) {
-        this.row = row;
+public class RealmException extends RuntimeException {
+    public RealmException(String detailMessage) {
+        super(detailMessage);
     }
 }
