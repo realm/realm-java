@@ -66,6 +66,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public E get(int rowIndex) {
         E obj;
@@ -80,10 +83,18 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return obj;
     }
 
+    /**
+     * Find the first object
+     * @return The first object
+     */
     public E first() {
         return get(0);
     }
 
+    /**
+     * Find the last object
+     * @return The last object
+     */
     public E last() {
         return get(size()-1);
     }
@@ -118,6 +129,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     // Aggregates
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int size() {
         return ((Long)getTable().size()).intValue();
@@ -129,6 +143,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param fieldName   The field to look for a minimum on. Only int, float, and double
      *                    are supported.
      * @return            The minimum value.
+     * @throws            java.lang.RuntimeException if field is not int, float or double
      */
     public Number min(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -168,6 +183,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param fieldName   The field to look for a maximum on. Only int, float, and double
      *                    are supported.
      * @return            The maximum value.
+     * @throws            java.lang.RuntimeException if field is not int, float or double
      */
     public Number max(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -207,6 +223,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName   The field to sum. Only int, float, and double are supported.
      * @return            The sum.
+     * @throws            java.lang.RuntimeException if field is not int, float or double
      */
 
     public Number sum(String fieldName) {
@@ -231,6 +248,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *                   float and double are supported.
      * @return           The average for the given field amongst objects in an RealmList. This
      *                   will be of type double for both float and double field.
+     * @throws            java.lang.RuntimeException if field is not int, float or double
      */
     public double average(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
