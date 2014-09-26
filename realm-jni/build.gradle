@@ -27,6 +27,9 @@ task checkProperties(group: 'check', description: 'Check the user provided gradl
     } else if (!file(new File(project.ext['ndk.dir'], 'RELEASE.TXT')).file) {
         throw new GradleException('The path provided in the ndkDir property in the gradle.properties does not seem to be an Android NDK.')
     }
+    if (project.ext.has('encryption') && project.ext['encryption'] == 'true') {
+        project.coreVersion += '-encryption'
+    }
 }
 
 task downloadCore(group: 'build setup', description: 'Download the latest version of realm core', dependsOn: checkProperties) {
