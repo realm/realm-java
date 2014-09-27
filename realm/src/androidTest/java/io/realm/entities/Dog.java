@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package io.realm.examples.realmintroexample.model;
+
+package io.realm.entities;
 
 import io.realm.RealmObject;
 
 public class Dog extends RealmObject {
+
     private String name;
 
     public String getName() {

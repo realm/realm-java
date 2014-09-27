@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.realmintroexample;
+package io.realm.examples.intro;
 
 import android.app.Activity;
 import android.os.AsyncTask;
@@ -23,51 +23,33 @@ import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.io.IOException;
-
 import io.realm.Realm;
 import io.realm.RealmResults;
-import io.realm.examples.realmintroexample.model.Cat;
-import io.realm.examples.realmintroexample.model.Dog;
-import io.realm.examples.realmintroexample.model.Person;
+import io.realm.examples.intro.model.Cat;
+import io.realm.examples.intro.model.Dog;
+import io.realm.examples.intro.model.Person;
 
 
 public class RealmIntroExampleActivity extends Activity {
 
-    public static final String TAG = RealmIntroExampleActivity.class.getName();
+    private void realmExamples() {
 
-    private LinearLayout rootLayout = null;
+        // These operations are small enough that
+        // we can generally safely run them on the UI thread.
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_realm_basic_example);
+        // Open the default realm ones for the UI thread.
+        Realm realm = Realm.getInstance(this);
 
-        rootLayout = ((LinearLayout) findViewById(R.id.container));
-        rootLayout.removeAllViews();
+        basicCRUD(realm);
+        basicQuery(realm);
 
-        try {
-            //These operations are small enough that
-            //we can generally safely run them on the UI thread.
-            basicReadWrite();
-            basicUpdate();
-            basicQuery();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //More complex operations should not be
-        //executed on the UI thread.
+        // More complex operations can be executed on another thread.
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {
                 String info = null;
-                try {
-                    info = complexReadWrite();
-                    info += complexQuery();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                info = complexReadWrite();
+                info += complexQuery();
                 return info;
             }
 
@@ -76,64 +58,55 @@ public class RealmIntroExampleActivity extends Activity {
                 showStatus(result);
             }
         }.execute();
+
     }
 
-    private void basicReadWrite() throws IOException {
-        showStatus("Performing basic Read/Write operation...");
+    private void basicCRUD(Realm realm) {
+        showStatus("Perform basic Create/Read/Update/Delete (CRUD) operations...");
 
-        // Open a default realm
-        Realm realm = Realm.getInstance(this);
-
-        // Add a person in a write transaction
+        // All writes must be wrapped in a transaction to facilitate safe multi threading
         realm.beginTransaction();
+
+        // Add a person
         Person person = realm.createObject(Person.class);
-        person.setName("Happy Person");
+        person.setName("Young Person");
         person.setAge(14);
+
+        // When the write transaction is committed, all changes a synced to disk.
         realm.commitTransaction();
 
-        // Find first person
+        // Find the first person (no query conditions) and read a field
         person = realm.where(Person.class).findFirst();
         showStatus(person.getName() + ":" + person.getAge());
-    }
-
-    private void basicQuery() throws IOException {
-        showStatus("\nPerforming basic Query operation...");
-
-        Realm realm = Realm.getInstance(this);
-        showStatus("Number of persons: " + realm.allObjects(Person.class).size());
-        RealmResults<Person> results = realm.where(Person.class).equalTo("age", 99).findAll();
-        showStatus("Size of result set: " + results.size());
-    }
-
-    private void basicUpdate() throws IOException {
-        showStatus("\nPerforming basic Update operation...");
-
-        // Open a default realm
-        Realm realm = Realm.getInstance(this);
-
-        // Get the first object
-        Person person = realm.where(Person.class).findFirst();
 
         // Update person in a write transaction
         realm.beginTransaction();
         person.setName("Senior Person");
         person.setAge(99);
+        showStatus(person.getName() + " got older: " + person.getAge());
         realm.commitTransaction();
 
-        showStatus(person.getName() + ":" + person.getAge());
+        // Delete all persons
+        realm.beginTransaction();
+        realm.allObjects(Person.class).clear();
+        realm.commitTransaction();
     }
 
-    private void showStatus(String txt) {
-        Log.i(TAG, txt);
-        TextView tv = new TextView(this);
-        tv.setText(txt);
-        rootLayout.addView(tv);
+    private void basicQuery(Realm realm) {
+        showStatus("\nPerforming basic Query operation...");
+        showStatus("Number of persons: " + realm.allObjects(Person.class).size());
+
+        RealmResults<Person> results = realm.where(Person.class).equalTo("age", 99).findAll();
+
+        showStatus("Size of result set: " + results.size());
     }
 
-    private String complexReadWrite() throws IOException {
+
+    private String complexReadWrite() {
         String status = "\nPerforming complex Read/Write operation...";
 
-        // Open a default realm
+        // Open the default realm. All threads must use it's own reference to the realm.
+        // Those can not be transferred across threads.
         Realm realm = Realm.getInstance(this);
 
         // Add ten persons in one write transaction
@@ -177,13 +150,12 @@ public class RealmIntroExampleActivity extends Activity {
             // Though we initially set its value to 42, it has
             // not been saved as part of the Person RealmObject:
             assert(pers.getTempReference() == 0);
-
         }
 
         return status;
     }
 
-    private String complexQuery() throws IOException {
+    private String complexQuery() {
         String status = "\n\nPerforming complex Query operation...";
 
         Realm realm = Realm.getInstance(this);
@@ -195,5 +167,29 @@ public class RealmIntroExampleActivity extends Activity {
                 .beginsWith("name", "Person").findAll();
         status += "\nSize of result set: " + results.size();
         return status;
+    }
+
+
+    // ------------------------------------------------------------------------
+    // Non Realm
+
+    public static final String TAG = RealmIntroExampleActivity.class.getName();
+    private LinearLayout rootLayout = null;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_realm_basic_example);
+        rootLayout = ((LinearLayout) findViewById(R.id.container));
+        rootLayout.removeAllViews();
+
+        realmExamples();
+    }
+
+    private void showStatus(String txt) {
+        Log.i(TAG, txt);
+        TextView tv = new TextView(this);
+        tv.setText(txt);
+        rootLayout.addView(tv);
     }
 }
