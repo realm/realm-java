@@ -182,4 +182,12 @@ public class RealmResultsTest extends AndroidTestCase {
 
     }
 
+    public void testSort() throws IOException {
+
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> sortedList = resultList.sort("columnString", RealmResults.SORT_ORDER_DECENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals("First excepted to be last", resultList.first().getColumnString(), sortedList.last().getColumnString());
+    }
+
 }
