@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.neenbedankt.android-apt'
 
 android {
     compileSdkVersion 20
@@ -25,6 +26,7 @@ android {
 
 dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '15.0'
+    androidTestApt files("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
 }
 
 android.libraryVariants.all { variant ->
