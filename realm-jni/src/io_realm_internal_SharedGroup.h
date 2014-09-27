@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    createNativeWithImplicitTransactions
- * Signature: (J)J
+ * Signature: (J[B)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImplicitTransactions
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jbyteArray);
 
 /*
  * Class:     io_realm_internal_SharedGroup
@@ -130,10 +130,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollback
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    createNative
- * Signature: (Ljava/lang/String;IZZ)J
+ * Signature: (Ljava/lang/String;IZZ[B)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative
-  (JNIEnv *, jobject, jstring, jint, jboolean, jboolean);
+  (JNIEnv *, jobject, jstring, jint, jboolean, jboolean, jbyteArray);
 
 /*
  * Class:     io_realm_internal_SharedGroup

@@ -31,7 +31,7 @@ using namespace tightdb;
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
-    JNIEnv* env, jobject, jstring file_name, jint durability, jboolean no_create, jboolean enable_replication)
+    JNIEnv* env, jobject, jstring file_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
     const char* file_name_ptr = env->GetStringUTFChars(file_name, 0);
     if (!file_name_ptr)
@@ -65,7 +65,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
                 ThrowException(env, UnsupportedOperation, "Unsupported durability.");
                 return 0;
             }
+
+            KeyBuffer key(env, keyArray);
+#ifdef TIGHTDB_ENABLE_ENCRYPTION
+            db = new SharedGroup(file_name_ptr, no_create!=0, level, key.data());
+#else
             db = new SharedGroup(file_name_ptr, no_create!=0, level);
+#endif
         }
         return reinterpret_cast<jlong>(db);
     }
@@ -81,10 +87,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImplicitTransactions
-  (JNIEnv* env, jobject, jlong native_replication_ptr)
+  (JNIEnv* env, jobject, jlong native_replication_ptr, jbyteArray keyArray)
 {
     try {
+        KeyBuffer key(env, keyArray);
+#ifdef TIGHTDB_ENABLE_ENCRYPTION
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr), key.data());
+#else
         SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr));
+#endif
 
         return reinterpret_cast<jlong>(db);
     }

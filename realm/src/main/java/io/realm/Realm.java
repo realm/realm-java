@@ -68,8 +68,8 @@ public class Realm {
     private static boolean autoRefresh = true;
 
     // The constructor in private to enforce the use of the static one
-    private Realm(String absolutePath) {
-        this.sharedGroup = new SharedGroup(absolutePath, true);
+    private Realm(String absolutePath, byte[] key) {
+        this.sharedGroup = new SharedGroup(absolutePath, true, key);
         this.transaction = sharedGroup.beginImplicitTransaction();
         this.id = absolutePath.hashCode();
         if (!looperThread.isAlive()) {
@@ -121,7 +121,7 @@ public class Realm {
      * @return an instance of the Realm class
      */
     public static Realm getInstance(Context context) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME);
+        return Realm.getInstance(context, DEFAULT_REALM_NAME, null);
     }
 
     /**
@@ -131,7 +131,7 @@ public class Realm {
      * @return an instance of the Realm class
      */
     public static Realm getInstance(Context context, String fileName) {
-        return Realm.create(context.getFilesDir(), fileName);
+        return Realm.create(context.getFilesDir(), fileName, null);
     }
 
     /**
@@ -140,31 +140,75 @@ public class Realm {
      * @return an instance of the Realm class
      */
     public static Realm getInstance(File writableFolder) {
-        return Realm.create(writableFolder, DEFAULT_REALM_NAME);
+        return Realm.create(writableFolder, DEFAULT_REALM_NAME, null);
     }
 
     /**
      * Realm static constructor
      * @param writableFolder absolute path to a writable directory
      * @param filename the name of the file to save the Realm to
+     * @param key a 32-byte encryption key
      * @return an instance of the Realm class
      */
     public static Realm create(File writableFolder, String filename) {
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
-        return create(absolutePath);
+        return create(absolutePath, null);
     }
 
-    private static Realm create(String absolutePath) {
+    /**
+     * Realm static constructor
+     * @param context an Android context
+     * @param key a 32-byte encryption key
+     * @return an instance of the Realm class
+     */
+    public static Realm getInstance(Context context, byte[] key) {
+        return Realm.getInstance(context, DEFAULT_REALM_NAME, key);
+    }
+
+    /**
+     * Realm static constructor
+     * @param context an Android context
+     * @param fileName the name of the file to save the Realm to
+     * @param key a 32-byte encryption key
+     * @return an instance of the Realm class
+     */
+    public static Realm getInstance(Context context, String fileName, byte[] key) {
+        return Realm.create(context.getFilesDir(), fileName, key);
+    }
+
+    /**
+     * Realm static constructor
+     * @param writableFolder absolute path to a writable directory
+     * @param key a 32-byte encryption key
+     * @return an instance of the Realm class
+     */
+    public static Realm getInstance(File writableFolder, byte[] key) {
+        return Realm.create(writableFolder, DEFAULT_REALM_NAME, key);
+    }
+
+    /**
+     * Realm static constructor
+     * @param writableFolder absolute path to a writable directory
+     * @param filename the name of the file to save the Realm to
+     * @param key a 32-byte encryption key
+     * @return an instance of the Realm class
+     */
+    public static Realm create(File writableFolder, String filename, byte[] key) {
+        String absolutePath = new File(writableFolder, filename).getAbsolutePath();
+        return create(absolutePath, key);
+    }
+
+    private static Realm create(String absolutePath, byte[] key) {
         ThreadRealm threadRealm = realms.get(absolutePath);
         if (threadRealm == null) {
-            threadRealm = new ThreadRealm(absolutePath);
+            threadRealm = new ThreadRealm(absolutePath, key);
             realms.put(absolutePath, threadRealm);
         }
         SoftReference<Realm> realmSoftReference = threadRealm.get();
         Realm realm = realmSoftReference.get();
         if (realm == null) {
             // The garbage collector decided to get rid of the realm instance
-            threadRealm = new ThreadRealm(absolutePath);
+            threadRealm = new ThreadRealm(absolutePath, key);
             realms.put(absolutePath, threadRealm);
             realmSoftReference = threadRealm.get();
             realm = realmSoftReference.get();
@@ -175,14 +219,17 @@ public class Realm {
     // This class stores soft-references to realm objects per thread per realm file
     private static class ThreadRealm extends ThreadLocal<SoftReference<Realm>> {
         private String absolutePath;
+        private byte[] key;
 
-        private ThreadRealm(String absolutePath) {
+        private ThreadRealm(String absolutePath, byte[] key) {
             this.absolutePath = absolutePath;
+            this.key = key;
         }
 
         @Override
         protected SoftReference<Realm> initialValue() {
-            Realm realm = new Realm(absolutePath);
+            Realm realm = new Realm(absolutePath, key);
+            key = null;
             return new SoftReference<Realm>(realm);
         }
     }
@@ -320,6 +367,7 @@ public class Realm {
      * Returns a typed RealmQuery, which can be used to query for specific objects of this type
      * @param clazz The class of the object which is to be queried for
      * @return A typed RealmQuery, which can be used to query for specific objects of this type
+     * @see io.realm.RealmQuery
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
         return new RealmQuery<E>(this, clazz);
@@ -329,6 +377,7 @@ public class Realm {
      * Get all objects of a specific Class
      * @param clazz the Class to get objects of
      * @return A RealmResult list containing the objects
+     * @see io.realm.RealmResults
      */
     public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
@@ -340,11 +389,22 @@ public class Realm {
     }
 
     // Notifications
+
+    /**
+     * Add a change listener to the Realm
+     * @param listener the change listener
+     * @see io.realm.RealmChangeListener
+     */
     public void addChangeListener(RealmChangeListener listener) {
         changeListeners.add(listener);
         LooperThread.handlers.put(handler, id);
     }
 
+    /**
+     * Remove the specified change listener
+     * @param listener the change listener to be removed
+     * @see io.realm.RealmChangeListener
+     */
     public void removeChangeListener(RealmChangeListener listener) {
         changeListeners.remove(listener);
         if (changeListeners.isEmpty()) {
@@ -352,6 +412,10 @@ public class Realm {
         }
     }
 
+    /**
+     * Remove all user-defined change listeners
+     * @see io.realm.RealmChangeListener
+     */
     public void removeAllChangeListeners() {
         changeListeners.clear();
         LooperThread.handlers.remove(handler);
@@ -394,15 +458,19 @@ public class Realm {
         looperThread.handler.sendMessage(message);
     }
 
+    /**
+     * Remove all objects of the specified class
+     * @param classSpec The class which objects should be removed
+     */
     public void clear(Class<?> classSpec) {
         getTable(classSpec).clear();
     }
 
-    public int getVersion() {
+    private int getVersion() {
         return version;
     }
 
-    public void setVersion(int version) {
+    private void setVersion(int version) {
         this.version = version;
     }
 
