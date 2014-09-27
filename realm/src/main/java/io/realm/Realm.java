@@ -24,6 +24,7 @@ import android.util.Log;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 
 import java.io.File;
@@ -79,6 +80,9 @@ public class Realm {
     private static final long UNVERSIONED = -1;
 
     private Handler handler;
+
+    // Package protected to be reachable by proxy classes
+    static final com.google.common.collect.Table<String, String, Long> columnIndices = HashBasedTable.create();
 
     // The constructor in private to enforce the use of the static one
     private Realm(String absolutePath) {
@@ -215,6 +219,7 @@ public class Realm {
                         } catch (ClassNotFoundException e) {
                             throw new RealmException("Could not find the generated " + generatedClassName + " class");
                         }
+
                         if (version == UNVERSIONED) {
                             Method initTableMethod;
                             try {
@@ -230,6 +235,31 @@ public class Realm {
                                 throw new RealmException("An exception was thrown in the initTable method in the " + generatedClassName + " class");
                             }
                         }
+
+                        // Populate the columnIndices table
+                        Method fieldNamesMethod;
+                        try {
+                            fieldNamesMethod = generatedClass.getMethod("getFieldNames");
+                        } catch (NoSuchMethodException e) {
+                            throw new RealmException("Could not find the getFieldNames method in the generated " + generatedClassName + " class");
+                        }
+                        List<String> fieldNames;
+                        try {
+                            fieldNames = (List<String>)fieldNamesMethod.invoke(null);
+                        } catch (IllegalAccessException e) {
+                            throw new RealmException("Could not execute the getFieldNames method in the generated " + generatedClassName + " class");
+                        } catch (InvocationTargetException e) {
+                            throw new RealmException("An exception was thrown in the getFieldNames method in the generated " + generatedClassName + " class");
+                        }
+                        Table table = realm.transaction.getTable(TABLE_PREFIX + modelClassName);
+                        for (String fieldName : fieldNames) {
+                            long columnIndex = table.getColumnIndex(fieldName);
+                            if (columnIndex == -1) {
+                                throw new RealmException("Column not found in the Realm");
+                            }
+                            columnIndices.put(modelClassName, fieldName, columnIndex);
+                        }
+
                         Method validateMethod;
                         try {
                             validateMethod = generatedClass.getMethod("validateTable", new Class[]{ImplicitTransaction.class});

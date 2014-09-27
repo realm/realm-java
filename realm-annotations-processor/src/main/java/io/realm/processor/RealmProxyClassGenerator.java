@@ -251,8 +251,8 @@ public class RealmProxyClassGenerator {
                 String getterPrefix = fieldTypeCanonicalName.equals("boolean")?"is":"get";
                 writer.beginMethod(fieldTypeCanonicalName, getterPrefix + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "return (%s) realmGetRow().get%s(%d)",
-                        fieldTypeCanonicalName, realmType, columnNumber);
+                        "return (%s) realmGetRow().get%s(Realm.columnIndices.get(\"%s\", \"%s\"))",
+                        fieldTypeCanonicalName, realmType, className, fieldName);
                 writer.endMethod();
                 writer.emitEmptyLine();
 
@@ -260,8 +260,8 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement(
-                        "realmGetRow().set%s(%d, (%s) value)",
-                        realmType, columnNumber, castingType);
+                        "realmGetRow().set%s(Realm.columnIndices.get(\"%s\", \"%s\"), (%s) value)",
+                        realmType, className, fieldName, castingType);
                 writer.endMethod();
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 /**
@@ -271,12 +271,12 @@ public class RealmProxyClassGenerator {
                 // Getter
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
-                writer.beginControlFlow("if (realmGetRow().isNullLink(%d))", columnNumber);
+                writer.beginControlFlow("if (realmGetRow().isNullLink(Realm.columnIndices.get(\"%s\", \"%s\")))", className, fieldName);
                 writer.emitStatement("return null");
                 writer.endControlFlow();
                 writer.emitStatement(
-                        "return realm.get(%s.class, realmGetRow().getLink(%d))",
-                        fieldTypeCanonicalName, columnNumber);
+                        "return realm.get(%s.class, realmGetRow().getLink(Realm.columnIndices.get(\"%s\", \"%s\")))",
+                        fieldTypeCanonicalName, className, fieldName);
                 writer.endMethod();
                 writer.emitEmptyLine();
 
@@ -284,9 +284,9 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.beginControlFlow("if (value == null)");
-                writer.emitStatement("realmGetRow().nullifyLink(%d)", columnNumber);
+                writer.emitStatement("realmGetRow().nullifyLink(Realm.columnIndices.get(\"%s\", \"%s\"))", className, fieldName);
                 writer.endControlFlow();
-                writer.emitStatement("realmGetRow().setLink(%d, value.realmGetRow().getIndex())", columnNumber);
+                writer.emitStatement("realmGetRow().setLink(Realm.columnIndices.get(\"%s\", \"%s\"), value.realmGetRow().getIndex())", className, fieldName);
                 writer.endMethod();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 /**
@@ -304,15 +304,15 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "return new RealmList(%s.class, realmGetRow().getLinkList(%d), realm)",
-                        genericType, columnNumber);
+                        "return new RealmList(%s.class, realmGetRow().getLinkList(Realm.columnIndices.get(\"%s\", \"%s\")), realm)",
+                        genericType, className, fieldName);
                 writer.endMethod();
                 writer.emitEmptyLine();
 
                 // Setter
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                writer.emitStatement("LinkView links = realmGetRow().getLinkList(%d)", columnNumber);
+                writer.emitStatement("LinkView links = realmGetRow().getLinkList(Realm.columnIndices.get(\"%s\", \"%s\"))", className, fieldName);
                 writer.beginControlFlow("if (value == null)");
                 writer.emitStatement("return"); // TODO: delete all the links instead
                 writer.endControlFlow();
@@ -478,6 +478,20 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
 
         /**
+         * getFieldNames method
+         */
+        writer.beginMethod("List<String>", "getFieldNames", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
+        List<String> entries = new ArrayList<String>();
+        for (VariableElement field : fields) {
+            String fieldName = field.getSimpleName().toString();
+            entries.add(String.format("\"%s\"", fieldName));
+        }
+        String statementSection = joinStringList(entries, ", ");
+        writer.emitStatement("return Arrays.asList(%s)", statementSection);
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        /**
          * toString method
          */
         writer.emitAnnotation("Override");
@@ -589,5 +603,20 @@ public class RealmProxyClassGenerator {
 
     private static String capitaliseFirstChar(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1);
+    }
+
+    public static String joinStringList(List<String> strings, String separator) {
+        StringBuilder stringBuilder = new StringBuilder();
+        ListIterator<String> iterator = strings.listIterator();
+        while (iterator.hasNext()) {
+            int index = iterator.nextIndex();
+            String item = iterator.next();
+
+            if (index > 0) {
+                stringBuilder.append(separator);
+            }
+            stringBuilder.append(item);
+        }
+        return stringBuilder.toString();
     }
 }
