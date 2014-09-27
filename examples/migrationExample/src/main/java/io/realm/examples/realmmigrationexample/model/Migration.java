@@ -96,8 +96,8 @@ RLM_ARRAY_TYPE(Pet)
 
 @interface Person : RLMObject
 @property NSString *fullName;
-@property RLMArray<Pet> *pets;  // add and array property
 @property int age;
+@property RLMArray<Pet> *pets;  // add an array property
 @end
 */
 
