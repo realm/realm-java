@@ -14,14 +14,6 @@ sourceSets {
     }
 }
 
-sourceCompability {
-    JavaVersion = 1.7
-}
-
-targetCompability {
-    JavaVersion = 1.7
-}
-
 dependencies {
     compile group:'com.squareup', name:'javawriter', version:'2.5.0'
 }
