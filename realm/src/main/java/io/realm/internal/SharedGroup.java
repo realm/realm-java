@@ -24,7 +24,7 @@ public class SharedGroup implements Closeable {
     private long nativePtr;
     private long nativeReplicationPtr;
     private long nativeTransactLogRegistryPtr;
-    private boolean implicistTransactionsEnabled = false;
+    private boolean implicitTransactionsEnabled = false;
     private boolean activeTransaction;
     private final Context context;
 
@@ -46,36 +46,36 @@ public class SharedGroup implements Closeable {
 
     public SharedGroup(String databaseFile) {
         context = new Context();
-        this.nativePtr = createNative(databaseFile, Durability.FULL.value, false, false);
+        this.nativePtr = createNative(databaseFile, Durability.FULL.value, false, false, null);
         checkNativePtrNotZero();
     }
-    public SharedGroup(String databaseFile, boolean enableImplicitTransactions) {
+    public SharedGroup(String databaseFile, boolean enableImplicitTransactions, byte[] key) {
         if (enableImplicitTransactions) {
             nativeTransactLogRegistryPtr = nativeCreateTransactLogRegistry(databaseFile);
             nativeReplicationPtr = nativeCreateReplication(databaseFile);
-            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr);
-            implicistTransactionsEnabled = true;
+            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, key);
+            implicitTransactionsEnabled = true;
         } else {
-            nativePtr = createNative(databaseFile, Durability.FULL.value, false, false);
+            nativePtr = createNative(databaseFile, Durability.FULL.value, false, false, key);
         }
         context = new Context();
         checkNativePtrNotZero();
     }
 
-    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr);
+    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, byte[] key);
 
     private native long nativeCreateReplication(String databaseFile);
 
     private native long nativeCreateTransactLogRegistry(String databaseFile);
 
-    public SharedGroup(String databaseFile, Durability durability) {
+    public SharedGroup(String databaseFile, Durability durability, byte[] key) {
         context = new Context();
-        this.nativePtr = createNative(databaseFile, durability.value, false, false);
+        this.nativePtr = createNative(databaseFile, durability.value, false, false, key);
         checkNativePtrNotZero();
     }
     public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
         context = new Context();
-        this.nativePtr = createNative(databaseFile, durability.value, fileMustExist, false);
+        this.nativePtr = createNative(databaseFile, durability.value, fileMustExist, false, null);
         checkNativePtrNotZero();
     }
 /*
@@ -171,7 +171,7 @@ public class SharedGroup implements Closeable {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
                 nativePtr = 0;
-                if (implicistTransactionsEnabled) {
+                if (implicitTransactionsEnabled) {
                     if (nativeTransactLogRegistryPtr != 0) {
                         nativeCloseTransactRegistryLog(nativeTransactLogRegistryPtr);
                         nativeTransactLogRegistryPtr = 0;
@@ -190,7 +190,7 @@ public class SharedGroup implements Closeable {
             if (nativePtr != 0) {
                 context.asyncDisposeSharedGroup(nativePtr); 
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-                if (implicistTransactionsEnabled) {
+                if (implicitTransactionsEnabled) {
                     if (nativeTransactLogRegistryPtr != 0) {
                         nativeCloseTransactRegistryLog(nativeTransactLogRegistryPtr);
                         nativeTransactLogRegistryPtr = 0;
@@ -252,7 +252,8 @@ public class SharedGroup implements Closeable {
     private native long createNative(String databaseFile,
             int durabilityValue,
             boolean no_create,
-            boolean enableReplication);
+            boolean enableReplication,
+            byte[] key);
 
     private void checkNativePtrNotZero() {
         if (this.nativePtr == 0)

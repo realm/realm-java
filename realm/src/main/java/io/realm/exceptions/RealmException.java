@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.examples.realmintroexample.model;
+package io.realm.exceptions;
 
-import io.realm.RealmObject;
-
-public class Dog extends RealmObject {
-    private String name;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+public class RealmException extends RuntimeException {
+    public RealmException(String detailMessage) {
+        super(detailMessage);
     }
 }
