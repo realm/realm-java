@@ -24,5 +24,5 @@ public interface RealmMigration {
      * @param version The version of the Realm at the start of the migration
      * @return The version of the Realm after executing the migration
      */
-    public int execute(Realm realm, int version);
+    public long execute(Realm realm, long version);
 }

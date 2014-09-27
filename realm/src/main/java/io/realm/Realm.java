@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.realm.exceptions.RealmException;
+import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
@@ -56,7 +57,6 @@ public class Realm {
     private static final Set<String> validatedPaths = Collections.synchronizedSet(new HashSet<String>());
 
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
-    private static boolean initialized = false;
     private static boolean autoRefresh = true;
 
     private final int id;
@@ -71,7 +71,6 @@ public class Realm {
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
 
-    private int version;
     private Handler handler;
 
     // The constructor in private to enforce the use of the static one
@@ -113,7 +112,7 @@ public class Realm {
 //        defaultDurability = durability;
 //    }
 
-    Table getTable(Class<?> clazz) {
+    public Table getTable(Class<?> clazz) {
         String simpleClassName = simpleClassNames.get(clazz);
         if (simpleClassName == null) {
             simpleClassName = clazz.getSimpleName();
@@ -172,26 +171,32 @@ public class Realm {
             realm = newRealm;
         }
         if (validateSchema) {
+            // FIXME - get rid fo validatedPaths - only validate if we don't have a cached realm
             if (!validatedPaths.contains(absolutePath)) {
                 try {
                     Class<?> validationClass = Class.forName("io.realm.ValidationList");
                     Method getProxyClassesMethod = validationClass.getMethod("getProxyClasses");
                     List<String> proxyClasses = (List<String>) getProxyClassesMethod.invoke(null);
+
+                    realm.beginTransaction();
+                    long version = realm.getVersion();
                     for (String className : proxyClasses) {
                         Class<?> modelClass = Class.forName(className);
                         String modelClassName = Iterables.getLast(Splitter.on(".").split(className));
                         String generatedClassName = "io.realm." + modelClassName + "RealmProxy";
                         Class<?> generatedClass = Class.forName(generatedClassName);
-                        if (!initialized) {
-                            initialized = true;
+                        if (version == -1) {
                             Method initTableMethod = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
-                            realm.beginTransaction();
                             initTableMethod.invoke(null, realm.transaction);
-                            realm.commitTransaction();
                         }
                         Method validateMethod = generatedClass.getMethod("validateTable", new Class[]{ImplicitTransaction.class});
                         validateMethod.invoke(null, realm.transaction);
                     }
+                    if (version == -1) {
+                        realm.setVersion(0);
+                    }
+                    realm.commitTransaction();
+
                 } catch (ClassNotFoundException e) {
                     throw new RealmException("Could not find the generated proxy class");
                 } catch (NoSuchMethodException e) {
@@ -427,16 +432,28 @@ public class Realm {
         getTable(classSpec).clear();
     }
 
-    private int getVersion() {
-        return version;
+    private long getVersion() {
+        Table metadataTable = transaction.getTable("metadata");
+        if (metadataTable.getColumnCount() == 0) {
+            setVersion(-1);
+        }
+        return metadataTable.getLong(0, 0);
     }
 
-    private void setVersion(int version) {
-        this.version = version;
+    private void setVersion(long version) {
+        Table metadataTable = transaction.getTable("metadata");
+        if (metadataTable.getColumnCount() == 0) {
+            metadataTable.addColumn(ColumnType.INTEGER, "version");
+            metadataTable.addEmptyRow();
+        }
+        metadataTable.setLong(0, 0, version);
     }
 
-    public void migrateRealmAtPath(String realmPath, RealmMigration migration) {
-        migration.execute(this, version);
+    static public void migrateRealmAtPath(String realmPath, RealmMigration migration) {
+        Realm realm = Realm.createAndValidate(realmPath, false);
+        realm.beginTransaction();
+        realm.setVersion(migration.execute(realm, realm.getVersion()));
+        realm.commitTransaction();
     }
 
     /**
