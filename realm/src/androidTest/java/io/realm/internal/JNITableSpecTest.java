@@ -46,7 +46,6 @@ public class JNITableSpecTest extends TestCase {
 
     public JNITableSpecTest(TableSpec spec, TableSpec spec2,
                             Table table, ColumnTypeData columnTypeData) {
-
         this.spec = spec;
         this.spec2 = spec2;
         this.table = table;
@@ -63,17 +62,14 @@ public class JNITableSpecTest extends TestCase {
 
         Table table = new Table();
         table.updateFromSpec(spec);
-
     }
 
     public void checkSpecIdentity(TableSpec spec, TableSpec spec2) {
-
         assertEquals(spec, spec2);
         assertEquals(spec.hashCode(), spec2.hashCode());
     }
 
     public void testShouldDefineTwoColumnsTable() {
-
         TableSpec subSpec = spec.addSubtableColumn("bar");
         subSpec.addColumn(columnTypeData.type, "subbar");
         assertEquals(0, spec.getColumnIndex("foo"));
@@ -89,9 +85,7 @@ public class JNITableSpecTest extends TestCase {
         table.updateFromSpec(spec);
     }
 
-
     public void testShouldHandleColumnsDynamically() {
-
         table.addColumn(ColumnType.INTEGER, "0");
         assertEquals(1, table.getColumnCount());
         assertEquals(0, table.getColumnIndex("0"));
@@ -122,7 +116,6 @@ public class JNITableSpecTest extends TestCase {
         checkColumnsTest(table);
         renameColumnsTest(table);
         removeColumnsTest(table);
-
     }
 
     public void checkColumnsTest(Table table) {
@@ -194,7 +187,6 @@ public class JNITableSpecTest extends TestCase {
 
         spec.addColumn(ColumnType.INTEGER, "foo");
 
-
         try {
             address.updateFromSpec(spec);
             fail("Address is subtable. Not allowed to update from spec");
@@ -204,8 +196,6 @@ public class JNITableSpecTest extends TestCase {
 
     public static Test suite() {
         return new JNITestSuite(JNITableSpecTest.class, parameters());
-
     }
-
 }
 
