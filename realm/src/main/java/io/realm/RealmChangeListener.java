@@ -18,6 +18,9 @@ package io.realm;
 
 public interface RealmChangeListener {
 
+    /**
+     * Called when a write transaction is committed
+     */
     public void onChange();
 
 }

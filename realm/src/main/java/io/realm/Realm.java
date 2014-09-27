@@ -367,6 +367,7 @@ public class Realm {
      * Returns a typed RealmQuery, which can be used to query for specific objects of this type
      * @param clazz The class of the object which is to be queried for
      * @return A typed RealmQuery, which can be used to query for specific objects of this type
+     * @see io.realm.RealmQuery
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
         return new RealmQuery<E>(this, clazz);
@@ -376,6 +377,7 @@ public class Realm {
      * Get all objects of a specific Class
      * @param clazz the Class to get objects of
      * @return A RealmResult list containing the objects
+     * @see io.realm.RealmResults
      */
     public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
@@ -387,11 +389,22 @@ public class Realm {
     }
 
     // Notifications
+
+    /**
+     * Add a change listener to the Realm
+     * @param listener the change listener
+     * @see io.realm.RealmChangeListener
+     */
     public void addChangeListener(RealmChangeListener listener) {
         changeListeners.add(listener);
         LooperThread.handlers.put(handler, id);
     }
 
+    /**
+     * Remove the specified change listener
+     * @param listener the change listener to be removed
+     * @see io.realm.RealmChangeListener
+     */
     public void removeChangeListener(RealmChangeListener listener) {
         changeListeners.remove(listener);
         if (changeListeners.isEmpty()) {
@@ -399,6 +412,10 @@ public class Realm {
         }
     }
 
+    /**
+     * Remove all user-defined change listeners
+     * @see io.realm.RealmChangeListener
+     */
     public void removeAllChangeListeners() {
         changeListeners.clear();
         LooperThread.handlers.remove(handler);
@@ -441,15 +458,19 @@ public class Realm {
         looperThread.handler.sendMessage(message);
     }
 
+    /**
+     * Remove all objects of the specified class
+     * @param classSpec The class which objects should be removed
+     */
     public void clear(Class<?> classSpec) {
         getTable(classSpec).clear();
     }
 
-    public int getVersion() {
+    private int getVersion() {
         return version;
     }
 
-    public void setVersion(int version) {
+    private void setVersion(int version) {
         this.version = version;
     }
 

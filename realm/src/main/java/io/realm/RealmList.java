@@ -32,43 +32,70 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         this.realm = realm;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void add(int location, E object) {
         view.insert(location, object.realmGetRow().getIndex());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean add(E object) {
         view.add(object.realmGetRow().getIndex());
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public E set(int location, E object) {
         view.set(location, object.realmGetRow().getIndex());
         return object;
     }
 
+    /**
+     * Moves an object from one position to another
+     * @param oldPos
+     * @param newPos
+     */
     public void move(int oldPos, int newPos) {
         view.move(oldPos, newPos);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void clear() {
         view.clear();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public E remove(int location) {
         view.remove(location);
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public E get(int i) {
         return realm.get(clazz, view.getTargetRowIndex(i));
     }
 
+    /**
+     * Find the first object
+     * @return The first object
+     */
     public E first() {
         if (!view.isEmpty()) {
             return get(0);
@@ -76,6 +103,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         return null;
     }
 
+    /**
+     * Find the last object
+     * @return The last object
+     */
     public E last() {
         if (!view.isEmpty()) {
             return get(size()-1);
@@ -83,13 +114,20 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int size() {
         return ((Long)view.size()).intValue();
     }
 
+    /**
+     * Initialize a query
+     * @return A query object
+     * @see io.realm.RealmQuery
+     */
     public RealmQuery<E> where() {
         return null;
     }
-
 }
