@@ -45,7 +45,13 @@ public class RealmEncryptionExample extends Activity {
         Realm realm;
         try {
             realm = Realm.getInstance(this, getKey());
-        } catch (IOException | java.io.IOException | GeneralSecurityException e) {
+        } catch (io.realm.internal.IOException e) {
+            e.printStackTrace();
+            return;
+        } catch (java.io.IOException ie) {
+            ie.printStackTrace();
+            return;
+        } catch (GeneralSecurityException e) {
             e.printStackTrace();
             return;
         }
