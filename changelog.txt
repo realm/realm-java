@@ -1,10 +1,10 @@
-Beta-0.3.0
+0.70.0
 
   Changes
   =======
 
   * Renaming beginWrite to beginTransaction and commit to commitTransaction
-  * Adding minDate and maxDate to RealmResults
+  * Adding minDate, maxDate and sort to RealmResults
   * Adding add(object) to RealmList
   * Adding equals to generated classes (RealmObjects)
   * Added utility methods to delete Realm files
