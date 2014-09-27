@@ -23,15 +23,15 @@ Documentation for Realm can be found at [realm.io/docs/java](http://realm.io/doc
 Prerequisites:
 
 * Make sure `make` is available in your `$PATH`
-* [Download the **JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it. 
+* Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
 * Download & install the Android SDK, **Android 4.4W (API 20)** (for example through Android Studio’s **Android SDK Manager**)
 * _Also_ download & install the Android SDK, **Android 4.4.2 (API 19)** (for example through Android Studio’s **Android SDK Manager**)
-* Download the **Android NDK (> r10b)**. For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
-* Modify the `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
+* Download the **Android NDK (>= r9d)**. For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
+* Add a `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
 
     ```
     sdk.dir=/Applications/Android Studio.app/sdk
-    ndk.dir=/usr/local/Cellar/android-ndk/r10b
+    ndk.dir=/usr/local/Cellar/android-ndk/r9d
     ```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
