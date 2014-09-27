@@ -14,21 +14,34 @@
  * limitations under the License.
  */
 
-package io.realm.examples.realmintroexample.model;
+package io.realm.examples.intro.model;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
 
+// Your model just have to extend RealmObject.
+// This will inherit an annotation which produces proxy getters and setters for all fields.
+
 public class Person extends RealmObject {
 
+    // All fields are by default persisted.
     private String name;
     private int age;
+
+    // Other objects in a one-to-one relation must also subclass RealmObject
     private Dog dog;
+
+    // One-to-many relations is simply a RealmList of the objects which also subclass RealmObject
     private RealmList<Cat> cats;
 
+    // You can instruct Realm to ignore a field and not persist it.
     @Ignore
     private int tempReference;
+
+    // The standard getters and setters your IDE generates are fine.
+    // Realm will overload them and code inside them is ignored.
+    // So if you prefer you can also just have empty abstract methods.
 
     public String getName() {
         return name;
@@ -69,6 +82,4 @@ public class Person extends RealmObject {
     public void setTempReference(int tempReference) {
         this.tempReference = tempReference;
     }
-
-
 }
