@@ -76,6 +76,7 @@ public class Realm {
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
+    private static final long UNVERSIONED = -1;
 
     private Handler handler;
 
@@ -198,57 +199,58 @@ public class Realm {
                     throw new RealmException("An exception was thrown in the getProxyClasses method in the ValidationList class");
                 }
 
-                realm.beginTransaction();
                 long version = realm.getVersion();
-                realm.commitTransaction();
-                for (String className : proxyClasses) {
-                    String modelClassName = Iterables.getLast(Splitter.on(".").split(className));
-                    String generatedClassName = "io.realm." + modelClassName + "RealmProxy";
-                    Class<?> generatedClass;
-                    try {
-                        generatedClass = Class.forName(generatedClassName);
-                    } catch (ClassNotFoundException e) {
-                        throw new RealmException("Could not find the generated " + generatedClassName + " class");
+                try {
+                    if (version == UNVERSIONED) {
+                        realm.beginTransaction();
+                        realm.setVersion(0);
                     }
-                    if (version == -1) {
-                        Method initTableMethod;
-                        try {
-                            initTableMethod = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
-                        } catch (NoSuchMethodException e) {
-                            throw new RealmException("Could not find the initTable method in the generated " + generatedClassName + " class");
-                        }
-                        try {
-                            realm.beginTransaction();
-                            initTableMethod.invoke(null, realm.transaction);
-                        } catch (IllegalAccessException e) {
-                            throw new RealmException("Could not execute the initTable method in the " + generatedClassName + " class");
-                        } catch (InvocationTargetException e) {
-                            throw new RealmException("An exception was thrown in the initTable method in the " + generatedClassName + " class");
-                        } finally {
-                            realm.commitTransaction();
-                        }
-                    }
-                    Method validateMethod;
-                    try {
-                        validateMethod = generatedClass.getMethod("validateTable", new Class[]{ImplicitTransaction.class});
-                    } catch (NoSuchMethodException e) {
-                        throw new RealmException("Could not find the validateTable method in the generated " + generatedClassName + " class");
-                    }
-                    try {
-                        validateMethod.invoke(null, realm.transaction);
-                    } catch (IllegalAccessException e) {
-                        throw new RealmException("Could not execute the validateTable method in the " + generatedClassName + " class");
-                    } catch (InvocationTargetException e) {
-                        throw new RealmMigrationNeededException(e.getMessage());
-                    }
-                }
-                if (version == -1) {
-                    realm.beginTransaction();
-                    realm.setVersion(0);
-                    realm.commitTransaction();
-                }
 
-                validatedPaths.add(absolutePath);
+                    for (String className : proxyClasses) {
+                        String modelClassName = Iterables.getLast(Splitter.on(".").split(className));
+                        String generatedClassName = "io.realm." + modelClassName + "RealmProxy";
+                        Class<?> generatedClass;
+                        try {
+                            generatedClass = Class.forName(generatedClassName);
+                        } catch (ClassNotFoundException e) {
+                            throw new RealmException("Could not find the generated " + generatedClassName + " class");
+                        }
+                        if (version == UNVERSIONED) {
+                            Method initTableMethod;
+                            try {
+                                initTableMethod = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
+                            } catch (NoSuchMethodException e) {
+                                throw new RealmException("Could not find the initTable method in the generated " + generatedClassName + " class");
+                            }
+                            try {
+                                initTableMethod.invoke(null, realm.transaction);
+                            } catch (IllegalAccessException e) {
+                                throw new RealmException("Could not execute the initTable method in the " + generatedClassName + " class");
+                            } catch (InvocationTargetException e) {
+                                throw new RealmException("An exception was thrown in the initTable method in the " + generatedClassName + " class");
+                            }
+                        }
+                        Method validateMethod;
+                        try {
+                            validateMethod = generatedClass.getMethod("validateTable", new Class[]{ImplicitTransaction.class});
+                        } catch (NoSuchMethodException e) {
+                            throw new RealmException("Could not find the validateTable method in the generated " + generatedClassName + " class");
+                        }
+                        try {
+                            validateMethod.invoke(null, realm.transaction);
+                        } catch (IllegalAccessException e) {
+                            throw new RealmException("Could not execute the validateTable method in the " + generatedClassName + " class");
+                        } catch (InvocationTargetException e) {
+                            throw new RealmMigrationNeededException(e.getMessage());
+                        }
+                    }
+                    validatedPaths.add(absolutePath);
+                }
+                finally {
+                    if (version == UNVERSIONED) {
+                        realm.commitTransaction();
+                    }
+                }
             }
         }
         return realm;
@@ -472,10 +474,10 @@ public class Realm {
     }
 
     private long getVersion() {
-        Table metadataTable = transaction.getTable("metadata");
-        if (metadataTable.getColumnCount() == 0) {
-            setVersion(-1);
+        if (!transaction.hasTable("metadata")) {
+            return UNVERSIONED;
         }
+        Table metadataTable = transaction.getTable("metadata");
         return metadataTable.getLong(0, 0);
     }
 

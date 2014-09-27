@@ -42,17 +42,17 @@ public class RealmMigrationExampleActivity extends Activity {
             Log.i(TAG, "Excellent! This is expected.");
         }
 
-        Realm.migrateRealmAtPath(path0, new Migration());
-        Realm realm0 = Realm.getInstance(this, "default0");
-        showStatus(realm0);
+        Realm.migrateRealmAtPath(path2, new Migration());
+        Realm realm2 = Realm.getInstance(this, "default2");
+        showStatus(realm2);
 
         Realm.migrateRealmAtPath(path1, new Migration());
         Realm realm1 = Realm.getInstance(this, "default1");
         showStatus(realm1);
 
-        Realm.migrateRealmAtPath(path2, new Migration());
-        Realm realm2 = Realm.getInstance(this, "default2");
-        showStatus(realm2);
+        Realm.migrateRealmAtPath(path0, new Migration());
+        Realm realm0 = Realm.getInstance(this, "default0");
+        showStatus(realm0);
     }
 
     private String copyBundledRealmFile(InputStream inputStream, String outFileName) {

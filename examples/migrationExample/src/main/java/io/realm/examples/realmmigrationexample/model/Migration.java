@@ -11,12 +11,15 @@ public class Migration implements RealmMigration {
         if (version == 0) {
             Table personTable = realm.getTable(Person.class);
 
+            long fistNameIndex = getIndexForProperty(personTable, "firstName");
+            long lastNameIndex = getIndexForProperty(personTable, "lastName");
             long fullNameIndex = personTable.addColumn(ColumnType.STRING, "fullName");
             for (int i = 0; i < personTable.size(); i++) {
-                personTable.setString(fullNameIndex, i, personTable.getString(0, i) + " " + personTable.getString(1, i));
+                personTable.setString(fullNameIndex, i, personTable.getString(fistNameIndex, i) + " " +
+                        personTable.getString(lastNameIndex, i));
             }
-            personTable.removeColumn(1);
-            personTable.removeColumn(0);
+            personTable.removeColumn(getIndexForProperty(personTable, "firstName"));
+            personTable.removeColumn(getIndexForProperty(personTable, "lastName"));
             version++;
         }
         if (version == 1) {
@@ -29,7 +32,8 @@ public class Migration implements RealmMigration {
 
             for (int i = 0; i < personTable.size(); i++) {
                 if (personTable.getString(fullNameIndex, i).equals("JP McDonald")) {
-                    long petIndex = petTable.add("Jimbo", "Dog");
+                    // FIXME - add new pet object
+                    // long petIndex = petTable.add("Jimbo", "Dog");
                     // FIXME - how do we add jimbo to JP's dogs property?
                 }
             }
@@ -37,9 +41,10 @@ public class Migration implements RealmMigration {
         }
         if (version == 2) {
             Table petTable = realm.getTable(Pet.class);
+            long oldTypeIndex = getIndexForProperty(petTable, "type");
             long typeIndex = petTable.addColumn(ColumnType.INTEGER, "type");
             for (int i = 0; i < petTable.size(); i++) {
-                String type = petTable.getString(1, i);
+                String type = petTable.getString(oldTypeIndex, i);
                 if (type.equals("Dog")) {
                     petTable.setLong(typeIndex, i, 1);
                 }
@@ -50,7 +55,7 @@ public class Migration implements RealmMigration {
                     petTable.setLong(typeIndex, i, 3);
                 }
             }
-            petTable.removeColumn(1);
+            petTable.removeColumn(oldTypeIndex);
             version++;
         }
         return version;
@@ -58,7 +63,7 @@ public class Migration implements RealmMigration {
 
     private long getIndexForProperty(Table table, String name) {
         for (int i = 0; i < table.getColumnCount(); i++) {
-            if (table.getColumnName(i).equals("fullName")) {
+            if (table.getColumnName(i).equals(name)) {
                 return i;
             }
         }
