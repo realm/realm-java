@@ -1,36 +1,5 @@
-Beta-0.3.0
+0.70.0 (29 Sep 2014)
 
   Changes
   =======
-
-  * Renaming beginWrite to beginTransaction and commit to commitTransaction
-  * Adding minDate and maxDate to RealmResults
-  * Adding add(object) to RealmList
-  * Adding equals to generated classes (RealmObjects)
-  * Added utility methods to delete Realm files
-  * Enables auto-refresh of read transactions (removed the refresh method)
-  * Throw RealmException if the annotation processor is not run properly
-
-  Bug Fixes
-  =========
-
-  * Fix notifications robustness
-
-
-
-Beta-0.2.0
-
-  Changes
-  =======
-
-  * Now only two types of Lists exist: RealmResults and RealmList
-  * It is not necessary to add the @RealmClass annotation to RealmObjects anymore
-  * Added support for byte, short and RealmList in model classes
-  * Added two new constructors for Realm, taking Context as an argument
-  * Simplification of the exceptions
-
-  Bug Fixes
-  =========
-
-  * [YourClass extends RealmObject].toString() now shows the correct data
-  * Other minor fixes
+  * This is the first public beta release.
