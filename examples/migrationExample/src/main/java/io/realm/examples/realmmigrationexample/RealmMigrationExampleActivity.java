@@ -1,7 +1,6 @@
 package io.realm.examples.realmmigrationexample;
 
 import android.app.Activity;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.LinearLayout;
@@ -14,8 +13,8 @@ import java.io.InputStream;
 
 import io.realm.Realm;
 import io.realm.examples.realmmigrationexample.model.Migration;
-import io.realm.examples.realmmigrationexample.model.Pet;
 import io.realm.examples.realmmigrationexample.model.Person;
+import io.realm.exceptions.RealmMigrationNeededException;
 
 
 public class RealmMigrationExampleActivity extends Activity {
@@ -38,11 +37,9 @@ public class RealmMigrationExampleActivity extends Activity {
 
         try {
             // should throw as migration is required
-            Realm realm = Realm.getInstance(this, "default0");
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            // FIXME - catch the proper exception
+            Realm.getInstance(this, "default0");
+        } catch (RealmMigrationNeededException ex) {
+            Log.i(TAG, "Excellent! This is expected.");
         }
 
         Realm.migrateRealmAtPath(path0, new Migration());
@@ -76,14 +73,11 @@ public class RealmMigrationExampleActivity extends Activity {
     }
 
     private String realmString(Realm realm) {
-        String string = "";
-        for (Person p : realm.allObjects(Person.class)) {
-            string += "name: " +  p.getFullName() + "\n";
-            string += "age: " + p.getAge() + "\n";
-            string += "pets: " + p.getPets().size() + "\n";
-            // FIXME - print out pet info
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Person person : realm.allObjects(Person.class)) {
+            stringBuilder.append(person.toString()).append("\n");
         }
-        return string;
+        return stringBuilder.toString();
     }
 
     private void showStatus(Realm realm) {

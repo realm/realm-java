@@ -23,11 +23,10 @@ import android.os.Message;
 import android.util.Log;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Iterables;
 
 import java.io.File;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,6 +55,12 @@ public class Realm {
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
     private static final Set<String> validatedPaths = Collections.synchronizedSet(new HashSet<String>());
+    private static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
+        @Override
+        protected Map<String, Realm> initialValue() {
+            return new HashMap<String, Realm>();
+        }
+    };
 
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
     private static boolean autoRefresh = true;
@@ -162,14 +167,12 @@ public class Realm {
     }
 
     private static Realm createAndValidate(String absolutePath, boolean validateSchema) {
-        ThreadRealm threadRealm = new ThreadRealm(absolutePath);
-        SoftReference<Realm> realmSoftReference = threadRealm.get();
-        Realm realm = realmSoftReference.get();
+        Map<String, Realm> realms = realmsCache.get();
+        Realm realm = realms.get(absolutePath);
         if (realm == null) {
-            // The garbage collector decided to get rid of the realm instance
-            Realm newRealm = new Realm(absolutePath);
-            threadRealm.set(new SoftReference<Realm>(newRealm));
-            realm = newRealm;
+            realm = new Realm(absolutePath);
+            realms.put(absolutePath, realm);
+            realmsCache.set(realms);
         }
         if (validateSchema) {
             // FIXME - get rid fo validatedPaths - only validate if we don't have a cached realm
@@ -197,10 +200,11 @@ public class Realm {
 
                 realm.beginTransaction();
                 long version = realm.getVersion();
+                realm.commitTransaction();
                 for (String className : proxyClasses) {
                     String modelClassName = Iterables.getLast(Splitter.on(".").split(className));
                     String generatedClassName = "io.realm." + modelClassName + "RealmProxy";
-                    Class<?> generatedClass = null;
+                    Class<?> generatedClass;
                     try {
                         generatedClass = Class.forName(generatedClassName);
                     } catch (ClassNotFoundException e) {
@@ -214,14 +218,17 @@ public class Realm {
                             throw new RealmException("Could not find the initTable method in the generated " + generatedClassName + " class");
                         }
                         try {
+                            realm.beginTransaction();
                             initTableMethod.invoke(null, realm.transaction);
                         } catch (IllegalAccessException e) {
                             throw new RealmException("Could not execute the initTable method in the " + generatedClassName + " class");
                         } catch (InvocationTargetException e) {
                             throw new RealmException("An exception was thrown in the initTable method in the " + generatedClassName + " class");
+                        } finally {
+                            realm.commitTransaction();
                         }
                     }
-                    Method validateMethod = null;
+                    Method validateMethod;
                     try {
                         validateMethod = generatedClass.getMethod("validateTable", new Class[]{ImplicitTransaction.class});
                     } catch (NoSuchMethodException e) {
@@ -236,9 +243,11 @@ public class Realm {
                     }
                 }
                 if (version == -1) {
+                    realm.beginTransaction();
                     realm.setVersion(0);
+                    realm.commitTransaction();
                 }
-                realm.commitTransaction();
+
                 validatedPaths.add(absolutePath);
             }
         }
@@ -246,17 +255,10 @@ public class Realm {
     }
 
     // This class stores soft-references to realm objects per thread per realm file
-    private static class ThreadRealm extends ThreadLocal<SoftReference<Realm>> {
-        private String absolutePath;
-
-        private ThreadRealm(String absolutePath) {
-            this.absolutePath = absolutePath;
-        }
-
+    private static class ThreadRealm extends ThreadLocal<Map<String, Realm>> {
         @Override
-        protected SoftReference<Realm> initialValue() {
-            Realm realm = new Realm(absolutePath);
-            return new SoftReference<Realm>(realm);
+        protected Map<String, Realm> initialValue() {
+            return new HashMap<String, Realm>();
         }
     }
 
@@ -458,7 +460,11 @@ public class Realm {
         Message message = Message.obtain();
         message.arg1 = LooperThread.REALM_CHANGED;
         message.arg2 = id;
-        looperThread.handler.sendMessage(message);
+        if (looperThread.handler != null) {
+            looperThread.handler.sendMessage(message);
+        } else {
+            Log.i(TAG, "The LooperThread is not up and running yet. Commit message not sent");
+        }
     }
 
     public void clear(Class<?> classSpec) {
@@ -487,6 +493,10 @@ public class Realm {
         realm.beginTransaction();
         realm.setVersion(migration.execute(realm, realm.getVersion()));
         realm.commitTransaction();
+        // Update the cache
+        Map<String, Realm> realms = realmsCache.get();
+        realms.put(realmPath, new Realm(realmPath));
+        realmsCache.set(realms);
     }
 
     /**
