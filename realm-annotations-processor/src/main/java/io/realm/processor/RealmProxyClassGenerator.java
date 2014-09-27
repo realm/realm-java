@@ -440,11 +440,12 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("throw new IllegalStateException(\"Missing table '%s%s' for column '%s'\")",
                         TABLE_PREFIX, fieldTypeName, fieldName);
                 writer.endControlFlow();
-                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, fieldTypeName);
-                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
-                writer.emitStatement("throw new IllegalStateException(\"Mismatching link tables for column '%s'\")",
-                        fieldName);
-                writer.endControlFlow();
+                // TODO: Replace with a proper comparison
+//                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, fieldTypeName);
+//                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
+//                writer.emitStatement("throw new IllegalStateException(\"Mismatching link tables for column '%s'\")",
+//                        fieldName);
+//                writer.endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) { // Link Lists
                 String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
                 String genericType;
@@ -464,11 +465,12 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("throw new IllegalStateException(\"Missing table '%s%s' for column '%s'\")",
                         TABLE_PREFIX, genericType, fieldName);
                 writer.endControlFlow();
-                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, genericType);
-                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
-                writer.emitStatement("throw new IllegalStateException(\"Mismatching link list tables for column '%s'\")",
-                        fieldName);
-                writer.endControlFlow();
+                // TODO: Replace with a proper comparison
+//                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, genericType);
+//                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
+//                writer.emitStatement("throw new IllegalStateException(\"Mismatching link list tables for column '%s'\")",
+//                        fieldName);
+//                writer.endControlFlow();
             }
         }
         writer.endControlFlow();
