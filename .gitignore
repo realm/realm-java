@@ -41,3 +41,5 @@ realm*.aar
 distribution/*/realm
 distribution/javadoc
 distribution/version.txt
+distribution/RealmGridViewExample/app/src
+distribution/RealmIntroExample/app/src
