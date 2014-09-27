@@ -18,15 +18,12 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
-import java.util.*;
-import java.io.BufferedWriter;
-import java.io.IOException;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
-
-import com.google.common.base.Joiner;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
 
 public class RealmValidationListGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -67,12 +64,27 @@ public class RealmValidationListGenerator {
         for (String classToValidate : classesToValidate) {
             entries.add(String.format("\"%s.%s%s\"", REALM_PACKAGE_NAME, classToValidate, PROXY_CLASS_SUFFIX));
         }
-        String statementSection = Joiner.on(", ").join(entries);
+        String statementSection = joinStringList(entries, ", ");
         writer.emitStatement("return Arrays.asList(%s)", statementSection);
         writer.endMethod();
         writer.emitEmptyLine();
 
         writer.endType();
         writer.close();
+    }
+
+    public static String joinStringList(List<String> strings, String separator) {
+        StringBuilder stringBuilder = new StringBuilder();
+        ListIterator<String> iterator = strings.listIterator();
+        while (iterator.hasNext()) {
+            int index = iterator.nextIndex();
+            String item = iterator.next();
+
+            if (index > 0) {
+                stringBuilder.append(separator);
+            }
+            stringBuilder.append(item);
+        }
+        return stringBuilder.toString();
     }
 }
