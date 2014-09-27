@@ -37,6 +37,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private Realm realm;
     private TableOrView table = null;
 
+    public static final boolean SORT_ORDER_ASCENDING = true;
+    public static final boolean SORT_ORDER_DECENDING = false;
+
     RealmResults(Realm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
@@ -102,8 +105,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     // Sorting
 
-    public static final boolean SORT_ORDER_ASCENDING = true;
-    public static final boolean SORT_ORDER_DECENDING = false;
     /**
      * Get a sorted (ascending) RealmList from an existing RealmList.
      *
