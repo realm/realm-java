@@ -412,4 +412,40 @@ private:
     std::size_t m_size;
 };
 
+class KeyBuffer {
+public:
+    KeyBuffer(JNIEnv* env, jbyteArray arr)
+    : m_env(env)
+    , m_array(arr)
+    , m_ptr(0)
+    {
+#ifdef TIGHTDB_ENABLE_ENCRYPTION
+        if (arr) {
+            if (env->GetArrayLength(m_array) != 32)
+                ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 32 bytes.");
+            m_ptr = env->GetByteArrayElements(m_array, NULL);
+        }
+#else
+        if (arr)
+            ThrowException(env, UnsupportedOperation,
+                           "Encryption was disabled in the native library at compile time.");
+#endif
+    }
+
+    const uint8_t *data() const {
+        return reinterpret_cast<const uint8_t *>(m_ptr);
+    }
+
+    ~KeyBuffer() {
+        if (m_ptr)
+            m_env->ReleaseByteArrayElements(m_array, m_ptr, JNI_ABORT);
+    }
+
+private:
+    JNIEnv* m_env;
+    jbyteArray m_array;
+    jbyte* m_ptr;
+};
+
+
 #endif // TIGHTDB_JAVA_UTIL_HPP

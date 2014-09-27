@@ -72,42 +72,84 @@ public class RealmQuery<E extends RealmObject> {
 
     // Equal
 
+    /**
+     * Equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> equalTo(String fieldName, String value) {
         int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> equalTo(String fieldName, int value) {
         int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> equalTo(String fieldName, long value) {
         int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> equalTo(String fieldName, double value) {
         int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> equalTo(String fieldName, float value) {
         int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> equalTo(String fieldName, boolean value) {
         int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> equalTo(String fieldName, Date value) {
         
         int columnIndex = columns.get(fieldName);
@@ -117,42 +159,84 @@ public class RealmQuery<E extends RealmObject> {
 
     // Not Equal
 
+    /**
+     * Not-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> notEqualTo(String fieldName, String value) {
         int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Not-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> notEqualTo(String fieldName, int value) {
         int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Not-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> notEqualTo(String fieldName, long value) {
         int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Not-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> notEqualTo(String fieldName, double value) {
         int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Not-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> notEqualTo(String fieldName, float value) {
         int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
         return this;
     }
 
+    /**
+     * Not-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> notEqualTo(String fieldName, boolean value) {
         int columnIndex = columns.get(fieldName);
         this.query.equalTo(columnIndex, !value);
         return this;
     }
 
+    /**
+     * Not-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> notEqualTo(String fieldName, Date value) {
         int columnIndex = columns.get(fieldName);
         this.query.notEqualTo(columnIndex, value);
@@ -161,60 +245,120 @@ public class RealmQuery<E extends RealmObject> {
 
     // Greater Than
 
+    /**
+     * Greater-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Greater-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThan(String fieldName, long value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Greater-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThan(String fieldName, double value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Greater-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThan(String fieldName, float value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Greater-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThan(String fieldName, Date value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Greater-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
         return this;
     }
 
+    /**
+     * Greater-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
         return this;
     }
 
+    /**
+     * Greater-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
         return this;
     }
 
+    /**
+     * Greater-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
         return this;
     }
 
+    /**
+     * Greater-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
         int columnIndex = columns.get(fieldName);
         this.query.greaterThanOrEqual(columnIndex, value);
@@ -223,60 +367,120 @@ public class RealmQuery<E extends RealmObject> {
 
     // Less Than
 
+    /**
+     * Less-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThan(String fieldName, int value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Less-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThan(String fieldName, long value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Less-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThan(String fieldName, double value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Less-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThan(String fieldName, float value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Less-than comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThan(columnIndex, value);
         return this;
     }
 
+    /**
+     * Less-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
+    /**
+     * Less-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
+    /**
+     * Less-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
+    /**
+     * Less-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
         return this;
     }
 
+    /**
+     * Less-than-or-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
         int columnIndex = columns.get(fieldName);
         this.query.lessThanOrEqual(columnIndex, value);
@@ -285,30 +489,65 @@ public class RealmQuery<E extends RealmObject> {
 
     // Between
 
+    /**
+     * Between condition
+     * @param fieldName  The field to compare
+     * @param from       Lowest value (inclusive)
+     * @param to         Highest value (inclusive)
+     * @return The query object
+     */
     public RealmQuery<E> between(String fieldName, int from, int to) {
         int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
+    /**
+     * Between condition
+     * @param fieldName  The field to compare
+     * @param from       Lowest value (inclusive)
+     * @param to         Highest value (inclusive)
+     * @return The query object
+     */
     public RealmQuery<E> between(String fieldName, long from, long to) {
         int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
+    /**
+     * Between condition
+     * @param fieldName  The field to compare
+     * @param from       Lowest value (inclusive)
+     * @param to         Highest value (inclusive)
+     * @return The query object
+     */
     public RealmQuery<E> between(String fieldName, double from, double to) {
         int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
+    /**
+     * Between condition
+     * @param fieldName  The field to compare
+     * @param from       Lowest value (inclusive)
+     * @param to         Highest value (inclusive)
+     * @return The query object
+     */
     public RealmQuery<E> between(String fieldName, float from, float to) {
         int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
         return this;
     }
 
+    /**
+     * Between condition
+     * @param fieldName  The field to compare
+     * @param from       Lowest value (inclusive)
+     * @param to         Highest value (inclusive)
+     * @return The query object
+     */
     public RealmQuery<E> between(String fieldName, Date from, Date to) {
         int columnIndex = columns.get(fieldName);
         this.query.between(columnIndex, from, to);
@@ -318,36 +557,75 @@ public class RealmQuery<E extends RealmObject> {
 
     // Contains
 
+    /**
+     * Condition that value of field contains the specified substring
+     * @param fieldName  The field to compare
+     * @param value      The substring
+     * @return The query object
+     */
     public RealmQuery<E> contains(String fieldName, String value) {
         int columnIndex = columns.get(fieldName);
         this.query.contains(columnIndex, value);
         return this;
     }
 
+    /**
+     * Condition that value of field contains the specified substring
+     * @param fieldName  The field to compare
+     * @param value      The substring
+     * @param caseSensitive if true, substring matching is case sensitive
+     * @return The query object
+     */
     public RealmQuery<E> contains(String fieldName, String value, boolean caseSensitive) {
         int columnIndex = columns.get(fieldName);
         this.query.contains(columnIndex, value, caseSensitive);
         return this;
     }
 
+    /**
+     * Condition that the value of field begins with the specified string
+     * @param fieldName The field to compare
+     * @param value     The string
+     * @return The query object
+     */
     public RealmQuery<E> beginsWith(String fieldName, String value) {
         int columnIndex = columns.get(fieldName);
         this.query.beginsWith(columnIndex, value);
         return this;
     }
 
+    /**
+     * Condition that the value of field begins with the specified substring
+     * @param fieldName The field to compare
+     * @param value     The substring
+     * @param caseSensitive if true, substring matching is case sensitive
+     * @return The query object
+     */
     public RealmQuery<E> beginsWith(String fieldName, String value, boolean caseSensitive) {
         int columnIndex = columns.get(fieldName);
         this.query.beginsWith(columnIndex, value, caseSensitive);
         return this;
     }
 
+    /**
+     * Condition that the value of field ends with the specified string
+     * @param fieldName The field to compare
+     * @param value     The string
+     * @return The query object
+     */
     public RealmQuery<E> endsWith(String fieldName, String value) {
         int columnIndex = columns.get(fieldName);
         this.query.endsWith(columnIndex, value);
         return this;
     }
 
+    /**
+     * Condition that the value of field ends with the specified substring
+     * @param fieldName The field to compare
+     * @param value     The substring
+     * @param caseSensitive if true, substring matching is case sensitive
+     * @return The query object
+     */
     public RealmQuery<E> endsWith(String fieldName, String value, boolean caseSensitive) {
         int columnIndex = columns.get(fieldName);
         this.query.endsWith(columnIndex, value, caseSensitive);
@@ -356,16 +634,28 @@ public class RealmQuery<E extends RealmObject> {
 
     // Grouping
 
+    /**
+     * Begin grouping of conditions ("left parenthesis")
+     * @return The query object
+     */
     public RealmQuery<E> beginGroup() {
         this.query.group();
         return this;
     }
 
+    /**
+     * End grouping of conditions ("right parenthesis")
+     * @return The query object
+     */
     public RealmQuery<E> endGroup() {
         this.query.endGroup();
         return this;
     }
 
+    /**
+     * Logical-or two conditions
+     * @return The query object
+     */
     public RealmQuery<E> or() {
         this.query.or();
         return this;
@@ -376,16 +666,31 @@ public class RealmQuery<E extends RealmObject> {
 
     // Sum
 
+    /**
+     * Calculate the sum of a field
+     * @param fieldName The field name
+     * @return The sum
+     */
     public long sumInt(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.sumInt(columnIndex);
     }
 
+    /**
+     * Calculate the sum of a field
+     * @param fieldName The field name
+     * @return The sum
+     */
     public double sumDouble(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.sumDouble(columnIndex);
     }
 
+    /**
+     * Calculate the sum of a field
+     * @param fieldName The field name
+     * @return The sum
+     */
     public double sumFloat(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.sumFloat(columnIndex);
@@ -393,16 +698,31 @@ public class RealmQuery<E extends RealmObject> {
 
     // Average
 
+    /**
+     * Calculate the average of a field
+     * @param fieldName The field name
+     * @return The average
+     */
     public double averageInt(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.averageInt(columnIndex);
     }
 
+    /**
+     * Calculate the average of a field
+     * @param fieldName The field name
+     * @return The average
+     */
     public double averageDouble(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.averageDouble(columnIndex);
     }
 
+    /**
+     * Calculate the average of a field
+     * @param fieldName The field name
+     * @return The average
+     */
     public double averageFloat(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.averageFloat(columnIndex);
@@ -410,21 +730,41 @@ public class RealmQuery<E extends RealmObject> {
 
     // Min
 
+    /**
+     * Find the minimum value of a field
+     * @param fieldName  The field name
+     * @return The minimum value
+     */
     public long minimumInt(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.minimumInt(columnIndex);
     }
 
-    public double minimuDouble(String fieldName) {
+    /**
+     * Find the minimum value of a field
+     * @param fieldName  The field name
+     * @return The minimum value
+     */
+    public double minimumDouble(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.minimumDouble(columnIndex);
     }
 
-    public float minimuFloat(String fieldName) {
+    /**
+     * Find the minimum value of a field
+     * @param fieldName  The field name
+     * @return The minimum value
+     */
+    public float minimumFloat(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.minimumFloat(columnIndex);
     }
 
+    /**
+     * Find the minimum value of a field
+     * @param fieldName  The field name
+     * @return The minimum value
+     */
     public Date minimumDate(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.minimumDate(columnIndex);
@@ -432,21 +772,41 @@ public class RealmQuery<E extends RealmObject> {
 
     // Max
 
+    /**
+     * Find the maximum value of a field
+     * @param fieldName  The field name
+     * @return The maximum value
+     */
     public long maximumInt(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.maximumInt(columnIndex);
     }
 
+    /**
+     * Find the maximum value of a field
+     * @param fieldName  The field name
+     * @return The maximum value
+     */
     public double maximuDouble(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.maximumDouble(columnIndex);
     }
 
+    /**
+     * Find the maximum value of a field
+     * @param fieldName  The field name
+     * @return The maximum value
+     */
     public float maximuFloat(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.maximumFloat(columnIndex);
     }
 
+    /**
+     * Find the maximum value of a field
+     * @param fieldName  The field name
+     * @return The maximum value
+     */
     public Date maximumDate(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.maximumDate(columnIndex);
@@ -454,10 +814,20 @@ public class RealmQuery<E extends RealmObject> {
 
     // Execute
 
+    /**
+     * Find all objects that fulfill the query condition
+     * @return A list of objects
+     * @see io.realm.RealmResults
+     */
     public RealmResults<E> findAll() {
         return new RealmResults<E>(realm, query.findAll(), clazz);
     }
 
+    /**
+     * Find the first object that fulfills the query condition
+     * @return An object
+     * @see io.realm.RealmObject
+     */
     public E findFirst() {
         RealmResults<E> result = findAll();
         if(result.size() > 0) {
@@ -466,5 +836,4 @@ public class RealmQuery<E extends RealmObject> {
             return null;
         }
     }
-
 }
