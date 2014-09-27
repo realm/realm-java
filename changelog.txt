@@ -1,8 +1,8 @@
-0.70.0
+0.70.0 (29 Sep 2014)
 
   Changes
   =======
-
+  * This is the first public beta release
   * Renaming beginWrite to beginTransaction and commit to commitTransaction
   * Adding minDate, maxDate and sort to RealmResults
   * Adding add(object) to RealmList

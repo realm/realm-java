@@ -46,6 +46,9 @@ That command will generate the .aar file and annotation processor jar for Realm.
  * `./gradlew generatereleaseJavadoc` will generate the Javadocs
  * `./gradlew connectedCheck` will run the tests on a connected Android device
 
+Generating the Javadoc using the command above will report a failure (1 error, 30+ warnings). The Javadoc is generated, and we will fix 
+`realm/build.gradle` in the near future.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
