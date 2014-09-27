@@ -35,7 +35,7 @@ import java.util.Set;
 @SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore"})
 @SupportedSourceVersion(javax.lang.model.SourceVersion.RELEASE_6)
 public class RealmProcessor extends AbstractProcessor {
-    Set<String> classesToValidate = new HashSet<>();
+    Set<String> classesToValidate = new HashSet<String>();
     boolean done = false;
 
     @Override
