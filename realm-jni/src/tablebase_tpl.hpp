@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef TIGHTDB_JNI_TABLEBASE_TPL_HPP
-#define TIGHTDB_JNI_TABLEBASE_TPL_HPP
+#ifndef REALM_JNI_TABLEBASE_TPL_HPP
+#define REALM_JNI_TABLEBASE_TPL_HPP
 
 
 template <class T>
@@ -233,4 +233,4 @@ void row_nativeSetMixed(R* pRow, JNIEnv* env, jlong columnIndex, jobject jMixedV
 }
 
 
-#endif // TIGHTDB_JNI_TABLEBASE_TPL_HPP
+#endif // REALM_JNI_TABLEBASE_TPL_HPP
