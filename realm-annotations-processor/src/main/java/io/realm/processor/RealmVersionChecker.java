@@ -73,7 +73,7 @@ public class RealmVersionChecker {
         BufferedReader bufferedReader;
         String lastVersion;
         try {
-            inputStream     = new FileInputStream(UPDATE_FILE_NAME);
+            inputStream = new FileInputStream(UPDATE_FILE_NAME);
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
             lastVersion = bufferedReader.readLine();
             inputStream.close();
