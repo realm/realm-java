@@ -128,7 +128,7 @@ public class Realm {
     }
 
     /**
-     * Realm static constructor
+     * Realm static constructor for the default realm "default.realm"
      * @param context an Android context
      * @return an instance of the Realm class
      */
@@ -149,14 +149,6 @@ public class Realm {
     /**
      * Realm static constructor
      * @param writableFolder absolute path to a writable directory
-     * @return an instance of the Realm class
-     */
-    public static Realm getInstance(File writableFolder) {
-        return Realm.create(writableFolder, DEFAULT_REALM_NAME, null);
-    }
-
-    /**
-     * Realm static constructor
      * @param context an Android context
      * @param key a 32-byte encryption key
      * @return an instance of the Realm class

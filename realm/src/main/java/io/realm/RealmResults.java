@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.internal.ColumnType;
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
@@ -35,6 +36,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private Class<E> classSpec;
     private Realm realm;
     private TableOrView table = null;
+
+    public static final boolean SORT_ORDER_ASCENDING = true;
+    public static final boolean SORT_ORDER_DECENDING = false;
 
     RealmResults(Realm realm, Class<E> classSpec) {
         this.realm = realm;
@@ -50,6 +54,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return realm;
     }
 
+    /**
+     * @hide
+     */
     TableOrView getTable() {
         if (table == null) {
             return realm.getTable(classSpec);
@@ -60,7 +67,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
 
-
+    /**
+     * Returns a typed RealmQuery, which can be used to query for specific objects of this type
+     *
+     * @return A typed RealmQuery
+     * @see io.realm.RealmQuery
+     */
     public RealmQuery<E> where() {
         return new RealmQuery<E>(this, classSpec);
     }
@@ -101,30 +113,44 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     // Sorting
 
-//    public static enum Order {
-//        ASCENDING, DESCENDING
-//    }
-//
-//    /**
-//     * Get a sorted (ASCENDING) RealmList from an existing RealmList.
-//     *
-//     * @param fieldName  The field name to sort by.
-//     * @return           A sorted RealmList
-//     */
-//    public RealmList<E> sort(String fieldName) {
-//        return sort(fieldName, Order.ASCENDING);
-//    }
-//
-//    /**
-//     * Get a sorted RealmList from an existing RealmList.
-//     *
-//     * @param fieldName  The field name to sort by.
-//     * @param sortOrder  The direction to sort by.
-//     * @return           A sorted RealmList.
-//     */
-//    public RealmList<E> sort(String fieldName, Order sortOrder) {
-//        throw new NoSuchMethodError();
-//    }
+    /**
+     * Get a sorted (ascending) RealmList from an existing RealmList.
+     *
+     * @param fieldName  The field name to sort by.
+     * @return           A sorted RealmResults list
+     */
+    public RealmResults<E> sort(String fieldName) {
+        return sort(fieldName, SORT_ORDER_ASCENDING);
+    }
+
+    /**
+     * Get a sorted RealmList from an existing RealmList.
+     *
+     * @param fieldName  The field name to sort by.
+     * @param sortOrder  The direction to sort by; if true ascending, if false descending
+     *                   You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DECENDING
+     *                   to write more readable code.
+     * @return           A sorted RealmResults list.
+     */
+    public RealmResults<E> sort(String fieldName, boolean sortOrder) {
+        TableView sorted;
+
+        TableOrView table = getTable();
+        long columnIndex = table.getColumnIndex(fieldName);
+        TableView.Order TVOrder = sortOrder? TableView.Order.ascending : TableView.Order.descending;
+
+        if (table instanceof TableView) {
+            TableView v = (TableView)table;
+            sorted = v.where().findAll();
+            sorted.sort(columnIndex, TVOrder);
+        }
+        else {
+            Table t = (Table)table;
+            sorted = t.getSortedView(columnIndex, TVOrder);
+        }
+
+        return new RealmResults<E>(realm, sorted, classSpec);
+    }
 
 
     // Aggregates
