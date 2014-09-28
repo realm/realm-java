@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.exceptions;
 
-package io.realm;
-
-public interface RealmMigration {
-
-    /**
-     * Implement this method in your subclass to perform migration
-     * @param realm The Realm on which to perform the migration
-     * @param version The version of the Realm at the start of the migration
-     * @return The version of the Realm after executing the migration
-     */
-    public long execute(Realm realm, long version);
+public class RealmMigrationNeededException extends RuntimeException {
+    public RealmMigrationNeededException(String detailMessage) {
+        super(detailMessage);
+    }
 }

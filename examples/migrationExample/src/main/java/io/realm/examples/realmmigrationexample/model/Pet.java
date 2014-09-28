@@ -14,15 +14,28 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.examples.realmmigrationexample.model;
 
-public interface RealmMigration {
+import io.realm.RealmObject;
 
-    /**
-     * Implement this method in your subclass to perform migration
-     * @param realm The Realm on which to perform the migration
-     * @param version The version of the Realm at the start of the migration
-     * @return The version of the Realm after executing the migration
-     */
-    public long execute(Realm realm, long version);
+public class Pet extends RealmObject {
+    private String name;
+    private int type;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
 }
