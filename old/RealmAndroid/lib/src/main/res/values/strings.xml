@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Realm</string>
-    <string name="title_activity_main">MainActivity</string>
-    <string name="addButton">Add Item</string>
-    <string name="new_text">New Text</string>
-</resources>
