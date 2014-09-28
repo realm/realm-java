@@ -48,7 +48,7 @@ public class RealmVersionChecker {
             String latestVersionStr = checkLatestVersion();
 
             if (!latestVersionStr.equals(REALM_VERSION)) {
-                System.out.println("Version " + latestVersionStr + " of Realm is now available: " + REALM_ANDROID_DOWNLOAD_URL);
+                System.err.println("Version " + latestVersionStr + " of Realm is now available: " + REALM_ANDROID_DOWNLOAD_URL);
             }
         }
     }
@@ -64,7 +64,6 @@ public class RealmVersionChecker {
         try {
             bgT.join(CONNECT_TIMEOUT + READ_TIMEOUT);
         } catch(InterruptedException e) {
-            //e.printStackTrace();
         }
     }
 
@@ -79,16 +78,13 @@ public class RealmVersionChecker {
             lastVersionStr = reader.readLine();
             in.close();
         } catch (FileNotFoundException f) {
-            //f.printStackTrace();
             return 0L;
         } catch (IOException e) {
-            //e.printStackTrace();
             return 0L;
         }
 
         try {
             long retL = Long.parseLong(lastVersionStr);
-            //System.out.println("Stored version found: " + retL);
             return retL;
         } catch (NumberFormatException ne) {
             return 0L;
@@ -102,7 +98,6 @@ public class RealmVersionChecker {
             writer.println(System.currentTimeMillis());
             writer.close();
         } catch (IOException e) {
-            //e.printStackTrace();
         }
     }
 
@@ -116,10 +111,8 @@ public class RealmVersionChecker {
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             result = rd.readLine();
             rd.close();
-        } catch (Exception e) {
-            //e.printStackTrace();
-        }
-        //System.out.println("Latest version found: " + result);
+        } catch (IOException e) {
+        } 
         return result;
     }
 }
