@@ -31,6 +31,8 @@ android.libraryVariants.all { variant ->
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
         exclude "**/internal/**"
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
     }
 
     task("javadoc${variant.name.capitalize()}Jar", type: Jar, dependsOn: tasks["generate${variant.name.capitalize()}Javadoc"]) {
