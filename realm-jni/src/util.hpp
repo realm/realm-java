@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef TIGHTDB_JAVA_UTIL_HPP
-#define TIGHTDB_JAVA_UTIL_HPP
+#ifndef REALM_JAVA_UTIL_HPP
+#define REALM_JAVA_UTIL_HPP
 
 #include <string>
 #include <sstream>
@@ -448,4 +448,4 @@ private:
 };
 
 
-#endif // TIGHTDB_JAVA_UTIL_HPP
+#endif // REALM_JAVA_UTIL_HPP
