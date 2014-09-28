@@ -106,6 +106,9 @@ public class Realm {
 //        defaultDurability = durability;
 //    }
 
+    /**
+     * @hide
+     */
     Table getTable(Class<?> clazz) {
         String simpleClassName = simpleClassNames.get(clazz);
         if (simpleClassName == null) {
@@ -116,7 +119,7 @@ public class Realm {
     }
 
     /**
-     * Realm static constructor
+     * Realm static constructor for the default realm "default.realm"
      * @param context an Android context
      * @return an instance of the Realm class
      */
@@ -132,15 +135,6 @@ public class Realm {
      */
     public static Realm getInstance(Context context, String fileName) {
         return Realm.create(context.getFilesDir(), fileName, null);
-    }
-
-    /**
-     * Realm static constructor
-     * @param writableFolder absolute path to a writable directory
-     * @return an instance of the Realm class
-     */
-    public static Realm getInstance(File writableFolder) {
-        return Realm.create(writableFolder, DEFAULT_REALM_NAME, null);
     }
 
     /**

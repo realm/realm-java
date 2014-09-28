@@ -54,6 +54,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return realm;
     }
 
+    /**
+     * @hide
+     */
     TableOrView getTable() {
         if (table == null) {
             return realm.getTable(classSpec);
@@ -64,7 +67,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
 
-
+    /**
+     * Returns a typed RealmQuery, which can be used to query for specific objects of this type
+     *
+     * @return A typed RealmQuery
+     * @see io.realm.RealmQuery
+     */
     public RealmQuery<E> where() {
         return new RealmQuery<E>(this, classSpec);
     }
