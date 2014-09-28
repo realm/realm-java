@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef TIGHTDB_JAVA_TABLE_SPEC_UTIL_HPP
-#define TIGHTDB_JAVA_TABLE_SPEC_UTIL_HPP
+#ifndef REALM_JAVA_TABLE_SPEC_UTIL_HPP
+#define REALM_JAVA_TABLE_SPEC_UTIL_HPP
 
 #include <cstddef>
 #include <vector>
@@ -38,4 +38,4 @@ void get_descriptor(JNIEnv*, const tightdb::Descriptor&, jobject jTableSpec);
 jclass GetClassTableSpec(JNIEnv*);
 jmethodID GetTableSpecMethodID(JNIEnv*, const char* methodStr, const char* typeStr);
 
-#endif // TIGHTDB_JAVA_TABLE_SPEC_UTIL_HPP
+#endif // REALM_JAVA_TABLE_SPEC_UTIL_HPP
