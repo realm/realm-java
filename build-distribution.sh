@@ -42,4 +42,11 @@ cp realm-annotations-processor/build/libs/realm-annotations-processor-${version}
 mkdir -p distribution/RealmGridViewExample/realm
 cp -R distribution/realm distribution/RealmGridViewExample
 
+echo "Copying files to the distribution/RealmMigrationExample folder"
+cp -R examples/introExample/src distribution/RealmMigrationExample/app
+mkdir -p distribution/RealmMigrationExample/app/libs
+cp realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar distribution/RealmMigrationExample/app/libs
+mkdir -p distribution/RealmMigrationExample/realm
+cp -R distribution/realm distribution/RealmMigrationExample
+
 echo  "Done"
