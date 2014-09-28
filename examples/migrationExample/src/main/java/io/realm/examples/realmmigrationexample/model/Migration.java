@@ -21,9 +21,32 @@ import io.realm.RealmMigration;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
+/***************************** NOTE: *********************************************
+ * The API for migration is currently using internal lower level classes that will
+ * be replaced by a new API very soon! Until then you will have to explore and use
+ * below example as inspiration.
+ *********************************************************************************
+ */
+
+
 public class Migration implements RealmMigration {
     @Override
     public long execute(Realm realm, long version) {
+
+        /*
+            // Version 0
+            class Person
+                String fullName;
+                String lastName;
+                int    age;
+
+            // Version 1
+            class Person
+                String fullName;        // combine firstName and lastName into single field
+                int age;
+        */
+
+        // Migrate from version 0 to version 1
         if (version == 0) {
             Table personTable = realm.getTable(Person.class);
 
@@ -38,6 +61,20 @@ public class Migration implements RealmMigration {
             personTable.removeColumn(getIndexForProperty(personTable, "lastName"));
             version++;
         }
+
+        /*
+            // Version 2
+                class Pet                   // add a new model class
+                    String name;
+                    String type;
+
+                class Person
+                    String fullName;
+                    int age;
+                    RealmList<Pet> pets;    // add an array property
+
+        */
+        // Migrate from version 1 to version 2
         if (version == 1) {
             Table personTable = realm.getTable(Person.class);
             Table petTable = realm.getTable(Pet.class);
@@ -53,6 +90,19 @@ public class Migration implements RealmMigration {
             }
             version++;
         }
+
+        /*
+            // Version 3
+                class Pet
+                    String name;
+                    int type;               // type becomes int
+
+                class Person
+                    String fullName;
+                    RealmList<Pet> pets;    // age and pets re-ordered
+                    int age;
+        */
+        // Migrate from version 2 to version 3
         if (version == 2) {
             Table petTable = realm.getTable(Pet.class);
             long oldTypeIndex = getIndexForProperty(petTable, "type");
@@ -84,47 +134,3 @@ public class Migration implements RealmMigration {
         return -1;
     }
 }
-
-// Old data models
-/* V0
-@interface Person : RLMObject
-@property NSString *firstName;
-@property NSString *lastName;
-@property int age;
-@end
- */
-
-/* V1
-@interface Person : RLMObject
-@property NSString *fullName;   // combine firstName and lastName into single field
-@property int age;
-@end
-*/
-
-/* V2
-@interface Pet : RLMObject      // add a new model class
-@property NSString *name;
-@property NSString *type;
-@end
-RLM_ARRAY_TYPE(Pet)
-
-@interface Person : RLMObject
-@property NSString *fullName;
-@property int age;
-@property RLMArray<Pet> *pets;  // add an array property
-@end
-*/
-
-/* V3
-@interface Pet : RLMObject
-@property NSString *name;
-@property int type;             // type becomes int
-@end
-RLM_ARRAY_TYPE(Pet)
-
-@interface Person : RLMObject
-@property NSString *fullName;
-@property RLMArray<Pet> *pets;  // age and pets re-ordered
-@property int age;
-@end
-*/

@@ -32,6 +32,10 @@ import io.realm.examples.realmmigrationexample.model.Migration;
 import io.realm.examples.realmmigrationexample.model.Person;
 import io.realm.exceptions.RealmMigrationNeededException;
 
+/*
+** This example demonstrates how you can migrate your data through different updates
+** of your models.
+*/
 
 public class RealmMigrationExampleActivity extends Activity {
 
@@ -47,10 +51,12 @@ public class RealmMigrationExampleActivity extends Activity {
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
 
+        // 3 versions of the databases for testing. Normally you would only have one.
         String path0 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default0), "default0");
         String path1 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default1), "default1");
         String path2 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default2), "default2");
 
+        // If you try to open a file that doesn't match your model an exception is thrown:
         try {
             // should throw as migration is required
             Realm.getInstance(this, "default1");
@@ -58,14 +64,17 @@ public class RealmMigrationExampleActivity extends Activity {
             Log.i(TAG, "Excellent! This is expected.");
         }
 
+        // So you migrate your data
         Realm.migrateRealmAtPath(path1, new Migration());
         Realm realm1 = Realm.getInstance(this, "default1");
         showStatus(realm1);
 
+        // Another migration test
         Realm.migrateRealmAtPath(path2, new Migration());
         Realm realm2 = Realm.getInstance(this, "default2");
         showStatus(realm2);
 
+        // and a third:
         Realm.migrateRealmAtPath(path0, new Migration());
         Realm realm0 = Realm.getInstance(this, "default0");
         showStatus(realm0);
