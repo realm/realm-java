@@ -205,8 +205,8 @@ public class Realm {
 
                 long version = realm.getVersion();
                 try {
+                    realm.beginTransaction();
                     if (version == UNVERSIONED) {
-                        realm.beginTransaction();
                         realm.setVersion(0);
                     }
 
@@ -220,6 +220,7 @@ public class Realm {
                             throw new RealmException("Could not find the generated " + generatedClassName + " class");
                         }
 
+                        // if not versioned, create table
                         if (version == UNVERSIONED) {
                             Method initTableMethod;
                             try {
@@ -234,6 +235,21 @@ public class Realm {
                             } catch (InvocationTargetException e) {
                                 throw new RealmException("An exception was thrown in the initTable method in the " + generatedClassName + " class");
                             }
+                        }
+
+                        // validate created table
+                        Method validateMethod;
+                        try {
+                            validateMethod = generatedClass.getMethod("validateTable", new Class[]{ImplicitTransaction.class});
+                        } catch (NoSuchMethodException e) {
+                            throw new RealmException("Could not find the validateTable method in the generated " + generatedClassName + " class");
+                        }
+                        try {
+                            validateMethod.invoke(null, realm.transaction);
+                        } catch (IllegalAccessException e) {
+                            throw new RealmException("Could not execute the validateTable method in the " + generatedClassName + " class");
+                        } catch (InvocationTargetException e) {
+                            throw new RealmMigrationNeededException(e.getMessage());
                         }
 
                         // Populate the columnIndices table
@@ -255,31 +271,15 @@ public class Realm {
                         for (String fieldName : fieldNames) {
                             long columnIndex = table.getColumnIndex(fieldName);
                             if (columnIndex == -1) {
-                                throw new RealmException("Column not found in the Realm");
+                                throw new RealmMigrationNeededException("Column '" + fieldName + "' not found for type '" + modelClassName + "'");
                             }
                             columnIndices.put(modelClassName, fieldName, columnIndex);
-                        }
-
-                        Method validateMethod;
-                        try {
-                            validateMethod = generatedClass.getMethod("validateTable", new Class[]{ImplicitTransaction.class});
-                        } catch (NoSuchMethodException e) {
-                            throw new RealmException("Could not find the validateTable method in the generated " + generatedClassName + " class");
-                        }
-                        try {
-                            validateMethod.invoke(null, realm.transaction);
-                        } catch (IllegalAccessException e) {
-                            throw new RealmException("Could not execute the validateTable method in the " + generatedClassName + " class");
-                        } catch (InvocationTargetException e) {
-                            throw new RealmMigrationNeededException(e.getMessage());
                         }
                     }
                     validatedPaths.add(absolutePath);
                 }
                 finally {
-                    if (version == UNVERSIONED) {
-                        realm.commitTransaction();
-                    }
+                    realm.commitTransaction();
                 }
             }
         }
