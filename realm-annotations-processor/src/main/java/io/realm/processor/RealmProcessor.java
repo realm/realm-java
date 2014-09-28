@@ -41,8 +41,8 @@ public class RealmProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-	RealmUpdateChecker updateChecker = new RealmUpdateChecker();
-	updateChecker.executeRealmVersionUpdate();
+        RealmVersionChecker updateChecker = new RealmVersionChecker();
+        updateChecker.executeRealmVersionUpdate();
 
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
             String className;
