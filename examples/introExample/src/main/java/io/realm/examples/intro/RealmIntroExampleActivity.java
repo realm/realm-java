@@ -152,6 +152,11 @@ public class RealmIntroExampleActivity extends Activity {
             assert(pers.getTempReference() == 0);
         }
 
+        // Sorting
+        RealmResults<Person> sortedPersons = realm.allObjects(Person.class).sort("age", false);
+        assert(realm.allObjects(Person.class).last().getName() == sortedPersons.first().getName());
+        status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first().getName();
+
         return status;
     }
 

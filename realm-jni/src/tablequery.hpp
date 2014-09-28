@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __TIGHTDB_TABLEQUERY__
-#define __TIGHTDB_TABLEQUERY__
+#ifndef __REALM_TABLEQUERY__
+#define __REALM_TABLEQUERY__
 
 #include <vector>
 #include <assert.h>
@@ -56,4 +56,4 @@ public:
 
 #define TQ(ptr) reinterpret_cast<TableQuery*>(ptr)
 
-#endif // __TIGHTDB_TABLEQUERY__
+#endif // __REALM_TABLEQUERY__
