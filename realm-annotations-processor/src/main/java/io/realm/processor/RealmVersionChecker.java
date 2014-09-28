@@ -36,6 +36,9 @@ public class RealmVersionChecker {
     //The version value would ideally be pulled from a build file
     private static final String REALM_VERSION = "0.50.0";
 
+    private static final int READ_TIMEOUT = 2000;
+    private static final int CONNECT_TIMEOUT = 4000;
+
     private void launchRealmCheck() {
         long lastRealmUpdate = readRealmStat();
 
@@ -59,7 +62,7 @@ public class RealmVersionChecker {
         });
         bgT.start();
         try {
-            bgT.join();
+            bgT.join(CONNECT_TIMEOUT + READ_TIMEOUT);
         } catch(InterruptedException e) {
             //e.printStackTrace();
         }
@@ -108,6 +111,8 @@ public class RealmVersionChecker {
         try {
             URL url = new URL(versionUrlStr+REALM_VERSION);
             HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+            conn.setConnectTimeout(CONNECT_TIMEOUT);
+            conn.setReadTimeout(READ_TIMEOUT);
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             result = rd.readLine();
             rd.close();
