@@ -1,13 +1,18 @@
-Realm for Android Beta 1
-=================================
+Realm for Android
+=================
+This is a beta release of Realm for Android.
 
-This is an early beta of Realm for Android. It will give you an idea of where we’re headed
-and you can play a little with it, but we don’t recommend you use it in production yet.
+Please check the documentation on http://realm.io/docs/java for how to get started.
 
-We need your feedback to make it into something awesome!
+Included in this distribution are a couple of examples.
+You can try them out from Android Studio through "File->Import Project" and selecting the build.gradle
+ file in the respective example. Then click "Run".
+ But more importantly check out the source code in RealmIntroExample/app/src which will give examples
+ for how to use the API.
 
-Please follow the instructions at http://realm.io/docs/java/beta1/
-and send your feedback to https://groups.google.com/forum/#!forum/realm-java
+
+We highly appreciate your feedback to make Realm  awesome!
+Please send your feedback to https://groups.google.com/forum/#!forum/realm-java
 
 Thanks!
 The Realm team

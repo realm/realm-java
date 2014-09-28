@@ -1,4 +1,4 @@
-ext.coreVersion = '0.82.2'
+ext.coreVersion = '0.83.1'
 
 buildscript {
     repositories {
@@ -26,6 +26,9 @@ task checkProperties(group: 'check', description: 'Check the user provided gradl
         throw new GradleException('The path provided in the ndkDir property in the gradle.properties is not a folder.')
     } else if (!file(new File(project.ext['ndk.dir'], 'RELEASE.TXT')).file) {
         throw new GradleException('The path provided in the ndkDir property in the gradle.properties does not seem to be an Android NDK.')
+    }
+    if (project.ext.has('encryption') && project.ext['encryption'] == 'true') {
+        project.coreVersion += '-encryption'
     }
 }
 

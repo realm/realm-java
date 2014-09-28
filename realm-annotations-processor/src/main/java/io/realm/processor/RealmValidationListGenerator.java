@@ -16,7 +16,6 @@
 
 package io.realm.processor;
 
-import com.google.common.base.Joiner;
 import com.squareup.javawriter.JavaWriter;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -65,12 +64,27 @@ public class RealmValidationListGenerator {
         for (String classToValidate : classesToValidate) {
             entries.add(String.format("\"%s\"", classToValidate));
         }
-        String statementSection = Joiner.on(", ").join(entries);
+        String statementSection = joinStringList(entries, ", ");
         writer.emitStatement("return Arrays.asList(%s)", statementSection);
         writer.endMethod();
         writer.emitEmptyLine();
 
         writer.endType();
         writer.close();
+    }
+
+    public static String joinStringList(List<String> strings, String separator) {
+        StringBuilder stringBuilder = new StringBuilder();
+        ListIterator<String> iterator = strings.listIterator();
+        while (iterator.hasNext()) {
+            int index = iterator.nextIndex();
+            String item = iterator.next();
+
+            if (index > 0) {
+                stringBuilder.append(separator);
+            }
+            stringBuilder.append(item);
+        }
+        return stringBuilder.toString();
     }
 }

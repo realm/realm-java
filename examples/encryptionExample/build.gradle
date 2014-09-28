@@ -1,0 +1,46 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.1'
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion '20.0.0'
+    defaultConfig {
+        applicationId 'examples.realm.io.encryptionExample'
+        minSdkVersion 17
+        targetSdkVersion 19
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            runProguard false
+            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    productFlavors {
+    }
+}
+
+task buildApt(type: GradleBuild) {
+    dir = file('../../realm-annotations-processor')
+    tasks = ['build']
+}
+
+tasks.preBuild {
+    dependsOn buildApt
+}
+
+dependencies {
+    apt files("../../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
+    compile project(':realm')
+}
