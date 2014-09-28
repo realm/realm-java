@@ -22,11 +22,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.google.common.base.Splitter;
-import com.google.common.base.Throwables;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Iterables;
-
 import java.io.File;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
@@ -34,12 +29,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -77,7 +69,7 @@ public class Realm {
     private Handler handler;
 
     // Package protected to be reachable by proxy classes
-    static final com.google.common.collect.Table<String, String, Long> columnIndices = HashBasedTable.create();
+    static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
 
     // The constructor in private to enforce the use of the static one
     private Realm(String absolutePath, byte[] key) {
@@ -148,7 +140,6 @@ public class Realm {
 
     /**
      * Realm static constructor
-     * @param writableFolder absolute path to a writable directory
      * @param context an Android context
      * @param key a 32-byte encryption key
      * @return an instance of the Realm class
@@ -234,7 +225,8 @@ public class Realm {
                 }
 
                 for (String className : proxyClasses) {
-                    String modelClassName = Iterables.getLast(Splitter.on(".").split(className));
+                    String[] splitted = className.split("\\.");
+                    String modelClassName = splitted[splitted.length - 1];
                     String generatedClassName = "io.realm." + modelClassName + "RealmProxy";
                     Class<?> generatedClass;
                     try {
@@ -296,7 +288,12 @@ public class Realm {
                         if (columnIndex == -1) {
                             throw new RealmMigrationNeededException("Column '" + fieldName + "' not found for type '" + modelClassName + "'");
                         }
-                        columnIndices.put(modelClassName, fieldName, columnIndex);
+                        Map<String, Long> innerMap = columnIndices.get(modelClassName);
+                        if (innerMap == null) {
+                            innerMap = new HashMap<String, Long>();
+                        }
+                        innerMap.put(fieldName, columnIndex);
+                        columnIndices.put(modelClassName, innerMap);
                     }
                 }
 
@@ -369,9 +366,10 @@ public class Realm {
                 table = (Table) method.invoke(null, transaction);
                 tables.put(clazz, table);
             } catch (IllegalAccessException e) {
-                throw Throwables.propagate(e); // Wrap the exception in a runtime one
+                throw new RealmException("Could not launch the initTable method");
             } catch (InvocationTargetException e) {
-                throw Throwables.propagate(e); // Wrap the exception in a runtime one
+                e.printStackTrace();
+                throw new RealmException("An exception occurred while running the initTable method");
             }
         }
 
@@ -437,11 +435,12 @@ public class Realm {
             //noinspection unchecked
             result = (E) constructor.newInstance();
         } catch (InstantiationException e) {
-            throw Throwables.propagate(e); // Wrap the exception in a runtime one
+            throw new RealmException("Could not instantiate the proxy class");
         } catch (IllegalAccessException e) {
-            throw Throwables.propagate(e); // Wrap the exception in a runtime one
+            throw new RealmException("Could not run the constructor of the proxy class");
         } catch (InvocationTargetException e) {
-            throw Throwables.propagate(e); // Wrap the exception in a runtime one
+            e.printStackTrace();
+            throw new RealmException("An exception occurred while instantiating the proxy class");
         }
         result.realmSetRow(row);
         result.setRealm(this);
