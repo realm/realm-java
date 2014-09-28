@@ -1051,12 +1051,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     boolean isImmutable() {
         if (!(parent instanceof Table)) {
-            if(parent == null) {
-                // free standing table, so it is mutable
-                return false;
-            } else {
-                return ((Group)parent).immutable;
-            }
+            return parent != null && ((Group) parent).immutable;
         } else {
             return ((Table)parent).isImmutable();
         }

@@ -30,8 +30,8 @@ public class ImplicitTransaction extends Group {
     }
 
     public void promoteToWrite() {
-        parent.promoteToWrite();
         immutable = false;
+        parent.promoteToWrite();
     }
 
     public void commitAndContinueAsRead() {

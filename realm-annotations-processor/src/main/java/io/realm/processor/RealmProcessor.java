@@ -40,7 +40,6 @@ public class RealmProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-
         RealmVersionChecker updateChecker = new RealmVersionChecker(processingEnv);
         updateChecker.executeRealmVersionUpdate();
 
@@ -52,27 +51,28 @@ public class RealmProcessor extends AbstractProcessor {
             // Check the annotation was applied to a Class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
                 error("The RealmClass annotation can only be applied to classes");
-                return false;
+                return true;
             }
             TypeElement typeElement = (TypeElement) classElement;
             className = typeElement.getSimpleName().toString();
-            classesToValidate.add(className);
 
             if (typeElement.toString().endsWith(".RealmObject") || typeElement.toString().endsWith("RealmProxy")) {
                 continue;
             }
 
+            classesToValidate.add(typeElement.toString());
+
             // Get the package of the class
             Element enclosingElement = typeElement.getEnclosingElement();
             if (!enclosingElement.getKind().equals(ElementKind.PACKAGE)) {
                 error("The RealmClass annotation does not support nested classes");
-                return false;
+                return true;
             }
 
             TypeElement parentElement = (TypeElement) processingEnv.getTypeUtils().asElement(typeElement.getSuperclass());
             if (!parentElement.toString().endsWith(".RealmObject")) {
                 error("A RealmClass annotated object must be derived from RealmObject");
-                return false;
+                return true;
             }
 
             PackageElement packageElement = (PackageElement) enclosingElement;
@@ -88,7 +88,7 @@ public class RealmProcessor extends AbstractProcessor {
 
                     if (!variableElement.getModifiers().contains(Modifier.PRIVATE)) {
                         error("The fields of the model must be private");
-                        return false;
+                        return true;
                     }
 
                     fields.add(variableElement);
@@ -108,9 +108,9 @@ public class RealmProcessor extends AbstractProcessor {
 
         if (!done) {
             RealmValidationListGenerator validationGenerator = new RealmValidationListGenerator(processingEnv, classesToValidate);
-            done = true;
             try {
                 validationGenerator.generate();
+                done = true;
             } catch (IOException e) {
                 error(e.getMessage());
             }

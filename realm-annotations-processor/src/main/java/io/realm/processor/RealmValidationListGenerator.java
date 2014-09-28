@@ -62,7 +62,7 @@ public class RealmValidationListGenerator {
         writer.beginMethod("List<String>", "getProxyClasses", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
         List<String> entries = new ArrayList<String>();
         for (String classToValidate : classesToValidate) {
-            entries.add(String.format("\"%s.%s%s\"", REALM_PACKAGE_NAME, classToValidate, PROXY_CLASS_SUFFIX));
+            entries.add(String.format("\"%s\"", classToValidate));
         }
         String statementSection = joinStringList(entries, ", ");
         writer.emitStatement("return Arrays.asList(%s)", statementSection);

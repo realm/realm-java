@@ -31,15 +31,14 @@ import java.io.IOException;
 import java.lang.String;
 import java.util.*;
 
-
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
     private String className;
     private String packageName;
     private List<VariableElement> fields;
-    private static final String realmPackageName = "io.realm";
-
-    private static final String tablePrefix = "class_";
+    private static final String REALM_PACKAGE_NAME = "io.realm";
+    private static final String TABLE_PREFIX = "class_";
+    private static final String PROXY_SUFFIX = "RealmProxy";
 
     public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment, String className, String packageName, List<VariableElement> fields) {
         this.processingEnvironment = processingEnvironment;
@@ -195,7 +194,7 @@ public class RealmProxyClassGenerator {
     }
 
     public void generate() throws IOException, UnsupportedOperationException {
-        String qualifiedGeneratedClassName = String.format("%s.%sRealmProxy", realmPackageName, className);
+        String qualifiedGeneratedClassName = String.format("%s.%s%s", REALM_PACKAGE_NAME, className, PROXY_SUFFIX);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
 
@@ -208,7 +207,7 @@ public class RealmProxyClassGenerator {
         // Set source code indent to 4 spaces
         writer.setIndent("    ");
 
-        writer.emitPackage(realmPackageName)
+        writer.emitPackage(REALM_PACKAGE_NAME)
                 .emitEmptyLine();
 
         writer.emitImports(
@@ -219,8 +218,7 @@ public class RealmProxyClassGenerator {
                 "io.realm.internal.LinkView",
                 "io.realm.RealmList",
                 "io.realm.RealmObject",
-                "java.util.Date",
-                "java.util.Arrays",
+                "java.util.*",
                 packageName + ".*")
                 .emitEmptyLine();
 
@@ -253,8 +251,8 @@ public class RealmProxyClassGenerator {
                 String getterPrefix = fieldTypeCanonicalName.equals("boolean")?"is":"get";
                 writer.beginMethod(fieldTypeCanonicalName, getterPrefix + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "return (%s) realmGetRow().get%s(%d)",
-                        fieldTypeCanonicalName, realmType, columnNumber);
+                        "return (%s) realmGetRow().get%s(Realm.columnIndices.get(\"%s\").get(\"%s\"))",
+                        fieldTypeCanonicalName, realmType, className, fieldName);
                 writer.endMethod();
                 writer.emitEmptyLine();
 
@@ -262,8 +260,8 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement(
-                        "realmGetRow().set%s(%d, (%s) value)",
-                        realmType, columnNumber, castingType);
+                        "realmGetRow().set%s(Realm.columnIndices.get(\"%s\").get(\"%s\"), (%s) value)",
+                        realmType, className, fieldName, castingType);
                 writer.endMethod();
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 /**
@@ -273,12 +271,12 @@ public class RealmProxyClassGenerator {
                 // Getter
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
-                writer.beginControlFlow("if (realmGetRow().isNullLink(%d))", columnNumber);
+                writer.beginControlFlow("if (realmGetRow().isNullLink(Realm.columnIndices.get(\"%s\").get(\"%s\")))", className, fieldName);
                 writer.emitStatement("return null");
                 writer.endControlFlow();
                 writer.emitStatement(
-                        "return realm.get(%s.class, realmGetRow().getLink(%d))",
-                        fieldTypeCanonicalName, columnNumber);
+                        "return realm.get(%s.class, realmGetRow().getLink(Realm.columnIndices.get(\"%s\").get(\"%s\")))",
+                        fieldTypeCanonicalName, className, fieldName);
                 writer.endMethod();
                 writer.emitEmptyLine();
 
@@ -286,9 +284,9 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.beginControlFlow("if (value == null)");
-                writer.emitStatement("realmGetRow().nullifyLink(%d)", columnNumber);
+                writer.emitStatement("realmGetRow().nullifyLink(Realm.columnIndices.get(\"%s\").get(\"%s\"))", className, fieldName);
                 writer.endControlFlow();
-                writer.emitStatement("realmGetRow().setLink(%d, value.realmGetRow().getIndex())", columnNumber);
+                writer.emitStatement("realmGetRow().setLink(Realm.columnIndices.get(\"%s\").get(\"%s\"), value.realmGetRow().getIndex())", className, fieldName);
                 writer.endMethod();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 /**
@@ -306,15 +304,15 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "return new RealmList(%s.class, realmGetRow().getLinkList(%d), realm)",
-                        genericType, columnNumber);
+                        "return new RealmList(%s.class, realmGetRow().getLinkList(Realm.columnIndices.get(\"%s\").get(\"%s\")), realm)",
+                        genericType, className, fieldName);
                 writer.endMethod();
                 writer.emitEmptyLine();
 
                 // Setter
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                writer.emitStatement("LinkView links = realmGetRow().getLinkList(%d)", columnNumber);
+                writer.emitStatement("LinkView links = realmGetRow().getLinkList(Realm.columnIndices.get(\"%s\").get(\"%s\"))", className, fieldName);
                 writer.beginControlFlow("if (value == null)");
                 writer.emitStatement("return"); // TODO: delete all the links instead
                 writer.endControlFlow();
@@ -338,8 +336,8 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "ImplicitTransaction", "transaction"); // Argument type & argument name
 
-        writer.beginControlFlow("if(!transaction.hasTable(\"" + tablePrefix + this.className + "\"))");
-        writer.emitStatement("Table table = transaction.getTable(\"%s%s\")", tablePrefix, this.className);
+        writer.beginControlFlow("if(!transaction.hasTable(\"" + TABLE_PREFIX + this.className + "\"))");
+        writer.emitStatement("Table table = transaction.getTable(\"%s%s\")", TABLE_PREFIX, this.className);
 
         // For each field generate corresponding table index constant
         for (VariableElement field : fields) {
@@ -357,11 +355,11 @@ public class RealmProxyClassGenerator {
                         JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
                         fieldName.toLowerCase(Locale.getDefault()));
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
-                writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", tablePrefix, fieldTypeName);
-                writer.emitStatement("%sRealmProxy.initTable(transaction)", fieldTypeName);
+                writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", TABLE_PREFIX, fieldTypeName);
+                writer.emitStatement("%s%s.initTable(transaction)", fieldTypeName, PROXY_SUFFIX);
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(ColumnType.LINK, \"%s\", transaction.getTable(\"%s%s\"))",
-                        fieldName.toLowerCase(Locale.getDefault()), tablePrefix, fieldTypeName);
+                        fieldName.toLowerCase(Locale.getDefault()), TABLE_PREFIX, fieldTypeName);
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
                 String genericType;
@@ -370,16 +368,126 @@ public class RealmProxyClassGenerator {
                 } else {
                     genericType = genericCanonicalType;
                 }
-                writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", tablePrefix, genericType);
-                writer.emitStatement("%sRealmProxy.initTable(transaction)", genericType);
+                writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", TABLE_PREFIX, genericType);
+                writer.emitStatement("%s%s.initTable(transaction)", genericType, PROXY_SUFFIX);
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(ColumnType.LINK_LIST, \"%s\", transaction.getTable(\"%s%s\"))",
-                        fieldName.toLowerCase(Locale.getDefault()), tablePrefix, genericType);
+                        fieldName.toLowerCase(Locale.getDefault()), TABLE_PREFIX, genericType);
             }
         }
         writer.emitStatement("return table");
         writer.endControlFlow();
-        writer.emitStatement("return transaction.getTable(\"%s%s\")", tablePrefix, this.className);
+        writer.emitStatement("return transaction.getTable(\"%s%s\")", TABLE_PREFIX, this.className);
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        /**
+         * validateTable method
+         */
+        writer.beginMethod(
+                "void", // Return type
+                "validateTable", // Method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
+                "ImplicitTransaction", "transaction"); // Argument type & argument name
+
+        writer.beginControlFlow("if(transaction.hasTable(\"" + TABLE_PREFIX + this.className + "\"))");
+        writer.emitStatement("Table table = transaction.getTable(\"%s%s\")", TABLE_PREFIX, this.className);
+
+        // verify number of columns
+        writer.beginControlFlow("if(table.getColumnCount() != " + fields.size() + ")");
+        writer.emitStatement("throw new IllegalStateException(\"Column count does not match\")");
+        writer.endControlFlow();
+
+        // create type dictionary for lookup
+        writer.emitStatement("Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>()");
+        writer.beginControlFlow("for(long i = 0; i < " + fields.size() + "; i++)");
+        writer.emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))");
+        writer.endControlFlow();
+
+        // For each field verify there is a corresponding column
+        ListIterator<VariableElement> fieldsIterator = fields.listIterator();
+        while (fieldsIterator.hasNext()) {
+            int columnNumber = fieldsIterator.nextIndex();
+            VariableElement field = fieldsIterator.next();
+
+            String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            String fieldTypeName;
+            if (fieldTypeCanonicalName.contains(".")) {
+                fieldTypeName = fieldTypeCanonicalName.substring(fieldTypeCanonicalName.lastIndexOf('.') + 1);
+            } else {
+                fieldTypeName = fieldTypeCanonicalName;
+            }
+
+            if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
+                // make sure types align
+                writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
+                writer.emitStatement("throw new IllegalStateException(\"Missing column '%s'\")", fieldName);
+                writer.endControlFlow();
+                writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)", fieldName, JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
+                writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column '%s'\")",
+                        fieldTypeName, fieldName);
+                writer.endControlFlow();
+            } else if (typeUtils.isAssignable(field.asType(), realmObject)) { // Links
+                writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
+                writer.emitStatement("throw new IllegalStateException(\"Missing column '%s'\")", fieldName);
+                writer.endControlFlow();
+                writer.beginControlFlow("if (columnTypes.get(\"%s\") != ColumnType.LINK)", fieldName);
+                writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column '%s'\")",
+                        fieldTypeName, fieldName);
+                writer.endControlFlow();
+                writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", TABLE_PREFIX, fieldTypeName);
+                writer.emitStatement("throw new IllegalStateException(\"Missing table '%s%s' for column '%s'\")",
+                        TABLE_PREFIX, fieldTypeName, fieldName);
+                writer.endControlFlow();
+                // TODO: Replace with a proper comparison
+//                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, fieldTypeName);
+//                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
+//                writer.emitStatement("throw new IllegalStateException(\"Mismatching link tables for column '%s'\")",
+//                        fieldName);
+//                writer.endControlFlow();
+            } else if (typeUtils.isAssignable(field.asType(), realmList)) { // Link Lists
+                String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
+                String genericType;
+                if (genericCanonicalType.contains(".")) {
+                    genericType = genericCanonicalType.substring(genericCanonicalType.lastIndexOf('.') + 1);
+                } else {
+                    genericType = genericCanonicalType;
+                }
+                writer.beginControlFlow("if(!columnTypes.containsKey(\"%s\"))", fieldName);
+                writer.emitStatement("throw new IllegalStateException(\"Missing column '%s'\")", fieldName);
+                writer.endControlFlow();
+                writer.beginControlFlow("if(columnTypes.get(\"%s\") != ColumnType.LINK_LIST)", fieldName);
+                writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column '%s'\")",
+                        genericType, fieldName);
+                writer.endControlFlow();
+                writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", TABLE_PREFIX, genericType);
+                writer.emitStatement("throw new IllegalStateException(\"Missing table '%s%s' for column '%s'\")",
+                        TABLE_PREFIX, genericType, fieldName);
+                writer.endControlFlow();
+                // TODO: Replace with a proper comparison
+//                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, genericType);
+//                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
+//                writer.emitStatement("throw new IllegalStateException(\"Mismatching link list tables for column '%s'\")",
+//                        fieldName);
+//                writer.endControlFlow();
+            }
+        }
+        writer.endControlFlow();
+        writer.endMethod();
+        writer.emitEmptyLine();
+
+        /**
+         * getFieldNames method
+         */
+        writer.beginMethod("List<String>", "getFieldNames", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
+        List<String> entries = new ArrayList<String>();
+        for (VariableElement field : fields) {
+            String fieldName = field.getSimpleName().toString();
+            entries.add(String.format("\"%s\"", fieldName));
+        }
+        String statementSection = joinStringList(entries, ", ");
+        writer.emitStatement("return Arrays.asList(%s)", statementSection);
         writer.endMethod();
         writer.emitEmptyLine();
 
@@ -442,7 +550,7 @@ public class RealmProxyClassGenerator {
         /**
          * equals method
          */
-        String proxyClassName = className + "RealmProxy";
+        String proxyClassName = className + PROXY_SUFFIX;
         writer.emitAnnotation("Override");
         writer.beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o");
         writer.emitStatement("if (this == o) return true");
@@ -495,5 +603,20 @@ public class RealmProxyClassGenerator {
 
     private static String capitaliseFirstChar(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1);
+    }
+
+    public static String joinStringList(List<String> strings, String separator) {
+        StringBuilder stringBuilder = new StringBuilder();
+        ListIterator<String> iterator = strings.listIterator();
+        while (iterator.hasNext()) {
+            int index = iterator.nextIndex();
+            String item = iterator.next();
+
+            if (index > 0) {
+                stringBuilder.append(separator);
+            }
+            stringBuilder.append(item);
+        }
+        return stringBuilder.toString();
     }
 }
