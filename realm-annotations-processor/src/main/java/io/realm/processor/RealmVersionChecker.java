@@ -29,8 +29,8 @@ import java.nio.charset.Charset;
 
 public class RealmVersionChecker {
 
-    public static final String UPDATE_FILE_NAME = "realm_version_check.timestmp";
-    public static final String REALM_ANDROID_DOWNLOAD_URL = "http://static.realm.io/downloads/android/latest";
+    public static final String UPDATE_FILE_NAME = "realm_version_check.timestamp";
+    public static final String REALM_ANDROID_DOWNLOAD_URL = "http://static.realm.io/downloads/java/latest";
 
     private static final String versionUrlStr = "http://static.realm.io/update/java?"; 
     //The version value would ideally be pulled from a build file
@@ -87,7 +87,7 @@ public class RealmVersionChecker {
         }
 
         try {
-            long retL = new Long(lastVersionStr);
+            long retL = Long.parseLong(lastVersionStr);
             //System.out.println("Stored version found: " + retL);
             return retL;
         } catch (NumberFormatException ne) {
