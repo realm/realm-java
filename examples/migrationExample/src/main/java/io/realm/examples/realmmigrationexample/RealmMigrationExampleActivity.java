@@ -31,7 +31,7 @@ public class RealmMigrationExampleActivity extends Activity {
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
 
-        //String path0 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default0), "default0");
+        String path0 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default0), "default0");
         String path1 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default1), "default1");
         String path2 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default2), "default2");
 
@@ -42,10 +42,6 @@ public class RealmMigrationExampleActivity extends Activity {
             Log.i(TAG, "Excellent! This is expected.");
         }
 
-        //Realm.migrateRealmAtPath(path0, new Migration());
-        //Realm realm0 = Realm.getInstance(this, "default0");
-        //showStatus(realm0);
-
         Realm.migrateRealmAtPath(path1, new Migration());
         Realm realm1 = Realm.getInstance(this, "default1");
         showStatus(realm1);
@@ -53,6 +49,10 @@ public class RealmMigrationExampleActivity extends Activity {
         Realm.migrateRealmAtPath(path2, new Migration());
         Realm realm2 = Realm.getInstance(this, "default2");
         showStatus(realm2);
+
+        Realm.migrateRealmAtPath(path0, new Migration());
+        Realm realm0 = Realm.getInstance(this, "default0");
+        showStatus(realm0);
     }
 
     private String copyBundledRealmFile(InputStream inputStream, String outFileName) {
@@ -76,12 +76,6 @@ public class RealmMigrationExampleActivity extends Activity {
         StringBuilder stringBuilder = new StringBuilder();
         for (Person person : realm.allObjects(Person.class)) {
             stringBuilder.append(person.toString()).append("\n");
-            /*
-            stringBuilder.append("name: " + person.getFullName()).append("\n");
-            stringBuilder.append("age: " + person.getAge()).append("\n");
-            stringBuilder.append("pets: " + person.getPets().size()).append("\n");
-            // FIXME - print actual pets
-            */
         }
         return stringBuilder.toString();
     }

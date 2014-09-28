@@ -32,9 +32,7 @@ public class Migration implements RealmMigration {
 
             for (int i = 0; i < personTable.size(); i++) {
                 if (personTable.getString(fullNameIndex, i).equals("JP McDonald")) {
-                    // FIXME - add new pet object
-                    // long petIndex = petTable.add("Jimbo", "Dog");
-                    // FIXME - how do we add jimbo to JP's dogs property?
+                    personTable.getRow(i).getLinkList(petsIndex).add(petTable.add("Jimbo", "Dog"));
                 }
             }
             version++;
@@ -45,13 +43,13 @@ public class Migration implements RealmMigration {
             long typeIndex = petTable.addColumn(ColumnType.INTEGER, "type");
             for (int i = 0; i < petTable.size(); i++) {
                 String type = petTable.getString(oldTypeIndex, i);
-                if (type.equals("dog")) {
+                if (type.equals("Dog")) {
                     petTable.setLong(typeIndex, i, 1);
                 }
-                else if (type.equals("cat")) {
+                else if (type.equals("Cat")) {
                     petTable.setLong(typeIndex, i, 2);
                 }
-                else if (type.equals("hamster")) {
+                else if (type.equals("Hamster")) {
                     petTable.setLong(typeIndex, i, 3);
                 }
             }
