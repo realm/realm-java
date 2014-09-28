@@ -13,9 +13,10 @@ import java.nio.charset.Charset;
 
 public class RealmUpdateChecker {
 
-    public static final String UPDATE_FILE = "/sdcard/lastRealmVersionCheck";
+    public static final String UPDATE_FILE = "last_realm_version";
 
-    private static final String versionUrlStr = "http://static.realm.io/update/java?";
+    private static final String versionUrlStr = "http://static.realm.io/update/java?"; 
+    //The version value would ideally be pulled from a build file
     private static final String REALM_VERSION = "0.70.0";
 
     private void launchRealmCheck() {
