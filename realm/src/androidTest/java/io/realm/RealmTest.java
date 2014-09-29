@@ -35,7 +35,7 @@ public class RealmTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-
+        Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
@@ -664,14 +664,14 @@ public class RealmTest extends AndroidTestCase {
     // int getVersion()
     public void testGetVersion() throws IOException {
 
-        int version = testRealm.getVersion();
+        long version = testRealm.getVersion();
 
         assertTrue("Realm.version returns invalid version number", version > 0);
     }
 
     // void setVersion(int version)setVersion(int version)
     public void testSetVersion() {
-        int version = 42;
+        long version = 42;
 
         testRealm.setVersion(version);
 

@@ -353,13 +353,13 @@ public class RealmProxyClassGenerator {
             if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 writer.emitStatement("table.addColumn(%s, \"%s\")",
                         JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
-                        fieldName.toLowerCase(Locale.getDefault()));
+                        fieldName);
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", TABLE_PREFIX, fieldTypeName);
                 writer.emitStatement("%s%s.initTable(transaction)", fieldTypeName, PROXY_SUFFIX);
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(ColumnType.LINK, \"%s\", transaction.getTable(\"%s%s\"))",
-                        fieldName.toLowerCase(Locale.getDefault()), TABLE_PREFIX, fieldTypeName);
+                        fieldName, TABLE_PREFIX, fieldTypeName);
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
                 String genericType;
@@ -372,7 +372,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("%s%s.initTable(transaction)", genericType, PROXY_SUFFIX);
                 writer.endControlFlow();
                 writer.emitStatement("table.addColumnLink(ColumnType.LINK_LIST, \"%s\", transaction.getTable(\"%s%s\"))",
-                        fieldName.toLowerCase(Locale.getDefault()), TABLE_PREFIX, genericType);
+                        fieldName, TABLE_PREFIX, genericType);
             }
         }
         writer.emitStatement("return table");

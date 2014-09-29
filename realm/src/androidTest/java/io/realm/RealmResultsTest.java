@@ -33,6 +33,7 @@ public class RealmResultsTest extends AndroidTestCase {
     @Override
     protected void setUp() throws Exception {
 
+        Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
