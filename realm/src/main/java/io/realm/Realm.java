@@ -453,7 +453,7 @@ public class Realm {
             simpleClassName = clazz.getSimpleName();
             simpleClassNames.put(clazz, simpleClassName);
         }
-        return transaction.hasTable(simpleClassName);
+        return transaction.hasTable(TABLE_PREFIX+simpleClassName);
     }
 
     /**
