@@ -39,11 +39,4 @@ public class City extends RealmObject {
         this.votes = votes;
     }
 
-    @Override
-    public String toString() {
-        return "City{" +
-                "name='" + name + '\'' +
-                ", votes=" + votes +
-                '}';
-    }
 }
