@@ -24,7 +24,6 @@ android {
 
 }
 dependencies {
-    compile group: 'com.google.guava', name: 'guava', version: '15.0'
     androidTestApt files("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
 }
 
