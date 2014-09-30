@@ -82,7 +82,7 @@ public class RealmExampleActivity extends Activity implements AdapterView.OnItem
         }
 
         JsonParser parser = new JsonParser();
-        JsonArray array = parser.parse(new InputStreamReader(stream)).getAsJsonArray();
+        JsonArray jsonArray = parser.parse(new InputStreamReader(stream)).getAsJsonArray();
 
         // Clear the realm from last time
         Realm.deleteRealmFile(this);
@@ -92,7 +92,7 @@ public class RealmExampleActivity extends Activity implements AdapterView.OnItem
 
         // Open a transaction to store items into the realm
         realm.beginTransaction();
-        for (JsonElement e : array) {
+        for (JsonElement e : jsonArray) {
             // Create a realm capable object
             City realmCity = realm.createObject(City.class);
             realmCity.setName(e.getAsJsonObject().get("name").getAsString());
