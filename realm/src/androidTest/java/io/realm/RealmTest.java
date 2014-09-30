@@ -55,7 +55,7 @@ public class RealmTest extends AndroidTestCase {
 
     private final static int BACKGROUND_COMMIT_TEST_DATA_SET_SIZE = 5;
 
-    /*
+    /* TODO: re-implement
     private void getNotifications(int totalExpected) {
         int lastCount = 0;
         int retries = 8;
@@ -75,7 +75,7 @@ public class RealmTest extends AndroidTestCase {
     }
     */
 
-    /*
+    /* TODO: re-implement
     public void testRealmThreadCachingSpeed() {
         long tic1 = System.currentTimeMillis();
         Realm realm1 = Realm.getInstance(this.getContext());
@@ -358,7 +358,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
     }
 
-    /*
+    /* TODO: re-implement
     public void testChangeNotify() {
         final int[] testCount = {0};
         testRealm.addChangeListener(new RealmChangeListener() {
@@ -387,7 +387,7 @@ public class RealmTest extends AndroidTestCase {
     }
     */
 
-    /*
+    /* TODO: re-implement
     // void removeChangeListener(RealmChangeListener listener)
     public void testChangeNotifyRemove() {
         final int[] testCount = {0};
@@ -434,7 +434,7 @@ public class RealmTest extends AndroidTestCase {
     }
     */
 
-    /*
+    /* TODO: re-implement
     // void removeChangeListener(RealmChangeListener listener)
     public void testFailChangeNotifyNoListener() {
         final int[] testCount = {0};
@@ -477,7 +477,7 @@ public class RealmTest extends AndroidTestCase {
     }
     */
 
-    /*
+    /* TODO: re-implement
     // void removeAllChangeListeners()
     public void testRemoveAllChangeListeners() {
         final int[] testCount = new int[1];
@@ -511,7 +511,7 @@ public class RealmTest extends AndroidTestCase {
     }
     */
 
-    /*
+    /* TODO: re-implement
     // void removeAllChangeListeners()
     public void testFailRemoveAllChangeListeners() {
         final int[] testCount = {0};
@@ -551,7 +551,7 @@ public class RealmTest extends AndroidTestCase {
     }
     */
 
-    /*
+    /* TODO: re-implement
     public void testChangeUpdateFromOtherThread() {
         final int[] testCount = {0};
 
