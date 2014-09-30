@@ -55,10 +55,12 @@ public class JNIMixedSubtableTest extends TestCase {
         // Getting a subtable on a mixed with a String value should not work
         try { Table subtable = table.getSubtable(1, 0); fail("Mixed contains a String, not a subtable"); } catch (IllegalArgumentException e) { }
 
+        /* FIXME: Subtable in Mixed is currently not supported
         // Now we specifically set the Mixed value to a subtable
         table.setMixed(1, 0, new Mixed(ColumnType.TABLE));
         // Getting a subtable on the mixed column is now allowed
         Table subtable = table.getSubtable(1, 0);
+        */
     }
 
     // Test uses TableSpec..
@@ -85,6 +87,7 @@ public class JNIMixedSubtableTest extends TestCase {
             table.removeLast();
         }
 
+        /* FIXME: Subtable in Mixed is currently not supported
         long ROW = 0;
         // Add empty row - the simple way
         table.addEmptyRow();
@@ -105,8 +108,10 @@ public class JNIMixedSubtableTest extends TestCase {
         assertEquals(2, table.getSubtableSize(1, ROW));
         assertEquals(27, subtable.getLong(0, ROW));
         assertEquals(273, subtable.getLong(0, ROW+1));
+        */
     }
 
+    /* FIXME: Subtable in Mixed is currently not supported
     public void testShouldCreateSubtableInMixedTypeColumn2() {
         Table table = new Table();
 
@@ -120,5 +125,5 @@ public class JNIMixedSubtableTest extends TestCase {
 
         Table subtable = table.getSubtable(1, 0);
     }
-
+    */
 }

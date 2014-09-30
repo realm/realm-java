@@ -19,4 +19,8 @@ public class RealmMigrationNeededException extends RuntimeException {
     public RealmMigrationNeededException(String detailMessage) {
         super(detailMessage);
     }
+
+    public RealmMigrationNeededException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
+    }
 }

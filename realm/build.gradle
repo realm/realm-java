@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.neenbedankt.android-apt'
 
 android {
     compileSdkVersion 20
@@ -22,6 +23,9 @@ android {
 
 
 }
+dependencies {
+    androidTestApt files("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
+}
 
 android.libraryVariants.all { variant ->
     task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
@@ -43,6 +47,11 @@ android.libraryVariants.all { variant ->
     }
 }
 
+task buildApt(type: GradleBuild) {
+    dir = file('../realm-annotations-processor')
+    tasks = ['build']
+}
+
 task compileJni(type: GradleBuild) {
     dir = file('../realm-jni')
     tasks = ['buildAndroidJni']
@@ -50,4 +59,5 @@ task compileJni(type: GradleBuild) {
 
 tasks.preBuild {
     dependsOn compileJni
+    dependsOn buildApt
 }

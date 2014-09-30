@@ -264,7 +264,7 @@ public class Realm {
                     } catch (IllegalAccessException e) {
                         throw new RealmException("Could not execute the validateTable method in the " + generatedClassName + " class");
                     } catch (InvocationTargetException e) {
-                        throw new RealmMigrationNeededException(e.getMessage());
+                        throw new RealmMigrationNeededException(e.getMessage(), e);
                     }
 
                     // Populate the columnIndices table
@@ -453,7 +453,7 @@ public class Realm {
             simpleClassName = clazz.getSimpleName();
             simpleClassNames.put(clazz, simpleClassName);
         }
-        return transaction.hasTable(simpleClassName);
+        return transaction.hasTable(TABLE_PREFIX+simpleClassName);
     }
 
     /**
@@ -558,7 +558,8 @@ public class Realm {
         getTable(classSpec).clear();
     }
 
-    private long getVersion() {
+    // package protected so unit tests can access it
+    long getVersion() {
         if (!transaction.hasTable("metadata")) {
             return UNVERSIONED;
         }
@@ -566,7 +567,8 @@ public class Realm {
         return metadataTable.getLong(0, 0);
     }
 
-    private void setVersion(long version) {
+    // package protected so unit tests can access it
+    void setVersion(long version) {
         Table metadataTable = transaction.getTable("metadata");
         if (metadataTable.getColumnCount() == 0) {
             metadataTable.addColumn(ColumnType.INTEGER, "version");

@@ -75,20 +75,20 @@ public class JNITransactions extends AndroidTestCase {
     // TODO: tests should be done both for all Durability options
 
     public void testMustWriteAndReadEmpty() {
-        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 0);
         checkRead(db, 0);
     }
 
     public void testMustWriteCommit() {
-        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 10);
         checkRead(db, 10);
     }
 
 
     public void testShouldThrowExceptionAfterClosedReadTransaction() {
-        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 10);
         ReadTransaction rt = db.beginRead();
 
@@ -109,7 +109,7 @@ public class JNITransactions extends AndroidTestCase {
 
 
     public void testShouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
-        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 10);
         ReadTransaction rt = db.beginRead();
 
@@ -129,7 +129,7 @@ public class JNITransactions extends AndroidTestCase {
 
 
     public void testShouldThrowExceptionWhenWritingInReadTrans() {
-        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         ReadTransaction rt = db.beginRead();
 
         try {
@@ -146,7 +146,7 @@ public class JNITransactions extends AndroidTestCase {
 
 
     public void testOnlyOneCommit() {
-        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         WriteTransaction trans = db.beginWrite();
 
         try {
@@ -166,7 +166,7 @@ public class JNITransactions extends AndroidTestCase {
     }
 
     public void testMustRollback() {
-        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 1);
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
@@ -179,7 +179,7 @@ public class JNITransactions extends AndroidTestCase {
     }
 
     public void testMustAllowDoubleCommitAndRollback() {
-        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         {
             WriteTransaction trans = db.beginWrite();
             Table tbl = trans.getTable("EmployeeTable");
@@ -216,7 +216,7 @@ public class JNITransactions extends AndroidTestCase {
     // TableQuery.... in ReadTransactions
 
     public void testMustFailOnWriteInReadTransactions() {
-        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL);
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
 
         writeOneTransaction(db, 1);
 

@@ -14,9 +14,6 @@ build.gradle file in the respective example. Then click "Run".
 But more importantly check out the source code in RealmIntroExample/app/src which will give examples
 for how to use the API.
 
-For the RealmGridViewExample, we have experienced a bug i GSON which means that for some devices
-the example doesn't work.
-
 Feedback
 --------
 We highly appreciate your feedback to make Realm  awesome!
