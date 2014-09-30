@@ -4,9 +4,8 @@ set -e
 
 version=$(cat version.txt)
 
-echo "Deleting old artifacts"
-find distribution -name "realm*.jar" -delete
-find distribution -name "realm*.aar" -delete
+echo "Cleaning the distribution folder"
+git clean -xfd distribution
 
 echo "Building the annotation processor"
 (
@@ -21,7 +20,8 @@ echo "Building the Javadocs"
 ./gradlew realm:javadocReleaseJar
 
 echo "Copying files to the distribution folder"
-cp -f version.txt distribution
+sed -i.bak "s/CHANGEME/${version}/g" distribution/realm/build.gradle
+rm -f distribution/realm/build.gradle.bak
 cp -f changelog.txt distribution
 cp realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar distribution
 cp realm/build/outputs/aar/realm-${version}.aar distribution/realm
