@@ -38,4 +38,12 @@ public class City extends RealmObject {
     public void setVotes(long votes) {
         this.votes = votes;
     }
+
+    @Override
+    public String toString() {
+        return "City{" +
+                "name='" + name + '\'' +
+                ", votes=" + votes +
+                '}';
+    }
 }
