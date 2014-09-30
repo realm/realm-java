@@ -24,5 +24,41 @@
       "votes" : 11 },
 
     { "name"  : "Krakow",
+      "votes" : 9 },
+
+    { "name"  : "Peoria",
+      "votes" : 72 },
+
+    { "name"  : "Springfield",
+      "votes" : 88 },
+
+    { "name"  : "Kansas City",
+      "votes" : 100 },
+
+    { "name"  : "Tokyo",
+      "votes" : 20 },
+
+    { "name"  : "Boise",
+      "votes" : 17 },
+
+    { "name"  : "Los Angeles",
+      "votes" : 14 },
+
+    { "name"  : "Newark",
+      "votes" : 12 },
+
+    { "name"  : "Chicago",
+      "votes" : 11 },
+
+    { "name"  : "Detroit",
+      "votes" : 91 },
+
+    { "name"  : "Florence",
+      "votes" : 4 },
+
+    { "name"  : "Madrid",
+      "votes" : 1 },
+
+    { "name"  : "London",
       "votes" : 9 }
 ]

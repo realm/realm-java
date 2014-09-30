@@ -25,6 +25,12 @@ import android.widget.TextView;
 
 import java.util.List;
 
+// This adapter is strictly to interface with the GridView and doesn't
+// particular show much interesting Realm functionality.
+
+// Alternatively from this example,
+// a developer could update the getView() to pull items from the Realm.
+
 public class CityAdapter extends BaseAdapter {
 
     public static final String TAG = RealmExampleActivity.class.getName();

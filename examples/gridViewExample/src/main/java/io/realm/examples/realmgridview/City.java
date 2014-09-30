@@ -38,4 +38,5 @@ public class City extends RealmObject {
     public void setVotes(long votes) {
         this.votes = votes;
     }
+
 }
