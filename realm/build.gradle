@@ -47,6 +47,11 @@ android.libraryVariants.all { variant ->
     }
 }
 
+task buildApt(type: GradleBuild) {
+    dir = file('../realm-annotations-processor')
+    tasks = ['build']
+}
+
 task compileJni(type: GradleBuild) {
     dir = file('../realm-jni')
     tasks = ['buildAndroidJni']
@@ -54,4 +59,5 @@ task compileJni(type: GradleBuild) {
 
 tasks.preBuild {
     dependsOn compileJni
+    dependsOn buildApt
 }
