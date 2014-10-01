@@ -177,4 +177,8 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals("Should have same size", resultList.size(), sortedList.size());
         assertEquals("First excepted to be last", resultList.first().getColumnString(), sortedList.last().getColumnString());
     }
+
+    public void testCount throws IOException {
+        assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
+    }
 }
