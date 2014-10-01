@@ -26,7 +26,6 @@ public class RealmReader extends Thread implements KillableThread {
 
     public static final String TAG = RealmReader.class.getName();
 
-    private Realm realm = null;
     private Context context = null;
 
     private boolean mRunning = true;
@@ -38,7 +37,7 @@ public class RealmReader extends Thread implements KillableThread {
     }
 
     public void run() {
-        realm = Realm.getInstance(context);
+        Realm realm = Realm.getInstance(context);
 
         int loopCount = 0;
 
@@ -59,6 +58,7 @@ public class RealmReader extends Thread implements KillableThread {
         mRunning = false;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public int getReadCount() {
         return mReadCount;
     }
