@@ -812,6 +812,15 @@ public class RealmQuery<E extends RealmObject> {
         return this.query.maximumDate(columnIndex);
     }
 
+    /**
+     * Count the number of matching objects
+     *
+     * @return The number of matching objects
+     */
+    public long count() {
+        return this.query.count();
+    }
+
     // Execute
 
     /**
