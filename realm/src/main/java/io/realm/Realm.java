@@ -591,8 +591,10 @@ public class Realm {
     /**
      * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
      * The realm must be unused and closed before calling this method.
+     * WARNING: Your Realm must not be open (typically when your app launch).
      * @param context an Android context.
      * @return false if a file could not be deleted. The failing file will be logged.
+     * @see io.realm.Realm#clear(Class)
      */
     public static boolean deleteRealmFile(Context context) {
         return deleteRealmFile(context, DEFAULT_REALM_NAME);

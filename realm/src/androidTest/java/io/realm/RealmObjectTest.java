@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.test.AndroidTestCase;
+
 import io.realm.entities.AllTypes;
 import io.realm.internal.Row;
 
@@ -47,4 +48,25 @@ public class RealmObjectTest extends AndroidTestCase {
         assertEquals("RealmObject.realmGetRow seems to return wrong row type: ", 8, row.getColumnCount());
     }
 
+    public void testStringEncoding() {
+        String[] strings = {"ABCD", "ÆØÅ", "Ö∫Ë", "ΠΑΟΚ", "Здравей"};
+
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+
+        for (String str : strings) {
+            AllTypes obj1 = testRealm.createObject(AllTypes.class);
+            obj1.setColumnString(str);
+        }
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> objects = testRealm.allObjects(AllTypes.class);
+        assertEquals(strings.length, objects.size());
+        int i = 0;
+        for (AllTypes obj : objects) {
+            String s = obj.getColumnString();
+            assertEquals(strings[i], s);
+            i++;
+        }
+    }
 }
