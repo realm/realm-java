@@ -16,6 +16,14 @@
 
 package io.realm;
 
+/**
+ * Using RealmChangeListener, it is possible to be notified when another instance of a Realm is
+ * changed.
+ *
+ * @see Realm#addChangeListener(RealmChangeListener)
+ * @see Realm#removeAllChangeListeners()
+ * @see Realm#removeChangeListener(RealmChangeListener)
+ */
 public interface RealmChangeListener {
 
     /**

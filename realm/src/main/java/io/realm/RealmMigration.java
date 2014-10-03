@@ -16,6 +16,12 @@
 
 package io.realm;
 
+/**
+ * RealmMigration is used to allow user defined migration of one model to a another.
+ *
+ * @see Realm#migrateRealmAtPath(String, byte[], RealmMigration)
+ * @see Realm#migrateRealmAtPath(String, RealmMigration)
+ */
 public interface RealmMigration {
 
     /**
