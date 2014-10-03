@@ -46,13 +46,13 @@ import io.realm.internal.android.LooperThread;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. Objects
- * are created. Objects within a Realm can be queried and read at any time, while creating,
- * modifying, and deleting objects can only be done through transactions.
+ * are created. Objects within a Realm can be queried and read at any time. Creating,
+ * modifying, and deleting objects must be done through transactions.
  *
  * The transactions ensure that multiple instances (on multiple threads) can access the objects
- * in a consistent state.
+ * in a consistent state with full ACID guaranties.
  *
- * The instances of a Realm will be automatically updates when one instance changes (commits) a
+ * The instances of a Realm will be automatically updated when one instance commits a
  * change (create, modify or delete an object).
  */
 public class Realm {
