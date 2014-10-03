@@ -27,7 +27,6 @@ public class RealmWriter extends Thread implements KillableThread {
 
     public static final String TAG = RealmWriter.class.getName();
 
-    private Realm   realm   = null;
     private Context context = null;
 
     private boolean mRunning = true;
@@ -39,11 +38,11 @@ public class RealmWriter extends Thread implements KillableThread {
     }
 
     public void run() {
-        realm = Realm.getInstance(context);
+        Realm realm = Realm.getInstance(context);
 
         int iterCount = 0;
 
-        while (iterCount < mInsertCount && mRunning == true) {
+        while (iterCount < mInsertCount && mRunning) {
             realm.beginTransaction();
 
             Person person = realm.createObject(Person.class);
@@ -51,7 +50,7 @@ public class RealmWriter extends Thread implements KillableThread {
             person.setAge(iterCount % 20 + (50 - 20));
 
             //Add a dog to every 50th person
-            if(iterCount % 50 == 0) {
+            if (iterCount % 50 == 0) {
                 Dog dog = realm.createObject(Dog.class);
                 dog.setName("Foo" + iterCount + "Fido");
                 person.setDog(dog);
@@ -71,6 +70,7 @@ public class RealmWriter extends Thread implements KillableThread {
         mRunning = false;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public int getInsertCount() {
         return mInsertCount;
     }

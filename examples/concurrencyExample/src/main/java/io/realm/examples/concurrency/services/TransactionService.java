@@ -36,15 +36,9 @@ public class TransactionService extends IntentService {
     public static final String ITERATION_COUNT      = "TestIterationCount";
 
     public enum TestType {
-        MANY_INSERTS_ONE_TRANSACTION(1),
-        MANY_TRANSACTIONS(2);
-
-        private int value = 1;
-
-        TestType(int value) {
-            this.value = value;
-        }
-    };
+        MANY_INSERTS_ONE_TRANSACTION,
+        MANY_TRANSACTIONS
+    }
 
     private Realm realm = null;
 

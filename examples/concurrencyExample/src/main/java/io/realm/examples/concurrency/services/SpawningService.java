@@ -34,8 +34,6 @@ public class SpawningService extends Service {
     public static final String REALM_INSERTCOUNT_EXTRA = "RealmInsertCountExtra";
     public static final String REALM_READCOUNT_EXTRA   = "RealmReadCountExtra";
 
-    private Boolean mQuitting = false;
-
     private List<KillableThread> allThreads = null;
 
     public void onCreate() {
@@ -78,7 +76,6 @@ public class SpawningService extends Service {
     }
 
     private void quit() {
-        this.mQuitting = true;
         for (KillableThread t : allThreads) {
             t.terminate();
         }

@@ -34,6 +34,7 @@ import io.realm.examples.concurrency.services.TransactionService;
 
 public class RealmExampleActivity extends Activity implements View.OnClickListener {
 
+    @SuppressWarnings("UnusedDeclaration")
     public static final String TAG = RealmExampleActivity.class.getName();
 
     private Realm realm = null;
@@ -62,8 +63,9 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     public void onResume() {
         super.onResume();
 
-	//Change to transacation test here...
+	//Alternatively can use transaction tests here...
         //startTransactionTests();
+
         startSpawnTests();
     }
 
@@ -71,8 +73,9 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     public void onStop() {
         super.onStop();
 
-	//Change to transacation test here...
+	//Alternatively can use transaction tests here...
         //stopTransactionTests();
+
         stopSpawnTests();
     }
 
@@ -87,7 +90,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
         Integer parseAge = 0;
         try {
             parseAge = Integer.parseInt(personAge);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ignored) {
 	        Log.d(TAG, "Age for a person invalid");
 	        return;
         }
@@ -142,6 +145,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
         this.stopService(serviceIntent);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     private void restartTests() {
         stopTransactionTests();
         startTransactionTests();
