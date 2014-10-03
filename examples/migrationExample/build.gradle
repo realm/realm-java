@@ -1,14 +1,4 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.1'
-    }
-}
-
 apply plugin: 'com.android.application'
-apply plugin: 'android-apt'
 
 android {
     compileSdkVersion 19
@@ -29,16 +19,10 @@ android {
     }
 }
 
-task buildApt(type: GradleBuild) {
-    dir = file('../../realm-annotations-processor')
-    tasks = ['build']
-}
-
 tasks.preBuild {
-    dependsOn buildApt
+    dependsOn ":realm:generateJar"
 }
 
 dependencies {
-    apt files("../../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
-    compile project(':realm')
+    compile files("../../realm/build/libs/realm-${version}.jar")
 }
