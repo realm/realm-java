@@ -1,5 +1,6 @@
 0.70.2 ()
   * Adding RealmQuery.count method
+  * Upgrading to core 0.84.0
 
 0.70.1 (30 Sep 2014)
   * Enable unit testing for the realm project

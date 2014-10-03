@@ -308,8 +308,6 @@ public interface TableOrView {
 
     // Experimental:
 
-    long lookup(String value);
-
     long count(long columnIndex, String value);
 
     public enum PivotType {
