@@ -46,7 +46,7 @@ public class RealmReader extends Thread implements KillableThread {
                     .beginsWith("name", "Foo")
                     .between("age", 20, 50).findFirst();
 
-            if(loopCount % 1000 == 0) {
+            if (loopCount % 1000 == 0) {
                 Log.d(TAG, "Found: " + person);
             }
             loopCount++;
