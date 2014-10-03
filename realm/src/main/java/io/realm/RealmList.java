@@ -20,6 +20,12 @@ import java.util.AbstractList;
 
 import io.realm.internal.LinkView;
 
+/**
+ * RealmList is used in one-to-many relationships.
+ *
+ * @param <E> The class of objects in this list
+ */
+
 public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     private Class<E> clazz;

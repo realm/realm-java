@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
@@ -43,6 +44,17 @@ import io.realm.internal.Table;
 import io.realm.internal.android.LooperThread;
 
 
+/**
+ * The Realm class is the storage and transactional manager of your object persistent store. Objects
+ * are created. Objects within a Realm can be queried and read at any time, while creating,
+ * modifying, and deleting objects can only be done through transactions.
+ *
+ * The transactions ensure that multiple instances (on multiple threads) can access the objects
+ * in a consistent state.
+ *
+ * The instances of a Realm will be automatically updates when one instance changes (commits) a
+ * change (create, modify or delete an object).
+ */
 public class Realm {
     public static final String DEFAULT_REALM_NAME = "default.realm";
     private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
@@ -123,6 +135,10 @@ public class Realm {
      * Realm static constructor for the default realm "default.realm"
      * @param context an Android context
      * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     * must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME, null);
@@ -133,6 +149,10 @@ public class Realm {
      * @param context an Android context
      * @param fileName the name of the file to save the Realm to
      * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     * must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException
      */
     public static Realm getInstance(Context context, String fileName) {
         return Realm.create(context.getFilesDir(), fileName, null);
@@ -143,6 +163,10 @@ public class Realm {
      * @param context an Android context
      * @param key a 32-byte encryption key
      * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     * must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException
      */
     public static Realm getInstance(Context context, byte[] key) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME, key);
@@ -154,6 +178,10 @@ public class Realm {
      * @param fileName the name of the file to save the Realm to
      * @param key a 32-byte encryption key
      * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     * must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException
      */
     public static Realm getInstance(Context context, String fileName, byte[] key) {
         return Realm.create(context.getFilesDir(), fileName, key);
@@ -164,6 +192,10 @@ public class Realm {
      * @param writableFolder absolute path to a writable directory
      * @param key a 32-byte encryption key
      * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     * must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException
      */
     public static Realm getInstance(File writableFolder, byte[] key) {
         return Realm.create(writableFolder, DEFAULT_REALM_NAME, key);
@@ -175,6 +207,10 @@ public class Realm {
      * @param filename the name of the file to save the Realm to
      * @param key a 32-byte encryption key
      * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     * must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException
      */
     public static Realm create(File writableFolder, String filename, byte[] key) {
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
@@ -330,6 +366,7 @@ public class Realm {
      * Instantiates and adds a new object to the realm
      * @return The new object
      * @param clazz The Class of the object to create
+     * @throws RealmException An object could not be created
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
         Table table;
@@ -461,6 +498,8 @@ public class Realm {
      * @param clazz The class of the object which is to be queried for
      * @return A typed RealmQuery, which can be used to query for specific objects of this type
      * @see io.realm.RealmQuery
+     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
+     * @throws java.lang.RuntimeException Any other error
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
         return new RealmQuery<E>(this, clazz);
@@ -471,6 +510,8 @@ public class Realm {
      * @param clazz the Class to get objects of
      * @return A RealmResult list containing the objects
      * @see io.realm.RealmResults
+     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
+     * @throws java.lang.RuntimeException Any other error
      */
     public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
@@ -529,6 +570,8 @@ public class Realm {
 
     /**
      * Starts a write transaction, this must be closed with commitTransaction()
+     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
+     * @throws java.lang.RuntimeException Any other error
      */
     public void beginTransaction() {
         transaction.promoteToWrite();
@@ -536,6 +579,8 @@ public class Realm {
 
     /**
      * Commits a write transaction
+     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
+     * @throws java.lang.RuntimeException Any other error
      */
     public void commitTransaction() {
         transaction.commitAndContinueAsRead();
@@ -553,6 +598,8 @@ public class Realm {
     /**
      * Remove all objects of the specified class
      * @param classSpec The class which objects should be removed
+     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
+     * @throws java.lang.RuntimeException Any other error
      */
     public void clear(Class<?> classSpec) {
         getTable(classSpec).clear();

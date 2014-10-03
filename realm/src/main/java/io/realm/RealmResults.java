@@ -28,8 +28,15 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
 /**
+ * A RealmResults list contains the result of a query, and the result can only consist of the
+ * specified type of objects. The objects are not copied from the Realm to the RealmResults list.
+ * This implies that modification to any object in a RealmResults must be done within a transaction,
+ * and the modified object is persisted to the backing Realm file during the commit of the
+ * transaction.
  *
  * @param <E> The class of objects in this list
+ * @see RealmQuery#findAll()
+ * @see Realm#allObjects(Class)
  */
 public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
