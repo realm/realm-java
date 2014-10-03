@@ -50,7 +50,7 @@ public class RealmWriter extends Thread implements KillableThread {
             person.setAge(iterCount % 20 + (50 - 20));
 
             //Add a dog to every 50th person
-            if(iterCount % 50 == 0) {
+            if (iterCount % 50 == 0) {
                 Dog dog = realm.createObject(Dog.class);
                 dog.setName("Foo" + iterCount + "Fido");
                 person.setDog(dog);
