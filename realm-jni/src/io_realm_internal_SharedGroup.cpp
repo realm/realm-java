@@ -151,7 +151,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
-  (JNIEnv *, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
+  (JNIEnv *env, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
 {
     try {
         LangBindHelper::advance_read( *SG(native_ptr), *reinterpret_cast<LangBindHelper::TransactLogRegistry*>(native_tansact_log_registry_ptr) );
@@ -160,7 +160,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
-  (JNIEnv *, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
+  (JNIEnv *env, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
 {
     try {
         LangBindHelper::promote_to_write( *SG(native_ptr), *reinterpret_cast<LangBindHelper::TransactLogRegistry*>(native_tansact_log_registry_ptr) );
@@ -169,7 +169,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinueAsRead
-  (JNIEnv *, jobject, jlong native_ptr)
+  (JNIEnv *env, jobject, jlong native_ptr)
 {
     try {
         LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );

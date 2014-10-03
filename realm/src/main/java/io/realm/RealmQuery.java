@@ -40,7 +40,6 @@ public class RealmQuery<E extends RealmObject> {
      * Creating a RealmQuery instance
      * @param realm  The realm to query within
      * @param clazz  The class to query
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery(Realm realm, Class<E> clazz) {
@@ -59,7 +58,6 @@ public class RealmQuery<E extends RealmObject> {
      * Create a RealmQuery instance from a RealmResults
      * @param realmList   The RealmResults to query
      * @param clazz       The class to query
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery(RealmResults realmList, Class<E> clazz) {
@@ -93,7 +91,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, String value) {
@@ -109,7 +106,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, int value) {
@@ -125,7 +121,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, long value) {
@@ -141,7 +136,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, double value) {
@@ -157,7 +151,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, float value) {
@@ -173,7 +166,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, boolean value) {
@@ -189,7 +181,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, Date value) {
@@ -208,7 +199,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value) {
@@ -224,7 +214,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, int value) {
@@ -240,7 +229,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, long value) {
@@ -256,7 +244,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, double value) {
@@ -272,7 +259,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, float value) {
@@ -288,7 +274,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, boolean value) {
@@ -304,7 +289,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, Date value) {
@@ -322,7 +306,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
@@ -338,7 +321,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, long value) {
@@ -354,7 +336,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, double value) {
@@ -370,7 +351,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, float value) {
@@ -386,7 +366,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, Date value) {
@@ -402,7 +381,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
@@ -418,7 +396,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
@@ -434,7 +411,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
@@ -450,7 +426,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
@@ -466,7 +441,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
@@ -484,7 +458,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, int value) {
@@ -500,7 +473,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, long value) {
@@ -516,7 +488,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, double value) {
@@ -532,7 +503,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, float value) {
@@ -548,7 +518,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
@@ -564,7 +533,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
@@ -580,7 +548,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
@@ -596,7 +563,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
@@ -612,7 +578,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
@@ -628,7 +593,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
@@ -647,7 +611,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, int from, int to) {
@@ -664,7 +627,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, long from, long to) {
@@ -681,7 +643,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, double from, double to) {
@@ -698,7 +659,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, float from, float to) {
@@ -715,7 +675,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, Date from, Date to) {
@@ -734,7 +693,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value) {
@@ -751,7 +709,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value, boolean caseSensitive) {
@@ -767,7 +724,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value) {
@@ -784,7 +740,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, boolean caseSensitive) {
@@ -800,7 +755,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value) {
@@ -817,7 +771,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value, boolean caseSensitive) {
@@ -831,7 +784,6 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Begin grouping of conditions ("left parenthesis")
      * @return The query object
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginGroup() {
@@ -842,7 +794,6 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * End grouping of conditions ("right parenthesis")
      * @return The query object
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endGroup() {
@@ -853,7 +804,6 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Logical-or two conditions
      * @return The query object
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> or() {
@@ -1042,7 +992,6 @@ public class RealmQuery<E extends RealmObject> {
      * Find all objects that fulfill the query condition
      * @return A list of objects
      * @see io.realm.RealmResults
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmResults<E> findAll() {
@@ -1053,7 +1002,6 @@ public class RealmQuery<E extends RealmObject> {
      * Find the first object that fulfills the query condition
      * @return An object
      * @see io.realm.RealmObject
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public E findFirst() {

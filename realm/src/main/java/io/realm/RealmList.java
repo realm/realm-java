@@ -32,7 +32,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     private LinkView view;
     private Realm realm;
 
-    public RealmList(Class<E> clazz, LinkView view, Realm realm) {
+    RealmList(Class<E> clazz, LinkView view, Realm realm) {
         this.clazz = clazz;
         this.view = view;
         this.realm = realm;

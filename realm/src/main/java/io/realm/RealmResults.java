@@ -61,9 +61,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return realm;
     }
 
-    /**
-     * @hide
-     */
     TableOrView getTable() {
         if (table == null) {
             return realm.getTable(classSpec);
@@ -176,7 +173,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param fieldName   The field to look for a minimum on. Only int, float, and double
      *                    are supported.
      * @return            The minimum value.
-     * @throws            java.lang.RuntimeException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number min(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -188,7 +185,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.minimumDouble(columnIndex);
             default:
-                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
@@ -198,7 +195,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param fieldName  The field to look for the minimum date. If fieldName is not of Date type,
      *                   an exception is thrown.
      * @return           The minimum date.
-     * @throws           java.lang.RuntimeException if fieldName is not a Date field.
+     * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date minDate(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -206,7 +203,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table.minimumDate(columnIndex);
         }
         else {
-            throw new RuntimeException("Wrong type of field - Date type expected.");
+            throw new IllegalArgumentException("Wrong type of field - Date type expected.");
         }
     }
 
@@ -215,7 +212,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName   The field to look for a maximum on. Only int, float, and double are supported.
      * @return            The maximum value.
-     * @throws            java.lang.RuntimeException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number max(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -227,7 +224,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.maximumDouble(columnIndex);
             default:
-                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
@@ -237,7 +234,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param fieldName  The field to look for the maximum date. If fieldName is not of Date type,
      *                   an exception is thrown.
      * @return           The maximum date.
-     * @throws           java.lang.RuntimeException if fieldName is not a Date field.
+     * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date maxDate(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -245,7 +242,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table.minimumDate(columnIndex);
         }
         else {
-            throw new RuntimeException("Wrong type of field - Date expected");
+            throw new IllegalArgumentException("Wrong type of field - Date expected");
         }
     }
 
@@ -255,7 +252,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName   The field to sum. Only int, float, and double are supported.
      * @return            The sum.
-     * @throws            java.lang.RuntimeException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
 
     public Number sum(String fieldName) {
@@ -268,7 +265,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.sumDouble(columnIndex);
             default:
-                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
         }
     }
 
@@ -280,7 +277,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *                   float and double are supported.
      * @return           The average for the given field amongst objects in an RealmList. This
      *                   will be of type double for both float and double field.
-     * @throws           java.lang.RuntimeException if field is not int, float or double.
+     * @throws           java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public double average(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -292,7 +289,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case FLOAT:
                 return table.averageFloat(columnIndex);
             default:
-                throw new RuntimeException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
         }
     }
 

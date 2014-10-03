@@ -138,7 +138,7 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      * must be migrated
      * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException
+     * @throws RealmException Other errors
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME, null);
@@ -152,7 +152,7 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      * must be migrated
      * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException
+     * @throws RealmException Other errors
      */
     public static Realm getInstance(Context context, String fileName) {
         return Realm.create(context.getFilesDir(), fileName, null);
@@ -166,7 +166,7 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      * must be migrated
      * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException
+     * @throws RealmException Other errors
      */
     public static Realm getInstance(Context context, byte[] key) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME, key);
@@ -181,7 +181,7 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      * must be migrated
      * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException
+     * @throws RealmException Other errors
      */
     public static Realm getInstance(Context context, String fileName, byte[] key) {
         return Realm.create(context.getFilesDir(), fileName, key);
@@ -195,7 +195,7 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      * must be migrated
      * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException
+     * @throws RealmException Other errors
      */
     public static Realm getInstance(File writableFolder, byte[] key) {
         return Realm.create(writableFolder, DEFAULT_REALM_NAME, key);
@@ -210,7 +210,7 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      * must be migrated
      * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException
+     * @throws RealmException Other errors
      */
     public static Realm create(File writableFolder, String filename, byte[] key) {
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
@@ -498,7 +498,6 @@ public class Realm {
      * @param clazz The class of the object which is to be queried for
      * @return A typed RealmQuery, which can be used to query for specific objects of this type
      * @see io.realm.RealmQuery
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
@@ -510,7 +509,6 @@ public class Realm {
      * @param clazz the Class to get objects of
      * @return A RealmResult list containing the objects
      * @see io.realm.RealmResults
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz) {
@@ -570,7 +568,6 @@ public class Realm {
 
     /**
      * Starts a write transaction, this must be closed with commitTransaction()
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public void beginTransaction() {
@@ -579,7 +576,6 @@ public class Realm {
 
     /**
      * Commits a write transaction
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public void commitTransaction() {
@@ -598,7 +594,6 @@ public class Realm {
     /**
      * Remove all objects of the specified class
      * @param classSpec The class which objects should be removed
-     * @throws io.realm.internal.OutOfMemoryError Cannot allocate memory
      * @throws java.lang.RuntimeException Any other error
      */
     public void clear(Class<?> classSpec) {
