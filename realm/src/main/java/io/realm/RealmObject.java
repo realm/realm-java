@@ -25,7 +25,7 @@ import io.realm.annotations.RealmClass;
  * of using the RealmObject class directly.
  *
  * An annotation processor will create a proxy class for your RealmObject subclass. The getters and
- * setters should contain any custom code of logic as they are overridden as part of the annotation
+ * setters should not contain any custom code of logic as they are overridden as part of the annotation
  * process.
  *
  * @see Realm#createObject(Class)
