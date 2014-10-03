@@ -47,6 +47,18 @@ android.libraryVariants.all { variant ->
     }
 }
 
+task generateJar(type: Jar, dependsOn: 'assemble') {
+    group 'Build'
+    description 'Generates a jar file continaining Realm and its annotation processor'
+    from zipTree('build/intermediates/bundles/release/classes.jar')
+    from zipTree("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar").matching {
+        exclude 'io/realm/annotations/Ignore.class', 'io/realm/annotations/RealmClass.class' // Avoid duplicates
+    }
+    from(file('src/main/jniLibs')) {
+        into 'lib'
+    }
+}
+
 task buildApt(type: GradleBuild) {
     dir = file('../realm-annotations-processor')
     tasks = ['build']
