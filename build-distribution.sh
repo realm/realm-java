@@ -49,4 +49,11 @@ cp realm-annotations-processor/build/libs/realm-annotations-processor-${version}
 mkdir -p distribution/RealmMigrationExample/realm
 cp -R distribution/realm distribution/RealmMigrationExample
 
+echo "Copying files to the distribution/RealmConcurrencyExample folder"
+cp -R examples/concurrencyExample/src distribution/RealmConcurrencyExample/app
+mkdir -p distribution/RealmConcurrencyExample/app/libs
+cp realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar distribution/RealmConcurrencyExample/app/libs
+mkdir -p distribution/RealmConcurrencyExample/realm
+cp -R distribution/realm distribution/RealmConcurrencyExample
+
 echo  "Done"
