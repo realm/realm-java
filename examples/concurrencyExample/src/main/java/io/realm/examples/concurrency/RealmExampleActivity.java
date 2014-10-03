@@ -19,6 +19,7 @@ package io.realm.examples.concurrency;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -60,6 +61,8 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     @Override
     public void onResume() {
         super.onResume();
+
+	//Change to transacation test here...
         //startTransactionTests();
         startSpawnTests();
     }
@@ -67,6 +70,8 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     @Override
     public void onStop() {
         super.onStop();
+
+	//Change to transacation test here...
         //stopTransactionTests();
         stopSpawnTests();
     }
@@ -83,7 +88,8 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
         try {
             parseAge = Integer.parseInt(personAge);
         } catch (NumberFormatException e) {
-
+	        Log.d(TAG, "Age for a person invalid");
+	        return;
         }
 
         realm.beginTransaction();
