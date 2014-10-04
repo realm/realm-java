@@ -117,47 +117,6 @@ public class JNITableTest extends AndroidTestCase {
     }
 
 
-    public void testLookupTable() {
-        Table t = new Table();
-
-        long STRING_COL_INDEX   = t.addColumn(ColumnType.STRING, "col0");
-        long INT_COL_INDEX      = t.addColumn(ColumnType.INTEGER, "col1");
-
-        t.add("s", 1);
-        t.add("s", 2);
-        t.add("ss",1);
-        t.add("ss", 2);
-        t.add("", 2);
-
-        assertEquals(0, t.lookup("s"));
-        assertEquals(2, t.lookup("ss"));
-        assertEquals(4, t.lookup(""));
-
-        assertEquals(false, t.hasIndex(STRING_COL_INDEX));
-
-        //try setting an index
-        t.setIndex(0);
-        assertEquals(0, t.lookup("s"));
-        assertEquals(2, t.lookup("ss"));
-        assertEquals(4, t.lookup(""));
-
-        // null lookup value
-        try {  t.lookup(null); fail("lookup value is null"); } catch (IllegalArgumentException r) { };
-
-        assertEquals(-1, t.lookup("I dont exist"));
-
-
-        // Try with non string column
-        Table t2 = new Table();
-        t2.addColumn(ColumnType.INTEGER, "col0");
-        t2.addColumn(ColumnType.INTEGER, "col1");
-        t2.add(1, 2);
-        t2.add(3, 4);
-
-        try {  t2.lookup("ss"); fail("Column not String"); } catch (UnsupportedOperationException r) { };
-    }
-
-
     public void testFindFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
         t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);

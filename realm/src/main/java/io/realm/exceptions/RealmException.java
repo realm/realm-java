@@ -16,6 +16,9 @@
 
 package io.realm.exceptions;
 
+/**
+ * RealmException is Realm specific exceptions.
+ */
 public class RealmException extends RuntimeException {
     public RealmException(String detailMessage) {
         super(detailMessage);
