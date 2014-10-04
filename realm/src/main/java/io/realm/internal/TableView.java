@@ -909,12 +909,6 @@ public class TableView implements TableOrView, Closeable {
     private final Context context;
 
     @Override
-    public long lookup(String value) {
-        // TODO: implement
-        throw new RuntimeException("Not implemented yet.");
-    }
-
-    @Override
     public long count(long columnIndex, String value) {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");

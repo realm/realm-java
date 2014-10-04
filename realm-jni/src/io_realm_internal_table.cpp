@@ -736,7 +736,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex(
         return;
     }
     try {
-        pTable->set_index( S(columnIndex));
+        pTable->add_search_index( S(columnIndex));
     } CATCH_STD()
 }
 
@@ -746,7 +746,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasIndex(
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return false;
     try {
-        return TBL(nativeTablePtr)->has_index( S(columnIndex));
+        return TBL(nativeTablePtr)->has_search_index( S(columnIndex));
     } CATCH_STD()
     return false;
 }
@@ -985,21 +985,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeCountString(
 }
 
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeLookup(
-    JNIEnv *env, jobject, jlong nativeTablePtr, jstring value)
-{
-    // Must have a string column as first column
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), 0, type_String))
-        return 0;
-
-    try {
-        JStringAccessor value2(env, value); // throws
-        return to_jlong_or_not_found( TBL(nativeTablePtr)->lookup(value2) );
-    } CATCH_STD()
-    return 0;
-}
-
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeWhere(
     JNIEnv *env, jobject, jlong nativeTablePtr)
 {
@@ -1199,7 +1184,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return 0;
-    if (!pTable->has_index(S(columnIndex))) {
+    if (!pTable->has_search_index(S(columnIndex))) {
         ThrowException(env, UnsupportedOperation, "The column must be indexed before distinct() can be used.");
         return 0;
     }
