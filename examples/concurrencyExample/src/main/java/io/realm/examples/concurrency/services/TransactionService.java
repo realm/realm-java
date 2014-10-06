@@ -43,7 +43,7 @@ public class TransactionService extends IntentService {
     private Realm realm = null;
 
     public TransactionService() {
-        super(SpawningService.class.getName());
+        super(TransactionService.class.getName());
     }
 
     @Override

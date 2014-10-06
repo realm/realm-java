@@ -14,6 +14,7 @@ import java.util.Comparator;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
 
 public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
 
@@ -24,7 +25,7 @@ public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
 
     private boolean notifyOnChange = true;
 
-    private RealmList rList;
+    private RealmResults<E> rList;
 
     private Context context = null;
 

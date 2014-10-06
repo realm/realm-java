@@ -9,13 +9,15 @@ import android.widget.TextView;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmResults;
 import io.realm.examples.concurrency.R;
+import io.realm.examples.concurrency.model.Person;
 
 public class RealmExampleAdapter<T extends RealmObject> extends BaseAdapter {
 
     private LayoutInflater inflater = null;
 
-    protected RealmList<T> rList;
+    protected RealmResults<T> rList;
 
     private Context context = null;
 
@@ -52,8 +54,10 @@ public class RealmExampleAdapter<T extends RealmObject> extends BaseAdapter {
         return i;
     }
 
-    public void setData(RealmList<T> rList) {
+    // Can't use RealmResults
+    public void setData(RealmResults<T> rList) {
         this.rList = rList;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -70,10 +74,8 @@ public class RealmExampleAdapter<T extends RealmObject> extends BaseAdapter {
         RealmObject item = getItem(i);
 
         TextView tv = (TextView)view.findViewById(R.id.field1);
-        tv.setText((CharSequence)item);
+        tv.setText(item.toString());
 
         return view;
     }
-
-    //TODO:  Add observers for notify handling when transaction concurrency updates occur.
 }
