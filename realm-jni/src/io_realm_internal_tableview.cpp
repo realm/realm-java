@@ -999,7 +999,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere
 
     try {
         TableView* tv = TV(nativeViewPtr);
-        Query query = tv->get_parent().where().tableview(*tv);
+        Query query = tv->get_parent().where(tv);
         TableQuery* queryPtr = new TableQuery(query);
         return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
