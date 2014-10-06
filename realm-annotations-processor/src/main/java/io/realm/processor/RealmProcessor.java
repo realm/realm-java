@@ -106,8 +106,8 @@ public class RealmProcessor extends AbstractProcessor {
                     }
 
                     String methodName = executableElement.getSimpleName().toString();
-                    String computedFieldName = lowerFirstChar(methodName.substring(3));
-                    if (methodName.startsWith("get")) {
+                    String computedFieldName = methodName.startsWith("is")?lowerFirstChar(methodName.substring(2)):lowerFirstChar(methodName.substring(3));
+                    if (methodName.startsWith("get") || methodName.startsWith("is")) {
                         boolean found = false;
                         for (VariableElement field : fields) {
                             if (field.getSimpleName().toString().equals(computedFieldName)) {
