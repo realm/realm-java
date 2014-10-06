@@ -1,5 +1,6 @@
 0.70.3 ()
   * Upgrading to core 0.84.0
+  * Fixed bug in RealmResults: https://github.com/realm/realm-java/issues/453
 
 0.70.2 (03 Oct 2014)
   * Adding RealmQuery.count() method
