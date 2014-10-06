@@ -25,7 +25,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import io.realm.Realm;
-import io.realm.RealmArrayAdapter;
+import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.examples.realmadapters.adapters.RealmSimpleExampleAdapter;
@@ -46,7 +46,7 @@ public class RealmSimpleAdapterExampleActivity extends Activity implements View.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_realm_updateexample);
+        setContentView(R.layout.activity_realm_example);
 
         findViewById(R.id.insert_record_button).setOnClickListener(this);
 
@@ -61,6 +61,13 @@ public class RealmSimpleAdapterExampleActivity extends Activity implements View.
 
         mAdapter = new RealmSimpleExampleAdapter<Person>(this, R.layout.simplelistitem, rList);
         mListView.setAdapter(mAdapter);
+
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                mAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     // Using the screen form the user can inject into the Realm

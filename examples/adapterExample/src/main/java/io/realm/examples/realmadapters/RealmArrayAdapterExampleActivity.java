@@ -26,9 +26,9 @@ import android.widget.TextView;
 
 import io.realm.Realm;
 import io.realm.RealmArrayAdapter;
+import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmResults;
-import io.realm.examples.realmadapters.R;
 import io.realm.examples.realmadapters.model.Cat;
 import io.realm.examples.realmadapters.model.Dog;
 import io.realm.examples.realmadapters.model.Person;
@@ -46,14 +46,14 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_realm_updateexample);
+        setContentView(R.layout.activity_realm_example);
 
         findViewById(R.id.insert_record_button).setOnClickListener(this);
 
         mListView   = (ListView)findViewById(R.id.items_list);
 
         // Reset the realm data before starting the tests
-        Realm.deleteRealmFile(this);
+//        Realm.deleteRealmFile(this);
 
         // Acquire a realm object
         realm = Realm.getInstance(this);
@@ -62,6 +62,13 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
 
         mAdapter = new RealmArrayAdapter<Person>(this, R.layout.simplelistitem, results);
         mListView.setAdapter(mAdapter);
+
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                mAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     // Using the screen form the user can inject into the Realm
@@ -80,7 +87,7 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
 	        return;
         }
 
-        Person person = realm.createObject(Person.class);
+        Person person = new Person();
         person.setName(personName);
         person.setAge(parseAge);
 
@@ -91,12 +98,12 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
             RealmList<Cat> cats = person.getCats();
             cats.add(cat);
         } else if (checkedId == R.id.hasDog) {
-            Dog dog = realm.createObject(Dog.class);
+            Dog dog = new Dog();
             dog.setName(petName);
             person.setDog(dog);
         }
 
-        //TODO: This method is not supported by realm so we can't really run this example.
+        //TODO: This method is not supported by realm so we can't realistically run this example.
         mAdapter.add(person);
     }
 }

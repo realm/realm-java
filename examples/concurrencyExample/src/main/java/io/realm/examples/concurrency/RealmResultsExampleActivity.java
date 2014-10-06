@@ -17,6 +17,7 @@
 package io.realm.examples.concurrency;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -32,11 +33,13 @@ import io.realm.examples.concurrency.adapters.RealmSimpleExampleAdapter;
 import io.realm.examples.concurrency.model.Cat;
 import io.realm.examples.concurrency.model.Dog;
 import io.realm.examples.concurrency.model.Person;
+import io.realm.examples.concurrency.services.SpawningService;
+import io.realm.examples.concurrency.services.TransactionService;
 
-public class RealmResultsUpdateExampleActivity extends Activity implements View.OnClickListener {
+public class RealmResultsExampleActivity extends Activity implements View.OnClickListener {
 
     @SuppressWarnings("UnusedDeclaration")
-    public static final String TAG = RealmResultsUpdateExampleActivity.class.getName();
+    public static final String TAG = RealmResultsExampleActivity.class.getName();
 
     private Realm realm = null;
 
@@ -48,9 +51,15 @@ public class RealmResultsUpdateExampleActivity extends Activity implements View.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_realm_updateexample);
+        setContentView(R.layout.activity_realm_resultsexample);
 
         findViewById(R.id.insert_record_button).setOnClickListener(this);
+        findViewById(R.id.quit_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopTests();
+            }
+        });
 
         mListView   = (ListView)findViewById(R.id.items_list);
         mTextUpdate = (TextView)findViewById(R.id.size_status);
@@ -75,8 +84,33 @@ public class RealmResultsUpdateExampleActivity extends Activity implements View.
         RealmResults<Person> realmResults = realm.allObjects(Person.class);
         if(realmResults != null) {
             mTextUpdate.setText(realmResults.size()+"");
+            mAdapter.notifyDataSetChanged();
         }
         mListView.invalidate();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        startTests();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        stopTests();
+    }
+
+    private void startTests() {
+        startSpawnTests();
+        //Alternatively can use transaction tests here...
+        //startTransactionTests();
+    }
+
+    private void stopTests() {
+        stopSpawnTests();
+        //Alternatively can use transaction tests here...
+        //stopTransactionTests();
     }
 
     // Using the screen form the user can inject into the Realm
@@ -113,5 +147,40 @@ public class RealmResultsUpdateExampleActivity extends Activity implements View.
         }
 
         realm.commitTransaction();
+    }
+
+    // The transaction tests are one IntentService running multiple Writes
+    // to a Realm in either a multiple transaction or single transaction loop
+    private void startTransactionTests() {
+        Intent serviceIntent = new Intent(this, TransactionService.class);
+        serviceIntent.putExtra(TransactionService.REALM_TESTTYPE_EXTRA,
+                TransactionService.TestType.MANY_TRANSACTIONS);
+        serviceIntent.putExtra(TransactionService.ITERATION_COUNT, 10000000);
+        this.startService(serviceIntent);
+    }
+
+    private void stopTransactionTests() {
+        Intent serviceIntent = new Intent(this, TransactionService.class);
+        this.stopService(serviceIntent);
+    }
+
+    // The Spawned tests create multiple threads of type Reader or Writer
+    // which loop for a specified count
+    private void startSpawnTests() {
+        Intent serviceIntent = new Intent(this, SpawningService.class);
+        serviceIntent.putExtra(SpawningService.REALM_INSERTCOUNT_EXTRA, 10000000);
+        serviceIntent.putExtra(SpawningService.REALM_READCOUNT_EXTRA, 10000000);
+        this.startService(serviceIntent);
+    }
+
+    private void stopSpawnTests() {
+        Intent serviceIntent = new Intent(this, SpawningService.class);
+        this.stopService(serviceIntent);
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private void restartTests() {
+        stopTransactionTests();
+        startTransactionTests();
     }
 }
