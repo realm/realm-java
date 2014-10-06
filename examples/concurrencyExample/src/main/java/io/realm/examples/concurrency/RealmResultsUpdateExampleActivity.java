@@ -17,7 +17,6 @@
 package io.realm.examples.concurrency;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -29,23 +28,22 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmResults;
-import io.realm.examples.concurrency.adapters.RealmArrayAdapter;
-import io.realm.examples.concurrency.adapters.RealmExampleAdapter;
+import io.realm.examples.concurrency.adapters.RealmSimpleExampleAdapter;
 import io.realm.examples.concurrency.model.Cat;
 import io.realm.examples.concurrency.model.Dog;
 import io.realm.examples.concurrency.model.Person;
-import io.realm.examples.concurrency.services.SpawningService;
-import io.realm.examples.concurrency.services.TransactionService;
 
-public class RealmArrayAdapterExampleActivity extends Activity implements View.OnClickListener {
+public class RealmResultsUpdateExampleActivity extends Activity implements View.OnClickListener {
 
     @SuppressWarnings("UnusedDeclaration")
-    public static final String TAG = RealmArrayAdapterExampleActivity.class.getName();
+    public static final String TAG = RealmResultsUpdateExampleActivity.class.getName();
 
     private Realm realm = null;
 
-    private RealmArrayAdapter<Person> mAdapter = null;
+    private RealmSimpleExampleAdapter<Person> mAdapter = null;
     private ListView mListView = null;
+
+    private TextView mTextUpdate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,24 +53,30 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
         findViewById(R.id.insert_record_button).setOnClickListener(this);
 
         mListView   = (ListView)findViewById(R.id.items_list);
+        mTextUpdate = (TextView)findViewById(R.id.size_status);
         // Reset the realm data before starting the tests
         Realm.deleteRealmFile(this);
 
         // Acquire a realm object
         realm = Realm.getInstance(this);
 
-        mAdapter = new RealmArrayAdapter<Person>(this, R.layout.simplelistitem, null);
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                updateList();
+            }
+        });
+
+        mAdapter = new RealmSimpleExampleAdapter<Person>(this, R.layout.simplelistitem, realm.allObjects(Person.class));
         mListView.setAdapter(mAdapter);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
+    private void updateList() {
+        RealmResults<Person> realmResults = realm.allObjects(Person.class);
+        if(realmResults != null) {
+            mTextUpdate.setText(realmResults.size()+"");
+        }
+        mListView.invalidate();
     }
 
     // Using the screen form the user can inject into the Realm
@@ -91,6 +95,7 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
 	        return;
         }
 
+        realm.beginTransaction();
         Person person = realm.createObject(Person.class);
         person.setName(personName);
         person.setAge(parseAge);
@@ -107,6 +112,6 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
             person.setDog(dog);
         }
 
-        mAdapter.add(person);
+        realm.commitTransaction();
     }
 }

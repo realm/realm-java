@@ -7,13 +7,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.examples.concurrency.R;
-import io.realm.examples.concurrency.model.Person;
 
-public class RealmExampleAdapter<T extends RealmObject> extends BaseAdapter {
+public class RealmSimpleExampleAdapter<T extends RealmObject> extends BaseAdapter {
 
     private LayoutInflater inflater = null;
 
@@ -23,13 +21,15 @@ public class RealmExampleAdapter<T extends RealmObject> extends BaseAdapter {
 
     private int resId = -1;
 
-    public RealmExampleAdapter(Context context) {
-        this(context, -1);
+    public RealmSimpleExampleAdapter(Context context, RealmResults<T> rList) {
+        this(context, -1, rList);
     }
 
-    public RealmExampleAdapter(Context context, int resId) {
-        this.resId = resId;
+    public RealmSimpleExampleAdapter(Context context, int resId, RealmResults<T> rList) {
+        this.resId   = resId;
         this.context = context;
+        this.rList   = rList;
+
         inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -54,8 +54,8 @@ public class RealmExampleAdapter<T extends RealmObject> extends BaseAdapter {
         return i;
     }
 
-    // Can't use RealmResults
-    public void setData(RealmResults<T> rList) {
+    // This method should only be called if you change the query you are using to generate the RealmResults
+    public void updateRealmResults(RealmResults<T> rList) {
         this.rList = rList;
         notifyDataSetChanged();
     }

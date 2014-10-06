@@ -1,4 +1,4 @@
-package io.realm.examples.concurrency.adapters;
+package io.realm;
 
 import android.content.Context;
 import android.util.Log;
@@ -6,21 +6,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Filter;
 import android.widget.TextView;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.RealmResults;
+import io.realm.internal.Table;
 
 public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
 
     public static final String TAG = RealmArrayAdapter.class.getName();
 
-    private int resId   = -1;
+    private int resId = -1;
     private int fieldId = -1;
 
     private boolean notifyOnChange = true;
@@ -29,20 +28,27 @@ public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
 
     private Context context = null;
 
-    private LayoutInflater inflater = null;
+    private LayoutInflater mInflater = null;
 
-    public RealmArrayAdapter(Context context, int resId, RealmList rList) {
-        super(context, resId, rList);
-        this.context = context;
-        this.resId   = resId;
-        inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    private ArrayFilter mFilter;
+
+    public RealmArrayAdapter(Context context, int resId, RealmResults<E> rList) {
+        this(context, resId, -1, rList);
     }
 
-    public RealmArrayAdapter(Context context, int resId, int fieldId, RealmList rList) {
+    public RealmArrayAdapter(Context context, int resId, int fieldId, RealmResults<E> rList) {
         super(context, resId, fieldId, rList);
         this.context = context;
-        this.resId   = resId;
+        this.resId = resId;
         this.fieldId = fieldId;
+        this.rList = rList;
+
+        //Temporary solution for the fact that we can't create a RealmResults
+        if (rList == null) {
+            throw new NullPointerException("Can't use RealmResults with a null list");
+        }
+
+        mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
@@ -53,8 +59,8 @@ public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
     @Override
     public E getItem(int i) {
         super.getItem(i);
-        if(rList.size() > i) {
-            return (E)rList.get(i);
+        if (rList.size() > i) {
+            return (E) rList.get(i);
         } else {
             return null;
         }
@@ -72,7 +78,7 @@ public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
 
         if (v == null) {
             // Adapter fails if resId does not exist
-            view = inflater.inflate(resId, null, false);
+            view = mInflater.inflate(resId, null, false);
         } else {
             view = v;
         }
@@ -91,7 +97,7 @@ public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
 
         RealmObject item = getItem(i);
         if (item instanceof CharSequence) {
-            text.setText((CharSequence)item);
+            text.setText((CharSequence) item);
         } else {
             text.setText(item.toString());
         }
@@ -112,7 +118,7 @@ public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
     // RealmLists are thread safe, so no locking should be required.
 
     public void add(E object) {
-        rList.add(object);
+        // TODO:  Need solution for ArrayAdapter (add() is deprecated)
         if (notifyOnChange) notifyDataSetChanged();
     }
 
@@ -121,9 +127,9 @@ public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
         if (notifyOnChange) notifyDataSetChanged();
     }
 
-    public void addAll(E ... items) {
-        for(E it : items) {
-            rList.add(it);
+    public void addAll(E... items) {
+        for (E it : items) {
+            // TODO:  Need solution for ArrayAdapter (add() is deprecated)
         }
         if (notifyOnChange) notifyDataSetChanged();
     }
@@ -149,5 +155,42 @@ public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
         if (notifyOnChange) notifyDataSetChanged();
     }
 
-    //TODO:  Add array filtering useful for search, etc.
+    public Filter getFilter() {
+        if (mFilter == null) {
+            mFilter = new ArrayFilter();
+        }
+        return mFilter;
+    }
+
+    private class ArrayFilter extends Filter {
+        @Override
+        protected FilterResults performFiltering(CharSequence prefix) {
+            FilterResults results = new FilterResults();
+
+            if (prefix == null || prefix.length() == 0) {
+                results.values = rList;
+                results.count  = rList.size();
+            } else {
+                RealmObject obj = rList.first();
+                Table t = obj.getRealm().getTable(obj.getClass());
+                // We assume column one for a table comparison
+                RealmResults<E> filteredResults
+                        = rList.where().beginsWith(t.getColumnName(0),
+                        prefix.toString().toLowerCase().toString(), false).findAll();
+                results.values = filteredResults;
+                results.count  = filteredResults.size();
+            }
+
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            if (results.count > 0) {
+                notifyDataSetChanged();
+            } else {
+                notifyDataSetInvalidated();
+            }
+        }
+    }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.realm.examples.concurrency">
+    package="io.realm.examples.realmadapters">
 
     <application
         android:allowBackup="true"
@@ -9,30 +9,33 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".RealmExampleActivity"
+            android:name=".RealmArrayAdapterExampleActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".RealmPersonAdapterExampleActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/app_name">
         </activity>
 
         <activity
-            android:name=".RealmResultsUpdateExampleActivity"
+            android:name=".RealmGenericAdapterExampleActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/app_name">
         </activity>
 
-        <service
-            android:name=".services.SpawningService"
+        <activity
+            android:name=".RealmSimpleAdapterExampleActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:enabled="true"
-            android:exported="false"
-            android:label="Realm Service" />
+            android:label="@string/app_name">
+        </activity>
 
-        <service
-            android:name=".services.TransactionService"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:enabled="true"
-            android:exported="false"
-            android:label="Realm Service" />
     </application>
 
 </manifest>
