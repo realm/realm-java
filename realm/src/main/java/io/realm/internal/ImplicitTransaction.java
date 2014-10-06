@@ -37,7 +37,7 @@ public class ImplicitTransaction extends Group {
             parent.promoteToWrite();
         }
         else {
-            throw new RealmException("Trying to begin write transaction within a write transaction");
+            throw new RealmException("Nested transactions are not allowed. Use commitTransactoin() after each beginTransaction.");
         }
     }
 
