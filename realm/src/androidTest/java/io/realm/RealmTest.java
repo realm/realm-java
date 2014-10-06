@@ -625,8 +625,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.beginTransaction();
             fail();
-        }
-        catch (RealmException e) {
+        } catch (RealmException e) {
             assertEquals("Trying to begin write transaction within a write transaction", e.getMessage());
         }
         testRealm.commitTransaction();

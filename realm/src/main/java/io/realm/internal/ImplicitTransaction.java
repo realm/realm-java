@@ -35,8 +35,7 @@ public class ImplicitTransaction extends Group {
         if (immutable) {
             immutable = false;
             parent.promoteToWrite();
-        }
-        else {
+        } else {
             throw new RealmException("Trying to begin write transaction within a write transaction");
         }
     }
