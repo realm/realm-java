@@ -15,6 +15,7 @@ import java.util.Comparator;
 
 import io.realm.internal.Table;
 
+//NOTE:  We may decide it is cleaner to NOT subclass ArrayAdapter
 public class RealmArrayAdapter<E extends RealmObject> extends ArrayAdapter<E> {
 
     public static final String TAG = RealmArrayAdapter.class.getName();
