@@ -567,8 +567,12 @@ public class Realm {
 //    }
 
     /**
-     * Starts a write transaction, this must be closed with commitTransaction()
-     * @throws java.lang.RuntimeException Any other error
+     * Starts a write transaction, this must be closed with commitTransaction().
+     * Notice: it is not possible to nest write transactions. If you start a write
+     * transaction within a write transaction an exception is thrown.
+     *
+     * @throws io.realm.exceptions.RealmException If already in a write transaction.
+     * @throws java.lang.RuntimeException Any other error.
      */
     public void beginTransaction() {
         transaction.promoteToWrite();

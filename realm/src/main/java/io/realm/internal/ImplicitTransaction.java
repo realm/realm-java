@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import io.realm.exceptions.RealmException;
+
 public class ImplicitTransaction extends Group {
 
     private final SharedGroup parent;
@@ -30,8 +32,12 @@ public class ImplicitTransaction extends Group {
     }
 
     public void promoteToWrite() {
-        immutable = false;
-        parent.promoteToWrite();
+        if (immutable) {
+            immutable = false;
+            parent.promoteToWrite();
+        } else {
+            throw new RealmException("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().");
+        }
     }
 
     public void commitAndContinueAsRead() {
