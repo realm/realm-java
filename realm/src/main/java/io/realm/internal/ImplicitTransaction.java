@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import io.realm.exceptions.RealmException;
+
 public class ImplicitTransaction extends Group {
 
     private final SharedGroup parent;
@@ -30,8 +32,13 @@ public class ImplicitTransaction extends Group {
     }
 
     public void promoteToWrite() {
-        immutable = false;
-        parent.promoteToWrite();
+        if (immutable) {
+            immutable = false;
+            parent.promoteToWrite();
+        }
+        else {
+            throw new RealmException("Trying to begin write transaction within a write transaction");
+        }
     }
 
     public void commitAndContinueAsRead() {
