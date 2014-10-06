@@ -1,7 +1,7 @@
 0.70.3 ()
   * Upgrading to core 0.84.0
-  * Nested write transactions are not supported,
-    and an exception is thrown.
+  * Nested write transactions are not supported, and an exception is thrown.
+  * Javadoc updated
 
 0.70.2 (03 Oct 2014)
   * Adding RealmQuery.count() method

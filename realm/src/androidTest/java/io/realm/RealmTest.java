@@ -626,7 +626,7 @@ public class RealmTest extends AndroidTestCase {
             testRealm.beginTransaction();
             fail();
         } catch (RealmException e) {
-            assertEquals("Trying to begin write transaction within a write transaction", e.getMessage());
+            assertEquals("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().", e.getMessage());
         }
         testRealm.commitTransaction();
     }
