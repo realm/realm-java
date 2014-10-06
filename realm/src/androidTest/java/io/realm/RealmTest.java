@@ -23,6 +23,7 @@ import java.util.Date;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 
 
@@ -619,6 +620,16 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Change has not been committed", 1, resultList.size());
     }
 
+    public void testNestedTransaction() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.beginTransaction();
+            fail();
+        } catch (RealmException e) {
+            assertEquals("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().", e.getMessage());
+        }
+        testRealm.commitTransaction();
+    }
     // void commitTransaction()
     public void testCommitTransaction() {
         testRealm.beginTransaction();
