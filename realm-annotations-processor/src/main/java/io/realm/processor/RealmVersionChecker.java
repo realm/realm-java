@@ -29,7 +29,7 @@ public class RealmVersionChecker {
     public static final String REALM_ANDROID_DOWNLOAD_URL = "http://static.realm.io/downloads/java/latest";
 
     private static final String VERSION_URL = "http://static.realm.io/update/java?";
-    private static final String REALM_VERSION = "0.70.2"; //TODO: The version value should be pulled from a build file
+    private static final String REALM_VERSION = "0.71.0"; //TODO: The version value should be pulled from a build file
     private static final int READ_TIMEOUT = 2000;
     private static final int CONNECT_TIMEOUT = 4000;
 
