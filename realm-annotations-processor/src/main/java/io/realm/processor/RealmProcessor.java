@@ -17,6 +17,7 @@
 package io.realm.processor;
 
 import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
 import io.realm.annotations.RealmClass;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -32,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 
-@SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore"})
+@SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore", "io.realm.annotations.Index"})
 @SupportedSourceVersion(javax.lang.model.SourceVersion.RELEASE_6)
 public class RealmProcessor extends AbstractProcessor {
     Set<String> classesToValidate = new HashSet<String>();
@@ -47,6 +48,7 @@ public class RealmProcessor extends AbstractProcessor {
             String className;
             String packageName;
             List<VariableElement> fields = new ArrayList<VariableElement>();
+            List<VariableElement> indexedFields = new ArrayList<VariableElement>();
             List<String> ignoredFields = new ArrayList<String>();
             List<String> expectedGetters = new ArrayList<String>();
             List<String> expectedSetters = new ArrayList<String>();
@@ -89,6 +91,18 @@ public class RealmProcessor extends AbstractProcessor {
                         // The field has the @Ignore annotation. No need to go any further.
                         ignoredFields.add(fieldName);
                         continue;
+                    }
+
+                    if (variableElement.getAnnotation(Index.class) != null) {
+                        // The field has the @Index annotation. It's only valid for:
+                        // * String
+                        String elementTypeCanonicalName = variableElement.asType().toString();
+                        if (elementTypeCanonicalName.equals("java.lang.String")) {
+                            indexedFields.add(variableElement);
+                        } else {
+                            error("@Index is only appliable to String fields - got " + element);
+                            return true;
+                        }
                     }
 
                     if (!variableElement.getModifiers().contains(Modifier.PRIVATE)) {
@@ -149,7 +163,7 @@ public class RealmProcessor extends AbstractProcessor {
             }
 
             RealmProxyClassGenerator sourceCodeGenerator =
-                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields);
+                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, indexedFields);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {
