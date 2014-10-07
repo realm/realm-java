@@ -17,6 +17,7 @@
 package io.realm.processor;
 
 import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
 import io.realm.annotations.RealmClass;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -24,15 +25,17 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 import java.io.IOException;
+import java.lang.String;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 
-@SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore"})
+@SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore", "io.realm.annotations.Index"})
 @SupportedSourceVersion(javax.lang.model.SourceVersion.RELEASE_6)
 public class RealmProcessor extends AbstractProcessor {
     Set<String> classesToValidate = new HashSet<String>();
@@ -47,6 +50,7 @@ public class RealmProcessor extends AbstractProcessor {
             String className;
             String packageName;
             List<VariableElement> fields = new ArrayList<VariableElement>();
+            List<VariableElement> fieldsToIndex = new ArrayList<VariableElement>();
 
             // Check the annotation was applied to a Class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
@@ -86,6 +90,18 @@ public class RealmProcessor extends AbstractProcessor {
                         continue;
                     }
 
+                    if (variableElement.getAnnotation(Index.class) != null) {
+                        // The field has the @Index annotation. It's only valid for:
+                        // * String
+                        String elementTypeCanonicalName = variableElement.asType().toString();
+                        if (elementTypeCanonicalName.equals("java.lang.String")) {
+                            fieldsToIndex.add(variableElement);
+                        } else {
+                            error("@Index is only possible for String fields - got " + elementTypeCanonicalName);
+                            return true;
+                        }
+                    }
+
                     if (!variableElement.getModifiers().contains(Modifier.PRIVATE)) {
                         error("The fields of the model must be private");
                         return true;
@@ -96,7 +112,7 @@ public class RealmProcessor extends AbstractProcessor {
             }
 
             RealmProxyClassGenerator sourceCodeGenerator =
-                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields);
+                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, fieldsToIndex);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {
