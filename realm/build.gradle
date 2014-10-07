@@ -84,7 +84,7 @@ publishing {
                 Node root = asNode()
                 root.appendNode('name', 'realm-android')
                 root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
-                root.appendNode('url', 'https://realm.io')
+                root.appendNode('url', 'http://realm.io')
 
                 def issues = root.appendNode('issueManagement')
                 issues.appendNode('system', 'github')
