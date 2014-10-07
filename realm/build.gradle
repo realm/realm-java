@@ -105,8 +105,8 @@ publishing {
 }
 
 bintray {
-    user = bintrayUser // this comes from the gradle.properties file in ~/.gradle
-    key = bintrayKey //this comes from the gradle.properties file in ~/.gradle
+    user = project.hasProperty('bintrayUser')?bintrayUser:'noUser' // this comes from the gradle.properties file in ~/.gradle
+    key = project.hasProperty('bintrayKey')?bintrayKey:'noKey' //this comes from the gradle.properties file in ~/.gradle
     publications = ['mavenAndroid']
     publish = false
     pkg {
