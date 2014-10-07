@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
 
 android {
     compileSdkVersion 20
@@ -47,7 +49,7 @@ android.libraryVariants.all { variant ->
     }
 }
 
-task generateJar(type: Jar, dependsOn: 'assemble') {
+task androidJar(type: Jar, dependsOn: 'assemble') {
     group 'Build'
     description 'Generates a jar file continaining Realm and its annotation processor'
     from zipTree('build/intermediates/bundles/release/classes.jar')
@@ -56,6 +58,61 @@ task generateJar(type: Jar, dependsOn: 'assemble') {
     }
     from(file('src/main/jniLibs')) {
         into 'lib'
+    }
+}
+
+task androidSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives file("build/libs/realm-${version}.jar")
+    archives androidSourcesJar
+}
+
+publishing {
+    publications {
+        mavenAndroid(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android'
+            version version
+            artifact androidJar
+            artifact androidSourcesJar {
+                classifier "sources"
+            }
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-android')
+                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'https://realm.io')
+
+                def issues = root.appendNode('issueManagement')
+                issues.appendNode('system', 'github')
+                issues.appendNode('url', 'https://github.com/realm/realm-java/issues')
+
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', 'scm:https://github.com/realm/realm-java')
+                scm.appendNode('connection', 'scm:git@github.com:realm/realm-java.git')
+                scm.appendNode('developerConnection', 'scm:git@github.com:realm/realm-java.git')
+
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+            }
+        }
+    }
+}
+
+bintray {
+    user = bintrayUser // this comes from the gradle.properties file in ~/.gradle
+    key = bintrayKey //this comes from the gradle.properties file in ~/.gradle
+    publications = ['mavenAndroid']
+    publish = false
+    pkg {
+        repo = 'maven'
+        name = 'realm-android'
+        licenses = ['Apache-2.0']
     }
 }
 
