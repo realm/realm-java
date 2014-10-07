@@ -25,10 +25,8 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.element.*;
-import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 import java.io.IOException;
-import java.lang.String;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -102,7 +100,7 @@ public class RealmProcessor extends AbstractProcessor {
                         if (elementTypeCanonicalName.equals("java.lang.String")) {
                             indexedFields.add(variableElement);
                         } else {
-                            error("@Index is only possible for String fields - got " + elementTypeCanonicalName);
+                            error("@Index is only appliable to String fields - got " + element);
                             return true;
                         }
                     }
