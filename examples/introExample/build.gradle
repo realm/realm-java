@@ -21,7 +21,7 @@ android {
 }
 
 tasks.preBuild {
-    dependsOn ":realm:generateJar"
+    dependsOn ":realm:androidJar"
 }
 
 dependencies {
