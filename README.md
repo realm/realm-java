@@ -71,7 +71,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
 ## License
 
 Realm Java is published under the Apache 2.0 license.  
-The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](http://realm.io/docs/cocoa/latest/#faq).
+The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](http://realm.io/docs/java/#faq).
 
 ## Feedback
 

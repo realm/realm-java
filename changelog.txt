@@ -4,6 +4,7 @@
   * Javadoc updated
   * Fixed bug in RealmResults: https://github.com/realm/realm-java/issues/453
   * New annotation @Index to add search index to a field (currently only supporing String fields) 
+  * Made the annotations processor more verbose and strict
 
 0.70.2 (03 Oct 2014)
   * Adding RealmQuery.count() method
