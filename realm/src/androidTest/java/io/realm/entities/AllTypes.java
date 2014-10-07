@@ -21,7 +21,6 @@ import java.util.Date;
 import io.realm.RealmObject;
 
 public class AllTypes extends RealmObject {
-
     private String columnString;
     private long columnLong;
     private float columnFloat;

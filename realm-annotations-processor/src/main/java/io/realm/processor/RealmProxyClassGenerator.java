@@ -36,15 +36,17 @@ public class RealmProxyClassGenerator {
     private String className;
     private String packageName;
     private List<VariableElement> fields;
+    private List<VariableElement> fieldsToIndex;
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String TABLE_PREFIX = "class_";
     private static final String PROXY_SUFFIX = "RealmProxy";
 
-    public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment, String className, String packageName, List<VariableElement> fields) {
+    public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment, String className, String packageName, List<VariableElement> fields, List<VariableElement> fieldsToIndex) {
         this.processingEnvironment = processingEnvironment;
         this.className = className;
         this.packageName = packageName;
         this.fields = fields;
+        this.fieldsToIndex = fieldsToIndex;
     }
 
     private static final Map<String, String> JAVA_TO_REALM_TYPES;
@@ -375,6 +377,12 @@ public class RealmProxyClassGenerator {
                         fieldName, TABLE_PREFIX, genericType);
             }
         }
+
+        for (VariableElement field : fieldsToIndex) {
+            String fieldName = field.getSimpleName().toString();
+            writer.emitStatement("table.setIndex(table.getColumnIndex(\"%s\"))", fieldName);
+        }
+
         writer.emitStatement("return table");
         writer.endControlFlow();
         writer.emitStatement("return transaction.getTable(\"%s%s\")", TABLE_PREFIX, this.className);

@@ -20,5 +20,5 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'io.realm:realm-android:0.71.0'
 }
