@@ -1,18 +1,15 @@
-0.70.3 ()
-  * Upgrading to core 0.84.0
-  * Nested write transactions are not supported, and an exception is thrown.
+0.71.0 (07 Oct 2014)
+  * Simplified the release artifact to a single Jar file
+  * Added support for Eclipse
+  * Added support for deploying to Maven
+  * Throw exception if nested write transactions are used (it's not allowed)
   * Javadoc updated
   * Fixed bug in RealmResults: https://github.com/realm/realm-java/issues/453
   * New annotation @Index to add search index to a field (currently only supporting String fields) 
   * Made the annotations processor more verbose and strict
-  * Added support for deploying to Maven
-
-0.70.2 (03 Oct 2014)
   * Adding RealmQuery.count() method
   * Added a new example about concurrency
-  * Simplified the release artifact to a single Jar file
-  * Added support for Eclipse
-
+  * Upgrading to core 0.84.0
 
 0.70.1 (30 Sep 2014)
   * Enable unit testing for the realm project
