@@ -13,12 +13,9 @@ import io.realm.examples.realmadapters.R;
 // This is labeled Generic because for simple cases the typing is left generic
 public class RealmGenericExampleAdapter<T extends RealmObject> extends RealmBaseAdapter<T> {
 
-    public RealmGenericExampleAdapter(Context context, RealmResults<T> rList) {
-        super(context, rList);
-    }
 
-    public RealmGenericExampleAdapter(Context context, int resId, RealmResults<T> rList) {
-        super(context, resId, rList);
+    public RealmGenericExampleAdapter(Context context, int resId, RealmResults<T> realmResults, boolean automaticUpdate) {
+        super(context, resId, realmResults, automaticUpdate);
     }
 
     @Override

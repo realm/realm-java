@@ -15,12 +15,8 @@ import io.realm.examples.realmadapters.model.Person;
 // the adapter is for Person objects
 public class RealmPersonExampleAdapter extends RealmBaseAdapter<Person> {
 
-    public RealmPersonExampleAdapter(Context context, RealmResults<Person> rList) {
-        super(context, rList);
-    }
-
     public RealmPersonExampleAdapter(Context context, int resId, RealmResults<Person> rList) {
-        super(context, resId, rList);
+        super(context, resId, rList, true);
     }
 
     @Override

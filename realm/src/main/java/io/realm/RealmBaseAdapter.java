@@ -2,59 +2,54 @@ package io.realm;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+
+import org.jetbrains.annotations.NotNull;
 
 public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapter {
 
-    protected LayoutInflater inflater = null;
+    protected LayoutInflater inflater;
+    protected RealmResults<T> realmResults;
+    protected Context context;
+    protected int resId;
 
-    protected RealmResults<T> rList;
-
-    protected Context context = null;
-
-    protected int resId = -1;
-
-    public RealmBaseAdapter(Context context, RealmResults<T> rList) {
-        this(context, -1, rList);
-    }
-
-    public RealmBaseAdapter(Context context, int resId, RealmResults<T> rList) {
+    public RealmBaseAdapter(@NotNull Context context, int resId, @NotNull RealmResults<T> realmResults, boolean automaticUpdate) {
         this.resId   = resId;
         this.context = context;
-        this.rList   = rList;
-
-        inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.realmResults = realmResults;
+        this.inflater = LayoutInflater.from(context);
+        if (automaticUpdate) {
+            realmResults.getRealm().addChangeListener(new RealmChangeListener() {
+                @Override
+                public void onChange() {
+                    notifyDataSetChanged();
+                }
+            });
+        }
     }
 
     @Override
     public int getCount() {
-        if(rList == null)
-            return 0;
-        return rList.size();
+        return realmResults.size();
     }
 
     @Override
-    public RealmObject getItem(int i) {
-        if(rList == null)
-            return null;
-        return rList.get(i);
+    public T getItem(int i) {
+        return realmResults.get(i);
     }
 
     @Override
     public long getItemId(int i) {
-        if(rList == null)
-            return -1;
-        return i;
+        return realmResults.get(i).realmGetRow().getIndex(); // TODO: check with the core guys
     }
 
-    // This method should only be called if you change the query you are using to generate the RealmResults
-    public void updateRealmResults(RealmResults<T> rList) {
-        this.rList = rList;
+    /**
+     * Update the RealmResults associated to the Adapter. Useful when the query has been changed.
+     * If the query does not change you might consider using the automaticUpdate feature
+     * @param realmResults the new RealmResults coming from the new query.
+     */
+    public void updateRealmResults(RealmResults<T> realmResults) {
+        this.realmResults = realmResults;
         notifyDataSetChanged();
     }
-
-    @Override
-    public abstract View getView(int i, View v, ViewGroup viewGroup);
 }
