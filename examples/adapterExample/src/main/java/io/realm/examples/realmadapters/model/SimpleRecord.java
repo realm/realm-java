@@ -18,15 +18,15 @@ package io.realm.examples.realmadapters.model;
 
 import io.realm.RealmObject;
 
-public class Dog extends RealmObject {
-    private String name;
+public class SimpleRecord extends RealmObject {
 
-    public String getName() {
-        return name;
+    private String descriptor;
+
+    public String getDescriptor() {
+        return descriptor;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setDescriptor(String descriptor) {
+        this.descriptor = descriptor;
     }
-
 }

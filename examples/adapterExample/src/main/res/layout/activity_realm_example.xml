@@ -11,62 +11,16 @@
         android:background="#ff1144aa"
         android:orientation="vertical"
         android:padding="20dp">
-
-        <TextView android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="7dp"
-            android:gravity="center"
-            android:text="You can also create records manually..."
-            android:textSize="22sp" />
-
-        <TextView android:id="@+id/message_timestamp"
+        <TextView
+            android:text="This button inserts a timestamp record"
+            android:textSize="22sp"
+            android:textStyle="bold"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:text="Create a Record:"
-            android:textColor="#ffafafaf"
-            android:textSize="22sp" />
-
-        <View android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_margin="12dp"
-            android:background="#ffcfcfcf" />
-
-        <EditText android:id="@+id/name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Person's Name" />
-
-        <EditText android:id="@+id/age"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Person's Age" />
-
-        <RadioGroup android:id="@+id/petType"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <RadioButton android:id="@+id/hasCat"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cat" />
-
-            <RadioButton android:id="@+id/hasDog"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Dog" />
-        </RadioGroup>
-
-        <EditText android:id="@+id/pets_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Enter Pets Name" />
-
+            android:layout_height="wrap_content" />
         <Button android:id="@+id/insert_record_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Create Record" />
-
     </LinearLayout>
     <LinearLayout
         android:id="@+id/footer"

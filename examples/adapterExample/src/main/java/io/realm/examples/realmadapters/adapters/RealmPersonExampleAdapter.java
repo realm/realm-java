@@ -9,13 +9,13 @@ import io.realm.RealmBaseAdapter;
 import io.realm.RealmResults;
 
 import io.realm.examples.realmadapters.R;
-import io.realm.examples.realmadapters.model.Person;
+import io.realm.examples.realmadapters.model.SimpleRecord;
 
 // This is a concrete implementation where it is assumed that the use of
 // the adapter is for Person objects
-public class RealmPersonExampleAdapter extends RealmBaseAdapter<Person> {
+public class RealmPersonExampleAdapter extends RealmBaseAdapter<SimpleRecord> {
 
-    public RealmPersonExampleAdapter(Context context, int resId, RealmResults<Person> rList) {
+    public RealmPersonExampleAdapter(Context context, int resId, RealmResults<SimpleRecord> rList) {
         super(context, resId, rList, true);
     }
 
@@ -30,7 +30,7 @@ public class RealmPersonExampleAdapter extends RealmBaseAdapter<Person> {
             view = v;
         }
 
-        Person item = (Person)getItem(i);
+        SimpleRecord item = (SimpleRecord)getItem(i);
 
         TextView tv = (TextView)view.findViewById(R.id.field1);
         tv.setText(item.toString());

@@ -24,14 +24,14 @@ import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import java.util.Date;
+
 import io.realm.Realm;
 import io.realm.RealmArrayAdapter;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmResults;
-import io.realm.examples.realmadapters.model.Cat;
-import io.realm.examples.realmadapters.model.Dog;
-import io.realm.examples.realmadapters.model.Person;
+import io.realm.examples.realmadapters.model.SimpleRecord;
 
 public class RealmArrayAdapterExampleActivity extends Activity implements View.OnClickListener {
 
@@ -40,7 +40,7 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
 
     private Realm realm = null;
 
-    private RealmArrayAdapter<Person> mAdapter = null;
+    private RealmArrayAdapter<SimpleRecord> mAdapter = null;
     private ListView mListView = null;
 
     @Override
@@ -50,17 +50,14 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
 
         findViewById(R.id.insert_record_button).setOnClickListener(this);
 
-        mListView   = (ListView)findViewById(R.id.items_list);
-
-        // Reset the realm data before starting the tests
-//        Realm.deleteRealmFile(this);
+        mListView = (ListView)findViewById(R.id.items_list);
 
         // Acquire a realm object
         realm = Realm.getInstance(this);
 
-        RealmResults<Person> results = realm.where(Person.class).findAll();
+        RealmResults<SimpleRecord> results = realm.where(SimpleRecord.class).findAll();
 
-        mAdapter = new RealmArrayAdapter<Person>(this, R.layout.simplelistitem, results);
+        mAdapter = new RealmArrayAdapter<SimpleRecord>(this, R.layout.simplelistitem, results);
         mListView.setAdapter(mAdapter);
 
         realm.addChangeListener(new RealmChangeListener() {
@@ -75,35 +72,10 @@ public class RealmArrayAdapterExampleActivity extends Activity implements View.O
     // even if other threads are creating transactions.
     @Override
     public void onClick(View v) {
-        String personName = ((TextView) findViewById(R.id.name)).getText().toString();
-        String personAge = ((TextView) findViewById(R.id.age)).getText().toString();
-        String petName = ((TextView) findViewById(R.id.pets_name)).getText().toString();
-
-        Integer parseAge = 0;
-        try {
-            parseAge = Integer.parseInt(personAge);
-        } catch (NumberFormatException ignored) {
-	        Log.d(TAG, "Age for a person invalid");
-	        return;
-        }
-
-        Person person = new Person();
-        person.setName(personName);
-        person.setAge(parseAge);
-
-        int checkedId = ((RadioGroup) findViewById(R.id.petType)).getCheckedRadioButtonId();
-        if (checkedId == R.id.hasCat) {
-            Cat cat = realm.createObject(Cat.class);
-            cat.setName(petName);
-            RealmList<Cat> cats = person.getCats();
-            cats.add(cat);
-        } else if (checkedId == R.id.hasDog) {
-            Dog dog = new Dog();
-            dog.setName(petName);
-            person.setDog(dog);
-        }
+        SimpleRecord record = new SimpleRecord();
+        record.setDescriptor("Record: " + new Date());
 
         //TODO: This method is not supported by realm so we can't realistically run this example.
-        mAdapter.add(person);
+        mAdapter.add(record);
     }
 }
