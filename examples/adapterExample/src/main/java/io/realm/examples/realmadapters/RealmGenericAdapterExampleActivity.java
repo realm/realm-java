@@ -59,7 +59,7 @@ public class RealmGenericAdapterExampleActivity extends Activity implements View
 
         RealmResults<Person> rList = realm.where(Person.class).findAll();
 
-        mAdapter = new RealmGenericExampleAdapter<Person>(this, R.layout.simplelistitem, rList);
+        mAdapter = new RealmGenericExampleAdapter<Person>(this, R.layout.simplelistitem, rList, true);
         mListView.setAdapter(mAdapter);
 
         realm.addChangeListener(new RealmChangeListener() {
