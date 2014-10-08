@@ -39,8 +39,9 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     }
 
     @Override
+    @Deprecated
     public long getItemId(int i) {
-        return realmResults.get(i).realmGetRow().getIndex(); // TODO: check with the core guys
+        throw new UnsupportedOperationException("Realms are unordered, hence its objects don't have an immutable Id");
     }
 
     /**
