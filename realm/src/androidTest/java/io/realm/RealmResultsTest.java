@@ -29,8 +29,17 @@ public class RealmResultsTest extends AndroidTestCase {
 
     protected Realm testRealm;
 
+    private final static String FIELD_STRING = "columnString";
+    private final static String FIELD_LONG = "columnLong";
+    private final static String FIELD_FLOAT = "columnFloat";
+    private final static String FIELD_DOUBLE = "columnDouble";
+    private final static String FIELD_BOOLEAN = "columnBoolean";
+    private final static String FIELD_DATE = "columnDate";
+    private final static String FIELD_BYTE = "columnBinary";
+    private final static String FIELD_DOG = "columnRealmObject";
+
     @Override
-    protected void setUp() {
+    protected void setUp() throws InterruptedException {
         Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
 
@@ -42,13 +51,14 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date());
-            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnDate(new Date((long)i));
+            allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
         }
         testRealm.commitTransaction();
+
     }
 
 
@@ -103,21 +113,21 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testMinValueIsMinValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
-        Number minimum = resultList.min("columnLong");
+        Number minimum = resultList.min(FIELD_LONG);
         assertEquals("ResultList.min returned wrong value", 0, minimum.intValue());
     }
 
     public void testMaxValueIsMaxValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
-        Number maximum = resultList.max("columnLong");
-        assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE -1, maximum.intValue());
+        Number maximum = resultList.max(FIELD_LONG);
+        assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE-1, maximum.intValue());
     }
 
     public void testSumGivesCorrectValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
-        Number sum = resultList.sum("columnLong");
+        Number sum = resultList.sum(FIELD_LONG);
 
         int checkSum = 0;
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
@@ -129,9 +139,9 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testAvgGivesCorrectValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
-        Double avg = Math.round(resultList.average("columnDouble")*10000.0)/10000.0;
+        Double avg = Math.round(resultList.average(FIELD_DOUBLE)*10000.0)/10000.0;
 
-        assertEquals("ResultList.sum returned wrong sum", 3.1415 ,avg);
+        assertEquals("ResultList.sum returned wrong sum", 260.6415, avg);
     }
 
 
@@ -170,19 +180,118 @@ public class RealmResultsTest extends AndroidTestCase {
 
     }
 
-    public void testSort() {
+    public void testSortByLong() {
+
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        RealmResults<AllTypes> sortedList = resultList.sort("columnLong", RealmResults.SORT_ORDER_DECENDING);
+        RealmResults<AllTypes> sortedList = resultList.sort(FIELD_LONG, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals("First excepted to be last", resultList.first().getColumnLong(), sortedList.last().getColumnLong());
+
+        RealmResults<AllTypes> reverseList = sortedList.sort(FIELD_LONG, RealmResults.SORT_ORDER_ASCENDING);
+        assertEquals(TEST_DATA_SIZE, reverseList.size());
+        assertEquals("First excepted to be first", resultList.first().getColumnLong(), reverseList.first().getColumnLong());
+        assertEquals("Last excepted to be last", resultList.last().getColumnLong(), reverseList.last().getColumnLong());
+
+        RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_LONG, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
+    }
+
+    public void testSortByDate() {
+
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> sortedList = resultList.sort(FIELD_DATE, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals("First excepted to be last", resultList.first().getColumnDate(), sortedList.last().getColumnDate());
+
+        RealmResults<AllTypes> reverseList = sortedList.sort(FIELD_DATE, RealmResults.SORT_ORDER_ASCENDING);
+        assertEquals(TEST_DATA_SIZE, reverseList.size());
+        assertEquals("First excepted to be first", resultList.first().getColumnDate(), reverseList.first().getColumnDate());
+        assertEquals("Last excepted to be last", resultList.last().getColumnDate(), reverseList.last().getColumnDate());
+
+        RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_DATE, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
+    }
+
+    public void testSortByBoolean(){
+
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> sortedList = resultList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals("Last expected to be false", false, sortedList.last().isColumnBoolean());
+        assertEquals("First expected to be true", true, sortedList.first().isColumnBoolean());
+        assertEquals("Expected to be true", true, sortedList.get(147).isColumnBoolean());
+        assertEquals("Expected to be false", false, sortedList.get(368).isColumnBoolean());
+
+        RealmResults<AllTypes> reverseList = sortedList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_ASCENDING);
+        assertEquals(TEST_DATA_SIZE, reverseList.size());
+        assertEquals("Last expected to be true", true, reverseList.last().isColumnBoolean());
+        assertEquals("First expected to be false", false, reverseList.first().isColumnBoolean());
+        assertEquals("Expected to be false", false, reverseList.get(147).isColumnBoolean());
+        assertEquals("Expected to be true", true, reverseList.get(368).isColumnBoolean());
+
+        RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
+        assertEquals(reserveSortedList.first(), sortedList.first());
+    }
+
+    public void testSortByString() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> sortedList = resultList.sort("columnString", RealmResults.SORT_ORDER_DECENDING);
+
+        for (int i = 0; i< sortedList.size();i++) {
+            System.out.println(sortedList.get(i).getColumnString());
+        }
         assertEquals("Should have same size", resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals("First excepted to be last", resultList.first().getColumnString(), sortedList.last().getColumnString());
 
-        RealmResults<AllTypes> reverseList = sortedList.sort("columnLong", RealmResults.SORT_ORDER_ASCENDING);
+        RealmResults<AllTypes> reverseList = sortedList.sort(FIELD_STRING, RealmResults.SORT_ORDER_ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
+        assertEquals("First excepted to be first", resultList.first().getColumnString(), reverseList.first().getColumnString());
+        assertEquals("Last excepted to be last", resultList.get(99).getColumnString(), reverseList.last().getColumnString());
 
-        RealmResults<AllTypes> reserveSortedList = reverseList.sort("columnLong", RealmResults.SORT_ORDER_DECENDING);
+        RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
+
+
+    public void testSortByDouble() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> sortedList = resultList.sort(FIELD_DOUBLE, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals("First excepted to be last", resultList.first().getColumnDouble(), sortedList.last().getColumnDouble());
+
+        RealmResults<AllTypes> reverseList = sortedList.sort(FIELD_DOUBLE, RealmResults.SORT_ORDER_ASCENDING);
+        assertEquals(TEST_DATA_SIZE, reverseList.size());
+        assertEquals("First excepted to be first", resultList.first().getColumnDouble(), reverseList.first().getColumnDouble());
+        assertEquals("Last excepted to be last", resultList.last().getColumnDouble(), reverseList.last().getColumnDouble());
+
+        RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_DOUBLE, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
+    }
+
+
+    public void testSortByFloat() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<AllTypes> sortedList = resultList.sort(FIELD_FLOAT, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals("First excepted to be last", resultList.first().getColumnFloat(), sortedList.last().getColumnFloat());
+
+        RealmResults<AllTypes> reverseList = sortedList.sort(FIELD_FLOAT, RealmResults.SORT_ORDER_ASCENDING);
+        assertEquals(TEST_DATA_SIZE, reverseList.size());
+        assertEquals("First excepted to be first", resultList.first().getColumnFloat(), reverseList.first().getColumnFloat());
+        assertEquals("Last excepted to be last", resultList.last().getColumnFloat(), reverseList.last().getColumnFloat());
+
+        RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_FLOAT, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
+    }
+
+
 
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
