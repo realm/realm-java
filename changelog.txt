@@ -1,6 +1,6 @@
 0.71.1 ()
-  * Extending sorting to more types: boolean, integer, float, double, data,
-    and strings are now supported
+  * Extending sorting to more types: boolean, short, int, long, float, double, Date,
+    and String fields are now supported
 
 0.71.0 (07 Oct 2014)
   * Simplified the release artifact to a single Jar file
