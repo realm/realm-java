@@ -134,18 +134,18 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * Get a sorted RealmList from an existing RealmList.
      * Only fields of type boolean, int, float, double, Date, and String are supported.
      *
-     * @param fieldName  The field name to sort by.
-     * @param sortOrder  The direction to sort by; if true ascending, if false descending
-     *                   You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DECENDING
-     *                   to write more readable code.
-     * @return           A sorted RealmResults list.
+     * @param fieldName      The field name to sort by.
+     * @param sortAscending  The direction to sort by; if true ascending, otherwise descending
+     *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DECENDING
+     *                       for readability.
+     * @return               A sorted RealmResults list.
      */
-    public RealmResults<E> sort(String fieldName, boolean sortOrder) {
+    public RealmResults<E> sort(String fieldName, boolean sortAscending) {
         TableView sorted;
 
         TableOrView table = getTable();
         long columnIndex = table.getColumnIndex(fieldName);
-        TableView.Order TVOrder = sortOrder? TableView.Order.ascending : TableView.Order.descending;
+        TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
 
         if (table instanceof TableView) {
             TableView v = (TableView)table;
