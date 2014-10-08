@@ -1,3 +1,7 @@
+0.71.1 ()
+  * Extending sorting to more types: boolean, integer, float, double, data,
+    and strings are now supported
+
 0.71.0 (07 Oct 2014)
   * Simplified the release artifact to a single Jar file
   * Added support for Eclipse

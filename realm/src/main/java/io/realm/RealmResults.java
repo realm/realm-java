@@ -120,7 +120,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Sorting
 
     /**
-     * Get a sorted (ascending) RealmList from an existing RealmList.
+     * Get a sorted (ascending) RealmList from an existing RealmList. Boolean, integers, float,
+     * double, date, and strings are supported.
      *
      * @param fieldName  The field name to sort by.
      * @return           A sorted RealmResults list
@@ -130,7 +131,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Get a sorted RealmList from an existing RealmList.
+     * Get a sorted RealmList from an existing RealmList. Boolean, integers, float, double, date,
+     * and strings are supported.
      *
      * @param fieldName  The field name to sort by.
      * @param sortOrder  The direction to sort by; if true ascending, if false descending
