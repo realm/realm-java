@@ -1,4 +1,4 @@
-0.71.1 ()
+0.72.0 (??)
   * Extending sorting to more types: boolean, short, int, long, float, double, Date,
     and String fields are now supported
 
