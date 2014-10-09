@@ -44,6 +44,24 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
             from tarTree(new File(buildDir, "core-android-${project.coreVersion}.tar.gz"))
             into "../core-${project.coreVersion}"
         }
+        for (target in ['arm', 'arm-v7a', 'mips', 'x86']) {
+            exec {
+                commandLine = [
+                        'make',
+                        '-C', "${projectDir}/src",
+                        "BASE_DENOM=${target}",
+                        'LIB_SUFFIX_SHARED=.so',
+                        'clean'
+                ]
+            }
+        }
+        exec {
+            commandLine = [
+                    'rm',
+                    '-rf',
+                    "${projectDir}/build/*"
+            ]
+        }
     }
 }
 
