@@ -41,7 +41,7 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     @Override
     @Deprecated
     public long getItemId(int i) {
-        throw new UnsupportedOperationException("Realms are unordered, hence its objects don't have an immutable Id");
+        return i; // TODO: find better solution
     }
 
     /**
