@@ -306,10 +306,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDateTime
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeEqual
- * Signature: (JJLjava/lang/String;Z)V
+ * Signature: (J[JLjava/lang/String;Z)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__JJLjava_lang_String_2Z
-  (JNIEnv *, jobject, jlong, jlong, jstring, jboolean);
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JLjava_lang_String_2Z
+  (JNIEnv *, jobject, jlong, jlongArray, jstring, jboolean);
 
 /*
  * Class:     io_realm_internal_TableQuery

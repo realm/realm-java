@@ -130,7 +130,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_TableView_nativeGetMixedType
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeGetMixed
- * Signature: (JJJ)Lio/realm/Mixed;
+ * Signature: (JJJ)Lio/realm/internal/Mixed;
  */
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeGetMixed
   (JNIEnv *, jobject, jlong, jlong, jlong);
@@ -226,7 +226,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetByteArray
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeSetMixed
- * Signature: (JJJLio/realm/Mixed;)V
+ * Signature: (JJJLio/realm/internal/Mixed;)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetMixed
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
@@ -498,7 +498,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort
 /*
  * Class:     io_realm_internal_TableView
  * Method:    createNativeTableView
- * Signature: (Lio/realm/Table;J)J
+ * Signature: (Lio/realm/internal/Table;J)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_createNativeTableView
   (JNIEnv *, jobject, jobject, jlong);
