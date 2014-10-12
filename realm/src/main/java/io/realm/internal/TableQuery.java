@@ -362,21 +362,21 @@ public class TableQuery implements Closeable {
     private final static String STRING_NULL_ERROR_MESSAGE = "String value in query criteria must not be null.";
 
     // Equal
-    public TableQuery equalTo(long columnIndex, String value, boolean caseSensitive){
+    public TableQuery equalTo(long[] columnIndexes, String value, boolean caseSensitive) {
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
-        nativeEqual(nativePtr, columnIndex, value, caseSensitive);
+        nativeEqual(nativePtr, columnIndexes, value, caseSensitive);
         queryValidated = false;
         return this;
     }
-    public TableQuery equalTo(long columnIndex, String value){
+    public TableQuery equalTo(long[] columnIndexes, String value) {
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
-        nativeEqual(nativePtr, columnIndex, value, true);
+        nativeEqual(nativePtr, columnIndexes, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
+    protected native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
 
     // Not Equal
     public TableQuery notEqualTo(long columnIndex, String value, boolean caseSensitive){

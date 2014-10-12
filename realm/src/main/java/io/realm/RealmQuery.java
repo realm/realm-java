@@ -21,6 +21,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.realm.exceptions.RealmException;
+import io.realm.internal.ColumnType;
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 
@@ -82,6 +85,28 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    private long[] getColumnIndexes(String fieldName) {
+        if (fieldName.contains(".")) {
+            String[] names = fieldName.split("\\.");
+            long[] columnIndexes = new long[names.length];
+            Table table = (Table)getTable();
+            for (int i = 0; i < names.length-1; i++) {
+                long index = table.getColumnIndex(names[i]);
+                ColumnType type = table.getColumnType(index);
+                if (type == ColumnType.LINK || type == ColumnType.LINK_LIST) {
+                    table = table.getLinkTarget(index);
+                    columnIndexes[i] = index;
+                } else {
+                    throw new RealmException("Invalid query: " + names[i] + " does not refer to a class.");
+                }
+            }
+            columnIndexes[names.length-1] = table.getColumnIndex(names[names.length-1]);
+            return columnIndexes;
+        } else {
+            return new long[] {columns.get(fieldName)};
+        }
+    }
+
     // Equal
 
     /**
@@ -94,8 +119,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, String value) {
-        int columnIndex = columns.get(fieldName);
-        this.query.equalTo(columnIndex, value);
+        long[] columnIndexes = getColumnIndexes(fieldName);
+        this.query.equalTo(columnIndexes, value);
         return this;
     }
 

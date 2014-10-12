@@ -40,7 +40,7 @@ public class JNIQueryTest extends TestCase {
         init();
         TableQuery query = table.where();
 
-        long cnt = query.equalTo(1, "D").count();
+        long cnt = query.equalTo(new long[]{1}, "D").count();
         assertEquals(2, cnt);
 
         cnt = query.minimumInt(0);
@@ -118,19 +118,19 @@ public class JNIQueryTest extends TestCase {
         try { query.equalTo(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String
-        try { query.equalTo(-1, "a").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, "a").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case true
-        try { query.equalTo(-1, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case false
-        try { query.equalTo(-1, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
     public void testNegativeColumnIndexNotEqualTo() {
@@ -347,8 +347,8 @@ public class JNIQueryTest extends TestCase {
         try { t.where().between(0, nullDate, nullDate);     fail("Dates are null"); } catch (IllegalArgumentException e) { }
         
         String nullString = null;
-        try { t.where().equalTo(1, nullString);             fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().equalTo(1, nullString, false);      fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().equalTo(new long[]{1}, nullString);             fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().equalTo(new long[]{1}, nullString, false);      fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().notEqualTo(1, nullString);          fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().notEqualTo(1, nullString, false);   fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().contains(1, nullString);            fail("String is null"); } catch (IllegalArgumentException e) { }
@@ -429,7 +429,7 @@ public class JNIQueryTest extends TestCase {
         // Compare strings in non string columns
         for (int i = 0; i <= 8; i++) {
             if (i != 7) {
-                try { query.equalTo(i, "string");                 assert(false); } catch(IllegalArgumentException e) {}
+                try { query.equalTo(new long[]{i}, "string");                 assert(false); } catch(IllegalArgumentException e) {}
                 try { query.notEqualTo(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
                 try { query.beginsWith(i, "string");            assert(false); } catch(IllegalArgumentException e) {}
                 try { query.endsWith(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
@@ -581,7 +581,7 @@ public class JNIQueryTest extends TestCase {
         try { query.averageFloat(8);            assert(false); } catch(IllegalArgumentException e) {}
         try { query.averageDouble(8);           assert(false); } catch(IllegalArgumentException e) {}
         // Out of bounds for string
-        try { query.equalTo(9, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{9}, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.beginsWith(9, "string");            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.endsWith(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
@@ -640,11 +640,11 @@ public class JNIQueryTest extends TestCase {
 
         TableView view = table.where().findAll();
 
-        TableView view2 = view.where().equalTo(0, "John").findAll();
+        TableView view2 = view.where().equalTo(new long[]{0}, "John").findAll();
 
         assertEquals(2, view2.size());
 
-        TableView view3 = view2.where().equalTo(1, "Anderson").findAll();
+        TableView view3 = view2.where().equalTo(new long[]{1}, "Anderson").findAll();
 
         assertEquals(1, view3.size());
     }
@@ -665,9 +665,9 @@ public class JNIQueryTest extends TestCase {
         table.add("Erik", "Lee", 30000);
         table.add("Henry", "Anderson", 10000);
 
-        TableView view = table.where().equalTo(0, "John").findAll();
+        TableView view = table.where().equalTo(new long[]{0}, "John").findAll();
 
-        TableView view2 = view.where().equalTo(1, "Anderson").findAll();
+        TableView view2 = view.where().equalTo(new long[]{1}, "Anderson").findAll();
 
         assertEquals(1, view2.size());
     }
