@@ -16,8 +16,14 @@
 
 package io.realm;
 
-import io.realm.internal.Row;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+
 import io.realm.annotations.RealmClass;
+import io.realm.internal.Row;
 
 /**
  * In Realm you define your model classes by subclassing RealmObject and adding fields to be
@@ -51,5 +57,13 @@ public abstract class RealmObject {
 
     protected void realmSetRow(Row row) {
         this.row = row;
+    }
+
+    protected void populateFromJsonObject(JSONObject json) throws JSONException {
+        throw new IllegalStateException("Only use this method on objects created or fetched in a Realm. Realm.createObject() or Realm.where()");
+    }
+
+    protected void populateFromJsonStream(InputStream inputStream) throws IOException {
+        throw new IllegalStateException("Only use this method on objects created or fetched in a Realm. Realm.createObject() or Realm.where()");
     }
 }

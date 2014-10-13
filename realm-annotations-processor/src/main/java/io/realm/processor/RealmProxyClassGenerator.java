@@ -18,6 +18,16 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -26,10 +36,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.lang.String;
-import java.util.*;
 
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -211,7 +217,6 @@ public class RealmProxyClassGenerator {
 
         writer.emitPackage(REALM_PACKAGE_NAME)
                 .emitEmptyLine();
-
         writer.emitImports(
                 "io.realm.internal.ColumnType",
                 "io.realm.internal.Table",
@@ -220,6 +225,8 @@ public class RealmProxyClassGenerator {
                 "io.realm.internal.LinkView",
                 "io.realm.RealmList",
                 "io.realm.RealmObject",
+                "org.json.JSONObject",
+                "org.json.JSONException",
                 "java.util.*",
                 packageName + ".*")
                 .emitEmptyLine();
@@ -604,9 +611,36 @@ public class RealmProxyClassGenerator {
         writer.endMethod();
         writer.emitEmptyLine();
 
+        // Add JSON methods
+        emitPopulateFromJsonObjectMethod(writer);
+//        emitPopulateFromJsonStreamMethod(writer);
+
         // End the class definition
         writer.endType();
         writer.close();
+    }
+
+    private void emitPopulateFromJsonObjectMethod(JavaWriter writer) throws IOException {
+        writer.emitAnnotation(Override.class);
+        writer.beginMethod(
+                "void",
+                "populateFromJsonObject",
+                EnumSet.of(Modifier.PROTECTED),
+                Arrays.asList("JSONObject", "json"),
+                Arrays.asList("JSONException"));
+
+        for (VariableElement field : fields) {
+            String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
+            RealmJsonTypeHelper.emitFillFieldWithJsonValue(fieldName, fieldTypeCanonicalName, writer);
+        }
+
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    private void emitPopulateFromJsonStreamMethod(JavaWriter writer) {
+//        throw new RuntimeException("Not implemented");
     }
 
     private static String capitaliseFirstChar(String input) {

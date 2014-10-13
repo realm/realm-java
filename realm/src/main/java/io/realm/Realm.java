@@ -22,7 +22,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -69,8 +73,8 @@ public class Realm {
     private final LooperThread looperThread = LooperThread.getInstance();
     private final SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
-    private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>();
-    private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>();
+    private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>(); // Map between original class and their class name
+    private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>(); // Map between generated class names and their implementation
     private final Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
     private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
@@ -263,7 +267,7 @@ public class Realm {
                 for (String className : proxyClasses) {
                     String[] splitted = className.split("\\.");
                     String modelClassName = splitted[splitted.length - 1];
-                    String generatedClassName = "io.realm." + modelClassName + "RealmProxy";
+                    String generatedClassName = getProxyClassName(modelClassName);
                     Class<?> generatedClass;
                     try {
                         generatedClass = Class.forName(generatedClassName);
@@ -344,6 +348,40 @@ public class Realm {
         return realm;
     }
 
+    public void addFromJson(Class<? extends RealmObject> clazz, JSONArray json) {
+    }
+
+    /**
+     * Add a JsonObject to the Realm as a new object. This must be done inside a transaction.
+     *
+     * @param clazz Class of object the json will map to.
+     * @param json  JsonObject that can map to the chosen clazz. Properties not in the class are ignored.
+     * @return Object with data or null if no json data was provided.
+     *
+     * @throws RealmException if the mapping fail.
+     */
+
+    public <E extends RealmObject> E createFromJson(Class<E> clazz, JSONObject json) {
+        if (json == null) return null;
+
+        E obj = createObject(clazz);
+        try {
+            obj.populateFromJsonObject(json);
+        } catch (Exception e) {
+            // TODO Remove object from realm
+            throw new RealmException("Could not map Json", e);
+        }
+
+        return obj;
+    }
+
+    public void addFromJson(Class<? extends RealmObject> clazz, InputStream inputStream) {
+
+    }
+
+
+
+
     // This class stores soft-references to realm objects per thread per realm file
     private static class ThreadRealm extends ThreadLocal<SoftReference<Realm>> {
         private String absolutePath;
@@ -377,7 +415,7 @@ public class Realm {
                 simpleClassName = clazz.getSimpleName();
                 simpleClassNames.put(clazz, simpleClassName);
             }
-            String generatedClassName = "io.realm." + simpleClassName + "RealmProxy";
+            String generatedClassName = getProxyClassName(simpleClassName);
 
             Class<?> generatedClass = generatedClasses.get(generatedClassName);
             if (generatedClass == null) {
@@ -442,7 +480,7 @@ public class Realm {
                 simpleClassName = clazz.getSimpleName();
                 simpleClassNames.put(clazz, simpleClassName);
             }
-            String generatedClassName = "io.realm." + simpleClassName + "RealmProxy";
+            String generatedClassName = getProxyClassName(simpleClassName);
 
 
             Class<?> generatedClass = generatedClasses.get(generatedClassName);
@@ -482,6 +520,10 @@ public class Realm {
         result.realmSetRow(row);
         result.setRealm(this);
         return result;
+    }
+
+    private static String getProxyClassName(String simpleClassName) {
+        return "io.realm." + simpleClassName + "RealmProxy";
     }
 
     boolean contains(Class<?> clazz) {
