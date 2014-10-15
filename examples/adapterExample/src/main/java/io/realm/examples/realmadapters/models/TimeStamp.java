@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package io.realm.examples.realmadapters.model;
+package io.realm.examples.realmadapters.models;
 
 import io.realm.RealmObject;
 
-public class SimpleRecord extends RealmObject {
+public class TimeStamp extends RealmObject {
+    private String timeStamp;
 
-    private String descriptor;
-
-    public String getDescriptor() {
-        return descriptor;
+    public String getTimeStamp() {
+        return timeStamp;
     }
 
-    public void setDescriptor(String descriptor) {
-        this.descriptor = descriptor;
+    public void setTimeStamp(String timeStamp) {
+        this.timeStamp = timeStamp;
     }
 }

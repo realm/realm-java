@@ -4,8 +4,6 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
 
-import org.jetbrains.annotations.NotNull;
-
 public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapter {
 
     protected LayoutInflater inflater;
@@ -13,7 +11,14 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     protected Context context;
     protected int resId;
 
-    public RealmBaseAdapter(@NotNull Context context, int resId, @NotNull RealmResults<T> realmResults, boolean automaticUpdate) {
+    public RealmBaseAdapter(Context context, int resId, RealmResults<T> realmResults, boolean automaticUpdate) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context cannot be null");
+        }
+        if (realmResults == null) {
+            throw new IllegalArgumentException("RealmResults cannot be null");
+        }
+
         this.resId   = resId;
         this.context = context;
         this.realmResults = realmResults;
@@ -39,9 +44,8 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     }
 
     @Override
-    @Deprecated
     public long getItemId(int i) {
-        return i; // TODO: find better solution
+        return i; // TODO: find better solution once we have unique IDs
     }
 
     /**
