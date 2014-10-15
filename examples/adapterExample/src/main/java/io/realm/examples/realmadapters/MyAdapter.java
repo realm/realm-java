@@ -20,8 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.jetbrains.annotations.NotNull;
-
 import io.realm.RealmBaseAdapter;
 import io.realm.RealmResults;
 import io.realm.examples.realmadapters.models.TimeStamp;
@@ -32,7 +30,7 @@ public class MyAdapter extends RealmBaseAdapter<TimeStamp> {
         TextView tvTimeStamp;
     }
 
-    public MyAdapter(@NotNull Context context, int resId, @NotNull RealmResults<TimeStamp> realmResults, boolean automaticUpdate) {
+    public MyAdapter(Context context, int resId, RealmResults<TimeStamp> realmResults, boolean automaticUpdate) {
         super(context, resId, realmResults, automaticUpdate);
     }
 
