@@ -926,13 +926,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort(
         return;
 
     int colType = TV(nativeViewPtr)->get_column_type( S(columnIndex) );
-    if (colType != type_Int && colType != type_Bool && colType != type_DateTime) {
-        ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
-        return;
+    switch (colType) {
+        case type_Bool:
+        case type_Int:
+        case type_DateTime:
+        case type_Float:
+        case type_Double:
+        case type_String:
+            try {
+                TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
+            } CATCH_STD()
+            break;
+        default:
+            ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Float, Double, Boolean, Date, and String columns.");
+          return;
     }
-    try {
-        TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
-    } CATCH_STD()
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToJson(

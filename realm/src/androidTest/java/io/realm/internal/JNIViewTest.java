@@ -26,17 +26,14 @@ public class JNIViewTest extends TestCase {
         t.addColumn(ColumnType.DATE,   "Birthday");
 
         // Add unsupported column types
-        t.addColumn(ColumnType.STRING, "Unsupported0");
-        t.addColumn(ColumnType.FLOAT,  "Unsupported1");
-        t.addColumn(ColumnType.DOUBLE, "Unsupported2");
         t.addColumn(ColumnType.MIXED,  "Unsupported3");
         t.addColumn(ColumnType.TABLE,  "Unsupported4");
 
         //Add data
-        t.add("cc", true,  24, date1, "", 0.0f, 0.0, 0, null);
-        t.add("dd", false, 35, date2, "", 0.0f, 0.0, 0, null);
-        t.add("bb", true,  22, date3, "", 0.0f, 0.0, 0, null);
-        t.add("aa", false, 22, date4, "", 0.0f, 0.0, 0, null);
+        t.add("cc", true,  24, date1, 0, null);
+        t.add("dd", false, 35, date2, 0, null);
+        t.add("bb", true,  22, date3, 0, null);
+        t.add("aa", false, 22, date4, 0, null);
 
         assertEquals(date1, t.getDate(3, 0));
         assertEquals(date2, t.getDate(3, 1));
@@ -290,7 +287,7 @@ public class JNIViewTest extends TestCase {
     public void testShouldThrowExceptionForUnsupportedColumns() {
         TableView view = t.where().findAll();
         long colIndex;
-        for (colIndex = 4; colIndex <= 8; colIndex++) {
+        for (colIndex = 4; colIndex <= 5; colIndex++) {
             try {
                 view.sort(colIndex); // Must throw for invalid column types
                 fail("expected exception.");
