@@ -348,7 +348,17 @@ public class Realm {
         return realm;
     }
 
-    public void addFromJson(Class<? extends RealmObject> clazz, JSONArray json) {
+    public <E extends RealmObject> void addFromJson(Class<E> clazz, JSONArray json) {
+        if (json == null) return;
+        for (int i = 0; i < json.length(); i++) {
+            E obj = createObject(clazz);
+            try {
+                obj.populateFromJsonObject(json.getJSONObject(i));
+            } catch (Exception e) {
+                // TODO Remove object from realm
+                throw new RealmException("Could not map Json", e);
+            }
+        }
     }
 
     /**
@@ -375,8 +385,17 @@ public class Realm {
         return obj;
     }
 
-    public void addFromJson(Class<? extends RealmObject> clazz, InputStream inputStream) {
+    public <E extends RealmObject> E addFromJson(Class<E> clazz, InputStream inputStream) {
+        if (inputStream == null) return null;
 
+        E obj = createObject(clazz);
+        try {
+
+        } catch (Exception e) {
+
+        }
+
+        return obj;
     }
 
 

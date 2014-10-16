@@ -7,9 +7,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.util.Date;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Dog;
 
 public class RealmJsonTest extends AndroidTestCase {
 
@@ -56,7 +58,6 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(1.23d, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
         assertEquals(new byte[]{1, 2, 3}, obj.getColumnBinary());
-
     }
 
     public void testImportJSonDateAsLong() throws JSONException {
@@ -132,12 +133,39 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(0, obj.getColumnRealmObjectList().size());
     }
 
+    public void testImportJsonArray_empty() throws JSONException {
+        JSONArray array = new JSONArray();
+        testRealm.beginTransaction();
+        testRealm.addFromJson(AllTypes.class, array);
+        testRealm.commitTransaction();
+
+        assertEquals(0, testRealm.allObjects(AllTypes.class).size());
+    }
+
+    public void testImportJsonArray() throws JSONException {
+        JSONObject dog1 = new JSONObject(); dog1.put("name", "Fido-1");
+        JSONObject dog2 = new JSONObject(); dog2.put("name", "Fido-2");
+        JSONObject dog3 = new JSONObject(); dog3.put("name", "Fido-3");
+        JSONArray dogList = new JSONArray();
+        dogList.put(dog1);
+        dogList.put(dog2);
+        dogList.put(dog3);
+
+        testRealm.beginTransaction();
+        testRealm.addFromJson(Dog.class, dogList);
+        testRealm.commitTransaction();
+
+        assertEquals(3, testRealm.allObjects(Dog.class).size());
+        assertEquals("Fido-3", testRealm.allObjects(Dog.class).get(2).getName());
+    }
+
+
     public void testRemoveObjetsIfImportFail() {
         fail("Test if objects created by the json import is removed if something fail during decoding");
     }
 
     public void testImportJsonNullStream() {
-        testRealm.addFromJson(AllTypes.class, (JSONArray) null);
+        testRealm.addFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
     }
 
