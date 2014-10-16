@@ -232,6 +232,7 @@ public class RealmProxyClassGenerator {
                 "io.realm.RealmObject",
                 "org.json.JSONObject",
                 "org.json.JSONException",
+                "org.json.JSONArray",
                 "java.util.*",
                 packageName + ".*")
                 .emitEmptyLine();
@@ -638,11 +639,22 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
-                RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(fieldName, fieldTypeCanonicalName, writer);
+                RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
+                        fieldName,
+                        fieldTypeCanonicalName,
+                        writer);
+
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
+                RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
+                        fieldName,
+                        ((DeclaredType) field.asType()).getTypeArguments().get(0).toString(),
+                        writer);
 
             } else {
-                RealmJsonTypeHelper.emitFillJavaTypeFieldWithJsonValue(fieldName, fieldTypeCanonicalName, writer);
+                RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
+                        fieldName,
+                        fieldTypeCanonicalName,
+                        writer);
             }
 
         }

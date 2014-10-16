@@ -83,7 +83,7 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(new Date(1000), obj.getColumnDate());
     }
 
-    public void testImportJSonNestedObjects() throws JSONException {
+    public void testImportJSonChildObject() throws JSONException {
         JSONObject allTypesObject = new JSONObject();
         JSONObject dogObject = new JSONObject();
         dogObject.put("name", "Fido");
@@ -97,6 +97,40 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals("Fido", obj.getColumnRealmObject().getName());
     }
 
+    public void testImportJSonChildObjectList() throws JSONException {
+        JSONObject allTypesObject = new JSONObject();
+        JSONObject dog1 = new JSONObject(); dog1.put("name", "Fido-1");
+        JSONObject dog2 = new JSONObject(); dog2.put("name", "Fido-2");
+        JSONObject dog3 = new JSONObject(); dog3.put("name", "Fido-3");
+        JSONArray dogList = new JSONArray();
+        dogList.put(dog1);
+        dogList.put(dog2);
+        dogList.put(dog3);
+
+        allTypesObject.put("columnRealmObjectList", dogList);
+
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AllTypes.class, allTypesObject);
+        testRealm.commitTransaction();
+
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals(3, obj.getColumnRealmObjectList().size());
+        assertEquals("Fido-3", obj.getColumnRealmObjectList().get(2).getName());
+    }
+
+    public void testImportJSonChildObjectList_empty() throws JSONException {
+        JSONObject allTypesObject = new JSONObject();
+        JSONArray dogList = new JSONArray();
+
+        allTypesObject.put("columnRealmObjectList", dogList);
+
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AllTypes.class, allTypesObject);
+        testRealm.commitTransaction();
+
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals(0, obj.getColumnRealmObjectList().size());
+    }
 
     public void testRemoveObjetsIfImportFail() {
         fail("Test if objects created by the json import is removed if something fail during decoding");

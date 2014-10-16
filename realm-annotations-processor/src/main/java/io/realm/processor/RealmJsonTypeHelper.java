@@ -57,7 +57,7 @@ public class RealmJsonTypeHelper {
         }); // Hex 64 encoded
     }
 
-    public static void emitFillJavaTypeFieldWithJsonValue(String fieldName, String fieldType, JavaWriter writer) throws IOException {
+    public static void emitFillJavaTypeWithJsonValue(String fieldName, String fieldType, JavaWriter writer) throws IOException {
         if (JAVA_TO_JSON_TYPES.containsKey(fieldType)) {
             writer.beginControlFlow("if (json.has(\"%s\"))", fieldName);
             JAVA_TO_JSON_TYPES.get(fieldType).emitTypeConversion(fieldName, fieldType, writer);
@@ -75,6 +75,18 @@ public class RealmJsonTypeHelper {
                 .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
                 .emitStatement("obj.populateFromJsonObject(json.getJSONObject(\"%s\"))", fieldName)
                 .emitStatement("set%s(obj)", capitaliseFirstChar(fieldName))
+            .endControlFlow();
+    }
+
+    public static void emitFillRealmListWithJsonValue(String fieldName, String fieldTypeCanonicalName, JavaWriter writer) throws IOException {
+        writer
+            .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                .emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
+                .beginControlFlow("for (int i = 0; i < array.length(); i++)")
+                    .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
+                    .emitStatement("obj.populateFromJsonObject(array.getJSONObject(i))")
+                    .emitStatement("get%s().add(obj)", capitaliseFirstChar(fieldName))
+                .endControlFlow()
             .endControlFlow();
     }
 
