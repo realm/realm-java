@@ -47,6 +47,11 @@ public class RealmProxyClassGenerator {
     private static final String TABLE_PREFIX = "class_";
     private static final String PROXY_SUFFIX = "RealmProxy";
 
+    private Elements elementUtils;
+    private Types typeUtils;
+    private TypeMirror realmObject;
+    private DeclaredType realmList;
+
     public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment, String className, String packageName, List<VariableElement> fields, List<VariableElement> fieldsToIndex) {
         this.processingEnvironment = processingEnvironment;
         this.className = className;
@@ -206,11 +211,11 @@ public class RealmProxyClassGenerator {
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
 
-        Elements elementUtils = processingEnvironment.getElementUtils();
-        Types typeUtils = processingEnvironment.getTypeUtils();
+        elementUtils = processingEnvironment.getElementUtils();
+        typeUtils = processingEnvironment.getTypeUtils();
 
-        TypeMirror realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
-        DeclaredType realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
+        realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
 
         // Set source code indent to 4 spaces
         writer.setIndent("    ");
@@ -632,7 +637,14 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
-            RealmJsonTypeHelper.emitFillFieldWithJsonValue(fieldName, fieldTypeCanonicalName, writer);
+            if (typeUtils.isAssignable(field.asType(), realmObject)) {
+                RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(fieldName, fieldTypeCanonicalName, writer);
+            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
+
+            } else {
+                RealmJsonTypeHelper.emitFillJavaTypeFieldWithJsonValue(fieldName, fieldTypeCanonicalName, writer);
+            }
+
         }
 
         writer.endMethod();

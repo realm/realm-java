@@ -30,15 +30,24 @@ public class RealmJsonTypeHelper {
         JAVA_TO_JSON_TYPES.put("Double", new SimpleTypeConverter("Double", "Double"));
         JAVA_TO_JSON_TYPES.put("Boolean", new SimpleTypeConverter("Boolean", "Boolean"));
         JAVA_TO_JSON_TYPES.put("java.lang.String", new SimpleTypeConverter("String", "String"));
-
-
         JAVA_TO_JSON_TYPES.put("java.util.Date", new JsonToRealmTypeConverter() {
             @Override
             public void emitTypeConversion(String fieldName, String fieldType, JavaWriter writer) throws IOException {
-//                throw new RuntimeException("Date not supported yet");
+                // TODO Add support for ISO 8601, but apparently there is a lot of edge cases.
+                // Currently support for long timestamp and "/Date(long)/"
+                writer  .emitStatement("long timestamp = json.optLong(\"%s\", -1)", fieldName)
+                        .beginControlFlow("if (timestamp > -1)")
+                            .emitStatement("set%s(new Date(timestamp))", capitaliseFirstChar(fieldName))
+                        .nextControlFlow("else")
+                            .emitStatement("String jsonDate = json.getString(\"%s\")", fieldName)
+                            .beginControlFlow("if (!(jsonDate == null || jsonDate.length() == 0))")
+                                .emitStatement("jsonDate = jsonDate.substring(6, jsonDate.length() - 2)")
+                                .emitStatement("timestamp = Long.parseLong(jsonDate)")
+                                .emitStatement("set%s(new Date(timestamp))", capitaliseFirstChar(fieldName))
+                            .endControlFlow()
+                        .endControlFlow();
             }
-        }); // ISO-8601 encoded or Unix timestamp or /Date(unix timestamp)/
-
+        });
 
         JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmTypeConverter() {
             @Override
@@ -48,19 +57,25 @@ public class RealmJsonTypeHelper {
         }); // Hex 64 encoded
     }
 
-    public static void emitFillFieldWithJsonValue(String fieldName, String fieldType, JavaWriter writer) throws IOException {
+    public static void emitFillJavaTypeFieldWithJsonValue(String fieldName, String fieldType, JavaWriter writer) throws IOException {
         if (JAVA_TO_JSON_TYPES.containsKey(fieldType)) {
             writer.beginControlFlow("if (json.has(\"%s\"))", fieldName);
             JAVA_TO_JSON_TYPES.get(fieldType).emitTypeConversion(fieldName, fieldType, writer);
             writer.endControlFlow();
-
-        } else {
-//            throw new IllegalArgumentException("Java type not support in Json import: " + fieldType);
         }
     }
 
     private static String capitaliseFirstChar(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1);
+    }
+
+    public static void emitFillRealmObjectWithJsonValue(String fieldName, String fieldTypeCanonicalName, JavaWriter writer) throws IOException {
+        writer
+            .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
+                .emitStatement("obj.populateFromJsonObject(json.getJSONObject(\"%s\"))", fieldName)
+                .emitStatement("set%s(obj)", capitaliseFirstChar(fieldName))
+            .endControlFlow();
     }
 
     static class SimpleTypeConverter implements JsonToRealmTypeConverter {
