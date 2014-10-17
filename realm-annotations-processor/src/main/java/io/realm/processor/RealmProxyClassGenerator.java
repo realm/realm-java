@@ -233,6 +233,7 @@ public class RealmProxyClassGenerator {
                 "org.json.JSONObject",
                 "org.json.JSONException",
                 "org.json.JSONArray",
+                "android.util.JsonReader",
                 "java.util.*",
                 packageName + ".*")
                 .emitEmptyLine();
@@ -619,7 +620,7 @@ public class RealmProxyClassGenerator {
 
         // Add JSON methods
         emitPopulateFromJsonObjectMethod(writer);
-//        emitPopulateFromJsonStreamMethod(writer);
+        emitPopulateFromJsonStreamMethod(writer);
 
         // End the class definition
         writer.endType();
@@ -630,7 +631,7 @@ public class RealmProxyClassGenerator {
         writer.emitAnnotation(Override.class);
         writer.beginMethod(
                 "void",
-                "populateFromJsonObject",
+                "populateUsingJsonObject",
                 EnumSet.of(Modifier.PROTECTED),
                 Arrays.asList("JSONObject", "json"),
                 Arrays.asList("JSONException"));
@@ -663,8 +664,40 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitPopulateFromJsonStreamMethod(JavaWriter writer) {
-//        throw new RuntimeException("Not implemented");
+    private void emitPopulateFromJsonStreamMethod(JavaWriter writer) throws IOException {
+        writer.emitAnnotation(Override.class);
+        writer.beginMethod(
+                "void",
+                "populateUsingJsonStream",
+                EnumSet.of(Modifier.PROTECTED),
+                "JsonReader", "json");
+
+//        for (VariableElement field : fields) {
+//            String fieldName = field.getSimpleName().toString();
+//            String fieldTypeCanonicalName = field.asType().toString();
+//            if (typeUtils.isAssignable(field.asType(), realmObject)) {
+//                RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
+//                        fieldName,
+//                        fieldTypeCanonicalName,
+//                        writer);
+//
+//            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
+//                RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
+//                        fieldName,
+//                        ((DeclaredType) field.asType()).getTypeArguments().get(0).toString(),
+//                        writer);
+//
+//            } else {
+//                RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
+//                        fieldName,
+//                        fieldTypeCanonicalName,
+//                        writer);
+//            }
+//
+//        }
+
+        writer.endMethod();
+        writer.emitEmptyLine();
     }
 
     private static String capitaliseFirstChar(String input) {

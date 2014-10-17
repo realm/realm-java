@@ -348,18 +348,50 @@ public class Realm {
         return realm;
     }
 
-    public <E extends RealmObject> void addFromJson(Class<E> clazz, JSONArray json) {
+
+
+    /**
+     * Add an array of of JsonObjects to the Realm as a new object. This must be done inside a transaction.
+     *
+     * @param clazz Class of object the json will map to. All Objects in the array must be of the same type.
+     * @param json  Array of JsonObject's that can map to the chosen clazz. Properties not in the class are ignored.
+     *
+     * @throws RealmException if the mapping fail.
+     */
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, JSONArray json) {
         if (json == null) return;
         for (int i = 0; i < json.length(); i++) {
             E obj = createObject(clazz);
             try {
-                obj.populateFromJsonObject(json.getJSONObject(i));
+                obj.populateUsingJsonObject(json.getJSONObject(i));
             } catch (Exception e) {
                 // TODO Remove object from realm
                 throw new RealmException("Could not map Json", e);
             }
         }
     }
+
+
+    /**
+     * Add a Json InputStream to the Realm as new objects. This must be done inside a transaction.
+     *
+     * @param clazz         Class of object the json will map to. All Objects in the array must be of the same type.
+     * @param inputStream   A JSON InputStream of objects of type clazz. All objects must be of the chosen clazz. Properties not in the class are ignored.
+     *
+     * @throws RealmException if the mapping fail.
+     */
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) {
+        if (inputStream == null) return;
+
+        E obj = createObject(clazz);
+        try {
+
+        } catch (Exception e) {
+
+        }
+    }
+
+
 
     /**
      * Add a JsonObject to the Realm as a new object. This must be done inside a transaction.
@@ -370,13 +402,12 @@ public class Realm {
      *
      * @throws RealmException if the mapping fail.
      */
-
     public <E extends RealmObject> E createFromJson(Class<E> clazz, JSONObject json) {
         if (json == null) return null;
 
         E obj = createObject(clazz);
         try {
-            obj.populateFromJsonObject(json);
+            obj.populateUsingJsonObject(json);
         } catch (Exception e) {
             // TODO Remove object from realm
             throw new RealmException("Could not map Json", e);
@@ -385,7 +416,16 @@ public class Realm {
         return obj;
     }
 
-    public <E extends RealmObject> E addFromJson(Class<E> clazz, InputStream inputStream) {
+    /**
+     * Add a JsonObject from a InputStream to the Realm as a new object. This must be done inside a transaction.
+     *
+     * @param clazz         Class of object the json will map to.
+     * @param inputStream   JSONObject as a input stream of the chosen clazz. Properties not in the class are ignored.
+     * @return Object with data or null if no json data was provided.
+     *
+     * @throws RealmException if the mapping fail.
+     */
+    public <E extends RealmObject> E createFromJson(Class<E> clazz, InputStream inputStream) {
         if (inputStream == null) return null;
 
         E obj = createObject(clazz);
@@ -397,9 +437,6 @@ public class Realm {
 
         return obj;
     }
-
-
-
 
     // This class stores soft-references to realm objects per thread per realm file
     private static class ThreadRealm extends ThreadLocal<SoftReference<Realm>> {
