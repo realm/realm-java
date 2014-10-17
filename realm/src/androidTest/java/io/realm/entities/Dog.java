@@ -22,6 +22,15 @@ import io.realm.RealmObject;
 public class Dog extends RealmObject {
 
     private String name;
+    private long age;
+
+    public long getAge() {
+        return age;
+    }
+
+    public void setAge(long age) {
+        this.age = age;
+    }
 
     public String getName() {
         return name;

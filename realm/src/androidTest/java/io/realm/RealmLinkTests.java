@@ -36,12 +36,15 @@ public class RealmLinkTests extends AndroidTestCase {
 
         Dog dog1 = testRealm.createObject(Dog.class);
         dog1.setName("Pluto");
+        dog1.setAge(5);
 
         Dog dog2 = testRealm.createObject(Dog.class);
         dog2.setName("Fido");
+        dog2.setAge(10);
 
         Cat cat = testRealm.createObject(Cat.class);
         cat.setName("Blackie");
+        cat.setAge(12);
 
         Owner owner = testRealm.createObject(Owner.class);
         owner.setName("Tim");
@@ -59,9 +62,19 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals("Pluto", owners.first().getDogs().first().getName());
         assertEquals("Fido", owners.first().getDogs().last().getName());
         assertEquals("Blackie", owners.first().getCat().getName());
+        assertEquals(12, owners.first().getCat().getAge());
     }
 
-    public void testQuerySingleRelation() {
+    public void testQuerySingleRelationInteger() {
+        RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.age", 12).findAll();
+        assertEquals(1, owners.size());
+        assertEquals(12, owners.first().getCat().getAge());
+
+        RealmResults<Owner> none = testRealm.where(Owner.class).equalTo("cat.age", 13).findAll();
+        assertEquals(0, none.size());
+    }
+
+    public void testQuerySingleRelationString() {
         RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.name", "Blackie").findAll();
         assertEquals(1, owners.size());
 
@@ -69,7 +82,15 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(0, none.size());
     }
 
-    public void testQueryMultipleRelations() {
+    public void testQueryMultipleRelationsInteger() {
+        RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("dogs.age", 10).findAll();
+        assertEquals(1, owners.size());
+
+        RealmResults<Owner> none = testRealm.where(Owner.class).equalTo("dogs.age", 7).findAll();
+        assertEquals(0, none.size());
+    }
+    
+    public void testQueryMultipleRelationsString() {
         RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("dogs.name", "Pluto").findAll();
         assertEquals(1, owners.size());
 

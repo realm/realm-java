@@ -121,12 +121,12 @@ public class TableQuery implements Closeable {
 
     // Query for integer values.
 
-    public TableQuery equalTo(long columnIndex, long value){
-        nativeEqual(nativePtr, columnIndex, value);
+    public TableQuery equalTo(long columnIndexes[], long value){
+        nativeEqual(nativePtr, columnIndexes, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeEqual(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery notEqualTo(long columnIndex, long value){
         nativeNotEqual(nativePtr, columnIndex, value);

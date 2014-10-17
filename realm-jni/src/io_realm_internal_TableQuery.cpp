@@ -66,14 +66,29 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery
 
 // Integer
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__JJJ(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JJ(
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_Int))
-        return;
+    jboolean isCopy;
+    jsize arr_len = env->GetArrayLength(columnIndexes); 
+    jlong *arr = env->GetLongArrayElements(columnIndexes, &isCopy);
     try {
-        Q(nativeQueryPtr)->equal(S(columnIndex), static_cast<int64_t>(value));
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Int))
+                return;
+            Q(nativeQueryPtr)->equal(S(arr[0]), static_cast<int64_t>(value));
+        }
+        else {
+            TableRef& tbl = Q(nativeQueryPtr)->get_table();
+            for (int i=0; i<arr_len-1; i++) {
+                tbl->link(size_t(arr[i]));
+            }
+            Table *table = tbl.get();
+            Q(nativeQueryPtr)->and_query(table->column<Int>(size_t(arr[arr_len-1])) == static_cast<int64_t>(value));
+        }
     } CATCH_STD()
+    if (isCopy == JNI_TRUE)
+        env->ReleaseLongArrayElements(columnIndexes, arr, 0);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__JJJ(

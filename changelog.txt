@@ -1,6 +1,7 @@
 0.72.0 (??)
   * Extending sorting to more types: boolean, short, int, long, float, double, Date,
     and String fields are now supported
+  * Link queries
 
 0.71.0 (07 Oct 2014)
   * Simplified the release artifact to a single Jar file
