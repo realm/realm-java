@@ -125,29 +125,29 @@ public class RealmJsonTest extends AndroidTestCase {
         dogList.put(dog2);
         dogList.put(dog3);
 
-        allTypesObject.put("columnRealmObjectList", dogList);
+        allTypesObject.put("columnRealmList", dogList);
 
         testRealm.beginTransaction();
         testRealm.createFromJson(AllTypes.class, allTypesObject);
         testRealm.commitTransaction();
 
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
-        assertEquals(3, obj.getColumnRealmObjectList().size());
-        assertEquals("Fido-3", obj.getColumnRealmObjectList().get(2).getName());
+        assertEquals(3, obj.getColumnRealmList().size());
+        assertEquals("Fido-3", obj.getColumnRealmList().get(2).getName());
     }
 
     public void testImportJSon_emptyChildObjectList() throws JSONException {
         JSONObject allTypesObject = new JSONObject();
         JSONArray dogList = new JSONArray();
 
-        allTypesObject.put("columnRealmObjectList", dogList);
+        allTypesObject.put("columnRealmList", dogList);
 
         testRealm.beginTransaction();
         testRealm.createFromJson(AllTypes.class, allTypesObject);
         testRealm.commitTransaction();
 
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
-        assertEquals(0, obj.getColumnRealmObjectList().size());
+        assertEquals(0, obj.getColumnRealmList().size());
     }
 
     public void testImportJsonArray_empty() throws JSONException {
@@ -174,11 +174,6 @@ public class RealmJsonTest extends AndroidTestCase {
 
         assertEquals(3, testRealm.allObjects(Dog.class).size());
         assertEquals(1, testRealm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
-    }
-
-
-    public void testRemoveObjetsIfImportFail() {
-        fail("Test if objects created by the json import is removed if something fail during decoding");
     }
 
     public void testImportStream_null() throws IOException {
@@ -227,16 +222,36 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(new Date(1000), obj.getColumnDate());
     }
 
-    public void testImportStream_childObject() {
-        fail("Not implemented.");
+    public void testImportStream_childObject() throws IOException {
+        InputStream in = loadJsonFromAssets("single_child_object.json");
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.commitTransaction();
+        in.close();
+
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals("Fido", obj.getColumnRealmObject().getName());
     }
 
-    public void testImportStream_emptyChildObjectList() {
-        fail("Not implemented.");
+    public void testImportStream_emptyChildObjectList() throws IOException {
+        InputStream in = loadJsonFromAssets("realmlist_empty.json");
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.commitTransaction();
+        in.close();
+
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals(0, obj.getColumnRealmList().size());
     }
 
-    public void testImportStream_childObjectList() {
-        fail("Not implemented.");
-    }
+    public void testImportStream_childObjectList() throws IOException {
+        InputStream in = loadJsonFromAssets("realmlist.json");
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.commitTransaction();
+        in.close();
 
+        assertEquals(3, testRealm.allObjects(Dog.class).size());
+        assertEquals(1, testRealm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
+    }
 }

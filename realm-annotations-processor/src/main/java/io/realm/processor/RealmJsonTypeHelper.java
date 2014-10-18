@@ -107,29 +107,22 @@ public class RealmJsonTypeHelper {
     }
 
     public static void emitFillRealmObjectFromStream(String fieldName, String fieldTypeCanonicalName, JavaWriter writer) throws IOException {
-//        writer
-//                .beginControlFlow("if (json.has(\"%s\"))", fieldName)
-//                .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
-//                .emitStatement("obj.populateUsingJsonObject(json.getJSONObject(\"%s\"))", fieldName)
-//                .emitStatement("set%s(obj)", capitaliseFirstChar(fieldName))
-//                .endControlFlow();
+        writer
+            .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
+            .emitStatement("obj.populateUsingJsonStream(reader)", fieldName)
+            .emitStatement("set%s(obj)", capitaliseFirstChar(fieldName));
     }
 
     public static void emitFillRealmListFromStream(String fieldName, String fieldTypeCanonicalName, JavaWriter writer) throws IOException {
-//        writer
-//                .beginControlFlow("if (json.has(\"%s\"))", fieldName)
-//                .emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
-//                .beginControlFlow("for (int i = 0; i < array.length(); i++)")
-//                .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
-//                .emitStatement("obj.populateUsingJsonObject(array.getJSONObject(i))")
-//                .emitStatement("get%s().add(obj)", capitaliseFirstChar(fieldName))
-//                .endControlFlow()
-//                .endControlFlow();
+        writer
+            .emitStatement("reader.beginArray()")
+            .beginControlFlow("while (reader.hasNext())")
+                .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
+                .emitStatement("obj.populateUsingJsonStream(reader)")
+                .emitStatement("get%s().add(obj)", capitaliseFirstChar(fieldName))
+            .endControlFlow()
+            .emitStatement("reader.endArray()");
     }
-
-
-
-
 
     private static String capitaliseFirstChar(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1);

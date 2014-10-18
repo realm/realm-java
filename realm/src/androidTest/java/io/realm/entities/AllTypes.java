@@ -30,7 +30,8 @@ public class AllTypes extends RealmObject {
     private Date columnDate;
     private byte[] columnBinary;
     private Dog columnRealmObject;
-    private RealmList<Dog> columnRealmObjectList;
+
+    private RealmList<Dog> columnRealmList;
 
     public String getColumnString() {
         return columnString;
@@ -96,11 +97,11 @@ public class AllTypes extends RealmObject {
         this.columnRealmObject = columnRealmObject;
     }
 
-    public RealmList<Dog> getColumnRealmObjectList() {
-        return columnRealmObjectList;
+    public RealmList<Dog> getColumnRealmList() {
+        return columnRealmList;
     }
 
-    public void setColumnRealmObjectList(RealmList<Dog> columnRealmObjectList) {
-        this.columnRealmObjectList = columnRealmObjectList;
+    public void setColumnRealmList(RealmList<Dog> columnRealmList) {
+        this.columnRealmList = columnRealmList;
     }
 }
