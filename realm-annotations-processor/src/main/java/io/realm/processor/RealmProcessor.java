@@ -159,7 +159,7 @@ public class RealmProcessor extends AbstractProcessor {
                 error("No getter found for field " + expectedGetter);
             }
             for (String expectedSetter : expectedSetters) {
-                error("No getter found for field " + expectedSetter);
+                error("No setter found for field " + expectedSetter);
             }
 
             RealmProxyClassGenerator sourceCodeGenerator =

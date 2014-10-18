@@ -36,15 +36,15 @@ Prerequisites:
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
-    ./gradlew assemble
+    ./gradlew androidJar
     
     
-That command will generate the .aar file and annotation processor jar for Realm. You will find them in realm/build/outputs/aar and realm-annotations-processor/build/libs, respectively.
+That command will generate the .jar file containing the Realm runtime and the annotation processor. You will find it in realm/build/libs.
 
 ### Other Commands
 
- * `./gradlew generatereleaseJavadoc` will generate the Javadocs
- * `./gradlew connectedCheck` will run the tests on a connected Android device
+ * `./gradlew generateReleaseJavadoc` will generate the Javadocs
+ * `./gradlew realm:connectedCheck` will run the tests on a connected Android device
 
 Generating the Javadoc using the command above will report a failure (1 error, 30+ warnings). The Javadoc is generated, and we will fix 
 `realm/build.gradle` in the near future.

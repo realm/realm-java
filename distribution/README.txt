@@ -11,8 +11,8 @@ Examples
 Included in this distribution are a couple of examples.
 You can try them out from Android Studio through "File->Import Project" and selecting the
 build.gradle file in the respective example. Then click "Run".
-But more importantly check out the source code in RealmIntroExample/app/src which will give examples
-for how to use the API.
+But more importantly check out the source code in RealmIntroExample/app/src
+which will provide examples for how to use the API.
 
 Feedback
 --------
