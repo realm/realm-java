@@ -16,17 +16,22 @@
 
 package io.realm;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.JsonReader;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -379,16 +384,11 @@ public class Realm {
      * @param inputStream   A JSON InputStream of objects of type clazz. All objects must be of the chosen clazz. Properties not in the class are ignored.
      *
      * @throws RealmException if the mapping fail.
+     * @throws IOException if something is wrong with the input stream.
      */
-    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) {
-        if (inputStream == null) return;
-
-        E obj = createObject(clazz);
-        try {
-
-        } catch (Exception e) {
-
-        }
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        // TODO
     }
 
 
@@ -424,18 +424,19 @@ public class Realm {
      * @return Object with data or null if no json data was provided.
      *
      * @throws RealmException if the mapping fail.
+     * @throws IOException if something is wrong with the input stream.
      */
-    public <E extends RealmObject> E createFromJson(Class<E> clazz, InputStream inputStream) {
-        if (inputStream == null) return null;
-
-        E obj = createObject(clazz);
-        try {
-
-        } catch (Exception e) {
-
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> E createFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        if (inputStream != null && clazz != null) {
+            JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+            E obj = createObject(clazz);
+            obj.populateUsingJsonStream(reader);
+            reader.close();
+            return obj;
         }
 
-        return obj;
+        return null;
     }
 
     // This class stores soft-references to realm objects per thread per realm file

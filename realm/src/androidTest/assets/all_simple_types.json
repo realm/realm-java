@@ -4,5 +4,5 @@
 	"columnFloat" : 1.23,
 	"columnDouble" : 1.23,
 	"columnBoolean" : true,
-	"columnBinary" : ""
+	"columnBinary" : "AQID"
 }

@@ -228,12 +228,15 @@ public class RealmProxyClassGenerator {
                 "io.realm.internal.ImplicitTransaction",
                 "io.realm.internal.Row",
                 "io.realm.internal.LinkView",
+                "io.realm.internal.json.JsonUtils",
                 "io.realm.RealmList",
                 "io.realm.RealmObject",
                 "org.json.JSONObject",
                 "org.json.JSONException",
                 "org.json.JSONArray",
                 "android.util.JsonReader",
+                "android.util.JsonToken",
+                "java.io.IOException",
                 "java.util.*",
                 packageName + ".*")
                 .emitEmptyLine();
@@ -670,32 +673,49 @@ public class RealmProxyClassGenerator {
                 "void",
                 "populateUsingJsonStream",
                 EnumSet.of(Modifier.PROTECTED),
-                "JsonReader", "json");
+                Arrays.asList("JsonReader", "reader"),
+                Arrays.asList("IOException"));
 
-//        for (VariableElement field : fields) {
-//            String fieldName = field.getSimpleName().toString();
-//            String fieldTypeCanonicalName = field.asType().toString();
-//            if (typeUtils.isAssignable(field.asType(), realmObject)) {
-//                RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
-//                        fieldName,
-//                        fieldTypeCanonicalName,
-//                        writer);
+        writer.emitStatement("reader.beginObject()");
+        writer.beginControlFlow("while (reader.hasNext())");
+        writer.emitStatement("String name = reader.nextName()");
 //
-//            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
-//                RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
-//                        fieldName,
-//                        ((DeclaredType) field.asType()).getTypeArguments().get(0).toString(),
-//                        writer);
-//
-//            } else {
-//                RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
-//                        fieldName,
-//                        fieldTypeCanonicalName,
-//                        writer);
-//            }
-//
-//        }
+        for (int i = 0; i < fields.size(); i++) {
+            VariableElement field = fields.get(i);
+            String fieldName = field.getSimpleName().toString();
+            String fieldTypeCanonicalName = field.asType().toString();
 
+            if (i == 0) {
+                writer.beginControlFlow("if (name.equals(\"%s\"))", fieldName);
+            } else {
+                writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
+            }
+
+            if (typeUtils.isAssignable(field.asType(), realmObject)) {
+                RealmJsonTypeHelper.emitFillRealmObjectFromStream(
+                        fieldName,
+                        fieldTypeCanonicalName,
+                        writer);
+
+            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
+                RealmJsonTypeHelper.emitFillRealmListFromStream(
+                        fieldName,
+                        ((DeclaredType) field.asType()).getTypeArguments().get(0).toString(),
+                        writer);
+
+            } else {
+                RealmJsonTypeHelper.emitFillJavaTypeFromStream(
+                        fieldName,
+                        fieldTypeCanonicalName,
+                        writer);
+            }
+        }
+
+        writer.nextControlFlow("else");
+        writer.emitStatement("reader.skipValue()");
+        writer.endControlFlow();
+        writer.endControlFlow();
+        writer.emitStatement("reader.endObject()");
         writer.endMethod();
         writer.emitEmptyLine();
     }

@@ -15,6 +15,8 @@ import java.util.Date;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 
+import static io.realm.internal.test.ExtraTests.assertArrayEquals;
+
 public class RealmJsonTest extends AndroidTestCase {
 
     protected Realm testRealm;
@@ -25,6 +27,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm = Realm.getInstance(getContext());
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
+        testRealm.clear(Dog.class);
         testRealm.commitTransaction();
     }
 
@@ -58,7 +61,7 @@ public class RealmJsonTest extends AndroidTestCase {
         json.put("columnFloat", 1.23f);
         json.put("columnDouble", 1.23d);
         json.put("columnBoolean", true);
-        json.put("columnBinary", Base64.encode(new byte[] {1, 2, 3}, Base64.DEFAULT));
+        json.put("columnBinary", new String(Base64.encode(new byte[] {1,2,3}, Base64.DEFAULT)));
 
         testRealm.beginTransaction();
         testRealm.createFromJson(AllTypes.class, json);
@@ -71,7 +74,7 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(1.23f, obj.getColumnFloat());
         assertEquals(1.23d, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
-        assertEquals(new byte[]{1, 2, 3}, obj.getColumnBinary());
+        assertArrayEquals(new byte[]{1, 2, 3}, obj.getColumnBinary());
     }
 
     public void testImportJSon_dateAsLong() throws JSONException {
@@ -170,7 +173,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         assertEquals(3, testRealm.allObjects(Dog.class).size());
-        assertEquals("Fido-3", testRealm.allObjects(Dog.class).get(2).getName());
+        assertEquals(1, testRealm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
     }
 
 
@@ -178,7 +181,7 @@ public class RealmJsonTest extends AndroidTestCase {
         fail("Test if objects created by the json import is removed if something fail during decoding");
     }
 
-    public void testImportStream_null() {
+    public void testImportStream_null() throws IOException {
         testRealm.createAllFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
     }
@@ -186,7 +189,7 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testImportStream_allSimpleTypes() throws IOException {
         InputStream in = loadJsonFromAssets("all_simple_types.json");
         testRealm.beginTransaction();
-        testRealm.createAllFromJson(AllTypes.class, in);
+        testRealm.createFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
         in.close();
 
@@ -197,15 +200,31 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(1.23f, obj.getColumnFloat());
         assertEquals(1.23d, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
-        assertEquals(new byte[]{1, 2, 3}, obj.getColumnBinary());
+        assertArrayEquals(new byte[]{1, 2, 3}, obj.getColumnBinary());
     }
 
-    public void testImportStream_DateAsLong() {
-        fail("Not implemented.");
+    public void testImportStream_DateAsLong() throws IOException {
+        InputStream in = loadJsonFromAssets("date_as_long.json");
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.commitTransaction();
+        in.close();
+
+        // Check that all primitive types are imported correctly
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals(new Date(1000), obj.getColumnDate());
     }
 
-    public void testImportStream_DateAsString() {
-        fail("Not implemented.");
+    public void testImportStream_DateAsString() throws IOException {
+        InputStream in = loadJsonFromAssets("date_as_string.json");
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.commitTransaction();
+        in.close();
+
+        // Check that all primitive types are imported correctly
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals(new Date(1000), obj.getColumnDate());
     }
 
     public void testImportStream_childObject() {
