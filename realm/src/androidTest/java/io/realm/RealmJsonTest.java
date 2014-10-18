@@ -205,7 +205,27 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(0, obj.getColumnRealmList().size());
     }
 
-    public void testImportStream_null() throws IOException {
+    // Test that given an exception everything up to the exception is saved
+    public void testImportJson_jsonexception() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnString", "Foo");
+        json.put("columnDate", "Boom");
+
+        try {
+            testRealm.beginTransaction();
+            testRealm.createFromJson(AllTypes.class, json);
+        } catch (Exception e) {
+            // Ignore
+        } finally {
+            testRealm.commitTransaction();
+        }
+
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals("Foo", obj.getColumnString());
+        assertEquals(new Date(0), obj.getColumnDate());
+    }
+
+   public void testImportStream_null() throws IOException {
         testRealm.createAllFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
     }
@@ -315,4 +335,5 @@ public class RealmJsonTest extends AndroidTestCase {
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
+
 }
