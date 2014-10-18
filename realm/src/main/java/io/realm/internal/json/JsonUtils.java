@@ -14,11 +14,11 @@ public class JsonUtils {
      * - "/Date(<long>)/"
      * - TODO ISO 8601 String
      *
-     * @param str   String input of the supported types.
+     * @param str   String input of date of the the supported types.
      * @return Date object or null if invalid input.
      *
      * @throws NumberFormatException If timestamp is not a proper long
-     * @throws IndexOutOfBoundsException if dates of type /Date(x)/ does not have a proper format.
+     * @throws IndexOutOfBoundsException if dates of type /Date(x)/ does not have the proper format.
      */
     public static Date stringToDate(String str) {
         if (str == null || str.length() == 0) return null;

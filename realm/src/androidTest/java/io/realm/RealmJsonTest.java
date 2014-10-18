@@ -199,6 +199,7 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(0f, obj.getColumnFloat());
         assertEquals(0d, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
+        assertEquals(new Date(0), obj.getColumnDate());
         assertArrayEquals(new byte[0], obj.getColumnBinary());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
@@ -298,9 +299,9 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(0f, obj.getColumnFloat());
         assertEquals(0d, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
+        assertEquals(new Date(0), obj.getColumnDate());
         assertArrayEquals(new byte[0], obj.getColumnBinary());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
-
 }

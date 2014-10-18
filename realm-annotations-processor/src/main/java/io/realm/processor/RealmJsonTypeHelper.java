@@ -73,7 +73,7 @@ public class RealmJsonTypeHelper {
     public static void emitFillJavaTypeWithJsonValue(String fieldName, String fieldType, JavaWriter writer) throws IOException {
         if (JAVA_TO_JSON_TYPES.containsKey(fieldType)) {
             writer.beginControlFlow("if (json.has(\"%s\"))", fieldName);
-            JAVA_TO_JSON_TYPES.get(fieldType).emitTypeConversion(fieldName, fieldType, writer);
+                JAVA_TO_JSON_TYPES.get(fieldType).emitTypeConversion(fieldName, fieldType, writer);
             writer.endControlFlow();
         }
     }
@@ -128,7 +128,7 @@ public class RealmJsonTypeHelper {
         return input.substring(0, 1).toUpperCase() + input.substring(1);
     }
 
-    static class SimpleTypeConverter implements JsonToRealmTypeConverter {
+    private static class SimpleTypeConverter implements JsonToRealmTypeConverter {
 
         private final String castType;
         private final String jsonType;

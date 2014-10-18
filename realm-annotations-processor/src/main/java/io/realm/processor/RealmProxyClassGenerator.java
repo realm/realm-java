@@ -622,15 +622,15 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
 
         // Add JSON methods
-        emitPopulateFromJsonObjectMethod(writer);
-        emitPopulateFromJsonStreamMethod(writer);
+        emitPopulateUsingJsonObjectMethod(writer);
+        emitPopulateUsingJsonStreamMethod(writer);
 
         // End the class definition
         writer.endType();
         writer.close();
     }
 
-    private void emitPopulateFromJsonObjectMethod(JavaWriter writer) throws IOException {
+    private void emitPopulateUsingJsonObjectMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation(Override.class);
         writer.beginMethod(
                 "void",
@@ -667,7 +667,7 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitPopulateFromJsonStreamMethod(JavaWriter writer) throws IOException {
+    private void emitPopulateUsingJsonStreamMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation(Override.class);
         writer.beginMethod(
                 "void",
@@ -679,7 +679,7 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("reader.beginObject()");
         writer.beginControlFlow("while (reader.hasNext())");
         writer.emitStatement("String name = reader.nextName()");
-//
+
         for (int i = 0; i < fields.size(); i++) {
             VariableElement field = fields.get(i);
             String fieldName = field.getSimpleName().toString();
