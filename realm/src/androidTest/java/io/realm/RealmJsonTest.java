@@ -176,6 +176,35 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(1, testRealm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
     }
 
+    public void testImportJson_nullValues() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("columnString", null);
+        json.put("columnLong", null);
+        json.put("columnFloat", null);
+        json.put("columnDouble", null);
+        json.put("columnBoolean", null);
+        json.put("columnBinary", null);
+        json.put("columnDate", null);
+        json.put("columnRealmObject", null);
+        json.put("columnRealmList", null);
+
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AllTypes.class, json);
+        testRealm.commitTransaction();
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+
+        // Check that all primitive types are imported correctly
+        assertEquals("", obj.getColumnString());
+        assertEquals(0L, obj.getColumnLong());
+        assertEquals(0f, obj.getColumnFloat());
+        assertEquals(0d, obj.getColumnDouble());
+        assertEquals(false, obj.isColumnBoolean());
+        assertArrayEquals(new byte[0], obj.getColumnBinary());
+        assertNull(obj.getColumnRealmObject());
+        assertEquals(0, obj.getColumnRealmList().size());
+    }
+
+
     public void testImportStream_null() throws IOException {
         testRealm.createAllFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
@@ -254,4 +283,24 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(3, testRealm.allObjects(Dog.class).size());
         assertEquals(1, testRealm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
     }
+
+    public void testImportStream_nullValues() throws IOException {
+        InputStream in = loadJsonFromAssets("all_types_null.json");
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.commitTransaction();
+        in.close();
+
+        // Check that all primitive types are imported correctly
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals("", obj.getColumnString());
+        assertEquals(0L, obj.getColumnLong());
+        assertEquals(0f, obj.getColumnFloat());
+        assertEquals(0d, obj.getColumnDouble());
+        assertEquals(false, obj.isColumnBoolean());
+        assertArrayEquals(new byte[0], obj.getColumnBinary());
+        assertNull(obj.getColumnRealmObject());
+        assertEquals(0, obj.getColumnRealmList().size());
+    }
+
 }

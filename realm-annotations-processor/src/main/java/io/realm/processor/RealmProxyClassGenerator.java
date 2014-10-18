@@ -686,9 +686,9 @@ public class RealmProxyClassGenerator {
             String fieldTypeCanonicalName = field.asType().toString();
 
             if (i == 0) {
-                writer.beginControlFlow("if (name.equals(\"%s\"))", fieldName);
+                writer.beginControlFlow("if (name.equals(\"%s\") && reader.peek() != JsonToken.NULL)", fieldName);
             } else {
-                writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
+                writer.nextControlFlow("else if (name.equals(\"%s\")  && reader.peek() != JsonToken.NULL)", fieldName);
             }
 
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
