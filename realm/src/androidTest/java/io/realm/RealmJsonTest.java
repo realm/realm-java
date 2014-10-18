@@ -205,7 +205,6 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(0, obj.getColumnRealmList().size());
     }
 
-
     public void testImportStream_null() throws IOException {
         testRealm.createAllFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
@@ -284,6 +283,18 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(3, testRealm.allObjects(Dog.class).size());
         assertEquals(1, testRealm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
     }
+
+    public void testImportStream_array() throws IOException {
+        InputStream in = loadJsonFromAssets("array.json");
+
+        testRealm.beginTransaction();
+        testRealm.createAllFromJson(Dog.class, in);
+        testRealm.commitTransaction();
+
+        assertEquals(3, testRealm.allObjects(Dog.class).size());
+        assertEquals(1, testRealm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
+    }
+
 
     public void testImportStream_nullValues() throws IOException {
         InputStream in = loadJsonFromAssets("all_types_null.json");

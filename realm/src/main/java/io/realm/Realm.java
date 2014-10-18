@@ -353,8 +353,6 @@ public class Realm {
         return realm;
     }
 
-
-
     /**
      * Add an array of of JsonObjects to the Realm as a new object. This must be done inside a transaction.
      *
@@ -370,12 +368,10 @@ public class Realm {
             try {
                 obj.populateUsingJsonObject(json.getJSONObject(i));
             } catch (Exception e) {
-                // TODO Remove object from realm
                 throw new RealmException("Could not map Json", e);
             }
         }
     }
-
 
     /**
      * Add a Json InputStream to the Realm as new objects. This must be done inside a transaction.
@@ -388,10 +384,17 @@ public class Realm {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        // TODO
+        if (inputStream != null && clazz != null) {
+            JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+            reader.beginArray();
+            while (reader.hasNext()) {
+                E obj = createObject(clazz);
+                obj.populateUsingJsonStream(reader);
+            }
+            reader.endArray();
+            reader.close();
+        }
     }
-
-
 
     /**
      * Add a JsonObject to the Realm as a new object. This must be done inside a transaction.
