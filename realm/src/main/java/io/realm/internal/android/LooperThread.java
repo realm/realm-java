@@ -19,7 +19,10 @@ package io.realm.internal.android;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,9 +32,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LooperThread extends Thread {
     // Message types
     public static final int REALM_CHANGED  = 3;
-
     public static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
+
     public Handler handler;
+    public List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
+
+    private static final String TAG = LooperThread.class.getName();
     private static LooperThread instance;
 
     // private because it's a singleton
@@ -59,8 +65,16 @@ public class LooperThread extends Thread {
                 if (message.arg1 == REALM_CHANGED) {
                     for (Map.Entry<Handler, Integer> entry : handlers.entrySet()) {
                         if (entry.getValue() == message.arg2) {
-                            if (!entry.getKey().hasMessages(REALM_CHANGED)) {
-                                entry.getKey().sendEmptyMessage(REALM_CHANGED);
+                            Handler currentHandler = entry.getKey();
+                            if (currentHandler.getLooper().getThread().isAlive() &&
+                                !currentHandler.hasMessages(REALM_CHANGED))
+                            {
+                                try {
+                                    currentHandler.sendEmptyMessage(REALM_CHANGED);
+                                } catch (RuntimeException e) {
+                                    exceptions.add(e);
+                                    Log.w(TAG, e.getMessage());
+                                }
                             }
                         }
                     }
