@@ -21,6 +21,25 @@ import io.realm.RealmObject;
 public class Cat extends RealmObject {
     private String name;
     private long age;
+    private float height;
+    private double weight;
+
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+    }
 
     public long getAge() {
         return age;

@@ -121,158 +121,158 @@ public class TableQuery implements Closeable {
 
     // Query for integer values.
 
-    public TableQuery equalTo(long columnIndexes[], long value){
+    public TableQuery equalTo(long columnIndexes[], long value) {
         nativeEqual(nativePtr, columnIndexes, value);
         queryValidated = false;
         return this;
     }
     protected native void nativeEqual(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery notEqualTo(long columnIndex, long value){
+    public TableQuery notEqualTo(long columnIndex[], long value) {
         nativeNotEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery greaterThan(long columnIndex, long value){
+    public TableQuery greaterThan(long columnIndex[], long value) {
         nativeGreater(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreater(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeGreater(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery greaterThanOrEqual(long columnIndex, long value){
+    public TableQuery greaterThanOrEqual(long columnIndex[], long value) {
         nativeGreaterEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery lessThan(long columnIndex, long value){
+    public TableQuery lessThan(long columnIndex[], long value) {
         nativeLess(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLess(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeLess(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery lessThanOrEqual(long columnIndex, long value){
+    public TableQuery lessThanOrEqual(long columnIndex[], long value) {
         nativeLessEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery between(long columnIndex, long value1, long value2){
+    public TableQuery between(long columnIndex[], long value1, long value2) {
         nativeBetween(nativePtr, columnIndex, value1, value2);
         queryValidated = false;
         return this;
     }
-    protected native void nativeBetween(long nativeQueryPtr, long columnIndex, long value1, long value2);
+    protected native void nativeBetween(long nativeQueryPtr, long columnIndex[], long value1, long value2);
 
 
     // Query for float values.
 
-    public TableQuery equalTo(long columnIndex, float value){
+    public TableQuery equalTo(long columnIndex[], float value) {
         nativeEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long columnIndex, float value);
+    protected native void nativeEqual(long nativeQueryPtr, long columnIndex[], float value);
 
-    public TableQuery notEqualTo(long columnIndex, float value){
+    public TableQuery notEqualTo(long columnIndex[], float value) {
         nativeNotEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, float value);
+    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], float value);
 
-    public TableQuery greaterThan(long columnIndex, float value){
+    public TableQuery greaterThan(long columnIndex[], float value) {
         nativeGreater(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreater(long nativeQueryPtr, long columnIndex, float value);
+    protected native void nativeGreater(long nativeQueryPtr, long columnIndex[], float value);
 
-    public TableQuery greaterThanOrEqual(long columnIndex, float value){
+    public TableQuery greaterThanOrEqual(long columnIndex[], float value) {
         nativeGreaterEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex, float value);
+    protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex[], float value);
 
-    public TableQuery lessThan(long columnIndex, float value){
+    public TableQuery lessThan(long columnIndex[], float value) {
         nativeLess(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLess(long nativeQueryPtr, long columnIndex, float value);
+    protected native void nativeLess(long nativeQueryPtr, long columnIndex[], float value);
 
-    public TableQuery lessThanOrEqual(long columnIndex, float value){
+    public TableQuery lessThanOrEqual(long columnIndex[], float value) {
         nativeLessEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex, float value);
+    protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], float value);
 
-    public TableQuery between(long columnIndex, float value1, float value2){
+    public TableQuery between(long columnIndex[], float value1, float value2) {
         nativeBetween(nativePtr, columnIndex, value1, value2);
         queryValidated = false;
         return this;
     }
-    protected native void nativeBetween(long nativeQueryPtr, long columnIndex, float value1, float value2);
+    protected native void nativeBetween(long nativeQueryPtr, long columnIndex[], float value1, float value2);
 
 
     // Query for double values.
 
-    public TableQuery equalTo(long columnIndex, double value){
+    public TableQuery equalTo(long columnIndex[], double value) {
         nativeEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long columnIndex, double value);
+    protected native void nativeEqual(long nativeQueryPtr, long columnIndex[], double value);
 
-    public TableQuery notEqualTo(long columnIndex, double value){
+    public TableQuery notEqualTo(long columnIndex[], double value) {
         nativeNotEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, double value);
+    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], double value);
 
-    public TableQuery greaterThan(long columnIndex, double value){
+    public TableQuery greaterThan(long columnIndex[], double value) {
         nativeGreater(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreater(long nativeQueryPtr, long columnIndex, double value);
+    protected native void nativeGreater(long nativeQueryPtr, long columnIndex[], double value);
 
-    public TableQuery greaterThanOrEqual(long columnIndex, double value){
+    public TableQuery greaterThanOrEqual(long columnIndex[], double value) {
         nativeGreaterEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex, double value);
+    protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex[], double value);
 
-    public TableQuery lessThan(long columnIndex, double value){
+    public TableQuery lessThan(long columnIndex[], double value) {
         nativeLess(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLess(long nativeQueryPtr, long columnIndex, double value);
+    protected native void nativeLess(long nativeQueryPtr, long columnIndex[], double value);
 
-    public TableQuery lessThanOrEqual(long columnIndex, double value){
+    public TableQuery lessThanOrEqual(long columnIndex[], double value) {
         nativeLessEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex, double value);
+    protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], double value);
 
-    public TableQuery between(long columnIndex, double value1, double value2){
+    public TableQuery between(long columnIndex[], double value1, double value2) {
         nativeBetween(nativePtr, columnIndex, value1, value2);
         queryValidated = false;
         return this;
     }
-    protected native void nativeBetween(long nativeQueryPtr, long columnIndex, double value1, double value2);
+    protected native void nativeBetween(long nativeQueryPtr, long columnIndex[], double value1, double value2);
 
 
     // Query for boolean values.
