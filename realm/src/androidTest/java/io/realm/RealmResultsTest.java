@@ -239,11 +239,8 @@ public class RealmResultsTest extends AndroidTestCase {
 
     public void testSortByString() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        RealmResults<AllTypes> sortedList = resultList.sort("columnString", RealmResults.SORT_ORDER_DECENDING);
+        RealmResults<AllTypes> sortedList = resultList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
 
-        for (int i = 0; i< sortedList.size();i++) {
-            System.out.println(sortedList.get(i).getColumnString());
-        }
         assertEquals("Should have same size", resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals("First excepted to be last", resultList.first().getColumnString(), sortedList.last().getColumnString());
@@ -291,7 +288,15 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
 
+    public void testSortOnNonExistingColumn() {
 
+        try {
+            RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+            RealmResults<AllTypes> sortedList = resultList.sort("Non-existing");
+            fail("Should not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+    }
 
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
