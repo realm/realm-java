@@ -1,0 +1,28 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "20.0.0"
+    defaultConfig {
+        applicationId 'io.realm.examples.jsonimport'
+        minSdkVersion 15
+        targetSdkVersion 19
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            runProguard false
+        }
+    }
+    productFlavors {
+    }
+}
+
+tasks.preBuild {
+    dependsOn ":realm:androidJar"
+}
+
+dependencies {
+    compile files("../../realm/build/libs/realm-${version}.jar")
+}

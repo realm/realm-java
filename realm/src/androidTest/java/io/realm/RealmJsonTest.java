@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.util.Date;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.AnnotationTypes;
 import io.realm.entities.Dog;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -23,11 +24,11 @@ public class RealmJsonTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
         testRealm.clear(Dog.class);
+        testRealm.clear(AnnotationTypes.class);
         testRealm.commitTransaction();
     }
 
@@ -225,6 +226,21 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(new Date(0), obj.getColumnDate());
     }
 
+    public void testImportJson_respectIgnoredFields() throws JSONException {
+        JSONObject json = new JSONObject();
+        json.put("indexString", "Foo");
+        json.put("notIndexString", "Bar");
+        json.put("ignoreString", "Baz");
+
+        testRealm.beginTransaction();
+        testRealm.createFromJson(AnnotationTypes.class, json);
+        testRealm.commitTransaction();
+
+        AnnotationTypes annotationsObject = testRealm.allObjects(AnnotationTypes.class).first();
+        assertEquals("Foo", annotationsObject.getIndexString());
+        assertEquals(null, annotationsObject.getIgnoreString());
+    }
+
    public void testImportStream_null() throws IOException {
         testRealm.createAllFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
@@ -335,5 +351,4 @@ public class RealmJsonTest extends AndroidTestCase {
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
-
 }
