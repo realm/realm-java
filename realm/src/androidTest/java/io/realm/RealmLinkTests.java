@@ -88,7 +88,7 @@ public class RealmLinkTests extends AndroidTestCase {
         for (Dog dog : dogs) {
             assertEquals("Tim", dog.getOwner().getName());
         }
-        
+
         RealmResults<Cat> cats = testRealm.allObjects(Cat.class);
         assertEquals(1, cats.size());
         assertEquals("Tim", cats.first().getOwner().getName());

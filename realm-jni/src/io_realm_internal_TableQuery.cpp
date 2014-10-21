@@ -670,9 +670,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JZ(
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JLjava_lang_String_2Z(
     JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
-    jboolean isCopy;
-    jsize arr_len = env->GetArrayLength(columnIndexes); 
-    jlong *arr = env->GetLongArrayElements(columnIndexes, &isCopy);
+    GET_ARRAY()
     try {
         JStringAccessor value2(env, value); // throws
         if (arr_len == 1) {
@@ -681,15 +679,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JLjava_
             Q(nativeQueryPtr)->equal(S(arr[0]), value2, caseSensitive ? true : false);
         }
         else {
-            TableRef tbl = Q(nativeQueryPtr)->get_table();
-            for (int i=0; i<arr_len-1; i++) {
-                tbl->link(size_t(arr[i]));
-            }
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
             Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])) == StringData(value2));
         }
     } CATCH_STD()
-    if (isCopy == JNI_TRUE)
-        env->ReleaseLongArrayElements(columnIndexes, arr, 0);
+    RELEASE_ARRAY()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith(
