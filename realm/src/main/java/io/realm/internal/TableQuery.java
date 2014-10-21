@@ -379,21 +379,21 @@ public class TableQuery implements Closeable {
     protected native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
 
     // Not Equal
-    public TableQuery notEqualTo(long columnIndex, String value, boolean caseSensitive){
+    public TableQuery notEqualTo(long columnIndex[], String value, boolean caseSensitive){
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeNotEqual(nativePtr, columnIndex, value, caseSensitive);
         queryValidated = false;
         return this;
     }
-    public TableQuery notEqualTo(long columnIndex, String value){
+    public TableQuery notEqualTo(long columnIndex[], String value){
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeNotEqual(nativePtr, columnIndex, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
+    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], String value, boolean caseSensitive);
 
     public TableQuery beginsWith(long columnIndex, String value, boolean caseSensitive){
         if (value == null)

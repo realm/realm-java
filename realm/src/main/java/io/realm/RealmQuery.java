@@ -38,6 +38,8 @@ public class RealmQuery<E extends RealmObject> {
     private Map<String, Integer> columns = new HashMap<String, Integer>();
     private Class<E> clazz;
 
+    private final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
+
     /**
      * Creating a RealmQuery instance
      * @param realm  The realm to query within
@@ -234,8 +236,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value) {
-        int columnIndex = columns.get(fieldName);
-        this.query.notEqualTo(columnIndex, value);
+        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
+        this.query.notEqualTo(columnIndexes, value);
         return this;
     }
 
@@ -728,9 +730,12 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value) {
-        int columnIndex = columns.get(fieldName);
-        this.query.contains(columnIndex, value);
-        return this;
+        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
+        if (columnIndexes.length == 1) {
+            this.query.contains(columnIndexes[0], value);
+            return this;
+        }
+        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "contains"));
     }
 
     /**
@@ -744,9 +749,12 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value, boolean caseSensitive) {
-        int columnIndex = columns.get(fieldName);
-        this.query.contains(columnIndex, value, caseSensitive);
-        return this;
+        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
+        if (columnIndexes.length == 1) {
+            this.query.contains(columnIndexes[0], value, caseSensitive);
+            return this;
+        }
+        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "contains"));
     }
 
     /**
@@ -759,9 +767,12 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value) {
-        int columnIndex = columns.get(fieldName);
-        this.query.beginsWith(columnIndex, value);
-        return this;
+        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
+        if (columnIndexes.length == 1) {
+            this.query.beginsWith(columnIndexes[0], value);
+            return this;
+        }
+        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "beginsWith"));
     }
 
     /**
@@ -775,9 +786,12 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, boolean caseSensitive) {
-        int columnIndex = columns.get(fieldName);
-        this.query.beginsWith(columnIndex, value, caseSensitive);
-        return this;
+        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
+        if (columnIndexes.length == 1) {
+            this.query.beginsWith(columnIndexes[0], value, caseSensitive);
+            return this;
+        }
+        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "beginsWith"));
     }
 
     /**
@@ -790,9 +804,12 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value) {
-        int columnIndex = columns.get(fieldName);
-        this.query.endsWith(columnIndex, value);
-        return this;
+        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
+        if (columnIndexes.length == 1) {
+            this.query.endsWith(columnIndexes[0], value);
+            return this;
+        }
+        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "endsWith"));
     }
 
     /**
@@ -806,9 +823,12 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value, boolean caseSensitive) {
-        int columnIndex = columns.get(fieldName);
-        this.query.endsWith(columnIndex, value, caseSensitive);
-        return this;
+        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
+        if (columnIndexes.length == 1) {
+            this.query.endsWith(columnIndexes[0], value, caseSensitive);
+            return this;
+        }
+        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "endsWith"));
     }
 
     // Grouping

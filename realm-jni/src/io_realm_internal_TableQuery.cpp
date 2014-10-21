@@ -686,6 +686,25 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JLjava_
     RELEASE_ARRAY()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3JLjava_lang_String_2Z(
+    JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
+{
+    GET_ARRAY()
+    try {
+        JStringAccessor value2(env, value); // throws
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_String))
+                return;
+            Q(nativeQueryPtr)->not_equal(S(arr[0]), value2, caseSensitive ? true : false);
+        }
+        else {
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])) != StringData(value2));
+        }
+    } CATCH_STD()
+    RELEASE_ARRAY()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
 {
@@ -716,17 +735,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains(
     try {
         JStringAccessor value2(env, value); // throws
         Q(nativeQueryPtr)->contains(S(columnIndex), value2, caseSensitive ? true : false);
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__JJLjava_lang_String_2Z(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
-{
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_String))
-        return;
-    try {
-        JStringAccessor value2(env, value); // throws
-        Q(nativeQueryPtr)->not_equal(S(columnIndex), value2, caseSensitive ? true : false);
     } CATCH_STD()
 }
 
