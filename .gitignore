@@ -31,6 +31,7 @@ core-*
 
 # Backup files
 *.bak
+*~
 
 # Navigation Editor
 .navigation
