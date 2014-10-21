@@ -589,14 +589,22 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDateTime(
 
 // Bool
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__JJZ(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jboolean value)
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JZ(
+  JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jboolean value)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_Bool))
-        return;
+    GET_ARRAY()
     try {
-        Q(nativeQueryPtr)->equal(S(columnIndex), value != 0 ? true : false);
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Bool))
+                return;
+            Q(nativeQueryPtr)->equal(S(arr[0]), value != 0 ? true : false);
+        }
+        else {
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_equal<Bool, bool, jboolean>(tbl, arr[arr_len-1], value));
+        }
     } CATCH_STD()
+    RELEASE_ARRAY()
 }
 
 // String

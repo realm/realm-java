@@ -277,12 +277,12 @@ public class TableQuery implements Closeable {
 
     // Query for boolean values.
 
-    public TableQuery equalTo(long columnIndex, boolean value){
+    public TableQuery equalTo(long columnIndex[], boolean value){
         nativeEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long columnIndex, boolean value);
+    protected native void nativeEqual(long nativeQueryPtr, long columnIndex[], boolean value);
 
     // Query for Date values
 

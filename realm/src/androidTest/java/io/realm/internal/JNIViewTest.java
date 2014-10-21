@@ -231,7 +231,7 @@ public class JNIViewTest extends TestCase {
         t.add("3", 3, false);
         t.add("4", 5, false);
 
-        TableView v = t.where().equalTo(2, false).findAll();
+        TableView v = t.where().equalTo(new long[]{2}, false).findAll();
 
         assertEquals(2, v.getSourceRowIndex(0));
         assertEquals(3, v.getSourceRowIndex(1));

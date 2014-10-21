@@ -201,8 +201,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, boolean value) {
-        int columnIndex = columns.get(fieldName);
-        this.query.equalTo(columnIndex, value);
+        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.BOOLEAN);
+        this.query.equalTo(columnIndexes, value);
         return this;
     }
 
@@ -309,8 +309,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, boolean value) {
-        int columnIndex = columns.get(fieldName);
-        this.query.equalTo(columnIndex, !value);
+        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.BOOLEAN);
+        this.query.equalTo(columnIndexes, !value);
         return this;
     }
 

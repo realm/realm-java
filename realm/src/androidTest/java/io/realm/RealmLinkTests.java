@@ -39,19 +39,21 @@ public class RealmLinkTests extends AndroidTestCase {
         dog1.setAge(5);
         dog1.setHeight(1.2f);
         dog1.setWeight(9.9);
-
+        dog1.setHasTail(true);
 
         Dog dog2 = testRealm.createObject(Dog.class);
         dog2.setName("Fido");
         dog2.setAge(10);
         dog2.setHeight(0.7f);
         dog2.setWeight(11.3);
+        dog2.setHasTail(true);
 
         Cat cat = testRealm.createObject(Cat.class);
         cat.setName("Blackie");
         cat.setAge(12);
         cat.setHeight(0.3f);
         cat.setWeight(1.1);
+        cat.setHasTail(true);
 
         Owner owner = testRealm.createObject(Owner.class);
         owner.setName("Tim");
@@ -70,6 +72,15 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals("Fido", owners.first().getDogs().last().getName());
         assertEquals("Blackie", owners.first().getCat().getName());
         assertEquals(12, owners.first().getCat().getAge());
+    }
+
+    public void testQuerySingleRelationBoolean() {
+        RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.hasTail", true).findAll();
+        assertEquals(1, owners.size());
+        assertEquals(12, owners.first().getCat().getAge());
+
+        RealmResults<Owner> none = testRealm.where(Owner.class).equalTo("cat.hasTail", false).findAll();
+        assertEquals(0, none.size());
     }
 
     public void testQuerySingleRelationInteger() {
@@ -174,6 +185,14 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners.size());
 
         RealmResults<Owner> none = testRealm.where(Owner.class).equalTo("cat.name", "Max").findAll();
+        assertEquals(0, none.size());
+    }
+
+    public void testQueryMultipleRelationsBoolean() {
+        RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("dogs.hasTail", true).findAll();
+        assertEquals(1, owners.size());
+
+        RealmResults<Owner> none = testRealm.where(Owner.class).notEqualTo("dogs.hasTail", true).findAll();
         assertEquals(0, none.size());
     }
 

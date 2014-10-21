@@ -92,9 +92,9 @@ public class JNIQueryTest extends TestCase {
         TableQuery query = table.where();
 
         // Boolean
-        try { query.equalTo(-1, true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Date
         try { query.equalTo(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
@@ -479,7 +479,7 @@ public class JNIQueryTest extends TestCase {
         // Compare boolean in non boolean columns
         for (int i = 0; i <= 8; i++) {
             if (i != 1) {
-              try { query.equalTo(i, true);                       assert(false); } catch(IllegalArgumentException e) {}
+              try { query.equalTo(new long[]{i}, true);                       assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
@@ -619,7 +619,7 @@ public class JNIQueryTest extends TestCase {
 
 
         // Out of bounds for boolean
-        try { query.equalTo(9, true);                       assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{9}, true);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
     }
 
     
@@ -695,7 +695,7 @@ public class JNIQueryTest extends TestCase {
                                           {"task3", 14, false}}, "");
 
         // Query the table
-        TableView view = table.where().subtable(1).equalTo(2, true).endSubtable().findAll();
+        TableView view = table.where().subtable(1).equalTo(new long[]{2}, true).endSubtable().findAll();
         assertEquals(2, view.size());
     }
 

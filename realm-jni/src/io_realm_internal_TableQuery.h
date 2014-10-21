@@ -242,10 +242,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JDD
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeEqual
- * Signature: (JJZ)V
+ * Signature: (J[JZ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__JJZ
-  (JNIEnv *, jobject, jlong, jlong, jboolean);
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JZ
+  (JNIEnv *, jobject, jlong, jlongArray, jboolean);
 
 /*
  * Class:     io_realm_internal_TableQuery

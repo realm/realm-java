@@ -23,6 +23,15 @@ public class Cat extends RealmObject {
     private long age;
     private float height;
     private double weight;
+    private boolean hasTail;
+
+    public boolean isHasTail() {
+        return hasTail;
+    }
+
+    public void setHasTail(boolean hasTail) {
+        this.hasTail = hasTail;
+    }
 
 
     public double getWeight() {
