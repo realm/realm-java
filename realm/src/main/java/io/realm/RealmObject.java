@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.util.JsonReader;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -59,11 +61,11 @@ public abstract class RealmObject {
         this.row = row;
     }
 
-    protected void populateFromJsonObject(JSONObject json) throws JSONException {
+    protected void populateUsingJsonObject(JSONObject json) throws JSONException {
         throw new IllegalStateException("Only use this method on objects created or fetched in a Realm. Realm.createObject() or Realm.where()");
     }
 
-    protected void populateFromJsonStream(InputStream inputStream) throws IOException {
+    protected void populateUsingJsonStream(JsonReader json) throws IOException {
         throw new IllegalStateException("Only use this method on objects created or fetched in a Realm. Realm.createObject() or Realm.where()");
     }
 }

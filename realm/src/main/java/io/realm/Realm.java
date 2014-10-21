@@ -16,17 +16,22 @@
 
 package io.realm;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.JsonReader;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -348,7 +353,47 @@ public class Realm {
         return realm;
     }
 
-    public void addFromJson(Class<? extends RealmObject> clazz, JSONArray json) {
+    /**
+     * Add an array of of JsonObjects to the Realm as a new object. This must be done inside a transaction.
+     *
+     * @param clazz Class of object the json will map to. All Objects in the array must be of the same type.
+     * @param json  Array of JsonObject's that can map to the chosen clazz. Properties not in the class are ignored.
+     *
+     * @throws RealmException if the mapping fail.
+     */
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, JSONArray json) {
+        if (json == null) return;
+        for (int i = 0; i < json.length(); i++) {
+            E obj = createObject(clazz);
+            try {
+                obj.populateUsingJsonObject(json.getJSONObject(i));
+            } catch (Exception e) {
+                throw new RealmException("Could not map Json", e);
+            }
+        }
+    }
+
+    /**
+     * Add a Json InputStream to the Realm as new objects. This must be done inside a transaction.
+     *
+     * @param clazz         Class of object the json will map to. All Objects in the array must be of the same type.
+     * @param inputStream   A JSON InputStream of objects of type clazz. All objects must be of the chosen clazz. Properties not in the class are ignored.
+     *
+     * @throws RealmException if the mapping fail.
+     * @throws IOException if something is wrong with the input stream.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        if (inputStream != null && clazz != null) {
+            JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+            reader.beginArray();
+            while (reader.hasNext()) {
+                E obj = createObject(clazz);
+                obj.populateUsingJsonStream(reader);
+            }
+            reader.endArray();
+            reader.close();
+        }
     }
 
     /**
@@ -360,13 +405,12 @@ public class Realm {
      *
      * @throws RealmException if the mapping fail.
      */
-
     public <E extends RealmObject> E createFromJson(Class<E> clazz, JSONObject json) {
         if (json == null) return null;
 
         E obj = createObject(clazz);
         try {
-            obj.populateFromJsonObject(json);
+            obj.populateUsingJsonObject(json);
         } catch (Exception e) {
             // TODO Remove object from realm
             throw new RealmException("Could not map Json", e);
@@ -375,12 +419,28 @@ public class Realm {
         return obj;
     }
 
-    public void addFromJson(Class<? extends RealmObject> clazz, InputStream inputStream) {
+    /**
+     * Add a JsonObject from a InputStream to the Realm as a new object. This must be done inside a transaction.
+     *
+     * @param clazz         Class of object the json will map to.
+     * @param inputStream   JSONObject as a input stream of the chosen clazz. Properties not in the class are ignored.
+     * @return Object with data or null if no json data was provided.
+     *
+     * @throws RealmException if the mapping fail.
+     * @throws IOException if something is wrong with the input stream.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> E createFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        if (inputStream != null && clazz != null) {
+            JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+            E obj = createObject(clazz);
+            obj.populateUsingJsonStream(reader);
+            reader.close();
+            return obj;
+        }
 
+        return null;
     }
-
-
-
 
     // This class stores soft-references to realm objects per thread per realm file
     private static class ThreadRealm extends ThreadLocal<SoftReference<Realm>> {

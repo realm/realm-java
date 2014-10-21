@@ -18,6 +18,7 @@ package io.realm.entities;
 
 import java.util.Date;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class AllTypes extends RealmObject {
@@ -29,6 +30,8 @@ public class AllTypes extends RealmObject {
     private Date columnDate;
     private byte[] columnBinary;
     private Dog columnRealmObject;
+
+    private RealmList<Dog> columnRealmList;
 
     public String getColumnString() {
         return columnString;
@@ -92,5 +95,13 @@ public class AllTypes extends RealmObject {
 
     public void setColumnRealmObject(Dog columnRealmObject) {
         this.columnRealmObject = columnRealmObject;
+    }
+
+    public RealmList<Dog> getColumnRealmList() {
+        return columnRealmList;
+    }
+
+    public void setColumnRealmList(RealmList<Dog> columnRealmList) {
+        this.columnRealmList = columnRealmList;
     }
 }

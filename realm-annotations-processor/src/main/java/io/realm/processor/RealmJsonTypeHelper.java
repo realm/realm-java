@@ -30,47 +30,113 @@ public class RealmJsonTypeHelper {
         JAVA_TO_JSON_TYPES.put("Double", new SimpleTypeConverter("Double", "Double"));
         JAVA_TO_JSON_TYPES.put("Boolean", new SimpleTypeConverter("Boolean", "Boolean"));
         JAVA_TO_JSON_TYPES.put("java.lang.String", new SimpleTypeConverter("String", "String"));
-
-
         JAVA_TO_JSON_TYPES.put("java.util.Date", new JsonToRealmTypeConverter() {
             @Override
             public void emitTypeConversion(String fieldName, String fieldType, JavaWriter writer) throws IOException {
-//                throw new RuntimeException("Date not supported yet");
+                writer
+                    .emitStatement("long timestamp = json.optLong(\"%s\", -1)", fieldName)
+                    .beginControlFlow("if (timestamp > -1)")
+                        .emitStatement("set%s(new Date(timestamp))", capitaliseFirstChar(fieldName))
+                    .nextControlFlow("else")
+                        .emitStatement("String jsonDate = json.getString(\"%s\")", fieldName)
+                        .emitStatement("set%s(JsonUtils.stringToDate(jsonDate))", capitaliseFirstChar(fieldName))
+                    .endControlFlow();
             }
-        }); // ISO-8601 encoded or Unix timestamp or /Date(unix timestamp)/
 
+            @Override
+            public void emitStreamTypeConversion(String fieldName, String fieldType, JavaWriter writer) throws IOException {
+                writer
+                    .beginControlFlow("if (reader.peek() == JsonToken.NUMBER)")
+                        .emitStatement("long timestamp = reader.nextLong()", fieldName)
+                        .beginControlFlow("if (timestamp > -1)")
+                            .emitStatement("set%s(new Date(timestamp))", capitaliseFirstChar(fieldName))
+                        .endControlFlow()
+                    .nextControlFlow("else")
+                        .emitStatement("set%s(JsonUtils.stringToDate(reader.nextString()))", capitaliseFirstChar(fieldName))
+                    .endControlFlow();
+            }
+        });
 
         JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmTypeConverter() {
             @Override
             public void emitTypeConversion(String fieldName, String fieldType, JavaWriter writer) throws IOException {
-//                throw new RuntimeException("byte[] not supported yet");
+                writer.emitStatement("set%s(JsonUtils.stringToBytes(json.getString(\"%s\")))", capitaliseFirstChar(fieldName), fieldName);
             }
-        }); // Hex 64 encoded
+
+            @Override
+            public void emitStreamTypeConversion(String fieldName, String fieldType, JavaWriter writer) throws IOException {
+                writer.emitStatement("set%s(JsonUtils.stringToBytes(reader.nextString()))", capitaliseFirstChar(fieldName));
+            }
+        });
     }
 
-    public static void emitFillFieldWithJsonValue(String fieldName, String fieldType, JavaWriter writer) throws IOException {
+    public static void emitFillJavaTypeWithJsonValue(String fieldName, String fieldType, JavaWriter writer) throws IOException {
         if (JAVA_TO_JSON_TYPES.containsKey(fieldType)) {
             writer.beginControlFlow("if (json.has(\"%s\"))", fieldName);
-            JAVA_TO_JSON_TYPES.get(fieldType).emitTypeConversion(fieldName, fieldType, writer);
+                JAVA_TO_JSON_TYPES.get(fieldType).emitTypeConversion(fieldName, fieldType, writer);
             writer.endControlFlow();
-
-        } else {
-//            throw new IllegalArgumentException("Java type not support in Json import: " + fieldType);
         }
+    }
+
+    public static void emitFillRealmObjectWithJsonValue(String fieldName, String fieldTypeCanonicalName, JavaWriter writer) throws IOException {
+        writer
+            .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
+                .emitStatement("obj.populateUsingJsonObject(json.getJSONObject(\"%s\"))", fieldName)
+                .emitStatement("set%s(obj)", capitaliseFirstChar(fieldName))
+            .endControlFlow();
+    }
+
+    public static void emitFillRealmListWithJsonValue(String fieldName, String fieldTypeCanonicalName, JavaWriter writer) throws IOException {
+        writer
+            .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                .emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
+                .beginControlFlow("for (int i = 0; i < array.length(); i++)")
+                    .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
+                    .emitStatement("obj.populateUsingJsonObject(array.getJSONObject(i))")
+                    .emitStatement("get%s().add(obj)", capitaliseFirstChar(fieldName))
+                .endControlFlow()
+            .endControlFlow();
+    }
+
+
+    public static void emitFillJavaTypeFromStream(String fieldName, String fieldType, JavaWriter writer) throws IOException {
+        if (JAVA_TO_JSON_TYPES.containsKey(fieldType)) {
+            JAVA_TO_JSON_TYPES.get(fieldType).emitStreamTypeConversion(fieldName, fieldType, writer);
+        }
+    }
+
+    public static void emitFillRealmObjectFromStream(String fieldName, String fieldTypeCanonicalName, JavaWriter writer) throws IOException {
+        writer
+            .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
+            .emitStatement("obj.populateUsingJsonStream(reader)", fieldName)
+            .emitStatement("set%s(obj)", capitaliseFirstChar(fieldName));
+    }
+
+    public static void emitFillRealmListFromStream(String fieldName, String fieldTypeCanonicalName, JavaWriter writer) throws IOException {
+        writer
+            .emitStatement("reader.beginArray()")
+            .beginControlFlow("while (reader.hasNext())")
+                .emitStatement("%s obj = getRealm().createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName)
+                .emitStatement("obj.populateUsingJsonStream(reader)")
+                .emitStatement("get%s().add(obj)", capitaliseFirstChar(fieldName))
+            .endControlFlow()
+            .emitStatement("reader.endArray()");
     }
 
     private static String capitaliseFirstChar(String input) {
         return input.substring(0, 1).toUpperCase() + input.substring(1);
     }
 
-    static class SimpleTypeConverter implements JsonToRealmTypeConverter {
+    private static class SimpleTypeConverter implements JsonToRealmTypeConverter {
 
         private final String castType;
         private final String jsonType;
 
         /**
          * Create a conversion between simple types that can be expressed of the form
-         * RealmObject.setFieldName((<castType>) json.get<jsonType>)
+         * RealmObject.setFieldName((<castType>) json.get<jsonType>) or
+         * RealmObject.setFieldName((<castType>) reader.next<jsonType>
          *
          * @param castType  Java type to cast to.
          * @param jsonType  JsonType to get data from.
@@ -88,9 +154,18 @@ public class RealmJsonTypeHelper {
                     jsonType,
                     fieldName);
         }
+
+        @Override
+        public void emitStreamTypeConversion(String fieldName, String fieldType, JavaWriter writer) throws IOException {
+            writer.emitStatement("set%s((%s) reader.next%s())",
+                    capitaliseFirstChar(fieldName),
+                    castType,
+                    jsonType);
+        }
     }
 
     private interface JsonToRealmTypeConverter {
         public void emitTypeConversion(String fieldName, String fieldType, JavaWriter writer) throws IOException;
+        public void emitStreamTypeConversion(String fieldName, String fieldType, JavaWriter writer) throws IOException;
     }
 }
