@@ -34,6 +34,7 @@ public class RealmLinkTests extends AndroidTestCase {
 
         testRealm.beginTransaction();
         testRealm.clear(Dog.class);
+        testRealm.clear(Cat.class);
         testRealm.clear(Owner.class);
 
         Dog dog1 = testRealm.createObject(Dog.class);
@@ -77,6 +78,12 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals("Fido", owners.first().getDogs().last().getName());
         assertEquals("Blackie", owners.first().getCat().getName());
         assertEquals(12, owners.first().getCat().getAge());
+
+        RealmResults<Dog> dogs = testRealm.allObjects(Dog.class);
+        assertEquals(2, dogs.size());
+
+        RealmResults<Cat> cats = testRealm.allObjects(Cat.class);
+        assertEquals(1, cats.size());
     }
 
     public void testQuerySingleRelationBoolean() {
