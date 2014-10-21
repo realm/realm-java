@@ -29,6 +29,15 @@ public class Dog extends RealmObject {
     private double weight;
     private boolean hasTail;
     private Date birthday;
+    private Owner owner;
+
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+    }
 
     public Date getBirthday() {
         return birthday;
