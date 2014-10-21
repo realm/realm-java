@@ -288,25 +288,25 @@ public class TableQuery implements Closeable {
 
     private final static String DATE_NULL_ERROR_MESSAGE = "Date value in query criteria must not be null.";
 
-    public TableQuery equalTo(long columnIndex, Date value){
+    public TableQuery equalTo(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery notEqualTo(long columnIndex, Date value){
+    public TableQuery notEqualTo(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeNotEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeNotEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery greaterThan(long columnIndex, Date value){
+    public TableQuery greaterThan(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeGreaterDateTime(nativePtr, columnIndex, value.getTime()/1000);
@@ -314,10 +314,10 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    protected native void nativeGreaterDateTime(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeGreaterDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
 
-    public TableQuery greaterThanOrEqual(long columnIndex, Date value){
+    public TableQuery greaterThanOrEqual(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeGreaterEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
@@ -325,9 +325,9 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    protected native void nativeGreaterEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeGreaterEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery lessThan(long columnIndex, Date value){
+    public TableQuery lessThan(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeLessDateTime(nativePtr, columnIndex, value.getTime()/1000);
@@ -335,10 +335,10 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    protected native void nativeLessDateTime(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeLessDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
 
-    public TableQuery lessThanOrEqual(long columnIndex, Date value){
+    public TableQuery lessThanOrEqual(long columnIndex[], Date value){
         if (value == null)
             throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
         nativeLessEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
@@ -346,16 +346,16 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    protected native void nativeLessEqualDateTime(long nativeQueryPtr, long columnIndex, long value);
+    protected native void nativeLessEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
-    public TableQuery between(long columnIndex, Date value1, Date value2){
+    public TableQuery between(long columnIndex[], Date value1, Date value2){
         if (value1 == null || value2 == null)
             throw new IllegalArgumentException("Date values in query criteria must not be null."); // Different text
         nativeBetweenDateTime(nativePtr, columnIndex, value1.getTime()/1000, value2.getTime()/1000);
         queryValidated = false;
         return this;
     }
-    protected native void nativeBetweenDateTime(long nativeQueryPtr, long columnIndex, long value1, long value2);
+    protected native void nativeBetweenDateTime(long nativeQueryPtr, long columnIndex[], long value1, long value2);
 
     // Query for String values.
     

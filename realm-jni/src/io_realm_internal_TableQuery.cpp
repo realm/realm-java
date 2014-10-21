@@ -86,32 +86,32 @@ TableRef getTableLink(jlong nativeQueryPtr, jlong *arr, jsize arr_len) {
 
 template <typename coretype, typename cpptype, typename javatype>
 Query numeric_link_equal(TableRef tbl, jlong columnIndex, javatype value) {
-    return tbl->column<coretype>(size_t(columnIndex)) == static_cast<cpptype>(value);
+    return tbl->column<coretype>(size_t(columnIndex)) == cpptype(value);
 }
 
 template <typename coretype, typename cpptype, typename javatype>
 Query numeric_link_notequal(TableRef tbl, jlong columnIndex, javatype value) {
-    return tbl->column<coretype>(size_t(columnIndex)) != static_cast<cpptype>(value);
+    return tbl->column<coretype>(size_t(columnIndex)) != cpptype(value);
 }
 
 template <typename coretype, typename cpptype, typename javatype>
 Query numeric_link_greater(TableRef tbl, jlong columnIndex, javatype value) {
-    return tbl->column<coretype>(size_t(columnIndex)) > static_cast<cpptype>(value);
+    return tbl->column<coretype>(size_t(columnIndex)) > cpptype(value);
 }
 
 template <typename coretype, typename cpptype, typename javatype>
 Query numeric_link_greaterequal(TableRef tbl, jlong columnIndex, javatype value) {
-    return tbl->column<coretype>(size_t(columnIndex)) >= static_cast<cpptype>(value);
+    return tbl->column<coretype>(size_t(columnIndex)) >= cpptype(value);
 }
 
 template <typename coretype, typename cpptype, typename javatype>
 Query numeric_link_less(TableRef tbl, jlong columnIndex, javatype value) {
-    return tbl->column<coretype>(size_t(columnIndex)) < static_cast<cpptype>(value);
+    return tbl->column<coretype>(size_t(columnIndex)) < cpptype(value);
 }
 
 template <typename coretype, typename cpptype, typename javatype>
 Query numeric_link_lessequal(TableRef tbl, jlong columnIndex, javatype value) {
-    return tbl->column<coretype>(size_t(columnIndex)) <= static_cast<cpptype>(value);
+    return tbl->column<coretype>(size_t(columnIndex)) <= cpptype(value);
 }
 
 
@@ -516,76 +516,134 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JDD(
 // DateTime
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualDateTime(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_DateTime))
-        return;
+    GET_ARRAY()
     try {
-        Q(nativeQueryPtr)->equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
+                return;
+            Q(nativeQueryPtr)->less_equal_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+        }
+        else {
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_equal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
+        }
     } CATCH_STD()
+    RELEASE_ARRAY()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualDateTime(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualDateTime(
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_DateTime))
-        return;
+    GET_ARRAY()
     try {
-        Q(nativeQueryPtr)->not_equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
+                return;
+            Q(nativeQueryPtr)->not_equal_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+        }
+        else {
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_notequal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
+        }
     } CATCH_STD()
+    RELEASE_ARRAY()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterDateTime(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_DateTime))
-        return;
+    GET_ARRAY()
     try {
-        Q(nativeQueryPtr)->greater_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
+                return;
+            Q(nativeQueryPtr)->greater_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+        }
+        else {
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_greater<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
+        }
     } CATCH_STD()
+    RELEASE_ARRAY()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualDateTime(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_DateTime))
-        return;
+    GET_ARRAY()
     try {
-        Q(nativeQueryPtr)->greater_equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
+                return;
+            Q(nativeQueryPtr)->greater_equal_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+        }
+        else {
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_greaterequal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
+        }
     } CATCH_STD()
+    RELEASE_ARRAY();
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessDateTime(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_DateTime))
-        return;
+    GET_ARRAY()
     try {
-        Q(nativeQueryPtr)->less_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
+                return;
+            Q(nativeQueryPtr)->less_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+        }
+        else {
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_less<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
+        }
     } CATCH_STD()
+    RELEASE_ARRAY();
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualDateTime(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value)
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_DateTime))
-        return;
+    GET_ARRAY()
     try {
-        Q(nativeQueryPtr)->less_equal_datetime(S(columnIndex), DateTime(static_cast<time_t>(value)));
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
+                return;
+            Q(nativeQueryPtr)->less_equal_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+        }
+        else {
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_lessequal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
+        }
     } CATCH_STD()
+    RELEASE_ARRAY()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDateTime(
-
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jlong value1, jlong value2)
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value1, jlong value2)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_DateTime))
-        return;
+    GET_ARRAY()
     try {
-        Q(nativeQueryPtr)->between_datetime(S(columnIndex), DateTime(static_cast<time_t>(value1)), DateTime(static_cast<time_t>(value2)));
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
+                return;
+            Q(nativeQueryPtr)->between_datetime(S(arr[0]), DateTime(static_cast<time_t>(value1)), DateTime(static_cast<time_t>(value2)));
+        }
+        else {
+            Q(nativeQueryPtr)->group();
+            TableRef tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_greaterequal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value1));
+            tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_lessequal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value2));
+            Q(nativeQueryPtr)->end_group();
+        }
     } CATCH_STD()
+    RELEASE_ARRAY()
 }
-
 
 // Bool
 

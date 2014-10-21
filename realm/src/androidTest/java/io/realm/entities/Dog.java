@@ -17,6 +17,8 @@
 
 package io.realm.entities;
 
+import java.util.Date;
+
 import io.realm.RealmObject;
 
 public class Dog extends RealmObject {
@@ -26,6 +28,15 @@ public class Dog extends RealmObject {
     private float height;
     private double weight;
     private boolean hasTail;
+    private Date birthday;
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
 
     public boolean isHasTail() {
         return hasTail;

@@ -250,58 +250,58 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JZ
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeEqualDateTime
- * Signature: (JJJ)V
+ * Signature: (J[JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualDateTime
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeNotEqualDateTime
- * Signature: (JJJ)V
+ * Signature: (J[JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualDateTime
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeGreaterDateTime
- * Signature: (JJJ)V
+ * Signature: (J[JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterDateTime
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeGreaterEqualDateTime
- * Signature: (JJJ)V
+ * Signature: (J[JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualDateTime
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeLessDateTime
- * Signature: (JJJ)V
+ * Signature: (J[JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessDateTime
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeLessEqualDateTime
- * Signature: (JJJ)V
+ * Signature: (J[JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualDateTime
-  (JNIEnv *, jobject, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlongArray, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeBetweenDateTime
- * Signature: (JJJJ)V
+ * Signature: (J[JJJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDateTime
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlongArray, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
