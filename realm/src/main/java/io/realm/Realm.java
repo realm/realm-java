@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -57,20 +56,26 @@ import io.realm.internal.android.LooperThread;
  * The Realm class is the storage and transactional manager of your object persistent store. Objects
  * are created. Objects within a Realm can be queried and read at any time. Creating,
  * modifying, and deleting objects must be done through transactions.
- *
+ * <p/>
  * The transactions ensure that multiple instances (on multiple threads) can access the objects
  * in a consistent state with full ACID guaranties.
- *
+ * <p/>
  * The instances of a Realm will be automatically updated when one instance commits a
  * change (create, modify or delete an object).
  */
 public class Realm {
     public static final String DEFAULT_REALM_NAME = "default.realm";
-    private static final Map<String, ThreadRealm> realms = new HashMap<String, ThreadRealm>();
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
+    private static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
+        @Override
+        protected Map<String, Realm> initialValue() {
+            return new HashMap<String, Realm>();
+        }
+    };
 
+    @SuppressWarnings("UnusedDeclaration")
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
     private static boolean autoRefresh = true;
 
@@ -142,12 +147,13 @@ public class Realm {
 
     /**
      * Realm static constructor for the default realm "default.realm"
+     *
      * @param context an Android context
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     * must be migrated
-     * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException Other errors
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws RealmException                Other errors
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME, null);
@@ -155,42 +161,47 @@ public class Realm {
 
     /**
      * Realm static constructor
-     * @param context an Android context
+     *
+     * @param context  an Android context
      * @param fileName the name of the file to save the Realm to
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     * must be migrated
-     * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException Other errors
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws RealmException                Other errors
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, String fileName) {
         return Realm.create(context.getFilesDir(), fileName, null);
     }
 
     /**
      * Realm static constructor
+     *
      * @param context an Android context
-     * @param key a 32-byte encryption key
+     * @param key     a 32-byte encryption key
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     * must be migrated
-     * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException Other errors
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws RealmException                Other errors
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, byte[] key) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME, key);
     }
 
     /**
      * Realm static constructor
-     * @param context an Android context
+     *
+     * @param context  an Android context
      * @param fileName the name of the file to save the Realm to
-     * @param key a 32-byte encryption key
+     * @param key      a 32-byte encryption key
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     * must be migrated
-     * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException Other errors
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws RealmException                Other errors
      */
     public static Realm getInstance(Context context, String fileName, byte[] key) {
         return Realm.create(context.getFilesDir(), fileName, key);
@@ -198,28 +209,31 @@ public class Realm {
 
     /**
      * Realm static constructor
+     *
      * @param writableFolder absolute path to a writable directory
-     * @param key a 32-byte encryption key
+     * @param key            a 32-byte encryption key
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     * must be migrated
-     * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException Other errors
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws RealmException                Other errors
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(File writableFolder, byte[] key) {
         return Realm.create(writableFolder, DEFAULT_REALM_NAME, key);
     }
 
     /**
      * Realm static constructor
+     *
      * @param writableFolder absolute path to a writable directory
-     * @param filename the name of the file to save the Realm to
-     * @param key a 32-byte encryption key
+     * @param filename       the name of the file to save the Realm to
+     * @param key            a 32-byte encryption key
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     * must be migrated
-     * @throws RealmIOException Error when accessing underlying file
-     * @throws RealmException Other errors
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws RealmException                Other errors
      */
     public static Realm create(File writableFolder, String filename, byte[] key) {
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
@@ -227,20 +241,15 @@ public class Realm {
     }
 
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema) {
-        ThreadRealm threadRealm = realms.get(absolutePath);
-        boolean needsValidation = (threadRealm == null);
-        if (threadRealm == null) {
-            threadRealm = new ThreadRealm(absolutePath, key);
-        }
-        SoftReference<Realm> realmSoftReference = threadRealm.get();
-        Realm realm = realmSoftReference.get();
+        Map<String, Realm> realms = realmsCache.get();
+        Realm realm = realms.get(absolutePath);
+
         if (realm == null) {
-            // The garbage collector decided to get rid of the realm instance
-            threadRealm = new ThreadRealm(absolutePath, key);
-            realmSoftReference = threadRealm.get();
-            realm = realmSoftReference.get();
+            realm = new Realm(absolutePath, key);
+            realms.put(absolutePath, realm);
+            realmsCache.set(realms);
         }
-        if (validateSchema && needsValidation) {
+        if (validateSchema) {
             Class<?> validationClass;
             try {
                 validationClass = Class.forName("io.realm.ValidationList");
@@ -255,6 +264,7 @@ public class Realm {
             }
             List<String> proxyClasses;
             try {
+                //noinspection unchecked
                 proxyClasses = (List<String>) getProxyClassesMethod.invoke(null);
             } catch (IllegalAccessException e) {
                 throw new RealmException("Could not execute the getProxyClasses method in the ValidationList class");
@@ -321,7 +331,8 @@ public class Realm {
                     }
                     List<String> fieldNames;
                     try {
-                        fieldNames = (List<String>)fieldNamesMethod.invoke(null);
+                        //noinspection unchecked
+                        fieldNames = (List<String>) fieldNamesMethod.invoke(null);
                     } catch (IllegalAccessException e) {
                         throw new RealmException("Could not execute the getFieldNames method in the generated " + generatedClassName + " class");
                     } catch (InvocationTargetException e) {
@@ -341,11 +352,7 @@ public class Realm {
                         columnIndices.put(modelClassName, innerMap);
                     }
                 }
-
-                // cache realm after validation
-                realms.put(absolutePath, threadRealm);
-            }
-            finally {
+            } finally {
                 realm.commitTransaction();
             }
         }
@@ -442,28 +449,11 @@ public class Realm {
         return null;
     }
 
-    // This class stores soft-references to realm objects per thread per realm file
-    private static class ThreadRealm extends ThreadLocal<SoftReference<Realm>> {
-        private String absolutePath;
-        private byte[] key;
-
-        private ThreadRealm(String absolutePath, byte[] key) {
-            this.absolutePath = absolutePath;
-            this.key = key;
-        }
-
-        @Override
-        protected SoftReference<Realm> initialValue() {
-            Realm realm = new Realm(absolutePath, key);
-            key = null;
-            return new SoftReference<Realm>(realm);
-        }
-    }
-
     /**
      * Instantiates and adds a new object to the realm
-     * @return The new object
+     *
      * @param clazz The Class of the object to create
+     * @return The new object
      * @throws RealmException An object could not be created
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
@@ -592,15 +582,16 @@ public class Realm {
             simpleClassName = clazz.getSimpleName();
             simpleClassNames.put(clazz, simpleClassName);
         }
-        return transaction.hasTable(TABLE_PREFIX+simpleClassName);
+        return transaction.hasTable(TABLE_PREFIX + simpleClassName);
     }
 
     /**
      * Returns a typed RealmQuery, which can be used to query for specific objects of this type
+     *
      * @param clazz The class of the object which is to be queried for
      * @return A typed RealmQuery, which can be used to query for specific objects of this type
-     * @see io.realm.RealmQuery
      * @throws java.lang.RuntimeException Any other error
+     * @see io.realm.RealmQuery
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
         return new RealmQuery<E>(this, clazz);
@@ -608,10 +599,11 @@ public class Realm {
 
     /**
      * Get all objects of a specific Class
+     *
      * @param clazz the Class to get objects of
      * @return A RealmResult list containing the objects
-     * @see io.realm.RealmResults
      * @throws java.lang.RuntimeException Any other error
+     * @see io.realm.RealmResults
      */
     public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz) {
         return where(clazz).findAll();
@@ -621,6 +613,7 @@ public class Realm {
 
     /**
      * Add a change listener to the Realm
+     *
      * @param listener the change listener
      * @see io.realm.RealmChangeListener
      */
@@ -631,6 +624,7 @@ public class Realm {
 
     /**
      * Remove the specified change listener
+     *
      * @param listener the change listener to be removed
      * @see io.realm.RealmChangeListener
      */
@@ -643,6 +637,7 @@ public class Realm {
 
     /**
      * Remove all user-defined change listeners
+     *
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
@@ -651,11 +646,12 @@ public class Realm {
     }
 
     void sendNotifications() {
-        for(RealmChangeListener listener : changeListeners) {
+        for (RealmChangeListener listener : changeListeners) {
             listener.onChange();
         }
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     boolean hasChanged() {
         return sharedGroup.hasChanged();
     }
@@ -674,7 +670,7 @@ public class Realm {
      * transaction within a write transaction an exception is thrown.
      *
      * @throws io.realm.exceptions.RealmException If already in a write transaction.
-     * @throws java.lang.RuntimeException Any other error.
+     * @throws java.lang.RuntimeException         Any other error.
      */
     public void beginTransaction() {
         transaction.promoteToWrite();
@@ -682,6 +678,7 @@ public class Realm {
 
     /**
      * Commits a write transaction
+     *
      * @throws java.lang.RuntimeException Any other error
      */
     public void commitTransaction() {
@@ -699,6 +696,7 @@ public class Realm {
 
     /**
      * Remove all objects of the specified class
+     *
      * @param classSpec The class which objects should be removed
      * @throws java.lang.RuntimeException Any other error
      */
@@ -729,17 +727,22 @@ public class Realm {
         migrateRealmAtPath(realmPath, null, migration);
     }
 
-    static public void migrateRealmAtPath(String realmPath, byte [] key, RealmMigration migration) {
+    static public void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration) {
         Realm realm = Realm.createAndValidate(realmPath, key, false);
         realm.beginTransaction();
         realm.setVersion(migration.execute(realm, realm.getVersion()));
         realm.commitTransaction();
+
+        Map<String, Realm> realms = realmsCache.get();
+        realms.put(realmPath, new Realm(realmPath, key));
+        realmsCache.set(realms);
     }
 
     /**
      * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
      * The realm must be unused and closed before calling this method.
      * WARNING: Your Realm must not be open (typically when your app launch).
+     *
      * @param context an Android context.
      * @return false if a file could not be deleted. The failing file will be logged.
      * @see io.realm.Realm#clear(Class)
@@ -751,7 +754,8 @@ public class Realm {
     /**
      * Delete the Realm file from the filesystem for a custom named Realm.
      * The realm must be unused and closed before calling this method.
-     * @param context an Android context.
+     *
+     * @param context  an Android context.
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */

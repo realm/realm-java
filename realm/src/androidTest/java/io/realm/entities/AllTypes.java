@@ -30,7 +30,6 @@ public class AllTypes extends RealmObject {
     private Date columnDate;
     private byte[] columnBinary;
     private Dog columnRealmObject;
-
     private RealmList<Dog> columnRealmList;
 
     public String getColumnString() {
