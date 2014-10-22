@@ -86,12 +86,51 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    private boolean containsDot(String s) {
+        int i;
+        int n;
+
+        i = 0;
+        n = s.length();
+        while (i < n) {
+            if (s.charAt(i) == '.')
+                return true;
+            i++;
+        }
+        return false;
+    }
+
+    private String[] splitString(String s) {
+        int i, j, n;
+
+        // count the number of .
+        n = 0;
+        for (i = 0; i < s.length(); i++)
+            if (s.charAt(i) == '.')
+                n++;
+
+        // split at .
+        String[] arr = new String[n+1];
+        i = 0;
+        n = 0;
+        j = s.indexOf('.');
+        while (j != -1) {
+            arr[n] = s.substring(i, j);
+            i = j+1;
+            j = s.indexOf('.', i);
+            n++;
+        }
+        arr[n] = s.substring(s.lastIndexOf('.')+1);
+
+        return arr;
+    }
+
     // TODO: consider another caching strategy to linked classes are
     //       included in the cache.
     private long[] getColumnIndices(String fieldName, ColumnType fieldType) {
         Table table = (Table)getTable();
-        if (fieldName.contains(".")) {
-            String[] names = fieldName.split("\\.");
+        if (containsDot(fieldName)) {
+            String[] names = splitString(fieldName); //fieldName.split("\\.");
             long[] columnIndices = new long[names.length];
             for (int i = 0; i < names.length-1; i++) {
                 long index = table.getColumnIndex(names[i]);
