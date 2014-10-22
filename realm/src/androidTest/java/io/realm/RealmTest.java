@@ -191,7 +191,7 @@ public class RealmTest extends AndroidTestCase {
         setColumnData();
 
         for (int i = 0; i < columnData.size(); i++) {
-            if (columnData.get(i) != columnData.get(0)) {
+            if (i != 0) {
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), true).findAll();
                     fail("Realm.where should fail with illegal argument");
@@ -199,35 +199,35 @@ public class RealmTest extends AndroidTestCase {
                 }
             }
 
-            if (columnData.get(i) != columnData.get(1)) {
+            if (i != 1) {
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), new Date()).findAll();
                     fail("Realm.where should fail with illegal argument");
                 } catch (IllegalArgumentException e) {
                 }
             }
-            if (columnData.get(i) != columnData.get(2)) {
+            if (i != 2) {
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.37d).findAll();
                     fail("Realm.where should fail with illegal argument");
                 } catch (IllegalArgumentException e) {
                 }
             }
-            if (columnData.get(i) != columnData.get(3)) {
+            if (i != 3) {
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.3711f).findAll();
                     fail("Realm.where should fail with illegal argument");
                 } catch (IllegalArgumentException e) {
                 }
             }
-            if (columnData.get(i) != columnData.get(4)) {
+            if (i != 4) {
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), "test").findAll();
                     fail("Realm.where should fail with illegal argument");
                 } catch (IllegalArgumentException e) {
                 }
             }
-            if (columnData.get(i) != columnData.get(5)) {
+            if (i != 5) {
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 1337).findAll();
                     fail("Realm.where should fail with illegal argument");

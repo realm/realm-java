@@ -194,7 +194,6 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSortByLong() {
-
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.sort(FIELD_LONG, RealmResults.SORT_ORDER_DECENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
@@ -211,7 +210,6 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSortByDate() {
-
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.sort(FIELD_DATE, RealmResults.SORT_ORDER_DECENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
@@ -228,7 +226,6 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSortByBoolean() {
-
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_DECENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
@@ -267,7 +264,6 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
 
-
     public void testSortByDouble() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.sort(FIELD_DOUBLE, RealmResults.SORT_ORDER_DECENDING);
@@ -283,7 +279,6 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_DOUBLE, RealmResults.SORT_ORDER_DECENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
-
 
     public void testSortByFloat() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
@@ -302,7 +297,6 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSortOnNonExistingColumn() {
-
         try {
             RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
             RealmResults<AllTypes> sortedList = resultList.sort("Non-existing");
