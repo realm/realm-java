@@ -319,7 +319,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public void removeLast() {
         TableOrView table = getTable();
-        table.removeLast();
+        if (table.size() != 0) {
+            table.removeLast();
+        } else {
+            throw new IllegalArgumentException("Empty table nothing to be removed");
+        }
     }
 
     /**

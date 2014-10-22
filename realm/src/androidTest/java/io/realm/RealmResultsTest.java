@@ -51,7 +51,7 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date((long)i));
+            allTypes.setColumnDate(new Date((long) i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
@@ -75,6 +75,19 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals("ResultList.clear did not remove records", 0, resultList.size());
 
         testRealm.commitTransaction();
+    }
+
+    public void testRemoveLastShouldFail() {
+        RealmResults<AllTypes> resultsList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
+        try {
+            testRealm.beginTransaction();
+            resultsList.removeLast();
+            fail("Should give exception" + resultsList.size());
+        } catch (IllegalArgumentException e) {
+
+        } finally {
+            testRealm.commitTransaction();
+        }
     }
 
     public void testResultListGet() {
@@ -121,7 +134,7 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number maximum = resultList.max(FIELD_LONG);
-        assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE-1, maximum.intValue());
+        assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE - 1, maximum.intValue());
     }
 
     public void testSumGivesCorrectValue() {
@@ -139,7 +152,7 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testAvgGivesCorrectValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
-        Double avg = Math.round(resultList.average(FIELD_DOUBLE)*10000.0)/10000.0;
+        Double avg = Math.round(resultList.average(FIELD_DOUBLE) * 10000.0) / 10000.0;
 
         assertEquals("ResultList.sum returned wrong sum", 260.6415, avg);
     }
@@ -214,7 +227,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
 
-    public void testSortByBoolean(){
+    public void testSortByBoolean() {
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_DECENDING);
