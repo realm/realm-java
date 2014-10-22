@@ -49,3 +49,4 @@
 
 - Consider adding mapping annotations between Json and Java, but is this a Realm responsibility?
 
+- Consider which date representations we should support. There exist a multitude of options.
