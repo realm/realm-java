@@ -247,7 +247,7 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners1.size());
 
         RealmResults<Owner> none2 = testRealm.where(Owner.class).notEqualTo("cat.name", "Blackie").findAll();
-        assertEquals(1, none2.size());
+        assertEquals(0, none2.size());
 
         try {
             RealmResults<Owner> owners3 = testRealm.where(Owner.class).beginsWith("cat.name", "Blackie").findAll();
