@@ -1,5 +1,4 @@
 include ':realm', ':introExample', ':gridViewExample', ':concurrencyExample', ':encryptionExample', ':migrationExample', ':jsonImportExample'
-include ':realm-annotations-processor'
 include ':performance'
 project(':performance').projectDir = new File('examples/performance')
 
