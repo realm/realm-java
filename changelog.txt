@@ -1,7 +1,9 @@
 0.72.0 (??)
   * Extending sorting to more types: boolean, short, int, long, float, double, Date,
     and String fields are now supported
-  * Link queries
+  * Link queries are supported in the form realm.where(Owner.class).equalTo(cat.age, 12).findAll(). Currenly, only
+    boolean, long, float, double, Date, and String fields are supported. The string matching does not support case
+    insensitive matches and predicates contains, beginsWith, and endsWith
   * Extending sorting to more types: boolean, short, int, long, float, double, Date, and String fields are now supported
   * Better support for Java 7 and 8 in the annotations processor
 
