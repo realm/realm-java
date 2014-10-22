@@ -38,7 +38,7 @@ public class RealmQuery<E extends RealmObject> {
     private Map<String, Integer> columns = new HashMap<String, Integer>();
     private Class<E> clazz;
 
-    private final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
+    private static final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
 
     /**
      * Creating a RealmQuery instance
@@ -88,26 +88,26 @@ public class RealmQuery<E extends RealmObject> {
 
     // TODO: consider another caching strategy to linked classes are
     //       included in the cache.
-    private long[] getColumnIndexes(String fieldName, ColumnType fieldType) {
+    private long[] getColumnIndices(String fieldName, ColumnType fieldType) {
         Table table = (Table)getTable();
         if (fieldName.contains(".")) {
             String[] names = fieldName.split("\\.");
-            long[] columnIndexes = new long[names.length];
+            long[] columnIndices = new long[names.length];
             for (int i = 0; i < names.length-1; i++) {
                 long index = table.getColumnIndex(names[i]);
                 ColumnType type = table.getColumnType(index);
                 if (type == ColumnType.LINK || type == ColumnType.LINK_LIST) {
                     table = table.getLinkTarget(index);
-                    columnIndexes[i] = index;
+                    columnIndices[i] = index;
                 } else {
                     throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
                 }
             }
-            columnIndexes[names.length-1] = table.getColumnIndex(names[names.length-1]);
-            if (fieldType != table.getColumnType(columnIndexes[names.length-1])) {
+            columnIndices[names.length-1] = table.getColumnIndex(names[names.length-1]);
+            if (fieldType != table.getColumnType(columnIndices[names.length-1])) {
                 throw new IllegalArgumentException("Wrong field type");
             }
-            return columnIndexes;
+            return columnIndices;
         } else {
             if (fieldType != table.getColumnType(columns.get(fieldName))) {
                 throw new IllegalArgumentException("Wrong field type");
@@ -128,8 +128,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, String value) {
-        long[] columnIndexes = getColumnIndexes(fieldName, ColumnType.STRING);
-        this.query.equalTo(columnIndexes, value);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.STRING);
+        this.query.equalTo(columnIndices, value);
         return this;
     }
 
@@ -143,8 +143,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, int value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.equalTo(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.equalTo(columnIndices, value);
         return this;
     }
 
@@ -158,8 +158,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, long value) {
-        long[] columnIndexes = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.equalTo(columnIndexes, value);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.equalTo(columnIndices, value);
         return this;
     }
 
@@ -173,8 +173,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, double value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DOUBLE);
-        this.query.equalTo(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        this.query.equalTo(columnIndices, value);
         return this;
     }
 
@@ -188,8 +188,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, float value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.FLOAT);
-        this.query.equalTo(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        this.query.equalTo(columnIndices, value);
         return this;
     }
 
@@ -203,8 +203,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, boolean value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.BOOLEAN);
-        this.query.equalTo(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.BOOLEAN);
+        this.query.equalTo(columnIndices, value);
         return this;
     }
 
@@ -219,8 +219,8 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmQuery<E> equalTo(String fieldName, Date value) {
         
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DATE);
-        this.query.equalTo(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        this.query.equalTo(columnIndices, value);
         return this;
     }
 
@@ -236,8 +236,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
-        this.query.notEqualTo(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        this.query.notEqualTo(columnIndices, value);
         return this;
     }
 
@@ -251,8 +251,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, int value) {
-        long[] columnIndexes = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.notEqualTo(columnIndexes, value);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.notEqualTo(columnIndices, value);
         return this;
     }
 
@@ -266,8 +266,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, long value) {
-        long[] columnIndexes = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.notEqualTo(columnIndexes, value);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.notEqualTo(columnIndices, value);
         return this;
     }
 
@@ -281,8 +281,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, double value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DOUBLE);
-        this.query.notEqualTo(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        this.query.notEqualTo(columnIndices, value);
         return this;
     }
 
@@ -296,8 +296,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, float value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.FLOAT);
-        this.query.notEqualTo(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        this.query.notEqualTo(columnIndices, value);
         return this;
     }
 
@@ -311,8 +311,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, boolean value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.BOOLEAN);
-        this.query.equalTo(columnIndexes, !value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.BOOLEAN);
+        this.query.equalTo(columnIndices, !value);
         return this;
     }
 
@@ -326,8 +326,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, Date value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DATE);
-        this.query.notEqualTo(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        this.query.notEqualTo(columnIndices, value);
         return this;
     }
 
@@ -343,8 +343,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
-        long[] columnIndexes = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.greaterThan(columnIndexes, value);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.greaterThan(columnIndices, value);
         return this;
     }
 
@@ -358,8 +358,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, long value) {
-        long[] columnIndexes = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.greaterThan(columnIndexes, value);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.greaterThan(columnIndices, value);
         return this;
     }
 
@@ -373,8 +373,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, double value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DOUBLE);
-        this.query.greaterThan(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        this.query.greaterThan(columnIndices, value);
         return this;
     }
 
@@ -388,8 +388,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, float value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.FLOAT);
-        this.query.greaterThan(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        this.query.greaterThan(columnIndices, value);
         return this;
     }
 
@@ -403,8 +403,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, Date value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DATE);
-        this.query.greaterThan(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        this.query.greaterThan(columnIndices, value);
         return this;
     }
 
@@ -418,8 +418,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.greaterThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -433,8 +433,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.greaterThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -448,8 +448,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DOUBLE);
-        this.query.greaterThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -463,8 +463,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.FLOAT);
-        this.query.greaterThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -478,8 +478,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DATE);
-        this.query.greaterThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -495,8 +495,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, int value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.lessThan(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.lessThan(columnIndices, value);
         return this;
     }
 
@@ -510,8 +510,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, long value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.lessThan(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.lessThan(columnIndices, value);
         return this;
     }
 
@@ -525,8 +525,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, double value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DOUBLE);
-        this.query.lessThan(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        this.query.lessThan(columnIndices, value);
         return this;
     }
 
@@ -540,8 +540,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, float value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.FLOAT);
-        this.query.lessThan(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        this.query.lessThan(columnIndices, value);
         return this;
     }
 
@@ -555,8 +555,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DATE);
-        this.query.lessThan(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        this.query.lessThan(columnIndices, value);
         return this;
     }
 
@@ -570,8 +570,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.lessThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -585,8 +585,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.lessThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -600,8 +600,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DOUBLE);
-        this.query.lessThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -615,8 +615,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.FLOAT);
-        this.query.lessThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -630,8 +630,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DATE);
-        this.query.lessThanOrEqual(columnIndexes, value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
 
@@ -648,8 +648,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, int from, int to) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.between(columnIndexes, from, to);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.between(columnIndices, from, to);
         return this;
     }
 
@@ -664,8 +664,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, long from, long to) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.INTEGER);
-        this.query.between(columnIndexes, from, to);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        this.query.between(columnIndices, from, to);
         return this;
     }
 
@@ -680,8 +680,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, double from, double to) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DOUBLE);
-        this.query.between(columnIndexes, from, to);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        this.query.between(columnIndices, from, to);
         return this;
     }
 
@@ -696,8 +696,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, float from, float to) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.FLOAT);
-        this.query.between(columnIndexes, from, to);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        this.query.between(columnIndices, from, to);
         return this;
     }
 
@@ -712,8 +712,8 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, Date from, Date to) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.DATE);
-        this.query.between(columnIndexes, from, to);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        this.query.between(columnIndices, from, to);
         return this;
     }
 
@@ -730,9 +730,9 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
-        if (columnIndexes.length == 1) {
-            this.query.contains(columnIndexes[0], value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        if (columnIndices.length == 1) {
+            this.query.contains(columnIndices[0], value);
             return this;
         }
         throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "contains"));
@@ -749,9 +749,9 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value, boolean caseSensitive) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
-        if (columnIndexes.length == 1) {
-            this.query.contains(columnIndexes[0], value, caseSensitive);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        if (columnIndices.length == 1) {
+            this.query.contains(columnIndices[0], value, caseSensitive);
             return this;
         }
         throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "contains"));
@@ -767,9 +767,9 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
-        if (columnIndexes.length == 1) {
-            this.query.beginsWith(columnIndexes[0], value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        if (columnIndices.length == 1) {
+            this.query.beginsWith(columnIndices[0], value);
             return this;
         }
         throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "beginsWith"));
@@ -786,9 +786,9 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, boolean caseSensitive) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
-        if (columnIndexes.length == 1) {
-            this.query.beginsWith(columnIndexes[0], value, caseSensitive);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        if (columnIndices.length == 1) {
+            this.query.beginsWith(columnIndices[0], value, caseSensitive);
             return this;
         }
         throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "beginsWith"));
@@ -804,9 +804,9 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
-        if (columnIndexes.length == 1) {
-            this.query.endsWith(columnIndexes[0], value);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        if (columnIndices.length == 1) {
+            this.query.endsWith(columnIndices[0], value);
             return this;
         }
         throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "endsWith"));
@@ -823,9 +823,9 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value, boolean caseSensitive) {
-        long columnIndexes[] = getColumnIndexes(fieldName, ColumnType.STRING);
-        if (columnIndexes.length == 1) {
-            this.query.endsWith(columnIndexes[0], value, caseSensitive);
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        if (columnIndices.length == 1) {
+            this.query.endsWith(columnIndices[0], value, caseSensitive);
             return this;
         }
         throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "endsWith"));
