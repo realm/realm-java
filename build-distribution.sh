@@ -33,6 +33,7 @@ mkdir -p distribution/eclipse
 cp realm/build/libs/realm-${version}.jar distribution/eclipse
 unzip distribution/eclipse/realm-${version}.jar lib/\* -d distribution/eclipse
 zip -d distribution/eclipse/realm-${version}.jar lib/\*
-mv distribution/eclipse/lib distribution/eclipse/libs
+mv distribution/eclipse/lib/* distribution/eclipse/
+rm -rf distribution/eclipse/lib
 
 echo  "Done"
