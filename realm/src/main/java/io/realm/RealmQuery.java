@@ -999,7 +999,7 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find the first object that fulfills the query condition.
+     * Find the first object that fulfills the query conditions.
      * @return The object found or NULL if no object matches the query conditions.
      * @see io.realm.RealmObject
      * @throws java.lang.RuntimeException Any other error.
