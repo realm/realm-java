@@ -625,7 +625,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.beginTransaction();
             fail();
-        } catch (RealmException e) {
+        } catch (IllegalStateException e) {
             assertEquals("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().", e.getMessage());
         }
         testRealm.commitTransaction();
@@ -650,7 +650,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.cancelTransaction();
             fail();
-        } catch (RealmException ignored) {}
+        } catch (IllegalStateException ignored) {}
     }
 
     // void clear(Class<?> classSpec)

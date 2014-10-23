@@ -563,21 +563,30 @@ public class Realm {
 //    }
 
     /**
-     * Starts a write transaction, this must be closed with commitTransaction().
+     * Starts a write transaction, this must be closed with commitTransaction() or aborted
+     * by cancelTransaction(). Write transactions are used to atomically create, update and delete
+     * objects within a realm.
+     *
+     * Before beginning the write transaction, beginTransaction() updates the
+     * realm in the case of pending updates from other threads.
+     *
      * Notice: it is not possible to nest write transactions. If you start a write
      * transaction within a write transaction an exception is thrown.
      *
-     * @throws io.realm.exceptions.RealmException If already in a write transaction.
-     * @throws java.lang.RuntimeException         Any other error.
+     * @throws java.lang.IllegalStateException If the write transaction is an invalid state or
+     *                                         already in a write transaction.
+     *
      */
     public void beginTransaction() {
         transaction.promoteToWrite();
     }
 
     /**
-     * Commits a write transaction
+     * Commits all writes operations in the current write transaction.
+     * After this is called the realm reverts back to being read-only, and all other threads
+     * will automatically be updated.
      *
-     * @throws java.lang.RuntimeException Any other error
+     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state.
      */
     public void commitTransaction() {
         transaction.commitAndContinueAsRead();
@@ -593,14 +602,18 @@ public class Realm {
     }
 
     /**
-     * Revert all writes made in the current write transaction and end the transaction.
+     * Revert all writes (created, updated, or deleted objects) made in the current write
+     * transaction and end the transaction.
+     *
+     * The realm reverts back to read-only.
+     *
      * Calling this when not in a write transaction will throw an exception.
      *
-     * @throws io.realm.exceptions.RealmException If not in a write transaction.
-     * @throws IllegalStateException              If the write transaction is invalid.
-     */
+     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state or
+    *                                             not in a write transaction.
+    */
      public void cancelTransaction() {
-         transaction.rollback();
+         transaction.rollbackAndContinueAsRead();
      }
 
     /**
