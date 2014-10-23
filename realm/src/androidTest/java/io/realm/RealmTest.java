@@ -641,6 +641,18 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
     }
 
+    public void testCancelTransaction() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        testRealm.cancelTransaction();
+        assertEquals(TEST_DATA_SIZE, testRealm.allObjects(AllTypes.class).size());
+
+        try {
+            testRealm.cancelTransaction();
+            fail();
+        } catch (RealmException ignored) {}
+    }
+
     // void clear(Class<?> classSpec)
     public void testClassClear() {
 

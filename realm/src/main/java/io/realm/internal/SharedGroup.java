@@ -103,6 +103,10 @@ public class SharedGroup implements Closeable {
 
     private native void nativeCommitAndContinueAsRead(long nativePtr);
 
+    void rollbackAndContinueAsRead() { nativeRollbackAndContinueAsRead(nativePtr); }
+
+    private native void nativeRollbackAndContinueAsRead(long nativePtr);
+
     public ImplicitTransaction beginImplicitTransaction() {
         if (activeTransaction) {
             throw new IllegalStateException(

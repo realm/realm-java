@@ -249,6 +249,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollback(
     SG(native_ptr)->rollback();   // noexcept
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndContinueAsRead(
+    JNIEnv *, jobject, jlong native_ptr)
+{
+    LangBindHelper::rollback_and_continue_as_read(*SG(native_ptr));
+}
+
+
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeHasChanged
   (JNIEnv *, jobject, jlong native_ptr)
 {

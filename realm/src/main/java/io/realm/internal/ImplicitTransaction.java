@@ -49,6 +49,15 @@ public class ImplicitTransaction extends Group {
         parent.endRead();
     }
 
+    public void rollback() {
+        if (!immutable) {
+            parent.rollbackAndContinueAsRead();
+            immutable = true;
+        } else {
+            throw new RealmException("Cannot cancel a non-write transaction.");
+        }
+    }
+
     protected void finalize() {} // Nullify the actions of Group.finalize()
 
 }

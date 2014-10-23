@@ -593,6 +593,17 @@ public class Realm {
     }
 
     /**
+     * Revert all writes made in the current write transaction and end the transaction.
+     * Calling this when not in a write transaction will throw an exception.
+     *
+     * @throws io.realm.exceptions.RealmException If not in a write transaction.
+     * @throws IllegalStateException              If the write transaction is invalid.
+     */
+     public void cancelTransaction() {
+         transaction.rollback();
+     }
+
+    /**
      * Remove all objects of the specified class
      *
      * @param classSpec The class which objects should be removed
