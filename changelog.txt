@@ -6,6 +6,8 @@
     insensitive matches and predicates contains, beginsWith, and endsWith
   * Extending sorting to more types: boolean, short, int, long, float, double, Date, and String fields are now supported
   * Better support for Java 7 and 8 in the annotations processor
+  * Better support for the Eclipse annotations processor
+  * Add Eclipse dupport to the distribution file
 
 0.71.0 (07 Oct 2014)
   * Simplified the release artifact to a single Jar file
@@ -14,7 +16,7 @@
   * Throw exception if nested write transactions are used (it's not allowed)
   * Javadoc updated
   * Fixed bug in RealmResults: https://github.com/realm/realm-java/issues/453
-  * New annotation @Index to add search index to a field (currently only supporting String fields) 
+  * New annotation @Index to add search index to a field (currently only supporting String fields)
   * Made the annotations processor more verbose and strict
   * Adding RealmQuery.count() method
   * Added a new example about concurrency
