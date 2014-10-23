@@ -3,6 +3,7 @@
   * Better support for Java 7 and 8 in the annotations processor
   * Better support for the Eclipse annotations processor
   * Add Eclipse dupport to the distribution file
+  * Faster implementation of RealmQuery.findFirst()
 
 0.71.0 (07 Oct 2014)
   * Simplified the release artifact to a single Jar file

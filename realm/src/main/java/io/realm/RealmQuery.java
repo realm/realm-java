@@ -1005,9 +1005,9 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public E findFirst() {
-        RealmResults<E> result = findAll();
-        if(result.size() > 0) {
-            return findAll().get(0);
+        long rowIndex = this.query.find();
+        if (rowIndex >= 0) {
+            return realm.get(clazz, rowIndex);
         } else {
             return null;
         }
