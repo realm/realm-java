@@ -4,6 +4,7 @@
   * Better support for the Eclipse annotations processor
   * Add Eclipse dupport to the distribution file
   * Faster implementation of RealmQuery.findFirst()
+  * Upgrading to core 0.85.1 (deep copying of string in queries; preparation for link queries)
 
 0.71.0 (07 Oct 2014)
   * Simplified the release artifact to a single Jar file
