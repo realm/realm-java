@@ -563,21 +563,30 @@ public class Realm {
 //    }
 
     /**
-     * Starts a write transaction, this must be closed with commitTransaction().
+     * Starts a write transaction, this must be closed with commitTransaction() or aborted
+     * by cancelTransaction(). Write transactions are used to atomically create, update and delete
+     * objects within a realm.
+     *
+     * Before beginning the write transaction, beginTransaction() updates the
+     * realm in the case of pending updates from other threads.
+     *
      * Notice: it is not possible to nest write transactions. If you start a write
      * transaction within a write transaction an exception is thrown.
      *
-     * @throws io.realm.exceptions.RealmException If already in a write transaction.
-     * @throws java.lang.RuntimeException         Any other error.
+     * @throws java.lang.IllegalStateException If already in a write transaction.
+     *
      */
     public void beginTransaction() {
         transaction.promoteToWrite();
     }
 
     /**
-     * Commits a write transaction
-     *
-     * @throws java.lang.RuntimeException Any other error
+     * All changes since beginTransaction() are persisted to disk and the realm reverts back to being read-only,
+     * An event is sent to notify all other realm instances that a change has occured.
+     * When the event is received, the other realms will get their objects and RealmResults updated to reflect
+     * the changes from this commit.
+     * 
+     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state.
      */
     public void commitTransaction() {
         transaction.commitAndContinueAsRead();
@@ -591,6 +600,21 @@ public class Realm {
             Log.i(TAG, "The LooperThread is not up and running yet. Commit message not sent");
         }
     }
+
+    /**
+     * Revert all writes (created, updated, or deleted objects) made in the current write
+     * transaction and end the transaction.
+     *
+     * The realm reverts back to read-only.
+     *
+     * Calling this when not in a write transaction will throw an exception.
+     *
+     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state or
+    *                                             not in a write transaction.
+    */
+     public void cancelTransaction() {
+         transaction.rollbackAndContinueAsRead();
+     }
 
     /**
      * Remove all objects of the specified class

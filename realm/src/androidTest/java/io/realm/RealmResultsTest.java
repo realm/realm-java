@@ -305,7 +305,18 @@ public class RealmResultsTest extends AndroidTestCase {
         }
     }
 
+
+
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
+    }
+
+    public void testFindFirst() {
+        AllTypes result = testRealm.where(AllTypes.class).findFirst();
+        assertEquals(0, result.getColumnLong());
+        assertEquals("test data 0", result.getColumnString());
+
+        AllTypes none = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "smurf").findFirst();
+        assertNull(none);
     }
 }
