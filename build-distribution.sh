@@ -36,4 +36,4 @@ zip -d distribution/eclipse/realm-${version}.jar lib/\*
 mv distribution/eclipse/lib/* distribution/eclipse/
 rm -rf distribution/eclipse/lib
 
-echo  "Done"
+echo "Done"

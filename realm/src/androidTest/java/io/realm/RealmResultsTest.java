@@ -51,7 +51,7 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date((long)i));
+            allTypes.setColumnDate(new Date((long) i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
@@ -76,6 +76,19 @@ public class RealmResultsTest extends AndroidTestCase {
 
         testRealm.commitTransaction();
     }
+
+    /*public void testRemoveLastShouldFail() {
+        RealmResults<AllTypes> resultsList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
+        try {
+            testRealm.beginTransaction();
+            resultsList.removeLast();
+            fail("Should give exception");
+        } catch (IllegalArgumentException e) {
+
+        } finally {
+            testRealm.commitTransaction();
+        }
+    }*/
 
     public void testResultListGet() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
@@ -121,7 +134,7 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number maximum = resultList.max(FIELD_LONG);
-        assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE-1, maximum.intValue());
+        assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE - 1, maximum.intValue());
     }
 
     public void testSumGivesCorrectValue() {
@@ -139,7 +152,7 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testAvgGivesCorrectValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
-        Double avg = Math.round(resultList.average(FIELD_DOUBLE)*10000.0)/10000.0;
+        Double avg = Math.round(resultList.average(FIELD_DOUBLE) * 10000.0) / 10000.0;
 
         assertEquals("ResultList.sum returned wrong sum", 260.6415, avg);
     }
@@ -181,7 +194,6 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSortByLong() {
-
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.sort(FIELD_LONG, RealmResults.SORT_ORDER_DECENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
@@ -198,7 +210,6 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSortByDate() {
-
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.sort(FIELD_DATE, RealmResults.SORT_ORDER_DECENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
@@ -214,8 +225,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
 
-    public void testSortByBoolean(){
-
+    public void testSortByBoolean() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_DECENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
@@ -239,11 +249,8 @@ public class RealmResultsTest extends AndroidTestCase {
 
     public void testSortByString() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        RealmResults<AllTypes> sortedList = resultList.sort("columnString", RealmResults.SORT_ORDER_DECENDING);
+        RealmResults<AllTypes> sortedList = resultList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
 
-        for (int i = 0; i< sortedList.size();i++) {
-            System.out.println(sortedList.get(i).getColumnString());
-        }
         assertEquals("Should have same size", resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals("First excepted to be last", resultList.first().getColumnString(), sortedList.last().getColumnString());
@@ -256,7 +263,6 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
-
 
     public void testSortByDouble() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
@@ -274,7 +280,6 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
 
-
     public void testSortByFloat() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.sort(FIELD_FLOAT, RealmResults.SORT_ORDER_DECENDING);
@@ -290,6 +295,17 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_FLOAT, RealmResults.SORT_ORDER_DECENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
+
+    public void testSortOnNonExistingColumn() {
+        try {
+            RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+            RealmResults<AllTypes> sortedList = resultList.sort("Non-existing");
+            fail("Column should not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+    }
+
+
 
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
