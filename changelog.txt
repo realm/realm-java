@@ -1,10 +1,15 @@
 0.72.0 (??)
+  * Extending sorting to more types: boolean, short, int, long, float, double, Date,
+    and String fields are now supported
   * Extending sorting to more types: boolean, short, int, long, float, double, Date, and String fields are now supported
   * Better support for Java 7 and 8 in the annotations processor
   * Better support for the Eclipse annotations processor
   * Add Eclipse dupport to the distribution file
   * Faster implementation of RealmQuery.findFirst()
   * Upgrading to core 0.85.1 (deep copying of string in queries; preparation for link queries)
+  * Link queries are supported in the form realm.where(Owner.class).equalTo(cat.age, 12).findAll(). Currenly, only
+    boolean, long, float, double, Date, and String fields are supported. The string matching does not support case
+    insensitive matches and predicates contains, beginsWith, and endsWith
 
 0.71.0 (07 Oct 2014)
   * Simplified the release artifact to a single Jar file
