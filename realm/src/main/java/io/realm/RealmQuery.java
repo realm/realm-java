@@ -977,9 +977,9 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Count the number of matching objects
+     * Count the number of objects that fulfill the query conditions.
      *
-     * @return The number of matching objects
+     * @return The number of matching objects.
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long count() {
@@ -989,7 +989,7 @@ public class RealmQuery<E extends RealmObject> {
     // Execute
 
     /**
-     * Find all objects that fulfill the query condition
+     * Find all objects that fulfill the query conditions.
      * @return A list of objects
      * @see io.realm.RealmResults
      * @throws java.lang.RuntimeException Any other error
@@ -999,15 +999,15 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find the first object that fulfills the query condition
-     * @return An object
+     * Find the first object that fulfills the query conditions.
+     * @return The object found or null if no object matches the query conditions.
      * @see io.realm.RealmObject
-     * @throws java.lang.RuntimeException Any other error
+     * @throws java.lang.RuntimeException Any other error.
      */
     public E findFirst() {
-        RealmResults<E> result = findAll();
-        if(result.size() > 0) {
-            return findAll().get(0);
+        long rowIndex = this.query.find();
+        if (rowIndex >= 0) {
+            return realm.get(clazz, rowIndex);
         } else {
             return null;
         }
