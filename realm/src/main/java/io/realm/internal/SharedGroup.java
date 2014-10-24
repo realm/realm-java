@@ -86,8 +86,8 @@ public class SharedGroup implements Closeable {
     }
 */
     void advanceRead() {
-    nativeAdvanceRead(nativePtr, nativeTransactLogRegistryPtr);
-}
+        nativeAdvanceRead(nativePtr, nativeTransactLogRegistryPtr);
+    }
 
     private native void nativeAdvanceRead(long nativePtr, long nativeTransactLogRegistryPtr);
 
@@ -102,6 +102,10 @@ public class SharedGroup implements Closeable {
     }
 
     private native void nativeCommitAndContinueAsRead(long nativePtr);
+
+    void rollbackAndContinueAsRead() { nativeRollbackAndContinueAsRead(nativePtr); }
+
+    private native void nativeRollbackAndContinueAsRead(long nativePtr);
 
     public ImplicitTransaction beginImplicitTransaction() {
         if (activeTransaction) {
