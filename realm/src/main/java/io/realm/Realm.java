@@ -573,8 +573,7 @@ public class Realm {
      * Notice: it is not possible to nest write transactions. If you start a write
      * transaction within a write transaction an exception is thrown.
      *
-     * @throws java.lang.IllegalStateException If the write transaction is an invalid state or
-     *                                         already in a write transaction.
+     * @throws java.lang.IllegalStateException If already in a write transaction.
      *
      */
     public void beginTransaction() {
@@ -582,10 +581,11 @@ public class Realm {
     }
 
     /**
-     * Commits all writes operations in the current write transaction.
-     * After this is called the realm reverts back to being read-only, and all other threads
-     * will automatically be updated.
-     *
+     * All changes since beginTransaction() are persisted to disk and the realm reverts back to being read-only,
+     * An event is sent to notify all other realm instances that a change has occured.
+     * When the event is received, the other realms will get their objects and RealmResults updated to reflect
+     * the changes from this commit.
+     * 
      * @throws java.lang.IllegalStateException If the write transaction is in an invalid state.
      */
     public void commitTransaction() {
