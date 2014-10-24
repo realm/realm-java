@@ -573,8 +573,7 @@ public class Realm {
      * Notice: it is not possible to nest write transactions. If you start a write
      * transaction within a write transaction an exception is thrown.
      *
-     * @throws java.lang.IllegalStateException If the write transaction is an invalid state or
-     *                                         already in a write transaction.
+     * @throws java.lang.IllegalStateException If already in a write transaction.
      *
      */
     public void beginTransaction() {
