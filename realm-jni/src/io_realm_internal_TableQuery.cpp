@@ -438,7 +438,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeTableview(
     if (!QUERY_VALID(env, pQuery))
         return;
     try {
-        pQuery->tableview(*TV(nativeTableViewPtr));
+        pQuery->get_table()->where(TV(nativeTableViewPtr));
     } CATCH_STD()
 }
 
