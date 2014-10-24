@@ -82,7 +82,7 @@ public class RealmResultsTest extends AndroidTestCase {
         try {
             testRealm.beginTransaction();
             resultsList.removeLast();
-            fail("Should give exception" + resultsList.size());
+            fail("Should give exception");
         } catch (IllegalArgumentException e) {
 
         } finally {

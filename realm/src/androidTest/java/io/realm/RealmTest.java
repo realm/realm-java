@@ -186,58 +186,60 @@ public class RealmTest extends AndroidTestCase {
 
     }
 
-    public void testQueriesFailWithWrongDataTypes() throws IOException {
+    public void testQueriesWithDataTypes() throws IOException {
         RealmResults<AllTypes> resultList = null;
         setColumnData();
 
         for (int i = 0; i < columnData.size(); i++) {
-            if (i != 0) {
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), true).findAll();
-                    fail("Realm.where should fail with illegal argument");
+                    if (i != 0) {
+                        fail("Realm.where should fail with illegal argument");
+                    }
                 } catch (IllegalArgumentException e) {
                 }
-            }
 
-            if (i != 1) {
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), new Date()).findAll();
-                    fail("Realm.where should fail with illegal argument");
+                    if (i != 1) {
+                        fail("Realm.where should fail with illegal argument");
+                    }
                 } catch (IllegalArgumentException e) {
                 }
-            }
-            if (i != 2) {
+
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.37d).findAll();
-                    fail("Realm.where should fail with illegal argument");
+                    if (i != 2) {
+                        fail("Realm.where should fail with illegal argument");
+                    }
                 } catch (IllegalArgumentException e) {
                 }
-            }
-            if (i != 3) {
+
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.3711f).findAll();
-                    fail("Realm.where should fail with illegal argument");
+                    if (i != 3) {
+                        fail("Realm.where should fail with illegal argument");
+                    }
                 } catch (IllegalArgumentException e) {
                 }
-            }
-            if (i != 4) {
+
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), "test").findAll();
-                    fail("Realm.where should fail with illegal argument");
+                    if (i != 4) {
+                        fail("Realm.where should fail with illegal argument");
+                    }
                 } catch (IllegalArgumentException e) {
                 }
-            }
-            if (i != 5) {
+
                 try {
                     resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 1337).findAll();
-                    fail("Realm.where should fail with illegal argument");
+                    if (i != 5) {
+                        fail("Realm.where should fail with illegal argument");
+                    }
                 } catch (IllegalArgumentException e) {
                 }
             }
-
         }
-    }
-
 
     public void testQueriesFailWithInvalidDataTypes() throws IOException {
         RealmResults<AllTypes> resultList = null;
