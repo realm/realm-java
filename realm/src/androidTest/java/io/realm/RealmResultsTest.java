@@ -77,7 +77,7 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
-    public void testRemoveLastShouldFail() {
+    /*public void testRemoveLastShouldFail() {
         RealmResults<AllTypes> resultsList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
         try {
             testRealm.beginTransaction();
@@ -88,7 +88,7 @@ public class RealmResultsTest extends AndroidTestCase {
         } finally {
             testRealm.commitTransaction();
         }
-    }
+    }*/
 
     public void testResultListGet() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
