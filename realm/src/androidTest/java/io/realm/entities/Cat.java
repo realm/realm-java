@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-
 package io.realm.entities;
 
 import java.util.Date;
 
 import io.realm.RealmObject;
 
-public class Dog extends RealmObject {
-
+public class Cat extends RealmObject {
     private String name;
     private long age;
     private float height;
@@ -54,6 +52,7 @@ public class Dog extends RealmObject {
     public void setHasTail(boolean hasTail) {
         this.hasTail = hasTail;
     }
+
 
     public double getWeight() {
         return weight;

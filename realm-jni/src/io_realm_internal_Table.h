@@ -84,7 +84,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn
 /*
  * Class:     io_realm_internal_Table
  * Method:    nativeUpdateFromSpec
- * Signature: (JLio/realm/TableSpec;)V
+ * Signature: (JLio/realm/internal/TableSpec;)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeUpdateFromSpec
   (JNIEnv *, jobject, jlong, jobject);
@@ -116,7 +116,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetColumnCount
 /*
  * Class:     io_realm_internal_Table
  * Method:    nativeGetTableSpec
- * Signature: (J)Lio/realm/TableSpec;
+ * Signature: (J)Lio/realm/internal/TableSpec;
  */
 JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetTableSpec
   (JNIEnv *, jobject, jlong);
@@ -244,7 +244,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertString
 /*
  * Class:     io_realm_internal_Table
  * Method:    nativeInsertMixed
- * Signature: (JJJLio/realm/Mixed;)V
+ * Signature: (JJJLio/realm/internal/Mixed;)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertMixed
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
@@ -340,7 +340,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetMixedType
 /*
  * Class:     io_realm_internal_Table
  * Method:    nativeGetMixed
- * Signature: (JJJ)Lio/realm/Mixed;
+ * Signature: (JJJ)Lio/realm/internal/Mixed;
  */
 JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetMixed
   (JNIEnv *, jobject, jlong, jlong, jlong);
@@ -460,7 +460,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray
 /*
  * Class:     io_realm_internal_Table
  * Method:    nativeSetMixed
- * Signature: (JJJLio/realm/Mixed;)V
+ * Signature: (JJJLio/realm/internal/Mixed;)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed
   (JNIEnv *, jobject, jlong, jlong, jlong, jobject);
@@ -760,14 +760,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllDate
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllString
   (JNIEnv *, jobject, jlong, jlong, jstring);
-
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeLookup
- * Signature: (JLjava/lang/String;)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeLookup
-  (JNIEnv *, jobject, jlong, jstring);
 
 /*
  * Class:     io_realm_internal_Table

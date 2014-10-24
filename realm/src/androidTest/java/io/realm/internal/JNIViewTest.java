@@ -231,7 +231,7 @@ public class JNIViewTest extends TestCase {
         t.add("3", 3, false);
         t.add("4", 5, false);
 
-        TableView v = t.where().equalTo(2, false).findAll();
+        TableView v = t.where().equalTo(new long[]{2}, false).findAll();
 
         assertEquals(2, v.getSourceRowIndex(0));
         assertEquals(3, v.getSourceRowIndex(1));
@@ -412,7 +412,7 @@ public class JNIViewTest extends TestCase {
         t.add(2);
         t.add(3);
 
-        TableView view = t.where().equalTo(0, 2).findAll();
+        TableView view = t.where().equalTo(new long[]{0}, 2).findAll();
         // access view is ok.
         assertEquals(1, view.size());
 
@@ -425,7 +425,7 @@ public class JNIViewTest extends TestCase {
         accessingViewMustThrow(view);
 
         // recreate view to access again
-        view = t.where().equalTo(0, 2).findAll();
+        view = t.where().equalTo(new long[]{0}, 2).findAll();
         accessingViewOk(view);
 
         // Removing any row in Table should invalidate view 
