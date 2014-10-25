@@ -9,6 +9,9 @@
     Realm.createObjectFromJson(Class realmObject, InputStream json);
     Realm.createAllFromJson(Class realmObject, InputStream json);
 
+    Realm.createObjectFromJson(Class realmObject, String json);
+    Realm.createAllFromJson(Class realmObject, String json);
+
 
 ### Java
 
@@ -20,7 +23,7 @@
 
 - Import using InputStream only works for API 11+. Methods are annotated as such.
 
-- JSON property names need to match java variabel names.
+- JSON property names need to match java variable names.
 
 - Import API does not work in standard Java. JSON is only supported from Java 7, and with a
   different API.

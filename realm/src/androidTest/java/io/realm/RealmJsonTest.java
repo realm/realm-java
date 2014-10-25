@@ -30,6 +30,7 @@ import java.util.Date;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.Dog;
+import io.realm.exceptions.RealmException;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -60,7 +61,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testImportJSon_nullObject() {
-        testRealm.createFromJson(AllTypes.class, (JSONObject) null);
+        testRealm.createObjectFromJson(AllTypes.class, (JSONObject) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
     }
 
@@ -80,7 +81,7 @@ public class RealmJsonTest extends AndroidTestCase {
         json.put("columnBinary", new String(Base64.encode(new byte[] {1,2,3}, Base64.DEFAULT)));
 
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, json);
+        testRealm.createObjectFromJson(AllTypes.class, json);
         testRealm.commitTransaction();
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
 
@@ -98,7 +99,7 @@ public class RealmJsonTest extends AndroidTestCase {
         json.put("columnDate", 1000L); // Realm operates at seconds level granularity
 
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, json);
+        testRealm.createObjectFromJson(AllTypes.class, json);
         testRealm.commitTransaction();
 
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
@@ -110,7 +111,7 @@ public class RealmJsonTest extends AndroidTestCase {
         json.put("columnDate", "/Date(1000)/");
 
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, json);
+        testRealm.createObjectFromJson(AllTypes.class, json);
         testRealm.commitTransaction();
 
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
@@ -124,7 +125,7 @@ public class RealmJsonTest extends AndroidTestCase {
         allTypesObject.put("columnRealmObject", dogObject);
 
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, allTypesObject);
+        testRealm.createObjectFromJson(AllTypes.class, allTypesObject);
         testRealm.commitTransaction();
 
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
@@ -144,7 +145,7 @@ public class RealmJsonTest extends AndroidTestCase {
         allTypesObject.put("columnRealmList", dogList);
 
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, allTypesObject);
+        testRealm.createObjectFromJson(AllTypes.class, allTypesObject);
         testRealm.commitTransaction();
 
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
@@ -159,11 +160,45 @@ public class RealmJsonTest extends AndroidTestCase {
         allTypesObject.put("columnRealmList", dogList);
 
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, allTypesObject);
+        testRealm.createObjectFromJson(AllTypes.class, allTypesObject);
         testRealm.commitTransaction();
 
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
         assertEquals(0, obj.getColumnRealmList().size());
+    }
+
+    public void testImportJsonString_simpleObject() {
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObjectFromJson(Dog.class, "{ name: \"Foo\" }");
+        testRealm. commitTransaction();
+
+        assertEquals("Foo", dog.getName());
+        assertEquals("Foo", testRealm.allObjects(Dog.class).first().getName());
+    }
+
+
+    public void testImportJsonString_faultyJson() {
+        testRealm.beginTransaction();
+        try {
+            Dog dog = testRealm.createObjectFromJson(Dog.class, "{ name \"Foo\" }");
+        } catch (RealmException e) {
+            assertTrue(true);
+            return;
+        } finally {
+            testRealm.commitTransaction();
+        }
+
+        fail("Doesn't handle faulty JSON properly");
+    }
+
+
+    public void testImportJsonString_null() {
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObjectFromJson(Dog.class, (String) null);
+        testRealm.commitTransaction();
+
+        assertNull(dog);
+        assertEquals(0, testRealm.allObjects(Dog.class).size());
     }
 
     public void testImportJsonArray_empty() throws JSONException {
@@ -205,7 +240,7 @@ public class RealmJsonTest extends AndroidTestCase {
         json.put("columnRealmList", null);
 
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, json);
+        testRealm.createObjectFromJson(AllTypes.class, json);
         testRealm.commitTransaction();
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
 
@@ -229,7 +264,7 @@ public class RealmJsonTest extends AndroidTestCase {
 
         try {
             testRealm.beginTransaction();
-            testRealm.createFromJson(AllTypes.class, json);
+            testRealm.createObjectFromJson(AllTypes.class, json);
         } catch (Exception e) {
             // Ignore
         } finally {
@@ -248,12 +283,43 @@ public class RealmJsonTest extends AndroidTestCase {
         json.put("ignoreString", "Baz");
 
         testRealm.beginTransaction();
-        testRealm.createFromJson(AnnotationTypes.class, json);
+        testRealm.createObjectFromJson(AnnotationTypes.class, json);
         testRealm.commitTransaction();
 
         AnnotationTypes annotationsObject = testRealm.allObjects(AnnotationTypes.class).first();
         assertEquals("Foo", annotationsObject.getIndexString());
         assertEquals(null, annotationsObject.getIgnoreString());
+    }
+
+    public void testImportJsonArrayString_simpleArray() {
+        testRealm.beginTransaction();
+        testRealm.createAllFromJson(Dog.class, "[{ name: \"Foo\" }, { name: \"Bar\" }]");
+        testRealm. commitTransaction();
+
+        assertEquals(2, testRealm.allObjects(Dog.class).size());
+    }
+
+    public void testImportJsonArrayString_faultyJson() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.createAllFromJson(Dog.class, "[{ name : \"Foo\" ]");
+        } catch (RealmException e) {
+            assertTrue(true);
+            return;
+        } finally {
+            testRealm.commitTransaction();
+        }
+
+        fail("Doesn't handle faulty JSON properly");
+    }
+
+
+    public void testImportJsonArrayString_null() {
+        testRealm.beginTransaction();
+        testRealm.createAllFromJson(Dog.class, (String) null);
+        testRealm.commitTransaction();
+
+        assertEquals(0, testRealm.allObjects(Dog.class).size());
     }
 
    public void testImportStream_null() throws IOException {
@@ -264,7 +330,7 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testImportStream_allSimpleTypes() throws IOException {
         InputStream in = loadJsonFromAssets("all_simple_types.json");
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
         in.close();
 
@@ -281,7 +347,7 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testImportStream_DateAsLong() throws IOException {
         InputStream in = loadJsonFromAssets("date_as_long.json");
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
         in.close();
 
@@ -293,7 +359,7 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testImportStream_DateAsString() throws IOException {
         InputStream in = loadJsonFromAssets("date_as_string.json");
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
         in.close();
 
@@ -305,7 +371,7 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testImportStream_childObject() throws IOException {
         InputStream in = loadJsonFromAssets("single_child_object.json");
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
         in.close();
 
@@ -316,7 +382,7 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testImportStream_emptyChildObjectList() throws IOException {
         InputStream in = loadJsonFromAssets("realmlist_empty.json");
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
         in.close();
 
@@ -327,7 +393,7 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testImportStream_childObjectList() throws IOException {
         InputStream in = loadJsonFromAssets("realmlist.json");
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
         in.close();
 
@@ -350,7 +416,7 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testImportStream_nullValues() throws IOException {
         InputStream in = loadJsonFromAssets("all_types_null.json");
         testRealm.beginTransaction();
-        testRealm.createFromJson(AllTypes.class, in);
+        testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
         in.close();
 

@@ -361,15 +361,17 @@ public class Realm {
     }
 
     /**
-     * Add an array of of JsonObjects to the Realm as a new object. This must be done inside a transaction.
+     * Create a matching Realm object for each object in a JSON array. Unknown JSON properties are
+     * ignored. This must be done inside a transaction.
      *
-     * @param clazz Class of object the json will map to. All Objects in the array must be of the same type.
-     * @param json  Array of JsonObject's that can map to the chosen clazz. Properties not in the class are ignored.
+     * @param clazz Type of Realm objects to create.
+     * @param json  Array where each JSONObject must map to the chosen class.
      *
-     * @throws RealmException if the mapping fail.
+     * @throws RealmException if mapping from JSON fail.
      */
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, JSONArray json) {
-        if (json == null) return;
+        if (clazz == null || json == null) return;
+
         for (int i = 0; i < json.length(); i++) {
             E obj = createObject(clazz);
             try {
@@ -381,45 +383,69 @@ public class Realm {
     }
 
     /**
-     * Add a Json InputStream to the Realm as new objects. This must be done inside a transaction.
+     * Create a matching Realm object for each object in a JSON array. Unknown JSON properties are
+     * ignored. This must be done inside a transaction.
      *
-     * @param clazz         Class of object the json will map to. All Objects in the array must be of the same type.
-     * @param inputStream   A JSON InputStream of objects of type clazz. All objects must be of the chosen clazz. Properties not in the class are ignored.
+     * @param clazz Type of Realm objects to create.
+     * @param json  JSON array as a String where each object can map to the chosen class.
      *
-     * @throws RealmException if the mapping fail.
-     * @throws IOException if something is wrong with the input stream.
+     * @throws RealmException if mapping from JSON failed.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        if (inputStream != null && clazz != null) {
-            JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
-            reader.beginArray();
-            while (reader.hasNext()) {
-                E obj = createObject(clazz);
-                obj.populateUsingJsonStream(reader);
-            }
-            reader.endArray();
-            reader.close();
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, String json) {
+        if (clazz == null || json == null || json.length() == 0) return;
+
+        JSONArray arr;
+        try {
+            arr = new JSONArray(json);
+        } catch (Exception e) {
+            throw new RealmException("Could not create JSON array from string", e);
         }
+
+        createAllFromJson(clazz, arr);
     }
 
     /**
-     * Add a JsonObject to the Realm as a new object. This must be done inside a transaction.
+     * Create a Realm object for each object in a JSON array. Unknown properties are
+     * ignored. This must be done inside a transaction.
      *
-     * @param clazz Class of object the json will map to.
-     * @param json  JsonObject that can map to the chosen clazz. Properties not in the class are ignored.
-     * @return Object with data or null if no json data was provided.
+     * @param clazz         Type of Realm objects created.
+     * @param inputStream   JSON array as a InputStream. All objects in the array must be of the
+     *                      chosen class.
      *
-     * @throws RealmException if the mapping fail.
+     * @throws RealmException if the mapping from JSON failed.
+     * @throws IOException if something was wrong with the input stream.
      */
-    public <E extends RealmObject> E createFromJson(Class<E> clazz, JSONObject json) {
-        if (json == null) return null;
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        if (clazz == null || inputStream == null) return;
+
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+        reader.beginArray();
+        while (reader.hasNext()) {
+            E obj = createObject(clazz);
+            obj.populateUsingJsonStream(reader);
+        }
+        reader.endArray();
+        reader.close();
+    }
+
+    /**
+     * Create a Realm object prefilled with data from a JSON object. Unknown JSON properties are
+     * ignored. This must be done inside a transaction.
+     *
+     * @param clazz Type of Realm object to create.
+     * @param json  JSONObject with object data.
+     * @return Created object or null if no json data was provided.
+     *
+     * @throws RealmException if the mapping from JSON fails.
+     */
+    public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, JSONObject json) {
+        if (clazz == null || json == null) return null;
 
         E obj = createObject(clazz);
         try {
             obj.populateUsingJsonObject(json);
         } catch (Exception e) {
-            // TODO Remove object from realm
             throw new RealmException("Could not map Json", e);
         }
 
@@ -427,26 +453,50 @@ public class Realm {
     }
 
     /**
-     * Add a JsonObject from a InputStream to the Realm as a new object. This must be done inside a transaction.
+     * Create a Realm object prefilled with data from a JSON object. Unknown JSON properties are
+     * ignored. This must be done inside a transaction.
      *
-     * @param clazz         Class of object the json will map to.
-     * @param inputStream   JSONObject as a input stream of the chosen clazz. Properties not in the class are ignored.
-     * @return Object with data or null if no json data was provided.
+     * @param clazz Type of Realm object to create.
+     * @param json  JSON string with object data.
+     * @return Created object or null if json string was empty or null.
      *
-     * @throws RealmException if the mapping fail.
-     * @throws IOException if something is wrong with the input stream.
+     * @throws RealmException if mapping to json failed.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmObject> E createFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        if (inputStream != null && clazz != null) {
-            JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
-            E obj = createObject(clazz);
-            obj.populateUsingJsonStream(reader);
-            reader.close();
-            return obj;
+    public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, String json) {
+        if (clazz == null || json == null || json.length() == 0) return null;
+
+        JSONObject obj;
+        try {
+            obj = new JSONObject(json);
+        } catch (Exception e) {
+            throw new RealmException("Could not create Json object from string", e);
         }
 
-        return null;
+        return createObjectFromJson(clazz, obj);
+    }
+
+
+
+    /**
+     * Create a Realm object prefilled with data from a JSON object. Unknown JSON properties are
+     * ignored. This must be done inside a transaction.
+     *
+     * @param clazz         Type of Realm object to create.
+     * @param inputStream   JSON object data as a InputStream.
+     * @return Created object or null if json string was empty or null.
+     *
+     * @throws RealmException if the mapping from JSON failed.
+     * @throws IOException if something was wrong with the input stream.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        if (inputStream == null || clazz == null) return null;
+
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+        E obj = createObject(clazz);
+        obj.populateUsingJsonStream(reader);
+        reader.close();
+        return obj;
     }
 
     /**
