@@ -47,10 +47,10 @@ import io.realm.internal.android.LooperThread;
  * The Realm class is the storage and transactional manager of your object persistent store. Objects
  * are created. Objects within a Realm can be queried and read at any time. Creating,
  * modifying, and deleting objects must be done through transactions.
- * <p/>
+ * <br>
  * The transactions ensure that multiple instances (on multiple threads) can access the objects
  * in a consistent state with full ACID guaranties.
- * <p/>
+ * <br>
  * The instances of a Realm will be automatically updated when one instance commits a
  * change (create, modify or delete an object).
  */
@@ -566,13 +566,13 @@ public class Realm {
      * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()}
      * or aborted by @{link io.realm.Realm#cancelTransaction()}. Write transactions are used to
      * atomically create, update and delete objects within a realm.
-     * <p/>
+     * <br>
      * Before beginning the write transaction, @{link io.realm.Realm#beginTransaction()} updates the
      * realm in the case of pending updates from other threads.
-     * <p/>
+     * <br>
      * Notice: it is not possible to nest write transactions. If you start a write
      * transaction within a write transaction an exception is thrown.
-     * <p/>
+     * <br>
      * @throws java.lang.IllegalStateException If already in a write transaction.
      *
      */
@@ -605,9 +605,9 @@ public class Realm {
     /**
      * Revert all writes (created, updated, or deleted objects) made in the current write
      * transaction and end the transaction.
-     * <p/>
+     * <br>
      * The realm reverts back to read-only.
-     * <p/>
+     * <br>
      * Calling this when not in a write transaction will throw an exception.
      *
      * @throws java.lang.IllegalStateException    If the write transaction is an invalid state or
