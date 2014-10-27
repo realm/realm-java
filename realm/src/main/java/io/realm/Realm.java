@@ -139,7 +139,7 @@ public class Realm {
     /**
      * Realm static constructor for the default realm "default.realm"
      *
-     * @param context an Android context
+     * @param context an Android {@link android.content.Context}
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
@@ -153,7 +153,7 @@ public class Realm {
     /**
      * Realm static constructor
      *
-     * @param context  an Android context
+     * @param context  an Android {@link android.content.Context}
      * @param fileName the name of the file to save the Realm to
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
@@ -169,7 +169,7 @@ public class Realm {
     /**
      * Realm static constructor
      *
-     * @param context an Android context
+     * @param context an Android {@link android.content.Context}
      * @param key     a 32-byte encryption key
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
@@ -185,7 +185,7 @@ public class Realm {
     /**
      * Realm static constructor
      *
-     * @param context  an Android context
+     * @param context  an Android {@link android.content.Context}
      * @param fileName the name of the file to save the Realm to
      * @param key      a 32-byte encryption key
      * @return an instance of the Realm class
@@ -563,16 +563,16 @@ public class Realm {
 //    }
 
     /**
-     * Starts a write transaction, this must be closed with commitTransaction() or aborted
-     * by cancelTransaction(). Write transactions are used to atomically create, update and delete
-     * objects within a realm.
-     *
-     * Before beginning the write transaction, beginTransaction() updates the
+     * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()}
+     * or aborted by @{link io.realm.Realm#cancelTransaction()}. Write transactions are used to
+     * atomically create, update and delete objects within a realm.
+     * <p/>
+     * Before beginning the write transaction, @{link io.realm.Realm#beginTransaction()} updates the
      * realm in the case of pending updates from other threads.
-     *
+     * <p/>
      * Notice: it is not possible to nest write transactions. If you start a write
      * transaction within a write transaction an exception is thrown.
-     *
+     * <p/>
      * @throws java.lang.IllegalStateException If already in a write transaction.
      *
      */
@@ -581,9 +581,10 @@ public class Realm {
     }
 
     /**
-     * All changes since beginTransaction() are persisted to disk and the realm reverts back to being read-only,
-     * An event is sent to notify all other realm instances that a change has occured.
-     * When the event is received, the other realms will get their objects and RealmResults updated to reflect
+     * All changes since @{link io.realm.Realm#beginTransaction()} are persisted to disk and the
+     * realm reverts back to being read-only. An event is sent to notify all other realm instances
+     * that a change has occurred. When the event is received, the other realms will get their
+     * objects and @{link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
      * 
      * @throws java.lang.IllegalStateException If the write transaction is in an invalid state.
@@ -604,9 +605,9 @@ public class Realm {
     /**
      * Revert all writes (created, updated, or deleted objects) made in the current write
      * transaction and end the transaction.
-     *
+     * <p/>
      * The realm reverts back to read-only.
-     *
+     * <p/>
      * Calling this when not in a write transaction will throw an exception.
      *
      * @throws java.lang.IllegalStateException    If the write transaction is an invalid state or
@@ -617,7 +618,7 @@ public class Realm {
      }
 
     /**
-     * Remove all objects of the specified class
+     * Remove all objects of the specified class.
      *
      * @param classSpec The class which objects should be removed
      * @throws java.lang.RuntimeException Any other error
@@ -677,7 +678,7 @@ public class Realm {
      * Delete the Realm file from the filesystem for a custom named Realm.
      * The realm must be unused and closed before calling this method.
      *
-     * @param context  an Android context.
+     * @param context  an Android @{{@link android.content.Context}.
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */
