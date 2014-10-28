@@ -22,6 +22,21 @@ import io.realm.entities.Dog;
 import io.realm.internal.android.LooperThread;
 
 public class NotificationsTest extends AndroidTestCase {
+
+    private static int count;
+
+    private static synchronized void initializeCount() {
+        count = 0;
+    }
+
+    private static synchronized void incrementCount() {
+        count++;
+    }
+
+    private static synchronized int getCount() {
+        return count;
+    }
+
     public void testMessageToDeadThread() {
         Realm realm = Realm.getInstance(getContext());
 
@@ -66,5 +81,105 @@ public class NotificationsTest extends AndroidTestCase {
         }
 
         assertEquals(0, looperThread.exceptions.size());
+    }
+
+    void testMessageToActive() {
+        initializeCount();
+        Realm realm = Realm.getInstance(getContext());
+
+        // Number of handlers before
+        final int handlersBefore = LooperThread.handlers.size();
+
+        // Make sure the Looper Thread is alive
+        LooperThread looperThread = LooperThread.getInstance();
+        assertTrue(looperThread.isAlive());
+
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                Realm r = Realm.getInstance(getContext());
+                assertFalse(handlersBefore == LooperThread.handlers.size());
+                r.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        incrementCount();
+                    }
+                });
+            }
+        };
+        thread.start();
+
+        assertEquals(0, getCount());
+        realm.beginTransaction();
+        realm.clear(Dog.class);
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("Rex");
+        realm.commitTransaction();
+        assertEquals(1, getCount());
+    }
+
+    void testNoChangeListeners() {
+        incrementCount();
+        Realm realm = Realm.getInstance(getContext());
+
+        realm.removeAllChangeListeners();
+        realm.beginTransaction();
+        realm.clear(Dog.class);
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("Rex");
+        realm.commitTransaction();
+        assertEquals(0, getCount());
+    }
+
+    void testRemoveAllChangeListeners() {
+        incrementCount();
+        Realm realm = Realm.getInstance(getContext());
+
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                incrementCount();
+            }
+        });
+
+        realm.removeAllChangeListeners();
+
+        realm.beginTransaction();
+        realm.clear(Dog.class);
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("Rex");
+        realm.commitTransaction();
+        assertEquals(0, getCount());
+    }
+
+    void testChangeFromOtherThread() {
+        incrementCount();
+        Realm realm = Realm.getInstance(getContext());
+
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                incrementCount();
+            }
+        });
+
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                Realm r = Realm.getInstance(getContext());
+                r.beginTransaction();
+                Dog dog = r.createObject(Dog.class);
+                dog.setName("Rex");
+                r.commitTransaction();
+            }
+        };
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            fail();
+        }
+
+        assertEquals(1, getCount());
     }
 }
