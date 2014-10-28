@@ -74,7 +74,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
 
     /**
-     * Returns a typed RealmQuery, which can be used to query for specific objects of this type
+     * Returns a typed @{link io.realm.RealmQuery}, which can be used to query for specific
+     * objects of this type.
      *
      * @return A typed RealmQuery
      * @see io.realm.RealmQuery
@@ -120,7 +121,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Sorting
 
     /**
-     * Get a sorted (ascending) RealmList from an existing RealmList.
+     * Get a sorted (ascending) RealmList from an existing @{link io.realm.RealmList}.
      * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
      * 
      * @param fieldName  The field name to sort by.
@@ -131,7 +132,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Get a sorted RealmList from an existing RealmList.
+     * Get a sorted RealmList from an existing @{link io.realm.RealmList}.
      * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
      *
      * @param fieldName      The field name to sort by.
