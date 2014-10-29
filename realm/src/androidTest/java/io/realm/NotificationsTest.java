@@ -39,6 +39,7 @@ public class NotificationsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
+        Realm.deleteRealmFile(getContext());
         initializeChangesReceived();
         Realm realm = Realm.getInstance(getContext());
         realm.removeAllChangeListeners();
@@ -275,5 +276,65 @@ public class NotificationsTest extends AndroidTestCase {
         RealmResults<Dog> dogs2 = realm.allObjects(Dog.class);
         assertEquals(1, dogs2.size());
         assertEquals("Rex", dogs2.first().getName());
+    }
+
+    // A RealmResults is updated if the realm is changes
+    public void testUpdateResultsToThread() {
+        Realm realm = Realm.getInstance(getContext());
+
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                Realm r = Realm.getInstance(getContext());
+                RealmResults<Dog> dogs = r.allObjects(Dog.class);
+                assertEquals(0, dogs.size());
+                // wait 1 sec and see if updated
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ignored) {
+                    fail();
+                }
+                assertEquals(1, dogs.size());
+            }
+        };
+        thread.start();
+
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("Rex");
+        realm.commitTransaction();
+
+        try {
+            thread.join();
+        } catch (InterruptedException ignored) {
+            fail();
+        }
+    }
+
+    public void testUpdateResultsFromThread() {
+        Realm realm = Realm.getInstance(getContext());
+
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                Realm r = Realm.getInstance(getContext());
+                r.beginTransaction();
+                Dog dog = r.createObject(Dog.class);
+                dog.setName("Rex");
+                r.commitTransaction();
+            }
+        };
+
+        RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+        assertEquals(0, dogs.size());
+
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException ignored) {}
+
+        assertEquals(1, dogs.size());
+        assertEquals("Rex", dogs.first().getName());
     }
 }
