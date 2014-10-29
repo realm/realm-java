@@ -40,6 +40,11 @@ public class NotificationsTest extends AndroidTestCase {
     @Override
     protected void setUp() throws Exception {
         initializeChangesReceived();
+        Realm realm = Realm.getInstance(getContext());
+        realm.removeAllChangeListeners();
+        realm.beginTransaction();
+        realm.clear(Dog.class);
+        realm.commitTransaction();
     }
 
 
@@ -171,6 +176,7 @@ public class NotificationsTest extends AndroidTestCase {
         incrementChangesReceived();
         Realm realm = Realm.getInstance(getContext());
 
+        // register a change listener
         realm.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
@@ -178,6 +184,7 @@ public class NotificationsTest extends AndroidTestCase {
             }
         });
 
+        // make a change on another thread
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -195,6 +202,78 @@ public class NotificationsTest extends AndroidTestCase {
             fail();
         }
 
+        // see if change has been received
         assertEquals(1, getChangesReceived());
+    }
+
+
+    // thread A create thread B
+    // thread A adds a new object
+    // thread B is automatically updated
+    public void testAutorefreshToThread() {
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                // wait for the main thread to create object
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ignored) {
+                    fail();
+                }
+                Realm r = Realm.getInstance(getContext());
+                RealmResults<Dog> dogs = r.allObjects(Dog.class);
+                assertEquals(1, dogs.size());
+                assertEquals("Rex", dogs.first().getName());
+                incrementChangesReceived();
+            }
+        };
+
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("Rex");
+        realm.commitTransaction();
+
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException ignored) {
+            fail();
+        }
+
+        assertEquals(1, getChangesReceived());
+    }
+
+    // thread A creates thread B
+    // thread B adds an object
+    // thread A must be automatically be updated
+    public void testAutorefreshFromThread() {
+        Realm realm = Realm.getInstance(getContext());
+
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                Realm r = Realm.getInstance(getContext());
+                r.beginTransaction();
+                Dog dog = r.createObject(Dog.class);
+                dog.setName("Rex");
+                r.commitTransaction();
+            }
+        };
+
+        RealmResults<Dog> dogs1 = realm.allObjects(Dog.class);
+        assertEquals(0, dogs1.size());
+
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException ignored) {
+            fail();
+        }
+
+        RealmResults<Dog> dogs2 = realm.allObjects(Dog.class);
+        assertEquals(1, dogs2.size());
+        assertEquals("Rex", dogs2.first().getName());
     }
 }
