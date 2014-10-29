@@ -23,19 +23,25 @@ import io.realm.internal.android.LooperThread;
 
 public class NotificationsTest extends AndroidTestCase {
 
-    private static int count;
+    private static int changesReceived;
 
-    private static synchronized void initializeCount() {
-        count = 0;
+    private static synchronized void initializeChangesReceived() {
+        changesReceived = 0;
     }
 
-    private static synchronized void incrementCount() {
-        count++;
+    private static synchronized void incrementChangesReceived() {
+        changesReceived++;
     }
 
-    private static synchronized int getCount() {
-        return count;
+    private static synchronized int getChangesReceived() {
+        return changesReceived;
     }
+
+    @Override
+    protected void setUp() throws Exception {
+        initializeChangesReceived();
+    }
+
 
     public void testMessageToDeadThread() {
         Realm realm = Realm.getInstance(getContext());
@@ -84,7 +90,6 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     void testMessageToActive() {
-        initializeCount();
         Realm realm = Realm.getInstance(getContext());
 
         // Number of handlers before
@@ -94,32 +99,41 @@ public class NotificationsTest extends AndroidTestCase {
         LooperThread looperThread = LooperThread.getInstance();
         assertTrue(looperThread.isAlive());
 
+        // A thread is created, and that thread add a change listener
         Thread thread = new Thread() {
             @Override
             public void run() {
                 Realm r = Realm.getInstance(getContext());
                 assertFalse(handlersBefore == LooperThread.handlers.size());
+                assertEquals(0, getChangesReceived()); // to changes are yet received
                 r.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        incrementCount();
+                        incrementChangesReceived();
                     }
                 });
             }
         };
         thread.start();
 
-        assertEquals(0, getCount());
+        assertEquals(0, getChangesReceived());
         realm.beginTransaction();
         realm.clear(Dog.class);
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
         realm.commitTransaction();
-        assertEquals(1, getCount());
+
+        try {
+            thread.join();
+        } catch (InterruptedException ignored) {
+            fail();
+        }
+        assertEquals(1, getChangesReceived());
     }
 
+    // all existing change listeners are removed and no new ones are registered
+    // => no changes will be received when an object is added to the realm
     void testNoChangeListeners() {
-        incrementCount();
         Realm realm = Realm.getInstance(getContext());
 
         realm.removeAllChangeListeners();
@@ -128,20 +142,21 @@ public class NotificationsTest extends AndroidTestCase {
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
         realm.commitTransaction();
-        assertEquals(0, getCount());
+        assertEquals(0, getChangesReceived());
     }
 
     void testRemoveAllChangeListeners() {
-        incrementCount();
         Realm realm = Realm.getInstance(getContext());
 
+        // create a change listener
         realm.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                incrementCount();
+                incrementChangesReceived();
             }
         });
 
+        // and remove it => to changes will be received
         realm.removeAllChangeListeners();
 
         realm.beginTransaction();
@@ -149,17 +164,17 @@ public class NotificationsTest extends AndroidTestCase {
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
         realm.commitTransaction();
-        assertEquals(0, getCount());
+        assertEquals(0, getChangesReceived());
     }
 
     void testChangeFromOtherThread() {
-        incrementCount();
+        incrementChangesReceived();
         Realm realm = Realm.getInstance(getContext());
 
         realm.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                incrementCount();
+                incrementChangesReceived();
             }
         });
 
@@ -180,6 +195,6 @@ public class NotificationsTest extends AndroidTestCase {
             fail();
         }
 
-        assertEquals(1, getCount());
+        assertEquals(1, getChangesReceived());
     }
 }
