@@ -23,24 +23,24 @@ import io.realm.internal.android.LooperThread;
 
 public class NotificationsTest extends AndroidTestCase {
 
-    private static int changesReceived;
+    private static int changes;
 
-    private static synchronized void initializeChangesReceived() {
-        changesReceived = 0;
+    private static synchronized void initializeChanges() {
+        changes = 0;
     }
 
-    private static synchronized void incrementChangesReceived() {
-        changesReceived++;
+    private static synchronized void incrementChanges() {
+        changes++;
     }
 
-    private static synchronized int getChangesReceived() {
-        return changesReceived;
+    private static synchronized int getChanges() {
+        return changes;
     }
 
     @Override
     protected void setUp() throws Exception {
         Realm.deleteRealmFile(getContext());
-        initializeChangesReceived();
+        initializeChanges();
         Realm realm = Realm.getInstance(getContext());
         realm.removeAllChangeListeners();
         realm.beginTransaction();
@@ -111,18 +111,18 @@ public class NotificationsTest extends AndroidTestCase {
             public void run() {
                 Realm r = Realm.getInstance(getContext());
                 assertFalse(handlersBefore == LooperThread.handlers.size());
-                assertEquals(0, getChangesReceived()); // to changes are yet received
+                assertEquals(0, getChanges()); // to changes are yet received
                 r.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        incrementChangesReceived();
+                        incrementChanges();
                     }
                 });
             }
         };
         thread.start();
 
-        assertEquals(0, getChangesReceived());
+        assertEquals(0, getChanges());
         realm.beginTransaction();
         realm.clear(Dog.class);
         Dog dog = realm.createObject(Dog.class);
@@ -134,7 +134,7 @@ public class NotificationsTest extends AndroidTestCase {
         } catch (InterruptedException ignored) {
             fail();
         }
-        assertEquals(1, getChangesReceived());
+        assertEquals(1, getChanges());
     }
 
     // all existing change listeners are removed and no new ones are registered
@@ -148,7 +148,7 @@ public class NotificationsTest extends AndroidTestCase {
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
         realm.commitTransaction();
-        assertEquals(0, getChangesReceived());
+        assertEquals(0, getChanges());
     }
 
     void testRemoveAllChangeListeners() {
@@ -158,7 +158,7 @@ public class NotificationsTest extends AndroidTestCase {
         realm.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                incrementChangesReceived();
+                incrementChanges();
             }
         });
 
@@ -170,18 +170,18 @@ public class NotificationsTest extends AndroidTestCase {
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
         realm.commitTransaction();
-        assertEquals(0, getChangesReceived());
+        assertEquals(0, getChanges());
     }
 
     void testChangeFromOtherThread() {
-        incrementChangesReceived();
+        incrementChanges();
         Realm realm = Realm.getInstance(getContext());
 
         // register a change listener
         realm.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                incrementChangesReceived();
+                incrementChanges();
             }
         });
 
@@ -204,7 +204,7 @@ public class NotificationsTest extends AndroidTestCase {
         }
 
         // see if change has been received
-        assertEquals(1, getChangesReceived());
+        assertEquals(1, getChanges());
     }
 
 
@@ -217,7 +217,7 @@ public class NotificationsTest extends AndroidTestCase {
             public void run() {
                 // wait for the main thread to create object
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                 } catch (InterruptedException ignored) {
                     fail();
                 }
@@ -225,9 +225,10 @@ public class NotificationsTest extends AndroidTestCase {
                 RealmResults<Dog> dogs = r.allObjects(Dog.class);
                 assertEquals(1, dogs.size());
                 assertEquals("Rex", dogs.first().getName());
-                incrementChangesReceived();
+                incrementChanges();
             }
         };
+        thread.start();
 
         Realm realm = Realm.getInstance(getContext());
         realm.beginTransaction();
@@ -235,14 +236,13 @@ public class NotificationsTest extends AndroidTestCase {
         dog.setName("Rex");
         realm.commitTransaction();
 
-        thread.start();
         try {
             thread.join();
         } catch (InterruptedException ignored) {
             fail();
         }
 
-        assertEquals(1, getChangesReceived());
+        assertEquals(1, getChanges());
     }
 
     // thread A creates thread B
@@ -259,11 +259,13 @@ public class NotificationsTest extends AndroidTestCase {
                 Dog dog = r.createObject(Dog.class);
                 dog.setName("Rex");
                 r.commitTransaction();
+                incrementChanges();
             }
         };
 
         RealmResults<Dog> dogs1 = realm.allObjects(Dog.class);
         assertEquals(0, dogs1.size());
+        assertEquals(0, getChanges());
 
         thread.start();
 
@@ -273,6 +275,7 @@ public class NotificationsTest extends AndroidTestCase {
             fail();
         }
 
+        assertEquals(1, getChanges());
         RealmResults<Dog> dogs2 = realm.allObjects(Dog.class);
         assertEquals(1, dogs2.size());
         assertEquals("Rex", dogs2.first().getName());
