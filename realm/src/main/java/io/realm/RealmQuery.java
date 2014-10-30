@@ -41,10 +41,11 @@ public class RealmQuery<E extends RealmObject> {
     private static final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
 
     /**
-     * Creating a RealmQuery instance
-     * @param realm  The realm to query within
-     * @param clazz  The class to query
-     * @throws java.lang.RuntimeException Any other error
+     * Creating a RealmQuery instance.
+     *
+     * @param realm  The realm to query within.
+     * @param clazz  The class to query.
+     * @throws java.lang.RuntimeException Any other error.
      */
     public RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
@@ -59,8 +60,8 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Create a RealmQuery instance from a RealmResults
-     * @param realmList   The RealmResults to query
+     * Create a RealmQuery instance from a @{link io.realm.RealmResults}.
+     * @param realmList   The @{link io.realm.RealmResults} to query
      * @param clazz       The class to query
      * @throws java.lang.RuntimeException Any other error
      */
@@ -1040,7 +1041,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return The maximum value
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
-    public double maximuDouble(String fieldName) {
+    public double maximumDouble(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.maximumDouble(columnIndex);
     }
@@ -1051,7 +1052,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return The maximum value
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
-    public float maximuFloat(String fieldName) {
+    public float maximumFloat(String fieldName) {
         int columnIndex = columns.get(fieldName);
         return this.query.maximumFloat(columnIndex);
     }
