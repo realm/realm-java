@@ -721,6 +721,15 @@ public class Realm {
     }
 
     @SuppressWarnings("UnusedDeclaration")
+    static public void migrateRealmAtPath(String realmPath, RealmMigration migration) {
+        migrateRealmAtPath(realmPath, null, migration, true);
+    }
+
+    static public void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration) {
+        migrateRealmAtPath(realmPath, key, migration, true);
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
     static public void migrateRealmAtPath(String realmPath, RealmMigration migration, boolean autoRefresh) {
         migrateRealmAtPath(realmPath, null, migration, autoRefresh);
     }
