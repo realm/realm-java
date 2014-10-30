@@ -15,56 +15,144 @@
  */
 package io.realm;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.test.AndroidTestCase;
-import android.util.Log;
+
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.Dog;
-import io.realm.internal.android.LooperThread;
 
 public class NotificationsTest extends AndroidTestCase {
-    public void testMessageToDeadThread() {
-        Realm realm = Realm.getInstance(getContext());
-
-        // Number of handlers before
-        final int handlersBefore = LooperThread.handlers.size();
-
-        // Make sure the Looper Thread is alive
-        LooperThread looperThread = LooperThread.getInstance();
-        assertTrue(looperThread.isAlive());
-
+    public void testFailureOnNonLooperThread() {
         Thread thread = new Thread() {
             @Override
             public void run() {
-                Realm r = Realm.getInstance(getContext());
-                assertFalse(handlersBefore == LooperThread.handlers.size());
-                r.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        Log.i("Notification Test", "Notification Received");
-                    }
-                });
+                try {
+                    Realm realm = Realm.getInstance(getContext());
+                    fail("The Realm instantiations should have thrown an exception");
+                } catch (IllegalStateException ignored) {}
             }
         };
         thread.start();
-
         try {
             thread.join();
         } catch (InterruptedException e) {
             fail();
         }
-        assertFalse(thread.isAlive()); // Make sure the thread is dead
-        realm.beginTransaction();
-        Dog dog = realm.createObject(Dog.class);
-        dog.setName("Rex");
-        realm.commitTransaction();
+    }
 
-        // Give some time to log the exception
+    public void testNotifications() {
+        final AtomicBoolean changed = new AtomicBoolean(false);
+
+        Thread listenerThread = new Thread() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                Realm realm = Realm.getInstance(getContext());
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        changed.set(true);
+                        Looper.myLooper().quit();
+                    }
+                });
+                Looper.loop();
+            }
+        };
+        listenerThread.start();
+
+        Thread writerThread = new Thread() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(getContext(), false);
+                realm.beginTransaction();
+                Dog dog = realm.createObject(Dog.class);
+                dog.setName("Rex");
+                realm.commitTransaction();
+            }
+        };
+        writerThread.start();
+
         try {
-            Thread.sleep(500);
+            writerThread.join();
+            listenerThread.join(2000);
         } catch (InterruptedException e) {
             fail();
         }
 
-        assertEquals(0, looperThread.exceptions.size());
+        assertEquals(true, changed.get());
+    }
+
+    public void testNotificationsTwoLoopers() {
+        final AtomicInteger counter = new AtomicInteger(0);
+        final Queue<Handler> handlers = new ConcurrentLinkedQueue<Handler>();
+
+        Thread listenerThread = new Thread() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                Realm realm = Realm.getInstance(getContext());
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        counter.incrementAndGet();
+                        Looper.myLooper().quit();
+                    }
+                });
+                Looper.loop();
+            }
+        };
+        listenerThread.start();
+
+        Thread writerThread = new Thread() {
+
+            @Override
+            public void run() {
+                Looper.prepare();
+                Realm realm = Realm.getInstance(getContext());
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        counter.incrementAndGet();
+                    }
+                });
+                Handler handler = new Handler();
+                handlers.add(handler);
+                Looper.loop();
+            }
+        };
+        writerThread.start();
+        while (handlers.isEmpty()) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                fail();
+            }
+        }
+        Handler handler = handlers.poll();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(getContext());
+                realm.beginTransaction();
+                Dog dog = realm.createObject(Dog.class);
+                dog.setName("Rex");
+                realm.commitTransaction();
+                Looper.myLooper().quit();
+            }
+        });
+
+        try {
+            writerThread.join();
+            listenerThread.join(2000);
+        } catch (InterruptedException e) {
+            fail();
+        }
+
+        assertEquals(2, counter.get());
     }
 }

@@ -17,19 +17,18 @@
 package io.realm.examples.concurrency.threads;
 
 import android.content.Context;
+import android.os.Looper;
 import android.util.Log;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.examples.concurrency.model.Person;
 
 public class RealmReader extends Thread implements KillableThread {
 
     public static final String TAG = RealmReader.class.getName();
 
-    private Context context = null;
-
-    private boolean mRunning = true;
-
+    private Context context;
     private int mReadCount = 0;
 
     public RealmReader(Context context) {
@@ -37,25 +36,26 @@ public class RealmReader extends Thread implements KillableThread {
     }
 
     public void run() {
-        Realm realm = Realm.getInstance(context);
+        Looper.prepare();
+        final Realm realm = Realm.getInstance(context, true);
 
-        int loopCount = 0;
+        realm.addChangeListener(new RealmChangeListener() {
 
-        while (loopCount < mReadCount && mRunning) {
-            Person person = realm.where(Person.class)
-                    .beginsWith("name", "Foo")
-                    .between("age", 20, 50).findFirst();
+            @Override
+            public void onChange() {
+                long peopleNumber = realm.where(Person.class).count();
+                if (peopleNumber % 10 == 0) {
+                    Log.d(TAG, "Found count " + peopleNumber);
+                }
 
-            if (loopCount % 1000 == 0) {
-                Log.d(TAG, "Found: " + person);
             }
-            loopCount++;
-        }
+        });
+        Looper.loop();
     }
 
     @Override
     public void terminate() {
-        mRunning = false;
+        Looper.myLooper().quit();
     }
 
     @SuppressWarnings("UnusedDeclaration")
