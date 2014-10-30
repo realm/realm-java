@@ -42,7 +42,7 @@ public class RealmVersionChecker {
     private void launchRealmCheck() {
         long lastRealmUpdate = readRealmStat();
 
-        if ((lastRealmUpdate + (24 * 60 * 60 * 1000)) < System.currentTimeMillis()) {
+        if ((lastRealmUpdate + (60 * 60 * 1000)) < System.currentTimeMillis()) {
             updateLastRealmStat();
 
             //Check Realm version server
