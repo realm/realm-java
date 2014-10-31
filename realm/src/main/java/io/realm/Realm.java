@@ -44,15 +44,30 @@ import io.realm.internal.Table;
 
 
 /**
- * The Realm class is the storage and transactional manager of your object persistent store. Objects
+ * <p>The Realm class is the storage and transactional manager of your object persistent store. Objects
  * are created. Objects within a Realm can be queried and read at any time. Creating,
- * modifying, and deleting objects must be done through transactions.
- * <br>
- * The transactions ensure that multiple instances (on multiple threads) can access the objects
- * in a consistent state with full ACID guaranties.
- * <br>
- * The instances of a Realm will be automatically updated when one instance commits a
- * change (create, modify or delete an object).
+ * modifying, and deleting objects must be done through transactions.</p>
+ *
+ * <p>The transactions ensure that multiple instances (on multiple threads) can access the objects
+ * in a consistent state with full ACID guaranties.</p>
+ *
+ * <p>It auto-refresh is set the instance of the Realm will be automatically updated when another instance commits a
+ * change (create, modify or delete an object). This feature requires the Realm instance to be residing in a
+ * thread attached to a Looper (the main thread has a Looper by default)</p>
+ *
+ *<p>For normal threads Android provides a utility class that can be used like this:</p>
+ *
+ * <pre>
+ * HandlerThread thread = new HandlerThread("MyThread") {
+ *    @Override
+ *    protected void onLooperPrepared() {
+ *       Realm realm = Realm.getInstance(getContext());
+ *       // This realm will be updated by the event loop
+ *       // on every commit performed by other realm instances
+ *    }
+ * };
+ * thread.start();
+ * </pre>
  */
 public class Realm {
     public static final String DEFAULT_REALM_NAME = "default.realm";
@@ -115,16 +130,21 @@ public class Realm {
 
     /**
      * Retrieve the auto-refresh status of the Realm instance
-     * @return
+     * @return the auto-refresh status
      */
-    @SuppressWarnings("UnusedDeclaration")
     public boolean isAutoRefresh() {
         return autoRefresh;
     }
 
     /**
      * Set the auto-refresh status of the Realm instance
+     *
+     * Auto-refresh is a feature to allows to automatically update the current realm instance and all its derived objects
+     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in another thread.
+     * This feature is only available if the realm instance lives is a {@link android.os.Looper} enabled thread.
+     *
      * @param autoRefresh true will turn auto-refresh on, false will turn it off
+     * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper
      */
     public void setAutoRefresh(boolean autoRefresh) {
         if (autoRefresh && Looper.myLooper() == null) {

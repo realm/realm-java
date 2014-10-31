@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.test.AndroidTestCase;
 
@@ -87,7 +88,7 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(true, changed.get());
     }
 
-    public void testNotificationsTwoLoopers() {
+    public void testNotificationsPlusSelfReceive() {
         final AtomicInteger counter = new AtomicInteger(0);
         final Queue<Handler> handlers = new ConcurrentLinkedQueue<Handler>();
 
@@ -154,5 +155,46 @@ public class NotificationsTest extends AndroidTestCase {
         }
 
         assertEquals(2, counter.get());
+    }
+
+    public void testFailingSetAutoRefreshOnNonLooperThread() {
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(getContext(), false);
+                boolean autoRefresh = realm.isAutoRefresh();
+                assertFalse(autoRefresh);
+                try {
+                    realm.setAutoRefresh(true);
+                    fail();
+                } catch (IllegalStateException ignored) {}
+            }
+        };
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            fail();
+        }
+    }
+
+    public void testSetAutoRefreshOnHandlerThread() {
+        HandlerThread thread = new HandlerThread("TestThread") {
+            @Override
+            protected void onLooperPrepared() {
+                Realm realm = Realm.getInstance(getContext());
+                assertTrue(realm.isAutoRefresh());
+                realm.setAutoRefresh(false);
+                assertFalse(realm.isAutoRefresh());
+                realm.setAutoRefresh(true);
+                assertTrue(realm.isAutoRefresh());
+            }
+        };
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            fail();
+        }
     }
 }

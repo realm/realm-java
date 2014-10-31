@@ -44,9 +44,8 @@ public class RealmResultsTest extends AndroidTestCase {
     @Override
     protected void setUp() throws InterruptedException {
         boolean result = Realm.deleteRealmFile(getContext());
-        if (!result) {
-            fail();
-        }
+        assertTrue(result);
+
         testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
