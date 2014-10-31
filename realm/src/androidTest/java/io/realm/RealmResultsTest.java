@@ -43,11 +43,13 @@ public class RealmResultsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws InterruptedException {
-        Realm.deleteRealmFile(getContext());
+        boolean result = Realm.deleteRealmFile(getContext());
+        if (!result) {
+            fail();
+        }
         testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
-
         testRealm.allObjects(AllTypes.class).clear();
 
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
