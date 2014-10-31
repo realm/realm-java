@@ -9,7 +9,6 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     protected LayoutInflater inflater;
     protected RealmResults<T> realmResults;
     protected Context context;
-    protected int resId;
 
     public RealmBaseAdapter(Context context, RealmResults<T> realmResults, boolean automaticUpdate) {
         if (context == null) {
