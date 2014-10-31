@@ -37,6 +37,16 @@ public abstract class RealmObject {
     protected Row row;
     protected Realm realm;
 
+    public void removeFromRealm() {
+        if (row == null) {
+            throw new IllegalStateException("Object malformed: missing Row. Make sure to instantiate RealmObjects with Realm.createObject()");
+        }
+        if (realm == null) {
+            throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
+        }
+        row.getTable().remove(row.getIndex());
+    }
+
     protected Realm getRealm() {
         return realm;
     }
