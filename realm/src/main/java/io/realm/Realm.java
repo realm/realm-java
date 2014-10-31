@@ -113,11 +113,19 @@ public class Realm {
         }
     }
 
+    /**
+     * Retrieve the auto-refresh status of the Realm instance
+     * @return
+     */
     @SuppressWarnings("UnusedDeclaration")
     public boolean isAutoRefresh() {
         return autoRefresh;
     }
 
+    /**
+     * Set the auto-refresh status of the Realm instance
+     * @param autoRefresh true will turn auto-refresh on, false will turn it off
+     */
     public void setAutoRefresh(boolean autoRefresh) {
         if (autoRefresh && Looper.myLooper() == null) {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
@@ -133,7 +141,7 @@ public class Realm {
         this.autoRefresh = autoRefresh;
     }
 
-    //    public static void setDefaultDurability(SharedGroup.Durability durability) {
+//    public static void setDefaultDurability(SharedGroup.Durability durability) {
 //        defaultDurability = durability;
 //    }
 
@@ -150,11 +158,15 @@ public class Realm {
     /**
      * Realm static constructor for the default realm "default.realm"
      *
+     * It sets auto-refresh on
+     *
      * @param context an Android {@link android.content.Context}
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
+     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     public static Realm getInstance(Context context) {
@@ -171,6 +183,8 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated with auto-refresh
+     *                                         in a Thread without a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -181,12 +195,16 @@ public class Realm {
     /**
      * Realm static constructor
      *
+     * It sets auto-refresh on
+     *
      * @param context  an Android {@link android.content.Context}
      * @param fileName the name of the file to save the Realm to
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
+     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -205,6 +223,8 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated with auto-refresh
+     *                                         in a Thread without a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -223,6 +243,8 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated with auto-refresh
+     *                                         in a Thread without a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -233,12 +255,16 @@ public class Realm {
     /**
      * Realm static constructor
      *
+     * It sets auto-refresh on
+     *
      * @param context an Android {@link android.content.Context}
      * @param key     a 32-byte encryption key
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
+     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -260,6 +286,8 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
+     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     public static Realm getInstance(Context context, String fileName, byte[] key, boolean autoRefresh) {
@@ -277,6 +305,8 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
+     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -296,6 +326,8 @@ public class Realm {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
+     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     public static Realm create(File writableFolder, String filename, byte[] key, boolean autoRefresh) {
