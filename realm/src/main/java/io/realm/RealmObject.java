@@ -37,7 +37,7 @@ public abstract class RealmObject {
     protected Row row;
     protected Realm realm;
 
-    public Realm getRealm() {
+    protected Realm getRealm() {
         return realm;
     }
 
