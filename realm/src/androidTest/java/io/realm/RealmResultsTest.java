@@ -26,6 +26,9 @@ public class RealmResultsTest extends AndroidTestCase {
 
 
     protected final static int TEST_DATA_SIZE = 516;
+    protected final static int TEST_DATA_FIRST_HALF = 2*(TEST_DATA_SIZE/4)-1;
+    protected final static int TEST_DATA_LAST_HALF = 2*(TEST_DATA_SIZE/4)+1;
+
 
     protected Realm testRealm;
 
@@ -49,7 +52,7 @@ public class RealmResultsTest extends AndroidTestCase {
 
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
-            allTypes.setColumnBoolean((i % 3) == 0);
+            allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date((long) i));
             allTypes.setColumnDouble(3.1415 + i);
@@ -151,10 +154,30 @@ public class RealmResultsTest extends AndroidTestCase {
 
     public void testAvgGivesCorrectValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        double N = (double)TEST_DATA_SIZE;
 
-        Double avg = Math.round(resultList.average(FIELD_DOUBLE) * 10000.0) / 10000.0;
+        // Sum of numbers 1 to M: M*(M+1)/2
+        // See setUp() for values of fields
+        // N = TEST_DATA_SIZE
 
-        assertEquals("ResultList.sum returned wrong sum", 260.6415, avg);
+        // Type: double; a = 3.1415
+        // a, a+1, ..., a+i, ..., a+N-1
+        // sum = 3.1415*N + N*(N-1)/2
+        // average = sum/N = 3.1415+(N-1)/2
+        double average = 3.1415+(N-1.0)*0.5;
+        assertEquals(average, resultList.average(FIELD_DOUBLE), 0.0001);
+
+        // Type: long
+        // 0, 1, ..., N-1
+        // sum = N*(N-1)/2
+        // average = sum/N = (N-1)/2
+        assertEquals(0.5*(N-1), resultList.average(FIELD_LONG), 0.0001);
+
+        // Type: float; b = 1.234567
+        // b, b+1, ..., b+i, ..., b+N-1
+        // sum = b*N + N*(N-1)/2
+        // average = sum/N = b + (N-1)/2
+        assertEquals(1.234567+0.5*(N-1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
 
 
@@ -232,15 +255,15 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals("Last expected to be false", false, sortedList.last().isColumnBoolean());
         assertEquals("First expected to be true", true, sortedList.first().isColumnBoolean());
-        assertEquals("Expected to be true", true, sortedList.get(147).isColumnBoolean());
-        assertEquals("Expected to be false", false, sortedList.get(368).isColumnBoolean());
+        assertEquals("Expected to be true", true, sortedList.get(TEST_DATA_FIRST_HALF).isColumnBoolean());
+        assertEquals("Expected to be false", false, sortedList.get(TEST_DATA_LAST_HALF).isColumnBoolean());
 
         RealmResults<AllTypes> reverseList = sortedList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals("Last expected to be true", true, reverseList.last().isColumnBoolean());
         assertEquals("First expected to be false", false, reverseList.first().isColumnBoolean());
-        assertEquals("Expected to be false", false, reverseList.get(147).isColumnBoolean());
-        assertEquals("Expected to be true", true, reverseList.get(368).isColumnBoolean());
+        assertEquals("Expected to be false", false, reverseList.get(TEST_DATA_FIRST_HALF).isColumnBoolean());
+        assertEquals("Expected to be true", true, reverseList.get(TEST_DATA_LAST_HALF).isColumnBoolean());
 
         RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_DECENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
@@ -258,8 +281,13 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> reverseList = sortedList.sort(FIELD_STRING, RealmResults.SORT_ORDER_ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals("First excepted to be first", resultList.first().getColumnString(), reverseList.first().getColumnString());
-        assertEquals("Last excepted to be last", resultList.get(99).getColumnString(), reverseList.last().getColumnString());
 
+        int numberOfDigits = 1+((int)Math.log10(TEST_DATA_SIZE));
+        int largestNumber = 1;
+        for(int i=1; i<numberOfDigits; i++)
+            largestNumber *= 10;  // 10*10* ... *10
+        largestNumber = largestNumber-1;
+        assertEquals("Last excepted to be last", resultList.get(largestNumber).getColumnString(), reverseList.last().getColumnString());
         RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
@@ -304,7 +332,6 @@ public class RealmResultsTest extends AndroidTestCase {
         } catch (ArrayIndexOutOfBoundsException e) {
         }
     }
-
 
 
     public void testCount() {
