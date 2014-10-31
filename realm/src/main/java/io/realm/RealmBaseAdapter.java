@@ -11,7 +11,7 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     protected Context context;
     protected int resId;
 
-    public RealmBaseAdapter(Context context, int resId, RealmResults<T> realmResults, boolean automaticUpdate) {
+    public RealmBaseAdapter(Context context, RealmResults<T> realmResults, boolean automaticUpdate) {
         if (context == null) {
             throw new IllegalArgumentException("Context cannot be null");
         }
@@ -19,7 +19,6 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
             throw new IllegalArgumentException("RealmResults cannot be null");
         }
 
-        this.resId   = resId;
         this.context = context;
         this.realmResults = realmResults;
         this.inflater = LayoutInflater.from(context);
