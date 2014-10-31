@@ -31,7 +31,7 @@ public class MyAdapter extends RealmBaseAdapter<TimeStamp> {
     }
 
     public MyAdapter(Context context, int resId, RealmResults<TimeStamp> realmResults, boolean automaticUpdate) {
-        super(context, resId, realmResults, automaticUpdate);
+        super(context, realmResults, automaticUpdate);
     }
 
     @Override
