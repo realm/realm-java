@@ -99,7 +99,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Find the first object
+     * Find the first object.
+     *
      * @return The first object
      */
     public E first() {
@@ -110,7 +111,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Find the last object
+     * Find the last object.
+     *
      * @return The last object
      */
     public E last() {
@@ -129,8 +131,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Initialize a query
-     * @return A query object
+     * Currently not implemented!
+     * @return A query object (currently always null)
      * @see io.realm.RealmQuery
      */
     public RealmQuery<E> where() {

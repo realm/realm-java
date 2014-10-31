@@ -37,7 +37,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     @SuppressWarnings("UnusedDeclaration")
     public static final String TAG = RealmExampleActivity.class.getName();
 
-    private Realm realm = null;
+    private Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,15 +72,15 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     }
 
     private void startTests() {
-        //startSpawnTests();
+        startSpawnTests();
         //Alternatively can use transaction tests here...
-        startTransactionTests();
+        //startTransactionTests();
     }
 
     private void stopTests() {
-        //stopSpawnTests();
+        stopSpawnTests();
         //Alternatively can use transaction tests here...
-        stopTransactionTests();
+        //stopTransactionTests();
     }
 
     // Using the screen form the user can inject into the Realm
@@ -91,12 +91,12 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
         String personAge = ((TextView) findViewById(R.id.age)).getText().toString();
         String petName = ((TextView) findViewById(R.id.pets_name)).getText().toString();
 
-        Integer parseAge = 0;
+        Integer parseAge;
         try {
             parseAge = Integer.parseInt(personAge);
         } catch (NumberFormatException ignored) {
-	        Log.d(TAG, "Age for a person invalid");
-	        return;
+            Log.d(TAG, "Age for a person invalid");
+            return;
         }
 
         realm.beginTransaction();
@@ -139,8 +139,8 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     // which loop for a specified count
     private void startSpawnTests() {
         Intent serviceIntent = new Intent(this, SpawningService.class);
-        serviceIntent.putExtra(SpawningService.REALM_INSERTCOUNT_EXTRA, 10000000);
-        serviceIntent.putExtra(SpawningService.REALM_READCOUNT_EXTRA, 10000000);
+        serviceIntent.putExtra(SpawningService.REALM_INSERT_COUNT_EXTRA, 10000000);
+        serviceIntent.putExtra(SpawningService.REALM_READ_COUNT_EXTRA, 10000000);
         this.startService(serviceIntent);
     }
 

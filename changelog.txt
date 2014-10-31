@@ -1,7 +1,18 @@
-0.72.0 (??)
-  * Extending sorting to more types: boolean, short, int, long, float, double, Date,
-    and String fields are now supported
+0.73.0 (??)
+  * Rewritten then notification system
+  * Added support for switching auto-refresh on and off (Realm.setAutoRefresh)
   * Added RealmBaseAdapter
+
+0.72.0 (27 Oct 2014)
+  * Extended sorting support to more types: boolean, byte, short, int, long, float, double, Date, and String
+    fields are now supported
+  * Better support for Java 7 and 8 in the annotations processor
+  * Better support for the Eclipse annotations processor
+  * Added Eclipse support to the distribution folder
+  * Added Realm.cancelTransaction() to cancel/abort/rollback a write transaction
+  * Faster implementation of RealmQuery.findFirst()
+  * Upgraded core to 0.85.1 (deep copying of strings in queries; preparation for link queries)
+  * Added support for link queries in the form realm.where(Owner.class).equalTo("cat.age", 12).findAll()
 
 0.71.0 (07 Oct 2014)
   * Simplified the release artifact to a single Jar file
@@ -10,7 +21,7 @@
   * Throw exception if nested write transactions are used (it's not allowed)
   * Javadoc updated
   * Fixed bug in RealmResults: https://github.com/realm/realm-java/issues/453
-  * New annotation @Index to add search index to a field (currently only supporting String fields) 
+  * New annotation @Index to add search index to a field (currently only supporting String fields)
   * Made the annotations processor more verbose and strict
   * Adding RealmQuery.count() method
   * Added a new example about concurrency

@@ -729,9 +729,8 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeAverageInt(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
         return 0;
 
-    // FIXME: Add support for native Average
     try {
-        return static_cast<jdouble>( TV(nativeViewPtr)->sum_int( S(columnIndex)) ) / TV(nativeViewPtr)->size();
+        return static_cast<jdouble>( TV(nativeViewPtr)->average_int( S(columnIndex)));
     } CATCH_STD()
     return 0;
 }
@@ -788,9 +787,8 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeAverageFloat(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
         return 0;
 
-    // FIXME: Add support for native Average
     try {
-        return TV(nativeViewPtr)->sum_float( S(columnIndex)) / TV(nativeViewPtr)->size();
+        return TV(nativeViewPtr)->average_float( S(columnIndex));
     } CATCH_STD()
     return 0;
 }
@@ -847,9 +845,8 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeAverageDouble(
         !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
         return 0;
 
-    // FIXME: Add support for native Average
     try {
-        return static_cast<jdouble>( TV(nativeViewPtr)->sum_double( S(columnIndex)) ) / TV(nativeViewPtr)->size();
+        return static_cast<jdouble>( TV(nativeViewPtr)->average_double( S(columnIndex)) );
     } CATCH_STD()
     return 0;
 }

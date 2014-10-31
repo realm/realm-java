@@ -23,7 +23,7 @@ import android.util.Log;
 import io.realm.Realm;
 import io.realm.examples.concurrency.model.Person;
 
-// Note that an IntentService operates in its own threadpool facilitated by Android
+// Note that an IntentService operates in its own thread-pool facilitated by Android
 public class TransactionService extends IntentService {
 
     public static final String TAG = TransactionService.class.getName();
