@@ -25,7 +25,7 @@ import io.realm.entities.AllTypes;
 public class RealmResultsTest extends AndroidTestCase {
 
 
-    protected final static int TEST_DATA_SIZE = 516;
+    protected final static int TEST_DATA_SIZE = 2516;
     protected final static int TEST_DATA_FIRST_HALF = 2*(TEST_DATA_SIZE/4)-1;
     protected final static int TEST_DATA_LAST_HALF = 2*(TEST_DATA_SIZE/4)+1;
 
