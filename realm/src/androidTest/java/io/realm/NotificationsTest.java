@@ -33,7 +33,7 @@ public class NotificationsTest extends AndroidTestCase {
             @Override
             public void run() {
                 try {
-                    Realm realm = Realm.getInstance(getContext());
+                    @SuppressWarnings("UnusedDeclaration") Realm realm = Realm.getInstance(getContext());
                     fail("The Realm instantiations should have thrown an exception");
                 } catch (IllegalStateException ignored) {}
             }
@@ -158,6 +158,7 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testFailingSetAutoRefreshOnNonLooperThread() {
+        final AtomicBoolean done = new AtomicBoolean(false);
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -168,17 +169,20 @@ public class NotificationsTest extends AndroidTestCase {
                     realm.setAutoRefresh(true);
                     fail();
                 } catch (IllegalStateException ignored) {}
+                done.set(true);
             }
         };
         thread.start();
         try {
-            thread.join();
+            thread.join(1000);
         } catch (InterruptedException e) {
             fail();
         }
+        assertTrue(done.get());
     }
 
     public void testSetAutoRefreshOnHandlerThread() {
+        final AtomicBoolean done = new AtomicBoolean(false);
         HandlerThread thread = new HandlerThread("TestThread") {
             @Override
             protected void onLooperPrepared() {
@@ -188,13 +192,15 @@ public class NotificationsTest extends AndroidTestCase {
                 assertFalse(realm.isAutoRefresh());
                 realm.setAutoRefresh(true);
                 assertTrue(realm.isAutoRefresh());
+                done.set(true);
             }
         };
         thread.start();
         try {
-            thread.join();
+            thread.join(1000);
         } catch (InterruptedException e) {
             fail();
         }
+        assertTrue(done.get());
     }
 }
