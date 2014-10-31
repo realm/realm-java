@@ -36,7 +36,7 @@ public class RealmWriter extends Thread implements KillableThread {
     }
 
     public void run() {
-        Realm realm = Realm.getInstance(context);
+        Realm realm = Realm.getInstance(context, false);
 
         int count = 0;
 
