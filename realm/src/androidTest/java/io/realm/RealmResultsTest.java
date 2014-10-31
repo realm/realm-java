@@ -23,8 +23,6 @@ import java.util.Date;
 import io.realm.entities.AllTypes;
 
 public class RealmResultsTest extends AndroidTestCase {
-
-
     protected final static int TEST_DATA_SIZE = 2516;
     protected final static int TEST_DATA_FIRST_HALF = 2*(TEST_DATA_SIZE/4)-1;
     protected final static int TEST_DATA_LAST_HALF = 2*(TEST_DATA_SIZE/4)+1;
@@ -43,11 +41,13 @@ public class RealmResultsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws InterruptedException {
-        Realm.deleteRealmFile(getContext());
+        boolean result = Realm.deleteRealmFile(getContext());
+        if (!result) {
+            fail();
+        }
         testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
-
         testRealm.allObjects(AllTypes.class).clear();
 
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
@@ -61,7 +61,6 @@ public class RealmResultsTest extends AndroidTestCase {
             allTypes.setColumnLong(i);
         }
         testRealm.commitTransaction();
-
     }
 
 
@@ -213,7 +212,6 @@ public class RealmResultsTest extends AndroidTestCase {
 
         RealmResults<AllTypes> resultListCheck = testRealm.where(AllTypes.class).findAll();
         assertEquals("ResultList.removeLast not committed", TEST_DATA_SIZE - 1, resultListCheck.size());
-
     }
 
     public void testSortByLong() {

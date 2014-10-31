@@ -19,6 +19,7 @@ package io.realm.examples.concurrency.services;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,39 +31,38 @@ import io.realm.examples.concurrency.threads.RealmWriter;
 public class SpawningService extends Service {
 
     public static final String TAG = SpawningService.class.getName();
+    public static final String REALM_INSERT_COUNT_EXTRA = "RealmInsertCountExtra";
+    public static final String REALM_READ_COUNT_EXTRA = "RealmReadCountExtra";
 
-    public static final String REALM_INSERTCOUNT_EXTRA = "RealmInsertCountExtra";
-    public static final String REALM_READCOUNT_EXTRA   = "RealmReadCountExtra";
-
-    private List<KillableThread> allThreads = null;
-
-    public void onCreate() {
-        super.onCreate();
-    }
+    private List<KillableThread> allThreads = new ArrayList<KillableThread>();
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent == null) {
+            Log.i(TAG, "The intent is null");
+            throw new AssertionError();
+        }
 
-        int insertCount = intent.getIntExtra(REALM_INSERTCOUNT_EXTRA, 0);
-        int readCount   = intent.getIntExtra(REALM_READCOUNT_EXTRA, 0);
+        int insertCount = intent.getIntExtra(REALM_INSERT_COUNT_EXTRA, 0);
+        int readCount   = intent.getIntExtra(REALM_READ_COUNT_EXTRA, 0);
 
         try {
-            allThreads = new ArrayList<KillableThread>();
-            RealmWriter wT = new RealmWriter(this);
-            wT.setInsertCount(insertCount);
-            allThreads.add(wT);
-            wT.start();
-            RealmReader rT = new RealmReader(this);
-            rT.setReadCount(readCount);
-            allThreads.add(rT);
-            rT.start();
+            RealmWriter writerThread = new RealmWriter(this);
+            writerThread.setInsertCount(insertCount);
+            allThreads.add(writerThread);
+            writerThread.start();
+
+            RealmReader readerThread = new RealmReader(this);
+            readerThread.setReadCount(readCount);
+            allThreads.add(readerThread);
+            readerThread.start();
         } catch (Exception e) {
             e.printStackTrace();
             quit();
         }
 
         //Service should stay active as long as Activity is active
-        return START_STICKY;
+        return START_STICKY_COMPATIBILITY;
     }
 
     @Override
