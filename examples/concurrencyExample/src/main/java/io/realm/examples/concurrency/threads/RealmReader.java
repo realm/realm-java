@@ -17,7 +17,9 @@
 package io.realm.examples.concurrency.threads;
 
 import android.content.Context;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import io.realm.Realm;
@@ -27,9 +29,11 @@ import io.realm.examples.concurrency.model.Person;
 public class RealmReader extends Thread implements KillableThread {
 
     public static final String TAG = RealmReader.class.getName();
+    private static final int KILL = 672783478;
 
     private Context context;
     private int mReadCount = 0;
+    private Handler handler;
 
     public RealmReader(Context context) {
         this.context = context;
@@ -47,15 +51,23 @@ public class RealmReader extends Thread implements KillableThread {
                 if (peopleNumber % 10 == 0) {
                     Log.d(TAG, "Found count " + peopleNumber);
                 }
-
             }
         });
+        
+        handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                if (msg.what == KILL) {
+                    Looper.myLooper().quit();
+                }
+            }
+        };
         Looper.loop();
     }
 
     @Override
     public void terminate() {
-        Looper.myLooper().quit();
+        handler.sendEmptyMessage(KILL);
     }
 
     @SuppressWarnings("UnusedDeclaration")

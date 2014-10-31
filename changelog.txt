@@ -1,5 +1,5 @@
 0.73.0 (??)
-  * Rewritten then notification system
+  * Rewritten the notification system. The API did not change but it's not much more reliable
   * Added support for switching auto-refresh on and off (Realm.setAutoRefresh)
   * Added RealmBaseAdapter
 
