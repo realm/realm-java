@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.test.AndroidTestCase;
 
@@ -32,7 +33,7 @@ public class NotificationsTest extends AndroidTestCase {
             @Override
             public void run() {
                 try {
-                    Realm realm = Realm.getInstance(getContext());
+                    @SuppressWarnings("UnusedDeclaration") Realm realm = Realm.getInstance(getContext());
                     fail("The Realm instantiations should have thrown an exception");
                 } catch (IllegalStateException ignored) {}
             }
@@ -87,7 +88,7 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(true, changed.get());
     }
 
-    public void testNotificationsTwoLoopers() {
+    public void testNotificationsPlusSelfReceive() {
         final AtomicInteger counter = new AtomicInteger(0);
         final Queue<Handler> handlers = new ConcurrentLinkedQueue<Handler>();
 
@@ -154,5 +155,52 @@ public class NotificationsTest extends AndroidTestCase {
         }
 
         assertEquals(2, counter.get());
+    }
+
+    public void testFailingSetAutoRefreshOnNonLooperThread() {
+        final AtomicBoolean done = new AtomicBoolean(false);
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(getContext(), false);
+                boolean autoRefresh = realm.isAutoRefresh();
+                assertFalse(autoRefresh);
+                try {
+                    realm.setAutoRefresh(true);
+                    fail();
+                } catch (IllegalStateException ignored) {}
+                done.set(true);
+            }
+        };
+        thread.start();
+        try {
+            thread.join(1000);
+        } catch (InterruptedException e) {
+            fail();
+        }
+        assertTrue(done.get());
+    }
+
+    public void testSetAutoRefreshOnHandlerThread() {
+        final AtomicBoolean done = new AtomicBoolean(false);
+        HandlerThread thread = new HandlerThread("TestThread") {
+            @Override
+            protected void onLooperPrepared() {
+                Realm realm = Realm.getInstance(getContext());
+                assertTrue(realm.isAutoRefresh());
+                realm.setAutoRefresh(false);
+                assertFalse(realm.isAutoRefresh());
+                realm.setAutoRefresh(true);
+                assertTrue(realm.isAutoRefresh());
+                done.set(true);
+            }
+        };
+        thread.start();
+        try {
+            thread.join(1000);
+        } catch (InterruptedException e) {
+            fail();
+        }
+        assertTrue(done.get());
     }
 }
