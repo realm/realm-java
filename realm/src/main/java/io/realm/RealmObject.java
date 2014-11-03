@@ -20,7 +20,7 @@ import io.realm.internal.Row;
 import io.realm.annotations.RealmClass;
 
 /**
- * In Realm you define your model classes by subclassing RealmObject and adding fields to be
+ * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
  * persisted. You then create your objects within a Realm, and use your custom subclasses instead
  * of using the RealmObject class directly.
  * <br>
@@ -37,4 +37,19 @@ public abstract class RealmObject {
     protected Row row;
     protected Realm realm;
 
+    /**
+     * Removes the object from the Realm it is currently associated to.
+     *
+     * After this method is called the object will be invalid and any operation (read or write)
+     * performed on it will fail with an IllegalStateException
+     */
+    public void removeFromRealm() {
+        if (row == null) {
+            throw new IllegalStateException("Object malformed: missing Row. Make sure to instantiate RealmObjects with Realm.createObject()");
+        }
+        if (realm == null) {
+            throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
+        }
+        row.getTable().remove(row.getIndex());
+    }
 }
