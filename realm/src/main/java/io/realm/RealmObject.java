@@ -20,7 +20,7 @@ import io.realm.internal.Row;
 import io.realm.annotations.RealmClass;
 
 /**
- * In Realm you define your model classes by subclassing RealmObject and adding fields to be
+ * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
  * persisted. You then create your objects within a Realm, and use your custom subclasses instead
  * of using the RealmObject class directly.
  * <br>
@@ -51,21 +51,5 @@ public abstract class RealmObject {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
         row.getTable().remove(row.getIndex());
-    }
-
-    protected Realm getRealm() {
-        return realm;
-    }
-
-    protected void setRealm(Realm realm) {
-        this.realm = realm;
-    }
-
-    protected Row realmGetRow() {
-        return row;
-    }
-
-    protected void realmSetRow(Row row) {
-        this.row = row;
     }
 }

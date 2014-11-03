@@ -573,8 +573,8 @@ public class Realm {
             e.printStackTrace();
             throw new RealmException("An exception occurred while instantiating the proxy class");
         }
-        result.realmSetRow(row);
-        result.setRealm(this);
+        result.row = row;
+        result.realm = this;
         return result;
     }
 

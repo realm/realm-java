@@ -116,6 +116,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, RuntimeError, "parm1", "parm2");
             break;
+        case RowInvalid:
+            expect = "java.lang.IllegalStateException: Illegal State: parm1";
+            if (dotest)
+                ThrowException(env, TableInvalid, "parm1", "parm2");
+            break;
     }
     if (dotest) {
         return NULL;

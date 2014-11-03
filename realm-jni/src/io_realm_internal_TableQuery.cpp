@@ -65,16 +65,13 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery
 
 
 // helper functions and macros
-
 #define GET_ARRAY() \
-    jboolean isCopy; \
     jsize arr_len = env->GetArrayLength(columnIndexes); \
-    jlong *arr = env->GetLongArrayElements(columnIndexes, &isCopy);
+    jlong *arr = env->GetLongArrayElements(columnIndexes, NULL);
 
 
-#define RELEASE_ARRAY()     \
-    if (isCopy == JNI_TRUE) \
-        env->ReleaseLongArrayElements(columnIndexes, arr, 0);
+#define RELEASE_ARRAY() \
+    env->ReleaseLongArrayElements(columnIndexes, arr, 0);
 
 TableRef getTableLink(jlong nativeQueryPtr, jlong *arr, jsize arr_len) {
     TableRef tbl = Q(nativeQueryPtr)->get_table();
