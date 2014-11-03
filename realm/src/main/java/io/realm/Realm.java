@@ -51,7 +51,7 @@ import io.realm.internal.Table;
  * <p>The transactions ensure that multiple instances (on multiple threads) can access the objects
  * in a consistent state with full ACID guaranties.</p>
  *
- * <p>It auto-refresh is set the instance of the Realm will be automatically updated when another instance commits a
+ * <p>If auto-refresh is set the instance of the Realm will be automatically updated when another instance commits a
  * change (create, modify or delete an object). This feature requires the Realm instance to be residing in a
  * thread attached to a Looper (the main thread has a Looper by default)</p>
  *
