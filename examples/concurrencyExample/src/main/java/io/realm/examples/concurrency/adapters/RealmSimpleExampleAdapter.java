@@ -35,21 +35,21 @@ public class RealmSimpleExampleAdapter<T extends RealmObject> extends BaseAdapte
 
     @Override
     public int getCount() {
-        if(rList == null)
+        if (rList == null)
             return 0;
         return rList.size();
     }
 
     @Override
     public RealmObject getItem(int i) {
-        if(rList == null)
+        if (rList == null)
             return null;
         return rList.get(i);
     }
 
     @Override
     public long getItemId(int i) {
-        if(rList == null)
+        if (rList == null)
             return -1;
         return i;
     }
