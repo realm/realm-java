@@ -41,7 +41,7 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm.beginTransaction();
         RealmObject realmObject = testRealm.createObject(AllTypes.class);
 
-        Row row = realmObject.realmGetRow();
+        Row row = realmObject.row;
 
         testRealm.commitTransaction();
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
