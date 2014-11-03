@@ -19,6 +19,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Dog;
 import io.realm.internal.Row;
 
 
@@ -41,7 +42,7 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm.beginTransaction();
         RealmObject realmObject = testRealm.createObject(AllTypes.class);
 
-        Row row = realmObject.realmGetRow();
+        Row row = realmObject.row;
 
         testRealm.commitTransaction();
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
@@ -68,5 +69,31 @@ public class RealmObjectTest extends AndroidTestCase {
             assertEquals(strings[i], s);
             i++;
         }
+    }
+
+    public void testRemoveFromRealm() {
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        Dog rex = realm.createObject(Dog.class);
+        rex.setName("Rex");
+        Dog fido = realm.createObject(Dog.class);
+        fido.setName("Fido");
+        realm.commitTransaction();
+
+        RealmResults<Dog> allDogsBefore = realm.where(Dog.class).equalTo("name", "Rex").findAll();
+        assertEquals(1, allDogsBefore.size());
+
+        realm.beginTransaction();
+        rex.removeFromRealm();
+        realm.commitTransaction();
+
+        RealmResults<Dog> allDogsAfter = realm.where(Dog.class).equalTo("name", "Rex").findAll();
+        assertEquals(0  , allDogsAfter.size());
+
+        fido.getName();
+        try {
+            rex.getName();
+            fail();
+        } catch (IllegalStateException ignored) {}
     }
 }

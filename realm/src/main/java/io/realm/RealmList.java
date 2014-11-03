@@ -43,7 +43,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public void add(int location, E object) {
-        view.insert(location, object.realmGetRow().getIndex());
+        view.insert(location, object.row.getIndex());
     }
 
     /**
@@ -51,7 +51,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public boolean add(E object) {
-        view.add(object.realmGetRow().getIndex());
+        view.add(object.row.getIndex());
         return true;
     }
 
@@ -60,7 +60,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public E set(int location, E object) {
-        view.set(location, object.realmGetRow().getIndex());
+        view.set(location, object.row.getIndex());
         return object;
     }
 
