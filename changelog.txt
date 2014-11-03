@@ -1,6 +1,6 @@
 0.73.0 (??)
-  * Fixed bug in JNI query layer: https://github.com/realm/realm-java/issues/515
-  * Rewritten then notification system
+  * Fixed a bug not allowing queries with many conditions
+  * Rewritten the notification system. The API did not change but it's not much more reliable
   * Added support for switching auto-refresh on and off (Realm.setAutoRefresh)
 
 0.72.0 (27 Oct 2014)
