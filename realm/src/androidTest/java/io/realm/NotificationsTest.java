@@ -218,8 +218,8 @@ public class NotificationsTest extends AndroidTestCase {
                 r.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                    counter.addAndGet(dogs.size());
-                    Looper.myLooper().quit();
+                        counter.addAndGet(dogs.size());
+                        Looper.myLooper().quit();
                     }
                 });
                 Looper.loop();
