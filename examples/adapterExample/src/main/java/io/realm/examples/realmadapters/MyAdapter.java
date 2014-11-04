@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm.examples.realmadapters;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import io.realm.RealmBaseAdapter;
 import io.realm.RealmResults;
 import io.realm.examples.realmadapters.models.TimeStamp;
 
-public class MyAdapter extends RealmBaseAdapter<TimeStamp> {
+public class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapter {
 
     private class MyViewHolder {
         TextView tvTimeStamp;
