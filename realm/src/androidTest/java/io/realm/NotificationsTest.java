@@ -203,4 +203,33 @@ public class NotificationsTest extends AndroidTestCase {
         }
         assertTrue(done.get());
     }
+
+    public void testNotificationsNumber () throws InterruptedException {
+        final AtomicInteger counter = new AtomicInteger(0);
+        HandlerThread thread = new HandlerThread("Receiver") {
+            @Override
+            protected void onLooperPrepared() {
+                Realm realm = Realm.getInstance(getContext());
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        counter.incrementAndGet();
+                    }
+                });
+            }
+        };
+        thread.start();
+
+        Realm realm = Realm.getInstance(getContext(), false);
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("Rex");
+        realm.commitTransaction();
+
+        Thread.sleep(100);
+
+        assertEquals(1, counter.get());
+
+        thread.join(1);
+    }
 }
