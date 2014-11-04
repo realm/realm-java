@@ -28,6 +28,9 @@ cp -R examples/migrationExample/src distribution/RealmMigrationExample/app
 echo "Copying files to the distribution/RealmConcurrencyExample folder"
 cp -R examples/concurrencyExample/src distribution/RealmConcurrencyExample/app
 
+echo "Copying files to the distribution/RealmAdapterExample folder"
+cp -R examples/adapterExample/src distribution/RealmAdapterExample/app
+
 echo "Creating the Eclipse distribution"
 mkdir -p distribution/eclipse
 cp realm/build/libs/realm-${version}.jar distribution/eclipse

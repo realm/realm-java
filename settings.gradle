@@ -1,4 +1,4 @@
-include 'realm', ':introExample', ':gridViewExample', ':concurrencyExample', ':encryptionExample', ':migrationExample'
+include 'realm', ':introExample', ':gridViewExample', ':concurrencyExample', ':encryptionExample', ':migrationExample', ':adapterExample'
 include ':performance'
 project(':performance').projectDir = new File('examples/performance')
 
@@ -8,3 +8,4 @@ project(':gridViewExample').projectDir = new File('examples/gridViewExample')
 project(':concurrencyExample').projectDir = new File('examples/concurrencyExample')
 project(':encryptionExample').projectDir = new File('examples/encryptionExample')
 project(':migrationExample').projectDir = new File('examples/migrationExample')
+project(':adapterExample').projectDir = new File('examples/adapterExample')
