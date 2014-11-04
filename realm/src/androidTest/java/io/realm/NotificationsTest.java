@@ -232,4 +232,67 @@ public class NotificationsTest extends AndroidTestCase {
 
         thread.join(1);
     }
+
+    public void testAutoUpdateRealmResults() {
+        final int TEST_SIZE = 10;
+        final AtomicBoolean cantRun = new AtomicBoolean(true);
+        final AtomicInteger counter = new AtomicInteger(0);
+
+
+        Realm.deleteRealmFile(getContext());
+        Realm realm = Realm.getInstance(getContext());
+        //assertEquals(0, realm.allObjects(Dog.class).size());
+
+        Thread listenerThread = new Thread() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                Realm.deleteRealmFile(getContext());
+                Realm realm = Realm.getInstance(getContext());
+                RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+                assertEquals(0, dogs.size());
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        // Re-instatiation on each notification is intentional
+                        Realm r = Realm.getInstance(getContext());
+                        counter.incrementAndGet();
+                    }
+                });
+                cantRun.set(false);
+                Looper.loop();
+            }
+        };
+        listenerThread.start();
+
+        while (cantRun.get()) {
+            try {
+                Thread.sleep(100);
+            }
+            catch (InterruptedException ignored) {
+                fail();
+            }
+        }
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            Dog dog = realm.createObject(Dog.class);
+            dog.setName("Rex " + i);
+        }
+        realm.commitTransaction();
+        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
+
+        try {
+            listenerThread.join(2000);
+        } catch (InterruptedException ignored) {
+            fail();
+        }
+        // one for initTable and one for the commit
+        assertEquals(2, counter.get());
+    }
 }

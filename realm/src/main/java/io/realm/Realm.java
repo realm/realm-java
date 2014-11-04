@@ -363,6 +363,8 @@ public class Realm {
             realm = new Realm(absolutePath, key, autoRefresh);
             realms.put(absolutePath, realm);
             realmsCache.set(realms);
+        } else {
+            return realm;
         }
         if (validateSchema) {
             Class<?> validationClass;
