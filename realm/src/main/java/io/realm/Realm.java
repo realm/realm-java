@@ -74,7 +74,7 @@ public class Realm {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
-    private static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
+    protected static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
         @Override
         protected Map<String, Realm> initialValue() {
             return new HashMap<String, Realm>();

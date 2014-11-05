@@ -36,9 +36,13 @@ import io.realm.entities.Dog;
 
 public class NotificationsTest extends AndroidTestCase {
 
-    public void testFailureOnNonLooperThread() throws InterruptedException, ExecutionException {
+    @Override
+    protected void setUp() throws Exception {
+        Realm.realmsCache.remove();
         Realm.deleteRealmFile(getContext());
+    }
 
+    public void testFailureOnNonLooperThread() throws InterruptedException, ExecutionException {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
@@ -57,8 +61,6 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testNotifications() throws InterruptedException, ExecutionException {
-        Realm.deleteRealmFile(getContext());
-
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         final AtomicInteger changed = new AtomicInteger(0);
@@ -97,8 +99,6 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testFailingSetAutoRefreshOnNonLooperThread() throws ExecutionException, InterruptedException {
-        Realm.deleteRealmFile(getContext());
-
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
@@ -118,8 +118,6 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testSetAutoRefreshOnHandlerThread() throws ExecutionException, InterruptedException {
-        Realm.deleteRealmFile(getContext());
-
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
@@ -138,8 +136,6 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testNotificationsNumber () throws InterruptedException, ExecutionException {
-        Realm.deleteRealmFile(getContext());
-
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);
 
@@ -165,7 +161,7 @@ public class NotificationsTest extends AndroidTestCase {
             Thread.sleep(5);
         }
 
-        Thread.sleep(5); // Give it time to start the looper
+        Thread.sleep(100); // Give it time to start the looper
 
         Realm realm = Realm.getInstance(getContext(), false);
         realm.beginTransaction();
@@ -181,8 +177,6 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testAutoUpdateRealmResults() throws InterruptedException, ExecutionException {
-        Realm.deleteRealmFile(getContext());
-
         final int TEST_SIZE = 10;
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);
@@ -220,7 +214,7 @@ public class NotificationsTest extends AndroidTestCase {
             Thread.sleep(5);
         }
 
-        Thread.sleep(5); // Give it time to start the looper
+        Thread.sleep(100); // Give it time to start the looper
 
         Realm realm = Realm.getInstance(getContext());
         realm.beginTransaction();
