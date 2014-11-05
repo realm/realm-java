@@ -49,6 +49,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public static final boolean SORT_ORDER_ASCENDING = true;
     public static final boolean SORT_ORDER_DECENDING = false;
 
+    private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
+
     RealmResults(Realm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
@@ -190,7 +192,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.minimumDouble(columnIndex);
             default:
-                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
 
@@ -208,7 +210,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table.minimumDate(columnIndex);
         }
         else {
-            throw new IllegalArgumentException("Wrong type of field - Date type expected.");
+            throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "Date"));
         }
     }
 
@@ -229,7 +231,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.maximumDouble(columnIndex);
             default:
-                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
 
@@ -247,7 +249,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table.minimumDate(columnIndex);
         }
         else {
-            throw new IllegalArgumentException("Wrong type of field - Date expected");
+            throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "Date"));
         }
     }
 
@@ -270,7 +272,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case DOUBLE:
                 return table.sumDouble(columnIndex);
             default:
-                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
 
@@ -294,7 +296,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             case FLOAT:
                 return table.averageFloat(columnIndex);
             default:
-                throw new IllegalArgumentException("Wrong type of field. Expected int, float or double type.");
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
         }
     }
 

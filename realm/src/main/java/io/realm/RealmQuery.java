@@ -145,12 +145,12 @@ public class RealmQuery<E extends RealmObject> {
             }
             columnIndices[names.length-1] = table.getColumnIndex(names[names.length-1]);
             if (fieldType != table.getColumnType(columnIndices[names.length-1])) {
-                throw new IllegalArgumentException("Wrong field type");
+                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", names[names.length-1]));
             }
             return columnIndices;
         } else {
             if (fieldType != table.getColumnType(columns.get(fieldName))) {
-                throw new IllegalArgumentException("Wrong field type");
+                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", fieldName));
             }
             return new long[] {columns.get(fieldName)};
         }

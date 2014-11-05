@@ -369,22 +369,22 @@ public class Realm {
             try {
                 validationClass = Class.forName("io.realm.ValidationList");
             } catch (ClassNotFoundException e) {
-                throw new RealmException("Could not find the generated ValidationList class");
+                throw new RealmException("Could not find the generated ValidationList class: The annotation processor may not be running.");
             }
             Method getProxyClassesMethod;
             try {
                 getProxyClassesMethod = validationClass.getMethod("getProxyClasses");
             } catch (NoSuchMethodException e) {
-                throw new RealmException("Could not find the getProxyClasses method in the ValidationList class");
+                throw new RealmException("Could not find the getProxyClasses method in the ValidationList class: The annotation processor may not be running.");
             }
             List<String> proxyClasses;
             try {
                 //noinspection unchecked
                 proxyClasses = (List<String>) getProxyClassesMethod.invoke(null);
             } catch (IllegalAccessException e) {
-                throw new RealmException("Could not execute the getProxyClasses method in the ValidationList class");
+                throw new RealmException("Could not execute the getProxyClasses method in the ValidationList class: The annotation processor may not be running.");
             } catch (InvocationTargetException e) {
-                throw new RealmException("An exception was thrown in the getProxyClasses method in the ValidationList class");
+                throw new RealmException("An exception was thrown in the getProxyClasses method in the ValidationList class: The annotation processor may not be running.");
             }
 
             long version = realm.getVersion();
@@ -402,7 +402,7 @@ public class Realm {
                     try {
                         generatedClass = Class.forName(generatedClassName);
                     } catch (ClassNotFoundException e) {
-                        throw new RealmException("Could not find the generated " + generatedClassName + " class");
+                        throw new RealmException("Could not find the generated " + generatedClassName + " class: The annotation processor may not be running.");
                     }
 
                     // if not versioned, create table
@@ -411,14 +411,14 @@ public class Realm {
                         try {
                             initTableMethod = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
                         } catch (NoSuchMethodException e) {
-                            throw new RealmException("Could not find the initTable method in the generated " + generatedClassName + " class");
+                            throw new RealmException("Could not find the initTable method in the generated " + generatedClassName + " class: The annotation processor may not be running.");
                         }
                         try {
                             initTableMethod.invoke(null, realm.transaction);
                         } catch (IllegalAccessException e) {
-                            throw new RealmException("Could not execute the initTable method in the " + generatedClassName + " class");
+                            throw new RealmException("Could not execute the initTable method in the " + generatedClassName + " class: The annotation processor may not be running.");
                         } catch (InvocationTargetException e) {
-                            throw new RealmException("An exception was thrown in the initTable method in the " + generatedClassName + " class");
+                            throw new RealmException("An exception was thrown in the initTable method in the " + generatedClassName + " class: The annotation processor may not be running.");
                         }
                     }
 
@@ -427,12 +427,12 @@ public class Realm {
                     try {
                         validateMethod = generatedClass.getMethod("validateTable", new Class[]{ImplicitTransaction.class});
                     } catch (NoSuchMethodException e) {
-                        throw new RealmException("Could not find the validateTable method in the generated " + generatedClassName + " class");
+                        throw new RealmException("Could not find the validateTable method in the generated " + generatedClassName + " class: The annotation processor may not be running.");
                     }
                     try {
                         validateMethod.invoke(null, realm.transaction);
                     } catch (IllegalAccessException e) {
-                        throw new RealmException("Could not execute the validateTable method in the " + generatedClassName + " class");
+                        throw new RealmException("Could not execute the validateTable method in the " + generatedClassName + " class: The annotation processor may not be running.");
                     } catch (InvocationTargetException e) {
                         throw new RealmMigrationNeededException(e.getMessage(), e);
                     }
@@ -442,22 +442,22 @@ public class Realm {
                     try {
                         fieldNamesMethod = generatedClass.getMethod("getFieldNames");
                     } catch (NoSuchMethodException e) {
-                        throw new RealmException("Could not find the getFieldNames method in the generated " + generatedClassName + " class");
+                        throw new RealmException("Could not find the getFieldNames method in the generated " + generatedClassName + " class: The annotation processor may not be running.");
                     }
                     List<String> fieldNames;
                     try {
                         //noinspection unchecked
                         fieldNames = (List<String>) fieldNamesMethod.invoke(null);
                     } catch (IllegalAccessException e) {
-                        throw new RealmException("Could not execute the getFieldNames method in the generated " + generatedClassName + " class");
+                        throw new RealmException("Could not execute the getFieldNames method in the generated " + generatedClassName + " class: The annotation processor may not be running.");
                     } catch (InvocationTargetException e) {
-                        throw new RealmException("An exception was thrown in the getFieldNames method in the generated " + generatedClassName + " class");
+                        throw new RealmException("An exception was thrown in the getFieldNames method in the generated " + generatedClassName + " class: The annotation processor may not be running.");
                     }
                     Table table = realm.transaction.getTable(TABLE_PREFIX + modelClassName);
                     for (String fieldName : fieldNames) {
                         long columnIndex = table.getColumnIndex(fieldName);
                         if (columnIndex == -1) {
-                            throw new RealmMigrationNeededException("Column '" + fieldName + "' not found for type '" + modelClassName + "'");
+                            throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type '" + modelClassName + "'");
                         }
                         Map<String, Long> innerMap = columnIndices.get(modelClassName);
                         if (innerMap == null) {
@@ -498,7 +498,7 @@ public class Realm {
                 try {
                     generatedClass = Class.forName(generatedClassName);
                 } catch (ClassNotFoundException e) {
-                    throw new RealmException("Could not find the generated proxy class");
+                    throw new RealmException("Could not find the generated proxy class: The annotation processor may not be running.");
                 }
                 generatedClasses.put(generatedClassName, generatedClass);
             }
@@ -508,7 +508,7 @@ public class Realm {
                 try {
                     method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
                 } catch (NoSuchMethodException e) {
-                    throw new RealmException("Could not find the initTable() method in generated proxy class");
+                    throw new RealmException("Could not find the initTable() method in generated proxy class: The annotation processor may not be running.");
                 }
                 initTableMethods.put(generatedClass, method);
             }
@@ -517,10 +517,10 @@ public class Realm {
                 table = (Table) method.invoke(null, transaction);
                 tables.put(clazz, table);
             } catch (IllegalAccessException e) {
-                throw new RealmException("Could not launch the initTable method");
+                throw new RealmException("Could not launch the initTable method: The annotation processor may not be running.");
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
-                throw new RealmException("An exception occurred while running the initTable method");
+                throw new RealmException("An exception occurred while running the initTable method: The annotation processor may not be running.");
             }
         }
 
@@ -564,7 +564,7 @@ public class Realm {
                 try {
                     generatedClass = Class.forName(generatedClassName);
                 } catch (ClassNotFoundException e) {
-                    throw new RealmException("Could not find the generated proxy class");
+                    throw new RealmException("Could not find the generated proxy class: The annotation processor may not be running.");
                 }
                 generatedClasses.put(generatedClassName, generatedClass);
             }
@@ -574,7 +574,7 @@ public class Realm {
                 try {
                     constructor = generatedClass.getConstructor();
                 } catch (NoSuchMethodException e) {
-                    throw new RealmException("Could not find the constructor in generated proxy class");
+                    throw new RealmException("Could not find the constructor in generated proxy class: The annotation processor may not be running.");
                 }
                 constructors.put(generatedClass, constructor);
                 generatedConstructors.put(clazz, constructor);
