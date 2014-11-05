@@ -165,6 +165,8 @@ public class NotificationsTest extends AndroidTestCase {
             Thread.sleep(5);
         }
 
+        Thread.sleep(5); // Give it time to start the looper
+
         Realm realm = Realm.getInstance(getContext(), false);
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
@@ -217,6 +219,8 @@ public class NotificationsTest extends AndroidTestCase {
         while (!isReady.get()) {
             Thread.sleep(5);
         }
+
+        Thread.sleep(5); // Give it time to start the looper
 
         Realm realm = Realm.getInstance(getContext());
         realm.beginTransaction();
