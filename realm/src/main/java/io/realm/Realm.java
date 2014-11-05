@@ -730,6 +730,7 @@ public class Realm {
                 handler.sendEmptyMessage(REALM_CHANGED);
             }
         }
+        sendNotifications();
     }
 
     /**
