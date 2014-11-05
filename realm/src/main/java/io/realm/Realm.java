@@ -796,9 +796,7 @@ public class Realm {
         realm.setVersion(migration.execute(realm, realm.getVersion()));
         realm.commitTransaction();
 
-        Map<String, Realm> realms = realmsCache.get();
-        realms.put(realmPath, new Realm(realmPath, key, autoUpdate));
-        realmsCache.set(realms);
+        realmsCache.remove();
     }
 
     /**
