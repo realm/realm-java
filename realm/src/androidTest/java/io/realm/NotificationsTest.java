@@ -157,11 +157,11 @@ public class NotificationsTest extends AndroidTestCase {
             }
         });
 
-        while(!isReady.get()) {
+        // Wait until the looper is started
+        while (!isReady.get()) {
             Thread.sleep(5);
         }
-
-        Thread.sleep(100); // Give it time to start the looper
+        Thread.sleep(100); 
 
         Realm realm = Realm.getInstance(getContext(), false);
         realm.beginTransaction();
@@ -210,11 +210,11 @@ public class NotificationsTest extends AndroidTestCase {
             }
         });
 
+        // Wait until the looper is started
         while (!isReady.get()) {
             Thread.sleep(5);
         }
-
-        Thread.sleep(100); // Give it time to start the looper
+        Thread.sleep(100);
 
         Realm realm = Realm.getInstance(getContext());
         realm.beginTransaction();
