@@ -359,13 +359,14 @@ public class Realm {
         Map<String, Realm> realms = realmsCache.get();
         Realm realm = realms.get(absolutePath);
 
-        if (realm == null) {
-            realm = new Realm(absolutePath, key, autoRefresh);
-            realms.put(absolutePath, realm);
-            realmsCache.set(realms);
-        } else {
+        if (realm != null) {
             return realm;
         }
+
+        realm = new Realm(absolutePath, key, autoRefresh);
+        realms.put(absolutePath, realm);
+        realmsCache.set(realms);
+
         if (validateSchema) {
             Class<?> validationClass;
             try {
@@ -724,6 +725,7 @@ public class Realm {
                     realmId == id                                // It's the right realm
                     && !handler.hasMessages(REALM_CHANGED)       // The right message
                     && handler.getLooper().getThread().isAlive() // The receiving thread is alive
+                    && !handler.equals(this.handler)             // Don't notify yourself
             ) {
                 handler.sendEmptyMessage(REALM_CHANGED);
             }
