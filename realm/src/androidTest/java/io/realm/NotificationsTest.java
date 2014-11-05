@@ -203,4 +203,44 @@ public class NotificationsTest extends AndroidTestCase {
         }
         assertTrue(done.get());
     }
+
+    public void testAutoUpdateRealmResults() {
+        final int TEST_SIZE = 10;
+        final AtomicInteger counter = new AtomicInteger(0);
+        final Queue<Handler> handlers = new ConcurrentLinkedQueue<Handler>();
+
+        Thread listenerThread = new Thread() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                Realm r = Realm.getInstance(getContext());
+                final RealmResults<Dog> dogs = r.allObjects(Dog.class);
+                r.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        counter.addAndGet(dogs.size());
+                        Looper.myLooper().quit();
+                    }
+                });
+                Looper.loop();
+            }
+        };
+        listenerThread.start();
+
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            Dog dog = realm.createObject(Dog.class);
+            dog.setName("Rex "+i);
+        }
+        realm.commitTransaction();
+
+        try {
+            listenerThread.join(2000);
+        } catch (InterruptedException e) {
+            fail();
+        }
+
+        assertEquals(TEST_SIZE, counter.get());
+    }
 }
