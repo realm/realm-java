@@ -195,13 +195,7 @@ public class NotificationsTest extends AndroidTestCase {
                     @Override
                     public void onChange() {
                         int c = counter.incrementAndGet();
-                        if (c == 1) { // initTable
-                            results.put(c, dogs.size());
-                        } else if (c == 2) { // commit
-                            results.put(c, dogs.size());
-                        } else {
-                            results.put(c, dogs.size());
-                        }
+                        results.put(c, dogs.size());
                     }
                 });
                 isReady.set(true);
