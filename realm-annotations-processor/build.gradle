@@ -5,19 +5,12 @@ sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
 
 repositories {
-    mavenCentral()
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs =  ['src/main/java', "../realm/src/main/java/io/realm/annotations"]
-        }
-    }
+    jcenter()
 }
 
 dependencies {
     compile group:'com.squareup', name:'javawriter', version:'2.5.0'
+    compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
 }
 
 jar {
