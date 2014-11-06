@@ -29,6 +29,7 @@ dependencies {
     compile 'com.intellij:annotations:+@jar'
     compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
     androidTestApt files("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
+    androidTestApt files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
 }
 
 android.libraryVariants.all { variant ->
