@@ -74,7 +74,7 @@ public class Realm {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
-    private static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
+    protected static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
         @Override
         protected Map<String, Realm> initialValue() {
             return new HashMap<String, Realm>();
@@ -359,11 +359,14 @@ public class Realm {
         Map<String, Realm> realms = realmsCache.get();
         Realm realm = realms.get(absolutePath);
 
-        if (realm == null) {
-            realm = new Realm(absolutePath, key, autoRefresh);
-            realms.put(absolutePath, realm);
-            realmsCache.set(realms);
+        if (realm != null) {
+            return realm;
         }
+
+        realm = new Realm(absolutePath, key, autoRefresh);
+        realms.put(absolutePath, realm);
+        realmsCache.set(realms);
+
         if (validateSchema) {
             Class<?> validationClass;
             try {
@@ -722,10 +725,12 @@ public class Realm {
                     realmId == id                                // It's the right realm
                     && !handler.hasMessages(REALM_CHANGED)       // The right message
                     && handler.getLooper().getThread().isAlive() // The receiving thread is alive
+                    && !handler.equals(this.handler)             // Don't notify yourself
             ) {
                 handler.sendEmptyMessage(REALM_CHANGED);
             }
         }
+        sendNotifications();
     }
 
     /**
@@ -792,9 +797,7 @@ public class Realm {
         realm.setVersion(migration.execute(realm, realm.getVersion()));
         realm.commitTransaction();
 
-        Map<String, Realm> realms = realmsCache.get();
-        realms.put(realmPath, new Realm(realmPath, key, autoUpdate));
-        realmsCache.set(realms);
+        realmsCache.remove();
     }
 
     /**

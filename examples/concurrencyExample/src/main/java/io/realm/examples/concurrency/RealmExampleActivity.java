@@ -48,7 +48,7 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
         findViewById(R.id.quit_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                stopTransactionTests();
+                stopTests();
             }
         });
 
@@ -62,21 +62,25 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     @Override
     public void onResume() {
         super.onResume();
-
-        //Alternatively can use transaction tests here...
-        //startTransactionTests();
-
-        startSpawnTests();
+        startTests();
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        stopTests();
+    }
 
+    private void startTests() {
+        startSpawnTests();
+        //Alternatively can use transaction tests here...
+        //startTransactionTests();
+    }
+
+    private void stopTests() {
+        stopSpawnTests();
         //Alternatively can use transaction tests here...
         //stopTransactionTests();
-
-        stopSpawnTests();
     }
 
     // Using the screen form the user can inject into the Realm

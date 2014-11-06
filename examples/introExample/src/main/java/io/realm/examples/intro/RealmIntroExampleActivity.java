@@ -107,7 +107,7 @@ public class RealmIntroExampleActivity extends Activity {
 
         // Open the default realm. All threads must use it's own reference to the realm.
         // Those can not be transferred across threads.
-        Realm realm = Realm.getInstance(this);
+        Realm realm = Realm.getInstance(this, false);
 
         // Add ten persons in one write transaction
         realm.beginTransaction();
