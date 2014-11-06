@@ -16,8 +16,8 @@
 
 package io.realm;
 
-import io.realm.internal.Row;
 import io.realm.annotations.RealmClass;
+import io.realm.internal.Row;
 
 /**
  * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
@@ -45,7 +45,7 @@ public abstract class RealmObject {
      */
     public void removeFromRealm() {
         if (row == null) {
-            throw new IllegalStateException("Object malformed: missing Row. Make sure to instantiate RealmObjects with Realm.createObject()");
+            throw new IllegalStateException("Object malformed: missing object in Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
         if (realm == null) {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");

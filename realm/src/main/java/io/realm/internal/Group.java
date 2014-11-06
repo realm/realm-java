@@ -315,6 +315,6 @@ public class Group implements Closeable {
     protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
 
     private void throwImmutable() {
-        throw new IllegalStateException("Mutable method call during read transaction.");
+        throw new IllegalStateException("Objects cannot be changed outside a transaction; see beginTransaction() for details.");
     }
 }

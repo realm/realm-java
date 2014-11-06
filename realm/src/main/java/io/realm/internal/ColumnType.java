@@ -77,7 +77,7 @@ public enum ColumnType {
         case 7: return (obj instanceof java.util.Date);
         case 9: return (obj instanceof Float);
         case 10: return (obj instanceof Double);
-        default: throw new RuntimeException("Invalid index in ColumnType.");
+        default: throw new RuntimeException(String.format("Invalid index (%d) in ColumnType.", this.nativeValue));
         }
     }
 
@@ -88,7 +88,7 @@ public enum ColumnType {
             if (e != null)
                 return e;
         }
-        throw new IllegalArgumentException("Bad native column type");
+        throw new IllegalArgumentException("Invalid native column type");
     }
 }
 
