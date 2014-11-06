@@ -16,3 +16,12 @@ dependencies {
 jar {
     from configurations.compile.findAll {it.name.contains('javawriter')}.collect { zipTree(it) }
 }
+
+task compileAnnotations(type: GradleBuild) {
+    dir = file('../realm-annotations')
+    tasks = ['assemble']
+}
+
+tasks.assemble {
+    dependsOn compileAnnotations
+}
