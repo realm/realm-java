@@ -52,7 +52,6 @@ public class RealmProcessor extends AbstractProcessor {
             String packageName;
             List<VariableElement> fields = new ArrayList<VariableElement>();
             List<VariableElement> indexedFields = new ArrayList<VariableElement>();
-            List<String> ignoredFields = new ArrayList<String>();
             List<String> expectedGetters = new ArrayList<String>();
             List<String> expectedSetters = new ArrayList<String>();
             List<ExecutableElement> methods = new ArrayList<ExecutableElement>();
@@ -93,7 +92,6 @@ public class RealmProcessor extends AbstractProcessor {
                     String fieldName = variableElement.getSimpleName().toString();
                     if (variableElement.getAnnotation(Ignore.class) != null) {
                         // The field has the @Ignore annotation. No need to go any further.
-                        ignoredFields.add(fieldName);
                         continue;
                     }
 
@@ -122,45 +120,73 @@ public class RealmProcessor extends AbstractProcessor {
                 }
             }
 
-            for (ExecutableElement executableElement : methods) {
-                if (executableElement.getModifiers().contains(Modifier.STATIC)) {
-                    continue; // We're cool with static methods. Move along!
-                }
+            List<String> fieldNames = new ArrayList<String>();
+            for (VariableElement field : fields) {
+                fieldNames.add(field.getSimpleName().toString());
+            }
 
-                if (!executableElement.getModifiers().contains(Modifier.PUBLIC)) {
+            for (ExecutableElement executableElement : methods) {
+
+                // Check the modifiers of the method
+                Set<Modifier> modifiers = executableElement.getModifiers();
+                if (modifiers.contains(Modifier.STATIC)) {
+                    continue; // We're cool with static methods. Move along!
+                } else if (!modifiers.contains(Modifier.PUBLIC)) {
                     error("The methods of the model must be public", executableElement);
                 }
 
                 String methodName = executableElement.getSimpleName().toString();
-                String computedFieldName = methodName.startsWith("is")?lowerFirstChar(methodName.substring(2)):lowerFirstChar(methodName.substring(3));
+
                 if (methodName.startsWith("get") || methodName.startsWith("is")) {
                     boolean found = false;
-                    for (VariableElement field : fields) {
-                        if (field.getSimpleName().toString().equals(computedFieldName)) {
+
+                    if (methodName.startsWith("is")) {
+                        String methodMinusIs = methodName.substring(2);
+                        String methodMinusIsCapitalised = lowerFirstChar(methodMinusIs);
+                        if (fieldNames.contains(methodName)) { // isDone -> isDone
+                            expectedGetters.remove(methodName);
+                            found = true;
+                        } else if (fieldNames.contains(methodMinusIs)) {  // mDone -> ismDone
+                            expectedGetters.remove(methodMinusIs);
+                            found = true;
+                        } else if (fieldNames.contains(methodMinusIsCapitalised)) { // done -> isDone
+                            expectedGetters.remove(methodMinusIsCapitalised);
                             found = true;
                         }
                     }
-                    if (ignoredFields.contains(computedFieldName)) {
-                        found = true;
+
+                    if (!found && methodName.startsWith("get")) {
+                        String methodMinusGet = methodName.substring(3);
+                        String methodMinusGetCapitalised = lowerFirstChar(methodMinusGet);
+                        if (fieldNames.contains(methodMinusGet)) { // mPerson -> getmPerson
+                            expectedGetters.remove(methodMinusGet);
+                            found = true;
+                        } else if (fieldNames.contains(methodMinusGetCapitalised)) { // person -> getPerson
+                            expectedGetters.remove(methodMinusGetCapitalised);
+                            found = true;
+                        }
                     }
+
                     if (!found) {
-                        error(String.format("No field named %s for the getter %s", computedFieldName, methodName), executableElement);
+                        note(String.format("Getter %s is not associated to any field", methodName));
                     }
-                    expectedGetters.remove(computedFieldName);
                 } else if (methodName.startsWith("set")) {
                     boolean found = false;
-                    for (VariableElement field : fields) {
-                        if (field.getSimpleName().toString().equals(computedFieldName)) {
-                            found = true;
-                        }
-                    }
-                    if (ignoredFields.contains(computedFieldName)) {
+
+                    String methodMinusSet = methodName.substring(3);
+                    String methodMinusSetCapitalised = lowerFirstChar(methodMinusSet);
+
+                    if (fieldNames.contains(methodMinusSet)) { // mPerson -> setmPerson
+                        expectedSetters.remove(methodMinusSet);
+                        found = true;
+                    } else if (fieldNames.contains(methodMinusSetCapitalised)) { // person -> setPerson
+                        expectedSetters.remove(methodMinusSetCapitalised);
                         found = true;
                     }
+
                     if (!found) {
-                        error(String.format("No field named %s for the setter %s", computedFieldName, methodName), executableElement);
+                        note(String.format("Set %s is not associated to any field", methodName));
                     }
-                    expectedSetters.remove(computedFieldName);
                 } else {
                     error("Only getters and setters should be defined in model classes", executableElement);
                 }
