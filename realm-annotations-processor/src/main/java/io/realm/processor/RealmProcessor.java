@@ -123,6 +123,10 @@ public class RealmProcessor extends AbstractProcessor {
             }
 
             for (ExecutableElement executableElement : methods) {
+                if (executableElement.getModifiers().contains(Modifier.STATIC)) {
+                    continue; // We're cool with static methods. Move along!
+                }
+
                 if (!executableElement.getModifiers().contains(Modifier.PUBLIC)) {
                     error("The methods of the model must be public", executableElement);
                 }
