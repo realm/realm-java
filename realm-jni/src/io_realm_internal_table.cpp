@@ -1228,6 +1228,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeOptimize(
     } CATCH_STD()
 }
 
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(
+    JNIEnv *env, jobject, jlong nativeTablePtr)
+{
+    Table* table = TBL(nativeTablePtr);
+    if (!TABLE_VALID(env, table))
+        return NULL;
+    const string str = table->get_name();
+    return env->NewStringUTF(str.c_str());
+}
+
+
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToJson(
     JNIEnv *env, jobject, jlong nativeTablePtr)
 {
