@@ -626,6 +626,28 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
     }
 
+    // Committing a transaction on the wrong thread will fail
+    public void testCommitTransactionWrongThread() throws InterruptedException, ExecutionException {
+        final Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    realm.commitTransaction();
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
+    }
+
     public void testCancelTransaction() {
         testRealm.beginTransaction();
         AllTypes allTypes = testRealm.createObject(AllTypes.class);
@@ -637,6 +659,29 @@ public class RealmTest extends AndroidTestCase {
             fail();
         } catch (IllegalStateException ignored) {}
     }
+
+    // Cancelling a transaction on the wrong thread will fail
+    public void testCancelTransactionWrongThread() throws InterruptedException, ExecutionException {
+        final Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    realm.cancelTransaction();
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
+    }
+
 
     // void clear(Class<?> classSpec)
     public void testClassClear() {
