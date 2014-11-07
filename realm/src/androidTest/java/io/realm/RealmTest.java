@@ -22,10 +22,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
-import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 
 
@@ -588,6 +592,27 @@ public class RealmTest extends AndroidTestCase {
             assertEquals("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().", e.getMessage());
         }
         testRealm.commitTransaction();
+    }
+
+    // Starting a transaction on the wrong thread will fail
+    public void testBeginTransactionWrongThread() throws InterruptedException, ExecutionException {
+        final Realm realm = Realm.getInstance(getContext());
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    realm.beginTransaction();
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
     }
 
     // void commitTransaction()

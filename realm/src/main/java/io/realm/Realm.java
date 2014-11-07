@@ -82,7 +82,8 @@ public class Realm {
     };
     private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
     private static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
-    private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have beeen executed.";
+    private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
+    private static final String INCORRECT_THREAD_MESSAGE = "Realm accessed from incorrect thread.";
 
 
     @SuppressWarnings("UnusedDeclaration")
@@ -104,6 +105,13 @@ public class Realm {
 
     // Package protected to be reachable by proxy classes
     static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
+
+    private void checkThread() {
+        Realm r = realmsCache.get();
+        if (realmsCache.get() != this) {
+            throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
+        }
+    }
 
     // The constructor in private to enforce the use of the static one
     private Realm(String absolutePath, byte[] key, boolean autoRefresh) {
@@ -645,6 +653,7 @@ public class Realm {
      * @see io.realm.RealmChangeListener
      */
     public void addChangeListener(RealmChangeListener listener) {
+        checkThread();
         changeListeners.add(listener);
     }
 
@@ -655,6 +664,7 @@ public class Realm {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener listener) {
+        checkThread();
         changeListeners.remove(listener);
     }
 
@@ -664,6 +674,7 @@ public class Realm {
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
+        checkThread();
         changeListeners.clear();
     }
 
@@ -687,6 +698,7 @@ public class Realm {
      */
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
+        checkThread();
         transaction.advanceRead();
     }
 
@@ -701,10 +713,11 @@ public class Realm {
      * Notice: it is not possible to nest write transactions. If you start a write
      * transaction within a write transaction an exception is thrown.
      * <br>
-     * @throws java.lang.IllegalStateException If already in a write transaction.
+     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
      *
      */
     public void beginTransaction() {
+        checkThread();
         transaction.promoteToWrite();
     }
 
@@ -715,9 +728,10 @@ public class Realm {
      * objects and @{link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
      * 
-     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state.
+     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
      */
     public void commitTransaction() {
+        checkThread();
         transaction.commitAndContinueAsRead();
 
         for (Map.Entry<Handler, Integer> handlerIntegerEntry : handlers.entrySet()) {
@@ -743,10 +757,11 @@ public class Realm {
      * <br>
      * Calling this when not in a write transaction will throw an exception.
      *
-     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state or
-    *                                             not in a write transaction.
+     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state,
+    *                                             not in a write transaction or incorrect thread.
     */
      public void cancelTransaction() {
+         checkThread();
          transaction.rollbackAndContinueAsRead();
      }
 
