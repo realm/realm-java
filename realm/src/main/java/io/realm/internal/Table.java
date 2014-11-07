@@ -1394,6 +1394,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
 
+    // get the table name as it is in the associated group.
+    protected String getName() {
+        return nativeGetName(nativePtr);
+    }
+
+    protected native String nativeGetName(long nativeTablePtr);
 
     // Optimize
     public void optimize() {
