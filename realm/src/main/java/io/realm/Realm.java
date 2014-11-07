@@ -74,10 +74,10 @@ public class Realm {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
-    protected static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
+    protected static final ThreadLocal<Map<Integer, Realm>> realmsCache = new ThreadLocal<Map<Integer, Realm>>() {
         @Override
-        protected Map<String, Realm> initialValue() {
-            return new HashMap<String, Realm>();
+        protected Map<Integer, Realm> initialValue() {
+            return new HashMap<Integer, Realm>();
         }
     };
     private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
@@ -107,8 +107,7 @@ public class Realm {
     static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
 
     private void checkThread() {
-        Realm r = realmsCache.get();
-        if (realmsCache.get() != this) {
+        if (realmsCache.get().get(new Integer(this.id)) == null) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
     }
@@ -366,7 +365,7 @@ public class Realm {
     }
 
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
-        Map<String, Realm> realms = realmsCache.get();
+        Map<Integer, Realm> realms = realmsCache.get();
         Realm realm = realms.get(absolutePath);
 
         if (realm != null) {
@@ -374,7 +373,7 @@ public class Realm {
         }
 
         realm = new Realm(absolutePath, key, autoRefresh);
-        realms.put(absolutePath, realm);
+        realms.put(new Integer(absolutePath.hashCode()), realm);
         realmsCache.set(realms);
 
         if (validateSchema) {
