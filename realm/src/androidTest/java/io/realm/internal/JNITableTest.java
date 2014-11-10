@@ -303,7 +303,7 @@ public class JNITableTest extends AndroidTestCase {
       //  new File(FILENAME).delete();
         SharedGroup group = new SharedGroup(FILENAME);
 
-        // Write transaction must be run so where are sure a db exists with the correct table
+        // Write transaction must be run so we are sure a db exists with the correct table
         WriteTransaction wt = group.beginWrite();
         try {
             Table table = wt.getTable(TABLENAME);
@@ -335,7 +335,7 @@ public class JNITableTest extends AndroidTestCase {
         //  new File(FILENAME).delete();
         SharedGroup group = new SharedGroup(FILENAME);
 
-        // Write transaction must be run so where are sure a db exists with the correct table
+        // Write transaction must be run so we are sure a db exists with the correct table
         WriteTransaction wt = group.beginWrite();
         try {
             Table table = wt.getTable(TABLENAME);
