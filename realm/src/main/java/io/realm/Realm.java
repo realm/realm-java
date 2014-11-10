@@ -83,8 +83,7 @@ public class Realm {
     private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
     private static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
     private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm accessed from incorrect thread.";
-
+    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
 
     @SuppressWarnings("UnusedDeclaration")
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
@@ -106,7 +105,7 @@ public class Realm {
     // Package protected to be reachable by proxy classes
     static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
 
-    protected void checkThread() {
+    protected void assertThread() {
         if (realmsCache.get().get(new Integer(this.id)) == null) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
@@ -652,7 +651,7 @@ public class Realm {
      * @see io.realm.RealmChangeListener
      */
     public void addChangeListener(RealmChangeListener listener) {
-        checkThread();
+        assertThread();
         changeListeners.add(listener);
     }
 
@@ -663,7 +662,7 @@ public class Realm {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener listener) {
-        checkThread();
+        assertThread();
         changeListeners.remove(listener);
     }
 
@@ -673,7 +672,7 @@ public class Realm {
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
-        checkThread();
+        assertThread();
         changeListeners.clear();
     }
 
@@ -697,7 +696,7 @@ public class Realm {
      */
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
-        checkThread();
+        assertThread();
         transaction.advanceRead();
     }
 
@@ -716,7 +715,7 @@ public class Realm {
      *
      */
     public void beginTransaction() {
-        checkThread();
+        assertThread();
         transaction.promoteToWrite();
     }
 
@@ -730,7 +729,7 @@ public class Realm {
      * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
      */
     public void commitTransaction() {
-        checkThread();
+        assertThread();
         transaction.commitAndContinueAsRead();
 
         for (Map.Entry<Handler, Integer> handlerIntegerEntry : handlers.entrySet()) {
@@ -760,7 +759,7 @@ public class Realm {
     *                                             not in a write transaction or incorrect thread.
     */
      public void cancelTransaction() {
-         checkThread();
+         assertThread();
          transaction.rollbackAndContinueAsRead();
      }
 
