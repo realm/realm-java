@@ -106,7 +106,7 @@ public class Realm {
     // Package protected to be reachable by proxy classes
     static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
 
-    private void checkThread() {
+    protected void checkThread() {
         if (realmsCache.get().get(new Integer(this.id)) == null) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }

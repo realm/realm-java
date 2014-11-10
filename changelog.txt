@@ -1,5 +1,5 @@
 0.74.0 (??)
- * For many thread fragtile method, check if correct thread, and throw exception if not
+ * For many thread fragtile methods, check if correct thread, and throw exception if not
 
 0.73.1 (05 Nov 2014)
   * Fixed a bug that would send infinite notifications in some instances

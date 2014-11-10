@@ -19,6 +19,11 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 
@@ -131,11 +136,49 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals("ResultList.min returned wrong value", 0, minimum.intValue());
     }
 
+    public void testMinWrongThread() throws ExecutionException, InterruptedException {
+        final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    allTypeses.min(FIELD_FLOAT);
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
+    }
+
     public void testMaxValueIsMaxValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number maximum = resultList.max(FIELD_LONG);
         assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE - 1, maximum.intValue());
+    }
+
+    public void testMaxWrongThread() throws ExecutionException, InterruptedException {
+        final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    allTypeses.max(FIELD_FLOAT);
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
     }
 
     public void testSumGivesCorrectValue() {
@@ -148,6 +191,25 @@ public class RealmResultsTest extends AndroidTestCase {
             checkSum += i;
         }
         assertEquals("ResultList.sum returned wrong sum", checkSum, sum.intValue());
+    }
+
+    public void testSumWrongThread() throws ExecutionException, InterruptedException {
+        final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    allTypeses.sum(FIELD_FLOAT);
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
     }
 
     public void testAvgGivesCorrectValue() {
@@ -178,6 +240,24 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(1.234567+0.5*(N-1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
 
+    public void testAverageWrongThread() throws ExecutionException, InterruptedException {
+        final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    allTypeses.average(FIELD_FLOAT);
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
+    }
 
     // void clear(Class<?> classSpec)
     public void testRemoveIsResultListSizeOk() {
@@ -330,6 +410,24 @@ public class RealmResultsTest extends AndroidTestCase {
         }
     }
 
+    public void testSortWrongThread() throws ExecutionException, InterruptedException {
+        final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    allTypeses.sort(FIELD_FLOAT);
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
+    }
 
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
@@ -352,5 +450,29 @@ public class RealmResultsTest extends AndroidTestCase {
         }
         RealmResults<AllTypes> allTypesRealmResults = query.findAll();
         assertEquals(TEST_DATA_SIZE, allTypesRealmResults.size());
+    }
+
+    public void testWhere() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
+        assertNotNull(query);
+    }
+
+    public void testWhereWrongThread() throws ExecutionException, InterruptedException {
+        final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    allTypeses.where();
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
     }
 }
