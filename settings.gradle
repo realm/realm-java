@@ -14,4 +14,4 @@ project(':adapterExample').projectDir = new File('examples/adapterExample')
 // Experimental projects
 include ':pathExperiment'
 
-project(':pathExperiment').projectDir = new File('experimental/path')
+project(':pathExperiment').projectDir = new File('experimental/pathExperiment')

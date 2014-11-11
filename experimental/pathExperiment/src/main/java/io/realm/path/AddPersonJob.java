@@ -79,8 +79,7 @@ public class AddPersonJob extends Job {
 
     @Override
     protected void onCancel() {
-
-
+        // Ignore
     }
 
     @Override
