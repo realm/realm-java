@@ -180,7 +180,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param value       The value to compare with
      * @param caseSensitive if true, substring matching is case sensitive
      * @return The query object
-     ** @throws java.lang.IllegalArgumentException One or more arguments do not match class or
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
      * @throws java.lang.RuntimeException Any other error
 
