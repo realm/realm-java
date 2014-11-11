@@ -40,6 +40,9 @@ public class RealmQuery<E extends RealmObject> {
 
     private static final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
 
+    public static final boolean CASE_SENSITIVE = true;
+    public static final boolean CASE_INSENSITIVE = false;
+
     /**
      * Creating a RealmQuery instance.
      *
@@ -168,7 +171,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, String value) {
-        return this.equalTo(fieldName, value, false);
+        return this.equalTo(fieldName, value, CASE_INSENSITIVE);
     }
 
     /**
@@ -294,7 +297,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value) {
-        return this.notEqualTo(fieldName, value, false);
+        return this.notEqualTo(fieldName, value, RealmQuery.CASE_INSENSITIVE);
     }
 
     /**

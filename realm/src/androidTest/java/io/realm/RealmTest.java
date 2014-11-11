@@ -149,10 +149,10 @@ public class RealmTest extends AndroidTestCase {
         resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0", false).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0", RealmQuery.CASE_INSENSITIVE).findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "Test data 0", true).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "Test data 0", RealmQuery.CASE_SENSITIVE).findAll();
         assertEquals(0, resultList.size());
     }
 
