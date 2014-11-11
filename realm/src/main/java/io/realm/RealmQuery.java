@@ -168,8 +168,26 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, String value) {
-        long[] columnIndices = getColumnIndices(fieldName, ColumnType.STRING);
-        this.query.equalTo(columnIndices, value);
+        return this.equalTo(fieldName, value, false);
+    }
+
+    /**
+     * Equal-to comparison
+     * @param fieldName   The field to compare
+     * @param value       The value to compare with
+     * @param caseSensitive if true, substring matching is case sensitive
+     * @return The query object
+     ** @throws java.lang.IllegalArgumentException One or more arguments do not match class or
+     * field type
+     * @throws java.lang.RuntimeException Any other error
+
+     */
+    public RealmQuery<E> equalTo(String fieldName, String value, boolean caseSensitive) {
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        if (columnIndices.length > 1 && caseSensitive) {
+            throw new IllegalArgumentException("Link queries cannot be case sensitive - coming soon.");
+        }
+        this.query.equalTo(columnIndices, value, caseSensitive);
         return this;
     }
 
@@ -276,8 +294,25 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value) {
+        return this.notEqualTo(fieldName, value, false);
+    }
+
+    /**
+     * Not-equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @param caseSensitive if true, substring matching is case sensitive
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
+     * field type
+     * @throws java.lang.RuntimeException Any other error
+     */
+    public RealmQuery<E> notEqualTo(String fieldName, String value, boolean caseSensitive) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        this.query.notEqualTo(columnIndices, value);
+        if (columnIndices.length > 1 && caseSensitive) {
+            throw new IllegalArgumentException("Link queries cannot be case sensitive - coming soon.");
+        }
+        this.query.notEqualTo(columnIndices, value, caseSensitive);
         return this;
     }
 
