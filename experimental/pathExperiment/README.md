@@ -10,5 +10,5 @@ Eventbus: http://greenrobot.github.io/EventBus/
 
 - There should be no problems with Path as long as Realm interaction is contained within each Job.
 
-- Eventbus work with the default settings, but care must be taken by users to not parse Realm objects
+- Eventbus work with the default settings, but care must be taken by users to not pass Realm objects
   between threads, ie. using onEventMainThread() instead of onEvent().
