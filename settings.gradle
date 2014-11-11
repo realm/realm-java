@@ -12,6 +12,6 @@ project(':migrationExample').projectDir = new File('examples/migrationExample')
 project(':adapterExample').projectDir = new File('examples/adapterExample')
 
 // Experimental projects
-include ':path'
+include ':pathExperiment'
 
-project(':path').projectDir = new File('experimental/path')
+project(':pathExperiment').projectDir = new File('experimental/path')
