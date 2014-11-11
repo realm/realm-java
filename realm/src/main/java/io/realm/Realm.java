@@ -636,6 +636,24 @@ public class Realm {
         return where(clazz).findAll();
     }
 
+    /**
+     * Get objects with distinct values of the specified field
+     *
+     * @param clazz the Class to get objects of
+     * @param fieldName the field (must be indexed using the @Index annotation)
+     * @return A RealmResult list containing the objects
+     * @throws java.lang.IllegalArgumentException If field does not exist
+     * @throws java.lang.UnsupportedOperationException If field is not indexed
+     */
+    public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
+        Table table = getTable(clazz);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("'%s' is not a valid field name.", fieldName));
+        }
+        return new RealmResults(this, table.getDistinctView(columnIndex), clazz);
+    }
+
     // Notifications
 
     /**

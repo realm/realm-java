@@ -86,7 +86,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return new RealmQuery<E>(this, classSpec);
     }
 
-
     /**
      * {@inheritDoc}
      */
