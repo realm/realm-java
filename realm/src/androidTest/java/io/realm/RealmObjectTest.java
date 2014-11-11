@@ -114,10 +114,11 @@ public class RealmObjectTest extends AndroidTestCase {
             @Override
             public Boolean call() throws Exception {
                 try {
-                    if (callGetter)
+                    if (callGetter) {
                         allTypes.getColumnFloat();
-                    else
+                    } else {
                         allTypes.setColumnFloat(1.0f);
+                    }
                     return false;
                 } catch (IllegalStateException ignored) {
                     return true;
