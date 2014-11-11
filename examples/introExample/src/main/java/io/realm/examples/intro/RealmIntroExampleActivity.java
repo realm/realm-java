@@ -106,7 +106,7 @@ public class RealmIntroExampleActivity extends Activity {
         showStatus("\nPerforming basic Link Query operation...");
         showStatus("Number of persons: " + realm.allObjects(Person.class).size());
 
-        RealmResults<Person> results = realm.where(Person.class).equalTo("cat.name", "Pussy").findAll();
+        RealmResults<Person> results = realm.where(Person.class).equalTo("cat.name", "Tiger").findAll();
 
         showStatus("Size of result set: " + results.size());
     }
