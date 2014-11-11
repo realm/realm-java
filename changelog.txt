@@ -1,5 +1,5 @@
 0.74.0 (??)
-  * Adding case sensitive versions of string comparison operators equalTo and noEqualTo
+  * Adding case sensitive versions of string comparison operators equalTo and notEqualTo
 
 
 0.73.1 (05 Nov 2014)
