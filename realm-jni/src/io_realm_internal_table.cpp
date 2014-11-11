@@ -1235,7 +1235,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(
     if (!TABLE_VALID(env, table))
         return NULL;
     const string str = table->get_name();
-    return env->NewStringUTF(str.c_str());
+    return to_jstring(env, str);
 }
 
 
@@ -1252,7 +1252,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToJson(
         ss.sync_with_stdio(false); // for performance
         table->to_json(ss);
         const string str = ss.str();
-        return env->NewStringUTF(str.c_str());
+        return to_jstring(env, str);
     } CATCH_STD()
     return NULL;
 }
@@ -1267,7 +1267,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToString(
         ostringstream ss;
         table->to_string(ss, S(maxRows));
         const string str = ss.str();
-        return env->NewStringUTF(str.c_str());
+        return to_jstring(env, str);
     } CATCH_STD()
     return NULL;
 }
@@ -1282,7 +1282,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeRowToString(
         ostringstream ss;
         table->row_to_string(S(rowIndex), ss);
         const string str = ss.str();
-        return env->NewStringUTF(str.c_str());
+        return to_jstring(env, str);
     } CATCH_STD()
     return NULL;
 }
