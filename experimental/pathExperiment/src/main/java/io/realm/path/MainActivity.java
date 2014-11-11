@@ -52,7 +52,7 @@ public class MainActivity extends ActionBarActivity {
         jobManager.addJob(new AddPersonJob(this));
     }
 
-    // Calback from EventBus on same thread as job who posted the event. This is not the UI thread.
+    // Callback from EventBus on the same thread as the job which posted the event. This is not executed on the UI thread.
     public void onEvent(Person person) {
         final String description = person.toString();
         runOnUiThread(new Runnable() {
