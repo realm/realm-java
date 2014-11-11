@@ -146,7 +146,14 @@ public class RealmTest extends AndroidTestCase {
         resultList = testRealm.where(AllTypes.class).equalTo("columnLong", 3333).findAll();
         assertEquals("ResultList.where not returning expected result", 0, resultList.size());
 
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0").findAll();
+        assertEquals(1, resultList.size());
 
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0", false).findAll();
+        assertEquals(1, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "Test data 0", true).findAll();
+        assertEquals(0, resultList.size());
     }
 
     public void testQueriesWithDataTypes() throws IOException {
