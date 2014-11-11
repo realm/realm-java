@@ -171,7 +171,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, String value) {
-        return this.equalTo(fieldName, value, CASE_INSENSITIVE);
+        return this.equalTo(fieldName, value, CASE_SENSITIVE);
     }
 
     /**
@@ -187,8 +187,8 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmQuery<E> equalTo(String fieldName, String value, boolean caseSensitive) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length > 1 && caseSensitive) {
-            throw new IllegalArgumentException("Link queries cannot be case sensitive - coming soon.");
+        if (columnIndices.length > 1 && !caseSensitive) {
+            throw new IllegalArgumentException("Link queries cannot be case insensitive - coming soon.");
         }
         this.query.equalTo(columnIndices, value, caseSensitive);
         return this;
@@ -297,7 +297,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value) {
-        return this.notEqualTo(fieldName, value, RealmQuery.CASE_INSENSITIVE);
+        return this.notEqualTo(fieldName, value, RealmQuery.CASE_SENSITIVE);
     }
 
     /**
@@ -312,8 +312,8 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value, boolean caseSensitive) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length > 1 && caseSensitive) {
-            throw new IllegalArgumentException("Link queries cannot be case sensitive - coming soon.");
+        if (columnIndices.length > 1 && !caseSensitive) {
+            throw new IllegalArgumentException("Link queries cannot be case insensitive - coming soon.");
         }
         this.query.notEqualTo(columnIndices, value, caseSensitive);
         return this;

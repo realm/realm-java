@@ -265,7 +265,7 @@ public class RealmLinkTests extends AndroidTestCase {
         } catch (IllegalArgumentException e) { }
 
         try {
-            RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "Max", RealmQuery.CASE_SENSITIVE).findAll();
+            RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "Max", RealmQuery.CASE_INSENSITIVE).findAll();
             fail();
         } catch (IllegalArgumentException ignore) {}
     }
