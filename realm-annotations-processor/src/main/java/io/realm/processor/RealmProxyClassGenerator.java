@@ -220,6 +220,7 @@ public class RealmProxyClassGenerator {
                 "io.realm.internal.LinkView",
                 "io.realm.RealmList",
                 "io.realm.RealmObject",
+                "io.realm.Realm",
                 "java.util.*",
                 packageName + ".*")
                 .emitEmptyLine();
@@ -253,6 +254,9 @@ public class RealmProxyClassGenerator {
                 String getterPrefix = fieldTypeCanonicalName.equals("boolean")?"is":"get";
                 writer.beginMethod(fieldTypeCanonicalName, getterPrefix + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
+                        "realm.assertThread()"
+                );
+                writer.emitStatement(
                         "return (%s) row.get%s(Realm.columnIndices.get(\"%s\").get(\"%s\"))",
                         fieldTypeCanonicalName, realmType, className, fieldName);
                 writer.endMethod();
@@ -261,6 +265,9 @@ public class RealmProxyClassGenerator {
                 // Setter
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+                writer.emitStatement(
+                        "realm.assertThread()"
+                );
                 writer.emitStatement(
                         "row.set%s(Realm.columnIndices.get(\"%s\").get(\"%s\"), (%s) value)",
                         realmType, className, fieldName, castingType);

@@ -1,6 +1,9 @@
 0.74.0 (??)
+  * An exception will now be thrown if you try to move Realm, RealmResults or RealmObject between threads. 
+  * Fixed a bug in the calculation of the maximum of date field in a RealmResults
   * Adding case sensitive versions of string comparison operators equalTo and notEqualTo
   * Adding where() to RealmList to initiate queries
+  * Adding new method distinct() to Realm
 
 0.73.1 (05 Nov 2014)
   * Fixed a bug that would send infinite notifications in some instances
