@@ -425,4 +425,15 @@ public class RealmLinkTests extends AndroidTestCase {
             fail();
         } catch (IllegalArgumentException e) { }
     }
+
+    public void testWhere() throws Exception {
+        RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
+        RealmResults<Dog> dogs = owners.first().getDogs().where().equalTo("name", "Pluto").findAll();
+        assertEquals(1, dogs.size());
+        assertEquals("Pluto", dogs.first().getName());
+        assertEquals(5, dogs.first().getAge());
+
+        RealmResults<Dog> none = owners.first().getDogs().where().equalTo("name", "Mars").findAll();
+        assertEquals(0, none.size());
+    }
 }
