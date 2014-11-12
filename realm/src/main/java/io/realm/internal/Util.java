@@ -61,7 +61,8 @@ public class Util {
         Exception_UnsupportedOperation(9),
         Exception_OutOfMemory(10),
         Exception_Unspecified(11),
-        Exception_RuntimeError(12);
+        Exception_RuntimeError(12),
+        Exception_RowInvalid(13);
 
         private final int nativeTestcase;
         private Testcase(int nativeValue)

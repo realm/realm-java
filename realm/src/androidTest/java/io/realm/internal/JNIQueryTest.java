@@ -40,7 +40,7 @@ public class JNIQueryTest extends TestCase {
         init();
         TableQuery query = table.where();
 
-        long cnt = query.equalTo(1, "D").count();
+        long cnt = query.equalTo(new long[]{1}, "D").count();
         assertEquals(2, cnt);
 
         cnt = query.minimumInt(0);
@@ -63,27 +63,27 @@ public class JNIQueryTest extends TestCase {
         init();
 
         // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
-        try { table.where().equalTo(0,1).or().findAll();                    fail("missing a second filter"); }      catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(new long[]{0}, 1).or().findAll();       fail("missing a second filter"); }      catch (UnsupportedOperationException e) { }
         try { table.where().or().findAll();                                 fail("just an or()"); }                 catch (UnsupportedOperationException e) { }
-        try { table.where().group().equalTo(0,1).findAll();                 fail("messing a clsong group"); }       catch (UnsupportedOperationException e) { }
-        try { table.where().endGroup().equalTo(0,1).findAll();              fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(0,1).endGroup().findAll();              fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().group().equalTo(new long[]{0}, 1).findAll();    fail("messing a clsong group"); }       catch (UnsupportedOperationException e) { }
+        try { table.where().endGroup().equalTo(new long[]{0}, 1).findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
 
-        try { table.where().equalTo(0,1).endGroup().find();                 fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(0,1).endGroup().find(0);                fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(0,1).endGroup().find(1);                fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().find();    fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(0);   fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(1);   fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
 
-        try { table.where().equalTo(0,1).endGroup().findAll(0, -1, -1);     fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(0, -1, -1); fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
 
 
         // step by step buildup
-        TableQuery q = table.where().equalTo(0,1);              // valid
+        TableQuery q = table.where().equalTo(new long[]{0}, 1); // valid
         q.findAll();
         q.or();                                                 // not valid
         try { q.findAll();     fail("no start group"); }         catch (UnsupportedOperationException e) { }
-        q.equalTo(0, 100);                                      // valid again
+        q.equalTo(new long[]{0}, 100);                          // valid again
         q.findAll();
-        q.equalTo(0, 200);                                      // still valid
+        q.equalTo(new long[]{0}, 200);                          // still valid
         q.findAll();
     }
 
@@ -92,45 +92,45 @@ public class JNIQueryTest extends TestCase {
         TableQuery query = table.where();
 
         // Boolean
-        try { query.equalTo(-1, true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Date
-        try { query.equalTo(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Double
-        try { query.equalTo(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
 
         // Float
-        try { query.equalTo(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Int / long
-        try { query.equalTo(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String
-        try { query.equalTo(-1, "a").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, "a").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case true
-        try { query.equalTo(-1, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case false
-        try { query.equalTo(-1, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-10, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(-100, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-10}, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-100}, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
     public void testNegativeColumnIndexNotEqualTo() {
@@ -139,40 +139,40 @@ public class JNIQueryTest extends TestCase {
 
 
         // Date
-        try { query.notEqualTo(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-1}, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-10}, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-100}, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Double
-        try { query.notEqualTo(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-1}, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-10}, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-100}, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
 
         // Float
-        try { query.notEqualTo(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-1}, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-10}, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-100}, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Int / long
-        try { query.notEqualTo(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-1}, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-10}, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-100}, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String
-        try { query.notEqualTo(-1, "a").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-10, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-100, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-1}, "a").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-10}, "a").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-100}, "a").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case true
-        try { query.notEqualTo(-1, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-10, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-100, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-1}, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-10}, "a", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-100}, "a", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case false
-        try { query.notEqualTo(-1, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-10, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(-100, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-1}, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-10}, "a", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-100}, "a", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
 
@@ -181,25 +181,25 @@ public class JNIQueryTest extends TestCase {
         TableQuery query = table.where();
 
         // Date
-        try { query.greaterThan(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-1}, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-10}, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-100}, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Double
-        try { query.greaterThan(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-1}, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-10}, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-100}, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
 
         // Float
-        try { query.greaterThan(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-1}, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-10}, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-100}, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Int / long
-        try { query.greaterThan(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-1}, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-10}, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{-100}, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
 
@@ -208,25 +208,25 @@ public class JNIQueryTest extends TestCase {
         TableQuery query = table.where();
 
         // Date
-        try { query.greaterThanOrEqual(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-1}, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-10}, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-100}, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Double
-        try { query.greaterThanOrEqual(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-1}, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-10}, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-100}, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
 
         // Float
-        try { query.greaterThanOrEqual(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-1}, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-10}, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-100}, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Int / long
-        try { query.greaterThanOrEqual(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-1}, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-10}, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{-100}, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
 
@@ -235,25 +235,25 @@ public class JNIQueryTest extends TestCase {
         TableQuery query = table.where();
 
         // Date
-        try { query.lessThan(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-1}, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-10}, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-100}, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Double
-        try { query.lessThan(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-1}, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-10}, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-100}, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
 
         // Float
-        try { query.lessThan(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-1}, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-10}, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-100}, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Int / long
-        try { query.lessThan(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-1}, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-10}, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{-100}, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
     public void testNegativeColumnIndexLessThanOrEqual() {
@@ -261,25 +261,25 @@ public class JNIQueryTest extends TestCase {
         TableQuery query = table.where();
 
         // Date
-        try { query.lessThanOrEqual(-1, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(-10, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(-100, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-1}, new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-10}, new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-100}, new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Double
-        try { query.lessThanOrEqual(-1, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(-10, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(-100, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-1}, 4.5d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-10}, 4.5d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-100}, 4.5d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
 
         // Float
-        try { query.lessThanOrEqual(-1, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(-10, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(-100, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-1}, 1.4f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-10}, 1.4f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-100}, 1.4f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Int / long
-        try { query.lessThanOrEqual(-1, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(-10, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(-100, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-1}, 1).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-10}, 1).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{-100}, 1).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
 
@@ -288,25 +288,25 @@ public class JNIQueryTest extends TestCase {
         TableQuery query = table.where();
 
         // Date
-        try { query.between(-1, new Date(), new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.between(-10, new Date(), new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.between(-100, new Date(), new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-1}, new Date(), new Date()).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-10}, new Date(), new Date()).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-100}, new Date(), new Date()).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Double
-        try { query.between(-1, 4.5d, 6.0d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.between(-10, 4.5d, 6.0d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.between(-100, 4.5d, 6.0d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-1}, 4.5d, 6.0d).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-10}, 4.5d, 6.0d).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-100}, 4.5d, 6.0d).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
 
         // Float
-        try { query.between(-1, 1.4f, 5.8f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.between(-10, 1.4f, 5.8f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.between(-100, 1.4f, 5.8f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-1}, 1.4f, 5.8f).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-10}, 1.4f, 5.8f).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-100}, 1.4f, 5.8f).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Int / long
-        try { query.between(-1, 1, 10).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.between(-10, 1, 10).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.between(-100, 1, 10).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-1}, 1, 10).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-10}, 1, 10).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{-100}, 1, 10).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
 
@@ -336,21 +336,21 @@ public class JNIQueryTest extends TestCase {
         t.addColumn(ColumnType.STRING, "stringCol");
         
         Date nullDate = null;
-        try { t.where().equalTo(0, nullDate);               fail("Date is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().notEqualTo(0, nullDate);            fail("Date is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().greaterThan(0, nullDate);           fail("Date is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().greaterThanOrEqual(0, nullDate);    fail("Date is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().lessThan(0, nullDate);              fail("Date is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().lessThanOrEqual(0, nullDate);       fail("Date is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().between(0, nullDate, new Date());   fail("Date is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().between(0, new Date(), nullDate);   fail("Date is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().between(0, nullDate, nullDate);     fail("Dates are null"); } catch (IllegalArgumentException e) { }
+        try { t.where().equalTo(new long[]{0}, nullDate);               fail("Date is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().notEqualTo(new long[]{0}, nullDate);            fail("Date is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().greaterThan(new long[]{0}, nullDate);           fail("Date is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().greaterThanOrEqual(new long[]{0}, nullDate);    fail("Date is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().lessThan(new long[]{0}, nullDate);              fail("Date is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().lessThanOrEqual(new long[]{0}, nullDate);       fail("Date is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().between(new long[]{0}, nullDate, new Date());   fail("Date is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().between(new long[]{0}, new Date(), nullDate);   fail("Date is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().between(new long[]{0}, nullDate, nullDate);     fail("Dates are null"); } catch (IllegalArgumentException e) { }
         
         String nullString = null;
-        try { t.where().equalTo(1, nullString);             fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().equalTo(1, nullString, false);      fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().notEqualTo(1, nullString);          fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().notEqualTo(1, nullString, false);   fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().equalTo(new long[]{1}, nullString);             fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().equalTo(new long[]{1}, nullString, false);      fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().notEqualTo(new long[]{1}, nullString);          fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().notEqualTo(new long[]{1}, nullString, false);   fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().contains(1, nullString);            fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().contains(1, nullString, false);     fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().beginsWith(1, nullString);          fail("String is null"); } catch (IllegalArgumentException e) { }
@@ -377,7 +377,7 @@ public class JNIQueryTest extends TestCase {
         table.add("Bill", 564, true);       // 4
         table.add("Janet", 875, false);     // 5 *
 
-        TableQuery query = table.where().greaterThan(1, 600);
+        TableQuery query = table.where().greaterThan(new long[]{1}, 600);
 
         // find first match
         assertEquals(1, query.find());
@@ -411,7 +411,7 @@ public class JNIQueryTest extends TestCase {
 
         t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
 
-        TableQuery q = t.where().greaterThan(5, 1000); // No matches
+        TableQuery q = t.where().greaterThan(new long[]{5}, 1000); // No matches
 
         assertEquals(-1, q.find());
         assertEquals(-1, q.find(1));
@@ -429,8 +429,8 @@ public class JNIQueryTest extends TestCase {
         // Compare strings in non string columns
         for (int i = 0; i <= 8; i++) {
             if (i != 7) {
-                try { query.equalTo(i, "string");                 assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqualTo(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
+                try { query.equalTo(new long[]{i}, "string");                 assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(new long[]{i}, "string");              assert(false); } catch(IllegalArgumentException e) {}
                 try { query.beginsWith(i, "string");            assert(false); } catch(IllegalArgumentException e) {}
                 try { query.endsWith(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
                 try { query.contains(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
@@ -440,46 +440,46 @@ public class JNIQueryTest extends TestCase {
         // Compare integer in non integer columns
         for (int i = 0; i <= 8; i++) {
             if (i != 5) {
-                try { query.equalTo(i, 123);                      assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqualTo(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
-                try { query.lessThan(i, 123);                   assert(false); } catch(IllegalArgumentException e) {}
-                try { query.lessThanOrEqual(i, 123);            assert(false); } catch(IllegalArgumentException e) {}
-                try { query.greaterThan(i, 123);                assert(false); } catch(IllegalArgumentException e) {}
-                try { query.greaterThanOrEqual(i, 123);         assert(false); } catch(IllegalArgumentException e) {}
-                try { query.between(i, 123, 321);               assert(false); } catch(IllegalArgumentException e) {}
+                try { query.equalTo(new long[]{i}, 123);                      assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(new long[]{i}, 123);                   assert(false); } catch(IllegalArgumentException e) {}
+                try { query.lessThan(new long[]{i}, 123);                     assert(false); } catch(IllegalArgumentException e) {}
+                try { query.lessThanOrEqual(new long[]{i}, 123);              assert(false); } catch(IllegalArgumentException e) {}
+                try { query.greaterThan(new long[]{i}, 123);                  assert(false); } catch(IllegalArgumentException e) {}
+                try { query.greaterThanOrEqual(new long[]{i}, 123);           assert(false); } catch(IllegalArgumentException e) {}
+                try { query.between(new long[]{i}, 123, 321);                 assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
         // Compare float in non float columns
         for (int i = 0; i <= 8; i++) {
             if (i != 4) {
-                try { query.equalTo(i, 123F);                     assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqualTo(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
-                try { query.lessThan(i, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
-                try { query.lessThanOrEqual(i, 123F);           assert(false); } catch(IllegalArgumentException e) {}
-                try { query.greaterThan(i, 123F);               assert(false); } catch(IllegalArgumentException e) {}
-                try { query.greaterThanOrEqual(i, 123F);        assert(false); } catch(IllegalArgumentException e) {}
-                try { query.between(i, 123F, 321F);             assert(false); } catch(IllegalArgumentException e) {}
+                try { query.equalTo(new long[]{i}, 123F);                     assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(new long[]{i}, 123F);                  assert(false); } catch(IllegalArgumentException e) {}
+                try { query.lessThan(new long[]{i}, 123F);                    assert(false); } catch(IllegalArgumentException e) {}
+                try { query.lessThanOrEqual(new long[]{i}, 123F);             assert(false); } catch(IllegalArgumentException e) {}
+                try { query.greaterThan(new long[]{i}, 123F);                 assert(false); } catch(IllegalArgumentException e) {}
+                try { query.greaterThanOrEqual(new long[]{i}, 123F);          assert(false); } catch(IllegalArgumentException e) {}
+                try { query.between(new long[]{i}, 123F, 321F);               assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
         // Compare double in non double columns
         for (int i = 0; i <= 8; i++) {
             if (i != 3) {
-                try { query.equalTo(i, 123D);                     assert(false); } catch(IllegalArgumentException e) {}
-                try { query.notEqualTo(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
-                try { query.lessThan(i, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
-                try { query.lessThanOrEqual(i, 123D);           assert(false); } catch(IllegalArgumentException e) {}
-                try { query.greaterThan(i, 123D);               assert(false); } catch(IllegalArgumentException e) {}
-                try { query.greaterThanOrEqual(i, 123D);        assert(false); } catch(IllegalArgumentException e) {}
-                try { query.between(i, 123D, 321D);             assert(false); } catch(IllegalArgumentException e) {}
+                try { query.equalTo(new long[]{i}, 123D);                     assert(false); } catch(IllegalArgumentException e) {}
+                try { query.notEqualTo(new long[]{i}, 123D);                  assert(false); } catch(IllegalArgumentException e) {}
+                try { query.lessThan(new long[]{i}, 123D);                    assert(false); } catch(IllegalArgumentException e) {}
+                try { query.lessThanOrEqual(new long[]{i}, 123D);             assert(false); } catch(IllegalArgumentException e) {}
+                try { query.greaterThan(new long[]{i}, 123D);                 assert(false); } catch(IllegalArgumentException e) {}
+                try { query.greaterThanOrEqual(new long[]{i}, 123D);          assert(false); } catch(IllegalArgumentException e) {}
+                try { query.between(new long[]{i}, 123D, 321D);               assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
         // Compare boolean in non boolean columns
         for (int i = 0; i <= 8; i++) {
             if (i != 1) {
-              try { query.equalTo(i, true);                       assert(false); } catch(IllegalArgumentException e) {}
+              try { query.equalTo(new long[]{i}, true);                       assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
@@ -581,45 +581,45 @@ public class JNIQueryTest extends TestCase {
         try { query.averageFloat(8);            assert(false); } catch(IllegalArgumentException e) {}
         try { query.averageDouble(8);           assert(false); } catch(IllegalArgumentException e) {}
         // Out of bounds for string
-        try { query.equalTo(9, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{9}, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{9}, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.beginsWith(9, "string");            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.endsWith(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.contains(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
 
 
         // Out of bounds for integer
-        try { query.equalTo(9, 123);                      assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(9, 123);                   assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(9, 123);                   assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(9, 123);            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(9, 123);                assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(9, 123);         assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.between(9, 123, 321);               assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{9}, 123);                      assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{9}, 123);                   assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{9}, 123);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{9}, 123);              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{9}, 123);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{9}, 123);           assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{9}, 123, 321);                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
 
 
         // Out of bounds for float
-        try { query.equalTo(9, 123F);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(9, 123F);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(9, 123F);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(9, 123F);           assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(9, 123F);               assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(9, 123F);        assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.between(9, 123F, 321F);             assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{9}, 123F);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{9}, 123F);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{9}, 123F);                    assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{9}, 123F);             assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{9}, 123F);                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{9}, 123F);          assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{9}, 123F, 321F);               assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
 
 
         // Out of bounds for double
-        try { query.equalTo(9, 123D);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(9, 123D);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThan(9, 123D);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.lessThanOrEqual(9, 123D);           assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThan(9, 123D);               assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.greaterThanOrEqual(9, 123D);        assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.between(9, 123D, 321D);             assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{9}, 123D);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{9}, 123D);                  assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThan(new long[]{9}, 123D);                    assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.lessThanOrEqual(new long[]{9}, 123D);             assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThan(new long[]{9}, 123D);                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.greaterThanOrEqual(new long[]{9}, 123D);          assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.between(new long[]{9}, 123D, 321D);               assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
 
 
         // Out of bounds for boolean
-        try { query.equalTo(9, true);                       assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{9}, true);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
     }
 
     
@@ -640,11 +640,11 @@ public class JNIQueryTest extends TestCase {
 
         TableView view = table.where().findAll();
 
-        TableView view2 = view.where().equalTo(0, "John").findAll();
+        TableView view2 = view.where().equalTo(new long[]{0}, "John").findAll();
 
         assertEquals(2, view2.size());
 
-        TableView view3 = view2.where().equalTo(1, "Anderson").findAll();
+        TableView view3 = view2.where().equalTo(new long[]{1}, "Anderson").findAll();
 
         assertEquals(1, view3.size());
     }
@@ -665,9 +665,9 @@ public class JNIQueryTest extends TestCase {
         table.add("Erik", "Lee", 30000);
         table.add("Henry", "Anderson", 10000);
 
-        TableView view = table.where().equalTo(0, "John").findAll();
+        TableView view = table.where().equalTo(new long[]{0}, "John").findAll();
 
-        TableView view2 = view.where().equalTo(1, "Anderson").findAll();
+        TableView view2 = view.where().equalTo(new long[]{1}, "Anderson").findAll();
 
         assertEquals(1, view2.size());
     }
@@ -695,7 +695,7 @@ public class JNIQueryTest extends TestCase {
                                           {"task3", 14, false}}, "");
 
         // Query the table
-        TableView view = table.where().subtable(1).equalTo(2, true).endSubtable().findAll();
+        TableView view = table.where().subtable(1).equalTo(new long[]{2}, true).endSubtable().findAll();
         assertEquals(2, view.size());
     }
 

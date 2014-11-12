@@ -1,7 +1,27 @@
-0.72.0 (??)
-  * Extending sorting to more types: boolean, short, int, long, float, double, Date,
-    and String fields are now supported
-  * Support for directly adding data to Realm using Json.
+0.74.0 (??)
+  * Adding case sensitive versions of string comparison operators equalTo and notEqualTo
+
+
+0.73.1 (05 Nov 2014)
+  * Fixed a bug that would send infinite notifications in some instances
+
+0.73.0 (04 Nov 2014)
+  * Fixed a bug not allowing queries with more than 1024 conditions
+  * Rewritten the notification system. The API did not change but it's now much more reliable
+  * Added support for switching auto-refresh on and off (Realm.setAutoRefresh)
+  * Added RealmBaseAdapter and an example using it
+  * Added deleteFromRealm() method to RealmObject
+
+0.72.0 (27 Oct 2014)
+  * Extended sorting support to more types: boolean, byte, short, int, long, float, double, Date, and String
+    fields are now supported
+  * Better support for Java 7 and 8 in the annotations processor
+  * Better support for the Eclipse annotations processor
+  * Added Eclipse support to the distribution folder
+  * Added Realm.cancelTransaction() to cancel/abort/rollback a write transaction
+  * Faster implementation of RealmQuery.findFirst()
+  * Upgraded core to 0.85.1 (deep copying of strings in queries; preparation for link queries)
+  * Added support for link queries in the form realm.where(Owner.class).equalTo("cat.age", 12).findAll()
 
 0.71.0 (07 Oct 2014)
   * Simplified the release artifact to a single Jar file
@@ -10,7 +30,7 @@
   * Throw exception if nested write transactions are used (it's not allowed)
   * Javadoc updated
   * Fixed bug in RealmResults: https://github.com/realm/realm-java/issues/453
-  * New annotation @Index to add search index to a field (currently only supporting String fields) 
+  * New annotation @Index to add search index to a field (currently only supporting String fields)
   * Made the annotations processor more verbose and strict
   * Adding RealmQuery.count() method
   * Added a new example about concurrency

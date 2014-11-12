@@ -32,6 +32,7 @@ realm_version_check.timestamp
 
 # Backup files
 *.bak
+*~
 
 # Navigation Editor
 .navigation

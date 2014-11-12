@@ -81,6 +81,10 @@ public class Row {
 
     // Getters
 
+    public Table getTable() {
+        return parent;
+    }
+
     public long getIndex() {
         return nativeGetIndex(nativePtr);
     }

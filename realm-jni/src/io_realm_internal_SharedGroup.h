@@ -57,6 +57,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinu
 
 /*
  * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeRollbackAndContinueAsRead
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndContinueAsRead
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
  * Method:    nativeBeginImplicit
  * Signature: (J)J
  */

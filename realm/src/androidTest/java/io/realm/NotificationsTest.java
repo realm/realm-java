@@ -15,56 +15,221 @@
  */
 package io.realm;
 
+import android.os.Looper;
 import android.test.AndroidTestCase;
-import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.Dog;
-import io.realm.internal.android.LooperThread;
 
 public class NotificationsTest extends AndroidTestCase {
-    public void testMessageToDeadThread() {
-        Realm realm = Realm.getInstance(getContext());
 
-        // Number of handlers before
-        final int handlersBefore = LooperThread.handlers.size();
+    @Override
+    protected void setUp() throws Exception {
+        Realm.realmsCache.remove();
+        Realm.deleteRealmFile(getContext());
+    }
 
-        // Make sure the Looper Thread is alive
-        LooperThread looperThread = LooperThread.getInstance();
-        assertTrue(looperThread.isAlive());
-
-        Thread thread = new Thread() {
+    public void testFailureOnNonLooperThread() throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
-            public void run() {
-                Realm r = Realm.getInstance(getContext());
-                assertFalse(handlersBefore == LooperThread.handlers.size());
-                r.addChangeListener(new RealmChangeListener() {
+            public Boolean call() throws Exception {
+                try {
+                    @SuppressWarnings("UnusedDeclaration") Realm realm = Realm.getInstance(getContext());
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        Boolean result = future.get();
+        assertTrue(result);
+    }
+
+    public void testNotifications() throws InterruptedException, ExecutionException {
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        final AtomicInteger changed = new AtomicInteger(0);
+
+        List<Callable<Void>> callables = new ArrayList<Callable<Void>>();
+        callables.add(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                Looper.prepare();
+                Realm realm = Realm.getInstance(getContext()); // This does not sent a message to itself [0]
+                realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        Log.i("Notification Test", "Notification Received");
+                        changed.incrementAndGet();
                     }
                 });
+                Looper.loop();
+                return null;
             }
-        };
-        thread.start();
+        });
+        callables.add(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                Realm realm = Realm.getInstance(getContext(), false); // This will notify the other thread [1]
+                realm.beginTransaction();
+                Dog dog = realm.createObject(Dog.class);
+                dog.setName("Rex");
+                realm.commitTransaction(); // This will notify the other thread[2]
+                return null;
+            }
+        });
 
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            fail();
+        executorService.invokeAll(callables, 2, TimeUnit.SECONDS);
+
+        assertEquals(2, changed.get());
+    }
+
+    public void testFailingSetAutoRefreshOnNonLooperThread() throws ExecutionException, InterruptedException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Realm realm = Realm.getInstance(getContext(), false);
+                boolean autoRefresh = realm.isAutoRefresh();
+                assertFalse(autoRefresh);
+                try {
+                    realm.setAutoRefresh(true);
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+        assertTrue(future.get());
+    }
+
+    public void testSetAutoRefreshOnHandlerThread() throws ExecutionException, InterruptedException {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Looper.prepare();
+                Realm realm = Realm.getInstance(getContext());
+                assertTrue(realm.isAutoRefresh());
+                realm.setAutoRefresh(false);
+                assertFalse(realm.isAutoRefresh());
+                realm.setAutoRefresh(true);
+                assertTrue(realm.isAutoRefresh());
+                return true;
+            }
+        });
+        assertTrue(future.get());
+    }
+
+    public void testNotificationsNumber () throws InterruptedException, ExecutionException {
+        final AtomicInteger counter = new AtomicInteger(0);
+        final AtomicBoolean isReady = new AtomicBoolean(false);
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Looper.prepare();
+                Realm realm = Realm.getInstance(getContext());
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        counter.incrementAndGet();
+                    }
+                });
+                isReady.set(true);
+                Looper.loop();
+                return true;
+            }
+        });
+
+        // Wait until the looper is started
+        while (!isReady.get()) {
+            Thread.sleep(5);
         }
-        assertFalse(thread.isAlive()); // Make sure the thread is dead
+        Thread.sleep(100); 
+
+        Realm realm = Realm.getInstance(getContext(), false);
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
         realm.commitTransaction();
 
-        // Give some time to log the exception
         try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            fail();
-        }
+            future.get(1, TimeUnit.SECONDS);
+        } catch (TimeoutException ignore) {}
 
-        assertEquals(0, looperThread.exceptions.size());
+        assertEquals(2, counter.get());
+    }
+
+    public void testAutoUpdateRealmResults() throws InterruptedException, ExecutionException {
+        final int TEST_SIZE = 10;
+        final AtomicInteger counter = new AtomicInteger(0);
+        final AtomicBoolean isReady = new AtomicBoolean(false);
+        final Map<Integer, Integer> results = new ConcurrentHashMap<Integer, Integer>();
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Looper.prepare();
+                Realm.deleteRealmFile(getContext());
+                final Realm realm = Realm.getInstance(getContext());
+                final RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+                assertEquals(0, dogs.size());
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        int c = counter.incrementAndGet();
+                        results.put(c, dogs.size());
+                    }
+                });
+                isReady.set(true);
+                Looper.loop();
+                return true;
+            }
+        });
+
+        // Wait until the looper is started
+        while (!isReady.get()) {
+            Thread.sleep(5);
+        }
+        Thread.sleep(100);
+
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            Dog dog = realm.createObject(Dog.class);
+            dog.setName("Rex " + i);
+        }
+        realm.commitTransaction();
+        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
+
+        try {
+            future.get(2, TimeUnit.SECONDS);
+        } catch (TimeoutException ignore) {}
+
+        assertEquals(2, results.size());
+
+        assertTrue(results.containsKey(1));
+        assertEquals(0, results.get(1).intValue());
+        assertTrue(results.containsKey(2));
+        assertEquals(10, results.get(2).intValue());
+
+        assertEquals(2, counter.get());
     }
 }

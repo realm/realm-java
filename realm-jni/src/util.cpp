@@ -100,6 +100,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
             jExceptionClass = env->FindClass("java/lang/RuntimeException");
             message = classStr;
             break;
+
+        case RowInvalid:
+            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
+            message = "Illegal State: " + classStr;
+            break;
     }
     if (jExceptionClass != NULL)
         env->ThrowNew(jExceptionClass, message.c_str());

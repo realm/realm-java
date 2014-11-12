@@ -114,7 +114,8 @@ enum ExceptionKind {
     UnsupportedOperation = 9,
     OutOfMemory = 10,
     Unspecified = 11,
-    RuntimeError = 12
+    RuntimeError = 12,
+    RowInvalid = 13
 };
 
 extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
@@ -143,6 +144,7 @@ extern void jprint(JNIEnv *env, char *txt);
 // Check parameters
 
 #define TABLE_VALID(env,ptr)    TableIsValid(env, ptr)
+#define ROW_VALID(env,ptr)      RowIsValid(env, ptr)
 
 #if CHECK_PARAMETERS
 
@@ -163,6 +165,9 @@ extern void jprint(JNIEnv *env, char *txt);
 #define TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type) TblIndexAndTypeValid(env, ptr, col, row, type, true)
 #define TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type) TblIndexAndTypeInsertValid(env, ptr, col, row, type)
 
+#define ROW_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     RowColIndexAndTypeValid(env, ptr, col, type)
+#define ROW_AND_COL_INDEX_VALID(env,ptr,col)                    RowColIndexValid(env, ptr, col)
+
 #else
 
 #define ROW_INDEXES_VALID(env,ptr,start,end, range)             (true)
@@ -181,6 +186,9 @@ extern void jprint(JNIEnv *env, char *txt);
 #define INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type)        (true)
 #define TBL_AND_INDEX_AND_TYPE_VALID_MIXED(env,ptr,col,row,type) (true)
 #define TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env,ptr,col,row,type) (true)
+
+#define ROW_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     (true)
+#define ROW_AND_COL_INDEX_VALID(env,ptr,col)                    (true)
 
 #endif
 
@@ -203,7 +211,17 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     }
     if (!valid) {
         TR_ERR((env, "Table %x is no longer attached!", objPtr));
-        ThrowException(env, TableInvalid, "Table is closed, and no longer valid to operate on.");
+        ThrowException(env, TableInvalid, "Table is no longer valid to operate on.");
+    }
+    return valid;
+}
+
+inline bool RowIsValid(JNIEnv* env, Row* rowPtr)
+{
+    bool valid = (rowPtr != NULL && rowPtr->is_attached());
+    if (!valid) {
+        TR_ERR((env, "Row %x is no longer attached!", rowPtr));
+        ThrowException(env, RowInvalid, "Row/Object is no longer valid to operate on. Was it deleted?");
     }
     return valid;
 }
@@ -299,6 +317,11 @@ inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
     return ColIndexValid(env, pTable, columnIndex);
 }
 
+inline bool RowColIndexValid(JNIEnv* env, Row* pRow, jlong columnIndex)
+{
+    return RowIsValid(env, pRow) && ColIndexValid(env, pRow->get_table(), columnIndex);
+}
+
 template <class T>
 inline bool IndexValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex)
 {
@@ -358,6 +381,12 @@ inline bool TblColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, i
 {
     return TableIsValid(env, pTable)
         && ColIndexAndTypeValid(env, pTable, columnIndex, expectColType);
+}
+
+inline bool RowColIndexAndTypeValid(JNIEnv* env, Row* pRow, jlong columnIndex, int expectColType)
+{
+    return RowIsValid(env, pRow)
+        && ColIndexAndTypeValid(env, pRow->get_table(), columnIndex, expectColType);
 }
 
 

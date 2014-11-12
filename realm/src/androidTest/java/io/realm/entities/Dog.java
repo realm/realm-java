@@ -17,11 +17,67 @@
 
 package io.realm.entities;
 
+import java.util.Date;
+
 import io.realm.RealmObject;
 
 public class Dog extends RealmObject {
 
     private String name;
+    private long age;
+    private float height;
+    private double weight;
+    private boolean hasTail;
+    private Date birthday;
+    private Owner owner;
+
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isHasTail() {
+        return hasTail;
+    }
+
+    public void setHasTail(boolean hasTail) {
+        this.hasTail = hasTail;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+    }
+
+    public long getAge() {
+        return age;
+    }
+
+    public void setAge(long age) {
+        this.age = age;
+    }
 
     public String getName() {
         return name;

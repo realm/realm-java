@@ -28,14 +28,14 @@ import io.realm.annotations.RealmClass;
 import io.realm.internal.Row;
 
 /**
- * In Realm you define your model classes by subclassing RealmObject and adding fields to be
+ * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
  * persisted. You then create your objects within a Realm, and use your custom subclasses instead
  * of using the RealmObject class directly.
- *
+ * <br>
  * An annotation processor will create a proxy class for your RealmObject subclass. The getters and
  * setters should not contain any custom code of logic as they are overridden as part of the annotation
  * process.
- *
+ * <br>
  * @see Realm#createObject(Class)
  */
 
@@ -45,20 +45,20 @@ public abstract class RealmObject {
     protected Row row;
     protected Realm realm;
 
-    protected Realm getRealm() {
-        return realm;
-    }
-
-    protected void setRealm(Realm realm) {
-        this.realm = realm;
-    }
-
-    protected Row realmGetRow() {
-        return row;
-    }
-
-    protected void realmSetRow(Row row) {
-        this.row = row;
+    /**
+     * Removes the object from the Realm it is currently associated to.
+     *
+     * After this method is called the object will be invalid and any operation (read or write)
+     * performed on it will fail with an IllegalStateException
+     */
+    public void removeFromRealm() {
+        if (row == null) {
+            throw new IllegalStateException("Object malformed: missing object in Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
+        }
+        if (realm == null) {
+            throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
+        }
+        row.getTable().remove(row.getIndex());
     }
 
     protected void populateUsingJsonObject(JSONObject json) throws JSONException {
