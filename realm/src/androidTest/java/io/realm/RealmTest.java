@@ -532,6 +532,7 @@ public class RealmTest extends AndroidTestCase {
         RealmResults<Dog> dogs = testRealm.distinct(Dog.class, "name");
         assertEquals(2, dogs.size());
 
+        // distinct() only works on indexed fields and will throw an exception if not
         try {
             RealmResults<AllTypes> allTypeses = testRealm.distinct(AllTypes.class, "columnString");
             fail();
