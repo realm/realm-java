@@ -15,6 +15,7 @@
  */
 
 #include "io_realm_internal_LinkView.h"
+#include "tablequery.hpp"
 #include "util.hpp"
 
 using namespace tightdb;
@@ -116,6 +117,18 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsEmpty
 {
     try {
         return LV(nativeLinkViewPtr)->is_empty();
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
+  (JNIEnv *env, jobject, jlong nativeLinkViewPtr)
+{
+    try {
+        LinkView *lv = LV(nativeLinkViewPtr); 
+        Query query = lv->get_origin_table().where(lv);
+        TableQuery* queryPtr = new TableQuery(query);
+        return reinterpret_cast<jlong>(queryPtr);
     } CATCH_STD()
     return 0;
 }

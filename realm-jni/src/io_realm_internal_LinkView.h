@@ -95,6 +95,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeSize
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsEmpty
   (JNIEnv *, jobject, jlong);
 
+/*
+ * Class:     io_realm_internal_LinkView
+ * Method:    nativeWhere
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
+  (JNIEnv *, jobject, jlong);
+
 #ifdef __cplusplus
 }
 #endif

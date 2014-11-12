@@ -136,6 +136,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @see io.realm.RealmQuery
      */
     public RealmQuery<E> where() {
+
+
         return null;
     }
 }
