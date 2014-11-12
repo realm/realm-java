@@ -53,7 +53,6 @@ public class Group implements Closeable {
         this.context = new Context();
         this.nativePtr = createNative();
         checkNativePtrNotZero();
-        
     }
 
     protected native long createNative();
@@ -89,7 +88,6 @@ public class Group implements Closeable {
     public Group(File file) {
         this(file.getAbsolutePath(), file.canWrite() ? OpenMode.READ_WRITE : OpenMode.READ_ONLY);
     }
-
 
     public Group(byte[] data) {
         this.immutable = false;
@@ -150,10 +148,10 @@ public class Group implements Closeable {
     //
 
     private void verifyGroupIsValid() {
-        if (nativePtr == 0)
+        if (nativePtr == 0) {
             throw new IllegalStateException("Illegal to call methods on a closed Group.");
+        }
     }
-
 
     public long size() {
         verifyGroupIsValid();
@@ -171,14 +169,14 @@ public class Group implements Closeable {
     /**
      * Checks whether table exists in the Group.
      *
-     * @param name
-     *            The name of the table.
-     * @return true if the table exists, otherwise false.
+     * @param name  The name of the table.
+     * @return      true if the table exists, otherwise false.
      */
     public boolean hasTable(String name) {
         verifyGroupIsValid();
-        if (name == null)
+        if (name == null) {
             return false;
+        }
         return nativeHasTable(nativePtr, name);
     }
 
@@ -200,26 +198,25 @@ public class Group implements Closeable {
     /**
      * Returns a table with the specified name.
      *
-     * @param name
-     *            The name of the table.
-     * @return The table if it exists, otherwise create it.
+     * @param name  The name of the table.
+     * @return      The table if it exists, otherwise create it.
      */
     public Table getTable(String name) {
         verifyGroupIsValid();
-        if (name == null || name.equals(""))
-            throw new IllegalArgumentException("Invalid name. Name must be a non-empty String.");
-        if (immutable)
-            if (!hasTable(name))
+        if (name == null || name.equals("")) throw new IllegalArgumentException("Invalid name. Name must be a non-empty String.");
+        if (immutable) {
+            if (!hasTable(name)) {
                 throwImmutable();
-        
+            }
+        }
+
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
         try {
             // Copy context reference from parent
             return new Table(context, this, nativeTablePointer);
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             Table.nativeClose(nativeTablePointer);
             throw e;
         }

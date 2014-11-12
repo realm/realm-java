@@ -17,53 +17,33 @@
 package io.realm.internal;
 
 import java.io.Closeable;
-import java.lang.*;
 import java.util.Date;
+
+import io.realm.exceptions.RealmException;
 
 
 /**
- * This class is a base class for all TightDB tables. The class supports all low
+ * This class is a base class for all Realm tables. The class supports all low
  * level methods (define/insert/delete/update) a table has. All the native
- * communications to the TightDB C++ library are also handled by this class.
- *
- * A user who wants to create a table of his choice will automatically inherit
- * from this class by the realm-class generator.
- *
- * As an example, let's create a table to keep records of an employee in a
- * company.
- *
- * For this purpose we will create a class named "employee" with an Entity
- * annotation as follows.
- *
- *      @DefineTable
- *      public class employee {
- *          String name;
- *          long age;
- *          boolean hired;
- *          byte[] imageData;
- *      }
- *
- * The realm class generator will generate classes relevant to the employee:
- *
- * 1. Employee.java:  Represents one employee of the employee table i.e., a single row. Getter/setter
- *                    methods are declared from which you will be able to set/get values
- *                    for a particular employee.
- * 2. EmployeeTable.java:  Represents the class for storing a collection of employee i.e., a table
- *                    of rows. The class is inherited from the TableBase class as described above.
- *                    It has all the high level methods to manipulate Employee objects from the table.
- * 3. EmployeeView.java: Represents view of the employee table i.e., result set of queries.
- *
- *
+ * communications to the Realm C++ library are also handled by this class.
  */
-
 public class Table implements TableOrView, TableSchema, Closeable {
 
     public static final long INFINITE = -1;
+
+    private static final String PRIMARY_KEY_TABLE_NAME = "pk";
+    private static final String PRIMARY_KEY_CLASS_COLUMN_NAME = "pk_table";
+    private static final long PRIMARY_KEY_CLASS_COLUMN_INDEX = 0;
+    private static final String PRIMARY_KEY_FIELD_COLUMN_NAME = "pk_property";
+    private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
 
     protected long nativePtr;
     
     protected final Object parent;
     private final Context context;
+
+//    private long primaryKeyColumnIndex = -1;
+
 
     // test:
     protected int tableNo;
@@ -86,8 +66,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
         // have nothing to do with the native functions. Generated Java Table
         // classes will work as a wrapper on top of table.
         this.nativePtr = createNative();
-        if (nativePtr == 0)
+        if (nativePtr == 0) {
             throw new java.lang.OutOfMemoryError("Out of native memory.");
+        }
         if (DEBUG) {
             tableNo = ++TableCount;
             System.err.println("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
@@ -100,6 +81,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         this.context = context;
         this.parent  = parent;
         this.nativePtr = nativePointer;
+
         if (DEBUG) {
             tableNo = ++TableCount;
             System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
@@ -157,13 +139,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public boolean equals(Object other) {
-        if (this == other)
-            return true;
-        if (other == null)
-            return false;
-        // Has to work for all the typed tables as well
-        if (!(other instanceof Table))
-            return false;
+        if (this == other) return true;
+        if (other == null) return false;
+        if (!(other instanceof Table)) return false; // Has to work for all the typed tables as well
 
         Table otherTable = (Table) other;
         return nativeEquals(nativePtr, otherTable.nativePtr);
@@ -179,8 +157,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public TableSchema getSubtableSchema(long columnIndex) {
-        if(nativeIsRootTable(nativePtr) == false)
+        if(nativeIsRootTable(nativePtr) == false) {
             throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
+        }
 
         long[] newPath = new long[1];
         newPath[0] = columnIndex;
@@ -453,7 +432,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 nativeInsertBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
                 break;
             case INTEGER:
-                nativeInsertLong(nativePtr, columnIndex, rowIndex, ((Number)value).longValue());
+                long intValue = ((Number) value).longValue();
+                if (isPrimaryKeyColumn(columnIndex) && findFirstLong(columnIndex, intValue) != TableOrView.NO_MATCH) {
+                    throw new RealmException("Primary key constraint broken. Value already exists: " + intValue);
+                }
+                nativeInsertLong(nativePtr, columnIndex, rowIndex, intValue);
                 break;
             case FLOAT:
                 nativeInsertFloat(nativePtr, columnIndex, rowIndex, ((Float)value).floatValue());
@@ -462,6 +445,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 nativeInsertDouble(nativePtr, columnIndex, rowIndex, ((Double)value).doubleValue());
                 break;
             case STRING:
+                String stringValue = (String) value;
+                if (isPrimaryKeyColumn(columnIndex) && findFirstString(columnIndex, stringValue) != TableOrView.NO_MATCH) {
+                    throw new RealmException("Primary key constraint broken. Value already exists: " + stringValue);
+                }
                 nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
                 break;
             case DATE:
@@ -484,6 +471,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         //Insert done. Use native, no need to check for immutable again here
         nativeInsertDone(nativePtr);
 
+    }
+
+    private boolean isPrimaryKeyColumn(long columnIndex) {
+        return columnIndex == getPrimaryKey();
     }
 
     private void insertSubtableValues(long rowIndex, long columnIndex, Object value) {
@@ -596,6 +587,33 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return this.internal;
     }
 
+    /**
+     * Returns the column index for the primary key.
+     *
+     * @return Column index or {@code #NO_MATCH} if no primary key is set.
+     */
+    public long getPrimaryKey() {
+        Table pkTable = getPrimaryKeyTable();
+        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
+        if (rowIndex != NO_MATCH) {
+            return pkTable.getRow(rowIndex).getLong(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+        }
+        return NO_MATCH;
+    }
+
+    /**
+     * Checks if a given column is a primary key column.
+     * @param columnIndex   Index of column in the table.
+     * @return              True if column is a primary key, false otherwise.
+     */
+    public boolean isPrimaryKey(long columnIndex) {
+        if (columnIndex < 0) return false;
+        return columnIndex == getPrimaryKey();
+    }
+
+    public boolean hasPrimaryKey() {
+        return getPrimaryKey() != NO_MATCH;
+    }
 
     //Holds methods that must be publicly available for AbstractClass.
     //Should not be called when using the dynamic interface. The methods can be accessed by calling getInternalMethods() in Table class
@@ -1026,6 +1044,74 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeSetIndex(nativePtr, columnIndex);
     }
 
+    /**
+     * Define a primary key for this table. This will override any existing primary key.
+     * Note this is a temporary solution. Primary keys should be implemented in the core.
+     * Also, this needs to be called manually before working with the table.
+     *
+     * TODO Talk to Kenneth/Brian about why we need a core table to keep track of this?
+     *
+     * @param group         Reference to the publicKeyGroup the table belongs to
+     * @param columnName    Name of the field that will function primary key
+     */
+    public void setPrimaryKey(Group group, String columnName) {
+        Table pkTable = getPrimaryKeyTable();
+        long primaryKeyColumnIndex = getColumnIndex(columnName);
+        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, columnName);
+        if (rowIndex < 0) {
+            pkTable.add(getName(), primaryKeyColumnIndex);
+        } else {
+            pkTable.setLong(PRIMARY_KEY_FIELD_COLUMN_INDEX, rowIndex, primaryKeyColumnIndex);
+        }
+    }
+
+// TODO No easy way to support this without caching information. Should we just ignore this until
+// core supports primary keys?
+//    public boolean hasPrimaryKey() {
+//        if (publicKeyGroup == null) throw new RuntimeException("Table must belong to a group in order to support primary keys");
+//
+//        Table pkTable = publicKeyGroup.getTable(PRIMARY_KEY_TABLE_NAME);
+//        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
+//        return rowIndex > 0;
+//    }
+//    /**
+//     * Clear the primary key for this table. This will not remove any data, just the restrictions
+//     * imposed by having a primary key.
+//     */
+//    public void removePrimaryKey(Group group) {
+//        if (group == null) throw new RuntimeException("Table must belong to a publicKeyGroup in order to support primary keys");
+//
+//        Table pkTable = group.getTable(PRIMARY_KEY_TABLE_NAME);
+//        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
+//        if (rowIndex > 0) {
+//            pkTable.remove(rowIndex);
+//        }
+//    }
+
+    private Table getPrimaryKeyTable() {
+        Group group = getTableGroup();
+        if (group == null) throw new RuntimeException("Table must belong to a group in order to support primary keys");
+
+        Table pkTable = group.getTable(PRIMARY_KEY_TABLE_NAME);
+        if (pkTable.getColumnCount() == 0) {
+            pkTable.addColumn(ColumnType.STRING, PRIMARY_KEY_CLASS_COLUMN_NAME);
+            pkTable.addColumn(ColumnType.INTEGER, PRIMARY_KEY_FIELD_COLUMN_NAME);
+        }
+
+        return pkTable;
+    }
+
+    // Recursively look at parents until either a Group or null is found
+    Group getTableGroup() {
+        if (parent instanceof Group)  {
+            return (Group) parent;
+        } else if (parent instanceof Table) {
+            return ((Table) parent).getTableGroup();
+        } else {
+            return null; // Free table
+        }
+    }
+
     protected native void nativeSetIndex(long nativePtr, long columnIndex);
 
 
@@ -1394,7 +1480,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
 
-    // get the table name as it is in the associated group.
+    // get the table name as it is in the associated publicKeyGroup.
     protected String getName() {
         return nativeGetName(nativePtr);
     }

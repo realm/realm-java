@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import io.realm.exceptions.RealmException;
+
 public class Row {
 
     private final Context context;
@@ -57,8 +59,7 @@ public class Row {
      * @return the index, -1 if not found
      */
     public long getColumnIndex(String columnName) {
-        if (columnName == null)
-            throw new IllegalArgumentException("Column name can not be null.");
+        if (columnName == null) throw new IllegalArgumentException("Column name can not be null.");
         return nativeGetColumnIndex(nativePtr, columnName);
     }
 
@@ -171,6 +172,10 @@ public class Row {
     // Setters
 
     public void setLong(long columnIndex, long value) {
+        Table table = getTable();
+        if (table.isPrimaryKey(columnIndex) && table.findFirstLong(columnIndex, value) == TableOrView.NO_MATCH) {
+            throw new RealmException("Primary key constraint broken. Value already exists: " + value);
+        }
         nativeSetLong(nativePtr, columnIndex, value);
     }
 
@@ -195,24 +200,25 @@ public class Row {
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
 
     public void setDate(long columnIndex, Date date) {
-        if (date == null)
-            throw new IllegalArgumentException("Null Date is not allowed.");
+        if (date == null) throw new IllegalArgumentException("Null Date is not allowed.");
         nativeSetDate(nativePtr, columnIndex, date.getTime() / 1000);
     }
 
     protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
 
     public void setString(long columnIndex, String value) {
-        if (value == null)
-            throw new IllegalArgumentException("Null String is not allowed.");
+        if (value == null) throw new IllegalArgumentException("Null String is not allowed.");
+        Table table = getTable();
+        if (table.isPrimaryKey(columnIndex) && table.findFirstString(columnIndex, value) == TableOrView.NO_MATCH) {
+            throw new RealmException("Primary key constraint broken. Value already exists: " + value);
+        }
         nativeSetString(nativePtr, columnIndex, value);
     }
 
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
 
     public void setBinaryByteArray(long columnIndex, byte[] data) {
-        if (data == null)
-            throw new IllegalArgumentException("Null Array");
+        if (data == null) throw new IllegalArgumentException("Null Array");
         nativeSetByteArray(nativePtr, columnIndex, data);
     }
 
@@ -220,8 +226,7 @@ public class Row {
 
 
     public void setMixed(long columnIndex, Mixed data) {
-        if (data == null)
-            throw new IllegalArgumentException();
+        if (data == null) throw new IllegalArgumentException();
         nativeSetMixed(nativePtr, columnIndex, data);
     }
 
@@ -256,5 +261,4 @@ public class Row {
         nativeClose(nativePtr);
         nativePtr = 0;
     }
-
 }

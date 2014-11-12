@@ -16,24 +16,37 @@
 
 package io.realm.processor;
 
-import io.realm.annotations.Ignore;
-import io.realm.annotations.Index;
-import io.realm.annotations.RealmClass;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 
 
-@SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore", "io.realm.annotations.Index"})
+@SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore", "io.realm.annotations.Index", "io.realm.annotations.PrimaryKey"})
 public class RealmProcessor extends AbstractProcessor {
     Set<String> classesToValidate = new HashSet<String>();
     boolean done = false;
@@ -46,6 +59,15 @@ public class RealmProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         RealmVersionChecker updateChecker = new RealmVersionChecker(processingEnv);
         updateChecker.executeRealmVersionUpdate();
+
+        Types typeUtils = processingEnv.getTypeUtils();
+        TypeMirror stringType = processingEnv.getElementUtils().getTypeElement("java.lang.String").asType();
+        List<TypeMirror> validPrimaryKeyTypes = Arrays.asList(
+                stringType,
+                typeUtils.getPrimitiveType(TypeKind.SHORT),
+                typeUtils.getPrimitiveType(TypeKind.INT),
+                typeUtils.getPrimitiveType(TypeKind.LONG)
+        );
 
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
             String className;
@@ -85,6 +107,7 @@ public class RealmProcessor extends AbstractProcessor {
 
             PackageElement packageElement = (PackageElement) enclosingElement;
             packageName = packageElement.getQualifiedName().toString();
+            VariableElement primaryKey = null;
 
             for (Element element : typeElement.getEnclosedElements()) {
                 ElementKind elementKind = element.getKind();
@@ -107,6 +130,25 @@ public class RealmProcessor extends AbstractProcessor {
                             error("@Index is only applicable to String fields - got " + element);
                             return true;
                         }
+                    }
+
+                    if (variableElement.getAnnotation(PrimaryKey.class) != null) {
+                        // The field has the @PrimaryKey annotation. It is only valid for
+                        // String, short, int, long and must only be present one time
+                        if (primaryKey != null) {
+                            error(String.format("@PrimaryKey cannot be defined twice. It was found here \"%s\" and here \"%s\"",
+                                    primaryKey.getSimpleName().toString(),
+                                    variableElement.getSimpleName().toString()));
+                            return true;
+                        }
+
+                        TypeMirror fieldType = variableElement.asType();
+                        if (!isValidType(typeUtils, fieldType, validPrimaryKeyTypes)) {
+                            error("\"" + variableElement.getSimpleName().toString() + "\" is not allowed as primary key. See @PrimaryKey for allowed types.");
+                            return true;
+                        }
+
+                        primaryKey = variableElement;
                     }
 
                     if (!variableElement.getModifiers().contains(Modifier.PRIVATE)) {
@@ -170,7 +212,7 @@ public class RealmProcessor extends AbstractProcessor {
             }
 
             RealmProxyClassGenerator sourceCodeGenerator =
-                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, indexedFields);
+                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, indexedFields, primaryKey);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {
@@ -191,6 +233,17 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         return true;
+    }
+
+    private boolean isValidType(Types typeUtils, TypeMirror type, List<TypeMirror> validTypes) {
+        for (TypeMirror validType : validTypes) {
+            if (typeUtils.isAssignable(type, validType)) {
+                return true;
+            }
+
+        }
+
+        return false;
     }
 
     private static String lowerFirstChar(String input) {

@@ -40,7 +40,7 @@ public class MyActivity extends Activity {
 
         Realm.deleteRealmFile(this);
         realm = Realm.getInstance(this);
-        RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll();
+        RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll().sort("timeStamp", RealmResults.SORT_ORDER_DECENDING);
         final MyAdapter adapter = new MyAdapter(this, R.id.listView, timeStamps, true);
         ListView listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);

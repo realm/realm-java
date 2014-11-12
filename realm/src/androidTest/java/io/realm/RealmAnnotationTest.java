@@ -19,6 +19,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import io.realm.entities.AnnotationTypes;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 
 public class RealmAnnotationTest extends AndroidTestCase {
@@ -46,4 +47,27 @@ public class RealmAnnotationTest extends AndroidTestCase {
         assertTrue(table.hasIndex(table.getColumnIndex("indexString")));
         assertFalse(table.hasIndex(table.getColumnIndex("notIndexString")));
     }
+
+    public void testHasPrimaryKey() {
+        Table table = testRealm.getTable(AnnotationTypes.class);
+        assertTrue(table.hasPrimaryKey());
+    }
+
+    public void testPrimaryKey_errorOnInsertingSameObject() {
+        try {
+            testRealm.beginTransaction();
+            AnnotationTypes obj1 = testRealm.createObject(AnnotationTypes.class);
+            obj1.setId(1);
+            AnnotationTypes obj2 = testRealm.createObject(AnnotationTypes.class);
+            obj2.setId(1);
+        } catch (RealmException e) {
+            assertTrue(true);
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        fail("Inserting two objects with same primary key should fail");
+    }
+
 }

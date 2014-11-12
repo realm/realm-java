@@ -23,6 +23,8 @@ import java.util.Date;
  */
 public interface TableOrView {
 
+    public static final int NO_MATCH = -1;
+
     void clear();
 
     void close();
@@ -267,18 +269,59 @@ public interface TableOrView {
     Date minimumDate(long columnIndex);
 
 
+    /**
+     * Searches for first occurrence of a value. Beware that the order in the column is undefined.
+     *
+     * @param columnIndex   Column to search in.
+     * @param value         Value to search for.
+     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     */
     long findFirstLong(long columnIndex, long value);
 
+    /**
+     * Searches for first occurrence of a value. Beware that the order in the column is undefined.
+     *
+     * @param columnIndex   Column to search in.
+     * @param value         Value to search for.
+     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     */
     long findFirstBoolean(long columnIndex, boolean value);
 
+    /**
+     * Searches for first occurrence of a value. Beware that the order in the column is undefined.
+     *
+     * @param columnIndex   Column to search in.
+     * @param value         Value to search for.
+     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     */
     long findFirstFloat(long columnIndex, float value);
 
+    /**
+     * Searches for first occurrence of a value. Beware that the order in the column is undefined.
+     *
+     * @param columnIndex   Column to search in.
+     * @param value         Value to search for.
+     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     */
     long findFirstDouble(long columnIndex, double value);
 
+    /**
+     * Searches for first occurrence of a value. Beware that the order in the column is undefined.
+     *
+     * @param columnIndex   Column to search in.
+     * @param value         Value to search for.
+     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     */
     long findFirstDate(long columnIndex, Date value);
 
+    /**
+     * Searches for first occurrence of a value. Beware that the order in the column is undefined.
+     *
+     * @param columnIndex   Column to search in.
+     * @param value         Value to search for.
+     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     */
     long findFirstString(long columnIndex, String value);
-
 
     long lowerBoundLong(long columnIndex, long value);
     long upperBoundLong(long columnIndex, long value);
