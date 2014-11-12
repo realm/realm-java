@@ -67,13 +67,16 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
-    private static final int METHOD_MIN = 1;
-    private static final int METHOD_MAX = 2;
-    private static final int METHOD_SUM = 3;
-    private static final int METHOD_AVG = 4;
-    private static final int METHOD_SORT = 5;
-    private static final int METHOD_WHERE = 6;
-    public boolean methodWrongThread(final int method) throws ExecutionException, InterruptedException {
+    private enum Method {
+        METHOD_MIN,
+        METHOD_MAX,
+        METHOD_SUM,
+        METHOD_AVG,
+        METHOD_SORT,
+        METHOD_WHERE
+    };
+
+    public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
         final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -108,7 +111,6 @@ public class RealmResultsTest extends AndroidTestCase {
 
         return future.get();
     }
-
 
     // test io.realm.ResultList Api
 
@@ -178,25 +180,11 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(0, minimum.intValue());
     }
 
-    public void testMinMaxDate() {
-        RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll();
-        assertEquals(new Date(0), results.minDate(FIELD_DATE));
-        assertEquals(new Date(1000*(TEST_DATA_SIZE-1)), results.maxDate(FIELD_DATE));
-    }
-
-    public void testMinWrongThread() throws ExecutionException, InterruptedException {
-        assertTrue(methodWrongThread(METHOD_MIN));
-    }
-
     public void testMaxValueIsMaxValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number maximum = resultList.max(FIELD_LONG);
         assertEquals(TEST_DATA_SIZE - 1, maximum.intValue());
-    }
-
-    public void testMaxWrongThread() throws ExecutionException, InterruptedException {
-        assertTrue(methodWrongThread(METHOD_MAX));
     }
 
     public void testSumGivesCorrectValue() {
@@ -205,10 +193,6 @@ public class RealmResultsTest extends AndroidTestCase {
         Number sum = resultList.sum(FIELD_LONG);
         // Sum of numbers 0 to M-1: (M-1)*M/2
         assertEquals((TEST_DATA_SIZE-1)*TEST_DATA_SIZE/2, sum.intValue());
-    }
-
-    public void testSumWrongThread() throws ExecutionException, InterruptedException {
-        assertTrue(methodWrongThread(METHOD_SUM));
     }
 
     public void testAvgGivesCorrectValue() {
@@ -237,10 +221,6 @@ public class RealmResultsTest extends AndroidTestCase {
         // sum = b*N + N*(N-1)/2
         // average = sum/N = b + (N-1)/2
         assertEquals(1.234567+0.5*(N-1.0), resultList.average(FIELD_FLOAT), 0.0001);
-    }
-
-    public void testAverageWrongThread() throws ExecutionException, InterruptedException {
-        assertTrue(methodWrongThread(METHOD_AVG));
     }
 
     // void clear(Class<?> classSpec)
@@ -394,10 +374,6 @@ public class RealmResultsTest extends AndroidTestCase {
         }
     }
 
-    public void testSortWrongThread() throws ExecutionException, InterruptedException {
-        assertTrue(methodWrongThread(METHOD_SORT));
-    }
-
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
     }
@@ -424,9 +400,5 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testWhere() {
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
         assertNotNull(query);
-    }
-
-    public void testWhereWrongThread() throws ExecutionException, InterruptedException {
-        assertTrue(methodWrongThread(METHOD_WHERE));
     }
 }

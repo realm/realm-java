@@ -129,11 +129,8 @@ public class RealmObjectTest extends AndroidTestCase {
         return future.get();
     }
 
-    public void testGetWrongThread() throws ExecutionException, InterruptedException {
+    public void testGetSetWrongThread() throws ExecutionException, InterruptedException {
         assertTrue(methodWrongThread(true));
-    }
-
-    public void testSetWrong() throws ExecutionException, InterruptedException {
         assertTrue(methodWrongThread(false));
     }
 }

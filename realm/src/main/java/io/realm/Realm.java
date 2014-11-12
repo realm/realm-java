@@ -106,7 +106,7 @@ public class Realm {
     static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
 
     protected void assertThread() {
-        if (realmsCache.get().get(new Integer(this.id)) == null) {
+        if (realmsCache.get().get(this.id) != this) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
     }

@@ -323,16 +323,36 @@ public class RealmTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    private enum TransactionMethod {
+        METHOD_BEGIN,
+        METHOD_COMMIT,
+        METHOD_CANCEL
+    }
+
     // Starting a transaction on the wrong thread will fail
-    public void testBeginTransactionWrongThread() throws InterruptedException, ExecutionException {
+    public boolean transactionMethodWrongThread(final TransactionMethod method) throws InterruptedException, ExecutionException {
         final Realm realm = Realm.getInstance(getContext());
 
+        if (method != TransactionMethod.METHOD_BEGIN) {
+            realm.beginTransaction();
+            Dog dog = realm.createObject(Dog.class); // FIXME: Empty transactions cannot be cancelled
+        }
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
                 try {
-                    realm.beginTransaction();
+                    switch (method) {
+                        case METHOD_BEGIN:
+                            realm.beginTransaction();
+                            break;
+                        case METHOD_COMMIT:
+                            realm.commitTransaction();
+                            break;
+                        case METHOD_CANCEL:
+                            realm.cancelTransaction();
+                            break;
+                    }
                     return false;
                 } catch (IllegalStateException ignored) {
                     return true;
@@ -340,8 +360,17 @@ public class RealmTest extends AndroidTestCase {
             }
         });
 
-        Boolean result = future.get();
-        assertTrue(result);
+        boolean result = future.get();
+        if (result && method != TransactionMethod.METHOD_BEGIN) {
+            realm.cancelTransaction();
+        }
+        return result;
+    }
+
+    public void testTransactionWrongThread() throws ExecutionException, InterruptedException {
+        for (TransactionMethod method : TransactionMethod.values()) {
+            assertTrue(method.toString(), transactionMethodWrongThread(method));
+        }
     }
 
     // void commitTransaction()
@@ -355,27 +384,6 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
     }
 
-    // Committing a transaction on the wrong thread will fail
-    public void testCommitTransactionWrongThread() throws InterruptedException, ExecutionException {
-        final Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                try {
-                    realm.commitTransaction();
-                    return false;
-                } catch (IllegalStateException ignored) {
-                    return true;
-                }
-            }
-        });
-
-        Boolean result = future.get();
-        assertTrue(result);
-    }
 
     public void testCancelTransaction() {
         testRealm.beginTransaction();
@@ -388,29 +396,6 @@ public class RealmTest extends AndroidTestCase {
             fail();
         } catch (IllegalStateException ignored) {}
     }
-
-    // Cancelling a transaction on the wrong thread will fail
-    public void testCancelTransactionWrongThread() throws InterruptedException, ExecutionException {
-        final Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                try {
-                    realm.cancelTransaction();
-                    return false;
-                } catch (IllegalStateException ignored) {
-                    return true;
-                }
-            }
-        });
-
-        Boolean result = future.get();
-        assertTrue(result);
-    }
-
 
     // void clear(Class<?> classSpec)
     public void testClassClear() {
