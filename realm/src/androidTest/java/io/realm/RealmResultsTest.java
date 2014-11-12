@@ -353,4 +353,16 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> allTypesRealmResults = query.findAll();
         assertEquals(TEST_DATA_SIZE, allTypesRealmResults.size());
     }
+
+    public void testRemovingObjectsInsideLoop() {
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+
+        testRealm.beginTransaction();
+        for (AllTypes obj : result) {
+            obj.removeFromRealm();
+        }
+        testRealm.commitTransaction();
+
+        assertEquals(0, testRealm.allObjects(AllTypes.class).size());
+    }
 }

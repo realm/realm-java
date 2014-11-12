@@ -20,15 +20,8 @@ import android.test.AndroidTestCase;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -793,34 +786,5 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
         resultList = testRealm.where(AllTypes.class).notEqualTo("columnFloat", 11.234567f).equalTo("columnLong", 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-    }
-
-    public void testDeleteObjectFromMultipleThreads() throws InterruptedException, ExecutionException {
-
-        Callable<Long> worker = new Callable<Long>() {
-            @Override
-            public Long call() throws Exception {
-                Realm realm = Realm.getInstance(getContext(), false);
-                RealmResults<AllTypes> result = realm.allObjects(AllTypes.class);
-
-                realm.beginTransaction();
-                for (AllTypes obj : result) {
-                    obj.removeFromRealm();
-                }
-                realm.commitTransaction();
-                return realm.getTable(AllTypes.class).size();
-            }
-        };
-
-        // Run same job on 2 threads.
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-        List<Callable<Long>> callables = Arrays.asList(worker, worker);
-        List<Future<Long>> results = executorService.invokeAll(callables, 5, TimeUnit.SECONDS);
-
-        // Only proceed here once both threads are done
-        // Then check that objects are deleted from Realm on all 3 threads.
-        assertEquals(Long.valueOf(0), results.get(0).get()); // Thread 1
-        assertEquals(Long.valueOf(0), results.get(1).get()); // Thread 2
-        assertEquals(0, testRealm.allObjects(AllTypes.class).size()); // Main thread
     }
 }

@@ -18,9 +18,13 @@ package io.realm;
 
 
 import java.util.AbstractList;
+import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
@@ -118,6 +122,21 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public E last() {
         return get(size()-1);
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return new RealmResultsIterator();
+    }
+
+    @Override
+    public ListIterator<E> listIterator() {
+        return listIterator(0);
+    }
+
+    @Override
+    public ListIterator<E> listIterator(int location) {
+        return super.listIterator(location);
     }
 
     // Sorting
@@ -357,4 +376,58 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 //    public void replace(int index, E element) {
 //        throw new NoSuchMethodError();
 //    }
+
+
+    // Copy from AbstractList, but remembers original size. If this is changed during iteration
+    // a ConcurrentModificationException is thrown?
+    private class RealmResultsIterator implements Iterator<E> {
+        int pos = -1;
+        int expectedModCount;
+        int lastPosition = -1;
+
+        RealmResultsIterator() {
+            expectedModCount = modCount;
+        }
+
+        public boolean hasNext() {
+            return pos + 1 < size(); // CM: Remember starting size? Size can only be modified from remove method?
+        }
+
+        public E next() {
+            if (expectedModCount == modCount) {
+                try {
+                    E result = get(pos + 1);
+                    lastPosition = ++pos;
+                    return result;
+                } catch (IndexOutOfBoundsException e) {
+                    throw new NoSuchElementException();
+                }
+            }
+            throw new ConcurrentModificationException();
+        }
+
+        // Only legal method for removing elements while iterating. Should we support it?
+        // CM: This is basically removeFromRealmMethod() but
+        public void remove() {
+            if (this.lastPosition == -1) {
+                throw new IllegalStateException();
+            }
+
+            if (expectedModCount != modCount) {
+                throw new ConcurrentModificationException();
+            }
+
+            try {
+                RealmResults.this.remove(lastPosition);
+            } catch (IndexOutOfBoundsException e) {
+                throw new ConcurrentModificationException();
+            }
+
+            expectedModCount = modCount;
+            if (pos == lastPosition) {
+                pos--;
+            }
+            lastPosition = -1;
+        }
+    }
 }
