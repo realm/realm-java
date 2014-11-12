@@ -11,7 +11,7 @@ project(':encryptionExample').projectDir = new File('examples/encryptionExample'
 project(':migrationExample').projectDir = new File('examples/migrationExample')
 project(':adapterExample').projectDir = new File('examples/adapterExample')
 project(':jsonImportExample').projectDir = new File('examples/jsonImportExample')
-s
+
 // Experimental projects
 include ':pathExperiment'
 
