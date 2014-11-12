@@ -87,7 +87,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return new RealmQuery<E>(this, classSpec);
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -252,7 +251,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         realm.assertThread();
         long columnIndex = table.getColumnIndex(fieldName);
         if (table.getColumnType(columnIndex) == ColumnType.DATE) {
-            return table.minimumDate(columnIndex);
+            return table.maximumDate(columnIndex);
         }
         else {
             throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "Date"));
