@@ -26,6 +26,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -54,6 +55,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public static final boolean SORT_ORDER_DECENDING = false;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
+    private int oldSize = -1; // Used to keep track of changes to Realm. Bad invarient, replace with version number from sync method.
 
     RealmResults(Realm realm, Class<E> classSpec) {
         this.realm = realm;
@@ -124,19 +126,42 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return get(size()-1);
     }
 
+    /**
+     * Returns an iterator for the results of a query. Any change to Realm while iterating will
+     * cause this iterator to throw a {@link java.util.ConcurrentModificationException} if accessed.
+     *
+     * @return  an iterator on the elements of this list.
+     * @see     Iterator
+     */
     @Override
     public Iterator<E> iterator() {
         return new RealmResultsIterator();
     }
 
+    /**
+     * Returns a list iterator for the results of a query. Any change to Realm while iterarting will
+     * cause the iterator to throw a {@link java.util.ConcurrentModificationException} if accessed.
+     *
+     * @return  a ListIterator on the elements of this list.
+     * @see     ListIterator
+     */
     @Override
     public ListIterator<E> listIterator() {
-        return listIterator(0);
+        return new RealmResultsListIterator(0);
     }
 
+    /**
+     * Returns a list iterator on the results of a query. Any change to Realm while iterating will
+     * cause the iterator to throw a {@link java.util.ConcurrentModificationException} if accessed.
+     *
+     * @param location  the index at which to start the iteration.
+     * @return          a ListIterator on the elements of this list.
+     * @throws          IndexOutOfBoundsException if {@code location < 0 || location > size()}
+     * @see             ListIterator
+     */
     @Override
     public ListIterator<E> listIterator(int location) {
-        return super.listIterator(location);
+        return new RealmResultsListIterator(location);
     }
 
     // Sorting
@@ -377,57 +402,114 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 //        throw new NoSuchMethodError();
 //    }
 
-
-    // Copy from AbstractList, but remembers original size. If this is changed during iteration
-    // a ConcurrentModificationException is thrown?
-    private class RealmResultsIterator implements Iterator<E> {
-        int pos = -1;
-        int expectedModCount;
-        int lastPosition = -1;
-
-        RealmResultsIterator() {
-            expectedModCount = modCount;
+    // TODO: This is not safe, size() can return the same result even though the data has changed
+    // Core has exposed a method so we can compare tableview version numbers, but are awaiting a core
+    // release.
+    private void assertRealmIsStable() {
+        int newSize = size();
+        if (oldSize > -1 && newSize != oldSize ) {
+            throw new ConcurrentModificationException("No changes to a Realm is allowed while iterating a RealmResults.");
         }
 
+        oldSize = newSize;
+    }
+
+    // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
+    private class RealmResultsIterator implements Iterator<E> {
+
+        int pos = -1;
+
+        RealmResultsIterator() {}
+
         public boolean hasNext() {
-            return pos + 1 < size(); // CM: Remember starting size? Size can only be modified from remove method?
+            assertRealmIsStable();
+            return pos + 1 < size();
         }
 
         public E next() {
-            if (expectedModCount == modCount) {
-                try {
-                    E result = get(pos + 1);
-                    lastPosition = ++pos;
-                    return result;
-                } catch (IndexOutOfBoundsException e) {
-                    throw new NoSuchElementException();
-                }
+            assertRealmIsStable();
+            try {
+                pos++;
+                E result = get(pos);
+                return result;
+            } catch (RuntimeException e) {
+                throw new NoSuchElementException();
             }
-            throw new ConcurrentModificationException();
         }
 
-        // Only legal method for removing elements while iterating. Should we support it?
-        // CM: This is basically removeFromRealmMethod() but
         public void remove() {
-            if (this.lastPosition == -1) {
-                throw new IllegalStateException();
-            }
+            throw new RealmException("Removing RealmObjects while iterating is not supported.");
+        }
+    }
 
-            if (expectedModCount != modCount) {
-                throw new ConcurrentModificationException();
-            }
+    // Custom RealmResults list iterator. It ensures that we only iterate on a Realm that hasn't changed.
+    private class RealmResultsListIterator implements ListIterator<E> {
 
+        private int pos;
+
+        RealmResultsListIterator(int location) {
+            this.pos = location;
+        }
+
+        @Override
+        public void add(E object) {
+            throw new RealmException("Adding elements not supported. Use Realm.createObject() instead.");
+        }
+
+        @Override
+        public boolean hasNext() {
+            assertRealmIsStable();
+            return pos + 1 < size();
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            assertRealmIsStable();
+            return pos > 0;
+        }
+
+        @Override
+        public E next() {
+            assertRealmIsStable();
+            pos++;
             try {
-                RealmResults.this.remove(lastPosition);
-            } catch (IndexOutOfBoundsException e) {
-                throw new ConcurrentModificationException();
+                return get(pos);
+            } catch (RuntimeException e) {
+                return get(pos);
             }
+        }
 
-            expectedModCount = modCount;
-            if (pos == lastPosition) {
-                pos--;
+        @Override
+        public int nextIndex() {
+            assertRealmIsStable();
+            return pos + 1;
+        }
+
+        @Override
+        public E previous() {
+            assertRealmIsStable();
+            pos--;
+            try {
+                return get(pos);
+            } catch (RuntimeException e) {
+                throw new NoSuchElementException();
             }
-            lastPosition = -1;
+        }
+
+        @Override
+        public int previousIndex() {
+            assertRealmIsStable();
+            return pos - 1;
+        }
+
+        @Override
+        public void remove() {
+            throw new RealmException("Removing RealmObjects while iterating is not supported. ");
+        }
+
+        @Override
+        public void set(E object) {
+            throw new RealmException("Replacing elements not supported.");
         }
     }
 }

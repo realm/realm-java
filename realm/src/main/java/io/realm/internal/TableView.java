@@ -913,8 +913,7 @@ public class TableView implements TableOrView, Closeable {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
     }
-    
-    
+
     @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType){
         if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
