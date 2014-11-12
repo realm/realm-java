@@ -532,9 +532,9 @@ public class RealmTest extends AndroidTestCase {
         RealmResults<Dog> dogs = testRealm.distinct(Dog.class, "name");
         assertEquals(2, dogs.size());
 
-        // distinct() only works on indexed fields and will throw an exception if not
+        // Verify exception is thrown if the field in not indexed.
         try {
-            RealmResults<AllTypes> allTypeses = testRealm.distinct(AllTypes.class, "columnString");
+            RealmResults<AllTypes> allTypes = testRealm.distinct(AllTypes.class, "columnString");
             fail();
         } catch (UnsupportedOperationException ignore) {
         }
