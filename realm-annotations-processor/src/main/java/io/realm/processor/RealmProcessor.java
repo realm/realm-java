@@ -27,10 +27,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 @SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore", "io.realm.annotations.Index"})
@@ -52,9 +49,12 @@ public class RealmProcessor extends AbstractProcessor {
             String packageName;
             List<VariableElement> fields = new ArrayList<VariableElement>();
             List<VariableElement> indexedFields = new ArrayList<VariableElement>();
-            List<String> expectedGetters = new ArrayList<String>();
-            List<String> expectedSetters = new ArrayList<String>();
-            List<ExecutableElement> methods = new ArrayList<ExecutableElement>();
+            Set<VariableElement> ignoredFields = new HashSet<VariableElement>();
+            Set<String> expectedGetters = new HashSet<String>();
+            Set<String> expectedSetters = new HashSet<String>();
+            Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
+            Map<String, String> getters = new HashMap<String, String>();
+            Map<String, String> setters = new HashMap<String, String>();
 
             // Check the annotation was applied to a Class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
@@ -92,6 +92,7 @@ public class RealmProcessor extends AbstractProcessor {
                     String fieldName = variableElement.getSimpleName().toString();
                     if (variableElement.getAnnotation(Ignore.class) != null) {
                         // The field has the @Ignore annotation. No need to go any further.
+                        ignoredFields.add(variableElement);
                         continue;
                     }
 
@@ -121,11 +122,18 @@ public class RealmProcessor extends AbstractProcessor {
             }
 
             List<String> fieldNames = new ArrayList<String>();
+            List<String> ignoreFieldNames = new ArrayList<String>();
             for (VariableElement field : fields) {
                 fieldNames.add(field.getSimpleName().toString());
             }
+            for (VariableElement ignoredField : ignoredFields) {
+                fieldNames.add(ignoredField.getSimpleName().toString());
+                ignoreFieldNames.add(ignoredField.getSimpleName().toString());
+            }
 
             for (ExecutableElement executableElement : methods) {
+
+                String methodName = executableElement.getSimpleName().toString();
 
                 // Check the modifiers of the method
                 Set<Modifier> modifiers = executableElement.getModifiers();
@@ -135,8 +143,6 @@ public class RealmProcessor extends AbstractProcessor {
                     error("The methods of the model must be public", executableElement);
                 }
 
-                String methodName = executableElement.getSimpleName().toString();
-
                 if (methodName.startsWith("get") || methodName.startsWith("is")) {
                     boolean found = false;
 
@@ -145,12 +151,21 @@ public class RealmProcessor extends AbstractProcessor {
                         String methodMinusIsCapitalised = lowerFirstChar(methodMinusIs);
                         if (fieldNames.contains(methodName)) { // isDone -> isDone
                             expectedGetters.remove(methodName);
+                            if (!ignoreFieldNames.contains(methodName)) {
+                                getters.put(methodName, methodName);
+                            }
                             found = true;
                         } else if (fieldNames.contains(methodMinusIs)) {  // mDone -> ismDone
                             expectedGetters.remove(methodMinusIs);
+                            if (!ignoreFieldNames.contains(methodMinusIs)) {
+                                getters.put(methodMinusIs, methodName);
+                            }
                             found = true;
                         } else if (fieldNames.contains(methodMinusIsCapitalised)) { // done -> isDone
                             expectedGetters.remove(methodMinusIsCapitalised);
+                            if (!ignoreFieldNames.contains(methodMinusIsCapitalised)) {
+                                getters.put(methodMinusIsCapitalised, methodName);
+                            }
                             found = true;
                         }
                     }
@@ -160,9 +175,15 @@ public class RealmProcessor extends AbstractProcessor {
                         String methodMinusGetCapitalised = lowerFirstChar(methodMinusGet);
                         if (fieldNames.contains(methodMinusGet)) { // mPerson -> getmPerson
                             expectedGetters.remove(methodMinusGet);
+                            if (!ignoreFieldNames.contains(methodMinusGet)) {
+                                getters.put(methodMinusGet, methodName);
+                            }
                             found = true;
                         } else if (fieldNames.contains(methodMinusGetCapitalised)) { // person -> getPerson
                             expectedGetters.remove(methodMinusGetCapitalised);
+                            if (!ignoreFieldNames.contains(methodMinusGetCapitalised)) {
+                                getters.put(methodMinusGetCapitalised, methodName);
+                            }
                             found = true;
                         }
                     }
@@ -175,17 +196,30 @@ public class RealmProcessor extends AbstractProcessor {
 
                     String methodMinusSet = methodName.substring(3);
                     String methodMinusSetCapitalised = lowerFirstChar(methodMinusSet);
+                    String methodMenusSetPlusIs = "is" + methodMinusSet;
 
                     if (fieldNames.contains(methodMinusSet)) { // mPerson -> setmPerson
                         expectedSetters.remove(methodMinusSet);
+                        if (!ignoreFieldNames.contains(methodMinusSet)) {
+                            setters.put(methodMinusSet, methodName);
+                        }
                         found = true;
                     } else if (fieldNames.contains(methodMinusSetCapitalised)) { // person -> setPerson
                         expectedSetters.remove(methodMinusSetCapitalised);
+                        if (!ignoreFieldNames.contains(methodMinusSetCapitalised)) {
+                            setters.put(methodMinusSetCapitalised, methodName);
+                        }
+                        found = true;
+                    } else if (fieldNames.contains(methodMenusSetPlusIs)) { // isReady -> setReady
+                        expectedSetters.remove(methodMenusSetPlusIs);
+                        if (!ignoreFieldNames.contains(methodMenusSetPlusIs)) {
+                            setters.put(methodMenusSetPlusIs, methodName);
+                        }
                         found = true;
                     }
 
                     if (!found) {
-                        note(String.format("Set %s is not associated to any field", methodName));
+                        note(String.format("Setter %s is not associated to any field", methodName));
                     }
                 } else {
                     error("Only getters and setters should be defined in model classes", executableElement);
@@ -200,7 +234,7 @@ public class RealmProcessor extends AbstractProcessor {
             }
 
             RealmProxyClassGenerator sourceCodeGenerator =
-                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, indexedFields);
+                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, getters, setters, indexedFields);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {

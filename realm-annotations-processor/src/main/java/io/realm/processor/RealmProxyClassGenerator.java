@@ -35,17 +35,25 @@ public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
     private String className;
     private String packageName;
-    private List<VariableElement> fields;
+    private List<VariableElement> fields = new ArrayList<VariableElement>();
+    private Map<String, String> getters = new HashMap<String, String>();
+    private Map<String, String> setters = new HashMap<String, String>();
     private List<VariableElement> fieldsToIndex;
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String TABLE_PREFIX = "class_";
     private static final String PROXY_SUFFIX = "RealmProxy";
 
-    public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment, String className, String packageName, List<VariableElement> fields, List<VariableElement> fieldsToIndex) {
+    public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment,
+                                    String className, String packageName,
+                                    List<VariableElement> fields,
+                                    Map<String, String> getters, Map<String, String> setters,
+                                    List<VariableElement> fieldsToIndex) {
         this.processingEnvironment = processingEnvironment;
         this.className = className;
         this.packageName = packageName;
         this.fields = fields;
+        this.getters = getters;
+        this.setters = setters;
         this.fieldsToIndex = fieldsToIndex;
     }
 
@@ -124,47 +132,47 @@ public class RealmProxyClassGenerator {
     static {
         HASHCODE = new HashMap<String, String[]>();
         HASHCODE.put("boolean", new String[] {
-                "result = 31 * result + (is%s() ? 1 : 0)" });
+                "result = 31 * result + (%s() ? 1 : 0)" });
         HASHCODE.put("byte", new String[] {
-                "result = 31 * result + (int) get%s()" });
+                "result = 31 * result + (int) %s()" });
         HASHCODE.put("short", new String[] {
-                "result = 31 * result + (int) get%s()" });
+                "result = 31 * result + (int) %s()" });
         HASHCODE.put("int", new String[] {
-                "result = 31 * result + get%s()" });
+                "result = 31 * result + %s()" });
         HASHCODE.put("long", new String[] {
-                "long aLong_%d = get%s()",
+                "long aLong_%d = %s()",
                 "result = 31 * result + (int) (aLong_%d ^ (aLong_%d >>> 32))" });
         HASHCODE.put("float", new String[] {
-                "float aFloat_%d = get%s()",
+                "float aFloat_%d = %s()",
                 "result = 31 * result + (aFloat_%d != +0.0f ? Float.floatToIntBits(aFloat_%d) : 0)" });
         HASHCODE.put("double", new String[] {
-                "long temp_%d = Double.doubleToLongBits(get%s())",
+                "long temp_%d = Double.doubleToLongBits(%s())",
                 "result = 31 * result + (int) (temp_%d ^ (temp_%d >>> 32))" });
         HASHCODE.put("Byte", new String[] {
-                "result = 31 * result + (int) get%s()" });
+                "result = 31 * result + (int) %s()" });
         HASHCODE.put("Short", new String[] {
-                "result = 31 * result + (int) get%s()" });
+                "result = 31 * result + (int) %s()" });
         HASHCODE.put("Integer", new String[] {
-                "result = 31 * result + get%s()" });
+                "result = 31 * result + %s()" });
         HASHCODE.put("Long", new String[] {
-                "long aLong_%d = get%s()",
+                "long aLong_%d = %s()",
                 "result = 31 * result + (int) (aLong_%d ^ (aLong_%d >>> 32))" });
         HASHCODE.put("Float", new String[] {
-                "float aFloat_%d = get%s()",
+                "float aFloat_%d = %s()",
                 "result = 31 * result + (aFloat_%d != +0.0f ? Float.floatToIntBits(aFloat_%d) : 0)" });
         HASHCODE.put("Double", new String[] {
-                "long temp_%d = Double.doubleToLongBits(get%s())",
+                "long temp_%d = Double.doubleToLongBits(%s())",
                 "result = 31 * result + (int) (temp_%d ^ (temp_%d >>> 32))" });
         HASHCODE.put("Boolean", new String[] {
-                "result = 31 * result + (is%s() ? 1 : 0)" });
+                "result = 31 * result + (%s() ? 1 : 0)" });
         HASHCODE.put("java.lang.String", new String[] {
-                "String aString_%d = get%s()",
+                "String aString_%d = %s()",
                 "result = 31 * result + (aString_%d != null ? aString_%d.hashCode() : 0)" });
         HASHCODE.put("java.lang.Date", new String[] {
-                "Date aDate_%d = get%s()",
+                "Date aDate_%d = %s()",
                 "result = 31 * result + (aDate_%d != null ? aDate_%d.hashCode() : 0)" });
         HASHCODE.put("byte[]", new String[] {
-                "byte[] aByteArray_%d = get%s()",
+                "byte[] aByteArray_%d = %s()",
                 "result = 31 * result + (aByteArray_%d != null ? Arrays.hashCode(aByteArray_%d) : 0)" });
     }
 
@@ -233,11 +241,7 @@ public class RealmProxyClassGenerator {
                 .emitEmptyLine();
 
         // Accessors
-        ListIterator<VariableElement> iterator = fields.listIterator();
-        while (iterator.hasNext()) {
-            int columnNumber = iterator.nextIndex();
-            VariableElement field = iterator.next();
-
+        for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
 
@@ -250,8 +254,7 @@ public class RealmProxyClassGenerator {
 
                 // Getter
                 writer.emitAnnotation("Override");
-                String getterPrefix = fieldTypeCanonicalName.equals("boolean")?"is":"get";
-                writer.beginMethod(fieldTypeCanonicalName, getterPrefix + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
+                writer.beginMethod(fieldTypeCanonicalName, getters.get(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
                         "return (%s) row.get%s(Realm.columnIndices.get(\"%s\").get(\"%s\"))",
                         fieldTypeCanonicalName, realmType, className, fieldName);
@@ -260,7 +263,7 @@ public class RealmProxyClassGenerator {
 
                 // Setter
                 writer.emitAnnotation("Override");
-                writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+                writer.beginMethod("void", setters.get(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement(
                         "row.set%s(Realm.columnIndices.get(\"%s\").get(\"%s\"), (%s) value)",
                         realmType, className, fieldName, castingType);
@@ -272,7 +275,7 @@ public class RealmProxyClassGenerator {
 
                 // Getter
                 writer.emitAnnotation("Override");
-                writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
+                writer.beginMethod(fieldTypeCanonicalName, getters.get(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.beginControlFlow("if (row.isNullLink(Realm.columnIndices.get(\"%s\").get(\"%s\")))", className, fieldName);
                 writer.emitStatement("return null");
                 writer.endControlFlow();
@@ -284,7 +287,7 @@ public class RealmProxyClassGenerator {
 
                 // Setter
                 writer.emitAnnotation("Override");
-                writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+                writer.beginMethod("void", setters.get(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.beginControlFlow("if (value == null)");
                 writer.emitStatement("row.nullifyLink(Realm.columnIndices.get(\"%s\").get(\"%s\"))", className, fieldName);
                 writer.endControlFlow();
@@ -304,7 +307,7 @@ public class RealmProxyClassGenerator {
 
                 // Getter
                 writer.emitAnnotation("Override");
-                writer.beginMethod(fieldTypeCanonicalName, "get" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC));
+                writer.beginMethod(fieldTypeCanonicalName, getters.get(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
                         "return new RealmList(%s.class, row.getLinkList(Realm.columnIndices.get(\"%s\").get(\"%s\")), realm)",
                         genericType, className, fieldName);
@@ -313,7 +316,7 @@ public class RealmProxyClassGenerator {
 
                 // Setter
                 writer.emitAnnotation("Override");
-                writer.beginMethod("void", "set" + capitaliseFirstChar(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+                writer.beginMethod("void", setters.get(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement("LinkView links = row.getLinkList(Realm.columnIndices.get(\"%s\").get(\"%s\"))", className, fieldName);
                 writer.beginControlFlow("if (value == null)");
                 writer.emitStatement("return"); // TODO: delete all the links instead
@@ -413,11 +416,7 @@ public class RealmProxyClassGenerator {
         writer.endControlFlow();
 
         // For each field verify there is a corresponding column
-        ListIterator<VariableElement> fieldsIterator = fields.listIterator();
-        while (fieldsIterator.hasNext()) {
-            int columnNumber = fieldsIterator.nextIndex();
-            VariableElement field = fieldsIterator.next();
-
+        for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
             String fieldTypeName;
@@ -507,10 +506,8 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", className);
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
-            String fieldTypeCanonicalName = field.asType().toString();
-            String getterPrefix = fieldTypeCanonicalName.equals("boolean")?"is":"get";
             writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
-            writer.emitStatement("stringBuilder.append(%s%s())", getterPrefix, capitaliseFirstChar(fieldName));
+            writer.emitStatement("stringBuilder.append(%s())", getters.get(fieldName));
             writer.emitStatement("stringBuilder.append(\"} \")", fieldName);
         }
         writer.emitStatement("stringBuilder.append(\"]\")");
@@ -532,13 +529,13 @@ public class RealmProxyClassGenerator {
                 for (String statement : HASHCODE.get(fieldTypeCanonicalName)) {
                     if (statement.contains("%d") && statement.contains("%s")) {
                         // This statement introduces a temporary variable
-                        writer.emitStatement(statement, counter, capitaliseFirstChar(fieldName));
+                        writer.emitStatement(statement, counter, getters.get(fieldName));
                     } else if(statement.contains("%d")) {
                         // This statement uses the temporary variable
                         writer.emitStatement(statement, counter, counter);
                     } else if (statement.contains("%s")) {
                         // This is a normal statement with only one assignment
-                        writer.emitStatement(statement, capitaliseFirstChar(fieldName));
+                        writer.emitStatement(statement, getters.get(fieldName));
                     } else {
                         // This should never happen
                         throw new AssertionError();
@@ -546,7 +543,7 @@ public class RealmProxyClassGenerator {
                 }
             } else {
                 // Links and Link lists
-                writer.emitStatement("%s temp_%d = get%s()", fieldTypeCanonicalName, counter, capitaliseFirstChar(fieldName));
+                writer.emitStatement("%s temp_%d = %s()", fieldTypeCanonicalName, counter, getters.get(fieldName));
                 writer.emitStatement("result = 31 * result + (temp_%d != null ? temp_%d.hashCode() : 0)", counter, counter);
             }
             counter++;
@@ -572,32 +569,31 @@ public class RealmProxyClassGenerator {
             if (HOW_TO_EQUAL.containsKey(fieldTypeCanonicalName)) {
                 switch (HOW_TO_EQUAL.get(fieldTypeCanonicalName)) {
                     case EQUALS_DIRECT: // if (getField() != aFoo.getField()) return false
-                        String getterPrefix = fieldTypeCanonicalName.equals("boolean") ? "is" : "get";
-                        writer.emitStatement("if (%s%s() != a%s.%s%s()) return false", getterPrefix, capFieldName, className, getterPrefix, capFieldName);
+                        writer.emitStatement("if (%s() != a%s.%s()) return false", getters.get(fieldName), className, getters.get(fieldName));
                         break;
                     case EQUALS_NULL: // if (getField() != null = !getField().equals(aFoo.getField()) : aFoo.getField() != null) return false
-                        writer.emitStatement("if (get%s() != null ? !get%s().equals(a%s.get%s()) : a%s.get%s() != null) return false",
-                                capFieldName,
-                                capFieldName, className, capFieldName,
-                                className, capFieldName);
+                        writer.emitStatement("if (%s() != null ? !%s().equals(a%s.%s()) : a%s.%s() != null) return false",
+                                getters.get(fieldName),
+                                getters.get(fieldName), className, getters.get(fieldName),
+                                className, getters.get(fieldName));
                         break;
                     case EQUALS_ARRAY: // if (!Arrays.equals(getField(), aFoo.getField())) return false
-                        writer.emitStatement("if (!Arrays.equals(get%s(), a%s.get%s())) return false",
-                                capFieldName,
-                                className, capFieldName);
+                        writer.emitStatement("if (!Arrays.equals(%s(), a%s.%s())) return false",
+                                getters.get(fieldName),
+                                className, getters.get(fieldName));
                         break;
                     case EQUALS_COMPARE: // if (
-                        writer.emitStatement("if (%s.compare(get%s(), a%s.get%s()) != 0) return false",
-                                capitaliseFirstChar(fieldTypeCanonicalName), capitaliseFirstChar(fieldName), className,
-                                capitaliseFirstChar(fieldName));
+                        writer.emitStatement("if (%s.compare(%s(), a%s.%s()) != 0) return false",
+                                capitaliseFirstChar(fieldTypeCanonicalName), getters.get(fieldName), className,
+                                getters.get(fieldName));
                         break;
                 }
             }
             else if (typeUtils.isAssignable(field.asType(), realmObject) || typeUtils.isAssignable(field.asType(), realmList)) {
-                writer.emitStatement("if (get%s() != null ? !get%s().equals(a%s.get%s()) : a%s.get%s() != null) return false",
-                        capFieldName,
-                        capFieldName, className, capFieldName,
-                         className, capFieldName);
+                writer.emitStatement("if (%s() != null ? !%s().equals(a%s.%s()) : a%s.%s() != null) return false",
+                        getters.get(fieldName),
+                        getters.get(fieldName), className, getters.get(fieldName),
+                        className, getters.get(fieldName));
             }
         }
         writer.emitStatement("return true");

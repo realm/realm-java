@@ -18,23 +18,32 @@ package some.test;
 
 import io.realm.RealmObject;
 
-public class Simple extends RealmObject {
-    private String name;
-    private int age;
+public class Booleans extends RealmObject {
+    private boolean done;
+    private boolean isReady;
+    private boolean mCompleted;
 
-    public String getName() {
-        return name;
+    public boolean isDone() {
+        return done;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setDone(boolean done) {
+        this.done = done;
     }
 
-    public int getAge() {
-        return age;
+    public boolean isReady() {
+        return isReady;
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    public void setReady(boolean isReady) {
+        this.isReady = isReady;
+    }
+
+    public boolean ismCompleted() {
+        return mCompleted;
+    }
+
+    public void setmCompleted(boolean mCompleted) {
+        this.mCompleted = mCompleted;
     }
 }
