@@ -19,6 +19,11 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 
@@ -62,6 +67,50 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    private enum Method {
+        METHOD_MIN,
+        METHOD_MAX,
+        METHOD_SUM,
+        METHOD_AVG,
+        METHOD_SORT,
+        METHOD_WHERE
+    };
+
+    public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
+        final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    switch (method) {
+                        case METHOD_MIN:
+                            allTypeses.min(FIELD_FLOAT);
+                            break;
+                        case METHOD_MAX:
+                            allTypeses.max(FIELD_FLOAT);
+                            break;
+                        case METHOD_SUM:
+                            allTypeses.sum(FIELD_FLOAT);
+                            break;
+                        case METHOD_AVG:
+                            allTypeses.average(FIELD_FLOAT);
+                            break;
+                        case METHOD_SORT:
+                            allTypeses.sort(FIELD_FLOAT);
+                            break;
+                        case METHOD_WHERE:
+                            allTypeses.where();
+                    }
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        return future.get();
+    }
 
     // test io.realm.ResultList Api
 
@@ -131,12 +180,6 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(0, minimum.intValue());
     }
 
-    public void testMinMaxDate() {
-        RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll();
-        assertEquals(new Date(0), results.minDate(FIELD_DATE));
-        assertEquals(new Date(1000*(TEST_DATA_SIZE-1)), results.maxDate(FIELD_DATE));
-    }
-
     public void testMaxValueIsMaxValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
@@ -179,7 +222,6 @@ public class RealmResultsTest extends AndroidTestCase {
         // average = sum/N = b + (N-1)/2
         assertEquals(1.234567+0.5*(N-1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
-
 
     // void clear(Class<?> classSpec)
     public void testRemoveIsResultListSizeOk() {
@@ -332,7 +374,6 @@ public class RealmResultsTest extends AndroidTestCase {
         }
     }
 
-
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
     }
@@ -354,5 +395,10 @@ public class RealmResultsTest extends AndroidTestCase {
         }
         RealmResults<AllTypes> allTypesRealmResults = query.findAll();
         assertEquals(TEST_DATA_SIZE, allTypesRealmResults.size());
+    }
+
+    public void testWhere() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
+        assertNotNull(query);
     }
 }

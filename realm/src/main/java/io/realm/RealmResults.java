@@ -83,6 +83,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @see io.realm.RealmQuery
      */
     public RealmQuery<E> where() {
+        realm.assertThread();
         return new RealmQuery<E>(this, classSpec);
     }
 
@@ -92,7 +93,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E get(int rowIndex) {
         E obj;
-
+        realm.assertThread();
         TableOrView table = getTable();
         if (table instanceof TableView) {
             obj = realm.get(classSpec, ((TableView)table).getSourceRowIndex(rowIndex));
@@ -145,6 +146,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public RealmResults<E> sort(String fieldName, boolean sortAscending) {
         TableView sorted;
 
+        realm.assertThread();
         TableOrView table = getTable();
         long columnIndex = table.getColumnIndex(fieldName);
         TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
@@ -182,6 +184,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number min(String fieldName) {
+        realm.assertThread();
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -204,6 +207,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date minDate(String fieldName) {
+        realm.assertThread();
         long columnIndex = table.getColumnIndex(fieldName);
         if (table.getColumnType(columnIndex) == ColumnType.DATE) {
             return table.minimumDate(columnIndex);
@@ -221,6 +225,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number max(String fieldName) {
+        realm.assertThread();
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -243,6 +248,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date maxDate(String fieldName) {
+        realm.assertThread();
         long columnIndex = table.getColumnIndex(fieldName);
         if (table.getColumnType(columnIndex) == ColumnType.DATE) {
             return table.maximumDate(columnIndex);
@@ -262,6 +268,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
 
     public Number sum(String fieldName) {
+        realm.assertThread();
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -286,6 +293,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws           java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public double average(String fieldName) {
+        realm.assertThread();
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
