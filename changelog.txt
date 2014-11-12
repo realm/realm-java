@@ -1,4 +1,5 @@
 0.74.0 (??)
+  * Fixed a bug in the calculation of the maximum of date field in a RealmResults
   * Adding case sensitive versions of string comparison operators equalTo and notEqualTo
   * Adding new method distinct() to Realm
 
