@@ -263,6 +263,11 @@ public class RealmLinkTests extends AndroidTestCase {
             RealmResults<Owner> owners5 = testRealm.where(Owner.class).contains("cat.name", "Blackie").findAll();
             fail();
         } catch (IllegalArgumentException e) { }
+
+        try {
+            RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "Max", RealmQuery.CASE_INSENSITIVE).findAll();
+            fail();
+        } catch (IllegalArgumentException ignore) {}
     }
 
     public void testQueryMultipleRelationsBoolean() {

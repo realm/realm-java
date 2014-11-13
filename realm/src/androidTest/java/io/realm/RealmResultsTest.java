@@ -19,6 +19,11 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 
@@ -53,7 +58,7 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date((long) i));
+            allTypes.setColumnDate(new Date((long) 1000*i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
@@ -62,6 +67,50 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    private enum Method {
+        METHOD_MIN,
+        METHOD_MAX,
+        METHOD_SUM,
+        METHOD_AVG,
+        METHOD_SORT,
+        METHOD_WHERE
+    };
+
+    public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
+        final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    switch (method) {
+                        case METHOD_MIN:
+                            allTypeses.min(FIELD_FLOAT);
+                            break;
+                        case METHOD_MAX:
+                            allTypeses.max(FIELD_FLOAT);
+                            break;
+                        case METHOD_SUM:
+                            allTypeses.sum(FIELD_FLOAT);
+                            break;
+                        case METHOD_AVG:
+                            allTypeses.average(FIELD_FLOAT);
+                            break;
+                        case METHOD_SORT:
+                            allTypeses.sort(FIELD_FLOAT);
+                            break;
+                        case METHOD_WHERE:
+                            allTypeses.where();
+                    }
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        return future.get();
+    }
 
     // test io.realm.ResultList Api
 
@@ -95,16 +144,16 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         AllTypes allTypes = resultList.get(0);
-        assertNotNull("ResultList.get has returned null", allTypes);
-        assertTrue("ResultList.get returned invalid data", allTypes.getColumnString().startsWith("test data"));
+        assertNotNull(allTypes);
+        assertTrue(allTypes.getColumnString().startsWith("test data"));
     }
 
 
     // void clear(Class<?> classSpec)
     public void testIsResultListSizeOk() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        assertNotNull("ResultList.where has returned null", resultList);
-        assertEquals("ResultList.where unexpected number of objects returned", TEST_DATA_SIZE, resultList.size());
+        assertNotNull(resultList);
+        assertEquals(TEST_DATA_SIZE, resultList.size());
     }
 
 
@@ -112,42 +161,38 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         AllTypes allTypes = resultList.first();
-        assertNotNull("ResultList.first has returned null", allTypes);
-        assertTrue("ResultList.first returned invalid data", allTypes.getColumnString().startsWith("test data 0"));
+        assertNotNull(allTypes);
+        assertTrue(allTypes.getColumnString().startsWith("test data 0"));
     }
 
     public void testResultListLastIsLast() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         AllTypes allTypes = resultList.last();
-        assertNotNull("ResultList.last has returned null", allTypes);
-        assertEquals("ResultList.last returned invalid data", (TEST_DATA_SIZE - 1), allTypes.getColumnLong());
+        assertNotNull(allTypes);
+        assertEquals((TEST_DATA_SIZE - 1), allTypes.getColumnLong());
     }
 
     public void testMinValueIsMinValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number minimum = resultList.min(FIELD_LONG);
-        assertEquals("ResultList.min returned wrong value", 0, minimum.intValue());
+        assertEquals(0, minimum.intValue());
     }
 
     public void testMaxValueIsMaxValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number maximum = resultList.max(FIELD_LONG);
-        assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE - 1, maximum.intValue());
+        assertEquals(TEST_DATA_SIZE - 1, maximum.intValue());
     }
 
     public void testSumGivesCorrectValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number sum = resultList.sum(FIELD_LONG);
-
-        int checkSum = 0;
-        for (int i = 0; i < TEST_DATA_SIZE; ++i) {
-            checkSum += i;
-        }
-        assertEquals("ResultList.sum returned wrong sum", checkSum, sum.intValue());
+        // Sum of numbers 0 to M-1: (M-1)*M/2
+        assertEquals((TEST_DATA_SIZE-1)*TEST_DATA_SIZE/2, sum.intValue());
     }
 
     public void testAvgGivesCorrectValue() {
@@ -178,7 +223,6 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(1.234567+0.5*(N-1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
 
-
     // void clear(Class<?> classSpec)
     public void testRemoveIsResultListSizeOk() {
         testRealm.beginTransaction();
@@ -189,10 +233,10 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         boolean checkListSize = resultList.size() == TEST_DATA_SIZE - 1;
-        assertTrue("ResultList.remove did not remove record", checkListSize);
+        assertTrue(checkListSize);
 
         AllTypes allTypes = resultList.get(0);
-        assertTrue("ResultList.remove unexpected first record", allTypes.getColumnLong() == 1);
+        assertTrue(allTypes.getColumnLong() == 1);
     }
 
     public void testIsResultRemoveLastListSizeOk() {
@@ -330,7 +374,6 @@ public class RealmResultsTest extends AndroidTestCase {
         }
     }
 
-
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
     }
@@ -352,5 +395,10 @@ public class RealmResultsTest extends AndroidTestCase {
         }
         RealmResults<AllTypes> allTypesRealmResults = query.findAll();
         assertEquals(TEST_DATA_SIZE, allTypesRealmResults.size());
+    }
+
+    public void testWhere() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
+        assertNotNull(query);
     }
 }

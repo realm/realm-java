@@ -795,6 +795,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView
 
 /*
  * Class:     io_realm_internal_Table
+ * Method:    nativeGetName
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
  * Method:    nativeOptimize
  * Signature: (J)V
  */

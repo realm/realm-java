@@ -22,10 +22,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
-import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 
 
@@ -69,42 +73,6 @@ public class RealmTest extends AndroidTestCase {
 
     private final static int BACKGROUND_COMMIT_TEST_DATA_SET_SIZE = 5;
 
-    /* TODO: re-implement
-    private void getNotifications(int totalExpected) {
-        int lastCount = 0;
-        int retries = 8;
-
-
-        while (testCount < totalExpected && retries-- > 0) {
-            try {
-                Thread.sleep(125);
-            } catch (Exception ex) {
-                fail("Unexpected exception " + ex.getMessage());
-            }
-            if (lastCount != testCount) {
-                lastCount = testCount;
-                retries = 8;
-            }
-        }
-    }
-    */
-
-    /* TODO: re-implement
-    public void testRealmThreadCachingSpeed() {
-        long tic1 = System.currentTimeMillis();
-        Realm realm1 = Realm.getInstance(this.getContext());
-        long toc1 = System.currentTimeMillis();
-        long t1 = toc1 - tic1;
-
-        long tic2 = System.currentTimeMillis();
-        Realm realm2 = Realm.getInstance(this.getContext());
-        long toc2 = System.currentTimeMillis();
-        long t2 = toc2 - tic2;
-
-        // At least 5 times faster?
-        assertTrue(t2 < (t1 / 5));
-    }
-    */
 
     // Test io.realm.Realm API
 
@@ -183,7 +151,14 @@ public class RealmTest extends AndroidTestCase {
         resultList = testRealm.where(AllTypes.class).equalTo("columnLong", 3333).findAll();
         assertEquals("ResultList.where not returning expected result", 0, resultList.size());
 
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0").findAll();
+        assertEquals(1, resultList.size());
 
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0", RealmQuery.CASE_INSENSITIVE).findAll();
+        assertEquals(1, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "Test data 0", RealmQuery.CASE_SENSITIVE).findAll();
+        assertEquals(0, resultList.size());
     }
 
     public void testQueriesWithDataTypes() throws IOException {
@@ -318,248 +293,6 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
     }
 
-    /* TODO: re-implement
-    public void testChangeNotify() {
-        final int[] testCount = {0};
-        testRealm.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                testCount[0]++;
-            }
-        });
-
-        testRealm.beginTransaction();
-        for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("King" + Integer.toString(i));
-        }
-        testRealm.commitTransaction();
-
-        getNotifications(1); // This really should be BACKGROUND_COMMIT_TEST_DATA_SET_SIZE
-        // But there is a bug that prevents us from getting the right
-        // number of notifications back. So for now we are only checking
-        // that we do get at least one notification.
-
-        testRealm.removeAllChangeListeners();
-
-        assertTrue("Have not received the expected number of events in ChangeListener", 0 < testCount[0]);
-
-    }
-    */
-
-    /* TODO: re-implement
-    // void removeChangeListener(RealmChangeListener listener)
-    public void testChangeNotifyRemove() {
-        final int[] testCount = {0};
-
-        RealmChangeListener realmChangeListener = new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                testCount[0]++;
-            }
-        };
-
-        testRealm.addChangeListener(realmChangeListener);
-
-        testRealm.beginTransaction();
-        for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("King" + Integer.toString(i));
-        }
-
-        testRealm.commitTransaction();
-
-        getNotifications(1);  // This really should be BACKGROUND_COMMIT_TEST_DATA_SET_SIZE
-        // But there is a bug that prevents us from getting the right
-        // number of notifications back. So for now we are only checking
-        // that we do get at least one notification.
-
-        testRealm.removeAllChangeListeners();
-
-        assertTrue("Have not received the expected number of events in ChangeListener", 0 < testCount[0]);
-
-        testCount[0] = 0;
-
-        testRealm.beginTransaction();
-        for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
-
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Fido" + Integer.toString(i));
-        }
-
-        testRealm.commitTransaction();
-
-        getNotifications(1);
-        assertEquals("Should not receive change notifications after removeChangeListener", 0, testCount[0]);
-    }
-    */
-
-    /* TODO: re-implement
-    // void removeChangeListener(RealmChangeListener listener)
-    public void testFailChangeNotifyNoListener() {
-        final int[] testCount = {0};
-
-        // Invalid input parameter to removeChangeListener:
-        testRealm.removeChangeListener(null);
-
-        RealmChangeListener realmChangeListener = new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                testCount[0]++;
-            }
-        };
-
-        // Invalid input parameter, realmChangeListener has never been added:
-        testRealm.removeChangeListener(realmChangeListener);
-
-
-        // Check that change listeners are still functional:
-        testRealm.addChangeListener(realmChangeListener);
-
-        testCount[0] = 0;
-
-        testRealm.beginTransaction();
-        for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
-
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Fido" + Integer.toString(i));
-        }
-
-        testRealm.commitTransaction();
-
-        getNotifications(1);  // This really should be BACKGROUND_COMMIT_TEST_DATA_SET_SIZE
-        // But there is a bug that prevents us from getting the right
-        // number of notifications back. So for now we are only checking
-        // that we do get at least one notification.
-
-        testRealm.removeAllChangeListeners();
-        assertTrue("Should receive change notifications after adding addChangeListener", 0 < testCount[0]);
-    }
-    */
-
-    /* TODO: re-implement
-    // void removeAllChangeListeners()
-    public void testRemoveAllChangeListeners() {
-        final int[] testCount = new int[1];
-        RealmChangeListener realmChangeListener = new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                testCount[0]++;
-            }
-        };
-
-        testRealm.addChangeListener(realmChangeListener);
-
-        testRealm.removeAllChangeListeners();
-
-
-        testCount[0] = 0;
-
-        testRealm.beginTransaction();
-        for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
-
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Fido" + Integer.toString(i));
-        }
-
-        testRealm.commitTransaction();
-
-        getNotifications(1);
-
-        assertEquals("Should not receive change notifications after removeAllChangeListeners", 0, testCount[0]);
-
-    }
-    */
-
-    /* TODO: re-implement
-    // void removeAllChangeListeners()
-    public void testFailRemoveAllChangeListeners() {
-        final int[] testCount = {0};
-        // Calling removeAllChangeListeners w/o any ChangeListeners installed:
-        testRealm.removeAllChangeListeners();
-
-        // Verify that change notification is still working:
-
-        RealmChangeListener realmChangeListener = new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                testCount[0]++;
-            }
-        };
-
-        testRealm.addChangeListener(realmChangeListener);
-
-        testCount[0] = 0;
-
-        testRealm.beginTransaction();
-        for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
-
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Fido" + Integer.toString(i));
-        }
-
-        testRealm.commitTransaction();
-
-        getNotifications(1);  // This really should be BACKGROUND_COMMIT_TEST_DATA_SET_SIZE
-        // But there is a bug that prevents us from getting the right
-        // number of notifications back. So for now we are only checking
-        // that we do get at least one notification.
-
-        testRealm.removeAllChangeListeners();
-
-        assertTrue("Should not receive change notifications after removeAllChangeListeners", 0 < testCount[0]);
-    }
-    */
-
-    /* TODO: re-implement
-    public void testChangeUpdateFromOtherThread() {
-        final int[] testCount = {0};
-
-        RealmChangeListener realmChangeListener = new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                testCount[0]++;
-            }
-        };
-
-        testRealm.addChangeListener(realmChangeListener);
-
-        Thread addFromThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm localRealm = Realm.getInstance(getContext());
-                localRealm.beginTransaction();
-                for (int i = 0; i < BACKGROUND_COMMIT_TEST_DATA_SET_SIZE; i++) {
-
-                    Dog dog = localRealm.createObject(Dog.class);
-                    dog.setName("Fido" + Integer.toString(i));
-                }
-                localRealm.commitTransaction();
-
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception ex) {
-
-                }
-            }
-        });
-
-        addFromThread.start();
-
-        try {
-            addFromThread.join();
-
-            getNotifications(BACKGROUND_COMMIT_TEST_DATA_SET_SIZE);
-
-            testRealm.removeAllChangeListeners();
-
-            assertTrue("Should receive change notifications when modifying table in another thread ", BACKGROUND_COMMIT_TEST_DATA_SET_SIZE <= testCount[0]);
-        } catch (Exception ex) {
-            fail("Unexpected exception " + ex.getMessage());
-        }
-    }
-    */
-
     // void beginTransaction()
     public void testBeginTransaction() throws IOException {
 
@@ -590,6 +323,56 @@ public class RealmTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    private enum TransactionMethod {
+        METHOD_BEGIN,
+        METHOD_COMMIT,
+        METHOD_CANCEL
+    }
+
+    // Starting a transaction on the wrong thread will fail
+    public boolean transactionMethodWrongThread(final TransactionMethod method) throws InterruptedException, ExecutionException {
+        final Realm realm = Realm.getInstance(getContext());
+
+        if (method != TransactionMethod.METHOD_BEGIN) {
+            realm.beginTransaction();
+            Dog dog = realm.createObject(Dog.class); // FIXME: Empty transactions cannot be cancelled
+        }
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    switch (method) {
+                        case METHOD_BEGIN:
+                            realm.beginTransaction();
+                            break;
+                        case METHOD_COMMIT:
+                            realm.commitTransaction();
+                            break;
+                        case METHOD_CANCEL:
+                            realm.cancelTransaction();
+                            break;
+                    }
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        boolean result = future.get();
+        if (result && method != TransactionMethod.METHOD_BEGIN) {
+            realm.cancelTransaction();
+        }
+        return result;
+    }
+
+    public void testTransactionWrongThread() throws ExecutionException, InterruptedException {
+        for (TransactionMethod method : TransactionMethod.values()) {
+            assertTrue(method.toString(), transactionMethodWrongThread(method));
+        }
+    }
+
     // void commitTransaction()
     public void testCommitTransaction() {
         testRealm.beginTransaction();
@@ -600,6 +383,7 @@ public class RealmTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
     }
+
 
     public void testCancelTransaction() {
         testRealm.beginTransaction();
@@ -787,5 +571,28 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
         resultList = testRealm.where(AllTypes.class).notEqualTo("columnFloat", 11.234567f).equalTo("columnLong", 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+    }
+
+    public void testDistinct() {
+        testRealm.beginTransaction();
+        for (int i = 0; i < 10; ++i) {
+            Dog dog = testRealm.createObject(Dog.class);
+            if (i % 2 == 0) {
+                dog.setName("Rex");
+            } else {
+                dog.setName("King");
+            }
+        }
+        testRealm.commitTransaction();
+
+        RealmResults<Dog> dogs = testRealm.distinct(Dog.class, "name");
+        assertEquals(2, dogs.size());
+
+        // Verify exception is thrown if the field in not indexed.
+        try {
+            RealmResults<AllTypes> allTypes = testRealm.distinct(AllTypes.class, "columnString");
+            fail();
+        } catch (UnsupportedOperationException ignore) {
+        }
     }
 }

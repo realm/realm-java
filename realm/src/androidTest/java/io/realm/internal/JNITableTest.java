@@ -300,10 +300,11 @@ public class JNITableTest extends AndroidTestCase {
         String FILENAME = new File(this.getContext().getFilesDir(), "only-test-file.realm").toString();
         String TABLENAME = "tableName";
 
-      //  new File(FILENAME).delete();
+        new File(FILENAME).delete();
+        new File(FILENAME+".lock").delete();
         SharedGroup group = new SharedGroup(FILENAME);
 
-        // Write transaction must be run so where are sure a db exists with the correct table
+        // Write transaction must be run so we are sure a db exists with the correct table
         WriteTransaction wt = group.beginWrite();
         try {
             Table table = wt.getTable(TABLENAME);
@@ -326,6 +327,28 @@ public class JNITableTest extends AndroidTestCase {
         } finally {
             rt.endRead();
         }
+    }
+
+    public void testGetName() {
+        String FILENAME = new File(this.getContext().getFilesDir(), "only-test-file.realm").toString();
+        String TABLENAME = "tableName";
+
+        new File(FILENAME).delete();
+        new File(FILENAME+".lock").delete();
+        SharedGroup group = new SharedGroup(FILENAME);
+
+        // Write transaction must be run so we are sure a db exists with the correct table
+        WriteTransaction wt = group.beginWrite();
+        try {
+            Table table = wt.getTable(TABLENAME);
+            wt.commit();
+        } catch (Throwable t) {
+            wt.rollback();
+        }
+
+        ReadTransaction rt = group.beginRead();
+        Table table = rt.getTable(TABLENAME);
+        assertEquals(TABLENAME, table.getName());
     }
 
     public void testShouldThrowWhenSetIndexOnWrongColumnType() {
