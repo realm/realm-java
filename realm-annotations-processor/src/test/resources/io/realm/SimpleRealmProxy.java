@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.internal.ColumnType;
@@ -30,21 +31,25 @@ public class SimpleRealmProxy extends Simple {
 
     @Override
     public String getName() {
+        realm.assertThread();
         return (java.lang.String) row.getString(Realm.columnIndices.get("Simple").get("name"));
     }
 
     @Override
     public void setName(String value) {
+        realm.assertThread();
         row.setString(Realm.columnIndices.get("Simple").get("name"), (String) value);
     }
 
     @Override
     public int getAge() {
+        realm.assertThread();
         return (int) row.getLong(Realm.columnIndices.get("Simple").get("age"));
     }
 
     @Override
     public void setAge(int value) {
+        realm.assertThread();
         row.setLong(Realm.columnIndices.get("Simple").get("age"), (long) value);
     }
 

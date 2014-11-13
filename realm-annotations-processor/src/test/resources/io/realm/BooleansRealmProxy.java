@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.internal.ColumnType;
@@ -30,31 +31,37 @@ public class BooleansRealmProxy extends Booleans {
 
     @Override
     public boolean isDone() {
+        realm.assertThread();
         return (boolean) row.getBoolean(Realm.columnIndices.get("Booleans").get("done"));
     }
 
     @Override
     public void setDone(boolean value) {
+        realm.assertThread();
         row.setBoolean(Realm.columnIndices.get("Booleans").get("done"), (boolean) value);
     }
 
     @Override
     public boolean isReady() {
+        realm.assertThread();
         return (boolean) row.getBoolean(Realm.columnIndices.get("Booleans").get("isReady"));
     }
 
     @Override
     public void setReady(boolean value) {
+        realm.assertThread();
         row.setBoolean(Realm.columnIndices.get("Booleans").get("isReady"), (boolean) value);
     }
 
     @Override
     public boolean ismCompleted() {
+        realm.assertThread();
         return (boolean) row.getBoolean(Realm.columnIndices.get("Booleans").get("mCompleted"));
     }
 
     @Override
     public void setmCompleted(boolean value) {
+        realm.assertThread();
         row.setBoolean(Realm.columnIndices.get("Booleans").get("mCompleted"), (boolean) value);
     }
 

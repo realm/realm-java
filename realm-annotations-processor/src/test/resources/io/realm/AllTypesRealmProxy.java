@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.internal.ColumnType;
@@ -30,71 +31,85 @@ public class AllTypesRealmProxy extends AllTypes {
 
     @Override
     public String getColumnString() {
+        realm.assertThread();
         return (java.lang.String) row.getString(Realm.columnIndices.get("AllTypes").get("columnString"));
     }
 
     @Override
     public void setColumnString(String value) {
+        realm.assertThread();
         row.setString(Realm.columnIndices.get("AllTypes").get("columnString"), (String) value);
     }
 
     @Override
     public long getColumnLong() {
+        realm.assertThread();
         return (long) row.getLong(Realm.columnIndices.get("AllTypes").get("columnLong"));
     }
 
     @Override
     public void setColumnLong(long value) {
+        realm.assertThread();
         row.setLong(Realm.columnIndices.get("AllTypes").get("columnLong"), (long) value);
     }
 
     @Override
     public float getColumnFloat() {
+        realm.assertThread();
         return (float) row.getFloat(Realm.columnIndices.get("AllTypes").get("columnFloat"));
     }
 
     @Override
     public void setColumnFloat(float value) {
+        realm.assertThread();
         row.setFloat(Realm.columnIndices.get("AllTypes").get("columnFloat"), (float) value);
     }
 
     @Override
     public double getColumnDouble() {
+        realm.assertThread();
         return (double) row.getDouble(Realm.columnIndices.get("AllTypes").get("columnDouble"));
     }
 
     @Override
     public void setColumnDouble(double value) {
+        realm.assertThread();
         row.setDouble(Realm.columnIndices.get("AllTypes").get("columnDouble"), (double) value);
     }
 
     @Override
     public boolean isColumnBoolean() {
+        realm.assertThread();
         return (boolean) row.getBoolean(Realm.columnIndices.get("AllTypes").get("columnBoolean"));
     }
 
     @Override
     public void setColumnBoolean(boolean value) {
+        realm.assertThread();
         row.setBoolean(Realm.columnIndices.get("AllTypes").get("columnBoolean"), (boolean) value);
     }
 
     @Override
     public java.util.Date getColumnDate() {
+        realm.assertThread();
         return (java.util.Date) row.getDate(Realm.columnIndices.get("AllTypes").get("columnDate"));
     }
 
     @Override
     public void setColumnDate(java.util.Date value) {
+        realm.assertThread();
         row.setDate(Realm.columnIndices.get("AllTypes").get("columnDate"), (Date) value);
     }
 
     @Override
     public byte[] getColumnBinary() {
+        realm.assertThread();
         return (byte[]) row.getBinaryByteArray(Realm.columnIndices.get("AllTypes").get("columnBinary"));
     }
 
     @Override
     public void setColumnBinary(byte[] value) {
+        realm.assertThread();
         row.setBinaryByteArray(Realm.columnIndices.get("AllTypes").get("columnBinary"), (byte[]) value);
     }
 
