@@ -39,6 +39,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+import java.util.*;
 
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
@@ -74,10 +75,12 @@ public class RealmProcessor extends AbstractProcessor {
             String packageName;
             List<VariableElement> fields = new ArrayList<VariableElement>();
             List<VariableElement> indexedFields = new ArrayList<VariableElement>();
-            List<String> ignoredFields = new ArrayList<String>();
-            List<String> expectedGetters = new ArrayList<String>();
-            List<String> expectedSetters = new ArrayList<String>();
-            List<ExecutableElement> methods = new ArrayList<ExecutableElement>();
+            Set<VariableElement> ignoredFields = new HashSet<VariableElement>();
+            Set<String> expectedGetters = new HashSet<String>();
+            Set<String> expectedSetters = new HashSet<String>();
+            Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
+            Map<String, String> getters = new HashMap<String, String>();
+            Map<String, String> setters = new HashMap<String, String>();
 
             // Check the annotation was applied to a Class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
@@ -116,7 +119,7 @@ public class RealmProcessor extends AbstractProcessor {
                     String fieldName = variableElement.getSimpleName().toString();
                     if (variableElement.getAnnotation(Ignore.class) != null) {
                         // The field has the @Ignore annotation. No need to go any further.
-                        ignoredFields.add(fieldName);
+                        ignoredFields.add(variableElement);
                         continue;
                     }
 
@@ -170,41 +173,106 @@ public class RealmProcessor extends AbstractProcessor {
                 }
             }
 
+            List<String> fieldNames = new ArrayList<String>();
+            List<String> ignoreFieldNames = new ArrayList<String>();
+            for (VariableElement field : fields) {
+                fieldNames.add(field.getSimpleName().toString());
+            }
+            for (VariableElement ignoredField : ignoredFields) {
+                fieldNames.add(ignoredField.getSimpleName().toString());
+                ignoreFieldNames.add(ignoredField.getSimpleName().toString());
+            }
+
             for (ExecutableElement executableElement : methods) {
-                if (!executableElement.getModifiers().contains(Modifier.PUBLIC)) {
+
+                String methodName = executableElement.getSimpleName().toString();
+
+                // Check the modifiers of the method
+                Set<Modifier> modifiers = executableElement.getModifiers();
+                if (modifiers.contains(Modifier.STATIC)) {
+                    continue; // We're cool with static methods. Move along!
+                } else if (!modifiers.contains(Modifier.PUBLIC)) {
                     error("The methods of the model must be public", executableElement);
                 }
 
-                String methodName = executableElement.getSimpleName().toString();
-                String computedFieldName = methodName.startsWith("is")?lowerFirstChar(methodName.substring(2)):lowerFirstChar(methodName.substring(3));
                 if (methodName.startsWith("get") || methodName.startsWith("is")) {
                     boolean found = false;
-                    for (VariableElement field : fields) {
-                        if (field.getSimpleName().toString().equals(computedFieldName)) {
+
+                    if (methodName.startsWith("is")) {
+                        String methodMinusIs = methodName.substring(2);
+                        String methodMinusIsCapitalised = lowerFirstChar(methodMinusIs);
+                        if (fieldNames.contains(methodName)) { // isDone -> isDone
+                            expectedGetters.remove(methodName);
+                            if (!ignoreFieldNames.contains(methodName)) {
+                                getters.put(methodName, methodName);
+                            }
+                            found = true;
+                        } else if (fieldNames.contains(methodMinusIs)) {  // mDone -> ismDone
+                            expectedGetters.remove(methodMinusIs);
+                            if (!ignoreFieldNames.contains(methodMinusIs)) {
+                                getters.put(methodMinusIs, methodName);
+                            }
+                            found = true;
+                        } else if (fieldNames.contains(methodMinusIsCapitalised)) { // done -> isDone
+                            expectedGetters.remove(methodMinusIsCapitalised);
+                            if (!ignoreFieldNames.contains(methodMinusIsCapitalised)) {
+                                getters.put(methodMinusIsCapitalised, methodName);
+                            }
                             found = true;
                         }
                     }
-                    if (ignoredFields.contains(computedFieldName)) {
-                        found = true;
+
+                    if (!found && methodName.startsWith("get")) {
+                        String methodMinusGet = methodName.substring(3);
+                        String methodMinusGetCapitalised = lowerFirstChar(methodMinusGet);
+                        if (fieldNames.contains(methodMinusGet)) { // mPerson -> getmPerson
+                            expectedGetters.remove(methodMinusGet);
+                            if (!ignoreFieldNames.contains(methodMinusGet)) {
+                                getters.put(methodMinusGet, methodName);
+                            }
+                            found = true;
+                        } else if (fieldNames.contains(methodMinusGetCapitalised)) { // person -> getPerson
+                            expectedGetters.remove(methodMinusGetCapitalised);
+                            if (!ignoreFieldNames.contains(methodMinusGetCapitalised)) {
+                                getters.put(methodMinusGetCapitalised, methodName);
+                            }
+                            found = true;
+                        }
                     }
+
                     if (!found) {
-                        error(String.format("No field named %s for the getter %s", computedFieldName, methodName), executableElement);
+                        note(String.format("Getter %s is not associated to any field", methodName));
                     }
-                    expectedGetters.remove(computedFieldName);
                 } else if (methodName.startsWith("set")) {
                     boolean found = false;
-                    for (VariableElement field : fields) {
-                        if (field.getSimpleName().toString().equals(computedFieldName)) {
-                            found = true;
+
+                    String methodMinusSet = methodName.substring(3);
+                    String methodMinusSetCapitalised = lowerFirstChar(methodMinusSet);
+                    String methodMenusSetPlusIs = "is" + methodMinusSet;
+
+                    if (fieldNames.contains(methodMinusSet)) { // mPerson -> setmPerson
+                        expectedSetters.remove(methodMinusSet);
+                        if (!ignoreFieldNames.contains(methodMinusSet)) {
+                            setters.put(methodMinusSet, methodName);
                         }
-                    }
-                    if (ignoredFields.contains(computedFieldName)) {
+                        found = true;
+                    } else if (fieldNames.contains(methodMinusSetCapitalised)) { // person -> setPerson
+                        expectedSetters.remove(methodMinusSetCapitalised);
+                        if (!ignoreFieldNames.contains(methodMinusSetCapitalised)) {
+                            setters.put(methodMinusSetCapitalised, methodName);
+                        }
+                        found = true;
+                    } else if (fieldNames.contains(methodMenusSetPlusIs)) { // isReady -> setReady
+                        expectedSetters.remove(methodMenusSetPlusIs);
+                        if (!ignoreFieldNames.contains(methodMenusSetPlusIs)) {
+                            setters.put(methodMenusSetPlusIs, methodName);
+                        }
                         found = true;
                     }
+
                     if (!found) {
-                        error(String.format("No field named %s for the setter %s", computedFieldName, methodName), executableElement);
+                        note(String.format("Setter %s is not associated to any field", methodName));
                     }
-                    expectedSetters.remove(computedFieldName);
                 } else {
                     error("Only getters and setters should be defined in model classes", executableElement);
                 }
@@ -218,7 +286,7 @@ public class RealmProcessor extends AbstractProcessor {
             }
 
             RealmProxyClassGenerator sourceCodeGenerator =
-                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, indexedFields, primaryKey);
+                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, getters, setters, indexedFields, primaryKey);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {

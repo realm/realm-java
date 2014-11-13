@@ -42,6 +42,7 @@ public class RealmIntroExampleActivity extends Activity {
 
         basicCRUD(realm);
         basicQuery(realm);
+        basicLinkQuery(realm);
 
         // More complex operations can be executed on another thread.
         new AsyncTask<Void, Void, String>() {
@@ -102,6 +103,14 @@ public class RealmIntroExampleActivity extends Activity {
         showStatus("Size of result set: " + results.size());
     }
 
+    private void basicLinkQuery(Realm realm) {
+        showStatus("\nPerforming basic Link Query operation...");
+        showStatus("Number of persons: " + realm.allObjects(Person.class).size());
+
+        RealmResults<Person> results = realm.where(Person.class).equalTo("cats.name", "Tiger").findAll();
+
+        showStatus("Size of result set: " + results.size());
+    }
 
     private String complexReadWrite() {
         String status = "\nPerforming complex Read/Write operation...";
@@ -165,7 +174,7 @@ public class RealmIntroExampleActivity extends Activity {
     private String complexQuery() {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = Realm.getInstance(this);
+        Realm realm = Realm.getInstance(this, false);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
 
         // Find all persons where age between 7 and 9 and name begins with "Person".
