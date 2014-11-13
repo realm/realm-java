@@ -22,11 +22,14 @@ import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
 public class AnnotationTypes extends RealmObject {
+
     @PrimaryKey
     private long id;
+
     @Index
     private String indexString;
     private String notIndexString;
+
     @Ignore
     private String ignoreString;
 

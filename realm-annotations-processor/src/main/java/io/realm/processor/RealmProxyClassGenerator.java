@@ -522,7 +522,9 @@ public class RealmProxyClassGenerator {
 
         if (primaryKey != null) {
             String fieldName = primaryKey.getSimpleName().toString();
-            writer.emitStatement("table.setPrimaryKey(transaction, \"%s\")", fieldName);
+            writer.emitStatement("table.setPrimaryKey(\"%s\")", fieldName);
+        } else {
+            writer.emitStatement("table.setPrimaryKey(\"\")");
         }
 
         writer.emitStatement("return table");

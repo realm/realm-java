@@ -30,20 +30,21 @@ import io.realm.exceptions.RealmException;
 public class Table implements TableOrView, TableSchema, Closeable {
 
     public static final long INFINITE = -1;
+    public static final String STRING_DEFAULT_VALUE = "";
+    public static final long INTEGER_DEFAULT_VALUE = 0;
 
     private static final String PRIMARY_KEY_TABLE_NAME = "pk";
     private static final String PRIMARY_KEY_CLASS_COLUMN_NAME = "pk_table";
     private static final long PRIMARY_KEY_CLASS_COLUMN_INDEX = 0;
     private static final String PRIMARY_KEY_FIELD_COLUMN_NAME = "pk_property";
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
+    private static final long NO_PRIMARY_KEY = -2;
 
     protected long nativePtr;
     
     protected final Object parent;
     private final Context context;
-
-//    private long primaryKeyColumnIndex = -1;
-
+    private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
     // test:
     protected int tableNo;
@@ -53,6 +54,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     static {
         TightDB.loadLibrary();
     }
+
 
     /**
      * Construct a Table base object. It can be used to register columns in this
@@ -296,12 +298,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * Returns the 0-based index of a column based on the name.
      *
      * @param columnName column name
-     * @return the index, -1 if not found
+     * @return the index, {@link #NO_MATCH} if not found
      */
     @Override
     public long getColumnIndex(String columnName) {
-        if (columnName == null)
-            throw new IllegalArgumentException("Column name can not be null.");
+        if (columnName == null) throw new IllegalArgumentException("Column name can not be null.");
         return nativeGetColumnIndex(nativePtr, columnName);
     }
     
@@ -354,17 +355,39 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
 
-
     // Row Handling methods.
     public long addEmptyRow() {
         checkImmutable();
+        if (hasPrimaryKey()) {
+            long primaryKeyColumnIndex = getPrimaryKey();
+            ColumnType type = getColumnType(primaryKeyColumnIndex);
+            switch(type) {
+                case STRING:
+                    if (findFirstString(primaryKeyColumnIndex, STRING_DEFAULT_VALUE) != NO_MATCH) {
+                        throwDuplicatePrimaryKeyMessage(STRING_DEFAULT_VALUE);
+                    }
+                    break;
+                case INTEGER:
+                    if (findFirstLong(primaryKeyColumnIndex, INTEGER_DEFAULT_VALUE) != NO_MATCH) {
+                        throwDuplicatePrimaryKeyMessage(INTEGER_DEFAULT_VALUE);
+                    };
+                    break;
+
+                default:
+                    throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
+            }
+        }
+
         return nativeAddEmptyRow(nativePtr, 1);
     }
 
     public long addEmptyRows(long rows) {
         checkImmutable();
-        if (rows < 1)
-            throw new IllegalArgumentException("'rows' must be > 0.");
+        if (rows < 1) throw new IllegalArgumentException("'rows' must be > 0.");
+        if (hasPrimaryKey()) {
+           if (rows > 1) throw new RealmException("Multiple empty rows cannot be created if a primary key is defined for the table.");
+           return addEmptyRow();
+        }
         return nativeAddEmptyRow(nativePtr, rows);
     }
 
@@ -434,7 +457,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             case INTEGER:
                 long intValue = ((Number) value).longValue();
                 if (isPrimaryKeyColumn(columnIndex) && findFirstLong(columnIndex, intValue) != TableOrView.NO_MATCH) {
-                    throw new RealmException("Primary key constraint broken. Value already exists: " + intValue);
+                    throwDuplicatePrimaryKeyMessage(intValue);
                 }
                 nativeInsertLong(nativePtr, columnIndex, rowIndex, intValue);
                 break;
@@ -447,7 +470,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             case STRING:
                 String stringValue = (String) value;
                 if (isPrimaryKeyColumn(columnIndex) && findFirstString(columnIndex, stringValue) != TableOrView.NO_MATCH) {
-                    throw new RealmException("Primary key constraint broken. Value already exists: " + stringValue);
+                    throwDuplicatePrimaryKeyMessage(stringValue);
                 }
                 nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
                 break;
@@ -593,12 +616,20 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @return Column index or {@code #NO_MATCH} if no primary key is set.
      */
     public long getPrimaryKey() {
-        Table pkTable = getPrimaryKeyTable();
-        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
-        if (rowIndex != NO_MATCH) {
-            return pkTable.getRow(rowIndex).getLong(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+        if (cachedPrimaryKeyColumnIndex > 0 || cachedPrimaryKeyColumnIndex == NO_PRIMARY_KEY) {
+            return cachedPrimaryKeyColumnIndex;
+        } else {
+            Table pkTable = getPrimaryKeyTable();
+            if (pkTable == null) return NO_PRIMARY_KEY; // Free table = No primary key
+            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
+            if (rowIndex != NO_MATCH) {
+                cachedPrimaryKeyColumnIndex = pkTable.getRow(rowIndex).getLong(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+            } else {
+                cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
+            }
+
+            return cachedPrimaryKeyColumnIndex;
         }
-        return NO_MATCH;
     }
 
     /**
@@ -611,8 +642,20 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return columnIndex == getPrimaryKey();
     }
 
+    /**
+     * Check if a table has a primary key.
+     * @return True if primary key is defined, false otherwise.
+     */
     public boolean hasPrimaryKey() {
-        return getPrimaryKey() != NO_MATCH;
+        return getPrimaryKey() >= 0;
+    }
+
+    private void throwDuplicatePrimaryKeyMessage(Object value) {
+        throw new RealmException("Primary key constraint broken. Value already exists: " + value);
+    }
+
+    private void throwIllegalPrimaryKeyException(Object value) {
+        throw new RealmException("\"" + value +"\" not allowed as value in a field that is a primary key.");
     }
 
     //Holds methods that must be publicly available for AbstractClass.
@@ -909,6 +952,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void setLong(long columnIndex, long rowIndex, long value) {
         checkImmutable();
+        if (isPrimaryKeyColumn(columnIndex) && findFirstLong(columnIndex, value) != TableOrView.NO_MATCH) {
+            throwDuplicatePrimaryKeyMessage(value);
+        }
         nativeSetLong(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -950,9 +996,17 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
-        if (value == null)
-            throw new IllegalArgumentException("Null String is not allowed.");
+        if (value == null) throw new IllegalArgumentException("Null String is not allowed.");
         checkImmutable();
+        if (isPrimaryKeyColumn(columnIndex)) {
+            if (value.equals(STRING_DEFAULT_VALUE)) {
+                throwIllegalPrimaryKeyException(STRING_DEFAULT_VALUE);
+            }
+
+            if (findFirstString(columnIndex, value) != TableOrView.NO_MATCH) {
+                throwDuplicatePrimaryKeyMessage(value);
+            }
+        }
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -1049,48 +1103,31 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * Note this is a temporary solution. Primary keys should be implemented in the core.
      * Also, this needs to be called manually before working with the table.
      *
-     * TODO Talk to Kenneth/Brian about why we need a core table to keep track of this?
-     *
-     * @param group         Reference to the publicKeyGroup the table belongs to
-     * @param columnName    Name of the field that will function primary key
+     * @param columnName    Name of the field that will function primary key.
      */
-    public void setPrimaryKey(Group group, String columnName) {
+    public void setPrimaryKey(String columnName) {
         Table pkTable = getPrimaryKeyTable();
-        long primaryKeyColumnIndex = getColumnIndex(columnName);
-        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, columnName);
-        if (rowIndex < 0) {
-            pkTable.add(getName(), primaryKeyColumnIndex);
+        if (pkTable == null) throw new RealmException("Primary keys are only supported if Table is part of a Group");
+
+        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
+        if (columnName == null || columnName.equals("")) {
+            if (rowIndex > 0) pkTable.remove(rowIndex);
+            cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
         } else {
-            pkTable.setLong(PRIMARY_KEY_FIELD_COLUMN_INDEX, rowIndex, primaryKeyColumnIndex);
+            long primaryKeyColumnIndex = getColumnIndex(columnName);
+            if (rowIndex == NO_MATCH) {
+                pkTable.add(getName(), primaryKeyColumnIndex);
+            } else {
+                pkTable.setLong(PRIMARY_KEY_FIELD_COLUMN_INDEX, rowIndex, primaryKeyColumnIndex);
+            }
+
+            cachedPrimaryKeyColumnIndex = primaryKeyColumnIndex;
         }
     }
 
-// TODO No easy way to support this without caching information. Should we just ignore this until
-// core supports primary keys?
-//    public boolean hasPrimaryKey() {
-//        if (publicKeyGroup == null) throw new RuntimeException("Table must belong to a group in order to support primary keys");
-//
-//        Table pkTable = publicKeyGroup.getTable(PRIMARY_KEY_TABLE_NAME);
-//        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
-//        return rowIndex > 0;
-//    }
-//    /**
-//     * Clear the primary key for this table. This will not remove any data, just the restrictions
-//     * imposed by having a primary key.
-//     */
-//    public void removePrimaryKey(Group group) {
-//        if (group == null) throw new RuntimeException("Table must belong to a publicKeyGroup in order to support primary keys");
-//
-//        Table pkTable = group.getTable(PRIMARY_KEY_TABLE_NAME);
-//        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
-//        if (rowIndex > 0) {
-//            pkTable.remove(rowIndex);
-//        }
-//    }
-
     private Table getPrimaryKeyTable() {
         Group group = getTableGroup();
-        if (group == null) throw new RuntimeException("Table must belong to a group in order to support primary keys");
+        if (group == null) return null;
 
         Table pkTable = group.getTable(PRIMARY_KEY_TABLE_NAME);
         if (pkTable.getColumnCount() == 0) {

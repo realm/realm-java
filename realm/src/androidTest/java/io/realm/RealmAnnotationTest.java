@@ -19,6 +19,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 
@@ -30,6 +31,7 @@ public class RealmAnnotationTest extends AndroidTestCase {
         Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
         testRealm.beginTransaction();
+        testRealm.clear(AnnotationTypes.class);
         AnnotationTypes object = testRealm.createObject(AnnotationTypes.class);
         object.setNotIndexString("String 1");
         object.setIndexString("String 2");
@@ -53,15 +55,30 @@ public class RealmAnnotationTest extends AndroidTestCase {
         assertTrue(table.hasPrimaryKey());
     }
 
+    public void testPrimaryKey_checkPrimaryKeyOnCreate() {
+        testRealm.beginTransaction();
+        testRealm.clear(AnnotationTypes.class);
+        testRealm.createObject(AnnotationTypes.class);
+        try {
+            testRealm.createObject(AnnotationTypes.class);
+        } catch (RealmException e) {
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        fail("Two empty objects cannot be created on the same table if a primary key is defined");
+    }
+
     public void testPrimaryKey_errorOnInsertingSameObject() {
         try {
             testRealm.beginTransaction();
+            testRealm.clear(AnnotationTypes.class);
             AnnotationTypes obj1 = testRealm.createObject(AnnotationTypes.class);
             obj1.setId(1);
             AnnotationTypes obj2 = testRealm.createObject(AnnotationTypes.class);
             obj2.setId(1);
         } catch (RealmException e) {
-            assertTrue(true);
             return;
         } finally {
             testRealm.cancelTransaction();
@@ -70,4 +87,9 @@ public class RealmAnnotationTest extends AndroidTestCase {
         fail("Inserting two objects with same primary key should fail");
     }
 
+    public void testPrimaryKeyIsIndexed() {
+        Table table = testRealm.getTable(PrimaryKeyAsString.class);
+        assertTrue(table.hasPrimaryKey());
+        assertTrue(table.hasIndex(0));
+    }
 }

@@ -173,7 +173,7 @@ public class Row {
 
     public void setLong(long columnIndex, long value) {
         Table table = getTable();
-        if (table.isPrimaryKey(columnIndex) && table.findFirstLong(columnIndex, value) == TableOrView.NO_MATCH) {
+        if (table.isPrimaryKey(columnIndex) && table.findFirstLong(columnIndex, value) != TableOrView.NO_MATCH) {
             throw new RealmException("Primary key constraint broken. Value already exists: " + value);
         }
         nativeSetLong(nativePtr, columnIndex, value);
@@ -209,7 +209,7 @@ public class Row {
     public void setString(long columnIndex, String value) {
         if (value == null) throw new IllegalArgumentException("Null String is not allowed.");
         Table table = getTable();
-        if (table.isPrimaryKey(columnIndex) && table.findFirstString(columnIndex, value) == TableOrView.NO_MATCH) {
+        if (table.isPrimaryKey(columnIndex) && table.findFirstString(columnIndex, value) != TableOrView.NO_MATCH) {
             throw new RealmException("Primary key constraint broken. Value already exists: " + value);
         }
         nativeSetString(nativePtr, columnIndex, value);

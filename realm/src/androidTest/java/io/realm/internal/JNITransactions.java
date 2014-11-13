@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 
+import io.realm.exceptions.RealmException;
+
 public class JNITransactions extends AndroidTestCase {
     
     String testFile;
@@ -261,6 +263,62 @@ public class JNITransactions extends AndroidTestCase {
 
         t.endRead();
     }
+
+    // Test that primary key constraints are actually removed
+    public void testRemovingPrimaryKeyRemovesConstraint() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
+
+        WriteTransaction trans = db.beginWrite();
+        Table tbl = trans.getTable("EmployeeTable");
+        tbl.addColumn(ColumnType.STRING, "name");
+        tbl.addColumn(ColumnType.INTEGER, "number");
+        tbl.setPrimaryKey("name");
+
+        tbl.add("Foo", 42);
+        try {
+            tbl.add("Foo", 41);
+        } catch (RealmException e1) {
+            // Primary key check worked, now remove it and try again.
+            tbl.setPrimaryKey("");
+            try {
+                tbl.add("Foo", 41);
+                return;
+            } catch (RealmException e2) {
+                fail("Primary key not removed");
+            }
+        }
+
+        fail("Primary key not enforced.");
+    }
+
+    // Test that primary key constraints are actually removed
+    public void testRemovingPrimaryKeyRemovesConstraint_typeSetters() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
+
+        WriteTransaction trans = db.beginWrite();
+        Table tbl = trans.getTable("EmployeeTable");
+        tbl.addColumn(ColumnType.STRING, "name");
+        tbl.setPrimaryKey("name");
+
+        long rowIndex = tbl.addEmptyRow();
+        tbl.setString(0, rowIndex, "Foo");
+
+        try {
+            tbl.setString(0, rowIndex, "Foo");
+        } catch (RealmException e1) {
+            // Primary key check worked, now remove it and try again.
+            tbl.setPrimaryKey("");
+            try {
+                tbl.setString(0, rowIndex, "Foo");
+                return;
+            } catch (RealmException e2) {
+                fail("Primary key not removed");
+            }
+        }
+
+        fail("Primary key not enforced.");
+    }
+
 
 
     /*  ARM Only works for Java 1.7 - NOT available in Android.
