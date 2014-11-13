@@ -22,6 +22,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -146,7 +151,14 @@ public class RealmTest extends AndroidTestCase {
         resultList = testRealm.where(AllTypes.class).equalTo("columnLong", 3333).findAll();
         assertEquals("ResultList.where not returning expected result", 0, resultList.size());
 
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0").findAll();
+        assertEquals(1, resultList.size());
 
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0", RealmQuery.CASE_INSENSITIVE).findAll();
+        assertEquals(1, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "Test data 0", RealmQuery.CASE_SENSITIVE).findAll();
+        assertEquals(0, resultList.size());
     }
 
     public void testQueriesWithDataTypes() throws IOException {
@@ -311,6 +323,56 @@ public class RealmTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    private enum TransactionMethod {
+        METHOD_BEGIN,
+        METHOD_COMMIT,
+        METHOD_CANCEL
+    }
+
+    // Starting a transaction on the wrong thread will fail
+    public boolean transactionMethodWrongThread(final TransactionMethod method) throws InterruptedException, ExecutionException {
+        final Realm realm = Realm.getInstance(getContext());
+
+        if (method != TransactionMethod.METHOD_BEGIN) {
+            realm.beginTransaction();
+            Dog dog = realm.createObject(Dog.class); // FIXME: Empty transactions cannot be cancelled
+        }
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    switch (method) {
+                        case METHOD_BEGIN:
+                            realm.beginTransaction();
+                            break;
+                        case METHOD_COMMIT:
+                            realm.commitTransaction();
+                            break;
+                        case METHOD_CANCEL:
+                            realm.cancelTransaction();
+                            break;
+                    }
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        boolean result = future.get();
+        if (result && method != TransactionMethod.METHOD_BEGIN) {
+            realm.cancelTransaction();
+        }
+        return result;
+    }
+
+    public void testTransactionWrongThread() throws ExecutionException, InterruptedException {
+        for (TransactionMethod method : TransactionMethod.values()) {
+            assertTrue(method.toString(), transactionMethodWrongThread(method));
+        }
+    }
+
     // void commitTransaction()
     public void testCommitTransaction() {
         testRealm.beginTransaction();
@@ -321,6 +383,7 @@ public class RealmTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
     }
+
 
     public void testCancelTransaction() {
         testRealm.beginTransaction();
@@ -508,5 +571,28 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
         resultList = testRealm.where(AllTypes.class).notEqualTo("columnFloat", 11.234567f).equalTo("columnLong", 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+    }
+
+    public void testDistinct() {
+        testRealm.beginTransaction();
+        for (int i = 0; i < 10; ++i) {
+            Dog dog = testRealm.createObject(Dog.class);
+            if (i % 2 == 0) {
+                dog.setName("Rex");
+            } else {
+                dog.setName("King");
+            }
+        }
+        testRealm.commitTransaction();
+
+        RealmResults<Dog> dogs = testRealm.distinct(Dog.class, "name");
+        assertEquals(2, dogs.size());
+
+        // Verify exception is thrown if the field in not indexed.
+        try {
+            RealmResults<AllTypes> allTypes = testRealm.distinct(AllTypes.class, "columnString");
+            fail();
+        } catch (UnsupportedOperationException ignore) {
+        }
     }
 }

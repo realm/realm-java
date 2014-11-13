@@ -20,9 +20,11 @@ package io.realm.entities;
 import java.util.Date;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Index;
 
 public class Dog extends RealmObject {
 
+    @Index
     private String name;
     private long age;
     private float height;
