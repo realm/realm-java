@@ -16,20 +16,22 @@
 
 package io.realm.annotations;
 
-/**
- * The @PrimaryKey annotation will mark a property as a primary key inside Realm. The property
- * should uniquely identify the object. Trying to insert an object with an existing primary key
- * will result in a {@link io.realm.exceptions.RealmException}.
- *
- * Only one field pr. model clas can have this field, and it is only allowed on the the following
- * types: String, Short, Integer, Long, short, int, long
- */
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * The @PrimaryKey annotation will mark a field as a primary key inside Realm. The property
+ * should uniquely identify the object. Trying to insert an object with an existing primary key
+ * will result in a {@link io.realm.exceptions.RealmException}. This check is made across all
+ * objects of the same type in Realm.
+ *
+ * Primary keys also count as having the {@link io.realm.annotations.Index} annotation.
+ *
+ * Only one field pr. model clas can have this field, and it is only allowed on the the following
+ * types: String, Short, Integer, Long, short, int, long
+ */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.FIELD)
 public @interface PrimaryKey {
