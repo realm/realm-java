@@ -18,6 +18,15 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -26,10 +35,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.lang.String;
-import java.util.*;
 
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -43,6 +48,12 @@ public class RealmProxyClassGenerator {
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String TABLE_PREFIX = "class_";
     private static final String PROXY_SUFFIX = "RealmProxy";
+
+    // Class metadata for generating proxy classes
+    private Elements elementUtils;
+    private Types typeUtils;
+    private TypeMirror realmObject;
+    private DeclaredType realmList;
 
     public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment,
                                     String className, String packageName,
@@ -211,11 +222,11 @@ public class RealmProxyClassGenerator {
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
 
-        Elements elementUtils = processingEnvironment.getElementUtils();
-        Types typeUtils = processingEnvironment.getTypeUtils();
+        elementUtils = processingEnvironment.getElementUtils();
+        typeUtils = processingEnvironment.getTypeUtils();
 
-        TypeMirror realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
-        DeclaredType realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
+        realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
 
         // Set source code indent to 4 spaces
         writer.setIndent("    ");
@@ -244,7 +255,20 @@ public class RealmProxyClassGenerator {
                 className)                   // class to extend
                 .emitEmptyLine();
 
-        // Accessors
+        emitAccessors(writer);
+        emitInitTableMethod(writer);
+        emitValidateTableMethod(writer);
+        emitGetFieldNamesMethod(writer);
+        emitToStringMethod(writer);
+        emitHashCodeMethod(writer);
+        emitEqualsMethod(writer);
+
+        // End the class definition
+        writer.endType();
+        writer.close();
+    }
+
+    private void emitAccessors(JavaWriter writer) throws IOException {
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
@@ -341,10 +365,9 @@ public class RealmProxyClassGenerator {
             }
             writer.emitEmptyLine();
         }
+    }
 
-        /**
-         * initTable method
-         */
+    private void emitInitTableMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 "Table", // Return type
                 "initTable", // Method name
@@ -408,10 +431,9 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return transaction.getTable(\"%s%s\")", TABLE_PREFIX, this.className);
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * validateTable method
-         */
+    private void emitValidateTableMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 "void", // Return type
                 "validateTable", // Method name
@@ -500,10 +522,9 @@ public class RealmProxyClassGenerator {
         writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * getFieldNames method
-         */
+    private void emitGetFieldNamesMethod(JavaWriter writer) throws IOException {
         writer.beginMethod("List<String>", "getFieldNames", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
         List<String> entries = new ArrayList<String>();
         for (VariableElement field : fields) {
@@ -514,10 +535,9 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return Arrays.asList(%s)", statementSection);
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * toString method
-         */
+    private void emitToStringMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
         writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", className);
@@ -531,10 +551,9 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return stringBuilder.toString()");
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * hashCode method
-         */
+    private void emitHashCodeMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod("int", "hashCode", EnumSet.of(Modifier.PUBLIC));
         writer.emitStatement("int result = 17");
@@ -568,10 +587,9 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return result");
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * equals method
-         */
+    private void emitEqualsMethod(JavaWriter writer) throws IOException {
         String proxyClassName = className + PROXY_SUFFIX;
         writer.emitAnnotation("Override");
         writer.beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o");
@@ -616,10 +634,6 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return true");
         writer.endMethod();
         writer.emitEmptyLine();
-
-        // End the class definition
-        writer.endType();
-        writer.close();
     }
 
     private static String capitaliseFirstChar(String input) {
