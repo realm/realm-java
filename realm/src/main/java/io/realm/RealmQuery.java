@@ -808,7 +808,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value) {
-        return contains(fieldName, value, true);
+        return contains(fieldName, value, CASE_SENSITIVE);
     }
 
     /**
@@ -840,7 +840,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value) {
-        return beginsWith(fieldName, value, true);
+        return beginsWith(fieldName, value, CASE_SENSITIVE);
     }
 
     /**
@@ -872,7 +872,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value) {
-        return endsWith(fieldName, value, true);
+        return endsWith(fieldName, value, CASE_SENSITIVE);
     }
 
     /**
