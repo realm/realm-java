@@ -1,5 +1,5 @@
 0.74.0 (??)
-  * Added support for @PrimaryKey annotation in model classes.
+  * Primary keys are now supported through the @PrimaryKey annotation on fields.
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes
   * An exception will now be thrown if you try to move Realm, RealmResults or RealmObject between threads. 

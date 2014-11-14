@@ -103,7 +103,7 @@ public class RealmExampleActivity extends Activity implements AdapterView.OnItem
         }
         realm.commitTransaction();
 
-        return realm.allObjects(City.class).subList(0, 1);
+        return items;
     }
 
     public void updateCities() {

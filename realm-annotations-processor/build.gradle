@@ -1,6 +1,6 @@
 apply plugin: 'java'
 
-version = new File("${rootDir}/version.txt").text
+version = new File("${projectDir}/../version.txt").text
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
 

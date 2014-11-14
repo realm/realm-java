@@ -154,7 +154,7 @@ public class RealmProcessor extends AbstractProcessor {
 
                         primaryKey = variableElement;
 
-                        // Also add as index if a primary key is a string
+                        // Also add as index if the primary key is a string
                         String elementTypeCanonicalName = variableElement.asType().toString();
                         if (elementTypeCanonicalName.equals("java.lang.String") && !indexedFields.contains(variableElement)) {
                             indexedFields.add(variableElement);
@@ -315,7 +315,6 @@ public class RealmProcessor extends AbstractProcessor {
             if (typeUtils.isAssignable(type, validType)) {
                 return true;
             }
-
         }
 
         return false;
