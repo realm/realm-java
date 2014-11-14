@@ -137,7 +137,7 @@ void jprint(JNIEnv *env, char *txt)
     static jclass myClass = GetClass(env, "io/realm/internal/util");
     static jmethodID myMethod = env->GetStaticMethodID(myClass, "javaPrint", "(Ljava/lang/String;)V");
     if (myMethod)
-        env->CallStaticVoidMethod(myClass, myMethod, env->NewStringUTF(txt));
+        env->CallStaticVoidMethod(myClass, myMethod, to_jstring(env, txt);
 #endif
 }
 
