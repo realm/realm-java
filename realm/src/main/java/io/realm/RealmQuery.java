@@ -91,17 +91,7 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     private boolean containsDot(String s) {
-        int i;
-        int n;
-
-        i = 0;
-        n = s.length();
-        while (i < n) {
-            if (s.charAt(i) == '.')
-                return true;
-            i++;
-        }
-        return false;
+        return s.indexOf('.') != -1;
     }
 
     private String[] splitString(String s) {
