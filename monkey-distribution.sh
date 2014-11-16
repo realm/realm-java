@@ -13,20 +13,24 @@ echo ""
 echo "Testing distribution examples"
 echo ""
 for dist in distribution/Realm*/ ; do
-    echo "Building $dist"
+
+    applicationId=`grep applicationId ${dist}app/build.gradle | cut -d \" -f 2`
     project=`basename $dist`
+
+    echo "Building $dist"
+    adb uninstall ${applicationId} > /dev/null
     cd ${dist}
     ./gradlew clean installDebug
     cd -
 
     echo "Letting monkey loose in $dist"
-    applicationId=`grep applicationId ${dist}app/build.gradle | cut -d \" -f 2`
     adb shell "monkey -p ${applicationId} -v ${TEST_EVENTS} ; echo \"\$?\\c\" > /data/local/tmp/${applicationId}.exitcode"
     rc=`adb shell cat /data/local/tmp/${applicationId}.exitcode`
     echo ""
     if [ "${rc}" != "0" ] ; then
         echo ""
         echo "Monkey found an error, stopping tests."
+        echo "Remember to call build-distribution.sh before running this test."
         echo "Exit code: ${rc}"
         exit 1
     fi
