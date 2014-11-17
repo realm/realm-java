@@ -1005,6 +1005,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
+        checkImmutable();
         assertStringValueIsLegal(columnIndex, value);
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
