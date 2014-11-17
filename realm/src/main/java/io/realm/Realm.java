@@ -74,6 +74,7 @@ public class Realm {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
+
     protected static final ThreadLocal<Map<Integer, Realm>> realmsCache = new ThreadLocal<Map<Integer, Realm>>() {
         @Override
         protected Map<Integer, Realm> initialValue() {
@@ -363,16 +364,17 @@ public class Realm {
         return createAndValidate(absolutePath, key, true, autoRefresh);
     }
 
+    @SuppressWarnings("unchecked")
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
         Map<Integer, Realm> realms = realmsCache.get();
-        Realm realm = realms.get(absolutePath);
+        Realm realm = realms.get(absolutePath.hashCode());
 
         if (realm != null) {
             return realm;
         }
 
         realm = new Realm(absolutePath, key, autoRefresh);
-        realms.put(new Integer(absolutePath.hashCode()), realm);
+        realms.put(absolutePath.hashCode(), realm);
         realmsCache.set(realms);
 
         if (validateSchema) {
@@ -543,6 +545,7 @@ public class Realm {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
+    @SuppressWarnings("unchecked")
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         E result;
 
@@ -594,7 +597,6 @@ public class Realm {
 
         try {
             // We are know the casted type since we generated the class
-            //noinspection unchecked
             result = (E) constructor.newInstance();
         } catch (InstantiationException e) {
             throw new RealmException("Could not instantiate the proxy class");
@@ -657,7 +659,8 @@ public class Realm {
         if (columnIndex == -1) {
             throw new IllegalArgumentException(String.format("'%s' is not a valid field name.", fieldName));
         }
-        return new RealmResults(this, table.getDistinctView(columnIndex), clazz);
+
+        return new RealmResults<E>(this, table.getDistinctView(columnIndex), clazz);
     }
 
     // Notifications
