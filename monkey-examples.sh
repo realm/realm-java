@@ -32,6 +32,7 @@ for example in examples/*/ ; do
     if [ "${rc}" != "0" ] ; then
         echo ""
         echo "Monkey found an error, stopping tests."
+        echo "Reproduce: adb shell monkey -s <seed> -p ${applicationId} -v ${TEST_EVENTS}"
         echo "Exit code: ${rc}"
         exit 1
     fi

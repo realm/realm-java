@@ -31,6 +31,7 @@ for dist in distribution/Realm*/ ; do
         echo ""
         echo "Monkey found an error, stopping tests."
         echo "Remember to call build-distribution.sh before running this test."
+        echo "Reproduce: adb shell monkey -s <seed> -p ${applicationId} -v ${TEST_EVENTS}"
         echo "Exit code: ${rc}"
         exit 1
     fi
