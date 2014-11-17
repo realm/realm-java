@@ -74,7 +74,6 @@ public class Realm {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
-
     protected static final ThreadLocal<Map<Integer, Realm>> realmsCache = new ThreadLocal<Map<Integer, Realm>>() {
         @Override
         protected Map<Integer, Realm> initialValue() {
@@ -650,7 +649,7 @@ public class Realm {
      * @param clazz the Class to get objects of
      * @param fieldName the field (must be indexed using the @Index annotation)
      * @return A RealmResult list containing the objects
-     * @throws java.lang.IllegalArgumentException If field does not exist
+     * @throws java.lang.IllegalArgumentException If field does not exsist
      * @throws java.lang.UnsupportedOperationException If field is not indexed
      */
     public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
@@ -659,8 +658,7 @@ public class Realm {
         if (columnIndex == -1) {
             throw new IllegalArgumentException(String.format("'%s' is not a valid field name.", fieldName));
         }
-
-        return new RealmResults<E>(this, table.getDistinctView(columnIndex), clazz);
+        return new RealmResults(this, table.getDistinctView(columnIndex), clazz);
     }
 
     // Notifications

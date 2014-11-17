@@ -955,7 +955,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToJson(
         ss.sync_with_stdio(false); // for performance
         tv->to_json(ss);
         const std::string str = ss.str();
-        return env->NewStringUTF(str.c_str());
+        return to_jstring(env, str);
     } CATCH_STD()
     return NULL;
 }
@@ -973,7 +973,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToString(
        ss.sync_with_stdio(false); // for performance
        tv->to_string(ss, S(maxRows));
        const std::string str = ss.str();
-       return env->NewStringUTF(str.c_str());
+       return to_jstring(env, str);
     } CATCH_STD()
     return NULL;
 }
@@ -990,7 +990,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeRowToString(
         std::ostringstream ss;
         tv->row_to_string(S(rowIndex), ss);
         const std::string str = ss.str();
-        return env->NewStringUTF(str.c_str());
+        return to_jstring(env, str);
     } CATCH_STD()
     return NULL;
 }

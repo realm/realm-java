@@ -269,7 +269,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultRep
     ThrowException(env, UnsupportedOperation,
                    "Replication is not currently supported by the Java language binding.");
     return 0;
-//    return env->NewStringUTF(Replication::get_path_to_database_file());
+//    return to_jstring(env, Replication::get_path_to_database_file());
 #else
     ThrowException(env, UnsupportedOperation,
                    "Replication was disable in the native library at compile time");
