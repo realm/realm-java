@@ -7,6 +7,7 @@
   * Adding where() to RealmList to initiate queries
   * Updated core to 0.86.0, fixing a bug in cancelling an empty transaction, and major query speedups with floats/doubles
   * Consistent handling of UTF-8 strings
+  * removeFromRealm() now calls moveLastOver() which is faster and more reliable when deleting multiple objects
 
 0.73.1 (05 Nov 2014)
   * Fixed a bug that would send infinite notifications in some instances
