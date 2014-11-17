@@ -102,12 +102,13 @@ public class RealmObjectTest extends AndroidTestCase {
             fail();
         } catch (IllegalStateException ignored) {}
 
+        // deleting rex twice should fail
+        realm.beginTransaction();
         try {
-            realm.beginTransaction();
-            rex.removeFromRealm();
-            realm.commitTransaction();
+            rex.removeFromRealm();      
             fail();
         } catch (IllegalStateException ignored) {}
+        realm.commitTransaction();
     }
 
     public boolean methodWrongThread(final boolean callGetter) throws ExecutionException, InterruptedException {
