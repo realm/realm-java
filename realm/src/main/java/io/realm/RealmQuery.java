@@ -102,17 +102,7 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     private boolean containsDot(String s) {
-        int i;
-        int n;
-
-        i = 0;
-        n = s.length();
-        while (i < n) {
-            if (s.charAt(i) == '.')
-                return true;
-            i++;
-        }
-        return false;
+        return s.indexOf('.') != -1;
     }
 
     private String[] splitString(String s) {
@@ -819,12 +809,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length == 1) {
-            this.query.contains(columnIndices[0], value);
-            return this;
-        }
-        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "contains"));
+        return contains(fieldName, value, CASE_SENSITIVE);
     }
 
     /**
@@ -856,12 +841,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length == 1) {
-            this.query.beginsWith(columnIndices[0], value);
-            return this;
-        }
-        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "beginsWith"));
+        return beginsWith(fieldName, value, CASE_SENSITIVE);
     }
 
     /**
@@ -893,12 +873,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length == 1) {
-            this.query.endsWith(columnIndices[0], value);
-            return this;
-        }
-        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "endsWith"));
+        return endsWith(fieldName, value, CASE_SENSITIVE);
     }
 
     /**

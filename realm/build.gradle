@@ -120,7 +120,7 @@ bintray {
 
 task buildApt(type: GradleBuild) {
     dir = file('../realm-annotations-processor')
-    tasks = ['build']
+    tasks = ['assemble']
 }
 
 task compileJni(type: GradleBuild) {
