@@ -19,6 +19,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
@@ -68,6 +69,38 @@ public class RealmAnnotationTest extends AndroidTestCase {
         }
 
         fail("Two empty objects cannot be created on the same table if a primary key is defined");
+    }
+
+    public void testPrimaryKey_defaultStringValue() {
+        testRealm.beginTransaction();
+        testRealm.clear(PrimaryKeyAsString.class);
+        try {
+            PrimaryKeyAsString str = testRealm.createObject(PrimaryKeyAsString.class);
+            str.setName("");
+        } catch (RealmException e) {
+            assertTrue(e.getMessage().endsWith("not allowed as value in a field that is a primary key."));
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        fail("It should not be allowed to set a primary key to the default value for the field type");
+    }
+
+    public void testPrimaryKey_defaultLongValue() {
+        testRealm.beginTransaction();
+        testRealm.clear(PrimaryKeyAsLong.class);
+        try {
+            PrimaryKeyAsLong str = testRealm.createObject(PrimaryKeyAsLong.class);
+            str.setId(0);
+        } catch (RealmException e) {
+            assertTrue(e.getMessage().endsWith("not allowed as value in a field that is a primary key."));
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        fail("It should not be allowed to set a primary key to the default value for the field type");
     }
 
     public void testPrimaryKey_errorOnInsertingSameObject() {

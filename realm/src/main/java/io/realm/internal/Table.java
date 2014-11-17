@@ -364,12 +364,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
             switch(type) {
                 case STRING:
                     if (findFirstString(primaryKeyColumnIndex, STRING_DEFAULT_VALUE) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyMessage(STRING_DEFAULT_VALUE);
+                        throwDuplicatePrimaryKeyException(STRING_DEFAULT_VALUE);
                     }
                     break;
                 case INTEGER:
                     if (findFirstLong(primaryKeyColumnIndex, INTEGER_DEFAULT_VALUE) != NO_MATCH) {
-                        throwDuplicatePrimaryKeyMessage(INTEGER_DEFAULT_VALUE);
+                        throwDuplicatePrimaryKeyException(INTEGER_DEFAULT_VALUE);
                     };
                     break;
 
@@ -456,9 +456,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 break;
             case INTEGER:
                 long intValue = ((Number) value).longValue();
-                if (isPrimaryKeyColumn(columnIndex) && findFirstLong(columnIndex, intValue) != TableOrView.NO_MATCH) {
-                    throwDuplicatePrimaryKeyMessage(intValue);
-                }
+                assertIntValueIsLegal(columnIndex, intValue);
                 nativeInsertLong(nativePtr, columnIndex, rowIndex, intValue);
                 break;
             case FLOAT:
@@ -469,9 +467,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 break;
             case STRING:
                 String stringValue = (String) value;
-                if (isPrimaryKeyColumn(columnIndex) && findFirstString(columnIndex, stringValue) != TableOrView.NO_MATCH) {
-                    throwDuplicatePrimaryKeyMessage(stringValue);
-                }
+                assertStringValueIsLegal(columnIndex, stringValue);
                 nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
                 break;
             case DATE:
@@ -650,7 +646,22 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return getPrimaryKey() >= 0;
     }
 
-    private void throwDuplicatePrimaryKeyMessage(Object value) {
+    void assertStringValueIsLegal(long columnIndex, String value) {
+        if (value == null) throw new IllegalArgumentException("Null String is not allowed.");
+        if (isPrimaryKey(columnIndex)) {
+            if (value.equals(STRING_DEFAULT_VALUE)) throwIllegalPrimaryKeyException(STRING_DEFAULT_VALUE);
+            if (findFirstString(columnIndex, value) != TableOrView.NO_MATCH) throwDuplicatePrimaryKeyException(value);
+        }
+    }
+
+    void assertIntValueIsLegal(long columnIndex, long value) {
+        if (isPrimaryKeyColumn(columnIndex)) {
+            if (value == INTEGER_DEFAULT_VALUE) throwIllegalPrimaryKeyException(INTEGER_DEFAULT_VALUE);
+            if (findFirstLong(columnIndex, value) != TableOrView.NO_MATCH) throwDuplicatePrimaryKeyException(value);
+        }
+    }
+
+    private void throwDuplicatePrimaryKeyException(Object value) {
         throw new RealmException("Primary key constraint broken. Value already exists: " + value);
     }
 
@@ -952,9 +963,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void setLong(long columnIndex, long rowIndex, long value) {
         checkImmutable();
-        if (isPrimaryKeyColumn(columnIndex) && findFirstLong(columnIndex, value) != TableOrView.NO_MATCH) {
-            throwDuplicatePrimaryKeyMessage(value);
-        }
+        assertIntValueIsLegal(columnIndex, value);
         nativeSetLong(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -996,17 +1005,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
-        if (value == null) throw new IllegalArgumentException("Null String is not allowed.");
-        checkImmutable();
-        if (isPrimaryKeyColumn(columnIndex)) {
-            if (value.equals(STRING_DEFAULT_VALUE)) {
-                throwIllegalPrimaryKeyException(STRING_DEFAULT_VALUE);
-            }
-
-            if (findFirstString(columnIndex, value) != TableOrView.NO_MATCH) {
-                throwDuplicatePrimaryKeyMessage(value);
-            }
-        }
+        assertStringValueIsLegal(columnIndex, value);
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
 
