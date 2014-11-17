@@ -132,9 +132,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Returns a typed RealmQuery, which can be used to query for specific objects of this type
+     * Returns a RealmQuery, which can be used to query for specific objects of this class
      *
-     * @return A typed RealmQuery, which can be used to query for specific objects of this type
+     * @return A RealmQuery object
      * @see io.realm.RealmQuery
      */
     public RealmQuery<E> where() {
