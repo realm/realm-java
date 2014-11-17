@@ -13,23 +13,23 @@ echo "TESTING EXAMPLES"
 echo ""
 for example in examples/*/ ; do
 
-    applicationId=`grep applicationId ${example}build.gradle | cut -d \" -f 2 | cut -d \' -f 2`
-    project=`basename $example`
+    applicationId=`grep applicationId "${example}build.gradle" | cut -d \" -f 2 | cut -d \' -f 2`
+    project=`basename ${example}`
 
-    if [ $project == "encryptionExample" ] ; then
-        echo "Skipping $example"
+    if [ ${project} == "encryptionExample" ] ; then
+        echo "Skipping ${example}"
         continue
     fi
 
     echo ""
     echo "Building $example"
     adb uninstall ${applicationId} > /dev/null
-    ./gradlew $project:clean $project:installDebug
+    ./gradlew ${project}:clean ${project}:installDebug
 
     echo "Letting monkey loose in $example"
     adb shell "monkey -p ${applicationId} -v ${TEST_EVENTS} ; echo \"\$?\\c\" > /data/local/tmp/${applicationId}.exitcode"
     rc=`adb shell cat /data/local/tmp/${applicationId}.exitcode`
-    if [ "${rc}" != "0" ]; then
+    if [ "${rc}" != "0" ] ; then
         echo ""
         echo "Monkey found an error, stopping tests."
         echo "Exit code: ${rc}"

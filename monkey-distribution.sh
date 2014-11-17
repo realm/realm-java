@@ -14,10 +14,10 @@ echo "Testing distribution examples"
 echo ""
 for dist in distribution/Realm*/ ; do
 
-    applicationId=`grep applicationId ${dist}app/build.gradle | cut -d \" -f 2`
-    project=`basename $dist`
+    applicationId=`grep applicationId "${dist}app/build.gradle" | cut -d \" -f 2 | cut -d \' -f 2`
+    project=`basename ${dist}`
 
-    echo "Building $dist"
+    echo "Building ${dist}"
     adb uninstall ${applicationId} > /dev/null
     cd ${dist}
     ./gradlew clean installDebug
