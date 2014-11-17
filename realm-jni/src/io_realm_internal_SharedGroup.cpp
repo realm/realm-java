@@ -33,9 +33,7 @@ using namespace tightdb;
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
     JNIEnv* env, jobject, jstring file_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
-    const char* file_name_ptr = env->GetStringUTFChars(file_name, 0);
-    if (!file_name_ptr)
-        return 0; // Exception is thrown by GetStringUTFChars()
+    JStringAccessor fileName(env, file_name); // exception is thrown by JStringAcessor if it fails
 
     SharedGroup* db = 0;
     try {
@@ -68,9 +66,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
 
             KeyBuffer key(env, keyArray);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-            db = new SharedGroup(file_name_ptr, no_create!=0, level, key.data());
+            db = new SharedGroup(StringData(fileName), no_create!=0, level, key.data());
 #else
-            db = new SharedGroup(file_name_ptr, no_create!=0, level);
+            db = new SharedGroup(StringData(fileName), no_create!=0, level);
 #endif
         }
         return reinterpret_cast<jlong>(db);
@@ -81,7 +79,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
     catch (SharedGroup::LockFileButNoData& e) {
         ThrowException(env, FileAccessError, e.what(), "The database file is missing, but a .lock file is present.");
     }
-    CATCH_FILE(file_name_ptr)
+    CATCH_FILE(StringData(fileName))
     CATCH_STD()
     return 0;
 }
@@ -112,12 +110,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplication
   (JNIEnv* env, jobject, jstring file_name)
 {
-    const char* file_name_ptr = env->GetStringUTFChars(file_name, 0);
-    if (!file_name_ptr)
-        return 0; // Exception is thrown by GetStringUTFChars()
-
+    JStringAccessor fileName(env, file_name); // exception is thrown by JStringAccessor if it fails
     try {
-        Replication* repl = makeWriteLogCollector(file_name_ptr);
+        Replication* repl = makeWriteLogCollector(StringData(fileName));
         return reinterpret_cast<jlong>(repl);
     }
     CATCH_STD()
@@ -127,12 +122,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateTransactLogRegistry
   (JNIEnv* env, jobject, jstring file_name)
 {
-    const char* file_name_ptr = env->GetStringUTFChars(file_name, 0);
-    if (!file_name_ptr)
-        return 0; // Exception is thrown by GetStringUTFChars()
-
+    JStringAccessor fileName(env, file_name); // exception is thrown by JStringAccessor if it fails
     try {
-        LangBindHelper::TransactLogRegistry* wlr = getWriteLogs(file_name_ptr);
+        LangBindHelper::TransactLogRegistry* wlr = getWriteLogs(StringData(fileName));
         return reinterpret_cast<jlong>(wlr);
     }
     CATCH_STD()

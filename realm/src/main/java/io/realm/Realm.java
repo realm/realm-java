@@ -59,7 +59,7 @@ import io.realm.internal.Table;
  *
  * <pre>
  * HandlerThread thread = new HandlerThread("MyThread") {
- *    @Override
+ *    \@Override
  *    protected void onLooperPrepared() {
  *       Realm realm = Realm.getInstance(getContext());
  *       // This realm will be updated by the event loop

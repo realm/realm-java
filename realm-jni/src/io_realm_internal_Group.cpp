@@ -34,9 +34,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
     JNIEnv* env, jobject, jstring jFileName, jint mode, jbyteArray keyArray)
 {
     TR((env, "Group::createNative(file): "));
-    const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
-    if (fileNameCharPtr == NULL)
-        return 0;        // Exception is thrown by GetStringUTFChars()
+    JStringAccessor fileName(env, jFileName); // exception can be thrown by JStringAccessor
 
     Group* pGroup = 0;
     try {
@@ -53,15 +51,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
 
         KeyBuffer key(env, keyArray);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        pGroup = new Group(fileNameCharPtr, key.data(), openmode);
+        pGroup = new Group(StringData(fileName), key.data(), openmode);
 #else
-        pGroup = new Group(fileNameCharPtr, openmode);
+        pGroup = new Group(StringData(fileName), openmode);
 #endif
 
         TR((env, "%x\n", pGroup));
         return reinterpret_cast<jlong>(pGroup);
     }
-    CATCH_FILE(fileNameCharPtr)
+    CATCH_FILE(StringData(fileName))
     CATCH_STD()
 
     // Failed - cleanup
@@ -168,22 +166,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr(
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
     JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName, jbyteArray keyArray)
 {
-    const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
-    if (fileNameCharPtr) {
-        KeyBuffer key(env, keyArray);
-        try {
+    JStringAccessor fileName(env, jFileName); // exception is thrown by JStringAccessor if it fails.
+    KeyBuffer key(env, keyArray);
+    try {
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-            G(nativeGroupPtr)->write(fileNameCharPtr, key.data());
+        G(nativeGroupPtr)->write(StringData(fileName), key.data());
 #else
-            G(nativeGroupPtr)->write(fileNameCharPtr);
+        G(nativeGroupPtr)->write(StringData(fileName));
 #endif
-        }
-        CATCH_FILE(fileNameCharPtr)
-        CATCH_STD()
-
-        env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
     }
-    // (exception is thrown by GetStringUTFChars if it fails.)
+    CATCH_FILE(StringData(fileName))
+    CATCH_STD()
 }
 
 JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Group_nativeWriteToMem(
