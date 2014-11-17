@@ -374,6 +374,35 @@ public class RealmResultsTest extends AndroidTestCase {
         }
     }
 
+    public void testSortNonLatin() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("Санкт-Петербург");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("Москва");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("Новороссийск");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+        assertEquals("Москва", sortedResult.first().getColumnString());
+        assertEquals("Москва", sortedResult.get(0).getColumnString());
+        assertEquals("Новороссийск", sortedResult.get(1).getColumnString());
+        assertEquals("Санкт-Петербург", sortedResult.get(2).getColumnString());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+        assertEquals("Москва", reverseResult.last().getColumnString());
+
+        RealmResults<AllTypes> reverseSortedResult = sortedResult.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseSortedResult.size());
+        assertEquals("Москва", reverseSortedResult.last().getColumnString());
+    }
+
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
     }

@@ -255,7 +255,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeToJson(
         ss.sync_with_stdio(false); // for performance
         grp->to_json(ss);
         const std::string str = ss.str();
-        return env->NewStringUTF(str.c_str());
+        return to_jstring(env, str);
     } CATCH_STD()
     return 0;
 }
@@ -270,7 +270,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeToString(
         ss.sync_with_stdio(false); // for performance
         grp->to_string(ss);
         const std::string str = ss.str();
-        return env->NewStringUTF(str.c_str());
+        return to_jstring(env, str);
     } CATCH_STD()
     return 0;
 }
