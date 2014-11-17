@@ -363,6 +363,7 @@ public class Realm {
         return createAndValidate(absolutePath, key, true, autoRefresh);
     }
 
+    @SuppressWarnings("unchecked")
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
         Map<Integer, Realm> realms = realmsCache.get();
         Realm realm = realms.get(absolutePath.hashCode());
@@ -372,7 +373,7 @@ public class Realm {
         }
 
         realm = new Realm(absolutePath, key, autoRefresh);
-        realms.put(new Integer(absolutePath.hashCode()), realm);
+        realms.put(absolutePath.hashCode(), realm);
         realmsCache.set(realms);
 
         if (validateSchema) {
@@ -543,6 +544,7 @@ public class Realm {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
+    @SuppressWarnings("unchecked")
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         E result;
 
@@ -594,7 +596,6 @@ public class Realm {
 
         try {
             // We are know the casted type since we generated the class
-            //noinspection unchecked
             result = (E) constructor.newInstance();
         } catch (InstantiationException e) {
             throw new RealmException("Could not instantiate the proxy class");
