@@ -366,7 +366,7 @@ public class Realm {
     @SuppressWarnings("unchecked")
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
         Map<Integer, Realm> realms = realmsCache.get();
-        Realm realm = realms.get(absolutePath.hashCode());
+        Realm realm = realms.get(absolutePath);
 
         if (realm != null) {
             return realm;
