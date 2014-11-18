@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Runs Android monkey tool on all distribution projects. Using this script before using
 # build-distribution.sh will fail.
@@ -14,8 +14,8 @@ echo "Testing distribution examples"
 echo ""
 for dist in distribution/Realm*/ ; do
 
-    applicationId=`grep applicationId "${dist}app/build.gradle" | cut -d \" -f 2 | cut -d \' -f 2`
-    project=`basename ${dist}`
+    applicationId=$(grep applicationId "${dist}app/build.gradle" | cut -d \" -f 2 | cut -d \' -f 2)
+    project=$(basename ${dist})
 
     echo "Building ${dist}"
     adb uninstall ${applicationId} > /dev/null
@@ -25,7 +25,7 @@ for dist in distribution/Realm*/ ; do
 
     echo "Letting monkey loose in $dist"
     adb shell "monkey -p ${applicationId} -v ${TEST_EVENTS} ; echo \"\$?\\c\" > /data/local/tmp/${applicationId}.exitcode"
-    rc=`adb shell cat /data/local/tmp/${applicationId}.exitcode`
+    rc=$(adb shell cat /data/local/tmp/${applicationId}.exitcode)
     echo ""
     if [ "${rc}" != "0" ] ; then
         echo ""
