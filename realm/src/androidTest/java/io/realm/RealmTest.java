@@ -47,7 +47,7 @@ public class RealmTest extends AndroidTestCase {
     private final static String FIELD_DOUBLE = "columnDouble";
     private final static String FIELD_BOOLEAN = "columnBoolean";
     private final static String FIELD_DATE = "columnDate";
-    private final static String FIELD_KOREAN_CHAR = "Δέλτα";
+    private final static String FIELD_KOREAN_CHAR = "델타";
     private final static String FIELD_GREEK_CHAR = "Δέλτα";
     private final static String FIELD_BYTE = "columnBinary";
     private final static String FIELD_DOG = "columnRealmObject";
@@ -576,6 +576,23 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
         resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_LONG, 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+    }
+
+    public void testRealmQueryEqualToNonLatinCharacters() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_KOREAN_CHAR, 13).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_KOREAN_CHAR, 10).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_KOREAN_CHAR, 1).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_GREEK_CHAR, 13).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_GREEK_CHAR, 10).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_GREEK_CHAR, 1).findAll();
+        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+
     }
 
     public void testRealmQueryNotEqualTo() {

@@ -41,6 +41,8 @@ public class RealmResultsTest extends AndroidTestCase {
     private final static String FIELD_DOUBLE = "columnDouble";
     private final static String FIELD_BOOLEAN = "columnBoolean";
     private final static String FIELD_DATE = "columnDate";
+    private final static String FIELD_KOREAN_CHAR = "델타";
+    private final static String FIELD_GREEK_CHAR = "Δέλτα";
     private final static String FIELD_BYTE = "columnBinary";
     private final static String FIELD_DOG = "columnRealmObject";
 
@@ -63,6 +65,8 @@ public class RealmResultsTest extends AndroidTestCase {
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
+            allTypes.set델타(i);
+            allTypes.setΔέλτα(i);
         }
         testRealm.commitTransaction();
     }
@@ -193,6 +197,22 @@ public class RealmResultsTest extends AndroidTestCase {
         Number sum = resultList.sum(FIELD_LONG);
         // Sum of numbers 0 to M-1: (M-1)*M/2
         assertEquals((TEST_DATA_SIZE-1)*TEST_DATA_SIZE/2, sum.intValue());
+    }
+
+    public void testSumGivesCorrectValueWithKoreanColumnName() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+
+        Number sum = resultList.sum(FIELD_KOREAN_CHAR);
+        // Sum of numbers 0 to M-1: (M-1)*M/2
+        assertEquals((TEST_DATA_SIZE - 1) * TEST_DATA_SIZE / 2, sum.intValue());
+    }
+
+    public void testSumGivesCorrectValueWithGreekColumnName() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+
+        Number sum = resultList.sum(FIELD_GREEK_CHAR);
+        // Sum of numbers 0 to M-1: (M-1)*M/2
+        assertEquals((TEST_DATA_SIZE - 1) * TEST_DATA_SIZE / 2, sum.intValue());
     }
 
     public void testAvgGivesCorrectValue() {
