@@ -68,9 +68,8 @@ public class RealmAnnotationTest extends AndroidTestCase {
 
         Table table = testRealm.getTable(PrimaryKeyAsString.class);
         table.setPrimaryKey("id");
-        testRealm.commitTransaction();
-
         assertEquals(1, table.getPrimaryKey());
+        testRealm.cancelTransaction();
     }
 
     // Test migrating primary key from string to long with existing data
@@ -99,7 +98,7 @@ public class RealmAnnotationTest extends AndroidTestCase {
     // Test migrating primary key from long to str with existing data
     public void testPrimaryKeyMigration_string() {
         testRealm.beginTransaction();
-        testRealm.clear(AnnotationTypes.class);
+        testRealm.clear(PrimaryKeyAsLong.class);
         for (int i = 1; i <= 2; i++) {
             PrimaryKeyAsLong obj = testRealm.createObject(PrimaryKeyAsLong.class);
             obj.setId(i);
@@ -108,15 +107,14 @@ public class RealmAnnotationTest extends AndroidTestCase {
 
         Table table = testRealm.getTable(PrimaryKeyAsLong.class);
         table.setPrimaryKey("name");
-        testRealm.commitTransaction();
-
         assertEquals(1, table.getPrimaryKey());
+        testRealm.cancelTransaction();
     }
 
     // Test migrating primary key from long to str with existing data
     public void testPrimaryKeyMigration_stringDuplicateValues() {
         testRealm.beginTransaction();
-        testRealm.clear(AnnotationTypes.class);
+        testRealm.clear(PrimaryKeyAsLong.class);
         for (int i = 1; i <= 2; i++) {
             PrimaryKeyAsLong obj = testRealm.createObject(PrimaryKeyAsLong.class);
             obj.setId(i);
