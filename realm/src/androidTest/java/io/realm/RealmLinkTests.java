@@ -436,17 +436,19 @@ public class RealmLinkTests extends AndroidTestCase {
     public void testQueryShouldFail() {
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat..hasTail", true).findAll();
-            fail("Invalid argument should fail");
+            fail("Should throw Exception");
         } catch (IllegalArgumentException e) {
 
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.hasTail.", true).findAll();
+            fail("Should throw Exception");
         } catch (IllegalArgumentException e) {
 
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("not.there", true).findAll();
+            fail("Should throw Exception");
         } catch (IllegalArgumentException e) {
 
         }
