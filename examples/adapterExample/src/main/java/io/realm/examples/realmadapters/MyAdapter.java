@@ -28,7 +28,7 @@ import io.realm.examples.realmadapters.models.TimeStamp;
 
 public class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapter {
 
-    private class ViewHolder {
+    private static class ViewHolder {
         TextView timestamp;
     }
 
