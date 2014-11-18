@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * Primary keys also implies having the {@link io.realm.annotations.Index} annotation.
  *
  * Only one field pr. model class can have this annotation, and it is only allowed on the following
- * types: String, Short, Integer, Long, short, int, long
+ * types: String, short, int, long
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.FIELD)
