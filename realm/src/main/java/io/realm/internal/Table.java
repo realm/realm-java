@@ -669,6 +669,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         throw new RealmException("\"" + value +"\" not allowed as value in a field that is a primary key.");
     }
 
+    private void throwInvalidPrimaryKeyColumn(long columnIndex, Object value) {
+        throw new RealmException(String.format("Field \"%s\" cannot be a primary key, it already contains duplicate values: %s", getColumnName(columnIndex), value));
+    }
+
     //Holds methods that must be publicly available for AbstractClass.
     //Should not be called when using the dynamic interface. The methods can be accessed by calling getInternalMethods() in Table class
     public class InternalMethods{
@@ -1099,11 +1103,16 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Define a primary key for this table. This will override any existing primary key.
-     * Note this is a temporary solution. Primary keys should be implemented in the core.
-     * Also, this needs to be called manually before working with the table.
+     * Define a primary key for this table. This needs to be called manually before inserting data
+     * into the table.
      *
-     * @param columnName    Name of the field that will function primary key.
+     * @param columnName    Name of the field that will function primary key. "" or <code>null</code>
+     *                      will remove any previous set magic key.
+     *
+     * @throws              RealmException if it is not possible to set the primary key due to the
+     *                      column not having distinct values (ie. violating the primary key
+     *                      constaint).
+     *
      */
     public void setPrimaryKey(String columnName) {
         Table pkTable = getPrimaryKeyTable();
@@ -1115,6 +1124,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
         } else {
             long primaryKeyColumnIndex = getColumnIndex(columnName);
+            assertIsValidPrimaryKeyColumn(primaryKeyColumnIndex);
             if (rowIndex == NO_MATCH) {
                 pkTable.add(getName(), primaryKeyColumnIndex);
             } else {
@@ -1122,6 +1132,47 @@ public class Table implements TableOrView, TableSchema, Closeable {
             }
 
             cachedPrimaryKeyColumnIndex = primaryKeyColumnIndex;
+        }
+    }
+
+    // Checks if the primary key column contains any duplicate values, making it ineligible as a
+    // primary key.
+    private void assertIsValidPrimaryKeyColumn(long columnIndex) {
+        ColumnType columnType = getColumnType(columnIndex);
+        TableView result = where().findAll();
+        result.sort(columnIndex);
+
+        switch (columnType) {
+            case INTEGER:
+                if (result.size() > 1) {
+                    long value = result.getLong(columnIndex, 0);
+                    for (long i = 1; i < result.size(); i++) {
+                        long nextValue = result.getLong(columnIndex, i);
+                        if (value == nextValue) {
+                            throwInvalidPrimaryKeyColumn(columnIndex, value);
+                        } else {
+                            value = nextValue;
+                        }
+                    }
+                }
+                break;
+
+            case STRING:
+                if (result.size() > 1) {
+                    String str = result.getString(columnIndex, 0);
+                    for (int i = 1; i < result.size(); i++) {
+                        String nextStr = result.getString(columnIndex, i);
+                        if (str.equals(nextStr)) {
+                            throwInvalidPrimaryKeyColumn(columnIndex, str);
+                        } else {
+                            str = nextStr;
+                        }
+                    }
+                }
+                break;
+
+            default:
+                throw new RealmException("Invalid primary key type: " + columnType);
         }
     }
 
