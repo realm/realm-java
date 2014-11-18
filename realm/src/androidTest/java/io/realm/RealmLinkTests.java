@@ -447,7 +447,7 @@ public class RealmLinkTests extends AndroidTestCase {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("not.there", true).findAll();
-        } catch (ArrayIndexOutOfBoundsException e) {
+        } catch (IllegalArgumentException e) {
 
         }
     }
