@@ -62,6 +62,17 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
+        this.realm = realm;
+        this.clazz = clazz;
+        this.realmList = null;
+        this.query = query;
+        TableOrView dataStore = getTable();
+        for (int i = 0; i < dataStore.getColumnCount(); i++) {
+            this.columns.put(dataStore.getColumnName(i), i);
+        }
+    }
+
     /**
      * Create a RealmQuery instance from a @{link io.realm.RealmResults}.
      * @param realmList   The @{link io.realm.RealmResults} to query
@@ -91,17 +102,7 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     private boolean containsDot(String s) {
-        int i;
-        int n;
-
-        i = 0;
-        n = s.length();
-        while (i < n) {
-            if (s.charAt(i) == '.')
-                return true;
-            i++;
-        }
-        return false;
+        return s.indexOf('.') != -1;
     }
 
     private String[] splitString(String s) {

@@ -51,6 +51,6 @@ public abstract class RealmObject {
         if (realm == null) {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
-        row.getTable().remove(row.getIndex());
+        row.getTable().moveLastOver(row.getIndex());
     }
 }

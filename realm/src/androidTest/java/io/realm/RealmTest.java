@@ -74,9 +74,10 @@ public class RealmTest extends AndroidTestCase {
     private final static int BACKGROUND_COMMIT_TEST_DATA_SET_SIZE = 5;
 
 
-    // Test io.realm.Realm API
+    public void testRealmCache() {
+        assertEquals(testRealm, Realm.getInstance(getContext()));
+    }
 
-    // Realm Constructors
     public void testShouldCreateRealm() {
         Realm realm = Realm.getInstance(getContext());
         assertNotNull("Realm.getInstance unexpectedly returns null", realm);
@@ -571,28 +572,5 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
         resultList = testRealm.where(AllTypes.class).notEqualTo("columnFloat", 11.234567f).equalTo("columnLong", 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-    }
-
-    public void testDistinct() {
-        testRealm.beginTransaction();
-        for (int i = 0; i < 10; ++i) {
-            Dog dog = testRealm.createObject(Dog.class);
-            if (i % 2 == 0) {
-                dog.setName("Rex");
-            } else {
-                dog.setName("King");
-            }
-        }
-        testRealm.commitTransaction();
-
-        RealmResults<Dog> dogs = testRealm.distinct(Dog.class, "name");
-        assertEquals(2, dogs.size());
-
-        // Verify exception is thrown if the field in not indexed.
-        try {
-            RealmResults<AllTypes> allTypes = testRealm.distinct(AllTypes.class, "columnString");
-            fail();
-        } catch (UnsupportedOperationException ignore) {
-        }
     }
 }
