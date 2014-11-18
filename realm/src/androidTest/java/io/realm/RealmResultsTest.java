@@ -558,7 +558,7 @@ public class RealmResultsTest extends AndroidTestCase {
             RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
             RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
         } catch (IllegalArgumentException e) {
-            fail("Can't sort with two kinds of alphabets");
+            fail("Failed to sort with two kinds of alphabets");
         }
     }
 
@@ -569,7 +569,7 @@ public class RealmResultsTest extends AndroidTestCase {
         try {
             RealmResults<AllTypes> sortResult = testRealm.where(AllTypes.class).findAll().sort(FIELD_STRING);
         } catch (IllegalArgumentException e) {
-            fail("No data to be sorted");
+            fail("Failed to sort an empty RealmResults");
         }
     }
 
