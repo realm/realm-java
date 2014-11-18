@@ -460,6 +460,49 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals("αύριο", reverseResult.get(2).getColumnString());
     }
 
+    //No sorting order defined
+    public void testSortWithKoreanCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("단위");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("테스트");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("등장 인물");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+    }
+
+    //No sorting order defined
+    public void testSortWithArabicCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("وحدة");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("اختبار");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("شخصية");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+    }
+
+    //No sorting order defined
     public void testSortWithSimplifiedChineseCharacters() {
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
@@ -480,6 +523,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(3, reverseResult.size());
     }
 
+    //No sorting order defined
     public void testSortWithTraditionalChineseCharacters() {
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
