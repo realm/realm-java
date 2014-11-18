@@ -374,7 +374,35 @@ public class RealmResultsTest extends AndroidTestCase {
         }
     }
 
-    public void testSortNonLatin() {
+    public void testSortWithDanishCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("Æble");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("Øl");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("Århus");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+        assertEquals("Æble", sortedResult.first().getColumnString());
+        assertEquals("Æble", sortedResult.get(0).getColumnString());
+        assertEquals("Øl", sortedResult.get(1).getColumnString());
+        assertEquals("Århus", sortedResult.get(2).getColumnString());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+        assertEquals("Æble", reverseResult.last().getColumnString());
+        assertEquals("Århus", reverseResult.get(0).getColumnString());
+        assertEquals("Øl", reverseResult.get(1).getColumnString());
+        assertEquals("Æble", reverseResult.get(2).getColumnString());
+    }
+
+    public void testSortWithRussianCharacters() {
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
         AllTypes at1 = testRealm.createObject(AllTypes.class);
@@ -397,10 +425,106 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
         assertEquals(3, reverseResult.size());
         assertEquals("Москва", reverseResult.last().getColumnString());
+        assertEquals("Санкт-Петербург", reverseResult.get(0).getColumnString());
+        assertEquals("Новороссийск", reverseResult.get(1).getColumnString());
+        assertEquals("Москва", reverseResult.get(2).getColumnString());
+    }
 
-        RealmResults<AllTypes> reverseSortedResult = sortedResult.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
-        assertEquals(3, reverseSortedResult.size());
-        assertEquals("Москва", reverseSortedResult.last().getColumnString());
+    public void testSortWithGreekCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("αύριο");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("ημέρες");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("δοκιμές");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+        assertEquals("αύριο", sortedResult.first().getColumnString());
+        assertEquals("αύριο", sortedResult.get(0).getColumnString());
+        assertEquals("δοκιμές", sortedResult.get(1).getColumnString());
+        assertEquals("ημέρες", sortedResult.get(2).getColumnString());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+        assertEquals("αύριο", reverseResult.last().getColumnString());
+        assertEquals("ημέρες", reverseResult.get(0).getColumnString());
+        assertEquals("δοκιμές", reverseResult.get(1).getColumnString());
+        assertEquals("αύριο", reverseResult.get(2).getColumnString());
+    }
+
+    public void testSortWithSimplifiedChineseCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("单位");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("试验");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("字符");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+    }
+
+    public void testSortWithTraditionalChineseCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("單位");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("測試");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("字符");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+    }
+
+    public void testSortWithTwoLanguages(){
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes allTypes1 = testRealm.createObject(AllTypes.class);
+        allTypes1.setColumnString("test");
+        AllTypes allTypes2 = testRealm.createObject(AllTypes.class);
+        allTypes2.setColumnString("αύριο");
+        AllTypes allTypes3 = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        allTypes3.setColumnString("work");
+        try {
+            RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+            RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+        }catch (IllegalArgumentException e){
+            fail("Can't sort with two kinds of alphabets");
+        }
+    }
+
+    public void testWithEmptyRealmObjects(){
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+        try {
+            RealmResults<AllTypes> sortResult = testRealm.where(AllTypes.class).findAll().sort(FIELD_STRING);
+        }catch (IllegalArgumentException e) {
+            fail("No data to be sorted");
+        }
     }
 
     public void testCount() {
