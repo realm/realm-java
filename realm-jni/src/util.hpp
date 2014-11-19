@@ -52,10 +52,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
         ThrowException(env, IllegalArgument, "Invalid Group file format."); \
     } \
     catch (util::File::PermissionDenied& e) { \
-        ThrowException(env, IOFailed, fileName, string("Permission denied. ") + e.what()); \
+        ThrowException(env, IOFailed, string(fileName), string("Permission denied. ") + e.what()); \
     } \
     catch (util::File::NotFound&) { \
-        ThrowException(env, FileNotFound, fileName); \
+        ThrowException(env, FileNotFound, string(fileName));    \
     } \
     catch (util::File::AccessError& e) { \
         ThrowException(env, FileAccessError, string(fileName), e.what()); \
