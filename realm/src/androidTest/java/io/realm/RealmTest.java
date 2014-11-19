@@ -578,6 +578,7 @@ public class RealmTest extends AndroidTestCase {
     public void testQueryWithNonExistingField () {
         try {
             RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
+            fail("Should throw exception");
         } catch (IllegalArgumentException e) {
 
         }
