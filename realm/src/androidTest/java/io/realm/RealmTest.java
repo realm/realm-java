@@ -575,6 +575,14 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(1, resultList.size());
     }
 
+    public void testQueryWithNonExistingField () {
+        try {
+            RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
+        } catch (IllegalArgumentException e) {
+
+        }
+    }
+
     public void createAndTestFilename(String language, String fileName) {
         Realm.deleteRealmFile(getContext(), fileName);
         Realm realm1 = Realm.getInstance(getContext(), fileName);
