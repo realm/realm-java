@@ -52,7 +52,7 @@ public class RealmObjectTest extends AndroidTestCase {
 
         testRealm.commitTransaction();
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals("Rows: ", 8, row.getColumnCount());
+        assertEquals(8, row.getColumnCount());
     }
 
     public void testStringEncoding() {
