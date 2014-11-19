@@ -66,7 +66,7 @@ public class SimpleRealmProxy extends Simple {
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
-        if(!transaction.hasTable("class_Simple")) {
+        if (!transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
             table.addColumn(ColumnType.STRING, "name");
             table.addColumn(ColumnType.INTEGER, "age");
@@ -77,13 +77,13 @@ public class SimpleRealmProxy extends Simple {
     }
 
     public static void validateTable(ImplicitTransaction transaction) {
-        if(transaction.hasTable("class_Simple")) {
+        if (transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-            if(table.getColumnCount() != 3) {
+            if (table.getColumnCount() != 3) {
                 throw new IllegalStateException("Column count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for(long i = 0; i < 3; i++) {
+            for (long i = 0; i < 3; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("name")) {
