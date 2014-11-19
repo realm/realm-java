@@ -34,10 +34,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
     JNIEnv* env, jobject, jstring jFileName, jint mode, jbyteArray keyArray)
 {
     TR((env, "Group::createNative(file): "));
-    JStringAccessor fileName(env, jFileName); // exception can be thrown by JStringAccessor
 
     Group* pGroup = 0;
+    StringData file_name;
     try {
+        JStringAccessor file_name_tmp(env, jFileName); // exception can be thrown by JStringAccessor
+        file_name = StringData(file_name_tmp);
         Group::OpenMode openmode;
         switch (mode) {
         case 0: openmode = Group::mode_ReadOnly; break;
@@ -51,15 +53,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
 
         KeyBuffer key(env, keyArray);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        pGroup = new Group(StringData(fileName), key.data(), openmode);
+        pGroup = new Group(file_name, key.data(), openmode);
 #else
-        pGroup = new Group(StringData(fileName), openmode);
+        pGroup = new Group(file_name, openmode);
 #endif
 
         TR((env, "%x\n", pGroup));
         return reinterpret_cast<jlong>(pGroup);
     }
-    CATCH_FILE(StringData(fileName))
+    CATCH_FILE(file_name)
     CATCH_STD()
 
     // Failed - cleanup
@@ -166,16 +168,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr(
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
     JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName, jbyteArray keyArray)
 {
-    JStringAccessor fileName(env, jFileName); // exception is thrown by JStringAccessor if it fails.
+    StringData file_name;
     KeyBuffer key(env, keyArray);
     try {
+        JStringAccessor file_name_tmp(env, jFileName); // exception is thrown by JStringAccessor if it fails.
+        file_name = StringData(file_name_tmp);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        G(nativeGroupPtr)->write(StringData(fileName), key.data());
+        G(nativeGroupPtr)->write(file_name_tmp), key.data());
 #else
-        G(nativeGroupPtr)->write(StringData(fileName));
+        G(nativeGroupPtr)->write(file_name);
 #endif
     }
-    CATCH_FILE(StringData(fileName))
+    CATCH_FILE(file_name)
     CATCH_STD()
 }
 

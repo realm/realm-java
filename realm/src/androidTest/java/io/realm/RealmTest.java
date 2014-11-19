@@ -18,6 +18,7 @@ package io.realm;
 import android.content.Context;
 import android.test.AndroidTestCase;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -572,5 +573,33 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
         resultList = testRealm.where(AllTypes.class).notEqualTo("columnFloat", 11.234567f).equalTo("columnLong", 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+    }
+
+    public void createAndTestFilename(String language, String fileName) {
+        Realm.deleteRealmFile(getContext(), fileName);
+        Realm realm1 = Realm.getInstance(getContext(), fileName);
+        realm1.beginTransaction();
+        Dog dog1 = realm1.createObject(Dog.class);
+        dog1.setName("Rex");
+        realm1.commitTransaction();
+
+        File file = new File(getContext().getFilesDir()+"/"+fileName);
+        assertTrue(language, file.exists());
+
+        Realm realm2 = Realm.getInstance(getContext(), fileName);
+        Dog dog2 = realm2.allObjects(Dog.class).first();
+        assertEquals(language, "Rex", dog2.getName());
+    }
+
+    public void testCreateFile() {
+        createAndTestFilename("American", "Washington");
+        createAndTestFilename("Danish", "København");
+        createAndTestFilename("Russian", "Москва");
+        createAndTestFilename("Greek", "Αθήνα");
+        createAndTestFilename("Chinese", "北京市");
+        createAndTestFilename("Korean", "서울시");
+        createAndTestFilename("Arabic", "الرياض");
+        createAndTestFilename("India", "नई दिल्ली");
+        createAndTestFilename("Japanese", "東京都");
     }
 }
