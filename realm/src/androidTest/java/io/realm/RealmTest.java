@@ -48,8 +48,10 @@ public class RealmTest extends AndroidTestCase {
     private final static String FIELD_DOUBLE = "columnDouble";
     private final static String FIELD_BOOLEAN = "columnBoolean";
     private final static String FIELD_DATE = "columnDate";
-    private final static String FIELD_KOREAN_CHAR = "델타";
-    private final static String FIELD_GREEK_CHAR = "Δέλτα";
+    private final static String FIELD_LONG_KOREAN_CHAR = "델타";
+    private final static String FIELD_LONG_GREEK_CHAR = "Δέλτα";
+    private final static String FIELD_FLOAT_KOREAN_CHAR = "베타";
+    private final static String FIELD_FLOAT_GREEK_CHAR = "βήτα";
     private final static String FIELD_BYTE = "columnBinary";
     private final static String FIELD_DOG = "columnRealmObject";
 
@@ -68,7 +70,8 @@ public class RealmTest extends AndroidTestCase {
         testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
+        testRealm.allObjects(AllTypes.class).clear();
+        testRealm.allObjects(NonLatinFieldNames.class).clear();
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
@@ -81,6 +84,8 @@ public class RealmTest extends AndroidTestCase {
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
             nonLatinFieldNames.setΔέλτα(i);
+            nonLatinFieldNames.set베타(1.234567f + i);
+            nonLatinFieldNames.setΒήτα(1.234567f + i);
         }
         testRealm.commitTransaction();
     }
@@ -581,18 +586,18 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testRealmQueryEqualToNonLatinCharacters() {
-        RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_KOREAN_CHAR, 13).findAll();
+        RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_LONG_KOREAN_CHAR, 13).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_KOREAN_CHAR, 10).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_KOREAN_CHAR, 11.0f).equalTo(FIELD_LONG_KOREAN_CHAR, 10).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_KOREAN_CHAR, 1).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_KOREAN_CHAR, 11.0f).equalTo(FIELD_LONG_KOREAN_CHAR, 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
 
-        resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_GREEK_CHAR, 13).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_LONG_GREEK_CHAR, 13).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_GREEK_CHAR, 10).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_GREEK_CHAR, 11.0f).equalTo(FIELD_LONG_GREEK_CHAR, 10).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_GREEK_CHAR, 1).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_GREEK_CHAR, 11.0f).equalTo(FIELD_LONG_GREEK_CHAR, 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
 
     }
