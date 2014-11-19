@@ -4,6 +4,7 @@
   * An exception will now be thrown if you try to move Realm, RealmResults or RealmObject between threads.
   * Fixed a bug in the calculation of the maximum of date field in a RealmResults
   * Adding case sensitive versions of string comparison operators equalTo and notEqualTo
+  * Adding where() to RealmList to initiate queries
   * Updated core to 0.86.0, fixing a bug in cancelling an empty transaction, and major query speedups with floats/doubles
   * Consistent handling of UTF-8 strings
   * removeFromRealm() now calls moveLastOver() which is faster and more reliable when deleting multiple objects

@@ -74,9 +74,10 @@ public class RealmTest extends AndroidTestCase {
     private final static int BACKGROUND_COMMIT_TEST_DATA_SET_SIZE = 5;
 
 
-    // Test io.realm.Realm API
+    public void testRealmCache() {
+        assertEquals(testRealm, Realm.getInstance(getContext()));
+    }
 
-    // Realm Constructors
     public void testShouldCreateRealm() {
         Realm realm = Realm.getInstance(getContext());
         assertNotNull("Realm.getInstance unexpectedly returns null", realm);
