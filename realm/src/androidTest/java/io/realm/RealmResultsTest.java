@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.NonLatinFieldNames;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
@@ -55,6 +56,7 @@ public class RealmResultsTest extends AndroidTestCase {
 
         testRealm.beginTransaction();
         testRealm.allObjects(AllTypes.class).clear();
+        testRealm.allObjects(NonLatinFieldNames.class).clear();
 
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
@@ -65,8 +67,9 @@ public class RealmResultsTest extends AndroidTestCase {
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
-            allTypes.set델타(i);
-            allTypes.setΔέλτα(i);
+            NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
+            nonLatinFieldNames.set델타(i);
+            nonLatinFieldNames.setΔέλτα(i);
         }
         testRealm.commitTransaction();
     }
@@ -200,7 +203,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSumGivesCorrectValueWithNonLatinColumnNames() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class).findAll();
 
         Number sum = resultList.sum(FIELD_KOREAN_CHAR);
         // Sum of numbers 0 to M-1: (M-1)*M/2

@@ -29,16 +29,6 @@ public class AllTypes extends RealmObject {
     private Date columnDate;
     private byte[] columnBinary;
     private Dog columnRealmObject;
-    private long 델타;
-    private long Δέλτα;
-
-    public long get델타() { return 델타; }
-
-    public void set델타(long 델타) { this.델타 = 델타; }
-
-    public long getΔέλτα() { return Δέλτα; }
-
-    public void setΔέλτα(long δέλτα) { this.Δέλτα = δέλτα; }
 
     public String getColumnString() {
         return columnString;

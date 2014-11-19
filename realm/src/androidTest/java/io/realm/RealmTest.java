@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.entities.NonLatinFieldNames;
 import io.realm.internal.Table;
 
 
@@ -77,8 +78,9 @@ public class RealmTest extends AndroidTestCase {
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
-            allTypes.set델타(i);
-            allTypes.setΔέλτα(i);
+            NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
+            nonLatinFieldNames.set델타(i);
+            nonLatinFieldNames.setΔέλτα(i);
         }
         testRealm.commitTransaction();
     }
@@ -579,18 +581,18 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testRealmQueryEqualToNonLatinCharacters() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_KOREAN_CHAR, 13).findAll();
+        RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_KOREAN_CHAR, 13).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_KOREAN_CHAR, 10).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_KOREAN_CHAR, 10).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_KOREAN_CHAR, 1).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_KOREAN_CHAR, 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_GREEK_CHAR, 13).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_GREEK_CHAR, 13).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_GREEK_CHAR, 10).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_GREEK_CHAR, 10).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_GREEK_CHAR, 1).findAll();
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_GREEK_CHAR, 1).findAll();
         assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
 
     }
