@@ -38,7 +38,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
     Group* pGroup = 0;
     StringData file_name;
     try {
-        JStringAccessor file_name_tmp(env, jFileName); // exception can be thrown by JStringAccessor
+        JStringAccessor file_name_tmp(env, jFileName); // throws
         file_name = StringData(file_name_tmp);
         Group::OpenMode openmode;
         switch (mode) {
@@ -171,7 +171,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
     StringData file_name;
     KeyBuffer key(env, keyArray);
     try {
-        JStringAccessor file_name_tmp(env, jFileName); // exception is thrown by JStringAccessor if it fails.
+        JStringAccessor file_name_tmp(env, jFileName); // throws
         file_name = StringData(file_name_tmp);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
         G(nativeGroupPtr)->write(file_name_tmp), key.data());

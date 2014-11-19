@@ -37,7 +37,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
 
     SharedGroup* db = 0;
     try {
-        JStringAccessor file_name_tmp(env, jfile_name); // exception is thrown by JStringAcessor if it fails
+        JStringAccessor file_name_tmp(env, jfile_name); // throws
         file_name = StringData(file_name_tmp);
 
         if (enable_replication) {
@@ -115,7 +115,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 {
     StringData file_name;
     try {     
-        JStringAccessor file_name_tmp(env, jfile_name); // exception is thrown by JStringAccessor if it fails
+        JStringAccessor file_name_tmp(env, jfile_name); // throws
         file_name = StringData(file_name_tmp);
         Replication* repl = makeWriteLogCollector(file_name);
         return reinterpret_cast<jlong>(repl);
@@ -129,7 +129,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateTransactL
 {
     StringData file_name;
     try {
-        JStringAccessor file_name_tmp(env, jfile_name); // exception is thrown by JStringAccessor if it fails
+        JStringAccessor file_name_tmp(env, jfile_name); // throws
         file_name = StringData(file_name_tmp);
 
         LangBindHelper::TransactLogRegistry* wlr = getWriteLogs(file_name);
