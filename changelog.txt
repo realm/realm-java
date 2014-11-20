@@ -1,8 +1,8 @@
 0.75.0 (??)
   * Adding unit tests to test naming convention supported by annotation processor
-
-
-0.74.0 (20 Nov 2014)
+  * Bug fixed in Exception text when field names was not matching the database
+  
+0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes
   * An exception will now be thrown if you try to move Realm, RealmResults or RealmObject between threads.
@@ -13,6 +13,7 @@
   * Consistent handling of UTF-8 strings
   * removeFromRealm() now calls moveLastOver() which is faster and more reliable when deleting multiple objects
   * Added verification of fields names in queries with links.
+  * Added exception for queries with invalid field name
 
 0.73.1 (05 Nov 2014)
   * Fixed a bug that would send infinite notifications in some instances
