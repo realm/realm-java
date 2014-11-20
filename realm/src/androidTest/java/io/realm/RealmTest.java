@@ -607,9 +607,10 @@ public class RealmTest extends AndroidTestCase {
 
         resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ").findAll();
         assertEquals(0,resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ", false).findAll();
         // Without case sensitive there is 1, Δ = δ
         // assertEquals(1,resultList.size());
-        resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ", false).findAll();
         assertEquals(0,resultList.size());
     }
 
