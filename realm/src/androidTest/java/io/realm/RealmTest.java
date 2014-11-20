@@ -586,6 +586,33 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE,resultList.size());
     }
 
+    public void testRealmQueryContainsAndCaseSensitiveWithNonLatinCharacters(){
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("Αλφα");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("βήτα");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("δέλτα");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).beginGroup().contains("columnString","Α",false).or().contains("columnString", "δ").endGroup().findAll();
+        // Without case sensitive there is 3, Α = α
+        // assertEquals(3,resultList.size());
+        assertEquals(2,resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).contains("columnString","α").findAll();
+        assertEquals(3, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ").findAll();
+        assertEquals(0,resultList.size());
+        // Without case sensitive there is 1, Δ = δ
+        // assertEquals(1,resultList.size());
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ", false).findAll();
+        assertEquals(0,resultList.size());
+    }
+
     public void testQueryWithNonExistingField () {
         try {
             RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
