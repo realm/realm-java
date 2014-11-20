@@ -17,7 +17,6 @@
 package io.realm.internal;
 
 import java.io.Closeable;
-import java.lang.*;
 import java.util.Date;
 
 

@@ -18,6 +18,7 @@ package io.realm;
 import android.content.Context;
 import android.test.AndroidTestCase;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -499,115 +500,150 @@ public class RealmTest extends AndroidTestCase {
 
     public void testRealmQueryBetween() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).between(FIELD_LONG, 0, 9).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+        assertEquals(10, resultList.size());
 
         resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data ").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE, resultList.size());
+        assertEquals(TEST_DATA_SIZE, resultList.size());
 
         resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data 1").between(FIELD_LONG, 2, 20).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+        assertEquals(10, resultList.size());
 
         resultList = testRealm.where(AllTypes.class).between(FIELD_LONG, 2, 20).beginsWith(FIELD_STRING, "test data 1").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+        assertEquals(10, resultList.size());
     }
-
 
     public void testRealmQueryGreaterThan() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 10.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 10, resultList.size());
+        assertEquals(TEST_DATA_SIZE - 10, resultList.size());
 
         resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data 1").greaterThan(FIELD_FLOAT, 50.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 100, resultList.size());
+        assertEquals(TEST_DATA_SIZE - 100, resultList.size());
 
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.234567f);
         resultList = query.between(FIELD_LONG, 1, 20).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+        assertEquals(10, resultList.size());
     }
 
 
     public void testRealmQueryGreaterThanOrEqualTo() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_FLOAT, 10.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 9, resultList.size());
+        assertEquals(TEST_DATA_SIZE - 9, resultList.size());
 
         resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data 1").greaterThanOrEqualTo(FIELD_FLOAT, 50.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 100, resultList.size());
+        assertEquals(TEST_DATA_SIZE - 100, resultList.size());
 
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_FLOAT, 11.234567f);
         query = query.between(FIELD_LONG, 1, 20);
 
         resultList = query.beginsWith(FIELD_STRING, "test data 15").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        assertEquals(1, resultList.size());
     }
 
     public void testRealmQueryOr() {
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f);
         RealmResults<AllTypes> resultList = query.or().between(FIELD_LONG, 1, 20).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 21, resultList.size());
+        assertEquals(21, resultList.size());
 
         resultList = query.or().equalTo(FIELD_STRING, "test data 15").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 21, resultList.size());
+        assertEquals(21, resultList.size());
 
         resultList = query.or().equalTo(FIELD_STRING, "test data 117").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 22, resultList.size());
+        assertEquals(22, resultList.size());
     }
 
     public void testRealmQueryImplicitAnd() {
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f);
         RealmResults<AllTypes> resultList = query.between(FIELD_LONG, 1, 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+        assertEquals(0, resultList.size());
 
         query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 81.234567f);
         resultList = query.between(FIELD_LONG, 1, 100).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        assertEquals(1, resultList.size());
     }
 
     public void testRealmQueryLessThan() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThan(FIELD_FLOAT, 31.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 30, resultList.size());
+        assertEquals(30, resultList.size());
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).lessThan(FIELD_FLOAT, 31.234567f);
         resultList = query.between(FIELD_LONG, 1, 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+        assertEquals(10, resultList.size());
     }
 
     public void testRealmQueryLessThanOrEqual() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_FLOAT, 31.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 31, resultList.size());
+        assertEquals(31, resultList.size());
         resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_FLOAT, 31.234567f).between(FIELD_LONG, 11, 20).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+        assertEquals(10, resultList.size());
     }
 
     public void testRealmQueryEqualTo() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        assertEquals(1, resultList.size());
         resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_LONG, 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        assertEquals(1, resultList.size());
         resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_LONG, 1).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+        assertEquals(0, resultList.size());
     }
 
     public void testRealmQueryEqualToNonLatinCharacters() {
         RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_LONG_KOREAN_CHAR, 13).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        assertEquals(1, resultList.size());
         resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_KOREAN_CHAR, 11.0f).equalTo(FIELD_LONG_KOREAN_CHAR, 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        assertEquals(1, resultList.size());
         resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_KOREAN_CHAR, 11.0f).equalTo(FIELD_LONG_KOREAN_CHAR, 1).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+        assertEquals(0, resultList.size());
 
         resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_LONG_GREEK_CHAR, 13).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        assertEquals(1, resultList.size());
         resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_GREEK_CHAR, 11.0f).equalTo(FIELD_LONG_GREEK_CHAR, 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        assertEquals(1, resultList.size());
         resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_GREEK_CHAR, 11.0f).equalTo(FIELD_LONG_GREEK_CHAR, 1).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
-
+        assertEquals(0, resultList.size());
     }
 
     public void testRealmQueryNotEqualTo() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_LONG, 31).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 1, resultList.size());
+        assertEquals(TEST_DATA_SIZE - 1, resultList.size());
         resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_FLOAT, 11.234567f).equalTo(FIELD_LONG, 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+        assertEquals(0, resultList.size());
         resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_FLOAT, 11.234567f).equalTo(FIELD_LONG, 1).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        assertEquals(1, resultList.size());
+    }
+
+    public void testQueryWithNonExistingField () {
+        try {
+            RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
+            fail("Should throw exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+    }
+
+    public void createAndTestFilename(String language, String fileName) {
+        Realm.deleteRealmFile(getContext(), fileName);
+        Realm realm1 = Realm.getInstance(getContext(), fileName);
+        realm1.beginTransaction();
+        Dog dog1 = realm1.createObject(Dog.class);
+        dog1.setName("Rex");
+        realm1.commitTransaction();
+
+        File file = new File(getContext().getFilesDir()+"/"+fileName);
+        assertTrue(language, file.exists());
+
+        Realm realm2 = Realm.getInstance(getContext(), fileName);
+        Dog dog2 = realm2.allObjects(Dog.class).first();
+        assertEquals(language, "Rex", dog2.getName());
+    }
+
+    public void testCreateFile() {
+        createAndTestFilename("American", "Washington");
+        createAndTestFilename("Danish", "København");
+        createAndTestFilename("Russian", "Москва");
+        createAndTestFilename("Greek", "Αθήνα");
+        createAndTestFilename("Chinese", "北京市");
+        createAndTestFilename("Korean", "서울시");
+        createAndTestFilename("Arabic", "الرياض");
+        createAndTestFilename("India", "नई दिल्ली");
+        createAndTestFilename("Japanese", "東京都");
     }
 }

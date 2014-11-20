@@ -139,6 +139,9 @@ public class RealmQuery<E extends RealmObject> {
             long[] columnIndices = new long[names.length];
             for (int i = 0; i < names.length-1; i++) {
                 long index = table.getColumnIndex(names[i]);
+                if (index < 0) {
+                    throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
+                }
                 ColumnType type = table.getColumnType(index);
                 if (type == ColumnType.LINK || type == ColumnType.LINK_LIST) {
                     table = table.getLinkTarget(index);
@@ -153,6 +156,9 @@ public class RealmQuery<E extends RealmObject> {
             }
             return columnIndices;
         } else {
+            if (columns.get(fieldName) == null) {
+                throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
+            }
             if (fieldType != table.getColumnType(columns.get(fieldName))) {
                 throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", fieldName));
             }
