@@ -1,4 +1,4 @@
-0.74.0 (??)
+0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes
   * An exception will now be thrown if you try to move Realm, RealmResults or RealmObject between threads.
