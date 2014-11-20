@@ -42,6 +42,8 @@ public class RealmTest extends AndroidTestCase {
 
     protected List<String> columnData = new ArrayList<String>();
 
+    private boolean CASE_INSENSITIVE = false;
+
     protected void setColumnData() {
         columnData.add(0, "columnBoolean");
         columnData.add(1, "columnDate");
@@ -168,55 +170,55 @@ public class RealmTest extends AndroidTestCase {
         setColumnData();
 
         for (int i = 0; i < columnData.size(); i++) {
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), true).findAll();
-                    if (i != 0) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), true).findAll();
+                if (i != 0) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException e) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), new Date()).findAll();
-                    if (i != 1) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), new Date()).findAll();
+                if (i != 1) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException e) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.37d).findAll();
-                    if (i != 2) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.37d).findAll();
+                if (i != 2) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException e) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.3711f).findAll();
-                    if (i != 3) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.3711f).findAll();
+                if (i != 3) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException e) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), "test").findAll();
-                    if (i != 4) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), "test").findAll();
+                if (i != 4) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException e) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 1337).findAll();
-                    if (i != 5) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 1337).findAll();
+                if (i != 5) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException e) {
             }
         }
+    }
 
     public void testQueriesFailWithInvalidDataTypes() throws IOException {
         RealmResults<AllTypes> resultList = null;
@@ -396,7 +398,8 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.cancelTransaction();
             fail();
-        } catch (IllegalStateException ignored) {}
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     // void clear(Class<?> classSpec)
@@ -575,18 +578,20 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(1, resultList.size());
     }
 
-    public void testRealmQueryContainsAndCaseSensitive(){
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).beginGroup().contains("columnString","DaTa 0",false).or().contains("columnString", "20").endGroup().findAll();
-        assertEquals(3,resultList.size());
+    public void testRealmQueryContainsAndCaseSensitive() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
+                .beginGroup().contains("columnString", "DaTa 0", CASE_INSENSITIVE)
+                .or().contains("columnString", "20").endGroup().findAll();
+        assertEquals(3, resultList.size());
 
         resultList = testRealm.where(AllTypes.class).contains("columnString", "DATA").findAll();
-        assertEquals(0,resultList.size());
+        assertEquals(0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).contains("columnString", "TEST", false).findAll();
-        assertEquals(TEST_DATA_SIZE,resultList.size());
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "TEST",CASE_INSENSITIVE).findAll();
+        assertEquals(TEST_DATA_SIZE, resultList.size());
     }
 
-    public void testRealmQueryContainsAndCaseSensitiveWithNonLatinCharacters(){
+    public void testRealmQueryContainsAndCaseSensitiveWithNonLatinCharacters() {
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
         AllTypes at1 = testRealm.createObject(AllTypes.class);
@@ -597,24 +602,26 @@ public class RealmTest extends AndroidTestCase {
         at3.setColumnString("δέλτα");
         testRealm.commitTransaction();
 
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).beginGroup().contains("columnString","Α",false).or().contains("columnString", "δ").endGroup().findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
+                .beginGroup().contains("columnString", "Α", CASE_INSENSITIVE)
+                .or().contains("columnString", "δ").endGroup().findAll();
         // Without case sensitive there is 3, Α = α
         // assertEquals(3,resultList.size());
-        assertEquals(2,resultList.size());
+        assertEquals(2, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).contains("columnString","α").findAll();
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "α").findAll();
         assertEquals(3, resultList.size());
 
         resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ").findAll();
-        assertEquals(0,resultList.size());
+        assertEquals(0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ", false).findAll();
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ", CASE_INSENSITIVE).findAll();
         // Without case sensitive there is 1, Δ = δ
         // assertEquals(1,resultList.size());
-        assertEquals(0,resultList.size());
+        assertEquals(0, resultList.size());
     }
 
-    public void testQueryWithNonExistingField () {
+    public void testQueryWithNonExistingField() {
         try {
             RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
             fail("Should throw exception");
@@ -631,7 +638,7 @@ public class RealmTest extends AndroidTestCase {
         dog1.setName("Rex");
         realm1.commitTransaction();
 
-        File file = new File(getContext().getFilesDir()+"/"+fileName);
+        File file = new File(getContext().getFilesDir() + "/" + fileName);
         assertTrue(language, file.exists());
 
         Realm realm2 = Realm.getInstance(getContext(), fileName);
