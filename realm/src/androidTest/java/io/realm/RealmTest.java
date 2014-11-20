@@ -576,7 +576,8 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testRealmQueryContains(){
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).beginGroup().contains("columnLong","5",false).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).beginGroup().contains("columnString","DaTa 0",false).or().contains("columnString", "20").endGroup().findAll();
+        assertEquals(TEST_DATA_SIZE,resultList.size());
     }
 
     public void testQueryWithNonExistingField () {
