@@ -157,7 +157,7 @@ public class RealmQuery<E extends RealmObject> {
             return columnIndices;
         } else {
             if (columns.get(fieldName) == null) {
-                throw new IllegalArgumentException(String.format("Field name does not exist:", fieldName));
+                throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
             }
             if (fieldType != table.getColumnType(columns.get(fieldName))) {
                 throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", fieldName));
