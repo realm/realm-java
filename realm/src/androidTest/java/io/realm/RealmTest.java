@@ -577,6 +577,12 @@ public class RealmTest extends AndroidTestCase {
 
     public void testRealmQueryContainsAndCaseSensitive(){
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).beginGroup().contains("columnString","DaTa 0",false).or().contains("columnString", "20").endGroup().findAll();
+        assertEquals(3,resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "DATA").findAll();
+        assertEquals(0,resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "TEST", false).findAll();
         assertEquals(TEST_DATA_SIZE,resultList.size());
     }
 
