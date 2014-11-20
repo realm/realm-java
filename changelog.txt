@@ -1,4 +1,8 @@
-0.74.0 (??)
+0.75.0 (??)
+  * Adding unit tests to test naming convention supported by annotation processor
+
+
+0.74.0 (20 Nov 2014)
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes
   * An exception will now be thrown if you try to move Realm, RealmResults or RealmObject between threads.

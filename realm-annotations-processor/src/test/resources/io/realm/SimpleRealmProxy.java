@@ -65,12 +65,26 @@ public class SimpleRealmProxy extends Simple {
         row.setLong(Realm.columnIndices.get("Simple").get("object_id"), (long) value);
     }
 
+    @Override
+    public int getId_object() {
+        realm.assertThread();
+        return (int) row.getLong(Realm.columnIndices.get("Simple").get("id_object"));
+    }
+
+    @Override
+    public void setId_object(int value) {
+        realm.assertThread();
+        row.setLong(Realm.columnIndices.get("Simple").get("id_object"), (long) value);
+    }
+
+
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
             table.addColumn(ColumnType.STRING, "name");
             table.addColumn(ColumnType.INTEGER, "age");
             table.addColumn(ColumnType.INTEGER, "object_id");
+            table.addColumn(ColumnType.INTEGER, "id_object");
             return table;
         }
         return transaction.getTable("class_Simple");
@@ -79,11 +93,11 @@ public class SimpleRealmProxy extends Simple {
     public static void validateTable(ImplicitTransaction transaction) {
         if (transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-            if (table.getColumnCount() != 3) {
+            if (table.getColumnCount() != 4) {
                 throw new IllegalStateException("Column count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for (long i = 0; i < 3; i++) {
+            for (long i = 0; i < 4; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("name")) {
@@ -104,11 +118,17 @@ public class SimpleRealmProxy extends Simple {
             if (columnTypes.get("object_id") != ColumnType.INTEGER) {
                 throw new IllegalStateException("Invalid type 'int' for column 'object_id'");
             }
+            if (!columnTypes.containsKey("id_object")) {
+                throw new IllegalStateException("Missing column 'id_object'");
+            }
+            if (columnTypes.get("id_object") != ColumnType.INTEGER) {
+                throw new IllegalStateException("Invalid type 'int' for column 'id_object'");
+            }
         }
     }
 
     public static List<String> getFieldNames() {
-        return Arrays.asList("name", "age", "object_id");
+        return Arrays.asList("name", "age", "object_id", "id_object");
     }
 
     @Override
@@ -123,6 +143,9 @@ public class SimpleRealmProxy extends Simple {
         stringBuilder.append("{object_id:");
         stringBuilder.append(getObject_id());
         stringBuilder.append("} ");
+        stringBuilder.append("{id_object:");
+        stringBuilder.append(getId_object());
+        stringBuilder.append("} ");
         stringBuilder.append("]");
         return stringBuilder.toString();
     }
@@ -134,6 +157,7 @@ public class SimpleRealmProxy extends Simple {
         result = 31 * result + (aString_0 != null ? aString_0.hashCode() : 0);
         result = 31 * result + getAge();
         result = 31 * result + getObject_id();
+        result = 31 * result + getId_object();
         return result;
     }
 
@@ -145,7 +169,7 @@ public class SimpleRealmProxy extends Simple {
         if (getName() != null ? !getName().equals(aSimple.getName()) : aSimple.getName() != null) return false;
         if (getAge() != aSimple.getAge()) return false;
         if (getObject_id() != aSimple.getObject_id()) return false;
+        if (getId_object() != aSimple.getId_object()) return false;
         return true;
     }
-
 }
