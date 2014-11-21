@@ -1,6 +1,6 @@
 0.75.0 (??)
   * Bug fixed in Exception text when field names was not matching the database
-  * Bug fixed in RealmResults which prevents subquerying  
+  * Bug fixed in RealmResults which prevented subquerying  
 
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions

@@ -74,9 +74,7 @@ public class RealmResultsTest extends AndroidTestCase {
         METHOD_AVG,
         METHOD_SORT,
         METHOD_WHERE
-    }
-
-    ;
+    };
 
     public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
         final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
@@ -434,12 +432,15 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testQueryResult() {
-        RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
-        assertEquals(TEST_DATA_SIZE, allTypeses.size());
-        RealmResults<AllTypes> onedigits = allTypeses.where().lessThan(FIELD_LONG, 10).findAll();
+        RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAll();
+        assertEquals(TEST_DATA_SIZE, allTypes.size());
+
+        // querying a RealmResults should find objects that fulfill the condition
+        RealmResults<AllTypes> onedigits = allTypes.where().lessThan(FIELD_LONG, 10).findAll();
         assertEquals(Math.min(10, TEST_DATA_SIZE), onedigits.size());
 
-        RealmResults<AllTypes> none = allTypeses.where().greaterThan(FIELD_LONG, TEST_DATA_SIZE).findAll();
+        // if no objects fulfill conditions, the result has zero objects
+        RealmResults<AllTypes> none = allTypes.where().greaterThan(FIELD_LONG, TEST_DATA_SIZE).findAll();
         assertEquals(0, none.size());
     }
 }
