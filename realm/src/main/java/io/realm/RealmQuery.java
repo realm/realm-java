@@ -25,6 +25,7 @@ import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
+import io.realm.internal.TableView;
 
 /**
  *
@@ -133,16 +134,24 @@ public class RealmQuery<E extends RealmObject> {
     // TODO: consider another caching strategy to linked classes are
     //       included in the cache.
     private long[] getColumnIndices(String fieldName, ColumnType fieldType) {
-        Table table = (Table)getTable();
+        Table table;
+        TableOrView tableOrView = getTable();
+        if (tableOrView instanceof TableView) {
+            TableView tableView = (TableView)tableOrView;
+            table = tableView.getTable();
+        } else {
+            table = (Table)tableOrView;
+        }
+
         if (containsDot(fieldName)) {
             String[] names = splitString(fieldName); //fieldName.split("\\.");
             long[] columnIndices = new long[names.length];
             for (int i = 0; i < names.length-1; i++) {
-                long index = table.getColumnIndex(names[i]);
+                long index = tableOrView.getColumnIndex(names[i]);
                 if (index < 0) {
                     throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
                 }
-                ColumnType type = table.getColumnType(index);
+                ColumnType type = tableOrView.getColumnType(index);
                 if (type == ColumnType.LINK || type == ColumnType.LINK_LIST) {
                     table = table.getLinkTarget(index);
                     columnIndices[i] = index;

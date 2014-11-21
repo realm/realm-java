@@ -430,4 +430,15 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
         assertNotNull(query);
     }
+
+    public void testQueryResult() {
+        RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        assertEquals(TEST_DATA_SIZE, allTypeses.size());
+        RealmResults<AllTypes> onedigits = allTypeses.where().lessThan(FIELD_LONG, 10).findAll();
+        assertEquals(Math.min(10, TEST_DATA_SIZE), onedigits.size());
+
+        RealmResults<AllTypes> none = allTypeses.where().greaterThan(FIELD_LONG, TEST_DATA_SIZE).findAll();
+        assertEquals(0, none.size());
+    }
+
 }

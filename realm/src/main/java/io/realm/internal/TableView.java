@@ -79,6 +79,10 @@ public class TableView implements TableOrView, Closeable {
         this.nativePtr = nativePtr;
     }
 
+    public Table getTable() {
+        return parent;
+    }
+
     @Override
     public void close(){
         synchronized (context) {
