@@ -128,15 +128,15 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     /*public void testRemoveLastShouldFail() {
-        RealmResults<AllTypes> resultsList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
+        RealmResults<AllTypes> resultsList = realm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
         try {
-            testRealm.beginTransaction();
+            realm.beginTransaction();
             resultsList.removeLast();
             fail("Should give exception");
         } catch (IllegalArgumentException e) {
 
         } finally {
-            testRealm.commitTransaction();
+            realm.commitTransaction();
         }
     }*/
 
