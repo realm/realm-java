@@ -111,12 +111,10 @@ public class RealmAdapterTest extends AndroidTestCase {
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
         View view = realmAdapter.getView(0, null, null);
 
-        TextView name = (TextView) view
-                .findViewById(android.R.id.text1);
+        TextView name = (TextView) view.findViewById(android.R.id.text1);
 
         assertNotNull(view);
         assertNotNull(name);
-
         assertEquals(resultList.get(0).getColumnString(), name.getText());
     }
 }
