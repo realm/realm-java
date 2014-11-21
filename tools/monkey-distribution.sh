@@ -7,6 +7,10 @@
 # Solution for now: Write exit code to file and read it from there
 #
 
+# Make sure we are in realm-java root dir
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd ${script_dir}/..
+
 TEST_EVENTS=2000;
 
 echo ""
