@@ -60,11 +60,16 @@ Solutions for the 3 different methods are discussed below
 ##toString()
 
 - Don't follow objects, just show their RowIndex
-- Don't follow RealmLists, just show their Ids
+- Don't follow RealmLists, just show a list id RowIndexes.
 
-Output from foo.toString():
+Proposed sample output from foo.toString():
 
     [name=Foo,object=1,objects=[]]
+
+
+For efficiency we could leave out iterating RealmLists and instead use other metadata like size.
+
+    [name=Foo,object=1,objects=[@size=0]]
 
 
 ##hashCode()
@@ -106,6 +111,9 @@ This have some implications:
 Some additional reading with discussion/solutions on the topic.
 
 http://www.avaje.org/equals.html
+
 http://www.onjava.com/pub/a/onjava/2006/09/13/dont-let-hibernate-steal-your-identity.html?page=1
+
 http://docs.jboss.org/hibernate/core/4.0/manual/en-US/html/persistent-classes.html#persistent-classes-equalshashcode
+
 http://stackoverflow.com/questions/8863308/implementing-equals-and-hashcode-for-objects-with-circular-references-in-java
