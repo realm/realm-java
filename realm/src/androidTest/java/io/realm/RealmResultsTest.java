@@ -29,8 +29,8 @@ import io.realm.entities.AllTypes;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
-    protected final static int TEST_DATA_FIRST_HALF = 2*(TEST_DATA_SIZE/4)-1;
-    protected final static int TEST_DATA_LAST_HALF = 2*(TEST_DATA_SIZE/4)+1;
+    protected final static int TEST_DATA_FIRST_HALF = 2 * (TEST_DATA_SIZE / 4) - 1;
+    protected final static int TEST_DATA_LAST_HALF = 2 * (TEST_DATA_SIZE / 4) + 1;
 
 
     protected Realm testRealm;
@@ -58,7 +58,7 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date((long) 1000*i));
+            allTypes.setColumnDate(new Date((long) 1000 * i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
@@ -74,7 +74,9 @@ public class RealmResultsTest extends AndroidTestCase {
         METHOD_AVG,
         METHOD_SORT,
         METHOD_WHERE
-    };
+    }
+
+    ;
 
     public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
         final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
@@ -192,12 +194,12 @@ public class RealmResultsTest extends AndroidTestCase {
 
         Number sum = resultList.sum(FIELD_LONG);
         // Sum of numbers 0 to M-1: (M-1)*M/2
-        assertEquals((TEST_DATA_SIZE-1)*TEST_DATA_SIZE/2, sum.intValue());
+        assertEquals((TEST_DATA_SIZE - 1) * TEST_DATA_SIZE / 2, sum.intValue());
     }
 
     public void testAvgGivesCorrectValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        double N = (double)TEST_DATA_SIZE;
+        double N = (double) TEST_DATA_SIZE;
 
         // Sum of numbers 1 to M: M*(M+1)/2
         // See setUp() for values of fields
@@ -207,20 +209,20 @@ public class RealmResultsTest extends AndroidTestCase {
         // a, a+1, ..., a+i, ..., a+N-1
         // sum = 3.1415*N + N*(N-1)/2
         // average = sum/N = 3.1415+(N-1)/2
-        double average = 3.1415+(N-1.0)*0.5;
+        double average = 3.1415 + (N - 1.0) * 0.5;
         assertEquals(average, resultList.average(FIELD_DOUBLE), 0.0001);
 
         // Type: long
         // 0, 1, ..., N-1
         // sum = N*(N-1)/2
         // average = sum/N = (N-1)/2
-        assertEquals(0.5*(N-1), resultList.average(FIELD_LONG), 0.0001);
+        assertEquals(0.5 * (N - 1), resultList.average(FIELD_LONG), 0.0001);
 
         // Type: float; b = 1.234567
         // b, b+1, ..., b+i, ..., b+N-1
         // sum = b*N + N*(N-1)/2
         // average = sum/N = b + (N-1)/2
-        assertEquals(1.234567+0.5*(N-1.0), resultList.average(FIELD_FLOAT), 0.0001);
+        assertEquals(1.234567 + 0.5 * (N - 1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
 
     // void clear(Class<?> classSpec)
@@ -323,11 +325,11 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals("First excepted to be first", resultList.first().getColumnString(), reverseList.first().getColumnString());
 
-        int numberOfDigits = 1+((int)Math.log10(TEST_DATA_SIZE));
+        int numberOfDigits = 1 + ((int) Math.log10(TEST_DATA_SIZE));
         int largestNumber = 1;
-        for(int i=1; i<numberOfDigits; i++)
+        for (int i = 1; i < numberOfDigits; i++)
             largestNumber *= 10;  // 10*10* ... *10
-        largestNumber = largestNumber-1;
+        largestNumber = largestNumber - 1;
         assertEquals("Last excepted to be last", resultList.get(largestNumber).getColumnString(), reverseList.last().getColumnString());
         RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
@@ -440,5 +442,4 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> none = allTypeses.where().greaterThan(FIELD_LONG, TEST_DATA_SIZE).findAll();
         assertEquals(0, none.size());
     }
-
 }
