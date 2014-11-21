@@ -442,5 +442,9 @@ public class RealmResultsTest extends AndroidTestCase {
         // if no objects fulfill conditions, the result has zero objects
         RealmResults<AllTypes> none = allTypes.where().greaterThan(FIELD_LONG, TEST_DATA_SIZE).findAll();
         assertEquals(0, none.size());
+
+        // querying a result with zero objects must give zero objects
+        RealmResults<AllTypes> stillNone = none.where().greaterThan(FIELD_LONG, TEST_DATA_SIZE).findAll();
+        assertEquals(0, stillNone.size());
     }
 }
