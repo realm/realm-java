@@ -217,7 +217,8 @@ public class RealmObjectTest extends AndroidTestCase {
 
         testRealm.commitTransaction();
 
-        assertEquals("", foo.toString());
+        String expected = "CyclicType = [{name:Foo},{object:CyclicType@1},{objects:CyclicType[]}]";
+        assertEquals(expected, foo.toString());
     }
 
     public void testCyclicHashCode() {
@@ -234,6 +235,6 @@ public class RealmObjectTest extends AndroidTestCase {
 
         testRealm.commitTransaction();
 
-        assertEquals(0, foo.hashCode());
+        assertEquals(1344723738, foo.hashCode());
     }
 }

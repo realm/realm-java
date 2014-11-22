@@ -91,6 +91,7 @@ public class Realm {
     private Handler handler;
 
     private final int id;
+    private final String path;
     private final SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
     private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>();
@@ -115,6 +116,7 @@ public class Realm {
     private Realm(String absolutePath, byte[] key, boolean autoRefresh) {
         this.sharedGroup = new SharedGroup(absolutePath, true, key);
         this.transaction = sharedGroup.beginImplicitTransaction();
+        this.path = absolutePath;
         this.id = absolutePath.hashCode();
         setAutoRefresh(autoRefresh);
     }
@@ -853,5 +855,14 @@ public class Realm {
             }
         }
         return result;
+    }
+
+    /**
+     * Returns the absolute path to where this Realm is persisted on disk.
+     *
+     * @return The absolute path to the realm file.
+     */
+    public String getPath() {
+        return path;
     }
 }

@@ -112,7 +112,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         synchronized (context) {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
-                
                 if (DEBUG) {
                     TableCount--;
                     System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
@@ -1393,8 +1392,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
 
-    // get the table name as it is in the associated group.
-    protected String getName() {
+    /**
+     * Return the table name as it is in the associated group.
+     *
+     * @return Name of the the table or null if it not part of a group.
+     */
+    public String getName() {
         return nativeGetName(nativePtr);
     }
 

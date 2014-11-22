@@ -141,4 +141,20 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         TableQuery query = this.view.where();
         return new RealmQuery<E>(this.realm, query, clazz);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(clazz.getSimpleName());
+        sb.append("[");
+        for (int i = 0; i < size(); i++) {
+            sb.append("@");
+            sb.append(get(i).row.getIndex()); // TODO Replace with primary key when possible
+            if (i < size() - 1) {
+                sb.append(',');
+            }
+        }
+        sb.append("]");
+        return sb.toString();
+    }
 }

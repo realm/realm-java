@@ -18,6 +18,15 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -26,10 +35,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.lang.String;
-import java.util.*;
 
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -42,6 +47,11 @@ public class RealmProxyClassGenerator {
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String TABLE_PREFIX = "class_";
     private static final String PROXY_SUFFIX = "RealmProxy";
+
+    private Elements elementUtils;
+    private Types typeUtils;
+    private TypeMirror realmObject;
+    private DeclaredType realmList;
 
     public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment,
                                     String className, String packageName,
@@ -127,55 +137,6 @@ public class RealmProxyClassGenerator {
         CASTING_TYPES.put("byte[]", "byte[]");
     }
 
-    private static final Map<String, String[]> HASHCODE;
-
-    static {
-        HASHCODE = new HashMap<String, String[]>();
-        HASHCODE.put("boolean", new String[] {
-                "result = 31 * result + (%s() ? 1 : 0)" });
-        HASHCODE.put("byte", new String[] {
-                "result = 31 * result + (int) %s()" });
-        HASHCODE.put("short", new String[] {
-                "result = 31 * result + (int) %s()" });
-        HASHCODE.put("int", new String[] {
-                "result = 31 * result + %s()" });
-        HASHCODE.put("long", new String[] {
-                "long aLong_%d = %s()",
-                "result = 31 * result + (int) (aLong_%d ^ (aLong_%d >>> 32))" });
-        HASHCODE.put("float", new String[] {
-                "float aFloat_%d = %s()",
-                "result = 31 * result + (aFloat_%d != +0.0f ? Float.floatToIntBits(aFloat_%d) : 0)" });
-        HASHCODE.put("double", new String[] {
-                "long temp_%d = Double.doubleToLongBits(%s())",
-                "result = 31 * result + (int) (temp_%d ^ (temp_%d >>> 32))" });
-        HASHCODE.put("Byte", new String[] {
-                "result = 31 * result + (int) %s()" });
-        HASHCODE.put("Short", new String[] {
-                "result = 31 * result + (int) %s()" });
-        HASHCODE.put("Integer", new String[] {
-                "result = 31 * result + %s()" });
-        HASHCODE.put("Long", new String[] {
-                "long aLong_%d = %s()",
-                "result = 31 * result + (int) (aLong_%d ^ (aLong_%d >>> 32))" });
-        HASHCODE.put("Float", new String[] {
-                "float aFloat_%d = %s()",
-                "result = 31 * result + (aFloat_%d != +0.0f ? Float.floatToIntBits(aFloat_%d) : 0)" });
-        HASHCODE.put("Double", new String[] {
-                "long temp_%d = Double.doubleToLongBits(%s())",
-                "result = 31 * result + (int) (temp_%d ^ (temp_%d >>> 32))" });
-        HASHCODE.put("Boolean", new String[] {
-                "result = 31 * result + (%s() ? 1 : 0)" });
-        HASHCODE.put("java.lang.String", new String[] {
-                "String aString_%d = %s()",
-                "result = 31 * result + (aString_%d != null ? aString_%d.hashCode() : 0)" });
-        HASHCODE.put("java.lang.Date", new String[] {
-                "Date aDate_%d = %s()",
-                "result = 31 * result + (aDate_%d != null ? aDate_%d.hashCode() : 0)" });
-        HASHCODE.put("byte[]", new String[] {
-                "byte[] aByteArray_%d = %s()",
-                "result = 31 * result + (aByteArray_%d != null ? Arrays.hashCode(aByteArray_%d) : 0)" });
-    }
-
     private static final Map<String, Integer> HOW_TO_EQUAL;
     private static final int EQUALS_DIRECT = 0;  // compare values directly
     private static final int EQUALS_NULL = 1;    // check for null and use .equals()
@@ -208,11 +169,11 @@ public class RealmProxyClassGenerator {
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
 
-        Elements elementUtils = processingEnvironment.getElementUtils();
-        Types typeUtils = processingEnvironment.getTypeUtils();
+        elementUtils = processingEnvironment.getElementUtils();
+        typeUtils = processingEnvironment.getTypeUtils();
 
-        TypeMirror realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
-        DeclaredType realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
+        realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
 
         // Set source code indent to 4 spaces
         writer.setIndent("    ");
@@ -241,6 +202,20 @@ public class RealmProxyClassGenerator {
                 className)                   // class to extend
                 .emitEmptyLine();
 
+        emitAccessors(writer);
+        emitInitTableMethod(writer);
+        emitValidateTableMethod(writer);
+        emitGetFieldNamesMethod(writer);
+        emitToStringMethod(writer);
+        emitHashcodeMethod(writer);
+        emitEqualsMethod(writer);
+
+        // End the class definition
+        writer.endType();
+        writer.close();
+    }
+
+    private void emitAccessors(JavaWriter writer) throws IOException {
         // Accessors
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
@@ -338,10 +313,9 @@ public class RealmProxyClassGenerator {
             }
             writer.emitEmptyLine();
         }
+    }
 
-        /**
-         * initTable method
-         */
+    private void emitInitTableMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 "Table", // Return type
                 "initTable", // Method name
@@ -398,10 +372,9 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return transaction.getTable(\"%s%s\")", TABLE_PREFIX, this.className);
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * validateTable method
-         */
+    private void emitValidateTableMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 "void", // Return type
                 "validateTable", // Method name
@@ -490,10 +463,9 @@ public class RealmProxyClassGenerator {
         writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * getFieldNames method
-         */
+    private void emitGetFieldNamesMethod(JavaWriter writer) throws IOException {
         writer.beginMethod("List<String>", "getFieldNames", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
         List<String> entries = new ArrayList<String>();
         for (VariableElement field : fields) {
@@ -504,116 +476,81 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("return Arrays.asList(%s)", statementSection);
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * toString method
-         */
+    private void emitToStringMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
         writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", className);
-        for (VariableElement field : fields) {
-            String fieldName = field.getSimpleName().toString();
-            writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
-            writer.emitStatement("stringBuilder.append(%s())", getters.get(fieldName));
-            writer.emitStatement("stringBuilder.append(\"} \")", fieldName);
+        for (int i = 0; i < fields.size(); i++) {
+            VariableElement field = fields.get(i);
+            if (typeUtils.isAssignable(field.asType(), realmObject)) {
+
+                String fieldTypeCanonicalName = field.asType().toString();
+                String fieldTypeName;
+                if (fieldTypeCanonicalName.contains(".")) {
+                    fieldTypeName = fieldTypeCanonicalName.substring(fieldTypeCanonicalName.lastIndexOf('.') + 1);
+                } else {
+                    fieldTypeName = fieldTypeCanonicalName;
+                }
+
+                String fieldName = field.getSimpleName().toString();
+                writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
+                writer.emitStatement("stringBuilder.append(%s() != null ? \"%s\" + \"@\" + %s().row.getIndex() : \"null\")", getters.get(fieldName), fieldTypeName, getters.get(fieldName));
+                writer.emitStatement("stringBuilder.append(\"}\")");
+
+            } else {
+                String fieldName = field.getSimpleName().toString();
+                writer.emitStatement("stringBuilder.append(\"{%s:\")", fieldName);
+                writer.emitStatement("stringBuilder.append(%s())", getters.get(fieldName));
+                writer.emitStatement("stringBuilder.append(\"}\")");
+            }
+
+            if (i < fields.size() - 1) {
+                writer.emitStatement("stringBuilder.append(\",\")");
+            }
         }
+
         writer.emitStatement("stringBuilder.append(\"]\")");
         writer.emitStatement("return stringBuilder.toString()");
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * hashCode method
-         */
+    private void emitHashcodeMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod("int", "hashCode", EnumSet.of(Modifier.PUBLIC));
+        writer.emitStatement("long rowIndex = row.getIndex()");
+        writer.emitStatement("String tableName = row.getTable().getName()");
+        writer.emitEmptyLine();
         writer.emitStatement("int result = 17");
-        int counter = 0;
-        for (VariableElement field : fields) {
-            String fieldName = field.getSimpleName().toString();
-            String fieldTypeCanonicalName = field.asType().toString();
-            if (HASHCODE.containsKey(fieldTypeCanonicalName)) {
-                for (String statement : HASHCODE.get(fieldTypeCanonicalName)) {
-                    if (statement.contains("%d") && statement.contains("%s")) {
-                        // This statement introduces a temporary variable
-                        writer.emitStatement(statement, counter, getters.get(fieldName));
-                    } else if(statement.contains("%d")) {
-                        // This statement uses the temporary variable
-                        writer.emitStatement(statement, counter, counter);
-                    } else if (statement.contains("%s")) {
-                        // This is a normal statement with only one assignment
-                        writer.emitStatement(statement, getters.get(fieldName));
-                    } else {
-                        // This should never happen
-                        throw new AssertionError();
-                    }
-                }
-            } else {
-                // Links and Link lists
-                writer.emitStatement("%s temp_%d = %s()", fieldTypeCanonicalName, counter, getters.get(fieldName));
-                writer.emitStatement("result = 31 * result + (temp_%d != null ? temp_%d.hashCode() : 0)", counter, counter);
-            }
-            counter++;
-        }
+        writer.emitStatement("result = 31 * result + realm.getPath().hashCode()");
+        writer.emitStatement("result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0)");
+        writer.emitStatement("result = 31 * result + (int) (rowIndex ^ (rowIndex >>> 32))");
         writer.emitStatement("return result");
         writer.endMethod();
         writer.emitEmptyLine();
+    }
 
-        /**
-         * equals method
-         */
+    private void emitEqualsMethod(JavaWriter writer) throws IOException {
         String proxyClassName = className + PROXY_SUFFIX;
         writer.emitAnnotation("Override");
         writer.beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o");
         writer.emitStatement("if (this == o) return true");
         writer.emitStatement("if (o == null || getClass() != o.getClass()) return false");
         writer.emitStatement("%s a%s = (%s)o", proxyClassName, className, proxyClassName);  // FooRealmProxy aFoo = (FooRealmProxy)o
-
-        for (VariableElement field : fields) {
-            String fieldName = field.getSimpleName().toString();
-            String capFieldName = capitaliseFirstChar(fieldName);
-            String fieldTypeCanonicalName = field.asType().toString();
-            if (HOW_TO_EQUAL.containsKey(fieldTypeCanonicalName)) {
-                switch (HOW_TO_EQUAL.get(fieldTypeCanonicalName)) {
-                    case EQUALS_DIRECT: // if (getField() != aFoo.getField()) return false
-                        writer.emitStatement("if (%s() != a%s.%s()) return false", getters.get(fieldName), className, getters.get(fieldName));
-                        break;
-                    case EQUALS_NULL: // if (getField() != null = !getField().equals(aFoo.getField()) : aFoo.getField() != null) return false
-                        writer.emitStatement("if (%s() != null ? !%s().equals(a%s.%s()) : a%s.%s() != null) return false",
-                                getters.get(fieldName),
-                                getters.get(fieldName), className, getters.get(fieldName),
-                                className, getters.get(fieldName));
-                        break;
-                    case EQUALS_ARRAY: // if (!Arrays.equals(getField(), aFoo.getField())) return false
-                        writer.emitStatement("if (!Arrays.equals(%s(), a%s.%s())) return false",
-                                getters.get(fieldName),
-                                className, getters.get(fieldName));
-                        break;
-                    case EQUALS_COMPARE: // if (
-                        writer.emitStatement("if (%s.compare(%s(), a%s.%s()) != 0) return false",
-                                capitaliseFirstChar(fieldTypeCanonicalName), getters.get(fieldName), className,
-                                getters.get(fieldName));
-                        break;
-                }
-            }
-            else if (typeUtils.isAssignable(field.asType(), realmObject) || typeUtils.isAssignable(field.asType(), realmList)) {
-                writer.emitStatement("if (%s() != null ? !%s().equals(a%s.%s()) : a%s.%s() != null) return false",
-                        getters.get(fieldName),
-                        getters.get(fieldName), className, getters.get(fieldName),
-                        className, getters.get(fieldName));
-            }
-        }
+        writer.emitEmptyLine();
+        writer.emitStatement("String path = realm.getPath()");
+        writer.emitStatement("String otherPath = a%s.realm.getPath()", className);
+        writer.emitStatement("if (path != null ? !path.equals(otherPath) : otherPath != null) return false;");
+        writer.emitEmptyLine();
+        writer.emitStatement("String tableName = row.getTable().getName()");
+        writer.emitStatement("String otherTableName = a%s.row.getTable().getName()", className);
+        writer.emitStatement("if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false");
+        writer.emitEmptyLine();
         writer.emitStatement("return true");
         writer.endMethod();
         writer.emitEmptyLine();
-
-        // End the class definition
-        writer.endType();
-        writer.close();
-    }
-
-    private static String capitaliseFirstChar(String input) {
-        return input.substring(0, 1).toUpperCase() + input.substring(1);
     }
 
     public static String joinStringList(List<String> strings, String separator) {
