@@ -146,10 +146,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(clazz.getSimpleName());
-        sb.append("[");
+        sb.append("@[");
         for (int i = 0; i < size(); i++) {
-            sb.append("@");
-            sb.append(get(i).row.getIndex()); // TODO Replace with primary key when possible
+            sb.append(get(i).row.getIndex());
             if (i < size() - 1) {
                 sb.append(',');
             }
