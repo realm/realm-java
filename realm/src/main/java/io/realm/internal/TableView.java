@@ -924,6 +924,14 @@ public class TableView implements TableOrView, Closeable {
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
         return result;
    }
-   
-   protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
+
+    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
+
+
+    @Override
+    public long sync() {
+        return nativeSync(nativePtr);
+    }
+
+    protected native long nativeSync(long nativeTablePtr);
 }

@@ -20,10 +20,8 @@ package io.realm;
 import java.util.AbstractList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 import io.realm.exceptions.RealmException;
@@ -55,7 +53,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public static final boolean SORT_ORDER_DECENDING = false;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
-    private int oldSize = -1; // Used to keep track of changes to Realm. Bad invarient, replace with version number from sync method.
+    private long currentTableViewVersion = -1;
 
     RealmResults(Realm realm, Class<E> classSpec) {
         this.realm = realm;
@@ -78,8 +76,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return table;
         }
     }
-
-    Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
 
     /**
      * Returns a typed @{link io.realm.RealmQuery}, which can be used to query for specific
@@ -409,16 +405,13 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 //        throw new NoSuchMethodError();
 //    }
 
-    // TODO: This is not safe, size() can return the same result even though the data has changed
-    // Core has exposed a method so we can compare tableview version numbers, but are awaiting a core
-    // release.
     private void assertRealmIsStable() {
-        int newSize = size();
-        if (oldSize > -1 && newSize != oldSize ) {
+        long version = table.sync();
+        if (currentTableViewVersion > -1 && version != currentTableViewVersion) {
             throw new ConcurrentModificationException("No changes to a Realm is allowed while iterating a RealmResults.");
         }
 
-        oldSize = newSize;
+        currentTableViewVersion = version;
     }
 
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
@@ -426,7 +419,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         int pos = -1;
 
-        RealmResultsIterator() {}
+        RealmResultsIterator() {
+            currentTableViewVersion = table.sync();
+        }
 
         public boolean hasNext() {
             assertRealmIsStable();
