@@ -19,13 +19,18 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
-    protected final static int TEST_DATA_FIRST_HALF = 2*(TEST_DATA_SIZE/4)-1;
-    protected final static int TEST_DATA_LAST_HALF = 2*(TEST_DATA_SIZE/4)+1;
+    protected final static int TEST_DATA_FIRST_HALF = 2 * (TEST_DATA_SIZE / 4) - 1;
+    protected final static int TEST_DATA_LAST_HALF = 2 * (TEST_DATA_SIZE / 4) + 1;
 
 
     protected Realm testRealm;
@@ -53,7 +58,7 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date((long) i));
+            allTypes.setColumnDate(new Date((long) 1000 * i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
@@ -62,6 +67,52 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    private enum Method {
+        METHOD_MIN,
+        METHOD_MAX,
+        METHOD_SUM,
+        METHOD_AVG,
+        METHOD_SORT,
+        METHOD_WHERE
+    }
+
+    ;
+
+    public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
+        final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    switch (method) {
+                        case METHOD_MIN:
+                            allTypeses.min(FIELD_FLOAT);
+                            break;
+                        case METHOD_MAX:
+                            allTypeses.max(FIELD_FLOAT);
+                            break;
+                        case METHOD_SUM:
+                            allTypeses.sum(FIELD_FLOAT);
+                            break;
+                        case METHOD_AVG:
+                            allTypeses.average(FIELD_FLOAT);
+                            break;
+                        case METHOD_SORT:
+                            allTypeses.sort(FIELD_FLOAT);
+                            break;
+                        case METHOD_WHERE:
+                            allTypeses.where();
+                    }
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        return future.get();
+    }
 
     // test io.realm.ResultList Api
 
@@ -95,16 +146,16 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         AllTypes allTypes = resultList.get(0);
-        assertNotNull("ResultList.get has returned null", allTypes);
-        assertTrue("ResultList.get returned invalid data", allTypes.getColumnString().startsWith("test data"));
+        assertNotNull(allTypes);
+        assertTrue(allTypes.getColumnString().startsWith("test data"));
     }
 
 
     // void clear(Class<?> classSpec)
     public void testIsResultListSizeOk() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        assertNotNull("ResultList.where has returned null", resultList);
-        assertEquals("ResultList.where unexpected number of objects returned", TEST_DATA_SIZE, resultList.size());
+        assertNotNull(resultList);
+        assertEquals(TEST_DATA_SIZE, resultList.size());
     }
 
 
@@ -112,47 +163,43 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         AllTypes allTypes = resultList.first();
-        assertNotNull("ResultList.first has returned null", allTypes);
-        assertTrue("ResultList.first returned invalid data", allTypes.getColumnString().startsWith("test data 0"));
+        assertNotNull(allTypes);
+        assertTrue(allTypes.getColumnString().startsWith("test data 0"));
     }
 
     public void testResultListLastIsLast() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         AllTypes allTypes = resultList.last();
-        assertNotNull("ResultList.last has returned null", allTypes);
-        assertEquals("ResultList.last returned invalid data", (TEST_DATA_SIZE - 1), allTypes.getColumnLong());
+        assertNotNull(allTypes);
+        assertEquals((TEST_DATA_SIZE - 1), allTypes.getColumnLong());
     }
 
     public void testMinValueIsMinValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number minimum = resultList.min(FIELD_LONG);
-        assertEquals("ResultList.min returned wrong value", 0, minimum.intValue());
+        assertEquals(0, minimum.intValue());
     }
 
     public void testMaxValueIsMaxValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number maximum = resultList.max(FIELD_LONG);
-        assertEquals("ResultList.max returned wrong value", TEST_DATA_SIZE - 1, maximum.intValue());
+        assertEquals(TEST_DATA_SIZE - 1, maximum.intValue());
     }
 
     public void testSumGivesCorrectValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number sum = resultList.sum(FIELD_LONG);
-
-        int checkSum = 0;
-        for (int i = 0; i < TEST_DATA_SIZE; ++i) {
-            checkSum += i;
-        }
-        assertEquals("ResultList.sum returned wrong sum", checkSum, sum.intValue());
+        // Sum of numbers 0 to M-1: (M-1)*M/2
+        assertEquals((TEST_DATA_SIZE - 1) * TEST_DATA_SIZE / 2, sum.intValue());
     }
 
     public void testAvgGivesCorrectValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        double N = (double)TEST_DATA_SIZE;
+        double N = (double) TEST_DATA_SIZE;
 
         // Sum of numbers 1 to M: M*(M+1)/2
         // See setUp() for values of fields
@@ -162,22 +209,21 @@ public class RealmResultsTest extends AndroidTestCase {
         // a, a+1, ..., a+i, ..., a+N-1
         // sum = 3.1415*N + N*(N-1)/2
         // average = sum/N = 3.1415+(N-1)/2
-        double average = 3.1415+(N-1.0)*0.5;
+        double average = 3.1415 + (N - 1.0) * 0.5;
         assertEquals(average, resultList.average(FIELD_DOUBLE), 0.0001);
 
         // Type: long
         // 0, 1, ..., N-1
         // sum = N*(N-1)/2
         // average = sum/N = (N-1)/2
-        assertEquals(0.5*(N-1), resultList.average(FIELD_LONG), 0.0001);
+        assertEquals(0.5 * (N - 1), resultList.average(FIELD_LONG), 0.0001);
 
         // Type: float; b = 1.234567
         // b, b+1, ..., b+i, ..., b+N-1
         // sum = b*N + N*(N-1)/2
         // average = sum/N = b + (N-1)/2
-        assertEquals(1.234567+0.5*(N-1.0), resultList.average(FIELD_FLOAT), 0.0001);
+        assertEquals(1.234567 + 0.5 * (N - 1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
-
 
     // void clear(Class<?> classSpec)
     public void testRemoveIsResultListSizeOk() {
@@ -189,10 +235,10 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         boolean checkListSize = resultList.size() == TEST_DATA_SIZE - 1;
-        assertTrue("ResultList.remove did not remove record", checkListSize);
+        assertTrue(checkListSize);
 
         AllTypes allTypes = resultList.get(0);
-        assertTrue("ResultList.remove unexpected first record", allTypes.getColumnLong() == 1);
+        assertTrue(allTypes.getColumnLong() == 1);
     }
 
     public void testIsResultRemoveLastListSizeOk() {
@@ -279,11 +325,11 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals("First excepted to be first", resultList.first().getColumnString(), reverseList.first().getColumnString());
 
-        int numberOfDigits = 1+((int)Math.log10(TEST_DATA_SIZE));
+        int numberOfDigits = 1 + ((int) Math.log10(TEST_DATA_SIZE));
         int largestNumber = 1;
-        for(int i=1; i<numberOfDigits; i++)
+        for (int i = 1; i < numberOfDigits; i++)
             largestNumber *= 10;  // 10*10* ... *10
-        largestNumber = largestNumber-1;
+        largestNumber = largestNumber - 1;
         assertEquals("Last excepted to be last", resultList.get(largestNumber).getColumnString(), reverseList.last().getColumnString());
         RealmResults<AllTypes> reserveSortedList = reverseList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
@@ -330,6 +376,149 @@ public class RealmResultsTest extends AndroidTestCase {
         }
     }
 
+    public void testSortWithDanishCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("Æble");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("Øl");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("Århus");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+        assertEquals("Æble", sortedResult.first().getColumnString());
+        assertEquals("Æble", sortedResult.get(0).getColumnString());
+        assertEquals("Øl", sortedResult.get(1).getColumnString());
+        assertEquals("Århus", sortedResult.get(2).getColumnString());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+        assertEquals("Æble", reverseResult.last().getColumnString());
+        assertEquals("Århus", reverseResult.get(0).getColumnString());
+        assertEquals("Øl", reverseResult.get(1).getColumnString());
+        assertEquals("Æble", reverseResult.get(2).getColumnString());
+    }
+
+    public void testSortWithRussianCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("Санкт-Петербург");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("Москва");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("Новороссийск");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+        assertEquals("Москва", sortedResult.first().getColumnString());
+        assertEquals("Москва", sortedResult.get(0).getColumnString());
+        assertEquals("Новороссийск", sortedResult.get(1).getColumnString());
+        assertEquals("Санкт-Петербург", sortedResult.get(2).getColumnString());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+        assertEquals("Москва", reverseResult.last().getColumnString());
+        assertEquals("Санкт-Петербург", reverseResult.get(0).getColumnString());
+        assertEquals("Новороссийск", reverseResult.get(1).getColumnString());
+        assertEquals("Москва", reverseResult.get(2).getColumnString());
+    }
+
+    public void testSortWithGreekCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("αύριο");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("ημέρες");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("δοκιμές");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(3, sortedResult.size());
+        assertEquals("αύριο", sortedResult.first().getColumnString());
+        assertEquals("αύριο", sortedResult.get(0).getColumnString());
+        assertEquals("δοκιμές", sortedResult.get(1).getColumnString());
+        assertEquals("ημέρες", sortedResult.get(2).getColumnString());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(3, reverseResult.size());
+        assertEquals("αύριο", reverseResult.last().getColumnString());
+        assertEquals("ημέρες", reverseResult.get(0).getColumnString());
+        assertEquals("δοκιμές", reverseResult.get(1).getColumnString());
+        assertEquals("αύριο", reverseResult.get(2).getColumnString());
+    }
+
+    //No sorting order defined. There are Korean, Arabic and Chinese characters.
+    public void testSortWithManyDifferentCharacters() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes at1 = testRealm.createObject(AllTypes.class);
+        at1.setColumnString("단위");
+        AllTypes at2 = testRealm.createObject(AllTypes.class);
+        at2.setColumnString("테스트");
+        AllTypes at3 = testRealm.createObject(AllTypes.class);
+        at3.setColumnString("وحدة");
+        AllTypes at4 = testRealm.createObject(AllTypes.class);
+        at4.setColumnString("اختبار");
+        AllTypes at5 = testRealm.createObject(AllTypes.class);
+        at5.setColumnString("单位");
+        AllTypes at6 = testRealm.createObject(AllTypes.class);
+        at6.setColumnString("试验");
+        AllTypes at7 = testRealm.createObject(AllTypes.class);
+        at7.setColumnString("單位");
+        AllTypes at8 = testRealm.createObject(AllTypes.class);
+        at8.setColumnString("測試");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+
+        assertEquals(8, sortedResult.size());
+
+        RealmResults<AllTypes> reverseResult = result.sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        assertEquals(8, reverseResult.size());
+    }
+
+    public void testSortWithTwoLanguages() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes allTypes1 = testRealm.createObject(AllTypes.class);
+        allTypes1.setColumnString("test");
+        AllTypes allTypes2 = testRealm.createObject(AllTypes.class);
+        allTypes2.setColumnString("αύριο");
+        AllTypes allTypes3 = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        allTypes3.setColumnString("work");
+        try {
+            RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+            RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+        } catch (IllegalArgumentException e) {
+            fail("Failed to sort with two kinds of alphabets");
+        }
+    }
+
+    public void testWithEmptyRealmObjects() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+        try {
+            RealmResults<AllTypes> sortResult = testRealm.where(AllTypes.class).findAll().sort(FIELD_STRING);
+        } catch (IllegalArgumentException e) {
+            fail("Failed to sort an empty RealmResults");
+        }
+    }
 
     public void testCount() {
         assertEquals(TEST_DATA_SIZE, testRealm.where(AllTypes.class).count());
@@ -352,5 +541,10 @@ public class RealmResultsTest extends AndroidTestCase {
         }
         RealmResults<AllTypes> allTypesRealmResults = query.findAll();
         assertEquals(TEST_DATA_SIZE, allTypesRealmResults.size());
+    }
+
+    public void testWhere() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
+        assertNotNull(query);
     }
 }

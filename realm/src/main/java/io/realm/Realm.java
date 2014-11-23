@@ -59,7 +59,7 @@ import io.realm.internal.Table;
  *
  * <pre>
  * HandlerThread thread = new HandlerThread("MyThread") {
- *    @Override
+ *    \@Override
  *    protected void onLooperPrepared() {
  *       Realm realm = Realm.getInstance(getContext());
  *       // This realm will be updated by the event loop
@@ -74,16 +74,16 @@ public class Realm {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
-    protected static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
+    protected static final ThreadLocal<Map<Integer, Realm>> realmsCache = new ThreadLocal<Map<Integer, Realm>>() {
         @Override
-        protected Map<String, Realm> initialValue() {
-            return new HashMap<String, Realm>();
+        protected Map<Integer, Realm> initialValue() {
+            return new HashMap<Integer, Realm>();
         }
     };
     private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
     private static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
-    private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have beeen executed.";
-
+    private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
+    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
 
     @SuppressWarnings("UnusedDeclaration")
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
@@ -104,6 +104,12 @@ public class Realm {
 
     // Package protected to be reachable by proxy classes
     static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
+
+    protected void assertThread() {
+        if (realmsCache.get().get(this.id) != this) {
+            throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
+        }
+    }
 
     // The constructor in private to enforce the use of the static one
     private Realm(String absolutePath, byte[] key, boolean autoRefresh) {
@@ -357,16 +363,17 @@ public class Realm {
         return createAndValidate(absolutePath, key, true, autoRefresh);
     }
 
+    @SuppressWarnings("unchecked")
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
-        Map<String, Realm> realms = realmsCache.get();
-        Realm realm = realms.get(absolutePath);
+        Map<Integer, Realm> realms = realmsCache.get();
+        Realm realm = realms.get(absolutePath.hashCode());
 
         if (realm != null) {
             return realm;
         }
 
         realm = new Realm(absolutePath, key, autoRefresh);
-        realms.put(absolutePath, realm);
+        realms.put(absolutePath.hashCode(), realm);
         realmsCache.set(realms);
 
         if (validateSchema) {
@@ -537,6 +544,7 @@ public class Realm {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
+    @SuppressWarnings("unchecked")
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         E result;
 
@@ -588,7 +596,6 @@ public class Realm {
 
         try {
             // We are know the casted type since we generated the class
-            //noinspection unchecked
             result = (E) constructor.newInstance();
         } catch (InstantiationException e) {
             throw new RealmException("Could not instantiate the proxy class");
@@ -645,6 +652,7 @@ public class Realm {
      * @see io.realm.RealmChangeListener
      */
     public void addChangeListener(RealmChangeListener listener) {
+        assertThread();
         changeListeners.add(listener);
     }
 
@@ -655,6 +663,7 @@ public class Realm {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener listener) {
+        assertThread();
         changeListeners.remove(listener);
     }
 
@@ -664,6 +673,7 @@ public class Realm {
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
+        assertThread();
         changeListeners.clear();
     }
 
@@ -687,6 +697,7 @@ public class Realm {
      */
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
+        assertThread();
         transaction.advanceRead();
     }
 
@@ -701,10 +712,11 @@ public class Realm {
      * Notice: it is not possible to nest write transactions. If you start a write
      * transaction within a write transaction an exception is thrown.
      * <br>
-     * @throws java.lang.IllegalStateException If already in a write transaction.
+     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
      *
      */
     public void beginTransaction() {
+        assertThread();
         transaction.promoteToWrite();
     }
 
@@ -715,9 +727,10 @@ public class Realm {
      * objects and @{link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
      * 
-     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state.
+     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
      */
     public void commitTransaction() {
+        assertThread();
         transaction.commitAndContinueAsRead();
 
         for (Map.Entry<Handler, Integer> handlerIntegerEntry : handlers.entrySet()) {
@@ -743,10 +756,11 @@ public class Realm {
      * <br>
      * Calling this when not in a write transaction will throw an exception.
      *
-     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state or
-    *                                             not in a write transaction.
+     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state,
+    *                                             not in a write transaction or incorrect thread.
     */
      public void cancelTransaction() {
+         assertThread();
          transaction.rollbackAndContinueAsRead();
      }
 

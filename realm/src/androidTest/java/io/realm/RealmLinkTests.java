@@ -252,17 +252,26 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners3 = testRealm.where(Owner.class).beginsWith("cat.name", "Blackie").findAll();
             fail();
-        } catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) {
+        }
 
         try {
             RealmResults<Owner> owners4 = testRealm.where(Owner.class).endsWith("cat.name", "Blackie").findAll();
             fail();
-        } catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) {
+        }
 
         try {
             RealmResults<Owner> owners5 = testRealm.where(Owner.class).contains("cat.name", "Blackie").findAll();
             fail();
-        } catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) {
+        }
+
+        try {
+            RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "Max", RealmQuery.CASE_INSENSITIVE).findAll();
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
     }
 
     public void testQueryMultipleRelationsBoolean() {
@@ -408,16 +417,51 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners3 = testRealm.where(Owner.class).beginsWith("dogs.name", "Blackie").findAll();
             fail();
-        } catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) {
+        }
 
         try {
             RealmResults<Owner> owners4 = testRealm.where(Owner.class).endsWith("dogs.name", "Blackie").findAll();
             fail();
-        } catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) {
+        }
 
         try {
             RealmResults<Owner> owners5 = testRealm.where(Owner.class).contains("dogs.name", "Blackie").findAll();
             fail();
-        } catch (IllegalArgumentException e) { }
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    public void testQueryShouldFail() {
+        try {
+            RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat..hasTail", true).findAll();
+            fail("Should throw Exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.hasTail.", true).findAll();
+            fail("Should throw Exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("not.there", true).findAll();
+            fail("Should throw Exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+    }
+
+    public void testWhere() throws Exception {
+        RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
+        RealmResults<Dog> dogs = owners.first().getDogs().where().equalTo("name", "Pluto").findAll();
+        assertEquals(1, dogs.size());
+        assertEquals("Pluto", dogs.first().getName());
+        assertEquals(5, dogs.first().getAge());
+
+        RealmResults<Dog> none = owners.first().getDogs().where().equalTo("name", "Mars").findAll();
+        assertEquals(0, none.size());
     }
 }

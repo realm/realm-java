@@ -18,6 +18,12 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.internal.Row;
@@ -46,7 +52,7 @@ public class RealmObjectTest extends AndroidTestCase {
 
         testRealm.commitTransaction();
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals("RealmObject.realmGetRow seems to return wrong row type: ", 8, row.getColumnCount());
+        assertEquals(8, row.getColumnCount());
     }
 
     public void testStringEncoding() {
@@ -95,5 +101,44 @@ public class RealmObjectTest extends AndroidTestCase {
             rex.getName();
             fail();
         } catch (IllegalStateException ignored) {}
+
+        // deleting rex twice should fail
+        realm.beginTransaction();
+        try {
+            rex.removeFromRealm();      
+            fail();
+        } catch (IllegalStateException ignored) {}
+        realm.commitTransaction();
+    }
+
+    public boolean methodWrongThread(final boolean callGetter) throws ExecutionException, InterruptedException {
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        final AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    if (callGetter) {
+                        allTypes.getColumnFloat();
+                    } else {
+                        allTypes.setColumnFloat(1.0f);
+                    }
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        return future.get();
+    }
+
+    public void testGetSetWrongThread() throws ExecutionException, InterruptedException {
+        assertTrue(methodWrongThread(true));
+        assertTrue(methodWrongThread(false));
     }
 }
