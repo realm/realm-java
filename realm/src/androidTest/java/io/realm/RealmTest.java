@@ -42,8 +42,6 @@ public class RealmTest extends AndroidTestCase {
 
     protected List<String> columnData = new ArrayList<String>();
 
-    private boolean CASE_INSENSITIVE = false;
-
     protected void setColumnData() {
         columnData.add(0, "columnBoolean");
         columnData.add(1, "columnDate");
@@ -580,14 +578,14 @@ public class RealmTest extends AndroidTestCase {
 
     public void testRealmQueryContainsAndCaseSensitive() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .beginGroup().contains("columnString", "DaTa 0", CASE_INSENSITIVE)
+                .beginGroup().contains("columnString", "DaTa 0", RealmQuery.CASE_INSENSITIVE)
                 .or().contains("columnString", "20").endGroup().findAll();
         assertEquals(3, resultList.size());
 
         resultList = testRealm.where(AllTypes.class).contains("columnString", "DATA").findAll();
         assertEquals(0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).contains("columnString", "TEST",CASE_INSENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "TEST", RealmQuery.CASE_INSENSITIVE).findAll();
         assertEquals(TEST_DATA_SIZE, resultList.size());
     }
 
@@ -603,7 +601,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .beginGroup().contains("columnString", "Α", CASE_INSENSITIVE)
+                .beginGroup().contains("columnString", "Α", RealmQuery.CASE_INSENSITIVE)
                 .or().contains("columnString", "δ").endGroup().findAll();
         // Without case sensitive there is 3, Α = α
         // assertEquals(3,resultList.size());
@@ -615,7 +613,7 @@ public class RealmTest extends AndroidTestCase {
         resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ").findAll();
         assertEquals(0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ", CASE_INSENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ", RealmQuery.CASE_INSENSITIVE).findAll();
         // Without case sensitive there is 1, Δ = δ
         // assertEquals(1,resultList.size());
         assertEquals(0, resultList.size());
