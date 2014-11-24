@@ -76,9 +76,11 @@ public class RealmAdapterTest extends AndroidTestCase {
         assertEquals(resultList.first(), realmAdapter.getRealmResults().last());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
-        realmAdapter.updateRealmResults(realmAdapter.getRealmResults().sort(FIELD_STRING));
-        assertEquals(resultList.first(), realmAdapter.getRealmResults().first());
-        assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
+        RealmResults<AllTypes> emptyResultList = testRealm.where(AllTypes.class)
+                .equalTo(FIELD_STRING, "Not there").findAll();
+
+        realmAdapter.updateRealmResults(emptyResultList);
+        assertEquals(emptyResultList.size(), realmAdapter.getRealmResults().size());
     }
 
     public void testSortWithAdapter() {
@@ -96,7 +98,8 @@ public class RealmAdapterTest extends AndroidTestCase {
     }
 
     public void testEmptyRealmResult() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
+                .equalTo(FIELD_STRING, "Not there").findAll();
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
         assertEquals(0, realmAdapter.getRealmResults().size());
         assertEquals(0, realmAdapter.getCount());
