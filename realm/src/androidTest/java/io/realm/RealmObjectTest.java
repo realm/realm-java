@@ -18,6 +18,7 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.util.Date;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -140,5 +141,22 @@ public class RealmObjectTest extends AndroidTestCase {
     public void testGetSetWrongThread() throws ExecutionException, InterruptedException {
         assertTrue(methodWrongThread(true));
         assertTrue(methodWrongThread(false));
+    }
+
+    public void testDateType() {
+        long testDates[] = {Long.MIN_VALUE, -1, 0, 1, Long.MAX_VALUE};
+
+        testRealm.beginTransaction();
+        for (long value : testDates) {
+            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            allTypes.setColumnDate(new Date(value));
+        }
+        testRealm.commitTransaction();
+
+        int i = 0;
+        for (AllTypes allTypes : testRealm.allObjects(AllTypes.class)) {
+            assertEquals("Item " + i, new Date(testDates[i]), allTypes.getColumnDate());
+            i++;
+        }
     }
 }

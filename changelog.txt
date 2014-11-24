@@ -1,5 +1,6 @@
 0.75.0 (??)
   * Bug fixed in Exception text when field names was not matching the database
+  * Core does not support dates before 1970-01-01: check and document
   
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
