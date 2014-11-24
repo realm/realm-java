@@ -77,7 +77,7 @@ public class RealmAdapterTest extends AndroidTestCase {
 
         realmAdapter.updateRealmResults(realmAdapter.getRealmResults()
                 .sort(FIELD_STRING));
-        assertEquals(resultList.first(), realmAdapter.getRealmResults().first());
+        assertEquals(resultList.last(), realmAdapter.getRealmResults().first());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
     }
