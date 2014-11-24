@@ -84,6 +84,25 @@ public class RealmAdapterTest extends AndroidTestCase {
         assertEquals(emptyResultList.size(), realmAdapter.getRealmResults().size());
     }
 
+    public void testRemoveFromAdapter() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
+
+        testRealm.beginTransaction();
+        realmAdapter.getRealmResults().remove(0);
+        testRealm.commitTransaction();
+        assertEquals(46, realmAdapter.getCount());
+
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0").findAll();
+        assertEquals(0, resultList.size());
+
+        testRealm.beginTransaction();
+        realmAdapter.getRealmResults().clear();
+        testRealm.commitTransaction();
+
+        assertEquals(0, realmAdapter.getCount());
+    }
+
     public void testSortWithAdapter() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll()
                 .sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
