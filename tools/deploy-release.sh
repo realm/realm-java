@@ -53,7 +53,7 @@ function cleanup_failed_release () {
 	fi
 
 	if [ $# -eq 2 ] ; then
-		git rev-parse ${tag}
+		git rev-parse ${tag} --
 		if [ $? -eq 0 ]; then
 			git tag -d ${tag}
 		fi
@@ -75,6 +75,10 @@ update_master
 cleanup_failed_release ${release_branch} ${tag}
 
 # Prepare realm.io repository
+if [ ! -d "../realm.io" ]; then
+  echo "Could not find the realm.io project. It should be in the same folder as realm-java."
+  exit 1
+fi
 cd ../realm.io
 check_clean_repo "realm.io"
 update_master
@@ -93,14 +97,17 @@ git checkout -b ${release_branch}
 
 # Update version numbers
 printf ${new_realm_version} > ./version.txt
-sed -i "" "s/${old_realm_version}/${new_realm_version}/" ./realm-annotations-processor/src/main/java/io/realm/processor/RealmVersionChecker.java
+sed -i.bak "s/${old_realm_version}/${new_realm_version}/" ./realm-annotations-processor/src/main/java/io/realm/processor/RealmVersionChecker.java
+rm ./realm-annotations-processor/src/main/java/io/realm/processor/RealmVersionChecker.java.bak
 
 for dist in ./distribution/Realm*/ ; do
-	sed -i "" "s/io.realm:realm-android:${old_realm_version}/io.realm:realm-android:${new_realm_version}/" ${dist}/app/build.gradle
+	sed -i.bak "s/io.realm:realm-android:${old_realm_version}/io.realm:realm-android:${new_realm_version}/" ${dist}/app/build.gradle
+	rm ${dist}/app/build.gradle.bak
 done
 
 # Update date in changelog.txt
-sed -i "" "s/^${new_realm_version}.*$/${new_realm_version} ($(date +'%d %b %Y'))/g" ./changelog.txt
+sed -i.bak "s/^${new_realm_version}.*$/${new_realm_version} ($(date +'%d %b %Y'))/g" ./changelog.txt
+rm ./changelog.txt.bak
 
 # Test example projects
 result_code=$(sh ./tools/monkey-examples.sh)
@@ -113,8 +120,8 @@ fi
 git add .
 git commit -m "Updated version number to ${new_realm_version}"
 git tag -a ${tag} -m "Tag release v${new_realm_version}"
-#git push origin ${release_branch}:${release_branch}
-#git push origin ${tag}
+git push origin ${release_branch}:${release_branch}
+git push origin ${tag}
 
 echo ""
 echo "Release branch has been pushed to GitHub. Make a manual pullrequest + merge."
@@ -167,9 +174,10 @@ git checkout -b ${doc_release_branch}
 
 # Update documentation with new version
 cp ./docs/java/${old_realm_version}/index.md ./docs/java/${new_realm_version}/index.md
+sed -i.bak "s/${old_realm_version}/${new_realm_version}/g" ./docs/java/${new_realm_version}/index.md
+rm ./docs/java/${new_realm_version}/index.md.bak
 
 # Copy JavaDoc into place
-sed -i "" "s/${old_realm_version}/${new_realm_version}/g" ./docs/java/${new_realm_version}/index.md
 cp -R ../realm-java/realm/build/docs/javadoc/ ./docs/java/${new_realm_version}/api/
 
 # Rewire redirects in _config.yml
@@ -178,8 +186,10 @@ new_doc_redirect="java: /docs/java/${new_realm_version}/"
 old_dist_redirect="java: http://static.realm.io/downloads/java/realm-java-${old_realm_version}.zip"
 new_dist_redirect="java: http://static.realm.io/downloads/java/realm-java-${new_realm_version}.zip"
 
-sed -i "" "s?${old_doc_redirect}?${new_doc_redirect}?" ./_config.yml
-sed -i "" "s?${old_dist_redirect}?${new_dist_redirect}?" ./_config.yml
+sed -i.bak "s?${old_doc_redirect}?${new_doc_redirect}?" ./_config.yml
+rm ./_config.yml.bak
+sed -i.bak "s?${old_dist_redirect}?${new_dist_redirect}?" ./_config.yml
+rm ./_config.yml.bak
 
 # Add new documentation to GitHub
 git add .
@@ -194,4 +204,4 @@ read -p "Deploy distribution file to S3 and update links pr. release template, t
 # TODO Upload distribution files to static.realm.io
 # TODO Rewire links on static.realm.io
 
-echo "Realm ${new_realm_version} has been deployed. Grap a beer!"
+echo "Realm ${new_realm_version} has been deployed. Grab a beer!"
