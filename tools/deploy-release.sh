@@ -67,7 +67,7 @@ echo ""
 
 # Make sure we are in root folder
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${script_dir}/..
+cd "${script_dir}/.."
 
 # Prepare realm-java repositorty
 check_clean_repo "realm-java"

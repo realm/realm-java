@@ -9,7 +9,7 @@
 
 # Make sure we are in realm-java root dir
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${script_dir}/..
+cd "${script_dir}/.."
 
 TEST_EVENTS=2000;
 
