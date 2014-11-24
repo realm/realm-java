@@ -28,7 +28,6 @@ public class RealmAdapterTest extends AndroidTestCase {
 
     private final static int TEST_DATA_SIZE = 47;
 
-    private boolean SORT_ORDER_DECENDING = false;
     private boolean automaticUpdate = true;
 
     private Realm testRealm;
@@ -60,7 +59,7 @@ public class RealmAdapterTest extends AndroidTestCase {
         assertEquals(resultList.size(),realmAdapter.getRealmResults().size());
 
         realmAdapter.updateRealmResults(realmAdapter.getRealmResults()
-                .sort(FIELD_STRING, SORT_ORDER_DECENDING));
+                .sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING));
         assertEquals(resultList.first(), realmAdapter.getRealmResults().last());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
@@ -71,7 +70,7 @@ public class RealmAdapterTest extends AndroidTestCase {
 
     public void testSortWithAdapter() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll()
-                .sort(FIELD_STRING, SORT_ORDER_DECENDING);
+                .sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
         assertEquals(resultList.first(), realmAdapter.getRealmResults().first());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
