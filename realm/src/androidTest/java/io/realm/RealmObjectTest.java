@@ -18,6 +18,7 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -144,10 +145,13 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public void testDateType() {
-        long testDates[] = {Long.MIN_VALUE, -1, 0, 1, Long.MAX_VALUE};
+        long testDatesNotValid[] = {Integer.MIN_VALUE/1000, Integer.MAX_VALUE/1000};  // 32 bit system
+        long testDatesValid[] = {-1000, 0, 1000};
+        long testDatesLoosePrecision[] = {1, 1001}; // 32 bit system
 
+        // test valid dates
         testRealm.beginTransaction();
-        for (long value : testDates) {
+        for (long value : testDatesValid) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnDate(new Date(value));
         }
@@ -155,8 +159,81 @@ public class RealmObjectTest extends AndroidTestCase {
 
         int i = 0;
         for (AllTypes allTypes : testRealm.allObjects(AllTypes.class)) {
-            assertEquals("Item " + i, new Date(testDates[i]), allTypes.getColumnDate());
+            assertEquals("Item " + i, new Date(testDatesValid[i]), allTypes.getColumnDate());
             i++;
+        }
+
+        // test valid dates but with precision lost
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        for (long value : testDatesLoosePrecision) {
+            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            allTypes.setColumnDate(new Date(value));
+        }
+        testRealm.commitTransaction();
+
+        i = 0;
+        for (AllTypes allTypes : testRealm.allObjects(AllTypes.class)) {
+            assertFalse("Item " + i, new Date(testDatesLoosePrecision[i]) == allTypes.getColumnDate());
+            assertEquals("Item " + i, new Date(1000*(testDatesLoosePrecision[i]/1000)), allTypes.getColumnDate());
+            i++;
+        }
+
+        // test invalid dates
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        for (long value : testDatesNotValid) {
+            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            allTypes.setColumnDate(new Date(value));
+        }
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> results = testRealm.allObjects(AllTypes.class);
+        assertTrue(testDatesNotValid[0] > results.get(0).getColumnDate().getTime());
+    }
+
+
+    private void addDate(int year, int month, int dayOfMonth) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, month);
+        cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+        // Create the Date object
+        Date date = cal.getTime();
+
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnDate(date);
+        testRealm.commitTransaction();
+
+        AllTypes object = testRealm.allObjects(AllTypes.class).first();
+        assertEquals(1000*(date.getTime()/1000), 1000*(object.getColumnDate().getTime()/1000)); // Realm does not support millisec precision
+    }
+
+    public void testDate() {
+        // Too old
+        for (int i = 0; i < 2; i++) {
+            try {
+                addDate(1900 + i, 1, 1);
+                fail();
+            }
+            catch (IllegalArgumentException ignored) { testRealm.cancelTransaction(); }
+        }
+
+        // Fine
+        for (int i = 2; i < 10; i++) {
+            addDate(1900 + i, 1, 1);
+        }
+
+        // Too far in the future
+        for (int i = 0; i < 2; i++) {
+            try {
+                addDate(2038 + i, 1, 20);
+                fail();
+            }
+            catch (IllegalArgumentException ignored) { testRealm.cancelTransaction(); }
         }
     }
 }
