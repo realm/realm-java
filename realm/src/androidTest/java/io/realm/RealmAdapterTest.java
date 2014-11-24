@@ -19,6 +19,8 @@ import android.test.AndroidTestCase;
 import android.view.View;
 import android.widget.TextView;
 
+import junit.framework.Assert;
+
 import io.realm.entities.AllTypes;
 import io.realm.entities.RealmAdapter;
 
@@ -80,6 +82,13 @@ public class RealmAdapterTest extends AndroidTestCase {
         assertEquals(resultList.last(), realmAdapter.getRealmResults().first());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
+    }
+
+    public void testEmptyRealmResult() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
+        assertEquals(0, realmAdapter.getRealmResults().size());
+        assertEquals(0, realmAdapter.getCount());
     }
 
     public void testGetItem() {
