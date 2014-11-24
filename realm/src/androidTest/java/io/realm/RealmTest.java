@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.entities.NonLatinFieldNames;
 import io.realm.internal.Table;
 
 
@@ -42,13 +43,26 @@ public class RealmTest extends AndroidTestCase {
 
     protected List<String> columnData = new ArrayList<String>();
 
+    private final static String FIELD_STRING = "columnString";
+    private final static String FIELD_LONG = "columnLong";
+    private final static String FIELD_FLOAT = "columnFloat";
+    private final static String FIELD_DOUBLE = "columnDouble";
+    private final static String FIELD_BOOLEAN = "columnBoolean";
+    private final static String FIELD_DATE = "columnDate";
+    private final static String FIELD_LONG_KOREAN_CHAR = "델타";
+    private final static String FIELD_LONG_GREEK_CHAR = "Δέλτα";
+    private final static String FIELD_FLOAT_KOREAN_CHAR = "베타";
+    private final static String FIELD_FLOAT_GREEK_CHAR = "βήτα";
+    private final static String FIELD_BYTE = "columnBinary";
+    private final static String FIELD_DOG = "columnRealmObject";
+
     protected void setColumnData() {
-        columnData.add(0, "columnBoolean");
-        columnData.add(1, "columnDate");
-        columnData.add(2, "columnDouble");
-        columnData.add(3, "columnFloat");
-        columnData.add(4, "columnString");
-        columnData.add(5, "columnLong");
+        columnData.add(0, FIELD_BOOLEAN);
+        columnData.add(1, FIELD_DATE);
+        columnData.add(2, FIELD_DOUBLE);
+        columnData.add(3, FIELD_FLOAT);
+        columnData.add(4, FIELD_STRING);
+        columnData.add(5, FIELD_LONG);
     }
 
     @Override
@@ -57,7 +71,8 @@ public class RealmTest extends AndroidTestCase {
         testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
+        testRealm.allObjects(AllTypes.class).clear();
+        testRealm.allObjects(NonLatinFieldNames.class).clear();
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
@@ -67,6 +82,11 @@ public class RealmTest extends AndroidTestCase {
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
+            NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
+            nonLatinFieldNames.set델타(i);
+            nonLatinFieldNames.setΔέλτα(i);
+            nonLatinFieldNames.set베타(1.234567f + i);
+            nonLatinFieldNames.setΒήτα(1.234567f + i);
         }
         testRealm.commitTransaction();
     }
@@ -100,7 +120,7 @@ public class RealmTest extends AndroidTestCase {
     public void testShouldGetTable() {
         Table table = testRealm.getTable(AllTypes.class);
         assertNotNull("getTable is returning a null Table object", table);
-        assertEquals("Unexpected query result after getTable", TEST_DATA_SIZE, table.count(table.getColumnIndex("columnDouble"), 3.1415));
+        assertEquals("Unexpected query result after getTable", TEST_DATA_SIZE, table.count(table.getColumnIndex(FIELD_DOUBLE), 3.1415));
     }
 
     // <E> void remove(Class<E> clazz, long objectIndex)
@@ -147,19 +167,19 @@ public class RealmTest extends AndroidTestCase {
 
     // Note that this test is relying on the values set while initializing the test dataset
     public void testQueriesResults() throws IOException {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("columnLong", 33).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_LONG, 33).findAll();
         assertEquals("ResultList.where not returning expected result", 1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnLong", 3333).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_LONG, 3333).findAll();
         assertEquals("ResultList.where not returning expected result", 0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0").findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0", RealmQuery.CASE_INSENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0", RealmQuery.CASE_INSENSITIVE).findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "Test data 0", RealmQuery.CASE_SENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Test data 0", RealmQuery.CASE_SENSITIVE).findAll();
         assertEquals(0, resultList.size());
     }
 
@@ -261,28 +281,28 @@ public class RealmTest extends AndroidTestCase {
         Boolean nullBoolean = null;
 
         try {
-            resultList = testRealm.where(AllTypes.class).equalTo("columnString", nullString).findAll();
+            resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, nullString).findAll();
             fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException e) {
         }
 
         try {
-            resultList = testRealm.where(AllTypes.class).equalTo("columnLong", nullLong).findAll();
+            resultList = testRealm.where(AllTypes.class).equalTo(FIELD_LONG, nullLong).findAll();
             fail("Realm.where should fail with illegal argument");
 
-        } catch (IllegalArgumentException e) {
-        } catch (NullPointerException e) {
-        }
-
-        try {
-            resultList = testRealm.where(AllTypes.class).equalTo("columnBoolean", nullBoolean).findAll();
-            fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException e) {
         } catch (NullPointerException e) {
         }
 
         try {
-            resultList = testRealm.where(AllTypes.class).equalTo("columnFloat", nullFloat).findAll();
+            resultList = testRealm.where(AllTypes.class).equalTo(FIELD_BOOLEAN, nullBoolean).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException e) {
+        } catch (NullPointerException e) {
+        }
+
+        try {
+            resultList = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, nullFloat).findAll();
             fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException e) {
         } catch (NullPointerException e) {
@@ -308,9 +328,9 @@ public class RealmTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "a unique string").findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "a unique string").findAll();
         assertEquals("Change has not been committed correctly", 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).equalTo("columnFloat", 3.1415f).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 3.1415f).findAll();
         assertEquals("Change has not been committed", 1, resultList.size());
     }
 
@@ -480,99 +500,114 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testRealmQueryBetween() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).between("columnLong", 0, 9).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).between(FIELD_LONG, 0, 9).findAll();
         assertEquals(10, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).beginsWith("columnString", "test data ").findAll();
+        resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data ").findAll();
         assertEquals(TEST_DATA_SIZE, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).beginsWith("columnString", "test data 1").between("columnLong", 2, 20).findAll();
+        resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data 1").between(FIELD_LONG, 2, 20).findAll();
         assertEquals(10, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).between("columnLong", 2, 20).beginsWith("columnString", "test data 1").findAll();
+        resultList = testRealm.where(AllTypes.class).between(FIELD_LONG, 2, 20).beginsWith(FIELD_STRING, "test data 1").findAll();
         assertEquals(10, resultList.size());
     }
 
-
     public void testRealmQueryGreaterThan() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThan("columnFloat", 10.234567f).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 10.234567f).findAll();
         assertEquals(TEST_DATA_SIZE - 10, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).beginsWith("columnString", "test data 1").greaterThan("columnFloat", 50.234567f).findAll();
+        resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data 1").greaterThan(FIELD_FLOAT, 50.234567f).findAll();
         assertEquals(TEST_DATA_SIZE - 100, resultList.size());
 
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan("columnFloat", 11.234567f);
-        resultList = query.between("columnLong", 1, 20).findAll();
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.234567f);
+        resultList = query.between(FIELD_LONG, 1, 20).findAll();
         assertEquals(10, resultList.size());
     }
 
 
     public void testRealmQueryGreaterThanOrEqualTo() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo("columnFloat", 10.234567f).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_FLOAT, 10.234567f).findAll();
         assertEquals(TEST_DATA_SIZE - 9, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).beginsWith("columnString", "test data 1").greaterThanOrEqualTo("columnFloat", 50.234567f).findAll();
+        resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data 1").greaterThanOrEqualTo(FIELD_FLOAT, 50.234567f).findAll();
         assertEquals(TEST_DATA_SIZE - 100, resultList.size());
 
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThanOrEqualTo("columnFloat", 11.234567f);
-        query = query.between("columnLong", 1, 20);
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_FLOAT, 11.234567f);
+        query = query.between(FIELD_LONG, 1, 20);
 
-        resultList = query.beginsWith("columnString", "test data 15").findAll();
+        resultList = query.beginsWith(FIELD_STRING, "test data 15").findAll();
         assertEquals(1, resultList.size());
     }
 
     public void testRealmQueryOr() {
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo("columnFloat", 31.234567f);
-        RealmResults<AllTypes> resultList = query.or().between("columnLong", 1, 20).findAll();
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f);
+        RealmResults<AllTypes> resultList = query.or().between(FIELD_LONG, 1, 20).findAll();
         assertEquals(21, resultList.size());
 
-        resultList = query.or().equalTo("columnString", "test data 15").findAll();
+        resultList = query.or().equalTo(FIELD_STRING, "test data 15").findAll();
         assertEquals(21, resultList.size());
 
-        resultList = query.or().equalTo("columnString", "test data 117").findAll();
+        resultList = query.or().equalTo(FIELD_STRING, "test data 117").findAll();
         assertEquals(22, resultList.size());
     }
 
     public void testRealmQueryImplicitAnd() {
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo("columnFloat", 31.234567f);
-        RealmResults<AllTypes> resultList = query.between("columnLong", 1, 10).findAll();
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f);
+        RealmResults<AllTypes> resultList = query.between(FIELD_LONG, 1, 10).findAll();
         assertEquals(0, resultList.size());
 
-        query = testRealm.where(AllTypes.class).equalTo("columnFloat", 81.234567f);
-        resultList = query.between("columnLong", 1, 100).findAll();
+        query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 81.234567f);
+        resultList = query.between(FIELD_LONG, 1, 100).findAll();
         assertEquals(1, resultList.size());
     }
 
     public void testRealmQueryLessThan() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThan("columnFloat", 31.234567f).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThan(FIELD_FLOAT, 31.234567f).findAll();
         assertEquals(30, resultList.size());
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).lessThan("columnFloat", 31.234567f);
-        resultList = query.between("columnLong", 1, 10).findAll();
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).lessThan(FIELD_FLOAT, 31.234567f);
+        resultList = query.between(FIELD_LONG, 1, 10).findAll();
         assertEquals(10, resultList.size());
     }
 
     public void testRealmQueryLessThanOrEqual() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo("columnFloat", 31.234567f).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_FLOAT, 31.234567f).findAll();
         assertEquals(31, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo("columnFloat", 31.234567f).between("columnLong", 11, 20).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_FLOAT, 31.234567f).between(FIELD_LONG, 11, 20).findAll();
         assertEquals(10, resultList.size());
     }
 
     public void testRealmQueryEqualTo() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("columnFloat", 31.234567f).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f).findAll();
         assertEquals(1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan("columnFloat", 11.0f).equalTo("columnLong", 10).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_LONG, 10).findAll();
         assertEquals(1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan("columnFloat", 11.0f).equalTo("columnLong", 1).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f).equalTo(FIELD_LONG, 1).findAll();
+        assertEquals(0, resultList.size());
+    }
+
+    public void testRealmQueryEqualToNonLatinCharacters() {
+        RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_LONG_KOREAN_CHAR, 13).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_KOREAN_CHAR, 11.0f).equalTo(FIELD_LONG_KOREAN_CHAR, 10).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_KOREAN_CHAR, 11.0f).equalTo(FIELD_LONG_KOREAN_CHAR, 1).findAll();
+        assertEquals(0, resultList.size());
+
+        resultList = testRealm.where(NonLatinFieldNames.class).equalTo(FIELD_LONG_GREEK_CHAR, 13).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_GREEK_CHAR, 11.0f).equalTo(FIELD_LONG_GREEK_CHAR, 10).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(NonLatinFieldNames.class).greaterThan(FIELD_FLOAT_GREEK_CHAR, 11.0f).equalTo(FIELD_LONG_GREEK_CHAR, 1).findAll();
         assertEquals(0, resultList.size());
     }
 
     public void testRealmQueryNotEqualTo() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).notEqualTo("columnLong", 31).findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_LONG, 31).findAll();
         assertEquals(TEST_DATA_SIZE - 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).notEqualTo("columnFloat", 11.234567f).equalTo("columnLong", 10).findAll();
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_FLOAT, 11.234567f).equalTo(FIELD_LONG, 10).findAll();
         assertEquals(0, resultList.size());
-        resultList = testRealm.where(AllTypes.class).notEqualTo("columnFloat", 11.234567f).equalTo("columnLong", 1).findAll();
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_FLOAT, 11.234567f).equalTo(FIELD_LONG, 1).findAll();
         assertEquals(1, resultList.size());
     }
 
