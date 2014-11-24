@@ -29,21 +29,19 @@ function check_clean_repo () {
 # Fast forward repository master to newest version or fails if it is not possible
 function update_master () {
 	git checkout master
-	git pull # TODO Refine this
 
-	#LOCAL=$(git rev-parse @)
-	#REMOTE=$(git rev-parse @{u})
-	#BASE=$(git merge-base @ @{u})
-	#
-	#if [ $LOCAL = $REMOTE ]; then
-	#    echo "Up-to-date"
-	#elif [ $LOCAL = $BASE ]; then
-	#    echo "Need to pull"
-	#elif [ $REMOTE = $BASE ]; then
-	#    echo "Need to push"
-	#else
-	#    echo "Diverged"
-	#fi
+	LOCAL=$(git rev-parse @)
+	REMOTE=$(git rev-parse @{u})
+	BASE=$(git merge-base @ @{u})
+
+	if [ $LOCAL = $REMOTE ]; then
+	    echo "Up-to-date"
+	elif [ $LOCAL = $BASE ]; then
+	    echo "Need to pull"
+        git pull
+	else
+	    echo "Cannot continue automatically. Manually make sure that master is up-to-date. Then run script again."
+	fi
 }
 
 # Cleanup branches from a previous release of the same version that failed for some reason
@@ -105,7 +103,7 @@ done
 sed -i "" "s/^${new_realm_version}.*$/${new_realm_version} ($(date +'%d %b %Y'))/g" ./changelog.txt
 
 # Test example projects
-result_code=$(sh ./monkey-examples.sh)
+result_code=$(sh ./tools/monkey-examples.sh)
 if [ "${result_code}" != "0" ] ; then
 	echo "Aborting release"
 	exit 1
@@ -136,8 +134,8 @@ echo "Distribution zip file ready in realm-java/build/${dist_filename}"
 echo ""
 
 
-# Upload to binTray (remember to manually release)
-#./gradlew realm:bintrayUpload
+# Upload to binTray and release
+./gradlew realm:bintrayUpload
 
 echo ""
 echo "Artifacts uploaded to BinTray. Remember to manually release them."
@@ -145,7 +143,7 @@ echo ""
 
 
 # Test distribution projects
-result_code=$(sh ./monkey-distribution.sh)
+result_code=$(sh ./tools/monkey-distribution.sh)
 if [ "${result_code}" != "0" ] ; then
 	echo "Aborting release"
 	exit 1
@@ -186,13 +184,13 @@ sed -i "" "s?${old_dist_redirect}?${new_dist_redirect}?" ./_config.yml
 # Add new documentation to GitHub
 git add .
 git commit -m "Added documentation for Realm-Java v${new_realm_version}"
-#git push origin ${doc_release_branch}:${doc_release_branch}
+git push origin ${doc_release_branch}:${doc_release_branch}
 
 echo ""
 echo "Documentation has been pushed to GitHub. Make a manual pull request and merge."
 echo ""
 
-read -p "Deploy distribution file to S3 and update latest link, then press [Enter] key to continue..."
+read -p "Deploy distribution file to S3 and update links pr. release template, then press [Enter] key to continue..."
 # TODO Upload distribution files to static.realm.io
 # TODO Rewire links on static.realm.io
 
