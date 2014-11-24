@@ -19,8 +19,6 @@ import android.test.AndroidTestCase;
 import android.view.View;
 import android.widget.TextView;
 
-import junit.framework.Assert;
-
 import io.realm.entities.AllTypes;
 import io.realm.entities.RealmAdapter;
 
@@ -50,7 +48,20 @@ public class RealmAdapterTest extends AndroidTestCase {
             allTypes.setColumnString("test data " + i);
         }
         testRealm.commitTransaction();
+    }
 
+    public void testAdapterThrowsExceptions() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        try {
+            RealmAdapter realmAdapter = new RealmAdapter(null, resultList, automaticUpdate);
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            RealmAdapter realmAdapter = new RealmAdapter(getContext(), null, automaticUpdate);
+        } catch (IllegalArgumentException e) {
+
+        }
     }
 
     public void testUpdateRealmResultInAdapter() {
@@ -58,7 +69,7 @@ public class RealmAdapterTest extends AndroidTestCase {
                 .sort(FIELD_STRING);
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
         assertEquals(resultList.first(), realmAdapter.getRealmResults().first());
-        assertEquals(resultList.size(),realmAdapter.getRealmResults().size());
+        assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
         realmAdapter.updateRealmResults(realmAdapter.getRealmResults()
                 .sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING));
@@ -67,7 +78,7 @@ public class RealmAdapterTest extends AndroidTestCase {
 
         realmAdapter.updateRealmResults(realmAdapter.getRealmResults().sort(FIELD_STRING));
         assertEquals(resultList.first(), realmAdapter.getRealmResults().first());
-        assertEquals(resultList.size(),realmAdapter.getRealmResults().size());
+        assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
     }
 
     public void testSortWithAdapter() {
@@ -95,7 +106,7 @@ public class RealmAdapterTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
 
-        assertEquals(resultList.get(0),realmAdapter.getItem(0));
+        assertEquals(resultList.get(0), realmAdapter.getItem(0));
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
         assertEquals(resultList.last(), realmAdapter.getRealmResults().last());
     }
