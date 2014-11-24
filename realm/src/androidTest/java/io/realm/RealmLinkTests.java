@@ -101,7 +101,6 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(2, dogs.size());
         assertEquals("Pluto", dogs.get(0).getName());
         assertEquals("Fido", dogs.get(1).getName());
-
     }
 
     public void testQuerySingleRelationBoolean() {
