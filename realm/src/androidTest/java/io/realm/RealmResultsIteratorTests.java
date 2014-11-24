@@ -43,7 +43,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
-    public void testListIterator_atBeginning() {
+    public void testListIteratorAtBeginning() {
         ListIterator<AllTypes> it = testRealm.allObjects(AllTypes.class).listIterator();
         assertFalse(it.hasPrevious());
         assertEquals(-1, it.previousIndex());
@@ -51,7 +51,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         assertEquals(1, it.nextIndex());
     }
 
-    public void testListIterator_atEnd() {
+    public void testListIteratorAtEnd() {
         ListIterator<AllTypes> it = testRealm.allObjects(AllTypes.class).listIterator(TEST_DATA_SIZE - 1);
         assertTrue(it.hasPrevious());
         assertEquals(TEST_DATA_SIZE - 2, it.previousIndex());
@@ -60,7 +60,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     }
 
     private enum ListIteratorMethods { ADD, REMOVE, SET; }
-    public void testListIterator_unsupportedMethods() {
+    public void testListIteratorUnsupportedMethods() {
         for (ListIteratorMethods method : ListIteratorMethods.values()) {
             ListIterator<AllTypes> it = testRealm.allObjects(AllTypes.class).listIterator();
             try {
@@ -99,34 +99,36 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
     // Query iterator should still be valid if we modify Realm after query but before iterator is
     // fetched.
-    public void testIterator_validAfterAutoUpdate() {
+    public void testIteratorValidAfterAutoUpdate() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
         testRealm.beginTransaction();
         result.removeLast();
         testRealm.commitTransaction();
 
-        long sum = 0;
+        // Use iterator instead of RealmResults.sum()
+        long realmSum = 0;
         for (AllTypes obj : result) {
-            sum += obj.getColumnLong();
+            realmSum += obj.getColumnLong();
         }
 
-        assertEquals(sum(0, TEST_DATA_SIZE - 2), sum);
+        assertEquals(sum(0, TEST_DATA_SIZE - 2), realmSum);
     }
 
 
-    public void testIterator_standardBehavior() {
+    public void testIteratorStandardBehavior() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
-        long sum = 0;
+        // Use iterator instead of RealmResults.sum()
+        long realmSum = 0;
         for (AllTypes obj : result) {
-            sum += obj.getColumnLong();
+            realmSum += obj.getColumnLong();
         }
 
-        assertEquals(sum(0, TEST_DATA_SIZE - 1), sum);
+        assertEquals(sum(0, TEST_DATA_SIZE - 1), realmSum);
     }
 
-    public void testIterator_invalidMethod() {
+    public void testIteratorInvalidMethod() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
         Iterator<AllTypes> it = result.iterator();
         it.next();

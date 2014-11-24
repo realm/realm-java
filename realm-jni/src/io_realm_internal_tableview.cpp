@@ -1014,5 +1014,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync(
     JNIEnv* env, jobject, jlong nativeViewPtr)
 {
-    return TV(nativeViewPtr)->sync_if_needed();
+    try {
+        return (jlong) TV(nativeViewPtr)->sync_if_needed();
+    } CATCH_STD()
+    return 0;
 }
