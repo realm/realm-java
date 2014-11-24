@@ -54,11 +54,13 @@ public class RealmAdapterTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         try {
             RealmAdapter realmAdapter = new RealmAdapter(null, resultList, automaticUpdate);
+            fail("Should throw exception if context is null");
         } catch (IllegalArgumentException e) {
 
         }
         try {
             RealmAdapter realmAdapter = new RealmAdapter(getContext(), null, automaticUpdate);
+            fail("Should throw exception if RealmResult is null");
         } catch (IllegalArgumentException e) {
 
         }
@@ -78,7 +80,6 @@ public class RealmAdapterTest extends AndroidTestCase {
 
         RealmResults<AllTypes> emptyResultList = testRealm.where(AllTypes.class)
                 .equalTo(FIELD_STRING, "Not there").findAll();
-
         realmAdapter.updateRealmResults(emptyResultList);
         assertEquals(emptyResultList.size(), realmAdapter.getRealmResults().size());
     }
