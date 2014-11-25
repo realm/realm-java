@@ -430,13 +430,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         public E next() {
             assertRealmIsStable();
-            try {
-                pos++;
-                E result = get(pos);
-                return result;
-            } catch (RuntimeException e) {
-                throw new NoSuchElementException();
+            pos++;
+            if (pos >= size()) {
+                throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
             }
+
+            return get(pos);
         }
 
         public void remove() {
@@ -474,11 +473,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         public E next() {
             assertRealmIsStable();
             pos++;
-            try {
-                return get(pos);
-            } catch (RuntimeException e) {
-                return get(pos);
+            if (pos >= size()) {
+                throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
             }
+
+            return get(pos);
         }
 
         @Override
@@ -491,11 +490,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         public E previous() {
             assertRealmIsStable();
             pos--;
-            try {
-                return get(pos);
-            } catch (RuntimeException e) {
-                throw new NoSuchElementException();
+            if (pos < 0) {
+                throw new IndexOutOfBoundsException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
             }
+
+            return get(pos);
         }
 
         @Override
