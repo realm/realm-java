@@ -1,7 +1,9 @@
 0.75.0 (??)
   * Adding unit tests to test naming convention supported by annotation processor
   * Bug fixed in Exception text when field names was not matching the database
-  
+  * Fixed bug so Realm no longer throws an Exception when removing the last object
+  * Bug fixed in RealmResults which prevented subquerying  
+
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes
