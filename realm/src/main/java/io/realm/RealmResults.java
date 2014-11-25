@@ -22,7 +22,6 @@ import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.NoSuchElementException;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
@@ -135,7 +134,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Returns a list iterator for the results of a query. Any change to Realm while iterarting will
+     * Returns a list iterator for the results of a query. Any change to Realm while iterating will
      * cause the iterator to throw a {@link java.util.ConcurrentModificationException} if accessed.
      *
      * @return  a ListIterator on the elements of this list.
@@ -450,6 +449,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         RealmResultsListIterator(int location) {
             this.pos = location;
+            if (pos < 0 || pos >= size()) {
+                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + pos);
+            }
         }
 
         @Override
