@@ -17,7 +17,7 @@ import io.realm.exceptions.RealmException;
 
 public class RealmResultsIteratorTests extends AndroidTestCase {
 
-    protected final static int TEST_DATA_SIZE = 2516;
+    protected final static int TEST_DATA_SIZE = 10;
     protected Realm testRealm;
 
     @Override
@@ -69,12 +69,12 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
                     case REMOVE: it.remove(); break;
                     case SET: it.set(new AllTypes()); break;
                 }
-            } catch(RealmException e) {
-                assertTrue(true);
-                continue;
-            }
 
-            fail(method + " should not be supported");
+                fail(method + " should not be supported");
+
+            } catch(RealmException e) {
+                // Expected result
+            }
         }
     }
 
@@ -88,7 +88,6 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
                 obj.removeFromRealm();
             }
         } catch (ConcurrentModificationException e) {
-            assertTrue(true);
             return;
         } finally {
             testRealm.cancelTransaction();
@@ -135,7 +134,6 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         try {
             it.remove();
          } catch (RealmException e) {
-            assertTrue(true);
             return;
         }
 
