@@ -130,10 +130,10 @@ public class RealmQuery<E extends RealmObject> {
         return arr;
     }
 
-    // TODO: consider another caching strategy to linked classes are
-    //       included in the cache.
+    // TODO: consider another caching strategy so linked classes are included in the cache.
     private long[] getColumnIndices(String fieldName, ColumnType fieldType) {
-        Table table = (Table)getTable();
+        Table table = getTable().getTable();
+
         if (containsDot(fieldName)) {
             String[] names = splitString(fieldName); //fieldName.split("\\.");
             long[] columnIndices = new long[names.length];
