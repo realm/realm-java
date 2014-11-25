@@ -146,12 +146,10 @@ public class RealmObjectTest extends AndroidTestCase {
         catch (IllegalStateException ignored) {}
     }
 
-    // remove object in the middle
-
-    // remove all objects - one by one
-    public void removeFromRealmAt(boolean atTop) {
+    public void removeOneByOne(boolean atFirst) {
         Set<Long> ages = new HashSet<Long>();
         testRealm.beginTransaction();
+        testRealm.clear(Dog.class);
         for (int i = 0; i < TEST_SIZE; i++) {
             Dog dog = testRealm.createObject(Dog.class);
             dog.setAge(i);
@@ -165,7 +163,7 @@ public class RealmObjectTest extends AndroidTestCase {
         for (int i = 0; i < TEST_SIZE; i++) {
             testRealm.beginTransaction();
             Dog dogToRemove;
-            if (atTop) {
+            if (atFirst) {
                 dogToRemove = dogs.first();
             } else {
                 dogToRemove = dogs.last();
@@ -191,9 +189,11 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
-    public void testRemoveRealmAt() {
-        removeFromRealmAt(true);  // first
-        removeFromRealmAt(false); // last
+    public void testRemoveFromRealmAtPosition() {
+        boolean REMOVE_FIRST = true;
+        boolean REMOVE_LAST = false;
+        removeOneByOne(REMOVE_FIRST);
+        removeOneByOne(REMOVE_LAST);
     }
 
     public boolean methodWrongThread(final boolean callGetter) throws ExecutionException, InterruptedException {

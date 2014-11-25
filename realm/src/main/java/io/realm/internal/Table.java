@@ -105,6 +105,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
+    @Override
+    public Table getTable() {
+        return this;
+    }
+
     // If close() is called, no penalty is paid for delayed disposal
     // via the context
     @Override
