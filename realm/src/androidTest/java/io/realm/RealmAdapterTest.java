@@ -114,7 +114,6 @@ public class RealmAdapterTest extends AndroidTestCase {
                 .sort(FIELD_STRING));
         assertEquals(resultList.last(), realmAdapter.getRealmResults().first());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
-
     }
 
     public void testEmptyRealmResult() {
