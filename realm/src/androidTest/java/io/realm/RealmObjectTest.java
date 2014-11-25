@@ -18,6 +18,8 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -32,6 +34,8 @@ import io.realm.internal.Row;
 public class RealmObjectTest extends AndroidTestCase {
 
     protected Realm testRealm;
+
+    private int TEST_SIZE = 5;
 
     @Override
     protected void setUp() throws Exception {
@@ -77,6 +81,7 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
+    // removing original object and see if has been removed
     public void testRemoveFromRealm() {
         Realm realm = Realm.getInstance(getContext());
         realm.beginTransaction();
@@ -109,6 +114,86 @@ public class RealmObjectTest extends AndroidTestCase {
             fail();
         } catch (IllegalStateException ignored) {}
         realm.commitTransaction();
+    }
+
+    // query for an object, remove it and see it has been removed from realm
+    public void testRemoveResultFromRealm() {
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        realm.clear(Dog.class);
+        Dog dogToAdd = realm.createObject(Dog.class);
+        dogToAdd.setName("Rex");
+        realm.commitTransaction();
+
+        assertEquals(1, realm.allObjects(Dog.class).size());
+
+        Dog dogToRemove = realm.where(Dog.class).findFirst();
+        assertNotNull(dogToRemove);
+        realm.beginTransaction();
+        dogToRemove.removeFromRealm();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.allObjects(Dog.class).size());
+        try {
+            dogToAdd.getName();
+            fail();
+        }
+        catch (IllegalStateException ignored) {}
+        try {
+            dogToRemove.getName();
+            fail();
+        }
+        catch (IllegalStateException ignored) {}
+    }
+
+    public void removeOneByOne(boolean atFirst) {
+        Set<Long> ages = new HashSet<Long>();
+        testRealm.beginTransaction();
+        testRealm.clear(Dog.class);
+        for (int i = 0; i < TEST_SIZE; i++) {
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setAge(i);
+            ages.add(new Long(i));
+        }
+        testRealm.commitTransaction();
+
+        assertEquals(TEST_SIZE, testRealm.allObjects(Dog.class).size());
+
+        RealmResults<Dog> dogs = testRealm.allObjects(Dog.class);
+        for (int i = 0; i < TEST_SIZE; i++) {
+            testRealm.beginTransaction();
+            Dog dogToRemove;
+            if (atFirst) {
+                dogToRemove = dogs.first();
+            } else {
+                dogToRemove = dogs.last();
+            }
+            ages.remove(new Long(dogToRemove.getAge()));
+            dogToRemove.removeFromRealm();
+
+            // object is no longer valid
+            try {
+                dogToRemove.getAge();
+                fail();
+            }
+            catch (IllegalStateException ignored) {}
+
+            testRealm.commitTransaction();
+
+            // and removed from realm and remaining objects are place correctly
+            RealmResults<Dog> remainingDogs = testRealm.allObjects(Dog.class);
+            assertEquals(TEST_SIZE - i - 1, remainingDogs.size());
+            for (Dog dog : remainingDogs) {
+                assertTrue(ages.contains(new Long(dog.getAge())));
+            }
+        }
+    }
+
+    public void testRemoveFromRealmAtPosition() {
+        boolean REMOVE_FIRST = true;
+        boolean REMOVE_LAST = false;
+        removeOneByOne(REMOVE_FIRST);
+        removeOneByOne(REMOVE_LAST);
     }
 
     public boolean methodWrongThread(final boolean callGetter) throws ExecutionException, InterruptedException {

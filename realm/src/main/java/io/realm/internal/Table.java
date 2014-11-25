@@ -369,9 +369,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeRemoveLast(long nativeTablePtr);
 
-    /**
-     *  EXPERIMENTAL function
-     */
     public void moveLastOver(long rowIndex) {
         checkImmutable();
         nativeMoveLastOver(nativePtr, rowIndex);
