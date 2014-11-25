@@ -646,4 +646,27 @@ public class RealmTest extends AndroidTestCase {
         createAndTestFilename("India", "नई दिल्ली");
         createAndTestFilename("Japanese", "東京都");
     }
+
+    public void testWriteCopy() {
+        Realm.deleteRealmFile(getContext(), "file1.realm");
+        Realm.deleteRealmFile(getContext(), "file2.realm");
+        Realm realm1 = Realm.getInstance(getContext(), "file1.realm");
+        realm1.beginTransaction();
+        AllTypes allTypes = realm1.createObject(AllTypes.class);
+        allTypes.setColumnString("Hello World");
+        realm1.commitTransaction();
+
+        realm1.writeCopy(getContext().getFilesDir()+"/file2.realm");
+
+        // Copy is compacted i.e. smaller than original
+        File file1 = new File(getContext().getFilesDir()+"/file1.realm");
+        File file2 = new File(getContext().getFilesDir()+"/file2.realm");
+        assertTrue(file1.length() > file2.length());
+
+        // Contents is copyied too
+        Realm realm2 = Realm.getInstance(getContext(), "file2.realm");
+        RealmResults<AllTypes> results = realm2.allObjects(AllTypes.class);
+        assertEquals(1, results.size());
+        assertEquals("Hello World", results.first().getColumnString());
+    }
 }

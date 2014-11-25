@@ -488,6 +488,22 @@ public class Realm {
     }
 
     /**
+     * Write a compacted copy of the Realm to the given path.
+     *
+     * The destination file cannot already exist.
+     *
+     * Note that if this is called from within a write transaction it writes the
+     * current data, and not data when the last write transaction was committed.
+     *
+     * @param path Path to save the Realm to
+     * @throws
+     */
+    public void writeCopy(String path) {
+        sharedGroup.writeCopy(path);
+    }
+
+
+    /**
      * Instantiates and adds a new object to the realm
      *
      * @param clazz The Class of the object to create

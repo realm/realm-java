@@ -4,6 +4,7 @@
     and dates after 2038-01-19 are not supported on 32 bit systems
   * Fixed bug so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented subquerying  
+  * Adding writeCopy() to Realm
 
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
