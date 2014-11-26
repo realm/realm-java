@@ -197,7 +197,11 @@ public class Row {
     public void setDate(long columnIndex, Date date) {
         if (date == null)
             throw new IllegalArgumentException("Null Date is not allowed.");
-        nativeSetDate(nativePtr, columnIndex, date.getTime() / 1000);
+        long timestamp = date.getTime() / 1000;
+        if (timestamp >= Integer.MAX_VALUE || timestamp <= Integer.MIN_VALUE) {
+            throw new IllegalArgumentException("Date/timestamp is outside valid range");
+        }
+        nativeSetDate(nativePtr, columnIndex, timestamp);
     }
 
     protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
