@@ -566,4 +566,21 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
         assertNotNull(query);
     }
+
+    public void testQueryResult() {
+        RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAll();
+        assertEquals(TEST_DATA_SIZE, allTypes.size());
+
+        // querying a RealmResults should find objects that fulfill the condition
+        RealmResults<AllTypes> onedigits = allTypes.where().lessThan(FIELD_LONG, 10).findAll();
+        assertEquals(Math.min(10, TEST_DATA_SIZE), onedigits.size());
+
+        // if no objects fulfill conditions, the result has zero objects
+        RealmResults<AllTypes> none = allTypes.where().greaterThan(FIELD_LONG, TEST_DATA_SIZE).findAll();
+        assertEquals(0, none.size());
+
+        // querying a result with zero objects must give zero objects
+        RealmResults<AllTypes> stillNone = none.where().greaterThan(FIELD_LONG, TEST_DATA_SIZE).findAll();
+        assertEquals(0, stillNone.size());
+    }
 }
