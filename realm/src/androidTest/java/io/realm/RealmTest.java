@@ -673,5 +673,5 @@ public class RealmTest extends AndroidTestCase {
             fail();
         } catch (IllegalStateException ignored) {}
     }
-    /*
+    */
 }
