@@ -124,7 +124,7 @@ public class Realm implements Closeable {
 
         // Check if we are in the right thread
         Realm currentRealm = realmsCache.get().get(this.id);
-        if (currentRealm != null && currentRealm != this) {
+        if (currentRealm != this) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
     }
@@ -410,10 +410,8 @@ public class Realm implements Closeable {
 
         realm = new Realm(absolutePath, key, autoRefresh);
 
-        if (autoRefresh) {
-            realms.put(absolutePath.hashCode(), realm);
-            realmsCache.set(realms);
-        }
+        realms.put(absolutePath.hashCode(), realm);
+        realmsCache.set(realms);
 
         if (validateSchema) {
             Class<?> validationClass;
@@ -439,10 +437,12 @@ public class Realm implements Closeable {
             }
 
             long version = realm.getVersion();
+            boolean commitNeeded = false;
             try {
                 realm.beginTransaction();
                 if (version == UNVERSIONED) {
                     realm.setVersion(0);
+                    commitNeeded = true;
                 }
 
                 for (String className : proxyClasses) {
@@ -466,6 +466,7 @@ public class Realm implements Closeable {
                         }
                         try {
                             initTableMethod.invoke(null, realm.transaction);
+                            commitNeeded = true;
                         } catch (IllegalAccessException e) {
                             throw new RealmException("Could not execute the initTable method in the " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
                         } catch (InvocationTargetException e) {
@@ -519,7 +520,11 @@ public class Realm implements Closeable {
                     }
                 }
             } finally {
-                realm.commitTransaction();
+                if (commitNeeded) {
+                    realm.commitTransaction();
+                } else {
+                    realm.cancelTransaction();
+                }
             }
         }
 
