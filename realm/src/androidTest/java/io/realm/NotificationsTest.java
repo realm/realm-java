@@ -173,7 +173,7 @@ public class NotificationsTest extends AndroidTestCase {
             future.get(1, TimeUnit.SECONDS);
         } catch (TimeoutException ignore) {}
 
-        assertEquals(2, counter.get());
+        assertEquals(1, counter.get());
     }
 
     public void testAutoUpdateRealmResults() throws InterruptedException, ExecutionException {
@@ -223,13 +223,11 @@ public class NotificationsTest extends AndroidTestCase {
             future.get(2, TimeUnit.SECONDS);
         } catch (TimeoutException ignore) {}
 
-        assertEquals(2, results.size());
+        assertEquals(1, results.size());
 
         assertTrue(results.containsKey(1));
-        assertEquals(0, results.get(1).intValue());
-        assertTrue(results.containsKey(2));
-        assertEquals(10, results.get(2).intValue());
+        assertEquals(10, results.get(1).intValue());
 
-        assertEquals(2, counter.get());
+        assertEquals(1, counter.get());
     }
 }
