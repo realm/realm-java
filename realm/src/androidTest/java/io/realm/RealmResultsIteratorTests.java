@@ -59,14 +59,68 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, it.nextIndex());
     }
 
-    private enum ListIteratorMethods { ADD, REMOVE, SET; }
+    public void testListIteratorRemove() {
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+
+        // Use iterator instead of RealmResults.sum()
+        ListIterator<AllTypes> it = result.listIterator();
+        while (it.hasNext()) {
+            testRealm.beginTransaction();
+            it.next();
+            it.remove();
+            assertFalse(it.hasPrevious());
+            testRealm.commitTransaction();
+        }
+
+        assertEquals(0, testRealm.allObjects(AllTypes.class).size());
+    }
+
+    public void testListIteratorFailOnDeleteBeforeNext() {
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+
+        // Use iterator instead of RealmResults.sum()
+        ListIterator<AllTypes> it = result.listIterator();
+        try {
+            testRealm.beginTransaction();
+            it.remove();
+        } catch (IllegalStateException e) {
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        fail("You must call next() before calling remove() pr. the JavaDoc");
+    }
+
+    public void testListIteratorFailOnDoubleRemove() {
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+
+        // Use iterator instead of RealmResults.sum()
+        Iterator<AllTypes> it = result.iterator();
+        try {
+            testRealm.beginTransaction();
+            it.next();
+            it.remove();
+            it.remove();
+
+        } catch (IllegalStateException e) {
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        fail("You can only make one call to remove() after calling next() pr. the JavaDoc");
+    }
+
+
+
+    private enum ListIteratorMethods { ADD, SET; }
     public void testListIteratorUnsupportedMethods() {
         for (ListIteratorMethods method : ListIteratorMethods.values()) {
             ListIterator<AllTypes> it = testRealm.allObjects(AllTypes.class).listIterator();
             try {
                 switch (method) {
                     case ADD: it.add(new AllTypes()); break;
-                    case REMOVE: it.remove(); break;
                     case SET: it.set(new AllTypes()); break;
                 }
 
@@ -127,18 +181,59 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         assertEquals(sum(0, TEST_DATA_SIZE - 1), realmSum);
     }
 
-    public void testIteratorInvalidMethod() {
+    public void testIteratorRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+
+        // Use iterator instead of RealmResults.sum()
         Iterator<AllTypes> it = result.iterator();
-        it.next();
-        try {
+        while (it.hasNext()) {
+            testRealm.beginTransaction();
+            it.next();
             it.remove();
-         } catch (RealmException e) {
-            return;
+            testRealm.commitTransaction();
         }
 
-        fail("remove() not allowed");
+        assertEquals(0, testRealm.allObjects(AllTypes.class).size());
     }
+
+    public void testIteratorFailOnDeleteBeforeNext() {
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+
+        // Use iterator instead of RealmResults.sum()
+        Iterator<AllTypes> it = result.iterator();
+        try {
+            testRealm.beginTransaction();
+            it.remove();
+        } catch (IllegalStateException e) {
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        fail("You must call next() before calling remove() pr. the JavaDoc");
+    }
+
+    public void testIteratorFailOnDoubleRemove() {
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+
+        // Use iterator instead of RealmResults.sum()
+        Iterator<AllTypes> it = result.iterator();
+        try {
+            testRealm.beginTransaction();
+            it.next();
+            it.remove();
+            it.remove();
+
+        } catch (IllegalStateException e) {
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        fail("You can only make one call to remove() after calling next() pr. the JavaDoc");
+    }
+
+
 
     // Using size() as heuristic for concurrent modifications is dangerous as we might skip
     // elements.

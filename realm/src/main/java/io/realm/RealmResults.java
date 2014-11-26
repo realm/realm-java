@@ -407,7 +407,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private void assertRealmIsStable() {
         long version = table.sync();
         if (currentTableViewVersion > -1 && version != currentTableViewVersion) {
-            throw new ConcurrentModificationException("No changes to a Realm is allowed while iterating a RealmResults.");
+            throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Use iterators methods instead.");
         }
 
         currentTableViewVersion = version;
@@ -417,6 +417,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private class RealmResultsIterator implements Iterator<E> {
 
         int pos = -1;
+        boolean removeUsed = false;
 
         RealmResultsIterator() {
             currentTableViewVersion = table.sync();
@@ -430,6 +431,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         public E next() {
             assertRealmIsStable();
             pos++;
+            removeUsed = false;
             if (pos >= size()) {
                 throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
             }
@@ -438,19 +440,25 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
 
         public void remove() {
-            throw new RealmException("Removing RealmObjects while iterating is not supported.");
+            assertRealmIsStable();
+            if (pos == -1) throw new IllegalStateException("Must call next() before calling remove()");
+            if (removeUsed) throw new IllegalStateException("Cannot call remove() twice. Must call next() in between");
+
+            RealmResults.this.remove(pos);
+            pos--;
+            removeUsed = true;
+            currentTableViewVersion = getTable().sync();
         }
     }
 
     // Custom RealmResults list iterator. It ensures that we only iterate on a Realm that hasn't changed.
-    private class RealmResultsListIterator implements ListIterator<E> {
-
-        private int pos;
+    private class RealmResultsListIterator extends RealmResultsIterator implements ListIterator<E> {
 
         RealmResultsListIterator(int location) {
-            this.pos = location;
-            if (pos < 0 || pos >= size()) {
+            if (location < 0 || location >= size()) {
                 throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + pos);
+            } else {
+                pos = location - 1;
             }
         }
 
@@ -460,26 +468,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
 
         @Override
-        public boolean hasNext() {
-            assertRealmIsStable();
-            return pos + 1 < size();
-        }
-
-        @Override
         public boolean hasPrevious() {
             assertRealmIsStable();
             return pos > 0;
-        }
-
-        @Override
-        public E next() {
-            assertRealmIsStable();
-            pos++;
-            if (pos >= size()) {
-                throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
-            }
-
-            return get(pos);
         }
 
         @Override
@@ -503,11 +494,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         public int previousIndex() {
             assertRealmIsStable();
             return pos - 1;
-        }
-
-        @Override
-        public void remove() {
-            throw new RealmException("Removing RealmObjects while iterating is not supported. ");
         }
 
         @Override
