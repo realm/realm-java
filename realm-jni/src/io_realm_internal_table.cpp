@@ -295,7 +295,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveLast(
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlong rowIndex)
 {
-    if (!TBL_AND_ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, true))
+    if (!TBL_AND_ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, false))
         return;
     try {
         TBL(nativeTablePtr)->move_last_over(S(rowIndex));
