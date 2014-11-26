@@ -87,7 +87,7 @@ public class Realm implements Closeable {
     private static final ThreadLocal<Integer> referenceCount = new ThreadLocal<Integer>() {
         @Override
         protected Integer initialValue() {
-            return 1;
+            return 0;
         }
     };
     private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
@@ -673,6 +673,7 @@ public class Realm implements Closeable {
      * @see io.realm.RealmQuery
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
+        checkIfValid();
         return new RealmQuery<E>(this, clazz);
     }
 

@@ -646,4 +646,30 @@ public class RealmTest extends AndroidTestCase {
         createAndTestFilename("India", "नई दिल्ली");
         createAndTestFilename("Japanese", "東京都");
     }
+
+    public void testReferenceCounting() {
+        // At this point reference count should be one because of the setUp method
+        try {
+            testRealm.where(AllTypes.class).count();
+        } catch (IllegalStateException e) {
+            fail();
+        }
+
+        // Raise the reference
+        Realm realm = Realm.getInstance(getContext());
+        realm.close();
+        try {
+            // This should not fail because the reference is now 2
+            realm.where(AllTypes.class).count();
+        } catch (IllegalStateException e) {
+            fail();
+        }
+
+        testRealm.close();
+        try {
+            testRealm.where(AllTypes.class).count();
+            fail();
+        } catch (IllegalStateException ignored) {}
+
+    }
 }
