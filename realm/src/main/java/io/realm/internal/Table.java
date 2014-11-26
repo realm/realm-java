@@ -105,6 +105,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
+    @Override
+    public Table getTable() {
+        return this;
+    }
+
     // If close() is called, no penalty is paid for delayed disposal
     // via the context
     @Override
@@ -364,9 +369,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeRemoveLast(long nativeTablePtr);
 
-    /**
-     *  EXPERIMENTAL function
-     */
     public void moveLastOver(long rowIndex) {
         checkImmutable();
         nativeMoveLastOver(nativePtr, rowIndex);

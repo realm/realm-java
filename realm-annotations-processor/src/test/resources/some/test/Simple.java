@@ -22,8 +22,6 @@ public class Simple extends RealmObject {
     private String name;
     private int age;
 
-    private int object_id;
-
     public String getName() {
         return name;
     }
@@ -38,13 +36,5 @@ public class Simple extends RealmObject {
 
     public void setAge(int age) {
         this.age = age;
-    }
-
-    public int getObject_id() {
-        return object_id;
-    }
-
-    public void setObject_id(int object_id) {
-        this.object_id = object_id;
     }
 }

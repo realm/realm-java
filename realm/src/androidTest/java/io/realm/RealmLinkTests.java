@@ -473,4 +473,10 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Dog> none = owners.first().getDogs().where().equalTo("name", "Mars").findAll();
         assertEquals(0, none.size());
     }
+
+    public void testSubquery() {
+        RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("dogs.name", "Pluto").findAll();
+        RealmResults<Owner> subOwners = owners.where().equalTo("cat.name", "Blackie").findAll();
+        assertEquals(1, subOwners.size());
+    }
 }
