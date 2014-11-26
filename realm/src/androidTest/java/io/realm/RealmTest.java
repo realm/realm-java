@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Looper;
 import android.test.AndroidTestCase;
 
 import java.io.File;
@@ -28,6 +29,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -656,17 +660,67 @@ public class RealmTest extends AndroidTestCase {
         allTypes.setColumnString("Hello World");
         realm1.commitTransaction();
 
-        realm1.writeCopy(getContext().getFilesDir()+"/file2.realm");
+        realm1.writeCopy(getContext().getFilesDir() + "/file2.realm");
 
         // Copy is compacted i.e. smaller than original
-        File file1 = new File(getContext().getFilesDir()+"/file1.realm");
-        File file2 = new File(getContext().getFilesDir()+"/file2.realm");
+        File file1 = new File(getContext().getFilesDir() + "/file1.realm");
+        File file2 = new File(getContext().getFilesDir() + "/file2.realm");
         assertTrue(file1.length() > file2.length());
 
-        // Contents is copyied too
+        // Contents is copied too
         Realm realm2 = Realm.getInstance(getContext(), "file2.realm");
         RealmResults<AllTypes> results = realm2.allObjects(AllTypes.class);
         assertEquals(1, results.size());
         assertEquals("Hello World", results.first().getColumnString());
+    }
+
+    public void testWriteCopyTwoThreads() throws InterruptedException, ExecutionException {
+        final AtomicBoolean isReady = new AtomicBoolean(false);
+
+        for (int i = 1; i <= 3; i++) {
+            Realm.deleteRealmFile(getContext(), "file" + i + ".realm");
+        }
+
+        Realm realm1 = Realm.getInstance(getContext(), "file1.realm");
+        realm1.beginTransaction();
+        AllTypes allTypes = realm1.createObject(AllTypes.class);
+        allTypes.setColumnString("Hello World");
+        realm1.commitTransaction();
+
+        realm1.writeCopy(getContext().getFilesDir() + "/file2.realm");
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Looper.prepare();
+                Realm realm2 = Realm.getInstance(getContext(), "file1.realm");
+                for (int i = 0; i < 10; i++) {
+                    realm2.allObjects(AllTypes.class).size();
+                }
+                isReady.set(true);
+                Looper.loop();
+                return true;
+            }
+        });
+
+        // wait for thread to get going
+        while (!isReady.get()) {
+            Thread.sleep(1000);
+        }
+
+        realm1.writeCopy(getContext().getFilesDir() + "/file3.realm");
+
+        realm1.beginTransaction();
+        realm1.allObjects(AllTypes.class).first().setColumnString("Hello Universe");
+        realm1.commitTransaction();
+
+        assertTrue(new File(getContext().getFilesDir() + "/file1.realm").length() > new File(getContext().getFilesDir() + "/file2.realm").length()); // open read transaction increases size
+        assertTrue(new File(getContext().getFilesDir() + "/file1.realm").length() > new File(getContext().getFilesDir() + "/file3.realm").length()); // file3.realm is compacted
+
+        // kill thread
+        try {
+            future.get(2, TimeUnit.SECONDS);
+        } catch (TimeoutException ignore) {}
     }
 }

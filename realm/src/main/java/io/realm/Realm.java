@@ -499,6 +499,7 @@ public class Realm {
      * @throws
      */
     public void writeCopy(String path) {
+        assertThread();
         sharedGroup.writeCopy(path);
     }
 
