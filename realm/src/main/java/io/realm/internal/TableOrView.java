@@ -25,6 +25,13 @@ public interface TableOrView {
 
     void clear();
 
+    /**
+     * Returns the table
+     *
+     * @return
+     */
+    Table getTable();
+
     void close();
 
     /**
