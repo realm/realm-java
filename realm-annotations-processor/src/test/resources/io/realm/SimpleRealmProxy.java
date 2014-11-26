@@ -37,24 +37,11 @@ public class SimpleRealmProxy extends Simple {
         row.setLong(Realm.columnIndices.get("Simple").get("age"), (long) value);
     }
 
-    @Override
-    public int getObject_id() {
-        realm.assertThread();
-        return (int) row.getLong(Realm.columnIndices.get("Simple").get("object_id"));
-    }
-
-    @Override
-    public void setObject_id(int value) {
-        realm.assertThread();
-        row.setLong(Realm.columnIndices.get("Simple").get("object_id"), (long) value);
-    }
-
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
             table.addColumn(ColumnType.STRING, "name");
             table.addColumn(ColumnType.INTEGER, "age");
-            table.addColumn(ColumnType.INTEGER, "object_id");
             return table;
         }
         return transaction.getTable("class_Simple");
@@ -63,11 +50,11 @@ public class SimpleRealmProxy extends Simple {
     public static void validateTable(ImplicitTransaction transaction) {
         if (transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-            if (table.getColumnCount() != 3) {
+            if (table.getColumnCount() != 2) {
                 throw new IllegalStateException("Column count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for (long i = 0; i < 3; i++) {
+            for (long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("name")) {
@@ -82,17 +69,11 @@ public class SimpleRealmProxy extends Simple {
             if (columnTypes.get("age") != ColumnType.INTEGER) {
                 throw new IllegalStateException("Invalid type 'int' for column 'age'");
             }
-            if (!columnTypes.containsKey("object_id")) {
-                throw new IllegalStateException("Missing column 'object_id'");
-            }
-            if (columnTypes.get("object_id") != ColumnType.INTEGER) {
-                throw new IllegalStateException("Invalid type 'int' for column 'object_id'");
-            }
         }
     }
 
     public static List<String> getFieldNames() {
-        return Arrays.asList("name", "age", "object_id");
+        return Arrays.asList("name", "age");
     }
 
     @Override
@@ -142,5 +123,4 @@ public class SimpleRealmProxy extends Simple {
 
         return true;
     }
-
 }

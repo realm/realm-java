@@ -80,6 +80,11 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
+    public Table getTable() {
+        return parent;
+    }
+
+    @Override
     public void close(){
         synchronized (context) {
             if (nativePtr != 0) {
