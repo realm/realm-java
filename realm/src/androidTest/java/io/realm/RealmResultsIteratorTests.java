@@ -22,14 +22,9 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
     @Override
     protected void setUp() throws InterruptedException {
-        boolean result = Realm.deleteRealmFile(getContext());
-        assertTrue(result);
-
+        Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
-
         testRealm.beginTransaction();
-        testRealm.allObjects(AllTypes.class).clear();
-
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
@@ -41,6 +36,12 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
             allTypes.setColumnLong(i);
         }
         testRealm.commitTransaction();
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        testRealm.close();
     }
 
     public void testListIteratorAtBeginning() {
@@ -83,7 +84,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         try {
             testRealm.beginTransaction();
             it.remove();
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException ignored) {
             return;
         } finally {
             testRealm.cancelTransaction();
@@ -103,7 +104,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
             it.remove();
             it.remove();
 
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException ignored) {
             return;
         } finally {
             testRealm.cancelTransaction();
@@ -111,8 +112,6 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
         fail("You can only make one call to remove() after calling next() pr. the JavaDoc");
     }
-
-
 
     private enum ListIteratorMethods { ADD, SET; }
     public void testListIteratorUnsupportedMethods() {
@@ -126,12 +125,10 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
                 fail(method + " should not be supported");
 
-            } catch(RealmException e) {
-                // Expected result
+            } catch(RealmException ignored) {
             }
         }
     }
-
 
     public void testRemovingObjectsInsideLoop() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
@@ -141,7 +138,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
             for (AllTypes obj : result) {
                 obj.removeFromRealm();
             }
-        } catch (ConcurrentModificationException e) {
+        } catch (ConcurrentModificationException ignored) {
             return;
         } finally {
             testRealm.cancelTransaction();
@@ -204,7 +201,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         try {
             testRealm.beginTransaction();
             it.remove();
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException ignored) {
             return;
         } finally {
             testRealm.cancelTransaction();
@@ -224,7 +221,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
             it.remove();
             it.remove();
 
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException ignored) {
             return;
         } finally {
             testRealm.cancelTransaction();
@@ -283,7 +280,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
             AllTypes o3 = it.next();
             assertEquals(3, o3.getColumnLong());
             fail("Failed to detect the list was modified, but retained it's size while iterating");
-        } catch (ConcurrentModificationException e) {
+        } catch (ConcurrentModificationException ignored) {
             return;
         }
     }
