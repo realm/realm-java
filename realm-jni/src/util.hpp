@@ -267,7 +267,7 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
 template <class T>
 inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
 {
-    if(rowIndex < 0) {
+    if (rowIndex < 0) {
         ThrowException(env, IndexOutOfBounds, "rowIndex is less than 0.");
         return false;
     }
