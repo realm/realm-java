@@ -146,9 +146,10 @@ public class Realm implements Closeable {
     }
 
     /**
-     * Closes the Realm instance and all its resources. It's important to always remember to close Realm instances
-     * when you're done with it in order not to leak memory, file descriptors or grow the size of Realm files out of
-     * measure.
+     * Closes the Realm instance and all its resources.
+     * 
+     * It's important to always remember to close Realm instances when you're done with it in order 
+     * not to leak memory, file descriptors or grow the size of Realm file out of measure.
      */
     @Override
     public void close() {
@@ -173,7 +174,7 @@ public class Realm implements Closeable {
     }
 
     /**
-     * Retrieve the auto-refresh status of the Realm instance
+     * Retrieve the auto-refresh status of the Realm instance.
      * @return the auto-refresh status
      */
     public boolean isAutoRefresh() {
@@ -181,14 +182,14 @@ public class Realm implements Closeable {
     }
 
     /**
-     * Set the auto-refresh status of the Realm instance
+     * Set the auto-refresh status of the Realm instance.
      *
-     * Auto-refresh is a feature to allows to automatically update the current realm instance and all its derived objects
+     * Auto-refresh is a feature that enables automatic update of the current realm instance and all its derived objects
      * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in another thread.
      * This feature is only available if the realm instance lives is a {@link android.os.Looper} enabled thread.
      *
-     * @param autoRefresh true will turn auto-refresh on, false will turn it off
-     * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper
+     * @param autoRefresh true will turn auto-refresh on, false will turn it off.
+     * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
      */
     public void setAutoRefresh(boolean autoRefresh) {
         if (autoRefresh && Looper.myLooper() == null) {
@@ -223,7 +224,7 @@ public class Realm implements Closeable {
      * Realm static constructor for the default realm "default.realm".
      * It is important to remember to call the close() method when done with the Realm instance.
      *
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
      * @return an instance of the Realm class
