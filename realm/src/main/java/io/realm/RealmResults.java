@@ -454,11 +454,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Custom RealmResults list iterator. It ensures that we only iterate on a Realm that hasn't changed.
     private class RealmResultsListIterator extends RealmResultsIterator implements ListIterator<E> {
 
-        RealmResultsListIterator(int location) {
-            if (location < 0 || location >= size()) {
-                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + pos);
+        RealmResultsListIterator(int start) {
+            if (start >= 0 && start <= size()) {
+                pos = start - 1;
             } else {
-                pos = location - 1;
+                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + start);
             }
         }
 
@@ -493,7 +493,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         @Override
         public int previousIndex() {
             assertRealmIsStable();
-            return pos - 1;
+            return pos;
         }
 
         @Override

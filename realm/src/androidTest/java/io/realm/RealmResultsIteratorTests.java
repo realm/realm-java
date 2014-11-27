@@ -48,13 +48,13 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         assertFalse(it.hasPrevious());
         assertEquals(-1, it.previousIndex());
         assertTrue(it.hasNext());
-        assertEquals(1, it.nextIndex());
+        assertEquals(0, it.nextIndex());
     }
 
     public void testListIteratorAtEnd() {
-        ListIterator<AllTypes> it = testRealm.allObjects(AllTypes.class).listIterator(TEST_DATA_SIZE - 1);
+        ListIterator<AllTypes> it = testRealm.allObjects(AllTypes.class).listIterator(TEST_DATA_SIZE);
         assertTrue(it.hasPrevious());
-        assertEquals(TEST_DATA_SIZE - 2, it.previousIndex());
+        assertEquals(TEST_DATA_SIZE - 1, it.previousIndex());
         assertFalse(it.hasNext());
         assertEquals(TEST_DATA_SIZE, it.nextIndex());
     }
