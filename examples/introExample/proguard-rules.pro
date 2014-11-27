@@ -15,3 +15,7 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-keep class io.realm.** { *; }
+-dontwarn javax.**
+-dontwarn io.realm.**
