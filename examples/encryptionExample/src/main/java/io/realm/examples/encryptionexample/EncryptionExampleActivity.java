@@ -33,8 +33,11 @@ import javax.security.auth.x500.X500Principal;
 import io.realm.Realm;
 import io.realm.internal.IOException;
 
-public class RealmEncryptionExample extends Activity {
-    public static final String TAG = RealmEncryptionExample.class.getName();
+public class EncryptionExampleActivity extends Activity {
+
+    public static final String TAG = EncryptionExampleActivity.class.getName();
+
+    private Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +45,6 @@ public class RealmEncryptionExample extends Activity {
 
         // Open the Realm with encryption enabled
         // Throws UnsupportedOperator if not using a copy of Realm with encryption enabled
-        Realm realm;
         try {
             realm = Realm.getInstance(this, getKey());
         } catch (io.realm.internal.IOException e) {
@@ -66,6 +68,13 @@ public class RealmEncryptionExample extends Activity {
         person = realm.where(Person.class).findFirst();
         Log.i(TAG, String.format("Person name: %s", person.getName()));
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.
+    }
+
 
     // Get the application's 256-bit AES key
     private byte[] getKey() throws GeneralSecurityException, IOException, java.io.IOException {
@@ -98,7 +107,7 @@ public class RealmEncryptionExample extends Activity {
         // We have an existing secret key, so decrypt and return it
         if (keyData != null) {
             cipher.init(Cipher.UNWRAP_MODE, keyPair.getPrivate());
-            return ((SecretKey)cipher.unwrap(keyData, "AES", Cipher.SECRET_KEY)).getEncoded();
+            return cipher.unwrap(keyData, "AES", Cipher.SECRET_KEY).getEncoded();
         }
 
         // We need to generate a new secret key
@@ -112,8 +121,7 @@ public class RealmEncryptionExample extends Activity {
         FileOutputStream stream = new FileOutputStream(file);
         try {
             stream.write(cipher.wrap(new SecretKeySpec(keyData, "AES")));
-        }
-        finally {
+        } finally {
             stream.close();
         }
 
