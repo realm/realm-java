@@ -671,7 +671,6 @@ public class RealmTest extends AndroidTestCase {
         return codePoint.substring(1, codePoint.length());
     }
 
-
     public void testCreateFile() {
         createAndTestFilename("American", "Washington");
         createAndTestFilename("Danish", "København");
