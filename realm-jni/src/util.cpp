@@ -222,6 +222,15 @@ string string_to_hex(const string& message, StringData& str) {
     return ret.str();
 }
 
+string string_to_hex(const string& message, const jchar *str, size_t size) {
+    ostringstream ret;
+
+    ret << message;
+    for (size_t i = 0; i < size; ++i)
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)str[i];
+    return ret.str();
+}
+
 jstring to_jstring(JNIEnv* env, StringData str)
 {
     // For efficiency, if the incoming UTF-8 string is sufficiently
@@ -306,8 +315,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         char* out_begin = m_data.get();
         char* out_end   = m_data.get() + buf_size;
         if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end)) {
-            jprintf(env, "Bad UTF-16 encoding: %s", m_data.get());
-            throw runtime_error("Bad UTF-16 encoding");
+            throw runtime_error(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size()));
         }
         TIGHTDB_ASSERT(in_begin == in_end);
         m_size = out_begin - m_data.get();
