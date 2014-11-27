@@ -74,6 +74,11 @@ public class RealmLinkTests extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        testRealm.close();
+    }
+
     public void testObjects() {
         RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
         assertEquals(1, owners.size());
