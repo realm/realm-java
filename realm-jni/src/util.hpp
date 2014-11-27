@@ -44,6 +44,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 }
 #endif
 
+#define STRINGIZE_DETAIL(x) #x
+#define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
 // Exception handling
 
@@ -63,14 +65,14 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 
 #define CATCH_STD() \
     catch (std::bad_alloc& e) { \
-        ThrowException(env, OutOfMemory, e.what()); \
+        ThrowException(env, OutOfMemory, e.what() + std::string(" in ") + std::string(__FILE__) + std::string(" line ") + std::string(STRINGIZE(__LINE__))); \
     } \
     catch (std::exception& e) { \
-        ThrowException(env, Unspecified, e.what()); \
+        ThrowException(env, Unspecified, e.what() + std::string(" in ") + std::string(__FILE__) + std::string(" line ") + std::string(STRINGIZE(__LINE__))); \
     } \
     catch (...) { \
         TIGHTDB_ASSERT(false); \
-        ThrowException(env, RuntimeError, "Unknown Exception"); \
+        ThrowException(env, RuntimeError, std::string("Unknown Exception in ") + std::string(__FILE__) + std::string(" line ") + std::string(STRINGIZE(__LINE__))); \
     }
     /* above (...) is not needed if we only throw exceptions derived from std::exception */
 

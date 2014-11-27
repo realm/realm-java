@@ -667,10 +667,6 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    private String unescapeString(String codePoint) {
-        return codePoint.substring(1, codePoint.length());
-    }
-
     public void testCreateFile() {
         createAndTestFilename("American", "Washington");
         createAndTestFilename("Danish", "København");
