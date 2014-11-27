@@ -1,18 +1,18 @@
 /*
- * Copyright 2014 Realm Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2014 Realm Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package io.realm;
 
 import android.test.AndroidTestCase;
@@ -55,7 +55,6 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
     @Override
     protected void tearDown() throws Exception {
-        super.tearDown();
         testRealm.close();
     }
 
@@ -249,6 +248,8 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
     // Using size() as heuristic for concurrent modifications is dangerous as we might skip
     // elements.
+    // TODO Possible bug: Why does this interfer with reference counting check. They are separate Realm files.
+    // TODO Possible bug: Why is realm.refresh() needed?
     public void testRemovingObjectsFromOtherThreadWhileIterating() throws InterruptedException, ExecutionException {
 
         // Prefill
@@ -274,13 +275,21 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
                 Realm backgroundRealm = Realm.getInstance(getContext(), "test", false);
                 backgroundRealm.beginTransaction();
                 RealmResults<AllTypes> backgroundResult = backgroundRealm.allObjects(AllTypes.class);
-                if (backgroundResult.size() != 2) return false;
+                if (backgroundResult.size() != 2) {
+                    backgroundRealm.close();
+                    return false;
+                }
                 backgroundResult.sort("columnLong", RealmResults.SORT_ORDER_ASCENDING).remove(0);
                 AllTypes o3 = backgroundRealm.createObject(AllTypes.class);
                 o3.setColumnLong(3);
                 backgroundRealm.commitTransaction();
-                if (backgroundResult.size() != 2) return false;
-                return true;
+                int size = backgroundResult.size();
+                backgroundRealm.close();
+                if (size != 2) {
+                    return false;
+                } else {
+                    return true;
+                }
             }
         };
 
@@ -297,6 +306,8 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
             fail("Failed to detect the list was modified, but retained it's size while iterating");
         } catch (ConcurrentModificationException ignored) {
             return;
+        } finally {
+            realm.close();
         }
     }
 
