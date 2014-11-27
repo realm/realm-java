@@ -1,4 +1,5 @@
 0.75.0 (??)
+  * Realm now implements Closeable, allowing better cleanup of native resources
   * Bug fixed in Exception text when field names was not matching the database
   * The Date type does not support millisec resolution, and dates before 1900-12-13 
     and dates after 2038-01-19 are not supported on 32 bit systems
