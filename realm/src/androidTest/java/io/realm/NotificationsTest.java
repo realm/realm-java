@@ -69,11 +69,11 @@ public class NotificationsTest extends AndroidTestCase {
                 assertFalse(autoRefresh);
                 try {
                     realm.setAutoRefresh(true);
-                    realm.close();
                     return false;
                 } catch (IllegalStateException ignored) {
-                    realm.close();
                     return true;
+                } finally {
+                    realm.close();
                 }
             }
         });

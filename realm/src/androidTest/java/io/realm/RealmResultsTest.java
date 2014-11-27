@@ -44,8 +44,6 @@ public class RealmResultsTest extends AndroidTestCase {
     private final static String FIELD_DATE = "columnDate";
     private final static String FIELD_KOREAN_CHAR = "델타";
     private final static String FIELD_GREEK_CHAR = "Δέλτα";
-    //private final static String FIELD_BYTE = "columnBinary";
-    //private final static String FIELD_DOG = "columnRealmObject";
 
     @Override
     protected void setUp() throws InterruptedException {

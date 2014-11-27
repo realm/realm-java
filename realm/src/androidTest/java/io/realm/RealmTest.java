@@ -51,8 +51,6 @@ public class RealmTest extends AndroidTestCase {
     private final static String FIELD_LONG_GREEK_CHAR = "Δέλτα";
     private final static String FIELD_FLOAT_KOREAN_CHAR = "베타";
     private final static String FIELD_FLOAT_GREEK_CHAR = "βήτα";
-    //private final static String FIELD_BYTE = "columnBinary";
-    //private final static String FIELD_DOG = "columnRealmObject";
 
     protected void setColumnData() {
         columnData.add(0, FIELD_BOOLEAN);
