@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -634,6 +635,42 @@ public class RealmTest extends AndroidTestCase {
         Dog dog2 = realm2.allObjects(Dog.class).first();
         assertEquals(language, "Rex", dog2.getName());
     }
+
+    public void testUTF8() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+
+        String file = "assets/unicode_codepoints.csv";
+        Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(file));
+        int i = 0;
+        String currentUnicode = null;
+        try {
+            while (scanner.hasNextLine()) {
+                currentUnicode = scanner.nextLine();
+                char[] chars = Character.toChars(Integer.parseInt(currentUnicode, 16));
+                String codePoint = new String(chars);
+                testRealm.beginTransaction();
+                AllTypes o = testRealm.createObject(AllTypes.class);
+                o.setColumnLong(i);
+                o.setColumnString(codePoint);
+                testRealm.commitTransaction();
+
+                AllTypes realmType = testRealm.where(AllTypes.class).equalTo("columnLong", i).findFirst();
+                if (i > 1) {
+                    assertEquals("Codepoint: " + i + " / " + currentUnicode, codePoint, realmType.getColumnString()); // codepoint 0 is NULL, ignore for now.
+                }
+                i++;
+            }
+        } catch (Exception e) {
+            fail("Failure, Codepoint: " + i + " / " + currentUnicode  + " " +  e.getMessage());
+        }
+    }
+
+    private String unescapeString(String codePoint) {
+        return codePoint.substring(1, codePoint.length());
+    }
+
 
     public void testCreateFile() {
         createAndTestFilename("American", "Washington");
