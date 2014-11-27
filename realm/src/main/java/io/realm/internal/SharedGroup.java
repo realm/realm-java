@@ -49,6 +49,7 @@ public class SharedGroup implements Closeable {
         this.nativePtr = createNative(databaseFile, Durability.FULL.value, false, false, null);
         checkNativePtrNotZero();
     }
+
     public SharedGroup(String databaseFile, boolean enableImplicitTransactions, byte[] key) {
         if (enableImplicitTransactions) {
             nativeTransactLogRegistryPtr = nativeCreateTransactLogRegistry(databaseFile);
@@ -73,18 +74,20 @@ public class SharedGroup implements Closeable {
         this.nativePtr = createNative(databaseFile, durability.value, false, false, key);
         checkNativePtrNotZero();
     }
+
     public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
         context = new Context();
         this.nativePtr = createNative(databaseFile, durability.value, fileMustExist, false, null);
         checkNativePtrNotZero();
     }
-/*
-    SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
-        context = new Context();
-        this.nativePtr = createNative(databaseFile, durability.value, no_create, enableReplication);
-        checkNativePtr();
-    }
-*/
+
+    /*
+        SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
+            context = new Context();
+            this.nativePtr = createNative(databaseFile, durability.value, no_create, enableReplication);
+            checkNativePtr();
+        }
+    */
     void advanceRead() {
         nativeAdvanceRead(nativePtr, nativeTransactLogRegistryPtr);
     }
@@ -103,7 +106,9 @@ public class SharedGroup implements Closeable {
 
     private native void nativeCommitAndContinueAsRead(long nativePtr);
 
-    void rollbackAndContinueAsRead() { nativeRollbackAndContinueAsRead(nativePtr); }
+    void rollbackAndContinueAsRead() {
+        nativeRollbackAndContinueAsRead(nativePtr);
+    }
 
     private native void nativeRollbackAndContinueAsRead(long nativePtr);
 
@@ -132,8 +137,7 @@ public class SharedGroup implements Closeable {
             WriteTransaction t = new WriteTransaction(context, this, nativeWritePtr);
             activeTransaction = true;
             return t;
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             Group.nativeClose(nativeWritePtr);
             throw e;
         }
@@ -141,8 +145,7 @@ public class SharedGroup implements Closeable {
 
     public ReadTransaction beginRead() {
         if (activeTransaction)
-            throw new IllegalStateException(
-                    "Can't beginRead() during another active transaction");
+            throw new IllegalStateException("Can't beginRead() during another active transaction");
         // FIXME: throw from nativeMethod in case of error
 
         long nativeReadPtr = nativeBeginRead(nativePtr);
@@ -151,8 +154,7 @@ public class SharedGroup implements Closeable {
             ReadTransaction t = new ReadTransaction(context, this, nativeReadPtr);
             activeTransaction = true;
             return t;
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             Group.nativeClose(nativeReadPtr);
             throw e;
         }
@@ -160,18 +162,13 @@ public class SharedGroup implements Closeable {
 
     void endRead() {
         if (isClosed())
-            throw new IllegalStateException(
-                    "Can't endRead() on closed group. ReadTransaction is invalid.");
+            throw new IllegalStateException("Can't endRead() on closed group. ReadTransaction is invalid.");
         nativeEndRead(nativePtr);
         activeTransaction = false;
     }
 
     public void close() {
-        if (activeTransaction)
-            throw new IllegalStateException(
-                    "Can't close the SharedGroup during an active transaction");
-
-            synchronized (context) {
+        synchronized (context) {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
                 nativePtr = 0;
@@ -192,7 +189,7 @@ public class SharedGroup implements Closeable {
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
-                context.asyncDisposeSharedGroup(nativePtr); 
+                context.asyncDisposeSharedGroup(nativePtr);
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
                 if (implicitTransactionsEnabled) {
                     if (nativeTransactLogRegistryPtr != 0) {
@@ -254,10 +251,10 @@ public class SharedGroup implements Closeable {
     private native void nativeRollback(long nativePtr);
 
     private native long createNative(String databaseFile,
-            int durabilityValue,
-            boolean no_create,
-            boolean enableReplication,
-            byte[] key);
+                                     int durabilityValue,
+                                     boolean no_create,
+                                     boolean enableReplication,
+                                     byte[] key);
 
     private void checkNativePtrNotZero() {
         if (this.nativePtr == 0)
@@ -265,7 +262,9 @@ public class SharedGroup implements Closeable {
     }
 
     protected static native void nativeClose(long nativePtr);
+
     private native void nativeCloseTransactRegistryLog(long nativeTransactLogRegistryPtr);
+
     private native void nativeCloseReplication(long nativeReplicationPtr);
 
 }

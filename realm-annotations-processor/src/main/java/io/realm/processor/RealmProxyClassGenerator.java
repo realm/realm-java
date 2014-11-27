@@ -232,7 +232,7 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, getters.get(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "realm.assertThread()"
+                        "realm.checkIfValid()"
                 );
                 writer.emitStatement(
                         "return (%s) row.get%s(Realm.columnIndices.get(\"%s\").get(\"%s\"))",
@@ -244,7 +244,7 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", setters.get(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement(
-                        "realm.assertThread()"
+                        "realm.checkIfValid()"
                 );
                 writer.emitStatement(
                         "row.set%s(Realm.columnIndices.get(\"%s\").get(\"%s\"), (%s) value)",
