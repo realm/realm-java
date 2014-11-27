@@ -42,24 +42,6 @@ public class NotificationsTest extends AndroidTestCase {
         Realm.deleteRealmFile(getContext());
     }
 
-    public void testFailureOnNonLooperThread() throws InterruptedException, ExecutionException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                try {
-                    @SuppressWarnings("UnusedDeclaration") Realm realm = Realm.getInstance(getContext());
-                    return false;
-                } catch (IllegalStateException ignored) {
-                    return true;
-                }
-            }
-        });
-
-        Boolean result = future.get();
-        assertTrue(result);
-    }
-
     public void testNotifications() throws InterruptedException, ExecutionException {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
