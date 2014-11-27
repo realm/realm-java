@@ -8,7 +8,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name="io.realm.examples.realmgridview.RealmExampleActivity"
+            android:name=".GridViewExampleActivity"
             android:configChanges="keyboard|screenSize|orientation"
             android:label="@string/app_name">
             <intent-filter>
