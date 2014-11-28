@@ -918,8 +918,7 @@ public class TableView implements TableOrView, Closeable {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
     }
-    
-    
+
     @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType){
         if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
@@ -930,6 +929,14 @@ public class TableView implements TableOrView, Closeable {
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
         return result;
    }
-   
-   protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
+
+    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
+
+
+    @Override
+    public long sync() {
+        return nativeSync(nativePtr);
+    }
+
+    protected native long nativeSync(long nativeTablePtr);
 }

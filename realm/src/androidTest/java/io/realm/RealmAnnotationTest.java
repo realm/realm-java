@@ -36,6 +36,11 @@ public class RealmAnnotationTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        testRealm.close();
+    }
+
     public void testIgnore() {
         Table table = testRealm.getTable(AnnotationTypes.class);
         assertEquals(-1, table.getColumnIndex("ignoreString"));

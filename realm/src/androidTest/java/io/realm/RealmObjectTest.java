@@ -37,9 +37,11 @@ import io.realm.internal.Row;
 
 public class RealmObjectTest extends AndroidTestCase {
 
-    protected Realm testRealm;
+    private Realm testRealm;
 
-    private int TEST_SIZE = 5;
+    private static final int TEST_SIZE = 5;
+    private static final boolean REMOVE_FIRST = true;
+    private static final boolean REMOVE_LAST = false;
 
     @Override
     protected void setUp() throws Exception {
@@ -47,7 +49,10 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm = Realm.getInstance(getContext());
     }
 
-    // test io.testRealm.RealmObject Api
+    @Override
+    protected void tearDown() throws Exception {
+        testRealm.close();
+    }
 
     // Row realmGetRow()
     public void testRealmGetRowReturnsValidRow() {
@@ -107,16 +112,19 @@ public class RealmObjectTest extends AndroidTestCase {
         fido.getName();
         try {
             rex.getName();
+            realm.close();
             fail();
         } catch (IllegalStateException ignored) {}
 
         // deleting rex twice should fail
         realm.beginTransaction();
         try {
-            rex.removeFromRealm();      
+            rex.removeFromRealm();
+            realm.close();
             fail();
         } catch (IllegalStateException ignored) {}
         realm.commitTransaction();
+        realm.close();
     }
 
     // query for an object, remove it and see it has been removed from realm
@@ -139,14 +147,17 @@ public class RealmObjectTest extends AndroidTestCase {
         assertEquals(0, realm.allObjects(Dog.class).size());
         try {
             dogToAdd.getName();
+            realm.close();
             fail();
         }
         catch (IllegalStateException ignored) {}
         try {
             dogToRemove.getName();
+            realm.close();
             fail();
         }
         catch (IllegalStateException ignored) {}
+        realm.close();
     }
 
     public void removeOneByOne(boolean atFirst) {
@@ -156,7 +167,7 @@ public class RealmObjectTest extends AndroidTestCase {
         for (int i = 0; i < TEST_SIZE; i++) {
             Dog dog = testRealm.createObject(Dog.class);
             dog.setAge(i);
-            ages.add(new Long(i));
+            ages.add((long) i);
         }
         testRealm.commitTransaction();
 
@@ -171,7 +182,7 @@ public class RealmObjectTest extends AndroidTestCase {
             } else {
                 dogToRemove = dogs.last();
             }
-            ages.remove(new Long(dogToRemove.getAge()));
+            ages.remove(Long.valueOf(dogToRemove.getAge()));
             dogToRemove.removeFromRealm();
 
             // object is no longer valid
@@ -187,14 +198,12 @@ public class RealmObjectTest extends AndroidTestCase {
             RealmResults<Dog> remainingDogs = testRealm.allObjects(Dog.class);
             assertEquals(TEST_SIZE - i - 1, remainingDogs.size());
             for (Dog dog : remainingDogs) {
-                assertTrue(ages.contains(new Long(dog.getAge())));
+                assertTrue(ages.contains(Long.valueOf(dog.getAge())));
             }
         }
     }
 
     public void testRemoveFromRealmAtPosition() {
-        boolean REMOVE_FIRST = true;
-        boolean REMOVE_LAST = false;
         removeOneByOne(REMOVE_FIRST);
         removeOneByOne(REMOVE_LAST);
     }
@@ -222,7 +231,9 @@ public class RealmObjectTest extends AndroidTestCase {
             }
         });
 
-        return future.get();
+        Boolean result = future.get();
+        realm.close();
+        return result;
     }
 
     public void testGetSetWrongThread() throws ExecutionException, InterruptedException {
@@ -390,7 +401,7 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         AllTypes object = testRealm.allObjects(AllTypes.class).first();
-        assertEquals(1000*(date.getTime()/1000), 1000*(object.getColumnDate().getTime()/1000)); // Realm does not support millisec precision
+        assertEquals(1000 * (date.getTime() / 1000), 1000 * (object.getColumnDate().getTime() / 1000)); // Realm does not support millisec precision
     }
 
     public void testDate() {
@@ -440,5 +451,6 @@ public class RealmObjectTest extends AndroidTestCase {
         assertEquals(2, anc2.getmObject());
         assertEquals(3, anc2.getObject_id());
         assertTrue(anc2.isObject());
+        realm.close();
     }
 }
