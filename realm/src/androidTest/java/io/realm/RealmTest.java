@@ -666,7 +666,7 @@ public class RealmTest extends AndroidTestCase {
             allTypes.setColumnString("Hello World");
             realm1.commitTransaction();
 
-            realm1.writeCopy(new File(getContext().getFilesDir(), "file2.realm"));
+            realm1.writeCopyTo(new File(getContext().getFilesDir(), "file2.realm"));
         } finally {
             if (realm1 != null) {
                 realm1.close();
@@ -698,7 +698,7 @@ public class RealmTest extends AndroidTestCase {
                 new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME),
                 new File(getContext().getFilesDir(), copyRealm));
         long before = new File(getContext().getFilesDir(), copyRealm).length();
-        assertTrue(Realm.compact(getContext()));
+        assertTrue(Realm.compactRealmFile(getContext()));
         long after = new File(getContext().getFilesDir(), copyRealm).length();
         assertTrue(before >= after);
     }

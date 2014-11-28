@@ -535,7 +535,7 @@ public class Realm implements Closeable {
     }
 
     /**
-     * Write a compacted copy of the Realm to the given path.
+     * Write a compacted copy of the Realm to the given destination File.
      *
      * The destination file cannot already exist.
      *
@@ -543,9 +543,9 @@ public class Realm implements Closeable {
      * current data, and not the data as it was when the last write transaction was committed.
      *
      * @param destination File to save the Realm to
-     * @throws java.io.IOException if any write operation fail
+     * @throws java.io.IOException if any write operation fails
      */
-    public void writeCopy(File destination) throws IOException {
+    public void writeCopyTo(File destination) throws IOException {
         checkIfValid();
         transaction.writeToFile(destination.getAbsolutePath());
     }
@@ -859,20 +859,20 @@ public class Realm implements Closeable {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    static public void migrateRealmAtPath(String realmPath, RealmMigration migration) {
+    public static void migrateRealmAtPath(String realmPath, RealmMigration migration) {
         migrateRealmAtPath(realmPath, null, migration, true);
     }
 
-    static public void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration) {
+    public static void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration) {
         migrateRealmAtPath(realmPath, key, migration, true);
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    static public void migrateRealmAtPath(String realmPath, RealmMigration migration, boolean autoRefresh) {
+    public static void migrateRealmAtPath(String realmPath, RealmMigration migration, boolean autoRefresh) {
         migrateRealmAtPath(realmPath, null, migration, autoRefresh);
     }
 
-    static public void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration, boolean autoUpdate) {
+    public static void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration, boolean autoUpdate) {
         Realm realm = Realm.createAndValidate(realmPath, key, false, autoUpdate);
         realm.beginTransaction();
         realm.setVersion(migration.execute(realm, realm.getVersion()));
@@ -919,12 +919,10 @@ public class Realm implements Closeable {
         }
         return result;
     }
-}
-
 
     /**
      * Compact a realm file. A realm file usually contain free/unused space.
-     * This free space is removed by calling this method and the file size thereby reduced.
+     * This method removes this free space and the file size is thereby reduced.
      * Objects within the realm files are untouched.
      * 
      * The file must be closed before this method is called.
@@ -935,8 +933,7 @@ public class Realm implements Closeable {
      * @param fileName the name of the file to compact
      * @return true if successful, false if any file operation failed
      */
-
-    public static boolean compact(Context context, String fileName) {
+    public static boolean compactRealmFile(Context context, String fileName) {
         File realmFile = new File(context.getFilesDir(), fileName);
         File tmpFile = new File(
                 context.getFilesDir(),
@@ -945,7 +942,7 @@ public class Realm implements Closeable {
         Realm realm = null;
         try {
             realm = Realm.getInstance(context, fileName);
-            realm.writeCopy(tmpFile);
+            realm.writeCopyTo(tmpFile);
             if (!realmFile.delete()) {
                 return false;
             }
@@ -964,7 +961,7 @@ public class Realm implements Closeable {
 
     /**
      * Compact a realm file. A realm file usually contain free/unused space.
-     * This free space is removed by calling this method and the file size thereby reduced.
+     * This method removes this free space and the file size is thereby reduced.
      * Objects within the realm files are untouched.
      * 
      * The file must be closed before this method is called.
@@ -974,7 +971,9 @@ public class Realm implements Closeable {
      * @param context an Android {@link android.content.Context}
      * @return true if successful, false if any file operation failed
      */
-    public static boolean compact(Context context) {
-        return compact(context, DEFAULT_REALM_NAME);
+    public static boolean compactRealmFile(Context context) {
+        return compactRealmFile(context, DEFAULT_REALM_NAME);
     }
+
+}
 
