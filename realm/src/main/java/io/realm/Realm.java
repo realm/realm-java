@@ -401,14 +401,13 @@ public class Realm implements Closeable {
 
 
     /**
-     * Compact a realm file. A realm might contain free/unused space, and it is removed during
-     * the process. Objects within the realm files are untouched. The size of realm file is
-     * typically smaller as a result of calling this method.
-     *
-     * If the realm file is already opened, compacting the file might failed.
-     *
-     * The realm file is left untouched if any file operation fail. The file system should have
-     * free space for at least a copy of the realm file.
+     * Compact a realm file. A realm file usually contain free/unused space.
+     * This free space is removed by calling this method and the file size thereby reduced.
+     * Objects within the realm files are untouched.
+     * 
+     * The file must be closed before this method is called.
+     * The file system should have free space for at least a copy of the realm file.
+     * The realm file is left untouched if any file operation fails. 
      *
      * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to compact
@@ -442,7 +441,13 @@ public class Realm implements Closeable {
     }
 
     /**
-     * Compact the default realm file.
+     * Compact a realm file. A realm file usually contain free/unused space.
+     * This free space is removed by calling this method and the file size thereby reduced.
+     * Objects within the realm files are untouched.
+     * 
+     * The file must be closed before this method is called.
+     * The file system should have free space for at least a copy of the realm file.
+     * The realm file is left untouched if any file operation fails. 
      *
      * @param context an Android {@link android.content.Context}
      * @return true if successful, false if any file operation failed
