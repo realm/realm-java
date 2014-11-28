@@ -629,6 +629,9 @@ public class RealmTest extends AndroidTestCase {
             fail();
         }
 
+        // Make sure the reference counter is per realm file
+        Realm otherRealm = Realm.getInstance(getContext(), "anotherRealm.realm");
+
         // Raise the reference
         Realm realm = null;
         try {
@@ -649,6 +652,20 @@ public class RealmTest extends AndroidTestCase {
         testRealm.close();
         try {
             testRealm.where(AllTypes.class).count();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            otherRealm.where(AllTypes.class).count();
+        } catch (IllegalStateException e) {
+            fail();
+        } finally {
+            otherRealm.close();
+        }
+
+        try {
+            otherRealm.where(AllTypes.class).count();
             fail();
         } catch (IllegalStateException ignored) {
         }

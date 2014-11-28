@@ -48,8 +48,9 @@ import io.realm.internal.Table;
 
 
 /**
- * <p>The Realm class is the storage and transactional manager of your object persistent store. Objects
- * are created. Objects within a Realm can be queried and read at any time. Creating,
+ * <p>The Realm class is the storage and transactional manager of your object persistent store. It is in charge of
+ * creating instances of your RealmObjects.
+ * Objects within a Realm can be queried and read at any time. Creating,
  * modifying, and deleting objects must be done through transactions.</p>
  *
  * <p>The transactions ensure that multiple instances (on multiple threads) can access the objects
@@ -72,6 +73,8 @@ import io.realm.internal.Table;
  * };
  * thread.start();
  * </pre>
+ *
+ * It is important to remember to call the close() method when done with the Realm instance.
  */
 public class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";
@@ -86,10 +89,12 @@ public class Realm implements Closeable {
                                                   // but incompatible with Java
         }
     };
-    private static final ThreadLocal<Integer> referenceCount = new ThreadLocal<Integer>() {
+    private static final ThreadLocal<Map<Integer, Integer>> referenceCount
+            = new ThreadLocal<Map<Integer,Integer>>() {
+        @SuppressLint("UseSparseArrays")
         @Override
-        protected Integer initialValue() {
-            return 0;
+        protected Map<Integer, Integer> initialValue() {
+            return new HashMap<Integer, Integer>();
         }
     };
     private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
@@ -104,6 +109,7 @@ public class Realm implements Closeable {
     private Handler handler;
 
     private final int id;
+    private final String path;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
     private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>();
@@ -135,6 +141,7 @@ public class Realm implements Closeable {
     private Realm(String absolutePath, byte[] key, boolean autoRefresh) {
         this.sharedGroup = new SharedGroup(absolutePath, true, key);
         this.transaction = sharedGroup.beginImplicitTransaction();
+        this.path = absolutePath;
         this.id = absolutePath.hashCode();
         setAutoRefresh(autoRefresh);
     }
@@ -146,19 +153,25 @@ public class Realm implements Closeable {
     }
 
     /**
-     * Closes the Realm instance and all its resources. It's important to always remember to close Realm instances
-     * when you're done with it in order not to leak memory, file descriptors or grow the size of Realm files out of
-     * measure.
+     * Closes the Realm instance and all its resources.
+     * 
+     * It's important to always remember to close Realm instances when you're done with it in order 
+     * not to leak memory, file descriptors or grow the size of Realm file out of measure.
      */
     @Override
     public void close() {
-        int references = referenceCount.get();
+        Map<Integer, Integer> localRefCount = referenceCount.get();
+        Integer references = localRefCount.get(id);
+        if (references == null) {
+            references = 0;
+        }
         if (sharedGroup != null && references == 1) {
             realmsCache.get().remove(id);
             sharedGroup.close();
             sharedGroup = null;
         }
-        referenceCount.set(references - 1);
+        localRefCount.put(id, references - 1);
+        referenceCount.set(localRefCount);
     }
 
     private class RealmCallback implements Handler.Callback {
@@ -173,7 +186,7 @@ public class Realm implements Closeable {
     }
 
     /**
-     * Retrieve the auto-refresh status of the Realm instance
+     * Retrieve the auto-refresh status of the Realm instance.
      * @return the auto-refresh status
      */
     public boolean isAutoRefresh() {
@@ -181,14 +194,14 @@ public class Realm implements Closeable {
     }
 
     /**
-     * Set the auto-refresh status of the Realm instance
+     * Set the auto-refresh status of the Realm instance.
      *
-     * Auto-refresh is a feature to allows to automatically update the current realm instance and all its derived objects
+     * Auto-refresh is a feature that enables automatic update of the current realm instance and all its derived objects
      * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in another thread.
      * This feature is only available if the realm instance lives is a {@link android.os.Looper} enabled thread.
      *
-     * @param autoRefresh true will turn auto-refresh on, false will turn it off
-     * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper
+     * @param autoRefresh true will turn auto-refresh on, false will turn it off.
+     * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
      */
     public void setAutoRefresh(boolean autoRefresh) {
         if (autoRefresh && Looper.myLooper() == null) {
@@ -220,9 +233,10 @@ public class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor for the default realm "default.realm"
+     * Realm static constructor for the default realm "default.realm".
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * It sets auto-refresh on
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
      * @return an instance of the Realm class
@@ -234,11 +248,18 @@ public class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     public static Realm getInstance(Context context) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME, null, true);
+        if (Looper.myLooper() != null) {
+            return Realm.getInstance(context, DEFAULT_REALM_NAME, null, true);
+        } else {
+            return Realm.getInstance(context, DEFAULT_REALM_NAME, null, false);
+        }
     }
 
     /**
-     * Realm static constructor for the default realm "default.realm"
+     * Realm static constructor for the default realm "default.realm".
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param context an Android context
      * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
@@ -252,14 +273,16 @@ public class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
     public static Realm getInstance(Context context, boolean autoRefresh) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME, null, autoRefresh);
     }
 
     /**
-     * Realm static constructor
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * It sets auto-refresh on
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context  an Android {@link android.content.Context}
      * @param fileName the name of the file to save the Realm to
@@ -273,11 +296,18 @@ public class Realm implements Closeable {
      */
     @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, String fileName) {
-        return Realm.create(context.getFilesDir(), fileName, null, true);
+        if (Looper.myLooper() != null) {
+            return Realm.create(context.getFilesDir(), fileName, null, true);
+        } else {
+            return Realm.create(context.getFilesDir(), fileName, null, false);
+        }
     }
 
     /**
-     * Realm static constructor
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param context  an Android context
      * @param fileName the name of the file to save the Realm to
@@ -292,12 +322,16 @@ public class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
     public static Realm getInstance(Context context, String fileName, boolean autoRefresh) {
         return Realm.create(context.getFilesDir(), fileName, null, autoRefresh);
     }
 
     /**
-     * Realm static constructor
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param context an Android context
      * @param key     a 32-byte encryption key
@@ -312,14 +346,16 @@ public class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
     public static Realm getInstance(Context context, byte[] key, boolean autoRefresh) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME, key, autoRefresh);
     }
 
     /**
-     * Realm static constructor
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * It sets auto-refresh on
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
      * @param key     a 32-byte encryption key
@@ -333,13 +369,20 @@ public class Realm implements Closeable {
      */
     @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, byte[] key) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME, key, true);
+        if (Looper.myLooper() != null) {
+            return Realm.getInstance(context, DEFAULT_REALM_NAME, key, true);
+        } else {
+            return Realm.getInstance(context, DEFAULT_REALM_NAME, key, false);
+        }
     }
 
 
 
     /**
-     * Realm static constructor
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param context  an Android {@link android.content.Context}
      * @param fileName the name of the file to save the Realm to
@@ -354,12 +397,16 @@ public class Realm implements Closeable {
      *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
+    @Deprecated
     public static Realm getInstance(Context context, String fileName, byte[] key, boolean autoRefresh) {
         return Realm.create(context.getFilesDir(), fileName, key, autoRefresh);
     }
 
     /**
-     * Realm static constructor
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param writableFolder absolute path to a writable directory
      * @param key            a 32-byte encryption key
@@ -374,12 +421,16 @@ public class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
     public static Realm getInstance(File writableFolder, byte[] key, boolean autoRefresh) {
         return Realm.create(writableFolder, DEFAULT_REALM_NAME, key, autoRefresh);
     }
 
     /**
-     * Realm static constructor
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param writableFolder absolute path to a writable directory
      * @param filename       the name of the file to save the Realm to
@@ -394,6 +445,7 @@ public class Realm implements Closeable {
      *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
+    @Deprecated
     public static Realm create(File writableFolder, String filename, byte[] key, boolean autoRefresh) {
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
         return createAndValidate(absolutePath, key, true, autoRefresh);
@@ -401,12 +453,18 @@ public class Realm implements Closeable {
 
     @SuppressWarnings("unchecked")
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
-        int references = referenceCount.get();
+        int id = absolutePath.hashCode();
+        Map<Integer, Integer> localRefCount = referenceCount.get();
+        Integer references = localRefCount.get(id);
+        if (references == null) {
+            references = 0;
+        }
         Map<Integer, Realm> realms = realmsCache.get();
         Realm realm = realms.get(absolutePath.hashCode());
 
         if (realm != null) {
-            referenceCount.set(references + 1);
+            localRefCount.put(id, references + 1);
+            referenceCount.set(localRefCount);
             return realm;
         }
 
@@ -530,7 +588,8 @@ public class Realm implements Closeable {
             }
         }
 
-        referenceCount.set(references + 1);
+        localRefCount.put(id, references + 1);
+        referenceCount.set(localRefCount);
         return realm;
     }
 
@@ -975,5 +1034,13 @@ public class Realm implements Closeable {
         return compactRealmFile(context, DEFAULT_REALM_NAME);
     }
 
+    /**
+     * Returns the absolute path to where this Realm is persisted on disk.
+     *
+     * @return The absolute path to the realm file.
+     */
+    public String getPath() {
+        return path;
+    }
 }
 

@@ -7,6 +7,7 @@
   * Bug fixed in RealmResults which prevented subquerying  
   * Adding writeCopy() and compact() to write and compact a Realm to a new file.
   * Bug fixed in RealmResults which prevented subquerying
+  * RealmObject.toString(), equals() and hashCode() now support models with cyclic references.
   * RealmResults.iterator() and listIterator() now correctly iterates the results when using remove().
 
 
