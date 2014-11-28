@@ -44,13 +44,10 @@ public class RealmResultsTest extends AndroidTestCase {
     private final static String FIELD_DATE = "columnDate";
     private final static String FIELD_KOREAN_CHAR = "델타";
     private final static String FIELD_GREEK_CHAR = "Δέλτα";
-    private final static String FIELD_BYTE = "columnBinary";
-    private final static String FIELD_DOG = "columnRealmObject";
 
     @Override
     protected void setUp() throws InterruptedException {
-        boolean result = Realm.deleteRealmFile(getContext());
-        assertTrue(result);
+        Realm.deleteRealmFile(getContext());
 
         testRealm = Realm.getInstance(getContext());
 
@@ -74,6 +71,11 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        testRealm.close();
+    }
+
     private enum Method {
         METHOD_MIN,
         METHOD_MAX,
@@ -82,8 +84,6 @@ public class RealmResultsTest extends AndroidTestCase {
         METHOD_SORT,
         METHOD_WHERE
     }
-
-    ;
 
     public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
         final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
@@ -121,6 +121,12 @@ public class RealmResultsTest extends AndroidTestCase {
         return future.get();
     }
 
+    public void testMinWrongThread() throws ExecutionException, InterruptedException {
+        for (Method method : Method.values()) {
+            assertTrue(methodWrongThread(method));
+        }
+    }
+
     // test io.realm.ResultList Api
 
     // void clear(Class<?> classSpec)
@@ -137,15 +143,15 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     /*public void testRemoveLastShouldFail() {
-        RealmResults<AllTypes> resultsList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
+        RealmResults<AllTypes> resultsList = realm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
         try {
-            testRealm.beginTransaction();
+            realm.beginTransaction();
             resultsList.removeLast();
             fail("Should give exception");
         } catch (IllegalArgumentException e) {
 
         } finally {
-            testRealm.commitTransaction();
+            realm.commitTransaction();
         }
     }*/
 
@@ -389,9 +395,9 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testSortOnNonExistingColumn() {
         try {
             RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-            RealmResults<AllTypes> sortedList = resultList.sort("Non-existing");
+            resultList.sort("Non-existing");
             fail("Column should not exist");
-        } catch (ArrayIndexOutOfBoundsException e) {
+        } catch (ArrayIndexOutOfBoundsException ignored) {
         }
     }
 
@@ -522,7 +528,7 @@ public class RealmResultsTest extends AndroidTestCase {
         allTypes3.setColumnString("work");
         try {
             RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
-            RealmResults<AllTypes> sortedResult = result.sort(FIELD_STRING);
+            result.sort(FIELD_STRING);
         } catch (IllegalArgumentException e) {
             fail("Failed to sort with two kinds of alphabets");
         }
@@ -533,7 +539,7 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.clear(AllTypes.class);
         testRealm.commitTransaction();
         try {
-            RealmResults<AllTypes> sortResult = testRealm.where(AllTypes.class).findAll().sort(FIELD_STRING);
+            testRealm.where(AllTypes.class).findAll().sort(FIELD_STRING);
         } catch (IllegalArgumentException e) {
             fail("Failed to sort an empty RealmResults");
         }

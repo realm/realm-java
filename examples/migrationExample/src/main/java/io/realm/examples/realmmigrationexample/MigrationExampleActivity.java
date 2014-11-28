@@ -36,10 +36,9 @@ import io.realm.exceptions.RealmMigrationNeededException;
 ** This example demonstrates how you can migrate your data through different updates
 ** of your models.
 */
+public class MigrationExampleActivity extends Activity {
 
-public class RealmMigrationExampleActivity extends Activity {
-
-    public static final String TAG = RealmMigrationExampleActivity.class.getName();
+    public static final String TAG = MigrationExampleActivity.class.getName();
 
     private LinearLayout rootLayout = null;
 
@@ -52,7 +51,7 @@ public class RealmMigrationExampleActivity extends Activity {
         rootLayout.removeAllViews();
 
         // 3 versions of the databases for testing. Normally you would only have one.
-        String path0 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default0), "default0");
+        String path3 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default0), "default0");
         String path1 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default1), "default1");
         String path2 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default2), "default2");
 
@@ -64,20 +63,25 @@ public class RealmMigrationExampleActivity extends Activity {
             Log.i(TAG, "Excellent! This is expected.");
         }
 
+        Realm realm;
+
         // So you migrate your data
         Realm.migrateRealmAtPath(path1, new Migration());
-        Realm realm1 = Realm.getInstance(this, "default1");
-        showStatus(realm1);
+        realm = Realm.getInstance(this, "default1");
+        showStatus(realm);
+        realm.close();
 
         // Another migration test
         Realm.migrateRealmAtPath(path2, new Migration());
-        Realm realm2 = Realm.getInstance(this, "default2");
-        showStatus(realm2);
+        realm = Realm.getInstance(this, "default2");
+        showStatus(realm);
+        realm.close();
 
         // and a third:
-        Realm.migrateRealmAtPath(path0, new Migration());
-        Realm realm0 = Realm.getInstance(this, "default0");
-        showStatus(realm0);
+        Realm.migrateRealmAtPath(path3, new Migration());
+        realm = Realm.getInstance(this, "default3");
+        showStatus(realm);
+        realm.close();
     }
 
     private String copyBundledRealmFile(InputStream inputStream, String outFileName) {

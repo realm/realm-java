@@ -74,6 +74,11 @@ public class RealmLinkTests extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        testRealm.close();
+    }
+
     public void testObjects() {
         RealmResults<Owner> owners = testRealm.allObjects(Owner.class);
         assertEquals(1, owners.size());
@@ -92,6 +97,15 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Cat> cats = testRealm.allObjects(Cat.class);
         assertEquals(1, cats.size());
         assertEquals("Tim", cats.first().getOwner().getName());
+    }
+
+
+    public void testReamListQuery() {
+        RealmResults<Owner> owners = testRealm.where(Owner.class).findAll();
+        RealmResults<Dog> dogs = owners.get(0).getDogs().where().contains("name", "o").findAll();
+        assertEquals(2, dogs.size());
+        assertEquals("Pluto", dogs.get(0).getName());
+        assertEquals("Fido", dogs.get(1).getName());
     }
 
     public void testQuerySingleRelationBoolean() {
