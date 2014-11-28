@@ -15,11 +15,13 @@
  */
 package io.realm;
 
-import android.os.Looper;
 import android.test.AndroidTestCase;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -28,9 +30,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -658,81 +657,59 @@ public class RealmTest extends AndroidTestCase {
     public void testWriteCopy() throws IOException {
         Realm.deleteRealmFile(getContext(), "file1.realm");
         Realm.deleteRealmFile(getContext(), "file2.realm");
-        Realm realm1 = Realm.getInstance(getContext(), "file1.realm");
-        realm1.beginTransaction();
-        AllTypes allTypes = realm1.createObject(AllTypes.class);
-        allTypes.setColumnString("Hello World");
-        realm1.commitTransaction();
 
-        realm1.writeCopy(getContext().getFilesDir() + "/file2.realm");
+        Realm realm1 = null;
+        try {
+            realm1 = Realm.getInstance(getContext(), "file1.realm");
+            realm1.beginTransaction();
+            AllTypes allTypes = realm1.createObject(AllTypes.class);
+            allTypes.setColumnString("Hello World");
+            realm1.commitTransaction();
+
+            realm1.writeCopy(new File(getContext().getFilesDir(), "file2.realm"));
+        } finally {
+            if (realm1 != null) {
+                realm1.close();
+            }
+        }
 
         // Copy is compacted i.e. smaller than original
-        File file1 = new File(getContext().getFilesDir() + "/file1.realm");
-        File file2 = new File(getContext().getFilesDir() + "/file2.realm");
+        File file1 = new File(getContext().getFilesDir(), "file1.realm");
+        File file2 = new File(getContext().getFilesDir(), "file2.realm");
         assertTrue(file1.length() > file2.length());
 
-        // Contents is copied too
-        Realm realm2 = Realm.getInstance(getContext(), "file2.realm");
-        RealmResults<AllTypes> results = realm2.allObjects(AllTypes.class);
-        assertEquals(1, results.size());
-        assertEquals("Hello World", results.first().getColumnString());
-    }
-
-    public void testWriteCopyTwoThreads() throws InterruptedException, ExecutionException, IOException {
-        final AtomicBoolean isReady = new AtomicBoolean(false);
-
-        for (int i = 1; i <= 3; i++) {
-            Realm.deleteRealmFile(getContext(), "file" + i + ".realm");
-        }
-
-        Realm realm1 = Realm.getInstance(getContext(), "file1.realm");
-        realm1.beginTransaction();
-        AllTypes allTypes = realm1.createObject(AllTypes.class);
-        allTypes.setColumnString("Hello World");
-        realm1.commitTransaction();
-
-        realm1.writeCopy(getContext().getFilesDir() + "/file2.realm");
-
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                Looper.prepare();
-                Realm realm2 = Realm.getInstance(getContext(), "file1.realm");
-                for (int i = 0; i < 10; i++) {
-                    realm2.allObjects(AllTypes.class).size();
-                }
-                isReady.set(true);
-                Looper.loop();
-                return true;
-            }
-        });
-
-        // wait for thread to get going
-        while (!isReady.get()) {
-            Thread.sleep(1000);
-        }
-
-        realm1.writeCopy(getContext().getFilesDir() + "/file3.realm");
-
-        realm1.beginTransaction();
-        realm1.allObjects(AllTypes.class).first().setColumnString("Hello Universe");
-        realm1.commitTransaction();
-
-        assertTrue(new File(getContext().getFilesDir() + "/file1.realm").length() > new File(getContext().getFilesDir() + "/file2.realm").length()); // open read transaction increases size
-        assertTrue(new File(getContext().getFilesDir() + "/file1.realm").length() > new File(getContext().getFilesDir() + "/file3.realm").length()); // file3.realm is compacted
-
-        // kill thread
+        Realm realm2 = null;
         try {
-            future.get(2, TimeUnit.SECONDS);
-        } catch (TimeoutException ignore) {}
+            // Contents is copied too
+            realm2 = Realm.getInstance(getContext(), "file2.realm");
+            RealmResults<AllTypes> results = realm2.allObjects(AllTypes.class);
+            assertEquals(1, results.size());
+            assertEquals("Hello World", results.first().getColumnString());
+        } finally {
+            if (realm2 != null) {
+                realm2.close();
+            }
+        }
     }
 
-    public void testCompact() {
-        testRealm.close();
-        long before = new File(getContext().getFilesDir() + "/default.realm").length();
+    public void testCompact() throws IOException {
+        final String copyRealm = "copy.realm";
+        fileCopy(
+                new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME),
+                new File(getContext().getFilesDir(), copyRealm));
+        long before = new File(getContext().getFilesDir(), copyRealm).length();
         assertTrue(Realm.compact(getContext()));
-        long after = new File(getContext().getFilesDir() + "/default.realm").length();
+        long after = new File(getContext().getFilesDir(), copyRealm).length();
         assertTrue(before >= after);
+    }
+
+    private void fileCopy(File src, File dst) throws IOException {
+        FileInputStream inStream = new FileInputStream(src);
+        FileOutputStream outStream = new FileOutputStream(dst);
+        FileChannel inChannel = inStream.getChannel();
+        FileChannel outChannel = outStream.getChannel();
+        inChannel.transferTo(0, inChannel.size(), outChannel);
+        inStream.close();
+        outStream.close();
     }
 }

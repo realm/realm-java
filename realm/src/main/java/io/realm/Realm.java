@@ -424,7 +424,7 @@ public class Realm implements Closeable {
         Realm realm = null;
         try {
             realm = Realm.getInstance(context, fileName);
-            realm.writeCopy(tmpFile.getAbsolutePath());
+            realm.writeCopy(tmpFile);
             if (!realmFile.delete()) {
                 return false;
             }
@@ -594,12 +594,12 @@ public class Realm implements Closeable {
      * Note that if this is called from within a write transaction it writes the
      * current data, and not data when the last write transaction was committed.
      *
-     * @param path Path to save the Realm to
+     * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fail
      */
-    public void writeCopy(String path) throws IOException {
+    public void writeCopy(File destination) throws IOException {
         checkIfValid();
-        transaction.writeToFile(path);
+        transaction.writeToFile(destination.getAbsolutePath());
     }
 
 
