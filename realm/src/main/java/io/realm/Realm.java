@@ -540,7 +540,7 @@ public class Realm implements Closeable {
      * The destination file cannot already exist.
      *
      * Note that if this is called from within a write transaction it writes the
-     * current data, and not data when the last write transaction was committed.
+     * current data, and not the data as it was when the last write transaction was committed.
      *
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fail
