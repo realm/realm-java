@@ -647,8 +647,8 @@ public class RealmTest extends AndroidTestCase {
         createAndTestFilename("Japanese", "東京都");
     }
 
-
-    public void testUTF8() {
+    // This test is slow. Move it to another testsuite that runs once a day on Jenkins.
+    public void rarely_run_testUTF8() {
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
         testRealm.commitTransaction();
@@ -658,15 +658,14 @@ public class RealmTest extends AndroidTestCase {
         int i = 0;
         String currentUnicode = null;
         try {
+            testRealm.beginTransaction();
             while (scanner.hasNextLine()) {
                 currentUnicode = scanner.nextLine();
                 char[] chars = Character.toChars(Integer.parseInt(currentUnicode, 16));
                 String codePoint = new String(chars);
-                testRealm.beginTransaction();
                 AllTypes o = testRealm.createObject(AllTypes.class);
                 o.setColumnLong(i);
                 o.setColumnString(codePoint);
-                testRealm.commitTransaction();
 
                 AllTypes realmType = testRealm.where(AllTypes.class).equalTo("columnLong", i).findFirst();
                 if (i > 1) {
@@ -674,12 +673,11 @@ public class RealmTest extends AndroidTestCase {
                 }
                 i++;
             }
+            testRealm.commitTransaction();
         } catch (Exception e) {
             fail("Failure, Codepoint: " + i + " / " + currentUnicode  + " " +  e.getMessage());
         }
     }
-
-    /* NOTE: This is commented out while we fix the other unit tests to be good citizens in Closeable land :)
 
     public void testReferenceCounting() {
         // At this point reference count should be one because of the setUp method
@@ -730,5 +728,5 @@ public class RealmTest extends AndroidTestCase {
         } catch (IllegalStateException ignored) {
         }
     }
-    */
+
 }
