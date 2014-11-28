@@ -46,8 +46,9 @@ import io.realm.internal.Table;
 
 
 /**
- * <p>The Realm class is the storage and transactional manager of your object persistent store. Objects
- * are created. Objects within a Realm can be queried and read at any time. Creating,
+ * <p>The Realm class is the storage and transactional manager of your object persistent store. It is in charge of
+ * creating instances of your RealmObjects.
+ * Objects within a Realm can be queried and read at any time. Creating,
  * modifying, and deleting objects must be done through transactions.</p>
  *
  * <p>The transactions ensure that multiple instances (on multiple threads) can access the objects
@@ -222,7 +223,7 @@ public class Realm implements Closeable {
 
     /**
      * Realm static constructor for the default realm "default.realm".
-     * It is important to remember to call the close() method when done with the Realm instance.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
@@ -245,9 +246,9 @@ public class Realm implements Closeable {
 
     /**
      * Realm static constructor for the default realm "default.realm".
-     * It is important to remember to call the close() method when done with the Realm instance.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0</strong>
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param context an Android context
      * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
@@ -268,9 +269,9 @@ public class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * It is important to remember to call the close() method when done with the Realm instance.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context  an Android {@link android.content.Context}
      * @param fileName the name of the file to save the Realm to
@@ -293,9 +294,9 @@ public class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * It is important to remember to call the close() method when done with the Realm instance.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0</strong>
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param context  an Android context
      * @param fileName the name of the file to save the Realm to
@@ -317,9 +318,9 @@ public class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * It is important to remember to call the close() method when done with the Realm instance.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0</strong>
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param context an Android context
      * @param key     a 32-byte encryption key
@@ -341,9 +342,9 @@ public class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * It is important to remember to call the close() method when done with the Realm instance.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
      * @param key     a 32-byte encryption key
@@ -368,9 +369,9 @@ public class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * It is important to remember to call the close() method when done with the Realm instance.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0</strong>
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param context  an Android {@link android.content.Context}
      * @param fileName the name of the file to save the Realm to
@@ -392,9 +393,9 @@ public class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * It is important to remember to call the close() method when done with the Realm instance.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0</strong>
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param writableFolder absolute path to a writable directory
      * @param key            a 32-byte encryption key
@@ -416,9 +417,9 @@ public class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * It is important to remember to call the close() method when done with the Realm instance.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0</strong>
+     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param writableFolder absolute path to a writable directory
      * @param filename       the name of the file to save the Realm to
