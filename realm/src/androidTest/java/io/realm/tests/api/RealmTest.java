@@ -44,7 +44,7 @@ public class RealmTest extends AndroidTestCase {
     }
 
 
-    public void testRealm() {
+    public void realm() {
 
         realm.addChangeListener(new RealmChangeListener() {
             @Override
