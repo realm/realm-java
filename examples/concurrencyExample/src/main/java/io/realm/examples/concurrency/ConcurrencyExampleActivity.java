@@ -32,10 +32,10 @@ import io.realm.examples.concurrency.model.Person;
 import io.realm.examples.concurrency.services.SpawningService;
 import io.realm.examples.concurrency.services.TransactionService;
 
-public class ConcurrencyExampleaActivity extends Activity implements View.OnClickListener {
+public class ConcurrencyExampleActivity extends Activity implements View.OnClickListener {
 
     @SuppressWarnings("UnusedDeclaration")
-    public static final String TAG = ConcurrencyExampleaActivity.class.getName();
+    public static final String TAG = ConcurrencyExampleActivity.class.getName();
 
     private Realm realm;
 
