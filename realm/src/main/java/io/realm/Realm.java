@@ -84,10 +84,12 @@ public class Realm implements Closeable {
                                                   // but incompatible with Java
         }
     };
-    private static final ThreadLocal<Integer> referenceCount = new ThreadLocal<Integer>() {
+    private static final ThreadLocal<Map<Integer, Integer>> referenceCount
+            = new ThreadLocal<Map<Integer,Integer>>() {
+        @SuppressLint("UseSparseArrays")
         @Override
-        protected Integer initialValue() {
-            return 0;
+        protected Map<Integer, Integer> initialValue() {
+            return new HashMap<Integer, Integer>();
         }
     };
     private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
@@ -150,13 +152,18 @@ public class Realm implements Closeable {
      */
     @Override
     public void close() {
-        int references = referenceCount.get();
+        Map<Integer, Integer> localRefCount = referenceCount.get();
+        Integer references = localRefCount.get(id);
+        if (references == null) {
+            references = 0;
+        }
         if (sharedGroup != null && references == 1) {
             realmsCache.get().remove(id);
             sharedGroup.close();
             sharedGroup = null;
         }
-        referenceCount.set(references - 1);
+        localRefCount.put(id, references - 1);
+        referenceCount.set(localRefCount);
     }
 
     private class RealmCallback implements Handler.Callback {
@@ -399,12 +406,18 @@ public class Realm implements Closeable {
 
     @SuppressWarnings("unchecked")
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
-        int references = referenceCount.get();
+        int id = absolutePath.hashCode();
+        Map<Integer, Integer> localRefCount = referenceCount.get();
+        Integer references = localRefCount.get(id);
+        if (references == null) {
+            references = 0;
+        }
         Map<Integer, Realm> realms = realmsCache.get();
         Realm realm = realms.get(absolutePath.hashCode());
 
         if (realm != null) {
-            referenceCount.set(references + 1);
+            localRefCount.put(id, references + 1);
+            referenceCount.set(localRefCount);
             return realm;
         }
 
@@ -528,7 +541,8 @@ public class Realm implements Closeable {
             }
         }
 
-        referenceCount.set(references + 1);
+        localRefCount.put(id, references + 1);
+        referenceCount.set(localRefCount);
         return realm;
     }
 
