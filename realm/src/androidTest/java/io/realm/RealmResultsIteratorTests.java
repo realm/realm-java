@@ -77,7 +77,6 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     public void testListIteratorRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
-        // Use iterator instead of RealmResults.sum()
         ListIterator<AllTypes> it = result.listIterator();
         while (it.hasNext()) {
             testRealm.beginTransaction();
@@ -93,10 +92,9 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     public void testListIteratorFailOnDeleteBeforeNext() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
-        // Use iterator instead of RealmResults.sum()
         ListIterator<AllTypes> it = result.listIterator();
+        testRealm.beginTransaction();
         try {
-            testRealm.beginTransaction();
             it.remove();
         } catch (IllegalStateException ignored) {
             return;
@@ -110,14 +108,13 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     public void testListIteratorFailOnDoubleRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
-        // Use iterator instead of RealmResults.sum()
-        Iterator<AllTypes> it = result.iterator();
-        try {
-            testRealm.beginTransaction();
-            it.next();
-            it.remove();
-            it.remove();
+        ListIterator<AllTypes> it = result.listIterator();
+        testRealm.beginTransaction();
+        it.next();
+        it.remove();
 
+        try {
+            it.remove();
         } catch (IllegalStateException ignored) {
             return;
         } finally {
@@ -147,8 +144,8 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     public void testRemovingObjectsInsideLoop() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
+        testRealm.beginTransaction();
         try {
-            testRealm.beginTransaction();
             for (AllTypes obj : result) {
                 obj.removeFromRealm();
             }
@@ -170,7 +167,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         result.removeLast();
         testRealm.commitTransaction();
 
-        // Use iterator instead of RealmResults.sum()
+        // For..each uses RealmResults.iterator() in the byte code.
         long realmSum = 0;
         for (AllTypes obj : result) {
             realmSum += obj.getColumnLong();
@@ -183,7 +180,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     public void testIteratorStandardBehavior() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
-        // Use iterator instead of RealmResults.sum()
+        // For..each uses RealmResults.iterator() in the byte code.
         long realmSum = 0;
         for (AllTypes obj : result) {
             realmSum += obj.getColumnLong();
@@ -195,7 +192,6 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     public void testIteratorRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
-        // Use iterator instead of RealmResults.sum()
         Iterator<AllTypes> it = result.iterator();
         while (it.hasNext()) {
             testRealm.beginTransaction();
@@ -210,10 +206,9 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     public void testIteratorFailOnDeleteBeforeNext() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
-        // Use iterator instead of RealmResults.sum()
         Iterator<AllTypes> it = result.iterator();
+        testRealm.beginTransaction();
         try {
-            testRealm.beginTransaction();
             it.remove();
         } catch (IllegalStateException ignored) {
             return;
@@ -227,12 +222,12 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     public void testIteratorFailOnDoubleRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
-        // Use iterator instead of RealmResults.sum()
         Iterator<AllTypes> it = result.iterator();
+        testRealm.beginTransaction();
+        it.next();
+        it.remove();
+
         try {
-            testRealm.beginTransaction();
-            it.next();
-            it.remove();
             it.remove();
 
         } catch (IllegalStateException ignored) {

@@ -435,14 +435,17 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             if (pos >= size()) {
                 throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
             }
-
             return get(pos);
         }
 
         public void remove() {
             assertRealmIsStable();
-            if (pos == -1) throw new IllegalStateException("Must call next() before calling remove()");
-            if (removeUsed) throw new IllegalStateException("Cannot call remove() twice. Must call next() in between");
+            if (pos == -1) {
+                throw new IllegalStateException("Must call next() before calling remove()");
+            }
+            if (removeUsed) {
+                throw new IllegalStateException("Cannot call remove() twice. Must call next() in between");
+            }
 
             RealmResults.this.remove(pos);
             pos--;
@@ -486,7 +489,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             if (pos < 0) {
                 throw new IndexOutOfBoundsException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
             }
-
             return get(pos);
         }
 
