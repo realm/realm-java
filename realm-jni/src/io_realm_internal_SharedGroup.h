@@ -167,14 +167,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseTransactReg
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
   (JNIEnv *, jobject, jlong);
 
-/*
- * Class:     io_realm_internal_SharedGroup
- * Method:    nativeWriteCopy
- * Signature: (JLjava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeWriteCopy
-  (JNIEnv *, jobject, jlong, jstring);
-
 #ifdef __cplusplus
 }
 #endif

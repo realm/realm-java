@@ -266,10 +266,4 @@ public class SharedGroup implements Closeable {
     private native void nativeCloseTransactRegistryLog(long nativeTransactLogRegistryPtr);
 
     private native void nativeCloseReplication(long nativeReplicationPtr);
-
-    public void writeCopy(String path) {
-        nativeWriteCopy(nativePtr, path);
-    }
-
-    private native void nativeWriteCopy(long nativePtr, String path);
 }

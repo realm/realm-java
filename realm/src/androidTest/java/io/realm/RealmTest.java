@@ -655,7 +655,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testWriteCopy() {
+    public void testWriteCopy() throws IOException {
         Realm.deleteRealmFile(getContext(), "file1.realm");
         Realm.deleteRealmFile(getContext(), "file2.realm");
         Realm realm1 = Realm.getInstance(getContext(), "file1.realm");
@@ -678,7 +678,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Hello World", results.first().getColumnString());
     }
 
-    public void testWriteCopyTwoThreads() throws InterruptedException, ExecutionException {
+    public void testWriteCopyTwoThreads() throws InterruptedException, ExecutionException, IOException {
         final AtomicBoolean isReady = new AtomicBoolean(false);
 
         for (int i = 1; i <= 3; i++) {

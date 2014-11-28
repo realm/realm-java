@@ -276,18 +276,3 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultRep
     return 0;
 #endif
 }
-
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeWriteCopy
-  (JNIEnv *env, jobject, jlong native_ptr, jstring jfile_name)
-{
-
-    StringData file_name;
-    try {
-        JStringAccessor file_name_tmp(env, jfile_name); // throws
-        file_name = StringData(file_name_tmp);
-        Group *group = &const_cast<Group&>(SG(native_ptr)->begin_read());
-        group->write(file_name); // throws
-    }
-    CATCH_FILE(file_name)
-    CATCH_STD()
-}

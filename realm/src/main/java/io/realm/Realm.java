@@ -25,6 +25,7 @@ import android.util.Log;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -541,11 +542,11 @@ public class Realm implements Closeable {
      * current data, and not data when the last write transaction was committed.
      *
      * @param path Path to save the Realm to
-     * @throws
+     * @throws java.io.IOException if any write operation fail
      */
-    public void writeCopy(String path) {
+    public void writeCopy(String path) throws IOException {
         checkIfValid();
-        sharedGroup.writeCopy(path);
+        transaction.writeToFile(path);
     }
 
 
