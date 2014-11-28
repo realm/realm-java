@@ -625,6 +625,7 @@ public class RealmTest extends AndroidTestCase {
             fail();
         }
 
+        // Make sure the reference counter is per realm file
         Realm otherRealm = Realm.getInstance(getContext(), "anotherRealm.realm");
 
         // Raise the reference
