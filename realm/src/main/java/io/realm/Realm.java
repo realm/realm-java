@@ -399,63 +399,6 @@ public class Realm implements Closeable {
         return createAndValidate(absolutePath, key, true, autoRefresh);
     }
 
-
-    /**
-     * Compact a realm file. A realm file usually contain free/unused space.
-     * This free space is removed by calling this method and the file size thereby reduced.
-     * Objects within the realm files are untouched.
-     * 
-     * The file must be closed before this method is called.
-     * The file system should have free space for at least a copy of the realm file.
-     * The realm file is left untouched if any file operation fails. 
-     *
-     * @param context an Android {@link android.content.Context}
-     * @param fileName the name of the file to compact
-     * @return true if successful, false if any file operation failed
-     */
-
-    public static boolean compact(Context context, String fileName) {
-        File realmFile = new File(context.getFilesDir(), fileName);
-        File tmpFile = new File(
-                context.getFilesDir(),
-                String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm");
-
-        Realm realm = null;
-        try {
-            realm = Realm.getInstance(context, fileName);
-            realm.writeCopy(tmpFile);
-            if (!realmFile.delete()) {
-                return false;
-            }
-            if (!tmpFile.renameTo(realmFile)) {
-                return false;
-            }
-        } catch (IOException e) {
-            return false;
-        } finally {
-            if (realm != null) {
-                realm.close();
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Compact a realm file. A realm file usually contain free/unused space.
-     * This free space is removed by calling this method and the file size thereby reduced.
-     * Objects within the realm files are untouched.
-     * 
-     * The file must be closed before this method is called.
-     * The file system should have free space for at least a copy of the realm file.
-     * The realm file is left untouched if any file operation fails. 
-     *
-     * @param context an Android {@link android.content.Context}
-     * @return true if successful, false if any file operation failed
-     */
-    public static boolean compact(Context context) {
-        return compact(context, DEFAULT_REALM_NAME);
-    }
-
     @SuppressWarnings("unchecked")
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
         int references = referenceCount.get();
@@ -977,3 +920,61 @@ public class Realm implements Closeable {
         return result;
     }
 }
+
+
+    /**
+     * Compact a realm file. A realm file usually contain free/unused space.
+     * This free space is removed by calling this method and the file size thereby reduced.
+     * Objects within the realm files are untouched.
+     * 
+     * The file must be closed before this method is called.
+     * The file system should have free space for at least a copy of the realm file.
+     * The realm file is left untouched if any file operation fails. 
+     *
+     * @param context an Android {@link android.content.Context}
+     * @param fileName the name of the file to compact
+     * @return true if successful, false if any file operation failed
+     */
+
+    public static boolean compact(Context context, String fileName) {
+        File realmFile = new File(context.getFilesDir(), fileName);
+        File tmpFile = new File(
+                context.getFilesDir(),
+                String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm");
+
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(context, fileName);
+            realm.writeCopy(tmpFile);
+            if (!realmFile.delete()) {
+                return false;
+            }
+            if (!tmpFile.renameTo(realmFile)) {
+                return false;
+            }
+        } catch (IOException e) {
+            return false;
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Compact a realm file. A realm file usually contain free/unused space.
+     * This free space is removed by calling this method and the file size thereby reduced.
+     * Objects within the realm files are untouched.
+     * 
+     * The file must be closed before this method is called.
+     * The file system should have free space for at least a copy of the realm file.
+     * The realm file is left untouched if any file operation fails. 
+     *
+     * @param context an Android {@link android.content.Context}
+     * @return true if successful, false if any file operation failed
+     */
+    public static boolean compact(Context context) {
+        return compact(context, DEFAULT_REALM_NAME);
+    }
+
