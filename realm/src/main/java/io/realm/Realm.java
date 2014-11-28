@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.exceptions.RealmException;
@@ -396,6 +397,58 @@ public class Realm implements Closeable {
     public static Realm create(File writableFolder, String filename, byte[] key, boolean autoRefresh) {
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
         return createAndValidate(absolutePath, key, true, autoRefresh);
+    }
+
+
+    /**
+     * Compact a realm file. A realm might contain free/unused space, and it is removed during
+     * the process. Objects within the realm files are untouched. The size of realm file is
+     * typically smaller as a result of calling this method.
+     *
+     * If the realm file is already opened, compacting the file might failed.
+     *
+     * The realm file is left untouched if any file operation fail. The file system should have
+     * free space for at least a copy of the realm file.
+     *
+     * @param context an Android {@link android.content.Context}
+     * @param fileName the name of the file to compact
+     * @return true if successful, false if any file operation failed
+     */
+
+    public static boolean compact(Context context, String fileName) {
+        File realmFile = new File(context.getFilesDir(), fileName);
+        File tmpFile = new File(
+                context.getFilesDir(),
+                String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm");
+
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(context, fileName);
+            realm.writeCopy(tmpFile.getAbsolutePath());
+            if (!realmFile.delete()) {
+                return false;
+            }
+            if (!tmpFile.renameTo(realmFile)) {
+                return false;
+            }
+        } catch (IOException e) {
+            return false;
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Compact the default realm file.
+     *
+     * @param context an Android {@link android.content.Context}
+     * @return true if successful, false if any file operation failed
+     */
+    public static boolean compact(Context context) {
+        return compact(context, DEFAULT_REALM_NAME);
     }
 
     @SuppressWarnings("unchecked")

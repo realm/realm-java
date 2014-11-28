@@ -5,7 +5,7 @@
     and dates after 2038-01-19 are not supported on 32 bit systems
   * Fixed bug so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented subquerying  
-  * Adding writeCopy() to write and compact a Realm to a new file
+  * Adding writeCopy() and compact() to write and compact a Realm to a new file.
   * Bug fixed in RealmResults which prevented subquerying
   * RealmResults.iterator() and listIterator() now correctly iterates the results when using remove().
 

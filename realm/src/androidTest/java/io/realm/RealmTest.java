@@ -727,4 +727,12 @@ public class RealmTest extends AndroidTestCase {
             future.get(2, TimeUnit.SECONDS);
         } catch (TimeoutException ignore) {}
     }
+
+    public void testCompact() {
+        testRealm.close();
+        long before = new File(getContext().getFilesDir() + "/default.realm").length();
+        assertTrue(Realm.compact(getContext()));
+        long after = new File(getContext().getFilesDir() + "/default.realm").length();
+        assertTrue(before >= after);
+    }
 }
