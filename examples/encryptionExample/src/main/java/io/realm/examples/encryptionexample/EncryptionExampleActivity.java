@@ -31,7 +31,6 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
 import io.realm.Realm;
-import io.realm.internal.IOException;
 
 public class EncryptionExampleActivity extends Activity {
 
@@ -47,15 +46,10 @@ public class EncryptionExampleActivity extends Activity {
         // Throws UnsupportedOperator if not using a copy of Realm with encryption enabled
         try {
             realm = Realm.getInstance(this, getKey());
-        } catch (io.realm.internal.IOException e) {
-            e.printStackTrace();
-            return;
-        } catch (java.io.IOException ie) {
-            ie.printStackTrace();
-            return;
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
-            return;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         // Everything continues to work as normal except for that the file is encrypted on disk
