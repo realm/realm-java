@@ -18,9 +18,11 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -617,6 +619,68 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void createAndTestFilename(String language, String fileName) {
+        Realm.deleteRealmFile(getContext(), fileName);
+        Realm realm1 = Realm.getInstance(getContext(), fileName);
+        realm1.beginTransaction();
+        Dog dog1 = realm1.createObject(Dog.class);
+        dog1.setName("Rex");
+        realm1.commitTransaction();
+        realm1.close();
+
+        File file = new File(getContext().getFilesDir(), fileName);
+        assertTrue(language, file.exists());
+
+        Realm realm2 = Realm.getInstance(getContext(), fileName);
+        Dog dog2 = realm2.allObjects(Dog.class).first();
+        assertEquals(language, "Rex", dog2.getName());
+        realm2.close();
+    }
+
+    public void testCreateFile() {
+        createAndTestFilename("American", "Washington");
+        createAndTestFilename("Danish", "København");
+        createAndTestFilename("Russian", "Москва");
+        createAndTestFilename("Greek", "Αθήνα");
+        createAndTestFilename("Chinese", "北京市");
+        createAndTestFilename("Korean", "서울시");
+        createAndTestFilename("Arabic", "الرياض");
+        createAndTestFilename("India", "नई दिल्ली");
+        createAndTestFilename("Japanese", "東京都");
+    }
+
+    // This test is slow. Move it to another testsuite that runs once a day on Jenkins.
+    public void rarely_run_testUTF8() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+
+        String file = "assets/unicode_codepoints.csv";
+        Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(file));
+        int i = 0;
+        String currentUnicode = null;
+        try {
+            testRealm.beginTransaction();
+            while (scanner.hasNextLine()) {
+                currentUnicode = scanner.nextLine();
+                char[] chars = Character.toChars(Integer.parseInt(currentUnicode, 16));
+                String codePoint = new String(chars);
+                AllTypes o = testRealm.createObject(AllTypes.class);
+                o.setColumnLong(i);
+                o.setColumnString(codePoint);
+
+                AllTypes realmType = testRealm.where(AllTypes.class).equalTo("columnLong", i).findFirst();
+                if (i > 1) {
+                    assertEquals("Codepoint: " + i + " / " + currentUnicode, codePoint, realmType.getColumnString()); // codepoint 0 is NULL, ignore for now.
+                }
+                i++;
+            }
+            testRealm.commitTransaction();
+        } catch (Exception e) {
+            fail("Failure, Codepoint: " + i + " / " + currentUnicode  + " " +  e.getMessage());
+        }
+    }
+
     public void testReferenceCounting() {
         // At this point reference count should be one because of the setUp method
         try {
@@ -666,4 +730,5 @@ public class RealmTest extends AndroidTestCase {
         } catch (IllegalStateException ignored) {
         }
     }
+
 }
