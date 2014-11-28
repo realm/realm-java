@@ -1436,6 +1436,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
+    @Override
+    public long sync() {
+        throw new RuntimeException("Not supported for tables");
+    }
+
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }

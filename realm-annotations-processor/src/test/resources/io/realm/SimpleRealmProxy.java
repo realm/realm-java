@@ -53,18 +53,6 @@ public class SimpleRealmProxy extends Simple {
         row.setLong(Realm.columnIndices.get("Simple").get("age"), (long) value);
     }
 
-    @Override
-    public int getObject_id() {
-        realm.checkIfValid();
-        return (int) row.getLong(Realm.columnIndices.get("Simple").get("object_id"));
-    }
-
-    @Override
-    public void setObject_id(int value) {
-        realm.checkIfValid();
-        row.setLong(Realm.columnIndices.get("Simple").get("object_id"), (long) value);
-    }
-
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
