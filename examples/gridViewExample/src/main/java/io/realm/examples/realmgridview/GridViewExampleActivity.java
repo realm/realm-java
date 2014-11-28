@@ -52,7 +52,7 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
         // Clear the realm from last time
         Realm.deleteRealmFile(this);
 
-        // Create a new instance empty instance of Realm
+        // Create a new empty instance of Realm
         realm = Realm.getInstance(this);
     }
 
