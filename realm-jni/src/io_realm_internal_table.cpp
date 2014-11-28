@@ -1238,6 +1238,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(
         const string str = table->get_name();
         return to_jstring(env, str);
     } CATCH_STD()
+    return NULL;
 }
 
 
