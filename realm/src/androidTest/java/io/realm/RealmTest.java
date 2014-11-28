@@ -626,13 +626,15 @@ public class RealmTest extends AndroidTestCase {
         Dog dog1 = realm1.createObject(Dog.class);
         dog1.setName("Rex");
         realm1.commitTransaction();
+        realm1.close();
 
-        File file = new File(getContext().getFilesDir()+"/"+fileName);
+        File file = new File(getContext().getFilesDir(), fileName);
         assertTrue(language, file.exists());
 
         Realm realm2 = Realm.getInstance(getContext(), fileName);
         Dog dog2 = realm2.allObjects(Dog.class).first();
         assertEquals(language, "Rex", dog2.getName());
+        realm2.close();
     }
 
     public void testCreateFile() {
