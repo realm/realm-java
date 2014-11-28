@@ -25,6 +25,7 @@ import android.util.Log;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,6 +34,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.exceptions.RealmException;
@@ -592,6 +594,23 @@ public class Realm implements Closeable {
     }
 
     /**
+     * Write a compacted copy of the Realm to the given destination File.
+     *
+     * The destination file cannot already exist.
+     *
+     * Note that if this is called from within a write transaction it writes the
+     * current data, and not the data as it was when the last write transaction was committed.
+     *
+     * @param destination File to save the Realm to
+     * @throws java.io.IOException if any write operation fails
+     */
+    public void writeCopyTo(File destination) throws IOException {
+        checkIfValid();
+        transaction.writeToFile(destination.getAbsolutePath());
+    }
+
+
+    /**
      * Instantiates and adds a new object to the realm
      *
      * @param clazz The Class of the object to create
@@ -899,20 +918,20 @@ public class Realm implements Closeable {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    static public void migrateRealmAtPath(String realmPath, RealmMigration migration) {
+    public static void migrateRealmAtPath(String realmPath, RealmMigration migration) {
         migrateRealmAtPath(realmPath, null, migration, true);
     }
 
-    static public void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration) {
+    public static void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration) {
         migrateRealmAtPath(realmPath, key, migration, true);
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    static public void migrateRealmAtPath(String realmPath, RealmMigration migration, boolean autoRefresh) {
+    public static void migrateRealmAtPath(String realmPath, RealmMigration migration, boolean autoRefresh) {
         migrateRealmAtPath(realmPath, null, migration, autoRefresh);
     }
 
-    static public void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration, boolean autoUpdate) {
+    public static void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration, boolean autoUpdate) {
         Realm realm = Realm.createAndValidate(realmPath, key, false, autoUpdate);
         realm.beginTransaction();
         realm.setVersion(migration.execute(realm, realm.getVersion()));
@@ -961,6 +980,61 @@ public class Realm implements Closeable {
     }
 
     /**
+     * Compact a realm file. A realm file usually contain free/unused space.
+     * This method removes this free space and the file size is thereby reduced.
+     * Objects within the realm files are untouched.
+     * 
+     * The file must be closed before this method is called.
+     * The file system should have free space for at least a copy of the realm file.
+     * The realm file is left untouched if any file operation fails. 
+     *
+     * @param context an Android {@link android.content.Context}
+     * @param fileName the name of the file to compact
+     * @return true if successful, false if any file operation failed
+     */
+    public static boolean compactRealmFile(Context context, String fileName) {
+        File realmFile = new File(context.getFilesDir(), fileName);
+        File tmpFile = new File(
+                context.getFilesDir(),
+                String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm");
+
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(context, fileName);
+            realm.writeCopyTo(tmpFile);
+            if (!realmFile.delete()) {
+                return false;
+            }
+            if (!tmpFile.renameTo(realmFile)) {
+                return false;
+            }
+        } catch (IOException e) {
+            return false;
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Compact a realm file. A realm file usually contain free/unused space.
+     * This method removes this free space and the file size is thereby reduced.
+     * Objects within the realm files are untouched.
+     * 
+     * The file must be closed before this method is called.
+     * The file system should have free space for at least a copy of the realm file.
+     * The realm file is left untouched if any file operation fails. 
+     *
+     * @param context an Android {@link android.content.Context}
+     * @return true if successful, false if any file operation failed
+     */
+    public static boolean compactRealmFile(Context context) {
+        return compactRealmFile(context, DEFAULT_REALM_NAME);
+    }
+
+    /**
      * Returns the absolute path to where this Realm is persisted on disk.
      *
      * @return The absolute path to the realm file.
@@ -969,3 +1043,4 @@ public class Realm implements Closeable {
         return path;
     }
 }
+
