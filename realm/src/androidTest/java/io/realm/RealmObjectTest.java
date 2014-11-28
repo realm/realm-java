@@ -254,7 +254,7 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(ct2.equals(ct2));
     }
 
-    public void testEquals_afterModification() {
+    public void testEqualsAfterModification() {
         testRealm.beginTransaction();
         CyclicType ct = testRealm.createObject(CyclicType.class);
         ct.setName("Foo");
@@ -271,7 +271,7 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(ct2.equals(ct2));
     }
 
-    public void testEquals_standAlone() {
+    public void testEqualsStandAlone() {
         testRealm.beginTransaction();
         CyclicType ct1 = testRealm.createObject(CyclicType.class);
         ct1.setName("Foo");
@@ -285,35 +285,16 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public void testCyclicEquals() {
-        Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-        realm.clear(CyclicType.class);
-        CyclicType foo = realm.createObject(CyclicType.class);
-        foo.setName("Foo");
-        CyclicType bar = realm.createObject(CyclicType.class);
-        bar.setName("Bar");
+        testRealm.beginTransaction();
+        CyclicType foo = createCyclicData();
+        testRealm.commitTransaction();
 
-        // Setup cycle on normal object references
-        foo.setObject(bar);
-        bar.setObject(foo);
-
-        realm.commitTransaction();
-
-        assertEquals(foo, realm.where(CyclicType.class).equalTo("name", "Foo").findFirst());
+        assertEquals(foo, testRealm.where(CyclicType.class).equalTo("name", "Foo").findFirst());
     }
 
     public void testCyclicToString() {
         testRealm.beginTransaction();
-        testRealm.clear(CyclicType.class);
-        CyclicType foo = testRealm.createObject(CyclicType.class);
-        foo.setName("Foo");
-        CyclicType bar = testRealm.createObject(CyclicType.class);
-        bar.setName("Bar");
-
-        // Setup cycle on normal object references
-        foo.setObject(bar);
-        bar.setObject(foo);
-
+        CyclicType foo = createCyclicData();
         testRealm.commitTransaction();
 
         String expected = "CyclicType = [{name:Foo},{object:CyclicType@1},{objects:CyclicType@[]}]";
@@ -322,7 +303,13 @@ public class RealmObjectTest extends AndroidTestCase {
 
     public void testCyclicHashCode() {
         testRealm.beginTransaction();
-        testRealm.clear(CyclicType.class);
+        CyclicType foo = createCyclicData();
+        testRealm.commitTransaction();
+
+        assertEquals(1344723738, foo.hashCode());
+    }
+
+    private CyclicType createCyclicData() {
         CyclicType foo = testRealm.createObject(CyclicType.class);
         foo.setName("Foo");
         CyclicType bar = testRealm.createObject(CyclicType.class);
@@ -331,11 +318,9 @@ public class RealmObjectTest extends AndroidTestCase {
         // Setup cycle on normal object references
         foo.setObject(bar);
         bar.setObject(foo);
-
-        testRealm.commitTransaction();
-
-        assertEquals(1344723738, foo.hashCode());
+        return foo;
     }
+
     public void testDateType() {
         long testDatesNotValid[] = {Long.MIN_VALUE, Long.MAX_VALUE};
         long testDatesValid[] = {-1000, 0, 1000};
