@@ -543,6 +543,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot
   (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
 
+/*
+ * Class:     io_realm_internal_TableView
+ * Method:    nativeSync
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync
+  (JNIEnv *, jobject, jlong);
+
 #ifdef __cplusplus
 }
 #endif

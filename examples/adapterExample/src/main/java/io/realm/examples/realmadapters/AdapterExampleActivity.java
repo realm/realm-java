@@ -29,7 +29,7 @@ import io.realm.RealmResults;
 import io.realm.examples.realmadapters.models.TimeStamp;
 
 
-public class MyActivity extends Activity {
+public class AdapterExampleActivity extends Activity {
 
     private Realm realm;
 
@@ -53,6 +53,12 @@ public class MyActivity extends Activity {
                     return true;
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.
     }
 
     @Override
