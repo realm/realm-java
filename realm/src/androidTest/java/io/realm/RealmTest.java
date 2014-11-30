@@ -734,7 +734,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testWriteCopy() throws IOException {
+    public void testWriteCopyTo() throws IOException {
         Realm.deleteRealmFile(getContext(), "file1.realm");
         Realm.deleteRealmFile(getContext(), "file2.realm");
 
@@ -772,7 +772,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testCompact() throws IOException {
+    public void testCompactRealmFile() throws IOException {
         final String copyRealm = "copy.realm";
         fileCopy(
                 new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME),
