@@ -6,6 +6,8 @@
   * Fixed bug so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented subquerying
   * RealmResults.iterator() and listIterator() now correctly iterates the results when using remove().
+  * Changing sort to be an in-place method.
+  * Renaming SORT_ORDER_DECENDING to SORT_ORDER_DESCENDING.
 
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
