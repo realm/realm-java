@@ -1,19 +1,3 @@
-/*
- * Copyright 2014 Realm Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package io.realm;
 
 import io.realm.Realm;
@@ -31,85 +15,85 @@ public class AllTypesRealmProxy extends AllTypes {
 
     @Override
     public String getColumnString() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (java.lang.String) row.getString(Realm.columnIndices.get("AllTypes").get("columnString"));
     }
 
     @Override
     public void setColumnString(String value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setString(Realm.columnIndices.get("AllTypes").get("columnString"), (String) value);
     }
 
     @Override
     public long getColumnLong() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (long) row.getLong(Realm.columnIndices.get("AllTypes").get("columnLong"));
     }
 
     @Override
     public void setColumnLong(long value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setLong(Realm.columnIndices.get("AllTypes").get("columnLong"), (long) value);
     }
 
     @Override
     public float getColumnFloat() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (float) row.getFloat(Realm.columnIndices.get("AllTypes").get("columnFloat"));
     }
 
     @Override
     public void setColumnFloat(float value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setFloat(Realm.columnIndices.get("AllTypes").get("columnFloat"), (float) value);
     }
 
     @Override
     public double getColumnDouble() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (double) row.getDouble(Realm.columnIndices.get("AllTypes").get("columnDouble"));
     }
 
     @Override
     public void setColumnDouble(double value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setDouble(Realm.columnIndices.get("AllTypes").get("columnDouble"), (double) value);
     }
 
     @Override
     public boolean isColumnBoolean() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (boolean) row.getBoolean(Realm.columnIndices.get("AllTypes").get("columnBoolean"));
     }
 
     @Override
     public void setColumnBoolean(boolean value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setBoolean(Realm.columnIndices.get("AllTypes").get("columnBoolean"), (boolean) value);
     }
 
     @Override
     public java.util.Date getColumnDate() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (java.util.Date) row.getDate(Realm.columnIndices.get("AllTypes").get("columnDate"));
     }
 
     @Override
     public void setColumnDate(java.util.Date value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setDate(Realm.columnIndices.get("AllTypes").get("columnDate"), (Date) value);
     }
 
     @Override
     public byte[] getColumnBinary() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (byte[]) row.getBinaryByteArray(Realm.columnIndices.get("AllTypes").get("columnBinary"));
     }
 
     @Override
     public void setColumnBinary(byte[] value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setBinaryByteArray(Realm.columnIndices.get("AllTypes").get("columnBinary"), (byte[]) value);
     }
 
@@ -192,45 +176,45 @@ public class AllTypesRealmProxy extends AllTypes {
         StringBuilder stringBuilder = new StringBuilder("AllTypes = [");
         stringBuilder.append("{columnString:");
         stringBuilder.append(getColumnString());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
         stringBuilder.append("{columnLong:");
         stringBuilder.append(getColumnLong());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
         stringBuilder.append("{columnFloat:");
         stringBuilder.append(getColumnFloat());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
         stringBuilder.append("{columnDouble:");
         stringBuilder.append(getColumnDouble());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
         stringBuilder.append("{columnBoolean:");
         stringBuilder.append(isColumnBoolean());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
         stringBuilder.append("{columnDate:");
         stringBuilder.append(getColumnDate());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
         stringBuilder.append("{columnBinary:");
         stringBuilder.append(getColumnBinary());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();
     }
 
     @Override
     public int hashCode() {
+        String realmName = realm.getPath();
+        String tableName = row.getTable().getName();
+        long rowIndex = row.getIndex();
+
         int result = 17;
-        String aString_0 = getColumnString();
-        result = 31 * result + (aString_0 != null ? aString_0.hashCode() : 0);
-        long aLong_1 = getColumnLong();
-        result = 31 * result + (int) (aLong_1 ^ (aLong_1 >>> 32));
-        float aFloat_2 = getColumnFloat();
-        result = 31 * result + (aFloat_2 != +0.0f ? Float.floatToIntBits(aFloat_2) : 0);
-        long temp_3 = Double.doubleToLongBits(getColumnDouble());
-        result = 31 * result + (int) (temp_3 ^ (temp_3 >>> 32));
-        result = 31 * result + (isColumnBoolean() ? 1 : 0);
-        java.util.Date temp_5 = getColumnDate();
-        result = 31 * result + (temp_5 != null ? temp_5.hashCode() : 0);
-        byte[] aByteArray_6 = getColumnBinary();
-        result = 31 * result + (aByteArray_6 != null ? Arrays.hashCode(aByteArray_6) : 0);
+        result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
+        result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0);
+        result = 31 * result + (int) (rowIndex ^ (rowIndex >>> 32));
         return result;
     }
 
@@ -239,13 +223,15 @@ public class AllTypesRealmProxy extends AllTypes {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AllTypesRealmProxy aAllTypes = (AllTypesRealmProxy)o;
-        if (getColumnString() != null ? !getColumnString().equals(aAllTypes.getColumnString()) : aAllTypes.getColumnString() != null) return false;
-        if (getColumnLong() != aAllTypes.getColumnLong()) return false;
-        if (Float.compare(getColumnFloat(), aAllTypes.getColumnFloat()) != 0) return false;
-        if (Double.compare(getColumnDouble(), aAllTypes.getColumnDouble()) != 0) return false;
-        if (isColumnBoolean() != aAllTypes.isColumnBoolean()) return false;
-        if (getColumnDate() != null ? !getColumnDate().equals(aAllTypes.getColumnDate()) : aAllTypes.getColumnDate() != null) return false;
-        if (!Arrays.equals(getColumnBinary(), aAllTypes.getColumnBinary())) return false;
+
+        String path = realm.getPath();
+        String otherPath = aAllTypes.realm.getPath();
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
+
+        String tableName = row.getTable().getName();
+        String otherTableName = aAllTypes.row.getTable().getName();
+        if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
+
         return true;
     }
 

@@ -33,7 +33,7 @@ import java.util.List;
 
 public class CityAdapter extends BaseAdapter {
 
-    public static final String TAG = RealmExampleActivity.class.getName();
+    public static final String TAG = GridViewExampleActivity.class.getName();
 
     private LayoutInflater inflater;
 
