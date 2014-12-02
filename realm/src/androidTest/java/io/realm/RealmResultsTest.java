@@ -415,7 +415,7 @@ public class RealmResultsTest extends AndroidTestCase {
             RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
             resultList.sort("Non-existing");
             fail("Column should not exist");
-        } catch (ArrayIndexOutOfBoundsException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 

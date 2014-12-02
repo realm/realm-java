@@ -165,6 +165,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
      * 
      * @param fieldName  The field name to sort by.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public void sort(String fieldName) {
         this.sort(fieldName, SORT_ORDER_ASCENDING);
@@ -178,6 +179,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param sortAscending  The direction to sort by; if true ascending, otherwise descending
      *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DESCENDING
      *                       for readability.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public void sort(String fieldName, boolean sortAscending) {
         realm.checkIfValid();
@@ -185,11 +187,14 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         if (table instanceof TableView) {
             long columnIndex = table.getColumnIndex(fieldName);
+            if (columnIndex < 0) {
+                throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
+            }
             TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
             ((TableView) table).sort(columnIndex, TVOrder);
         }
         else {
-            throw new IllegalArgumentException("Please use allObject().");
+            throw new IllegalArgumentException("Only RealmResults can be sorted - please use allObject() to create a RealmResults.");
         }
     }
 
