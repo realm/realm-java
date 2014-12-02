@@ -162,9 +162,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Sort (ascending) an existing @{link io.realm.RealmList}.
-     * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
      * 
-     * @param fieldName  The field name to sort by.
+     * @param fieldName  The field name to sort by. Only fields of type boolean, short, int, long,
+     *                   float, double, Date, and String are supported.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public void sort(String fieldName) {
@@ -173,9 +173,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Sort existing @{link io.realm.RealmList}.
-     * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
      *
-     * @param fieldName      The field name to sort by.
+     * @param fieldName      The field name to sort by. Only fields of type boolean, short, int,
+     *                       long, float, double, Date, and String are supported.
      * @param sortAscending  The direction to sort by; if true ascending, otherwise descending
      *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DESCENDING
      *                       for readability.
