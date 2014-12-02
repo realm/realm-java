@@ -17,10 +17,15 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -617,6 +622,68 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void createAndTestFilename(String language, String fileName) {
+        Realm.deleteRealmFile(getContext(), fileName);
+        Realm realm1 = Realm.getInstance(getContext(), fileName);
+        realm1.beginTransaction();
+        Dog dog1 = realm1.createObject(Dog.class);
+        dog1.setName("Rex");
+        realm1.commitTransaction();
+        realm1.close();
+
+        File file = new File(getContext().getFilesDir(), fileName);
+        assertTrue(language, file.exists());
+
+        Realm realm2 = Realm.getInstance(getContext(), fileName);
+        Dog dog2 = realm2.allObjects(Dog.class).first();
+        assertEquals(language, "Rex", dog2.getName());
+        realm2.close();
+    }
+
+    public void testCreateFile() {
+        createAndTestFilename("American", "Washington");
+        createAndTestFilename("Danish", "København");
+        createAndTestFilename("Russian", "Москва");
+        createAndTestFilename("Greek", "Αθήνα");
+        createAndTestFilename("Chinese", "北京市");
+        createAndTestFilename("Korean", "서울시");
+        createAndTestFilename("Arabic", "الرياض");
+        createAndTestFilename("India", "नई दिल्ली");
+        createAndTestFilename("Japanese", "東京都");
+    }
+
+    // This test is slow. Move it to another testsuite that runs once a day on Jenkins.
+    public void rarely_run_testUTF8() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+
+        String file = "assets/unicode_codepoints.csv";
+        Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(file));
+        int i = 0;
+        String currentUnicode = null;
+        try {
+            testRealm.beginTransaction();
+            while (scanner.hasNextLine()) {
+                currentUnicode = scanner.nextLine();
+                char[] chars = Character.toChars(Integer.parseInt(currentUnicode, 16));
+                String codePoint = new String(chars);
+                AllTypes o = testRealm.createObject(AllTypes.class);
+                o.setColumnLong(i);
+                o.setColumnString(codePoint);
+
+                AllTypes realmType = testRealm.where(AllTypes.class).equalTo("columnLong", i).findFirst();
+                if (i > 1) {
+                    assertEquals("Codepoint: " + i + " / " + currentUnicode, codePoint, realmType.getColumnString()); // codepoint 0 is NULL, ignore for now.
+                }
+                i++;
+            }
+            testRealm.commitTransaction();
+        } catch (Exception e) {
+            fail("Failure, Codepoint: " + i + " / " + currentUnicode  + " " +  e.getMessage());
+        }
+    }
+
     public void testReferenceCounting() {
         // At this point reference count should be one because of the setUp method
         try {
@@ -665,5 +732,64 @@ public class RealmTest extends AndroidTestCase {
             fail();
         } catch (IllegalStateException ignored) {
         }
+    }
+
+    public void testWriteCopyTo() throws IOException {
+        Realm.deleteRealmFile(getContext(), "file1.realm");
+        Realm.deleteRealmFile(getContext(), "file2.realm");
+
+        Realm realm1 = null;
+        try {
+            realm1 = Realm.getInstance(getContext(), "file1.realm");
+            realm1.beginTransaction();
+            AllTypes allTypes = realm1.createObject(AllTypes.class);
+            allTypes.setColumnString("Hello World");
+            realm1.commitTransaction();
+
+            realm1.writeCopyTo(new File(getContext().getFilesDir(), "file2.realm"));
+        } finally {
+            if (realm1 != null) {
+                realm1.close();
+            }
+        }
+
+        // Copy is compacted i.e. smaller than original
+        File file1 = new File(getContext().getFilesDir(), "file1.realm");
+        File file2 = new File(getContext().getFilesDir(), "file2.realm");
+        assertTrue(file1.length() > file2.length());
+
+        Realm realm2 = null;
+        try {
+            // Contents is copied too
+            realm2 = Realm.getInstance(getContext(), "file2.realm");
+            RealmResults<AllTypes> results = realm2.allObjects(AllTypes.class);
+            assertEquals(1, results.size());
+            assertEquals("Hello World", results.first().getColumnString());
+        } finally {
+            if (realm2 != null) {
+                realm2.close();
+            }
+        }
+    }
+
+    public void testCompactRealmFile() throws IOException {
+        final String copyRealm = "copy.realm";
+        fileCopy(
+                new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME),
+                new File(getContext().getFilesDir(), copyRealm));
+        long before = new File(getContext().getFilesDir(), copyRealm).length();
+        assertTrue(Realm.compactRealmFile(getContext()));
+        long after = new File(getContext().getFilesDir(), copyRealm).length();
+        assertTrue(before >= after);
+    }
+
+    private void fileCopy(File src, File dst) throws IOException {
+        FileInputStream inStream = new FileInputStream(src);
+        FileOutputStream outStream = new FileOutputStream(dst);
+        FileChannel inChannel = inStream.getChannel();
+        FileChannel outChannel = outStream.getChannel();
+        inChannel.transferTo(0, inChannel.size(), outChannel);
+        inStream.close();
+        outStream.close();
     }
 }

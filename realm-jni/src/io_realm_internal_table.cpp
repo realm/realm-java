@@ -1231,11 +1231,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeOptimize(
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(
     JNIEnv *env, jobject, jlong nativeTablePtr)
 {
-    Table* table = TBL(nativeTablePtr);
-    if (!TABLE_VALID(env, table))
-        return NULL;
-    const string str = table->get_name();
-    return to_jstring(env, str);
+    try {
+        Table* table = TBL(nativeTablePtr);
+        if (!TABLE_VALID(env, table))
+            return NULL;
+        const string str = table->get_name();
+        return to_jstring(env, str);
+    } CATCH_STD()
+    return NULL;
 }
 
 

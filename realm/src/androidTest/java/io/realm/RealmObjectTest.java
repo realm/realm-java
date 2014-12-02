@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.CyclicType;
 import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.Dog;
 import io.realm.internal.Row;
@@ -52,8 +53,6 @@ public class RealmObjectTest extends AndroidTestCase {
     protected void tearDown() throws Exception {
         testRealm.close();
     }
-
-    // test io.realm.RealmObject Api
 
     // Row realmGetRow()
     public void testRealmGetRowReturnsValidRow() {
@@ -240,6 +239,86 @@ public class RealmObjectTest extends AndroidTestCase {
     public void testGetSetWrongThread() throws ExecutionException, InterruptedException {
         assertTrue(methodWrongThread(true));
         assertTrue(methodWrongThread(false));
+    }
+
+    public void testEquals() {
+        testRealm.beginTransaction();
+        CyclicType ct = testRealm.createObject(CyclicType.class);
+        ct.setName("Foo");
+        testRealm.commitTransaction();
+
+        CyclicType ct1 = testRealm.where(CyclicType.class).findFirst();
+        CyclicType ct2 = testRealm.where(CyclicType.class).findFirst();
+
+        assertTrue(ct1.equals(ct1));
+        assertTrue(ct2.equals(ct2));
+    }
+
+    public void testEqualsAfterModification() {
+        testRealm.beginTransaction();
+        CyclicType ct = testRealm.createObject(CyclicType.class);
+        ct.setName("Foo");
+        testRealm.commitTransaction();
+
+        CyclicType ct1 = testRealm.where(CyclicType.class).findFirst();
+        CyclicType ct2 = testRealm.where(CyclicType.class).findFirst();
+
+        testRealm.beginTransaction();
+        ct1.setName("Baz");
+        testRealm.commitTransaction();
+
+        assertTrue(ct1.equals(ct1));
+        assertTrue(ct2.equals(ct2));
+    }
+
+    public void testEqualsStandAlone() {
+        testRealm.beginTransaction();
+        CyclicType ct1 = testRealm.createObject(CyclicType.class);
+        ct1.setName("Foo");
+        testRealm.commitTransaction();
+
+        CyclicType ct2 = new CyclicType();
+        ct2.setName("Bar");
+
+        assertFalse(ct1.equals(ct2));
+        assertFalse(ct2.equals(ct1));
+    }
+
+    public void testCyclicEquals() {
+        testRealm.beginTransaction();
+        CyclicType foo = createCyclicData();
+        testRealm.commitTransaction();
+
+        assertEquals(foo, testRealm.where(CyclicType.class).equalTo("name", "Foo").findFirst());
+    }
+
+    public void testCyclicToString() {
+        testRealm.beginTransaction();
+        CyclicType foo = createCyclicData();
+        testRealm.commitTransaction();
+
+        String expected = "CyclicType = [{name:Foo},{object:CyclicType},{objects:RealmList<CyclicType>[0]}]";
+        assertEquals(expected, foo.toString());
+    }
+
+    public void testCyclicHashCode() {
+        testRealm.beginTransaction();
+        CyclicType foo = createCyclicData();
+        testRealm.commitTransaction();
+
+        assertEquals(1344723738, foo.hashCode());
+    }
+
+    private CyclicType createCyclicData() {
+        CyclicType foo = testRealm.createObject(CyclicType.class);
+        foo.setName("Foo");
+        CyclicType bar = testRealm.createObject(CyclicType.class);
+        bar.setName("Bar");
+
+        // Setup cycle on normal object references
+        foo.setObject(bar);
+        bar.setObject(foo);
+        return foo;
     }
 
     public void testDateType() {
