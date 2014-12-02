@@ -1,6 +1,7 @@
 0.75.1 (??)
   * Changing sort to be an in-place method.
-  * Renaming SORT_ORDER_DECENDING to SORT_ORDER_DESCENDING
+  * Renaming SORT_ORDER_DECENDING to SORT_ORDER_DESCENDING.
+  * Adding sorting functionality to allObjects().
 
 0.75.0 (28 Nov 2014)
   * Realm now implements Closeable, allowing better cleanup of native resources

@@ -295,6 +295,22 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
     }
 
+    public void testAllObjectsSorted() {
+        populateTestRealm();
+        RealmResults<AllTypes> sortedList = testRealm.allObjects(AllTypes.class, FIELD_STRING, RealmResults.SORT_ORDER_ASCENDING);
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals("test data 0", sortedList.first().getColumnString());
+
+        RealmResults<AllTypes> reverseList = testRealm.allObjects(AllTypes.class, FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        assertEquals(TEST_DATA_SIZE, reverseList.size());
+        assertEquals("test data 0", reverseList.last().getColumnString());
+
+        try {
+            RealmResults<AllTypes> none = testRealm.allObjects(AllTypes.class, "invalid", RealmResults.SORT_ORDER_ASCENDING);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+    }
+
     // void beginTransaction()
     public void testBeginTransaction() throws IOException {
         populateTestRealm();
