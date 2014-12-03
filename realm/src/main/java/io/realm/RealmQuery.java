@@ -286,7 +286,6 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, Date value) {
-        
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
         this.query.equalTo(columnIndices, value);
         return this;
