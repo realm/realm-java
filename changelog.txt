@@ -1,3 +1,6 @@
+0.75.1 (??)
+  * Bug fixed: when querying a date column with equalTo(), it would act as lessThan()
+
 0.75.0 (28 Nov 2014)
   * Realm now implements Closeable, allowing better cleanup of native resources
   * Adding writeCopyTo() and compactRealmFile() to write and compact a Realm to a new file.
