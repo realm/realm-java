@@ -1,7 +1,8 @@
-0.75.1 (??)
+0.75.1 (03 December 2014)
   * Changing sort to be an in-place method.
   * Renaming SORT_ORDER_DECENDING to SORT_ORDER_DESCENDING.
   * Adding sorting functionality to allObjects() and findAll().
+  * Bug fixed: when querying a date column with equalTo(), it would act as lessThan()
 
 0.75.0 (28 Nov 2014)
   * Realm now implements Closeable, allowing better cleanup of native resources
