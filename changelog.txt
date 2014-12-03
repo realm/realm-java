@@ -1,3 +1,6 @@
+0.75.1 (??)
+  * Bug fixed: when querying a date column with equalTo(), it would act as lessThan()
+
 0.75.0 (??)
   * Realm now implements Closeable, allowing better cleanup of native resources
   * Bug fixed in Exception text when field names was not matching the database
