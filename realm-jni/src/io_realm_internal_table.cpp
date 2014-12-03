@@ -1207,14 +1207,21 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return 0;
     int colType = pTable->get_column_type( S(columnIndex) );
-    if (colType != type_Int && colType != type_Bool && colType != type_DateTime) {
-        ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
-        return 0;
+    switch (colType) {
+        case type_Int:
+        case type_Bool:
+        case type_DateTime:
+        case type_String:
+        case type_Double:
+        case type_Float:
+            try {
+                TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
+                return reinterpret_cast<jlong>(pTableView);
+            } CATCH_STD()
+        default:
+            ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
+            return 0;
     }
-    try {
-        TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
-        return reinterpret_cast<jlong>(pTableView);
-    } CATCH_STD()
     return 0;
 }
 

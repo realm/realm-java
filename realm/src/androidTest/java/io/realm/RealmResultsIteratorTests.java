@@ -243,7 +243,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
     // Using size() as heuristic for concurrent modifications is dangerous as we might skip
     // elements.
-    // TODO Possible bug: Why does this interfer with reference counting check. They are separate Realm files.
+    // TODO Possible bug: Why does this interfere with reference counting check. They are separate Realm files.
     // TODO Possible bug: Why is realm.refresh() needed?
     public void testRemovingObjectsFromOtherThreadWhileIterating() throws InterruptedException, ExecutionException {
 
@@ -274,7 +274,8 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
                     backgroundRealm.close();
                     return false;
                 }
-                backgroundResult.sort("columnLong", RealmResults.SORT_ORDER_ASCENDING).remove(0);
+                backgroundResult.sort("columnLong", RealmResults.SORT_ORDER_ASCENDING);
+                backgroundResult.remove(0);
                 AllTypes o3 = backgroundRealm.createObject(AllTypes.class);
                 o3.setColumnLong(3);
                 backgroundRealm.commitTransaction();

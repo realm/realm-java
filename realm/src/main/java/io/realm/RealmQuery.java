@@ -25,6 +25,7 @@ import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
+import io.realm.internal.TableView;
 
 /**
  *
@@ -1117,6 +1118,25 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmResults<E> findAll() {
         return new RealmResults<E>(realm, query.findAll(), clazz);
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field name.
+     *
+     * @param fieldName the field name to sort by.
+     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     */
+    public RealmResults<E> findAll(String fieldName, boolean sortAscending) {
+        TableView tableView = query.findAll();
+        TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
+        Integer columnIndex = columns.get(fieldName);
+        if (columnIndex == null || columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+        tableView.sort(columnIndex, order);
+        return new RealmResults<E>(realm, tableView, clazz);
     }
 
     /**
