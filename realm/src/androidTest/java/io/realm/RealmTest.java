@@ -699,33 +699,44 @@ public class RealmTest extends AndroidTestCase {
                 String codePoint = new String(chars);
                 chars_array.add(codePoint);
 
-}
+            }
         } catch (Exception e) {
             fail("Failure, Codepoint: " + i + " / " + currentUnicode + " " + e.getMessage());
         }
-    return chars_array;
+        return chars_array;
     }
+
     public void testRandomCharacters() {
+        Realm.deleteRealmFile(getContext());
         List<String> chars_array = getRandomArray();
 
         int random = 0;
 
         String test_char = "";
         String test_char_old = "";
+        String get_data = "";
         Realm realmTest = Realm.getInstance(getContext());
         for (int i = 0; i < 1000; i++) {
             random = new Random().nextInt(25);
+            realmTest.beginTransaction();
 
             for (int j = 0; j < random; j++) {
-                test_char = test_char_old+chars_array.get(new Random().nextInt(1000));
-                realmTest.beginTransaction();
+                test_char = test_char_old + chars_array.get(new Random().nextInt(1000));
                 Characters characters = realmTest.createObject(Characters.class);
                 characters.setChars(test_char);
-                realmTest.commitTransaction();
                 test_char_old = test_char;
 
             }
-        }realmTest.close();
+            realmTest.commitTransaction();
+            for (int k = 0; k < realmTest.allObjects(Characters.class).size(); k++) {
+                get_data = realmTest.allObjects(Characters.class).get(k).getChars();
+
+            }
+            realmTest.beginTransaction();
+            realmTest.clear(Characters.class);
+            realmTest.commitTransaction();
+        }
+        realmTest.close();
     }
 
     public void testReferenceCounting() {
