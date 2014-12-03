@@ -715,13 +715,14 @@ public class RealmTest extends AndroidTestCase {
         String test_char = "";
         String test_char_old = "";
         String get_data = "";
+
         Realm realmTest = Realm.getInstance(getContext());
         for (int i = 0; i < 1000; i++) {
             random = new Random().nextInt(25);
             realmTest.beginTransaction();
 
             for (int j = 0; j < random; j++) {
-                test_char = test_char_old + chars_array.get(new Random().nextInt(1000));
+                test_char = test_char_old + chars_array.get(new Random().nextInt(27261));
                 Characters characters = realmTest.createObject(Characters.class);
                 characters.setChars(test_char);
                 test_char_old = test_char;
