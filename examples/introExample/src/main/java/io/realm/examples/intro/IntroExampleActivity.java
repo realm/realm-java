@@ -184,7 +184,8 @@ public class IntroExampleActivity extends Activity {
         }
 
         // Sorting
-        RealmResults<Person> sortedPersons = realm.allObjects(Person.class).sort("age", false);
+        RealmResults<Person> sortedPersons = realm.allObjects(Person.class);
+        sortedPersons.sort("age", false);
         assert(realm.allObjects(Person.class).last().getName() == sortedPersons.first().getName());
         status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first().getName();
 

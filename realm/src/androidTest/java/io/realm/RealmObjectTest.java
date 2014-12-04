@@ -328,7 +328,6 @@ public class RealmObjectTest extends AndroidTestCase {
 
         // test valid dates
         testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
         for (long value : testDatesValid) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnDate(new Date(value));
@@ -370,14 +369,19 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
-    private void addDate(int year, int month, int dayOfMonth) {
+    private Date newDate(int year, int month, int dayOfMonth) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, year);
         cal.set(Calendar.MONTH, month);
         cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
 
-        // Create the Date object
-        Date date = cal.getTime();
+    private void addDate(int year, int month, int dayOfMonth) {
+        Date date = newDate(year, month, dayOfMonth);
 
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
@@ -386,11 +390,13 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         AllTypes object = testRealm.allObjects(AllTypes.class).first();
-        assertEquals(1000 * (date.getTime() / 1000), 1000 * (object.getColumnDate().getTime() / 1000)); // Realm does not support millisec precision
+
+        // Realm does not support millisec precision
+        assertEquals(1000 * (date.getTime() / 1000), 1000 * (object.getColumnDate().getTime() / 1000));
     }
 
-    public void testDate() {
-        // Too old
+    public void testDateTypeOutOfRange() {
+        // ** Must throw if date is too old
         for (int i = 0; i < 2; i++) {
             try {
                 addDate(1900 + i, 1, 1);
@@ -400,12 +406,12 @@ public class RealmObjectTest extends AndroidTestCase {
             }
         }
 
-        // Fine
+        // ** Supported dates works
         for (int i = 2; i < 10; i++) {
             addDate(1900 + i, 1, 1);
         }
 
-        // Too far in the future
+        // ** Must throw if date is too new
         for (int i = 0; i < 2; i++) {
             try {
                 addDate(2038 + i, 1, 20);
@@ -416,26 +422,4 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
-    // Annotation processor honors common naming conventions
-    // We check if setters and getters are generated and working
-    public void testNamingConvention() {
-        Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-        realm.clear(AnnotationNameConventions.class);
-        AnnotationNameConventions anc1 = realm.createObject(AnnotationNameConventions.class);
-        anc1.setHasObject(true);
-        anc1.setId_object(1);
-        anc1.setmObject(2);
-        anc1.setObject_id(3);
-        anc1.setObject(true);
-        realm.commitTransaction();
-
-        AnnotationNameConventions anc2 = realm.allObjects(AnnotationNameConventions.class).first();
-        assertTrue(anc2.isHasObject());
-        assertEquals(1, anc2.getId_object());
-        assertEquals(2, anc2.getmObject());
-        assertEquals(3, anc2.getObject_id());
-        assertTrue(anc2.isObject());
-        realm.close();
-    }
 }

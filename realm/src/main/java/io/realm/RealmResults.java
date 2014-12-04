@@ -25,7 +25,6 @@ import java.util.ListIterator;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
-import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
@@ -49,7 +48,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private TableOrView table = null;
 
     public static final boolean SORT_ORDER_ASCENDING = true;
-    public static final boolean SORT_ORDER_DECENDING = false;
+    public static final boolean SORT_ORDER_DESCENDING = false;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private long currentTableViewVersion = -1;
@@ -162,45 +161,41 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Sorting
 
     /**
-     * Get a sorted (ascending) RealmList from an existing @{link io.realm.RealmList}.
-     * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
+     * Sort (ascending) an existing @{link io.realm.RealmList}.
      * 
-     * @param fieldName  The field name to sort by.
-     * @return           A sorted RealmResults list
+     * @param fieldName  The field name to sort by. Only fields of type boolean, short, int, long,
+     *                   float, double, Date, and String are supported.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
-    public RealmResults<E> sort(String fieldName) {
-        return sort(fieldName, SORT_ORDER_ASCENDING);
+    public void sort(String fieldName) {
+        this.sort(fieldName, SORT_ORDER_ASCENDING);
     }
 
     /**
-     * Get a sorted RealmList from an existing @{link io.realm.RealmList}.
-     * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
+     * Sort existing @{link io.realm.RealmList}.
      *
-     * @param fieldName      The field name to sort by.
+     * @param fieldName      The field name to sort by. Only fields of type boolean, short, int,
+     *                       long, float, double, Date, and String are supported.
      * @param sortAscending  The direction to sort by; if true ascending, otherwise descending
-     *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DECENDING
+     *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DESCENDING
      *                       for readability.
-     * @return               A sorted RealmResults list.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
-    public RealmResults<E> sort(String fieldName, boolean sortAscending) {
-        TableView sorted;
-
+    public void sort(String fieldName, boolean sortAscending) {
         realm.checkIfValid();
         TableOrView table = getTable();
-        long columnIndex = table.getColumnIndex(fieldName);
-        TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
 
         if (table instanceof TableView) {
-            TableView v = (TableView)table;
-            sorted = v.where().findAll();
-            sorted.sort(columnIndex, TVOrder);
+            long columnIndex = table.getColumnIndex(fieldName);
+            if (columnIndex < 0) {
+                throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
+            }
+            TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
+            ((TableView) table).sort(columnIndex, TVOrder);
         }
         else {
-            Table t = (Table)table;
-            sorted = t.getSortedView(columnIndex, TVOrder);
+            throw new IllegalArgumentException("Only RealmResults can be sorted - please use allObject() to create a RealmResults.");
         }
-
-        return new RealmResults<E>(realm, sorted, classSpec);
     }
 
 
