@@ -789,8 +789,7 @@ public class RealmTest extends AndroidTestCase {
         return chars_array;
     }
 
-    public void testRandomCharacters() {
-        Realm.deleteRealmFile(getContext());
+    public void randomCharacters() {
         List<String> chars_array = getRandomArray();
 
         Random random = new Random();
@@ -801,33 +800,29 @@ public class RealmTest extends AndroidTestCase {
         String test_char_old = "";
         String get_data = "";
 
-        Realm realmTest = Realm.getInstance(getContext());
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10000; i++) {
             random_value = random.nextInt(25);
 
             for (int j = 0; j < random_value; j++) {
                 test_char = test_char_old + chars_array.get(random.nextInt(27261));
                 test_char_old = test_char;
-
             }
-            realmTest.beginTransaction();
-            Characters characters = realmTest.createObject(Characters.class);
+            testRealm.beginTransaction();
+            Characters characters = testRealm.createObject(Characters.class);
             characters.setChars(test_char);
-            realmTest.commitTransaction();
-            for (int k = 0; k < realmTest.allObjects(Characters.class).size(); k++) {
-                get_data = realmTest.allObjects(Characters.class).get(k).getChars();
+            testRealm.commitTransaction();
 
-            }
-            realmTest.beginTransaction();
-            realmTest.clear(Characters.class);
-            realmTest.commitTransaction();
+            get_data = testRealm.allObjects(Characters.class).get(0).getChars();
+
+            testRealm.beginTransaction();
+            testRealm.clear(Characters.class);
+            testRealm.commitTransaction();
         }
-        realmTest.close();
     }
 
     public void testRandomCharactersLoop() {
         for (int i = 0; i < 10; i++) {
-            testRandomCharacters();
+            randomCharacters();
         }
     }
 
