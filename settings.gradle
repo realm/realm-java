@@ -2,7 +2,13 @@
 include 'realm'
 
 // Example projects
-include ':introExample', ':gridViewExample', ':concurrencyExample', ':encryptionExample', ':migrationExample', ':adapterExample'
+include ':introExample',
+        ':gridViewExample',
+        ':concurrencyExample',
+        ':encryptionExample',
+        ':migrationExample',
+        ':adapterExample',
+        ':threadExample'
 
 project(':introExample').projectDir = new File('examples/introExample')
 project(':gridViewExample').projectDir = new File('examples/gridViewExample')
@@ -10,6 +16,7 @@ project(':concurrencyExample').projectDir = new File('examples/concurrencyExampl
 project(':encryptionExample').projectDir = new File('examples/encryptionExample')
 project(':migrationExample').projectDir = new File('examples/migrationExample')
 project(':adapterExample').projectDir = new File('examples/adapterExample')
+project(':threadExample').projectDir = new File('examples/threadExample')
 
 // Experimental projects
 include ':pathExperiment'
