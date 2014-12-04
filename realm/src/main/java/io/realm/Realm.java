@@ -825,7 +825,8 @@ public class Realm implements Closeable {
     }
 
     void sendNotifications() {
-        for (RealmChangeListener listener : changeListeners) {
+        List<RealmChangeListener> defensiveCopy = new ArrayList<RealmChangeListener>(changeListeners);
+        for (RealmChangeListener listener : defensiveCopy) {
             listener.onChange();
         }
     }

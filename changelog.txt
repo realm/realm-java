@@ -1,3 +1,6 @@
+0.76.0 (??)
+ * Allow to add/remove RealmChangeListeners in RealmChangeListeners
+
 0.75.1 (03 December 2014)
   * Changing sort to be an in-place method.
   * Renaming SORT_ORDER_DECENDING to SORT_ORDER_DESCENDING.
