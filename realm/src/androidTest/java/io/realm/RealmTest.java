@@ -698,7 +698,7 @@ public class RealmTest extends AndroidTestCase {
                 char[] chars = Character.toChars(Integer.parseInt(currentUnicode, 16));
                 String codePoint = new String(chars);
                 chars_array.add(codePoint);
-
+                i++;
             }
         } catch (Exception e) {
             fail("Failure, Codepoint: " + i + " / " + currentUnicode + " " + e.getMessage());
@@ -710,7 +710,9 @@ public class RealmTest extends AndroidTestCase {
         Realm.deleteRealmFile(getContext());
         List<String> chars_array = getRandomArray();
 
-        int random = 0;
+        Random random = new Random();
+
+        int random_value = 0;
 
         String test_char = "";
         String test_char_old = "";
@@ -718,16 +720,16 @@ public class RealmTest extends AndroidTestCase {
 
         Realm realmTest = Realm.getInstance(getContext());
         for (int i = 0; i < 1000; i++) {
-            random = new Random().nextInt(25);
-            realmTest.beginTransaction();
+            random_value = random.nextInt(25);
 
-            for (int j = 0; j < random; j++) {
-                test_char = test_char_old + chars_array.get(new Random().nextInt(27261));
-                Characters characters = realmTest.createObject(Characters.class);
-                characters.setChars(test_char);
+            for (int j = 0; j < random_value; j++) {
+                test_char = test_char_old + chars_array.get(random.nextInt(27261));
                 test_char_old = test_char;
 
             }
+            realmTest.beginTransaction();
+            Characters characters = realmTest.createObject(Characters.class);
+            characters.setChars(test_char);
             realmTest.commitTransaction();
             for (int k = 0; k < realmTest.allObjects(Characters.class).size(); k++) {
                 get_data = realmTest.allObjects(Characters.class).get(k).getChars();
@@ -738,6 +740,12 @@ public class RealmTest extends AndroidTestCase {
             realmTest.commitTransaction();
         }
         realmTest.close();
+    }
+
+    public void testRandomCharactersLoop() {
+        for (int i = 0; i < 10; i++) {
+            testRandomCharacters();
+        }
     }
 
     public void testReferenceCounting() {
