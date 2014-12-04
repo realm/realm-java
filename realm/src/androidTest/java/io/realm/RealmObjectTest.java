@@ -424,7 +424,7 @@ public class RealmObjectTest extends AndroidTestCase {
     public void testWriteMustThrowOutOfTransaction() {
         testRealm.beginTransaction();
         Dog dog = testRealm.createObject(Dog.class);
-        testRealm.close();
+        testRealm.commitTransaction();
 
         try {
             dog.setName("Rex");

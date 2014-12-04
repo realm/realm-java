@@ -1057,7 +1057,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    private void checkImmutable() {
+    void checkImmutable() {
         if (isImmutable()) throwImmutable();
     }
 
