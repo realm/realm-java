@@ -272,14 +272,14 @@ jstring to_jstring(JNIEnv* env, StringData str)
                 end_of_input = in == in_end;
                 if (end_of_input)
                     break;
-                bool next_byte_is_continuation = unsigned(*in) & 0xC0 == 0x80;
+                bool next_byte_is_continuation = (unsigned(*in) & 0xC0 == 0x80);
                 if (!next_byte_is_continuation)
                     break;
             }
         }
         size_t used_size = out - out_begin; // What we already have
         size_t min_capacity = used_size;
-        min_cpacity += 1; // Make space for a replacement character
+        min_capacity += 1; // Make space for a replacement character
         size_t in_2 = in; // Avoid clobbering `in`
         if (int_add_with_overflow_detect(min_capacity, Xcode::find_utf16_buf_size(in_2, in_end)))
             throw runtime_error("Buffer size overflow");
