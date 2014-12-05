@@ -286,11 +286,11 @@ jstring to_jstring(JNIEnv* env, StringData str)
         bool copy_stack_buf = dyn_buf.size() == 0;
         size_t used_dyn_buf_size = copy_stack_buf ? 0 : used_size;
         dyn_buf.reserve(used_dyn_buf_size, min_capacity);
+        if (copy_stack_buf)
+            copy(out_begin, out, dyn_buf.data());
         out_begin = dyn_buf.data();
         out_end = dyn_buf.data() + dyn_buf.size();
         out = out_begin + used_size;
-        if (copy_stack_buf)
-            copy(stack_buf, stack_buf_out_end, out_begin);
         if (bad_input)
             *out++ = JcharTraits::to_char_type(0xFFFD); // Unicode replacement character
     }
