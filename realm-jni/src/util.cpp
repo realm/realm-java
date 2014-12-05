@@ -280,7 +280,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         size_t used_size = out - out_begin; // What we already have
         size_t min_capacity = used_size;
         min_capacity += 1; // Make space for a replacement character
-        size_t in_2 = in; // Avoid clobbering `in`
+        const char* in_2 = in; // Avoid clobbering `in`
         if (int_add_with_overflow_detect(min_capacity, Xcode::find_utf16_buf_size(in_2, in_end)))
             throw runtime_error("Buffer size overflow");
         bool copy_stack_buf = dyn_buf.size() == 0;
