@@ -272,7 +272,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
                 end_of_input = in == in_end;
                 if (end_of_input)
                     break;
-                bool next_byte_is_continuation = (unsigned(*in) & 0xC0 == 0x80);
+                bool next_byte_is_continuation = (unsigned(*in) & 0xC0) == 0x80;
                 if (!next_byte_is_continuation)
                     break;
             }
