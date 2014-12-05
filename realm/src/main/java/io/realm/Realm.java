@@ -45,6 +45,7 @@ import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
+import io.realm.internal.TableView;
 
 
 /**
@@ -767,6 +768,28 @@ public class Realm implements Closeable {
         return where(clazz).findAll();
     }
 
+    /**
+     * Get all objects of a specific Class sorted by specific field name.
+     *
+     * @param clazz the Class to get objects of.
+     * @param fieldName the field name to sort by.
+     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     */
+    public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz, String fieldName, boolean sortAscending) {
+        checkIfValid();
+        Table table = getTable(clazz);
+        TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
+        Long columnIndex = columnIndices.get(simpleClassNames.get(clazz)).get(fieldName);
+        if (columnIndex == null || columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        TableView tableView = table.getSortedView(columnIndex, order);
+        return new RealmResults<E>(this, tableView, clazz);
+    }
+
     // Notifications
 
     /**
@@ -802,7 +825,8 @@ public class Realm implements Closeable {
     }
 
     void sendNotifications() {
-        for (RealmChangeListener listener : changeListeners) {
+        List<RealmChangeListener> defensiveCopy = new ArrayList<RealmChangeListener>(changeListeners);
+        for (RealmChangeListener listener : defensiveCopy) {
             listener.onChange();
         }
     }
