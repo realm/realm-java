@@ -789,7 +789,7 @@ public class RealmTest extends AndroidTestCase {
         return chars_array;
     }
 
-    public void randomCharacters() {
+    public void testRandomCharacters() {
         List<String> chars_array = getRandomArray();
 
         Random random = new Random();
@@ -817,12 +817,6 @@ public class RealmTest extends AndroidTestCase {
             testRealm.beginTransaction();
             testRealm.clear(Characters.class);
             testRealm.commitTransaction();
-        }
-    }
-
-    public void testRandomCharactersLoop() {
-        for (int i = 0; i < 10; i++) {
-            randomCharacters();
         }
     }
 
