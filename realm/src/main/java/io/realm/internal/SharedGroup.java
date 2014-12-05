@@ -85,16 +85,16 @@ public class SharedGroup implements Closeable {
         }
     */
     void advanceRead() {
-        nativeAdvanceRead(nativePtr); //, nativeTransactLogRegistryPtr);
+        nativeAdvanceRead(nativePtr);
     }
 
-    private native void nativeAdvanceRead(long nativePtr);//, long nativeTransactLogRegistryPtr);
+    private native void nativeAdvanceRead(long nativePtr);
 
     void promoteToWrite() {
-        nativePromoteToWrite(nativePtr); //, nativeTransactLogRegistryPtr);
+        nativePromoteToWrite(nativePtr);
     }
 
-    private native void nativePromoteToWrite(long nativePtr);//, long nativeTransactLogRegistryPtr);
+    private native void nativePromoteToWrite(long nativePtr);
 
     void commitAndContinueAsRead() {
         nativeCommitAndContinueAsRead(nativePtr);
