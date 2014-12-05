@@ -800,7 +800,7 @@ public class RealmTest extends AndroidTestCase {
         String test_char_old = "";
         String get_data = "";
 
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1000; i++) {
             random_value = random.nextInt(25);
 
             for (int j = 0; j < random_value; j++) {
