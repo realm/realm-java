@@ -231,57 +231,74 @@ string string_to_hex(const string& message, const jchar *str, size_t size) {
     return ret.str();
 }
 
+
 jstring to_jstring(JNIEnv* env, StringData str)
 {
-    // For efficiency, if the incoming UTF-8 string is sufficiently
-    // small, we will attempt to store the UTF-16 output into a stack
-    // allocated buffer of static size. Otherwise we will have to
-    // dynamically allocate the output buffer after calculating its
-    // size.
+    // Input is UTF-8 and output is UTF-16. Invalid UTF-8 input is
+    // silently converted to Unicode replacement characters.
+
+    // We use a small fixed size stack-allocated output buffer to avoid the cost
+    // of dynamic allocation for short input strings. If this buffer turns out
+    // to be too small, we proceed by calulating an estimate for the actual
+    // required output buffer size, and then allocate the buffer dynamically.
 
     const size_t stack_buf_size = 48;
     jchar stack_buf[stack_buf_size];
-    UniquePtr<jchar[]> dyn_buf;
+    Buffer<jchar> dyn_buf;
 
-    const char* in_begin = str.data();
-    const char* in_end   = str.data() + str.size();
-    jchar* out_begin = stack_buf;
-    jchar* out_curr  = stack_buf;
-    jchar* out_end   = stack_buf + stack_buf_size;
+    const char* in = str.data();
+    const char* in_end = in + str.size();
+    jchar* out = stack_buf;
+    jchar* out_begin = out;
+    jchar* out_end = out_begin + stack_buf_size;
 
-    typedef Utf8x16<jchar, JcharTraits> Xcode;
-
-    if (str.size() <= stack_buf_size) {
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
-            throw runtime_error(string_to_hex("Failure when converting short string to UTF-16",  str));
-        if (in_begin == in_end)
-            goto transcode_complete;
+    for (;;) {
+        typedef Utf8x16<jchar, JcharTraits> Xcode;
+        Xcode::to_utf16(in, in_end, out, out_end);
+        bool end_of_input = in == in_end;
+        if (end_of_input)
+            break;
+        bool bad_input = out != out_end;
+        if (bad_input) {
+            // Discard one or more invalid bytes from the input. We shall follow
+            // the stardard way of doing this, namely by first discarding the
+            // leading invalid byte, which must either be a sequence lead byte
+            // (11xxxxxx) or a stray continuation byte (10xxxxxx), and then
+            // discard any additional continuation bytes following leading
+            // invalid byte.
+            for (;;) {
+                ++in;
+                end_of_input = in == in_end;
+                if (end_of_input)
+                    break;
+                bool next_byte_is_continuation = unsigned(*in) & 0xC0 == 0x80;
+                if (!next_byte_is_continuation)
+                    break;
+            }
+        }
+        size_t used_size = out - out_begin; // What we already have
+        size_t min_capacity = used_size;
+        min_cpacity += 1; // Make space for a replacement character
+        size_t in_2 = in; // Avoid clobbering `in`
+        if (int_add_with_overflow_detect(min_capacity, Xcode::find_utf16_buf_size(in_2, in_end)))
+            throw runtime_error("Buffer size overflow");
+        bool copy_stack_buf = dyn_buf.size() == 0;
+        size_t used_dyn_buf_size = copy_stack_buf ? 0 : used_size;
+        dyn_buf.reserve(used_dyn_buf_size, min_capacity);
+        out_begin = dyn_buf.data();
+        out_end = dyn_buf.data() + dyn_buf.size();
+        out = out_begin + used_size;
+        if (copy_stack_buf)
+            copy(stack_buf, stack_buf_out_end, out_begin);
+        if (bad_input)
+            *out++ = JcharTraits::to_char_type(0xFFFD); // Unicode replacement character
     }
 
-    {
-        const char* in_begin2 = in_begin;
-        size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end);
-        if (in_begin2 != in_end) 
-            throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str));
-        if (int_add_with_overflow_detect(size, stack_buf_size))
-            throw runtime_error("String size overflow");
-        dyn_buf.reset(new jchar[size]);
-        out_curr = copy(out_begin, out_curr, dyn_buf.get());
-        out_begin = dyn_buf.get();
-        out_end   = dyn_buf.get() + size;
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
-            throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str));
-        TIGHTDB_ASSERT(in_begin == in_end);
-    }
+    jsize out_size;
+    if (int_cast_with_overflow_detect(out - out_begin, out_size))
+        throw runtime_error("String size overflow");
 
-  transcode_complete:
-    {
-        jsize out_size;
-        if (int_cast_with_overflow_detect(out_curr - out_begin, out_size))
-            throw runtime_error("String size overflow");
-
-        return env->NewString(out_begin, out_size);
-    }
+    return env->NewString(out_begin, out_size);
 }
 
 
