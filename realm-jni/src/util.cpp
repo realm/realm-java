@@ -19,6 +19,7 @@
 
 #include <tightdb/util/assert.hpp>
 #include <tightdb/util/utf8.hpp>
+#include <tightdb/util/buffer.hpp>
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
