@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.test.AndroidTestCase;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -67,15 +68,14 @@ public class RealmAdapterTest extends AndroidTestCase {
     }
 
     public void testUpdateRealmResultInAdapter() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll()
-                .sort(FIELD_STRING);
-        RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
-        assertEquals(resultList.first(), realmAdapter.getRealmResults().first());
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        resultList.sort(FIELD_STRING);
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, false);
+        assertEquals(resultList.first().getColumnString(), realmAdapter.getRealmResults().first().getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
-        realmAdapter.updateRealmResults(realmAdapter.getRealmResults()
-                .sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING));
-        assertEquals(resultList.first(), realmAdapter.getRealmResults().last());
+        realmAdapter.updateRealmResults(realmAdapter.getRealmResults());
+        assertEquals(resultList.last().getColumnString(), realmAdapter.getRealmResults().last().getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
         RealmResults<AllTypes> emptyResultList = testRealm.where(AllTypes.class)
@@ -104,15 +104,16 @@ public class RealmAdapterTest extends AndroidTestCase {
     }
 
     public void testSortWithAdapter() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll()
-                .sort(FIELD_STRING, RealmResults.SORT_ORDER_DECENDING);
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        resultList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
-        assertEquals(resultList.first(), realmAdapter.getRealmResults().first());
+        assertEquals(resultList.first().getColumnString(), realmAdapter.getRealmResults().first().getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
-        realmAdapter.updateRealmResults(realmAdapter.getRealmResults()
-                .sort(FIELD_STRING));
-        assertEquals(resultList.last(), realmAdapter.getRealmResults().first());
+        resultList.sort(FIELD_STRING);
+
+        assertEquals(resultList.last().getColumnString(), realmAdapter.getRealmResults().last().getColumnString());
+        assertEquals(resultList.get(22).getColumnString(), realmAdapter.getRealmResults().get(22).getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
     }
 
@@ -128,9 +129,9 @@ public class RealmAdapterTest extends AndroidTestCase {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
 
-        assertEquals(resultList.get(0), realmAdapter.getItem(0));
+        assertEquals(resultList.get(0).getColumnString(), realmAdapter.getItem(0).getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
-        assertEquals(resultList.last(), realmAdapter.getRealmResults().last());
+        assertEquals(resultList.last().getColumnString(), realmAdapter.getRealmResults().last().getColumnString());
     }
 
     public void testGetItemId() {
