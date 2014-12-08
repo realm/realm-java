@@ -14,25 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service.model;
+package io.realm.examples.service.threads;
 
-import io.realm.RealmObject;
+public interface KillableThread {
 
-public class Dog extends RealmObject {
-    private String name;
+    public void terminate();
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String toString() {
-        return "Dog{" +
-                "name='" + name + '\'' +
-                '}';
-    }
 }

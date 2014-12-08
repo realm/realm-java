@@ -21,7 +21,7 @@
     android:background="@color/fragment_background"
     tools:context=".MainActivity$PlaceholderFragment">
 
-    <io.realm.threadexample.widgets.DotsView
+    <io.realm.examples.threads.widgets.DotsView
         android:id="@+id/dots"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

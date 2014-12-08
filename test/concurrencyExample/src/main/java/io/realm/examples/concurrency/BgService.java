@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.concurrency;
+package io.realm.examples.service;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -23,11 +23,8 @@ import android.util.Log;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.examples.concurrency.model.Dog;
-import io.realm.examples.concurrency.model.Person;
-
-import java.io.File;
-import java.io.IOException;
+import io.realm.examples.service.model.Dog;
+import io.realm.examples.service.model.Person;
 
 public class BgService extends IntentService {
 

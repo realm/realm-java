@@ -4,15 +4,16 @@ include 'realm'
 // Example projects
 include ':introExample',
         ':gridViewExample',
-        ':concurrencyExample',
+        ':serviceExample',
         ':encryptionExample',
         ':migrationExample',
         ':adapterExample',
         ':threadExample'
 
+
 project(':introExample').projectDir = new File('examples/introExample')
 project(':gridViewExample').projectDir = new File('examples/gridViewExample')
-project(':concurrencyExample').projectDir = new File('examples/concurrencyExample')
+project(':serviceExample').projectDir = new File('examples/serviceExample')
 project(':encryptionExample').projectDir = new File('examples/encryptionExample')
 project(':migrationExample').projectDir = new File('examples/migrationExample')
 project(':adapterExample').projectDir = new File('examples/adapterExample')

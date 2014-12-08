@@ -18,7 +18,7 @@ package io.realm.examples.service.model;
 
 import io.realm.RealmObject;
 
-public class Dog extends RealmObject {
+public class Cat extends RealmObject {
     private String name;
 
     public String getName() {
@@ -29,10 +29,4 @@ public class Dog extends RealmObject {
         this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return "Dog{" +
-                "name='" + name + '\'' +
-                '}';
-    }
 }

@@ -29,10 +29,4 @@ public class Dog extends RealmObject {
         this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return "Dog{" +
-                "name='" + name + '\'' +
-                '}';
-    }
 }
