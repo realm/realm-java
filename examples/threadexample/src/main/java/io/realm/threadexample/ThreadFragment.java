@@ -31,7 +31,7 @@ import java.util.Random;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.myapplication.R;
-import io.realm.threadexample.models.Point;
+import io.realm.threadexample.models.Dot;
 import io.realm.threadexample.widgets.DotsView;
 
 /**
@@ -61,6 +61,8 @@ public class ThreadFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+
+        // Create Realm instance for the UI thread
         realm = Realm.getInstance(getActivity());
     }
 
@@ -70,13 +72,13 @@ public class ThreadFragment extends Fragment {
         dotsView = (DotsView) rootView.findViewById(R.id.dots);
 
         // Create a RealmQuery on the UI thread and send the results to the custom view. The
-        // RealmResults will automatically be updated whenever new data is either added or removed.
+        // RealmResults will automatically be updated whenever the Realm data is changed.
         // We still need to invalidate the UI to show the changes however. See the RealmChangeListener.
         //
-        // Note also that currently the query gets updated by rerunning it on the thread it was
-        // created. This can negatively effect framerates if it is a complicated query or a very
-        // large dataset.
-        dotsView.setRealmResults(realm.allObjects(Point.class));
+        // Note that the query gets updated by rerunning it on the thread it was
+        // created. This can negatively effect frame rates if it is a complicated query or a very
+        // large data set.
+        dotsView.setRealmResults(realm.allObjects(Dot.class));
 
         return rootView;
     }
@@ -93,16 +95,16 @@ public class ThreadFragment extends Fragment {
         switch(item.getItemId()) {
             case R.id.action_add_dot:
                 realm.beginTransaction();
-                Point point = realm.createObject(Point.class);
-                point.setX(random.nextInt(100));
-                point.setY(random.nextInt(100));
-                point.setColor(getResources().getColor(R.color.realm_blue));
+                Dot dot = realm.createObject(Dot.class);
+                dot.setX(random.nextInt(100));
+                dot.setY(random.nextInt(100));
+                dot.setColor(getResources().getColor(R.color.realm_blue));
                 realm.commitTransaction();
                 return true;
 
             case R.id.action_clear:
                 realm.beginTransaction();
-                realm.clear(Point.class);
+                realm.clear(Dot.class);
                 realm.commitTransaction();
                 return true;
 
@@ -118,7 +120,7 @@ public class ThreadFragment extends Fragment {
         // Enable UI refresh while the fragment is active.
         realm.addChangeListener(realmListener);
 
-        // Create background thread that add new dots every 0.5 second.
+        // Create background thread that add a new dot every 0.5 second.
         backgroundThread = new Thread(new Runnable() {
 
             @Override
@@ -127,20 +129,22 @@ public class ThreadFragment extends Fragment {
                 // instance on the background thread.
                 Realm realm = Realm.getInstance(getActivity(), false);
                 while (!backgroundThread.isInterrupted()) {
-                    try {
-                        realm.beginTransaction();
-                        Point point = realm.createObject(Point.class);
-                        point.setX(random.nextInt(100));
-                        point.setY(random.nextInt(100));
-                        point.setColor(getResources().getColor(R.color.realm_red));
-                        realm.commitTransaction();
+                    realm.beginTransaction();
+                    Dot dot = realm.createObject(Dot.class);
+                    dot.setX(random.nextInt(100));
+                    dot.setY(random.nextInt(100));
+                    dot.setColor(getResources().getColor(R.color.realm_red));
+                    realm.commitTransaction();
 
+                    // Wait 0.5 sec. before adding the next dot.
+                    try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
 
+                // Also close Realm instances used in background threads.
                 realm.close();
             }
         });
@@ -152,7 +156,7 @@ public class ThreadFragment extends Fragment {
         super.onPause();
 
         // Disable UI refresh while the fragment is no longer active.
-        realm.addChangeListener(realmListener);
+        realm.removeChangeListener(realmListener);
         backgroundThread.interrupt();
     }
 
