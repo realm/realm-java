@@ -14,9 +14,30 @@
  * limitations under the License.
  */
 
+// define if you wish to log all JNI calls
+#undef REALM_SHARED_GROUP_LOG_CALLS 
+
+
 #include <iostream>
 
 #include <jni.h>
+
+#if defined(ANDROID) && defined(REALM_SHARED_GROUP_LOG_CALLS)
+#include <android/log.h>
+
+const char *log_tag = "REALM";
+
+#define LOG_ENTER() \
+    __android_log_print(ANDROID_LOG_DEBUG, log_tag, " --> %s", __FUNCTION__);
+#define LOG_JAVA_STRING(__env, __var) \
+    __android_log_print(ANDROID_LOG_DEBUG, log_tag, "%s(%d): size=%d", __FILE__, __LINE__, __env->GetStringLength(__var));
+#define LOG_JAVA_NUMBER(__fmt, __var) \
+    __android_log_print(ANDROID_LOG_DEBUG, log_tag, "%s(%d): " #__fmt, __FILE__, __LINE__, __var);
+#else
+#define LOG_ENTER()
+#define LOG_JAVA_STRING(__env, __var)
+#define LOG_JAVA_NUMBER(__fmt, __var)
+#endif
 
 #include <tightdb/group_shared.hpp>
 #include <tightdb/replication.hpp>
@@ -33,6 +54,9 @@ using namespace tightdb;
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
     JNIEnv* env, jobject, jstring jfile_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
+    LOG_ENTER()
+    LOG_JAVA_STRING(env, jfile_name)
+    LOG_JAVA_NUMBER("%d", durability)
     StringData file_name;
 
     SharedGroup* db = 0;
@@ -90,6 +114,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImplicitTransactions
   (JNIEnv* env, jobject, jlong native_replication_ptr, jbyteArray keyArray)
 {
+    LOG_ENTER()
     try {
         KeyBuffer key(env, keyArray);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
@@ -113,6 +138,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplication
   (JNIEnv* env, jobject, jstring jfile_name)
 {
+    LOG_ENTER()
     StringData file_name;
     try {     
         JStringAccessor file_name_tmp(env, jfile_name); // throws
@@ -127,6 +153,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateTransactLogRegistry
   (JNIEnv* env, jobject, jstring jfile_name)
 {
+    LOG_ENTER()
+    LOG_JAVA_STRING(env, jfile_name)
+
     StringData file_name;
     try {
         JStringAccessor file_name_tmp(env, jfile_name); // throws
@@ -142,6 +171,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateTransactL
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
   (JNIEnv* env, jobject, jlong native_ptr)
 {
+    LOG_ENTER()
     try {
         Group& group = const_cast<Group&>(SG(native_ptr)->begin_read());
         return reinterpret_cast<jlong>(&group);
@@ -153,6 +183,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
   (JNIEnv *env, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
 {
+    LOG_ENTER()
     try {
         LangBindHelper::advance_read( *SG(native_ptr), *reinterpret_cast<LangBindHelper::TransactLogRegistry*>(native_tansact_log_registry_ptr) );
     }
@@ -162,6 +193,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
   (JNIEnv *env, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
 {
+    LOG_ENTER()
     try {
         LangBindHelper::promote_to_write( *SG(native_ptr), *reinterpret_cast<LangBindHelper::TransactLogRegistry*>(native_tansact_log_registry_ptr) );
     }
@@ -171,6 +203,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinueAsRead
   (JNIEnv *env, jobject, jlong native_ptr)
 {
+    LOG_ENTER()
     try {
         LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );
     }
@@ -180,24 +213,28 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinu
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseTransactRegistryLog
   (JNIEnv *, jobject, jlong native_tansact_log_registry_ptr)
 {
+    LOG_ENTER()
     delete reinterpret_cast<LangBindHelper::TransactLogRegistry*>(native_tansact_log_registry_ptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
   (JNIEnv *, jobject, jlong native_replication_ptr)
 {
+    LOG_ENTER()
     delete reinterpret_cast<Replication*>(native_replication_ptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeClose(
     JNIEnv*, jclass, jlong native_ptr)
 {
+    LOG_ENTER()
     delete SG(native_ptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeReserve(
    JNIEnv *env, jobject, jlong native_ptr, jlong bytes)
 {
+    LOG_ENTER()
     if (bytes <= 0) {
         ThrowException(env, UnsupportedOperation, "number of bytes must be > 0.");
         return;
@@ -212,6 +249,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeReserve(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginRead(
     JNIEnv* env, jobject, jlong native_ptr)
 {
+    LOG_ENTER()
     try {
         const Group& group = SG(native_ptr)->begin_read();
         return reinterpret_cast<jlong>(&group);
@@ -223,12 +261,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginRead(
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeEndRead(
     JNIEnv *, jobject, jlong native_ptr)
 {
+    LOG_ENTER()
     SG(native_ptr)->end_read();     // noexcept
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginWrite(
     JNIEnv* env, jobject, jlong native_ptr)
 {
+    LOG_ENTER()
     try {
         Group& group = SG(native_ptr)->begin_write();
         return reinterpret_cast<jlong>(&group);
@@ -240,18 +280,21 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginWrite(
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommit(
     JNIEnv*, jobject, jlong native_ptr)
 {
+    LOG_ENTER()
     SG(native_ptr)->commit();   // noexcept
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollback(
     JNIEnv*, jobject, jlong native_ptr)
 {
+    LOG_ENTER()
     SG(native_ptr)->rollback();   // noexcept
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndContinueAsRead(
     JNIEnv *, jobject, jlong native_ptr)
 {
+    LOG_ENTER()
     LangBindHelper::rollback_and_continue_as_read(*SG(native_ptr));
 }
 
@@ -259,12 +302,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndConti
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeHasChanged
   (JNIEnv *, jobject, jlong native_ptr)
 {
+    LOG_ENTER()
     return SG(native_ptr)->has_changed();   // noexcept
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultReplicationDatabaseFileName(
     JNIEnv* env, jclass)
 {
+    LOG_ENTER()
 #ifdef TIGHTDB_ENABLE_REPLICATION
     ThrowException(env, UnsupportedOperation,
                    "Replication is not currently supported by the Java language binding.");
