@@ -235,12 +235,12 @@ string string_to_hex(const string& message, const jchar *str, size_t size) {
 
 jstring to_jstring(JNIEnv* env, StringData str)
 {
-    // Input is UTF-8 and output is UTF-16. Invalid UTF-8 input is
-    // silently converted to Unicode replacement characters.
+    // Input is UTF-8 and output is UTF-16. Invalid UTF-8 input is silently
+    // converted to Unicode replacement characters.
 
     // We use a small fixed size stack-allocated output buffer to avoid the cost
     // of dynamic allocation for short input strings. If this buffer turns out
-    // to be too small, we proceed by calulating an estimate for the actual
+    // to be too small, we proceed by calculating an estimate for the actually
     // required output buffer size, and then allocate the buffer dynamically.
 
     const size_t stack_buf_size = 48;
@@ -261,12 +261,13 @@ jstring to_jstring(JNIEnv* env, StringData str)
             break;
         bool bad_input = out != out_end;
         if (bad_input) {
-            // Discard one or more invalid bytes from the input. We shall follow
-            // the stardard way of doing this, namely by first discarding the
-            // leading invalid byte, which must either be a sequence lead byte
-            // (11xxxxxx) or a stray continuation byte (10xxxxxx), and then
-            // discard any additional continuation bytes following leading
-            // invalid byte.
+            // Discard one or more invalid bytes from the input.
+            //
+            // We follow the stardard way of doing this, which is to first
+            // discard the leading invalid byte, which must either be a sequence
+            // lead byte (11xxxxxx) or a stray continuation byte (10xxxxxx), and
+            // then discard any additional continuation bytes following the
+            // leading invalid byte.
             for (;;) {
                 ++in;
                 end_of_input = in == in_end;
@@ -305,12 +306,11 @@ jstring to_jstring(JNIEnv* env, StringData str)
 
 JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
 {
-    // For efficiency, if the incoming UTF-16 string is sufficiently
-    // small, we will choose an UTF-8 output buffer whose size (in
-    // bytes) is simply 4 times the number of 16-bit elements in the
-    // input. This is guaranteed to be enough. However, to avoid
-    // excessive over allocation, this is not done for larger input
-    // strings.
+    // For efficiency, if the incoming UTF-16 string is sufficiently small, we
+    // will choose an UTF-8 output buffer whose size (in bytes) is simply 4
+    // times the number of 16-bit elements in the input. This is guaranteed to
+    // be enough. However, to avoid excessive over allocation, this is not done
+    // for larger input strings.
 
     JStringCharsAccessor chars(env, str);
 
