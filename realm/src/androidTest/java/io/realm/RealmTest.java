@@ -791,8 +791,9 @@ public class RealmTest extends AndroidTestCase {
 
     public void randomCharacters() {
         List<String> chars_array = getRandomArray();
-
-        Random random = new Random();
+        // Change seed value for new set.
+        long seed = 20;
+        Random random = new Random(seed);
 
         int random_value = 0;
 
