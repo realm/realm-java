@@ -242,7 +242,7 @@ public class Group implements Closeable {
         writeToFile(file);
     }
 
-    protected native void nativeWriteToFile(long nativeGroupPtr, String fileName)
+    protected native void nativeWriteToFile(long nativeGroupPtr, String fileName, byte[] keyArray)
             throws IOException;
 
     /**
@@ -254,7 +254,7 @@ public class Group implements Closeable {
      */
     public void writeToFile(File file) throws IOException {
         verifyGroupIsValid();
-        nativeWriteToFile(nativePtr, file.getAbsolutePath());
+        nativeWriteToFile(nativePtr, file.getAbsolutePath(), null);
     }
 
     protected static native long nativeLoadFromMem(byte[] buffer);

@@ -8,7 +8,7 @@
         android:label="Realm Encryption Example"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".RealmEncryptionExample"
+            android:name=".EncryptionExampleActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="Realm Encryption Example">
             <intent-filter>

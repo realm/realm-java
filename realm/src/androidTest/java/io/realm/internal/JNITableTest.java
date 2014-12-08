@@ -231,11 +231,6 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(100d, v.getDouble(2, 1));
         assertEquals(1000d, v.getDouble(2, 2));
 
-        // Try on unsupported column types
-        try { t.getSortedView(1, TableView.Order.descending);    fail("unsupported column"); } catch (IllegalArgumentException e) { }
-        try { t.getSortedView(2, TableView.Order.descending);    fail("unsupported column"); } catch (IllegalArgumentException e) { }
-
-
         // Some out of bounds test cases
         try { t.getSortedView(-1, TableView.Order.descending);    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
         try { t.getSortedView(-100, TableView.Order.descending);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }

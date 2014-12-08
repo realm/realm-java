@@ -71,6 +71,7 @@ public class TransactionService extends IntentService {
     @Override
     public void onDestroy() {
         this.mQuitting = true;
+        realm.close();
     }
 
     // This method creates mInsertCount injections into the Realm
@@ -109,5 +110,4 @@ public class TransactionService extends IntentService {
             realm.commitTransaction();
         }
     }
-
 }

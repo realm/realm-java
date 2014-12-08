@@ -35,17 +35,25 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
-public class RealmExampleActivity extends Activity implements AdapterView.OnItemClickListener {
+public class GridViewExampleActivity extends Activity implements AdapterView.OnItemClickListener {
 
-    public static final String TAG = RealmExampleActivity.class.getName();
+    public static final String TAG = GridViewExampleActivity.class.getName();
 
     private GridView mGridView;
     private CityAdapter mAdapter;
+
+    private Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_example);
+
+        // Clear the realm from last time
+        Realm.deleteRealmFile(this);
+
+        // Create a new empty instance of Realm
+        realm = Realm.getInstance(this);
     }
 
     @Override
@@ -63,13 +71,19 @@ public class RealmExampleActivity extends Activity implements AdapterView.OnItem
             //This is the GridView which will display the list of cities
             mGridView = (GridView) findViewById(R.id.cities_list);
             mGridView.setAdapter(mAdapter);
-            mGridView.setOnItemClickListener(RealmExampleActivity.this);
+            mGridView.setOnItemClickListener(GridViewExampleActivity.this);
             mAdapter.notifyDataSetChanged();
             mGridView.invalidate();
         }
     }
 
-    public List<City> loadCities() {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.
+    }
+
+    private List<City> loadCities() {
         List<City> items = new ArrayList<City>();
 
         // In this case we're loading from local assets.
@@ -83,12 +97,6 @@ public class RealmExampleActivity extends Activity implements AdapterView.OnItem
 
         JsonParser parser = new JsonParser();
         JsonArray jsonArray = parser.parse(new InputStreamReader(stream)).getAsJsonArray();
-
-        // Clear the realm from last time
-        Realm.deleteRealmFile(this);
-
-        // Store the retrieved items to the Realm
-        Realm realm = Realm.getInstance(this);
 
         // Open a transaction to store items into the realm
         realm.beginTransaction();

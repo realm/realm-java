@@ -18,6 +18,7 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.AnnotationTypes;
 import io.realm.internal.Table;
 
@@ -36,6 +37,11 @@ public class RealmAnnotationTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        testRealm.close();
+    }
+
     public void testIgnore() {
         Table table = testRealm.getTable(AnnotationTypes.class);
         assertEquals(-1, table.getColumnIndex("ignoreString"));
@@ -46,4 +52,28 @@ public class RealmAnnotationTest extends AndroidTestCase {
         assertTrue(table.hasIndex(table.getColumnIndex("indexString")));
         assertFalse(table.hasIndex(table.getColumnIndex("notIndexString")));
     }
+
+    // Annotation processor honors common naming conventions
+    // We check if setters and getters are generated and working
+    public void testNamingConvention() {
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        realm.clear(AnnotationNameConventions.class);
+        AnnotationNameConventions anc1 = realm.createObject(AnnotationNameConventions.class);
+        anc1.setHasObject(true);
+        anc1.setId_object(1);
+        anc1.setmObject(2);
+        anc1.setObject_id(3);
+        anc1.setObject(true);
+        realm.commitTransaction();
+
+        AnnotationNameConventions anc2 = realm.allObjects(AnnotationNameConventions.class).first();
+        assertTrue(anc2.isHasObject());
+        assertEquals(1, anc2.getId_object());
+        assertEquals(2, anc2.getmObject());
+        assertEquals(3, anc2.getObject_id());
+        assertTrue(anc2.isObject());
+        realm.close();
+    }
+
 }

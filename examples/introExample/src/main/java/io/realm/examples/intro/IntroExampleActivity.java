@@ -30,15 +30,25 @@ import io.realm.examples.intro.model.Dog;
 import io.realm.examples.intro.model.Person;
 
 
-public class RealmIntroExampleActivity extends Activity {
+public class IntroExampleActivity extends Activity {
 
-    private void realmExamples() {
+    public static final String TAG = IntroExampleActivity.class.getName();
+    private LinearLayout rootLayout = null;
+
+    private Realm realm;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_realm_basic_example);
+        rootLayout = ((LinearLayout) findViewById(R.id.container));
+        rootLayout.removeAllViews();
 
         // These operations are small enough that
         // we can generally safely run them on the UI thread.
 
         // Open the default realm ones for the UI thread.
-        Realm realm = Realm.getInstance(this);
+        realm = Realm.getInstance(this);
 
         basicCRUD(realm);
         basicQuery(realm);
@@ -59,7 +69,19 @@ public class RealmIntroExampleActivity extends Activity {
                 showStatus(result);
             }
         }.execute();
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.
+    }
+
+    private void showStatus(String txt) {
+        Log.i(TAG, txt);
+        TextView tv = new TextView(this);
+        tv.setText(txt);
+        rootLayout.addView(tv);
     }
 
     private void basicCRUD(Realm realm) {
@@ -162,10 +184,12 @@ public class RealmIntroExampleActivity extends Activity {
         }
 
         // Sorting
-        RealmResults<Person> sortedPersons = realm.allObjects(Person.class).sort("age", false);
+        RealmResults<Person> sortedPersons = realm.allObjects(Person.class);
+        sortedPersons.sort("age", false);
         assert(realm.allObjects(Person.class).last().getName() == sortedPersons.first().getName());
         status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first().getName();
 
+        realm.close();
         return status;
     }
 
@@ -180,30 +204,8 @@ public class RealmIntroExampleActivity extends Activity {
                 .between("age", 7, 9)       // Notice implicit "and" operation
                 .beginsWith("name", "Person").findAll();
         status += "\nSize of result set: " + results.size();
+
+        realm.close();
         return status;
-    }
-
-
-    // ------------------------------------------------------------------------
-    // Non Realm
-
-    public static final String TAG = RealmIntroExampleActivity.class.getName();
-    private LinearLayout rootLayout = null;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_realm_basic_example);
-        rootLayout = ((LinearLayout) findViewById(R.id.container));
-        rootLayout.removeAllViews();
-
-        realmExamples();
-    }
-
-    private void showStatus(String txt) {
-        Log.i(TAG, txt);
-        TextView tv = new TextView(this);
-        tv.setText(txt);
-        rootLayout.addView(tv);
     }
 }
