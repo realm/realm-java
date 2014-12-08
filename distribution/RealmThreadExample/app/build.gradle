@@ -36,5 +36,6 @@ android {
 }
 
 dependencies {
-    compile 'io.realm:realm-android:0.74.0'
+    compile 'com.android.support:appcompat-v7:21.0.+'
+    compile 'io.realm:realm-android:0.75.1'
 }

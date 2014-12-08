@@ -30,8 +30,8 @@ import java.util.Random;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.examples.threads.models.Dot;
-import io.realm.examples.threads.widgets.DotsView;
+import io.realm.examples.threads.model.Dot;
+import io.realm.examples.threads.widget.DotsView;
 
 /**
  * This fragment demonstrates how Realm can interact with a background thread.
@@ -93,6 +93,7 @@ public class ThreadFragment extends Fragment {
 
         switch(item.getItemId()) {
             case R.id.action_add_dot:
+                // Add blue dot from the UI thread
                 realm.beginTransaction();
                 Dot dot = realm.createObject(Dot.class);
                 dot.setX(random.nextInt(100));
@@ -126,14 +127,16 @@ public class ThreadFragment extends Fragment {
             public void run() {
                 // Realm instances cannot be shared between threads, so we need to create a new
                 // instance on the background thread.
-                Realm realm = Realm.getInstance(getActivity(), false);
+                Realm backgroundThreadRealm = Realm.getInstance(getActivity(), false);
                 while (!backgroundThread.isInterrupted()) {
-                    realm.beginTransaction();
-                    Dot dot = realm.createObject(Dot.class);
+                    backgroundThreadRealm.beginTransaction();
+
+                    // Add red dot from the background thread
+                    Dot dot = backgroundThreadRealm.createObject(Dot.class);
                     dot.setX(random.nextInt(100));
                     dot.setY(random.nextInt(100));
                     dot.setColor(getResources().getColor(R.color.realm_red));
-                    realm.commitTransaction();
+                    backgroundThreadRealm.commitTransaction();
 
                     // Wait 0.5 sec. before adding the next dot.
                     try {
@@ -144,7 +147,7 @@ public class ThreadFragment extends Fragment {
                 }
 
                 // Also close Realm instances used in background threads.
-                realm.close();
+                backgroundThreadRealm.close();
             }
         });
         backgroundThread.start();

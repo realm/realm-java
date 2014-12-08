@@ -28,7 +28,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import io.realm.Realm;
-import io.realm.examples.threads.models.Score;
+import io.realm.examples.threads.model.Score;
 
 /**
  * This fragment demonstrates how Realm can work with AsyncTasks.

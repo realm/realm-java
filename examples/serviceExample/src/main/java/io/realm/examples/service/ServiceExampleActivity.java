@@ -32,10 +32,10 @@ import io.realm.examples.service.model.Person;
 import io.realm.examples.service.services.SpawningService;
 import io.realm.examples.service.services.TransactionService;
 
-public class RealmExampleActivity extends Activity implements View.OnClickListener {
+public class ServiceExampleActivity extends Activity implements View.OnClickListener {
 
     @SuppressWarnings("UnusedDeclaration")
-    public static final String TAG = RealmExampleActivity.class.getName();
+    public static final String TAG = ServiceExampleActivity.class.getName();
 
     private Realm realm;
 

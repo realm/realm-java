@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.threads.widgets;
+package io.realm.examples.threads.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -24,7 +24,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import io.realm.RealmResults;
-import io.realm.examples.threads.models.Dot;
+import io.realm.examples.threads.model.Dot;
 
 /**
  * Custom view that plot (x,y) coordinates from a RealmQuery
