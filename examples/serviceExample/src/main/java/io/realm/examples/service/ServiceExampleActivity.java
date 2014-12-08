@@ -71,6 +71,12 @@ public class ServiceExampleActivity extends Activity implements View.OnClickList
         stopTests();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.
+    }
+
     private void startTests() {
         startSpawnTests();
         //Alternatively can use transaction tests here...
