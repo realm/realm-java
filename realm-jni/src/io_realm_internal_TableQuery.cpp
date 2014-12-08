@@ -50,7 +50,7 @@ inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colInd
 //-------------------------------------------------------
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv * env, jclass, jlong nativeQueryPtr) {
-    TR((env, "Query nativeClose(ptr %x)\n", nativeQueryPtr));
+    TR((LOG_DEBUG, log_tag, "Query nativeClose(ptr %x)\n", nativeQueryPtr));
     delete Q(nativeQueryPtr);
 }
 

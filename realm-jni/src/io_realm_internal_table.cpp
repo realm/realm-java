@@ -143,7 +143,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeUpdateFromSpec(
     JNIEnv* env, jobject, jlong nativeTablePtr, jobject jTableSpec)
 {
     Table* pTable = TBL(nativeTablePtr);
-    TR((env, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec));
+    TR((LOG_DEBUG, log_tag, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec));
     if (!TABLE_VALID(env, pTable))
         return;
     if (pTable->has_shared_type()) {
@@ -163,7 +163,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetTableSpec(
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
 
-    TR((env, "nativeGetTableSpec(table %x)\n", nativeTablePtr));
+    TR((LOG_DEBUG, log_tag, "nativeGetTableSpec(table %x)\n", nativeTablePtr));
     static jmethodID jTableSpecConsId = GetTableSpecMethodID(env, "<init>", "()V");
     if (jTableSpecConsId) {
         try {
@@ -392,7 +392,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertSubtable(
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
         return;
 
-    TR((env, "nativeInsertSubtable(jTable:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld)\n",
+    TR((LOG_DEBUG, log_tag, "nativeInsertSubtable(jTable:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld)\n",
        jTable, nativeTablePtr,  columnIndex, rowIndex));
     try {
         TBL(nativeTablePtr)->insert_subtable( S(columnIndex), S(rowIndex));
@@ -538,7 +538,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtable(
     try {
         Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr),
             S(columnIndex), S(rowIndex)));
-        TR((env, "nativeGetSubtable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
+        TR((LOG_DEBUG, log_tag, "nativeGetSubtable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
             jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubtable));
         return (jlong)pSubtable;
     } CATCH_STD()
@@ -553,7 +553,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableDuringInse
     try {
         Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr_during_insert(
             TBL(nativeTablePtr), S(columnIndex), S(rowIndex)));
-        TR((env, "nativeGetSubtableDuringInsert(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
+        TR((LOG_DEBUG, log_tag, "nativeGetSubtableDuringInsert(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
             jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubtable));
         return (jlong)pSubtable;
     } CATCH_STD()
@@ -1317,13 +1317,13 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClose(
     JNIEnv* env, jclass, jlong nativeTablePtr)
 {
-    TR((env, "nativeClose(nativeTablePtr: %x)\n", nativeTablePtr));
+    TR((LOG_DEBUG, log_tag, "nativeClose(nativeTablePtr: %x)\n", nativeTablePtr));
     LangBindHelper::unbind_table_ptr(TBL(nativeTablePtr));
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv* env, jobject jTable)
 {
-    TR((env, "CreateNative(jTable: %x)\n", jTable));
+    TR((LOG_DEBUG, log_tag, "CreateNative(jTable: %x)\n", jTable));
     try {
         return reinterpret_cast<jlong>(LangBindHelper::new_table());
     } CATCH_STD()

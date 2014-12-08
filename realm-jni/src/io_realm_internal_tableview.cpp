@@ -646,9 +646,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindAllString(
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_String))
             return 0;
         JStringAccessor value2(env, value); // throws
-        TR((env, "nativeFindAllString(col %d, string '%s') ", columnIndex, StringData(value2).data()));
+        TR((LOG_DEBUG, log_tag, "nativeFindAllString(col %d, string '%s') ", columnIndex, StringData(value2).data()));
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_string( S(columnIndex), value2) );
-        TR((env, "-- resultview size=%lld.\n", pResultView->size()));
+        TR((LOG_DEBUG, log_tag, "-- resultview size=%lld.\n", pResultView->size()));
         return reinterpret_cast<jlong>(pResultView);
     } CATCH_STD()
     return 0;
