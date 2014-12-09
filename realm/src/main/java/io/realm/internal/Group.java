@@ -141,7 +141,7 @@ public class Group implements Closeable {
      *
      * @return True if closed, false otherwise.
      */
-    public boolean isClosed() {
+    boolean isClosed() {
         return nativePtr == 0;
     }
 
