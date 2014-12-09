@@ -137,7 +137,7 @@ public class Group implements Closeable {
     protected static native void nativeClose(long nativeGroupPtr);
 
     /**
-     * Checks if a groups has been closed and can no longer be used.
+     * Checks if a group has been closed and can no longer be used.
      *
      * @return True if closed, false otherwise.
      */
