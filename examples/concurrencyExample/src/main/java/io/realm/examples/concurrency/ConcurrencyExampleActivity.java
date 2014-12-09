@@ -32,10 +32,10 @@ import io.realm.examples.concurrency.model.Person;
 import io.realm.examples.concurrency.services.SpawningService;
 import io.realm.examples.concurrency.services.TransactionService;
 
-public class RealmExampleActivity extends Activity implements View.OnClickListener {
+public class ConcurrencyExampleActivity extends Activity implements View.OnClickListener {
 
     @SuppressWarnings("UnusedDeclaration")
-    public static final String TAG = RealmExampleActivity.class.getName();
+    public static final String TAG = ConcurrencyExampleActivity.class.getName();
 
     private Realm realm;
 
@@ -69,6 +69,12 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
     public void onStop() {
         super.onStop();
         stopTests();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.
     }
 
     private void startTests() {

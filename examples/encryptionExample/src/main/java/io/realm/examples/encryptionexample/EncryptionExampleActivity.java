@@ -31,10 +31,12 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
 import io.realm.Realm;
-import io.realm.internal.IOException;
 
-public class RealmEncryptionExample extends Activity {
-    public static final String TAG = RealmEncryptionExample.class.getName();
+public class EncryptionExampleActivity extends Activity {
+
+    public static final String TAG = EncryptionExampleActivity.class.getName();
+
+    private Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,18 +44,12 @@ public class RealmEncryptionExample extends Activity {
 
         // Open the Realm with encryption enabled
         // Throws UnsupportedOperator if not using a copy of Realm with encryption enabled
-        Realm realm;
         try {
             realm = Realm.getInstance(this, getKey());
-        } catch (io.realm.internal.IOException e) {
-            e.printStackTrace();
-            return;
-        } catch (java.io.IOException ie) {
-            ie.printStackTrace();
-            return;
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
-            return;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         // Everything continues to work as normal except for that the file is encrypted on disk
@@ -66,6 +62,13 @@ public class RealmEncryptionExample extends Activity {
         person = realm.where(Person.class).findFirst();
         Log.i(TAG, String.format("Person name: %s", person.getName()));
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close(); // Remember to close Realm when done.
+    }
+
 
     // Get the application's 256-bit AES key
     private byte[] getKey() throws GeneralSecurityException, IOException, java.io.IOException {
@@ -98,7 +101,7 @@ public class RealmEncryptionExample extends Activity {
         // We have an existing secret key, so decrypt and return it
         if (keyData != null) {
             cipher.init(Cipher.UNWRAP_MODE, keyPair.getPrivate());
-            return ((SecretKey)cipher.unwrap(keyData, "AES", Cipher.SECRET_KEY)).getEncoded();
+            return cipher.unwrap(keyData, "AES", Cipher.SECRET_KEY).getEncoded();
         }
 
         // We need to generate a new secret key
@@ -112,8 +115,7 @@ public class RealmEncryptionExample extends Activity {
         FileOutputStream stream = new FileOutputStream(file);
         try {
             stream.write(cipher.wrap(new SecretKeySpec(keyData, "AES")));
-        }
-        finally {
+        } finally {
             stream.close();
         }
 

@@ -18,8 +18,6 @@ package io.realm;
 import android.os.Looper;
 import android.test.AndroidTestCase;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,64 +36,7 @@ public class NotificationsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.realmsCache.remove();
         Realm.deleteRealmFile(getContext());
-    }
-
-    public void testFailureOnNonLooperThread() throws InterruptedException, ExecutionException {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                try {
-                    @SuppressWarnings("UnusedDeclaration") Realm realm = Realm.getInstance(getContext());
-                    return false;
-                } catch (IllegalStateException ignored) {
-                    return true;
-                }
-            }
-        });
-
-        Boolean result = future.get();
-        assertTrue(result);
-    }
-
-    public void testNotifications() throws InterruptedException, ExecutionException {
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-
-        final AtomicInteger changed = new AtomicInteger(0);
-
-        List<Callable<Void>> callables = new ArrayList<Callable<Void>>();
-        callables.add(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                Looper.prepare();
-                Realm realm = Realm.getInstance(getContext()); // This does not sent a message to itself [0]
-                realm.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        changed.incrementAndGet();
-                    }
-                });
-                Looper.loop();
-                return null;
-            }
-        });
-        callables.add(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                Realm realm = Realm.getInstance(getContext(), false); // This will notify the other thread [1]
-                realm.beginTransaction();
-                Dog dog = realm.createObject(Dog.class);
-                dog.setName("Rex");
-                realm.commitTransaction(); // This will notify the other thread[2]
-                return null;
-            }
-        });
-
-        executorService.invokeAll(callables, 2, TimeUnit.SECONDS);
-
-        assertEquals(2, changed.get());
     }
 
     public void testFailingSetAutoRefreshOnNonLooperThread() throws ExecutionException, InterruptedException {
@@ -111,10 +52,13 @@ public class NotificationsTest extends AndroidTestCase {
                     return false;
                 } catch (IllegalStateException ignored) {
                     return true;
+                } finally {
+                    realm.close();
                 }
             }
         });
         assertTrue(future.get());
+        assertTrue(Realm.realmsCache.get().isEmpty());
     }
 
     public void testSetAutoRefreshOnHandlerThread() throws ExecutionException, InterruptedException {
@@ -129,10 +73,12 @@ public class NotificationsTest extends AndroidTestCase {
                 assertFalse(realm.isAutoRefresh());
                 realm.setAutoRefresh(true);
                 assertTrue(realm.isAutoRefresh());
+                realm.close();
                 return true;
             }
         });
         assertTrue(future.get());
+        assertTrue(Realm.realmsCache.get().isEmpty());
     }
 
     public void testNotificationsNumber () throws InterruptedException, ExecutionException {
@@ -143,16 +89,23 @@ public class NotificationsTest extends AndroidTestCase {
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                Looper.prepare();
-                Realm realm = Realm.getInstance(getContext());
-                realm.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        counter.incrementAndGet();
+                Realm realm = null;
+                try {
+                    Looper.prepare();
+                    realm = Realm.getInstance(getContext());
+                    realm.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            counter.incrementAndGet();
+                        }
+                    });
+                    isReady.set(true);
+                    Looper.loop();
+                } finally {
+                    if (realm != null) {
+                        realm.close();
                     }
-                });
-                isReady.set(true);
-                Looper.loop();
+                }
                 return true;
             }
         });
@@ -168,12 +121,14 @@ public class NotificationsTest extends AndroidTestCase {
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
         realm.commitTransaction();
+        realm.close();
 
         try {
             future.get(1, TimeUnit.SECONDS);
         } catch (TimeoutException ignore) {}
 
         assertEquals(1, counter.get());
+        assertTrue(Realm.realmsCache.get().isEmpty());
     }
 
     public void testAutoUpdateRealmResults() throws InterruptedException, ExecutionException {
@@ -187,19 +142,25 @@ public class NotificationsTest extends AndroidTestCase {
             @Override
             public Boolean call() throws Exception {
                 Looper.prepare();
-                Realm.deleteRealmFile(getContext());
-                final Realm realm = Realm.getInstance(getContext());
-                final RealmResults<Dog> dogs = realm.allObjects(Dog.class);
-                assertEquals(0, dogs.size());
-                realm.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        int c = counter.incrementAndGet();
-                        results.put(c, dogs.size());
+                Realm realm = null;
+                try {
+                    realm = Realm.getInstance(getContext());
+                    final RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+                    assertEquals(0, dogs.size());
+                    realm.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            int c = counter.incrementAndGet();
+                            results.put(c, dogs.size());
+                        }
+                    });
+                    isReady.set(true);
+                    Looper.loop();
+                } finally {
+                    if (realm != null) {
+                        realm.close();
                     }
-                });
-                isReady.set(true);
-                Looper.loop();
+                }
                 return true;
             }
         });
@@ -218,6 +179,7 @@ public class NotificationsTest extends AndroidTestCase {
         }
         realm.commitTransaction();
         assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
+        realm.close();
 
         try {
             future.get(2, TimeUnit.SECONDS);
@@ -226,8 +188,9 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(1, results.size());
 
         assertTrue(results.containsKey(1));
-        assertEquals(10, results.get(1).intValue());
+        assertEquals(TEST_SIZE, results.get(1).intValue());
 
         assertEquals(1, counter.get());
+        assertTrue(Realm.realmsCache.get().isEmpty());
     }
 }

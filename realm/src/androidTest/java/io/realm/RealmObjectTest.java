@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.CyclicType;
 import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.Dog;
 import io.realm.internal.Row;
@@ -36,9 +37,11 @@ import io.realm.internal.Row;
 
 public class RealmObjectTest extends AndroidTestCase {
 
-    protected Realm testRealm;
+    private Realm testRealm;
 
-    private int TEST_SIZE = 5;
+    private static final int TEST_SIZE = 5;
+    private static final boolean REMOVE_FIRST = true;
+    private static final boolean REMOVE_LAST = false;
 
     @Override
     protected void setUp() throws Exception {
@@ -46,8 +49,10 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm = Realm.getInstance(getContext());
     }
 
-
-    // test io.realm.RealmObject Api
+    @Override
+    protected void tearDown() throws Exception {
+        testRealm.close();
+    }
 
     // Row realmGetRow()
     public void testRealmGetRowReturnsValidRow() {
@@ -107,16 +112,19 @@ public class RealmObjectTest extends AndroidTestCase {
         fido.getName();
         try {
             rex.getName();
+            realm.close();
             fail();
         } catch (IllegalStateException ignored) {}
 
         // deleting rex twice should fail
         realm.beginTransaction();
         try {
-            rex.removeFromRealm();      
+            rex.removeFromRealm();
+            realm.close();
             fail();
         } catch (IllegalStateException ignored) {}
         realm.commitTransaction();
+        realm.close();
     }
 
     // query for an object, remove it and see it has been removed from realm
@@ -139,14 +147,17 @@ public class RealmObjectTest extends AndroidTestCase {
         assertEquals(0, realm.allObjects(Dog.class).size());
         try {
             dogToAdd.getName();
+            realm.close();
             fail();
         }
         catch (IllegalStateException ignored) {}
         try {
             dogToRemove.getName();
+            realm.close();
             fail();
         }
         catch (IllegalStateException ignored) {}
+        realm.close();
     }
 
     public void removeOneByOne(boolean atFirst) {
@@ -156,7 +167,7 @@ public class RealmObjectTest extends AndroidTestCase {
         for (int i = 0; i < TEST_SIZE; i++) {
             Dog dog = testRealm.createObject(Dog.class);
             dog.setAge(i);
-            ages.add(new Long(i));
+            ages.add((long) i);
         }
         testRealm.commitTransaction();
 
@@ -171,7 +182,7 @@ public class RealmObjectTest extends AndroidTestCase {
             } else {
                 dogToRemove = dogs.last();
             }
-            ages.remove(new Long(dogToRemove.getAge()));
+            ages.remove(Long.valueOf(dogToRemove.getAge()));
             dogToRemove.removeFromRealm();
 
             // object is no longer valid
@@ -187,14 +198,12 @@ public class RealmObjectTest extends AndroidTestCase {
             RealmResults<Dog> remainingDogs = testRealm.allObjects(Dog.class);
             assertEquals(TEST_SIZE - i - 1, remainingDogs.size());
             for (Dog dog : remainingDogs) {
-                assertTrue(ages.contains(new Long(dog.getAge())));
+                assertTrue(ages.contains(Long.valueOf(dog.getAge())));
             }
         }
     }
 
     public void testRemoveFromRealmAtPosition() {
-        boolean REMOVE_FIRST = true;
-        boolean REMOVE_LAST = false;
         removeOneByOne(REMOVE_FIRST);
         removeOneByOne(REMOVE_LAST);
     }
@@ -222,12 +231,94 @@ public class RealmObjectTest extends AndroidTestCase {
             }
         });
 
-        return future.get();
+        Boolean result = future.get();
+        realm.close();
+        return result;
     }
 
     public void testGetSetWrongThread() throws ExecutionException, InterruptedException {
         assertTrue(methodWrongThread(true));
         assertTrue(methodWrongThread(false));
+    }
+
+    public void testEquals() {
+        testRealm.beginTransaction();
+        CyclicType ct = testRealm.createObject(CyclicType.class);
+        ct.setName("Foo");
+        testRealm.commitTransaction();
+
+        CyclicType ct1 = testRealm.where(CyclicType.class).findFirst();
+        CyclicType ct2 = testRealm.where(CyclicType.class).findFirst();
+
+        assertTrue(ct1.equals(ct1));
+        assertTrue(ct2.equals(ct2));
+    }
+
+    public void testEqualsAfterModification() {
+        testRealm.beginTransaction();
+        CyclicType ct = testRealm.createObject(CyclicType.class);
+        ct.setName("Foo");
+        testRealm.commitTransaction();
+
+        CyclicType ct1 = testRealm.where(CyclicType.class).findFirst();
+        CyclicType ct2 = testRealm.where(CyclicType.class).findFirst();
+
+        testRealm.beginTransaction();
+        ct1.setName("Baz");
+        testRealm.commitTransaction();
+
+        assertTrue(ct1.equals(ct1));
+        assertTrue(ct2.equals(ct2));
+    }
+
+    public void testEqualsStandAlone() {
+        testRealm.beginTransaction();
+        CyclicType ct1 = testRealm.createObject(CyclicType.class);
+        ct1.setName("Foo");
+        testRealm.commitTransaction();
+
+        CyclicType ct2 = new CyclicType();
+        ct2.setName("Bar");
+
+        assertFalse(ct1.equals(ct2));
+        assertFalse(ct2.equals(ct1));
+    }
+
+    public void testCyclicEquals() {
+        testRealm.beginTransaction();
+        CyclicType foo = createCyclicData();
+        testRealm.commitTransaction();
+
+        assertEquals(foo, testRealm.where(CyclicType.class).equalTo("name", "Foo").findFirst());
+    }
+
+    public void testCyclicToString() {
+        testRealm.beginTransaction();
+        CyclicType foo = createCyclicData();
+        testRealm.commitTransaction();
+
+        String expected = "CyclicType = [{name:Foo},{object:CyclicType},{objects:RealmList<CyclicType>[0]}]";
+        assertEquals(expected, foo.toString());
+    }
+
+    public void testCyclicHashCode() {
+        testRealm.beginTransaction();
+        CyclicType foo = createCyclicData();
+        testRealm.commitTransaction();
+
+        assertEquals(1344723738, foo.hashCode());
+    }
+
+    private CyclicType createCyclicData() {
+        CyclicType foo = testRealm.createObject(CyclicType.class);
+        foo.setName("Foo");
+        CyclicType bar = testRealm.createObject(CyclicType.class);
+        bar.setName("Bar");
+
+        // Setup cycle on normal object references
+        foo.setObject(bar);
+        bar.setObject(foo);
+        return foo;
     }
 
     public void testDateType() {
@@ -237,7 +328,6 @@ public class RealmObjectTest extends AndroidTestCase {
 
         // test valid dates
         testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
         for (long value : testDatesValid) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnDate(new Date(value));
@@ -279,14 +369,19 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
-    private void addDate(int year, int month, int dayOfMonth) {
+    private Date newDate(int year, int month, int dayOfMonth) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, year);
         cal.set(Calendar.MONTH, month);
         cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
 
-        // Create the Date object
-        Date date = cal.getTime();
+    private void addDate(int year, int month, int dayOfMonth) {
+        Date date = newDate(year, month, dayOfMonth);
 
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
@@ -295,11 +390,13 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         AllTypes object = testRealm.allObjects(AllTypes.class).first();
-        assertEquals(1000*(date.getTime()/1000), 1000*(object.getColumnDate().getTime()/1000)); // Realm does not support millisec precision
+
+        // Realm does not support millisec precision
+        assertEquals(1000 * (date.getTime() / 1000), 1000 * (object.getColumnDate().getTime() / 1000));
     }
 
-    public void testDate() {
-        // Too old
+    public void testDateTypeOutOfRange() {
+        // ** Must throw if date is too old
         for (int i = 0; i < 2; i++) {
             try {
                 addDate(1900 + i, 1, 1);
@@ -309,12 +406,12 @@ public class RealmObjectTest extends AndroidTestCase {
             }
         }
 
-        // Fine
+        // ** Supported dates works
         for (int i = 2; i < 10; i++) {
             addDate(1900 + i, 1, 1);
         }
 
-        // Too far in the future
+        // ** Must throw if date is too new
         for (int i = 0; i < 2; i++) {
             try {
                 addDate(2038 + i, 1, 20);
@@ -325,25 +422,4 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
-    // Annotation processor honors common naming conventions
-    // We check if setters and getters are generated and working
-    public void testNamingConvention() {
-        Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-        realm.clear(AnnotationNameConventions.class);
-        AnnotationNameConventions anc1 = realm.createObject(AnnotationNameConventions.class);
-        anc1.setHasObject(true);
-        anc1.setId_object(1);
-        anc1.setmObject(2);
-        anc1.setObject_id(3);
-        anc1.setObject(true);
-        realm.commitTransaction();
-
-        AnnotationNameConventions anc2 = realm.allObjects(AnnotationNameConventions.class).first();
-        assertTrue(anc2.isHasObject());
-        assertEquals(1, anc2.getId_object());
-        assertEquals(2, anc2.getmObject());
-        assertEquals(3, anc2.getObject_id());
-        assertTrue(anc2.isObject());
-    }
 }
