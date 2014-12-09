@@ -64,4 +64,24 @@ public class JNIImplicitTransactionsTest extends AndroidTestCase {
 
     }
 
+    public void testCannotUseClosedImplicitTransaction() {
+        SharedGroup sg = new SharedGroup(testFile, true, null);
+        WriteTransaction wt = sg.beginWrite();
+        if(!wt.hasTable("test")) {
+            Table table = wt.getTable("test");
+            table.addColumn(ColumnType.INTEGER, "integer");
+            table.addEmptyRow();
+        }
+        wt.commit();
+        ImplicitTransaction t = sg.beginImplicitTransaction();
+
+        sg.close();
+        try {
+            t.advanceRead();
+        } catch (IllegalStateException e) {
+            return;
+        }
+
+        fail("It should not be possible to advanceRead on a transaction which SharedGroup is closed");
+    }
 }

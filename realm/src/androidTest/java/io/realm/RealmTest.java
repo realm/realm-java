@@ -111,6 +111,25 @@ public class RealmTest extends AndroidTestCase {
         newRealm.close();
     }
 
+    public void testInternalRealmChangedHandlersRemoved() throws InterruptedException {
+        final String REALM_NAME = "test-threads";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Realm.handlers.clear(); // Make sure that handlers from other unit tests doesn't interfere.
+
+        // Open and close first instance of a Realm
+        Realm uiRealm = Realm.getInstance(getContext(), REALM_NAME);
+        assertEquals(1, Realm.handlers.size());
+        uiRealm.close();
+
+        // All Realms closed. No handlers should be alive.
+        assertEquals(0, Realm.handlers.size());
+
+        // Open instance the 2nd time. Old handler should now be gone
+        uiRealm = Realm.getInstance(getContext(), REALM_NAME);
+        assertEquals(1, Realm.handlers.size());
+        uiRealm.close();
+    }
+
     public void testShouldCreateRealm() {
         assertNotNull("Realm.getInstance unexpectedly returns null", testRealm);
         assertTrue("Realm.getInstance does not contain expected table", testRealm.contains(AllTypes.class));

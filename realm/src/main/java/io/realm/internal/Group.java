@@ -135,7 +135,16 @@ public class Group implements Closeable {
     }
 
     protected static native void nativeClose(long nativeGroupPtr);
-    
+
+    /**
+     * Checks if a groups has been closed and can no longer be used.
+     *
+     * @return True if closed, false otherwise.
+     */
+    public boolean isClosed() {
+        return nativePtr == 0;
+    }
+
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
