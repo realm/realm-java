@@ -4,7 +4,6 @@ include 'realm'
 // Example projects
 include ':introExample',
         ':gridViewExample',
-        ':serviceExample',
         ':encryptionExample',
         ':migrationExample',
         ':adapterExample',
@@ -13,7 +12,6 @@ include ':introExample',
 
 project(':introExample').projectDir = new File('examples/introExample')
 project(':gridViewExample').projectDir = new File('examples/gridViewExample')
-project(':serviceExample').projectDir = new File('examples/serviceExample')
 project(':encryptionExample').projectDir = new File('examples/encryptionExample')
 project(':migrationExample').projectDir = new File('examples/migrationExample')
 project(':adapterExample').projectDir = new File('examples/adapterExample')

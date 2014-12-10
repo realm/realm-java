@@ -1,4 +1,5 @@
 0.76.0 (??)
+ * Replaced concurrency example with a better thread example.
  * Allow to add/remove RealmChangeListeners in RealmChangeListeners.
  * Upgrading to core 0.87.0 (encryption support, API changes).
 
