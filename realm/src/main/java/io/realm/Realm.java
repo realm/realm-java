@@ -964,6 +964,7 @@ public class Realm implements Closeable {
         realm.beginTransaction();
         realm.setVersion(migration.execute(realm, realm.getVersion()));
         realm.commitTransaction();
+        realm.close();
 
         realmsCache.remove();
     }
