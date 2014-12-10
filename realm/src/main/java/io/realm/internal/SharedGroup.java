@@ -206,7 +206,7 @@ public class SharedGroup implements Closeable {
     }
 
 
-    private boolean isClosed() {
+    boolean isClosed() {
         return nativePtr == 0;
     }
 

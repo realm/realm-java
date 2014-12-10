@@ -1,6 +1,7 @@
 0.76.0 (??)
  * Allow to add/remove RealmChangeListeners in RealmChangeListeners.
  * Upgrading to core 0.87.0 (encryption support, API changes).
+ * Bug fixed in Realm crashing for receiving notifications after close().
 
 0.75.1 (03 December 2014)
   * Changing sort to be an in-place method.

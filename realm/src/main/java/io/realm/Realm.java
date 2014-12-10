@@ -99,7 +99,7 @@ public class Realm implements Closeable {
         }
     };
     private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
-    private static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
+    protected static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
     private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
     private static final String CLOSED_REALM = "This Realm instance has already been closed, making it unusable.";
@@ -174,6 +174,10 @@ public class Realm implements Closeable {
         }
         localRefCount.put(id, references - 1);
         referenceCount.set(localRefCount);
+
+        if (handler != null) {
+            handlers.remove(handler);
+        }
     }
 
     private class RealmCallback implements Handler.Callback {
@@ -961,6 +965,7 @@ public class Realm implements Closeable {
         realm.beginTransaction();
         realm.setVersion(migration.execute(realm, realm.getVersion()));
         realm.commitTransaction();
+        realm.close();
 
         realmsCache.remove();
     }
