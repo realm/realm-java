@@ -26,10 +26,12 @@ public class ImplicitTransaction extends Group {
     }
 
     public void advanceRead() {
+        assertNotClosed();
         parent.advanceRead();
     }
 
     public void promoteToWrite() {
+        assertNotClosed();
         if (immutable) {
             immutable = false;
             parent.promoteToWrite();
@@ -39,15 +41,18 @@ public class ImplicitTransaction extends Group {
     }
 
     public void commitAndContinueAsRead() {
+        assertNotClosed();
         parent.commitAndContinueAsRead();
         immutable = true;
     }
 
     public void endRead() {
+        assertNotClosed();
         parent.endRead();
     }
 
     public void rollbackAndContinueAsRead() {
+        assertNotClosed();
         if (!immutable) {
             parent.rollbackAndContinueAsRead();
             immutable = true;
@@ -56,6 +61,11 @@ public class ImplicitTransaction extends Group {
         }
     }
 
-    protected void finalize() {} // Nullify the actions of Group.finalize()
+    private void assertNotClosed() {
+        if (isClosed() || parent.isClosed()) {
+            throw new IllegalStateException("Cannot use ImplicitTransaction after it or its parent has been closed.");
+        }
+    }
 
+    protected void finalize() {} // Nullify the actions of Group.finalize()
 }
