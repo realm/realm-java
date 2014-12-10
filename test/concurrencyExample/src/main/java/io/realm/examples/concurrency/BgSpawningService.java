@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.concurrency;
+package io.realm.examples.service;
 
 import android.app.Service;
 import android.content.Intent;

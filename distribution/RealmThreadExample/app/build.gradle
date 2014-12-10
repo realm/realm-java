@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service.model;
+apply plugin: 'com.android.application'
 
-import io.realm.RealmObject;
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.1"
 
-public class Dog extends RealmObject {
-    private String name;
-
-    public String getName() {
-        return name;
+    defaultConfig {
+        applicationId "io.realm.examples.threads"
+        minSdkVersion 15
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
     }
-
-    public void setName(String name) {
-        this.name = name;
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
+}
 
-    @Override
-    public String toString() {
-        return "Dog{" +
-                "name='" + name + '\'' +
-                '}';
-    }
+dependencies {
+    compile 'com.android.support:appcompat-v7:21.0.+'
+    compile 'io.realm:realm-android:0.75.1'
 }
