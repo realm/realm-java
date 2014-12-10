@@ -121,13 +121,13 @@ public class ThreadFragment extends Fragment {
         realm.addChangeListener(realmListener);
 
         // Create background thread that add a new dot every 0.5 second.
-        backgroundThread = new Thread(new Runnable() {
+        backgroundThread = new Thread() {
 
             @Override
             public void run() {
                 // Realm instances cannot be shared between threads, so we need to create a new
                 // instance on the background thread.
-                Realm backgroundThreadRealm = Realm.getInstance(getActivity(), false);
+                Realm backgroundThreadRealm = Realm.getInstance(getActivity());
                 while (!backgroundThread.isInterrupted()) {
                     backgroundThreadRealm.beginTransaction();
 
@@ -149,7 +149,7 @@ public class ThreadFragment extends Fragment {
                 // Also close Realm instances used in background threads.
                 backgroundThreadRealm.close();
             }
-        });
+        };
         backgroundThread.start();
     }
 

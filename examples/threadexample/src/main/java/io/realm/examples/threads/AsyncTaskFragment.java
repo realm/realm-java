@@ -83,7 +83,7 @@ public class AsyncTaskFragment extends Fragment {
 
         @Override
         protected Integer doInBackground(Void... params) {
-            Realm realm = Realm.getInstance(getActivity(), false);
+            Realm realm = Realm.getInstance(getActivity());
 
             realm.beginTransaction();
             realm.clear(Score.class);
@@ -94,7 +94,7 @@ public class AsyncTaskFragment extends Fragment {
                 score.setScore(i);
                 publishProgress(i);
 
-                // Slow down import so seekBar doesn't move to fast
+                // Slow down import so seekBar doesn't move too fast
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
