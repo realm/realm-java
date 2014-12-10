@@ -122,6 +122,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
   (JNIEnv* env, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr)) 
     try {
         Group& group = const_cast<Group&>(SG(native_ptr)->begin_read());
         return reinterpret_cast<jlong>(&group);
@@ -134,44 +135,57 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
 (JNIEnv *env, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr)) 
     try {
         LangBindHelper::advance_read( *SG(native_ptr) );
     }
     CATCH_STD()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr))
+    TR_LEAVE()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
   (JNIEnv *env, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr)) 
     try {
         LangBindHelper::promote_to_write( *SG(native_ptr) );
     }
     CATCH_STD()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr)) 
+    TR_LEAVE()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinueAsRead
   (JNIEnv *env, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr))
     try {
         LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );
     }
     CATCH_STD()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr))
+    TR_LEAVE()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
   (JNIEnv *, jobject, jlong native_replication_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_replication_ptr=%x", native_replication_ptr)) 
     delete reinterpret_cast<Replication*>(native_replication_ptr);
+    TR_LEAVE()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeClose(
     JNIEnv*, jclass, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr)) 
     delete SG(native_ptr);
+    TR_LEAVE()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeReserve(
@@ -205,13 +219,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeEndRead(
     JNIEnv *, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr)) 
     SG(native_ptr)->end_read();     // noexcept
+    TR_LEAVE()
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginWrite(
     JNIEnv* env, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr)) 
     try {
         Group& group = SG(native_ptr)->begin_write();
         return reinterpret_cast<jlong>(&group);
@@ -224,21 +241,27 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommit(
     JNIEnv*, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr))
     SG(native_ptr)->commit();   // noexcept
+    TR_LEAVE()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollback(
     JNIEnv*, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr))
     SG(native_ptr)->rollback();   // noexcept
+    TR_LEAVE()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndContinueAsRead(
     JNIEnv *, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr))
     LangBindHelper::rollback_and_continue_as_read(*SG(native_ptr));
+    TR_LEAVE()
 }
 
 
@@ -246,7 +269,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeHasChanged
   (JNIEnv *, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr))
     return SG(native_ptr)->has_changed();   // noexcept
+    TR_LEAVE()
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultReplicationDatabaseFileName(

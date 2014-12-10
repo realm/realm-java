@@ -141,15 +141,18 @@ extern const char *log_tag;
     #define TR_ENTER() if (trace_level >= 0) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " --> %s", __FUNCTION__); } else {}
     #define TR(args) if (trace_level >= 2) { __android_log_print args; } else {}
     #define TR_ERR(args) if (trace_level >= 1) { __android_log_print args; } else {}
+    #define TR_LEAVE() if (trace_level >= 0) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " <-- %s", __FUNCTION__); } else {}
   #else // ANDROID
     #define TR_ENTER()
     #define TR(args)
     #define TR_ERR(args)
+    #define TR_LEAVE()
   #endif
 #else // TRACE
   #define TR_ENTER()
   #define TR(args)
   #define TR_ERR(args)
+  #define TR_LEAVE()
 #endif
 
 
