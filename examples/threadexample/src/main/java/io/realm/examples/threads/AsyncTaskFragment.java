@@ -88,7 +88,7 @@ public class AsyncTaskFragment extends Fragment {
             realm.beginTransaction();
             realm.clear(Score.class);
             for (int i = 0; i < TEST_OBJECTS; i++) {
-                if (isCancelled()) return -1;
+                if (isCancelled()) break;
                 Score score = realm.createObject(Score.class);
                 score.setName("Name" + i);
                 score.setScore(i);
@@ -98,7 +98,7 @@ public class AsyncTaskFragment extends Fragment {
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    // Ignore. Task is cancelled and will be aborted.
                 }
             }
             realm.commitTransaction();
