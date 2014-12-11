@@ -241,7 +241,7 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(methodWrongThread(false));
     }
 
-    public void testEquals() {
+    public void testEqualsSameRealmObject() {
         testRealm.beginTransaction();
         CyclicType ct = testRealm.createObject(CyclicType.class);
         ct.setName("Foo");
@@ -252,6 +252,18 @@ public class RealmObjectTest extends AndroidTestCase {
 
         assertTrue(ct1.equals(ct1));
         assertTrue(ct2.equals(ct2));
+    }
+
+    public void testEqualsDifferentRealmObjects() {
+        testRealm.beginTransaction();
+        CyclicType objA = testRealm.createObject(CyclicType.class);
+        objA.setName("Foo");
+        CyclicType objB = testRealm.createObject(CyclicType.class);
+        objB.setName("Bar");
+        testRealm.commitTransaction();
+
+        assertFalse(objA.equals(objB));
+        assertFalse(objB.equals(objA));
     }
 
     public void testEqualsAfterModification() {
