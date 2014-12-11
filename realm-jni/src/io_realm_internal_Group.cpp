@@ -26,7 +26,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
     JNIEnv* env, jobject)
 {
     Group *ptr = new Group();
-    TR((LOG_DEBUG, log_tag, "Group::createNative(): %x.\n", ptr));
+    TR((LOG_DEBUG, log_tag, "Group::createNative(): %x.", ptr));
     return reinterpret_cast<jlong>(ptr);
 }
 
@@ -46,7 +46,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
         case 1: openmode = Group::mode_ReadWrite; break;
         case 2: openmode = Group::mode_ReadWriteNoCreate; break;
         default:
-            TR((LOG_DEBUG, log_tag, "Invalid mode: %d\n", mode));
+            TR((LOG_DEBUG, log_tag, "Invalid mode: %d", mode));
             ThrowException(env, IllegalArgument, "Group(): Invalid mode parameter.");
             return 0;
         }
@@ -58,7 +58,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
         pGroup = new Group(file_name, openmode);
 #endif
 
-        TR((LOG_DEBUG, log_tag, "%x\n", pGroup))
+        TR((LOG_DEBUG, log_tag, "%x", pGroup))
         return reinterpret_cast<jlong>(pGroup);
     }
     CATCH_FILE(file_name)
@@ -89,7 +89,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative___3B(
     Group* pGroup = 0;
     try {
         pGroup = new Group(BinaryData(reinterpret_cast<char*>(buf), S(byteArrayLength)), true);
-        TR((LOG_DEBUG, log_tag, " groupPtr: %x\n", pGroup));
+        TR((LOG_DEBUG, log_tag, " groupPtr: %x", pGroup));
         return reinterpret_cast<jlong>(pGroup);
     }
     CATCH_FILE("memory-buffer")
@@ -109,7 +109,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_nio_Byt
     BinaryData bin;
     if (!GetBinaryData(env, jByteBuffer, bin))
         return 0;
-    TR((LOG_DEBUG, log_tag, " %d bytes. ", bin.size()))
+    TR((LOG_DEBUG, log_tag, " %d bytes.", bin.size()))
 
     Group* pGroup = 0;
     try {
@@ -118,26 +118,28 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_nio_Byt
     CATCH_FILE("memory-buffer")
     CATCH_STD()
 
-    TR((LOG_DEBUG, log_tag, "%x\n", pGroup))
+    TR((LOG_DEBUG, log_tag, "%x", pGroup))
     return reinterpret_cast<jlong>(pGroup);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeClose(
     JNIEnv* env, jclass, jlong nativeGroupPtr)
 {
-    TR((LOG_DEBUG, log_tag, "Group::nativeClose(%x)\n", nativeGroupPtr))
+    TR_ENTER_PTR(nativeGroupPtr)
     delete G(nativeGroupPtr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeSize(
     JNIEnv*, jobject, jlong nativeGroupPtr)
 {
+    TR_ENTER_PTR(nativeGroupPtr)
     return static_cast<jlong>( G(nativeGroupPtr)->size() ); // noexcept
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeHasTable(
     JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jTableName)
 {
+    TR_ENTER_PTR(nativeGroupPtr)
     try {
         JStringAccessor tableName(env, jTableName); // throws
         return G(nativeGroupPtr)->has_table(tableName);
@@ -148,6 +150,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeHasTable(
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeGetTableName(
     JNIEnv* env, jobject, jlong nativeGroupPtr, jint index)
 {
+    TR_ENTER_PTR(nativeGroupPtr)
     try {
         return to_jstring(env, G(nativeGroupPtr)->get_table_name(index));
     } CATCH_STD()
@@ -157,6 +160,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeGetTableName(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr(
     JNIEnv *env, jobject, jlong nativeGroupPtr, jstring name)
 {
+    TR_ENTER_PTR(nativeGroupPtr)
     try {
         JStringAccessor tableName(env, name); // throws
         Table* pTable = LangBindHelper::get_or_add_table(*G(nativeGroupPtr), tableName);
@@ -168,6 +172,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr(
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
     JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName, jbyteArray keyArray)
 {
+    TR_ENTER_PTR(nativeGroupPtr)
     StringData file_name;
     KeyBuffer key(env, keyArray);
     try {
@@ -186,7 +191,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
 JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Group_nativeWriteToMem(
     JNIEnv* env, jobject, jlong nativeGroupPtr)
 {
-    TR((LOG_DEBUG, log_tag, "nativeWriteToMem(%x)\n", nativeGroupPtr))
+    TR_ENTER_PTR(nativeGroupPtr)
     BinaryData buffer;
     char* bufPtr = 0;
     try {
@@ -217,7 +222,7 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Group_nativeWriteToMem(
 JNIEXPORT jobject JNICALL Java_io_realm_internal_Group_nativeWriteToByteBuffer(
     JNIEnv* env, jobject, jlong nativeGroupPtr)
 {
-    TR((LOG_DEBUG, log_tag, "nativeWriteToByteBuffer(%x)\n", nativeGroupPtr))
+    TR_ENTER_PTR(nativeGroupPtr)
     BinaryData buffer;
     try {
         buffer = G(nativeGroupPtr)->write_to_mem();

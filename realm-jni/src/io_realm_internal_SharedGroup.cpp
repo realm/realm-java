@@ -36,7 +36,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
     JNIEnv* env, jobject, jstring jfile_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
     TR_ENTER()
-        TR((LOG_DEBUG, log_tag, "jfile_name=%s durability=%d", env->GetStringChars(jfile_name, 0), durability))
+    TR((LOG_DEBUG, log_tag, "jfile_name=%s durability=%d", env->GetStringChars(jfile_name, 0), durability))
     StringData file_name;
 
     SharedGroup* db = 0;
@@ -148,8 +148,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateTransactL
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
   (JNIEnv* env, jobject, jlong native_ptr)
 {
-    TR_ENTER()
-    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr)) 
+    TR_ENTER_PTR(native_ptr)
     try {
         Group& group = const_cast<Group&>(SG(native_ptr)->begin_read());
         return reinterpret_cast<jlong>(&group);
@@ -161,8 +160,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
   (JNIEnv *env, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
 {
-    TR_ENTER()
-    TR((LOG_DEBUG, log_tag, "native_ptr=%x", native_ptr)) 
+    TR_ENTER_PTR(native_ptr)
     try {
         LangBindHelper::advance_read( *SG(native_ptr), *reinterpret_cast<LangBindHelper::TransactLogRegistry*>(native_tansact_log_registry_ptr) );
     }

@@ -21,7 +21,7 @@ import java.lang.*;
 
 public class SharedGroup implements Closeable {
 
-    public long nativePtr;
+    private long nativePtr;
     private long nativeReplicationPtr;
     private long nativeTransactLogRegistryPtr;
     private boolean implicitTransactionsEnabled = false;

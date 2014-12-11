@@ -145,7 +145,6 @@ public final class Realm implements Closeable {
         this.path = absolutePath;
         this.id = absolutePath.hashCode();
         setAutoRefresh(autoRefresh);
-        Log.d("REALM", "sharedGroup="+this.sharedGroup.nativePtr+"path="+absolutePath);
     }
 
     @Override
