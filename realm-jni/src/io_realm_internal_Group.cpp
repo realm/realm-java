@@ -25,6 +25,7 @@ using std::string;
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
     JNIEnv* env, jobject)
 {
+    TR_ENTER()
     Group *ptr = new Group();
     TR((LOG_DEBUG, log_tag, "Group::createNative(): %x.", ptr));
     return reinterpret_cast<jlong>(ptr);
@@ -58,7 +59,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
         pGroup = new Group(file_name, openmode);
 #endif
 
-        TR((LOG_DEBUG, log_tag, "%x", pGroup))
+        TR((LOG_DEBUG, log_tag, "group: %x", pGroup))
         return reinterpret_cast<jlong>(pGroup);
     }
     CATCH_FILE(file_name)
@@ -242,6 +243,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Group_nativeWriteToByteBuffer(
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeCommit(
     JNIEnv*, jobject, jlong nativeGroupPtr)
 {
+    TR_ENTER()
     G(nativeGroupPtr)->commit();
 }
 
