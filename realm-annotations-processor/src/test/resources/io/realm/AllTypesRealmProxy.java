@@ -171,6 +171,10 @@ public class AllTypesRealmProxy extends AllTypes {
         return Arrays.asList("columnString", "columnLong", "columnFloat", "columnDouble", "columnBoolean", "columnDate", "columnBinary");
     }
 
+    public static String getClassModelName() {
+        return "AllTypes";
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("AllTypes = [");

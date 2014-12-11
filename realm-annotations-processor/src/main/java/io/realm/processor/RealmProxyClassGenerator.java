@@ -18,6 +18,15 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -26,11 +35,11 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.*;
 
 public class RealmProxyClassGenerator {
+
+    public static final String PROXY_SUFFIX = "RealmProxy";
+
     private ProcessingEnvironment processingEnvironment;
     private String className;
     private String packageName;
@@ -40,7 +49,6 @@ public class RealmProxyClassGenerator {
     private List<VariableElement> fieldsToIndex;
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String TABLE_PREFIX = "class_";
-    private static final String PROXY_SUFFIX = "RealmProxy";
 
     private Types typeUtils;
     private TypeMirror realmObject;
@@ -172,6 +180,7 @@ public class RealmProxyClassGenerator {
         emitInitTableMethod(writer);
         emitValidateTableMethod(writer);
         emitGetFieldNamesMethod(writer);
+        emitGetClassModelName(writer);
         emitToStringMethod(writer);
         emitHashcodeMethod(writer);
         emitEqualsMethod(writer);
@@ -412,6 +421,13 @@ public class RealmProxyClassGenerator {
         }
         String statementSection = joinStringList(entries, ", ");
         writer.emitStatement("return Arrays.asList(%s)", statementSection);
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    private void emitGetClassModelName(JavaWriter writer) throws IOException {
+        writer.beginMethod("String", "getClassModelName", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
+        writer.emitStatement("return \"%s\"", className);
         writer.endMethod();
         writer.emitEmptyLine();
     }

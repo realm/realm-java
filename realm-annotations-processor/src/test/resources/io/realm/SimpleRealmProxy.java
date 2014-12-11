@@ -76,6 +76,10 @@ public class SimpleRealmProxy extends Simple {
         return Arrays.asList("name", "age");
     }
 
+    public static String getClassModelName() {
+        return "Simple";
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("Simple = [");

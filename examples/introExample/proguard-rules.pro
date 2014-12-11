@@ -16,6 +16,7 @@
 #   public *;
 #}
 
--keep class io.realm.** { *; }
--dontwarn javax.**
--dontwarn io.realm.**
+# Minimal setup when enabling Proguard using Realm
+-keepnames class io.realm.RealmProxyMediatorImpl
+-dontwarn io.realm.processor.*
+-dontwarn com.squareup.javawriter.JavaWriter

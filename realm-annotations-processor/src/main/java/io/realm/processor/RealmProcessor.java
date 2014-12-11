@@ -16,18 +16,30 @@
 
 package io.realm.processor;
 
-import io.realm.annotations.Ignore;
-import io.realm.annotations.Index;
-import io.realm.annotations.RealmClass;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
-import java.io.IOException;
-import java.util.*;
+
+import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
+import io.realm.annotations.RealmClass;
 
 
 @SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore", "io.realm.annotations.Index"})
@@ -245,9 +257,9 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         if (!done) {
-            RealmValidationListGenerator validationGenerator = new RealmValidationListGenerator(processingEnv, classesToValidate);
+            RealmProxyMediatorImplGenerator mediatorImplGenerator = new RealmProxyMediatorImplGenerator(processingEnv, classesToValidate);
             try {
-                validationGenerator.generate();
+                mediatorImplGenerator.generate();
                 done = true;
             } catch (IOException e) {
                 error(e.getMessage());

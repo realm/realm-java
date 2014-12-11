@@ -95,6 +95,10 @@ public class BooleansRealmProxy extends Booleans {
         return Arrays.asList("done", "isReady", "mCompleted");
     }
 
+    public static String getClassModelName() {
+        return "Booleans";
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("Booleans = [");
