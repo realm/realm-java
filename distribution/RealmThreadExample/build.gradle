@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service.model;
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
 
-import io.realm.RealmObject;
-
-public class Dog extends RealmObject {
-    private String name;
-
-    public String getName() {
-        return name;
+buildscript {
+    repositories {
+        jcenter()
     }
-
-    public void setName(String name) {
-        this.name = name;
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.14.0'
     }
+}
 
-    @Override
-    public String toString() {
-        return "Dog{" +
-                "name='" + name + '\'' +
-                '}';
+allprojects {
+    repositories {
+        jcenter()
     }
 }
