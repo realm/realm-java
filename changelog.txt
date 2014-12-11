@@ -1,4 +1,5 @@
 0.75.2
+ * Bug fixed in RealmObject.equals() so it now correctly compares two objects from the same Realm.
  * Realm class is now marked as final.
  * Replaced concurrency example with a better thread example.
  * Allow to add/remove RealmChangeListeners in RealmChangeListeners.
