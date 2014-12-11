@@ -1,8 +1,9 @@
-0.76.0 (??)
+0.75.2
  * Realm class is now marked as final.
  * Replaced concurrency example with a better thread example.
  * Allow to add/remove RealmChangeListeners in RealmChangeListeners.
  * Bug fixed in Realm crashing for receiving notifications after close().
+ * Close the Realm instance after migrations
 
 0.75.1 (03 December 2014)
   * Changing sort to be an in-place method.
