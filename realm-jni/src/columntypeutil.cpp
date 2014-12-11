@@ -51,7 +51,6 @@ jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType)
         TR((LOG_DEBUG, log_tag, "--class is NULL"));
         return NULL;
     }
-    TR((LOG_DEBUG, log_tag, "---2"));
 
     // Couldn't figure out how to create a new enum on Java side and return as object...
     // A workaround in java to not check for the correct ColumnTypeTable works.
@@ -78,7 +77,7 @@ jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType)
     }
     return jColumnTypeConsId;
     */
-    TR((LOG_DEBUG, log_tag, "---3"));
+
     return NULL;
     //jobject jColumnType = env->NewObject(jColumnTypeClass, jColumnTypeConsId,
                                        //  static_cast<jint>(columnType));
@@ -86,5 +85,4 @@ jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType)
 
     //TR((env, "jni: New ColumnType %d.", columnType));
     //return jColumnType;
-
 }
