@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service.model;
+package io.realm.examples.threads.model;
 
 import io.realm.RealmObject;
 
-public class Dog extends RealmObject {
+public class Score extends RealmObject {
+
     private String name;
+    private int score;
 
     public String getName() {
         return name;
@@ -29,10 +31,11 @@ public class Dog extends RealmObject {
         this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return "Dog{" +
-                "name='" + name + '\'' +
-                '}';
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
     }
 }

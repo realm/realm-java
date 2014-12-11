@@ -55,7 +55,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
         pGroup = new Group(file_name, key.data(), openmode);
 #else
-        pGroup = new Group(file_name, NULL, openmode);
+        pGroup = new Group(file_name, openmode);
 #endif
 
         TR((LOG_DEBUG, log_tag, "%x\n", pGroup))

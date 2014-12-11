@@ -77,7 +77,7 @@ import io.realm.internal.TableView;
  *
  * It is important to remember to call the close() method when done with the Realm instance.
  */
-public class Realm implements Closeable {
+public final class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";
 
     private static final String TAG = "REALM";
