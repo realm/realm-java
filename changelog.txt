@@ -1,4 +1,5 @@
 0.76.0 (??)
+ * Realm class is now marked as final.
  * Replaced concurrency example with a better thread example.
  * Allow to add/remove RealmChangeListeners in RealmChangeListeners.
  * Bug fixed in Realm crashing for receiving notifications after close().
