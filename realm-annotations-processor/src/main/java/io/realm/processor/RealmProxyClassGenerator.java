@@ -485,6 +485,8 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("String otherTableName = a%s.row.getTable().getName()", className);
         writer.emitStatement("if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false");
         writer.emitEmptyLine();
+        writer.emitStatement("if (row.getIndex() != a%s.row.getIndex()) return false", className);
+        writer.emitEmptyLine();
         writer.emitStatement("return true");
         writer.endMethod();
         writer.emitEmptyLine();
