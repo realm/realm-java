@@ -27,11 +27,12 @@ cp -R examples/gridViewExample/src distribution/RealmGridViewExample/app
 echo "Copying files to the distribution/RealmMigrationExample folder"
 cp -R examples/migrationExample/src distribution/RealmMigrationExample/app
 
-echo "Copying files to the distribution/RealmConcurrencyExample folder"
-cp -R examples/concurrencyExample/src distribution/RealmConcurrencyExample/app
-
 echo "Copying files to the distribution/RealmAdapterExample folder"
 cp -R examples/adapterExample/src distribution/RealmAdapterExample/app
+
+echo "Copying files to the distribution/RealmThreadExample folder"
+cp -R examples/threadExample/src distribution/RealmThreadExample/app
+
 
 echo "Creating the Eclipse distribution"
 mkdir -p distribution/eclipse
