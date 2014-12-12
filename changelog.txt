@@ -1,4 +1,5 @@
 0.75.2
+ * Gradle wrapper updated to support Android Studio 1.0
  * Realm class is now marked as final.
  * Replaced concurrency example with a better thread example.
  * Allow to add/remove RealmChangeListeners in RealmChangeListeners.
