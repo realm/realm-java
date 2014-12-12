@@ -23,6 +23,7 @@ public class SharedGroup implements Closeable {
 
     private long nativePtr;
     private long nativeReplicationPtr;
+    private long nativeTransactLogRegistryPtr;
     private boolean implicitTransactionsEnabled = false;
     private boolean activeTransaction;
     private final Context context;
@@ -51,6 +52,7 @@ public class SharedGroup implements Closeable {
 
     public SharedGroup(String databaseFile, boolean enableImplicitTransactions, byte[] key) {
         if (enableImplicitTransactions) {
+            nativeTransactLogRegistryPtr = nativeCreateTransactLogRegistry(databaseFile);
             nativeReplicationPtr = nativeCreateReplication(databaseFile);
             nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, key);
             implicitTransactionsEnabled = true;
@@ -64,6 +66,8 @@ public class SharedGroup implements Closeable {
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, byte[] key);
 
     private native long nativeCreateReplication(String databaseFile);
+
+    private native long nativeCreateTransactLogRegistry(String databaseFile);
 
     public SharedGroup(String databaseFile, Durability durability, byte[] key) {
         context = new Context();
@@ -85,16 +89,16 @@ public class SharedGroup implements Closeable {
         }
     */
     void advanceRead() {
-        nativeAdvanceRead(nativePtr);
+        nativeAdvanceRead(nativePtr, nativeTransactLogRegistryPtr);
     }
 
-    private native void nativeAdvanceRead(long nativePtr);
+    private native void nativeAdvanceRead(long nativePtr, long nativeTransactLogRegistryPtr);
 
     void promoteToWrite() {
-        nativePromoteToWrite(nativePtr);
+        nativePromoteToWrite(nativePtr, nativeTransactLogRegistryPtr);
     }
 
-    private native void nativePromoteToWrite(long nativePtr);
+    private native void nativePromoteToWrite(long nativePtr, long nativeTransactLogRegistryPtr);
 
     void commitAndContinueAsRead() {
         nativeCommitAndContinueAsRead(nativePtr);
@@ -168,9 +172,15 @@ public class SharedGroup implements Closeable {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
                 nativePtr = 0;
-                if (implicitTransactionsEnabled && nativeReplicationPtr != 0) {
-                    nativeCloseReplication(nativeReplicationPtr);
-                    nativeReplicationPtr = 0;
+                if (implicitTransactionsEnabled) {
+                    if (nativeTransactLogRegistryPtr != 0) {
+                        nativeCloseTransactRegistryLog(nativeTransactLogRegistryPtr);
+                        nativeTransactLogRegistryPtr = 0;
+                    }
+                    if (nativeReplicationPtr != 0) {
+                        nativeCloseReplication(nativeReplicationPtr);
+                        nativeReplicationPtr = 0;
+                    }
                 }
             }
         }
@@ -181,9 +191,15 @@ public class SharedGroup implements Closeable {
             if (nativePtr != 0) {
                 context.asyncDisposeSharedGroup(nativePtr);
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-                if (implicitTransactionsEnabled && nativeReplicationPtr != 0) {
-                    nativeCloseReplication(nativeReplicationPtr);
-                    nativeReplicationPtr = 0;
+                if (implicitTransactionsEnabled) {
+                    if (nativeTransactLogRegistryPtr != 0) {
+                        nativeCloseTransactRegistryLog(nativeTransactLogRegistryPtr);
+                        nativeTransactLogRegistryPtr = 0;
+                    }
+                    if (nativeReplicationPtr != 0) {
+                        nativeCloseReplication(nativeReplicationPtr);
+                        nativeReplicationPtr = 0;
+                    }
                 }
             }
         }
@@ -246,6 +262,8 @@ public class SharedGroup implements Closeable {
     }
 
     protected static native void nativeClose(long nativePtr);
+
+    private native void nativeCloseTransactRegistryLog(long nativeTransactLogRegistryPtr);
 
     private native void nativeCloseReplication(long nativeReplicationPtr);
 }

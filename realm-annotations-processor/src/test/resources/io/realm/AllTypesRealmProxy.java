@@ -232,6 +232,8 @@ public class AllTypesRealmProxy extends AllTypes {
         String otherTableName = aAllTypes.row.getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
 
+        if (row.getIndex() != aAllTypes.row.getIndex()) return false;
+
         return true;
     }
 

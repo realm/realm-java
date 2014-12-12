@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package io.realm.examples.concurrency;
+package io.realm.examples.service;
 
 import android.content.Context;
 import android.util.Log;
 
-import java.io.File;
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmQuery;
-import io.realm.examples.concurrency.model.Person;
+import io.realm.examples.service.model.Person;
 
 public class BgReaderThread extends Thread implements KillableThread {
 

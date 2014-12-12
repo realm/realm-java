@@ -866,7 +866,7 @@ public class RealmTest extends AndroidTestCase {
         // Copy is compacted i.e. smaller than original
         File file1 = new File(getContext().getFilesDir(), "file1.realm");
         File file2 = new File(getContext().getFilesDir(), "file2.realm");
-        assertTrue(file1.length() >= file2.length());
+        assertTrue(file1.length() > file2.length());
 
         Realm realm2 = null;
         try {
