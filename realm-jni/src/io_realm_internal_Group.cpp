@@ -26,8 +26,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
     JNIEnv* env, jobject)
 {
     TR_ENTER()
+    static_cast<void>(env);
     Group *ptr = new Group();
-    TR((LOG_DEBUG, log_tag, "Group::createNative(): %x.", ptr));
+    TR((LOG_DEBUG, log_tag, "Group::createNative(): %p.", VOID_PTR(ptr)));
     return reinterpret_cast<jlong>(ptr);
 }
 
@@ -59,7 +60,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
         pGroup = new Group(file_name, openmode);
 #endif
 
-        TR((LOG_DEBUG, log_tag, "group: %x", pGroup))
+        TR((LOG_DEBUG, log_tag, "group: %p", VOID_PTR(pGroup)))
         return reinterpret_cast<jlong>(pGroup);
     }
     CATCH_FILE(file_name)
@@ -90,7 +91,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative___3B(
     Group* pGroup = 0;
     try {
         pGroup = new Group(BinaryData(reinterpret_cast<char*>(buf), S(byteArrayLength)), true);
-        TR((LOG_DEBUG, log_tag, " groupPtr: %x", pGroup));
+        TR((LOG_DEBUG, log_tag, " groupPtr: %p", VOID_PTR(pGroup)));
         return reinterpret_cast<jlong>(pGroup);
     }
     CATCH_FILE("memory-buffer")
@@ -119,12 +120,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_nio_Byt
     CATCH_FILE("memory-buffer")
     CATCH_STD()
 
-    TR((LOG_DEBUG, log_tag, "%x", pGroup))
+    TR((LOG_DEBUG, log_tag, "%p", VOID_PTR(pGroup)))
     return reinterpret_cast<jlong>(pGroup);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeClose(
-    JNIEnv* env, jclass, jlong nativeGroupPtr)
+    JNIEnv*, jclass, jlong nativeGroupPtr)
 {
     TR_ENTER_PTR(nativeGroupPtr)
     delete G(nativeGroupPtr);

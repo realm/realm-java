@@ -44,6 +44,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 }
 #endif
 
+// Use this macro when logging a pointer using '%p'
+#define VOID_PTR(ptr) reinterpret_cast<void*>(ptr)
+
 #define STRINGIZE_DETAIL(x) #x
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
@@ -96,7 +99,9 @@ std::string num_to_string(T pNumber)
 #define MAX_JSIZE  MAX_JINT
 
 // Helper macros for better readability
+// Use S64() when logging
 #define S(x)    static_cast<size_t>(x)
+#define S64(x)  static_cast<int64_t>(x)
 #define TBL(x)  reinterpret_cast<tightdb::Table*>(x)
 #define TV(x)   reinterpret_cast<tightdb::TableView*>(x)
 #define LV(x)   reinterpret_cast<tightdb::LinkView*>(x)
@@ -139,7 +144,7 @@ extern const char *log_tag;
     #include <android/log.h>
     #define LOG_DEBUG ANDROID_LOG_DEBUG
     #define TR_ENTER() if (trace_level >= 1) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " --> %s", __FUNCTION__); } else {}
-    #define TR_ENTER_PTR(ptr) if (trace_level >= 1) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " --> %s %x", __FUNCTION__, ptr); } else {}
+    #define TR_ENTER_PTR(ptr) if (trace_level >= 1) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " --> %s %lld", __FUNCTION__, static_cast<int64_t>(ptr)); } else {}
     #define TR(args) if (trace_level >= 2) { __android_log_print args; } else {}
     #define TR_ERR(args) if (trace_level >= 0) { __android_log_print args; } else {}
     #define TR_LEAVE() if (trace_level >= 3) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " <-- %s", __FUNCTION__); } else {}
@@ -228,7 +233,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
 
     }
     if (!valid) {
-        TR_ERR((LOG_DEBUG, log_tag, "Table %x is no longer attached!", objPtr));
+        TR_ERR((LOG_DEBUG, log_tag, "Table %p is no longer attached!", VOID_PTR(objPtr)));
         ThrowException(env, TableInvalid, "Table is no longer valid to operate on.");
     }
     return valid;
@@ -238,7 +243,7 @@ inline bool RowIsValid(JNIEnv* env, Row* rowPtr)
 {
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
-        TR_ERR((LOG_DEBUG, log_tag, "Row %x is no longer attached!", rowPtr));
+        TR_ERR((LOG_DEBUG, log_tag, "Row %p is no longer attached!", VOID_PTR(rowPtr)));
         ThrowException(env, RowInvalid, "Row/Object is no longer valid to operate on. Was it deleted?");
     }
     return valid;
@@ -252,29 +257,29 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
     if (endIndex == -1)
         endIndex = maxIndex;
     if (startIndex < 0) {
-        TR_ERR((LOG_DEBUG, log_tag, "startIndex %lld < 0 - invalid!", S(startIndex), 0));
+        TR_ERR((LOG_DEBUG, log_tag, "startIndex %lld < 0 - invalid!", S64(startIndex)));
         ThrowException(env, IndexOutOfBounds, "startIndex < 0.");
         return false;
     }
     if (tightdb::util::int_greater_than(startIndex, maxIndex)) {
-        TR_ERR((LOG_DEBUG, log_tag, "startIndex %lld > %lld - invalid!", S(startIndex), maxIndex));
+        TR_ERR((LOG_DEBUG, log_tag, "startIndex %lld > %lld - invalid!", S64(startIndex), S64(maxIndex)));
         ThrowException(env, IndexOutOfBounds, "startIndex > available rows.");
         return false;
     }
 
     if (tightdb::util::int_greater_than(endIndex, maxIndex)) {
-        TR_ERR((LOG_DEBUG, log_tag, "endIndex %lld > %lld - invalid!", S(endIndex), maxIndex));
+        TR_ERR((LOG_DEBUG, log_tag, "endIndex %lld > %lld - invalid!", S64(endIndex), S64(maxIndex)));
         ThrowException(env, IndexOutOfBounds, "endIndex > available rows.");
         return false;
     }
     if (startIndex > endIndex) {
-        TR_ERR((LOG_DEBUG, log_tag, "startIndex %lld > endIndex %lld- invalid!", S(startIndex), S(endIndex)));
+        TR_ERR((LOG_DEBUG, log_tag, "startIndex %lld > endIndex %lld- invalid!", S64(startIndex), S64(endIndex)));
         ThrowException(env, IndexOutOfBounds, "startIndex > endIndex.");
         return false;
     }
 
     if (range != -1 && range < 0) {
-        TR_ERR((LOG_DEBUG, log_tag, "range %lld < 0 - invalid!", range));
+        TR_ERR((LOG_DEBUG, log_tag, "range %lld < 0 - invalid!", S64(range)));
         ThrowException(env, IndexOutOfBounds, "range < 0.");
         return false;
     }
@@ -294,7 +299,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=fa
         size -= 1;
     bool rowErr = tightdb::util::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
-        TR_ERR((LOG_DEBUG, log_tag, "rowIndex %lld > %lld - invalid!", S(rowIndex), size));
+        TR_ERR((LOG_DEBUG, log_tag, "rowIndex %lld > %lld - invalid!", S64(rowIndex), S64(size)));
         ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
     }
     return !rowErr;
@@ -319,7 +324,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
     }
     bool colErr = tightdb::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
-        TR_ERR((LOG_DEBUG, log_tag, "columnIndex %lld > %lld - invalid!", S(columnIndex), pTable->get_column_count()));
+        TR_ERR((LOG_DEBUG, log_tag, "columnIndex %lld > %lld - invalid!", S64(columnIndex), S64(pTable->get_column_count())));
         ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
     }
     return !colErr;
@@ -361,7 +366,7 @@ inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong
         return false;
     bool rowErr = tightdb::util::int_greater_than(rowIndex, pTable->size()+1);
     if (rowErr) {
-        TR_ERR((LOG_DEBUG, log_tag, "rowIndex %lld > %lld - invalid!", rowIndex, pTable->size()));
+        TR_ERR((LOG_DEBUG, log_tag, "rowIndex %lld > %lld - invalid!", S64(rowIndex), S64(pTable->size())));
         ThrowException(env, IndexOutOfBounds,
             "rowIndex " + num_to_string(rowIndex) +
             " > available rows " + num_to_string(pTable->size()) + ".");
