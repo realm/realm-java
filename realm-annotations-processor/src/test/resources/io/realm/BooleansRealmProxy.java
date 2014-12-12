@@ -144,6 +144,8 @@ public class BooleansRealmProxy extends Booleans {
         String otherTableName = aBooleans.row.getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
 
+        if (row.getIndex() != aBooleans.row.getIndex()) return false;
+
         return true;
     }
 

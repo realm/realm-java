@@ -76,7 +76,7 @@ import io.realm.internal.TableView;
  *
  * It is important to remember to call the close() method when done with the Realm instance.
  */
-public class Realm implements Closeable {
+public final class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";
 
     private static final String TAG = "REALM";
@@ -168,6 +168,10 @@ public class Realm implements Closeable {
         }
         localRefCount.put(id, references - 1);
         referenceCount.set(localRefCount);
+
+        if (handler != null) {
+            handlers.remove(handler);
+        }
     }
 
     private class RealmCallback implements Handler.Callback {
@@ -847,6 +851,7 @@ public class Realm implements Closeable {
         realm.beginTransaction();
         realm.setVersion(migration.execute(realm, realm.getVersion()));
         realm.commitTransaction();
+        realm.close();
 
         realmsCache.remove();
     }
