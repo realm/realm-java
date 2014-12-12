@@ -253,10 +253,6 @@ public class Row {
 
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
 
-    private void throwImmutable() {
-        throw new IllegalStateException("Mutable method call during read transaction.");
-    }
-
     protected static native void nativeClose(long nativeRowPtr);
 
     @Override
