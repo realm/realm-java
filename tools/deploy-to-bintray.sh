@@ -38,4 +38,4 @@ if ! grep -q "$version" "$version_checker_file"; then
 	echo "The version checker file does not contain the provided version"
 fi
 
-#./gradlew realm:bintrayUpload
+./gradlew realm:bintrayUpload
