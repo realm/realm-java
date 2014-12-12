@@ -250,8 +250,8 @@ public class RealmObjectTest extends AndroidTestCase {
         CyclicType ct1 = testRealm.where(CyclicType.class).findFirst();
         CyclicType ct2 = testRealm.where(CyclicType.class).findFirst();
 
-        assertTrue(ct1.equals(ct1));
-        assertTrue(ct2.equals(ct2));
+        assertTrue(ct1.equals(ct2));
+        assertTrue(ct2.equals(ct1));
     }
 
     public void testEqualsDifferentRealmObjects() {
