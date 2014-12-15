@@ -18,6 +18,7 @@ package io.realm.examples.realmadapters;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,6 +33,7 @@ import io.realm.examples.realmadapters.models.TimeStamp;
 public class AdapterExampleActivity extends Activity {
 
     private Realm realm;
+    private WorkerThread workerThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +41,12 @@ public class AdapterExampleActivity extends Activity {
         setContentView(R.layout.activity_my);
 
         Realm.deleteRealmFile(this);
+
+        if (workerThread == null || !workerThread.isAlive()) {
+            workerThread = new WorkerThread(this);
+            workerThread.start();
+        }
+
         realm = Realm.getInstance(this);
         RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll();
         final MyAdapter adapter = new MyAdapter(this, R.id.listView, timeStamps, true);
@@ -47,10 +55,11 @@ public class AdapterExampleActivity extends Activity {
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    realm.beginTransaction();
-                    adapter.getRealmResults().remove(i);
-                    realm.commitTransaction();
-                    return true;
+                TimeStamp timeStamp = adapter.getRealmResults().get(i);
+                Message message = buildMessage(WorkerHandler.REMOVE_TIMESTAMP, timeStamp.getTimeStamp());
+
+                workerThread.workerHandler.sendMessage(message);
+                return true;
             }
         });
     }
@@ -71,11 +80,18 @@ public class AdapterExampleActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_add) {
-            realm.beginTransaction();
-            TimeStamp timeStamp = realm.createObject(TimeStamp.class);
-            timeStamp.setTimeStamp(Long.toString(System.currentTimeMillis()));
-            realm.commitTransaction();
+            Message message = buildMessage(WorkerHandler.ADD_TIMESTAMP, Long.toString(System.currentTimeMillis()));
+            workerThread.workerHandler.sendMessage(message);
         }
         return true;
+    }
+
+    private static Message buildMessage(int action, String timeStamp) {
+        Bundle bundle = new Bundle(2);
+        bundle.putInt(WorkerHandler.ACTION, action);
+        bundle.putString(WorkerHandler.TIMESTAMP, timeStamp);
+        Message message = new Message();
+        message.setData(bundle);
+        return message;
     }
 }
