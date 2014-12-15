@@ -187,8 +187,9 @@ public class RealmProxyMediatorImplGenerator {
     // Currently it is just if..else, which is inefficient for large amounts amounts of model classes.
     // Consider switching to HashMap or similar.
     private void emitMediatorSwitch(String proxyStatement, JavaWriter writer) throws IOException {
-        writer.emitStatement("String classQualifiedName = clazz.getName()");
+        writer.emitStatement("if (clazz == null) throw new NullPointerException(\"A class extending RealmObject must be provided\")");
         writer.emitEmptyLine();
+        writer.emitStatement("String classQualifiedName = clazz.getName()");
         if (simpleModelClasses.size() == 0) {
             writer.emitStatement("throw new RealmException(%s)", EXCEPTION_MSG);
         } else {

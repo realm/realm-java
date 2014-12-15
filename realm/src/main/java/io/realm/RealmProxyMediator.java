@@ -43,6 +43,8 @@ interface RealmProxyMediator {
      *
      * @param clazz  RealmObject model class reference.
      * @return The simple name of an model class (before it has been obfuscated)
+     *
+     * @throws java.lang.NullPointerException if null is given as argument.
      */
     public String getClassModelName(Class<? extends RealmObject> clazz);
 

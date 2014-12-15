@@ -98,7 +98,7 @@ public final class Realm implements Closeable {
         }
     };
     private static final int REALM_CHANGED = 14930352; // Nice big Fibonacci number. High enough to prevent clash with other message ID's.
-    private static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
+    static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
     private static final String CLOSED_REALM = "This Realm instance has already been closed, making it unusable.";
 
@@ -604,7 +604,11 @@ public final class Realm implements Closeable {
     }
 
     boolean contains(Class<? extends RealmObject> clazz) {
-        return transaction.hasTable(TABLE_PREFIX + proxyMediator.getClassModelName(clazz));
+        try {
+            return transaction.hasTable(TABLE_PREFIX + proxyMediator.getClassModelName(clazz));
+        } catch (NullPointerException e) {
+            return false;
+        }
     }
 
     /**

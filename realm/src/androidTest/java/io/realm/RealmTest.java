@@ -187,8 +187,8 @@ public class RealmTest extends AndroidTestCase {
         testRealm.beginTransaction();
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
-        assertTrue("contains returns false for newly created table", testRealm.contains(Dog.class));
-        assertFalse("contains returns true for non-existing table", testRealm.contains(RealmTest.class));
+        assertTrue(testRealm.contains(Dog.class));
+        assertFalse(testRealm.contains(null));
     }
 
     // <E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
