@@ -42,10 +42,8 @@ public class AdapterExampleActivity extends Activity {
 
         Realm.deleteRealmFile(this);
 
-        if (workerThread == null || !workerThread.isAlive()) {
-            workerThread = new WorkerThread(this);
-            workerThread.start();
-        }
+        workerThread = new WorkerThread(this);
+        workerThread.start();
 
         realm = Realm.getInstance(this);
         RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll();
@@ -62,6 +60,19 @@ public class AdapterExampleActivity extends Activity {
                 return true;
             }
         });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        workerThread.workerHandler.getLooper().quit();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        workerThread = new WorkerThread(this);
+        workerThread.start();
     }
 
     @Override
