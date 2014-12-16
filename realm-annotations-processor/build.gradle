@@ -43,7 +43,7 @@ task assembleRealm(type: GradleBuild) {
     tasks = ['assemble']
 }
 
-tasks.assemble {
+tasks.compileJava {
     dependsOn compileAnnotations
 }
 
