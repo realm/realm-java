@@ -580,7 +580,7 @@ public final class Realm implements Closeable {
         return get(clazz, rowIndex);
     }
 
-    <E extends RealmObject> void remove(Class<E> clazz, long objectIndex) {
+    void remove(Class<? extends RealmObject> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
     }
 

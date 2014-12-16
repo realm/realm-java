@@ -20,6 +20,7 @@ import com.squareup.javawriter.JavaWriter;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -31,9 +32,9 @@ import javax.tools.JavaFileObject;
 
 public class RealmProxyMediatorImplGenerator {
     private ProcessingEnvironment processingEnvironment;
-    private ArrayList<String> qualifiedModelClasses = new ArrayList<String>();
-    private ArrayList<String> simpleModelClasses = new ArrayList<String>();
-    private ArrayList<String> proxyClasses = new ArrayList<String>();
+    private List<String> qualifiedModelClasses = new ArrayList<String>();
+    private List<String> simpleModelClasses = new ArrayList<String>();
+    private List<String> proxyClasses = new ArrayList<String>();
 
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String CLASS_NAME = "RealmProxyMediatorImpl";
@@ -95,7 +96,7 @@ public class RealmProxyMediatorImplGenerator {
     private void emitFields(JavaWriter writer) throws IOException {
         writer.emitField("List<Class<? extends RealmObject>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
-        writer.emitStatement("ArrayList<Class<? extends RealmObject>> modelClasses = new ArrayList<Class<? extends RealmObject>>()");
+        writer.emitStatement("List<Class<? extends RealmObject>> modelClasses = new ArrayList<Class<? extends RealmObject>>()");
         for (String clazz : simpleModelClasses) {
             writer.emitStatement("modelClasses.add(%s.class)", clazz);
         }
