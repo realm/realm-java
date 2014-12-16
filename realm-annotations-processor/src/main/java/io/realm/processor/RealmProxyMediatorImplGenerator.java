@@ -72,11 +72,11 @@ public class RealmProxyMediatorImplGenerator {
 
         // Begin the class definition
         writer.beginType(
-                qualifiedGeneratedClassName, // full qualified name of the item to generate
-                "class",                     // the type of the item
-                Collections.EMPTY_SET,       // modifiers to apply
-                null,                        // class to extend
-                "RealmProxyMediator");       // Interfaces to implement
+                qualifiedGeneratedClassName,        // full qualified name of the item to generate
+                "class",                            // the type of the item
+                Collections.<Modifier>emptySet(),   // modifiers to apply
+                null,                               // class to extend
+                "RealmProxyMediator");              // Interfaces to implement
         writer.emitEmptyLine();
 
         emitFields(writer);
@@ -105,7 +105,7 @@ public class RealmProxyMediatorImplGenerator {
     }
 
     private void emitConstuctor(JavaWriter writer) throws IOException {
-        writer.beginConstructor(Collections.EMPTY_SET);
+        writer.beginConstructor(Collections.<Modifier>emptySet());
         writer.endConstructor();
         writer.emitEmptyLine();
     }

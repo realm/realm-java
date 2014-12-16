@@ -18,5 +18,4 @@
 
 # Minimal setup when enabling Proguard using Realm
 -keepnames class io.realm.RealmProxyMediatorImpl
--dontwarn io.realm.processor.*
--dontwarn com.squareup.javawriter.JavaWriter
+-dontwarn io.realm.processor.**
