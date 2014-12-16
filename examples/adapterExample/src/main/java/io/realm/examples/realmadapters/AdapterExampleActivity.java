@@ -42,9 +42,6 @@ public class AdapterExampleActivity extends Activity {
 
         Realm.deleteRealmFile(this);
 
-        workerThread = new WorkerThread(this);
-        workerThread.start();
-
         realm = Realm.getInstance(this);
         RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll();
         final MyAdapter adapter = new MyAdapter(this, R.id.listView, timeStamps, true);
