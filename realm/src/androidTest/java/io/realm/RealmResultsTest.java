@@ -539,8 +539,9 @@ public class RealmResultsTest extends AndroidTestCase {
         AllTypes allTypes2 = testRealm.createObject(AllTypes.class);
         allTypes2.setColumnString("αύριο");
         AllTypes allTypes3 = testRealm.createObject(AllTypes.class);
-        testRealm.commitTransaction();
         allTypes3.setColumnString("work");
+        testRealm.commitTransaction();
+
         try {
             RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
             result.sort(FIELD_STRING);
