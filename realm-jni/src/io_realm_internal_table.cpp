@@ -295,7 +295,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveLast(
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlong rowIndex)
 {
-    if (!TBL_AND_ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, true))
+    if (!TBL_AND_ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, false))
         return;
     try {
         TBL(nativeTablePtr)->move_last_over(S(rowIndex));
@@ -1207,14 +1207,21 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return 0;
     int colType = pTable->get_column_type( S(columnIndex) );
-    if (colType != type_Int && colType != type_Bool && colType != type_DateTime) {
-        ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
-        return 0;
+    switch (colType) {
+        case type_Int:
+        case type_Bool:
+        case type_DateTime:
+        case type_String:
+        case type_Double:
+        case type_Float:
+            try {
+                TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
+                return reinterpret_cast<jlong>(pTableView);
+            } CATCH_STD()
+        default:
+            ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
+            return 0;
     }
-    try {
-        TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
-        return reinterpret_cast<jlong>(pTableView);
-    } CATCH_STD()
     return 0;
 }
 
@@ -1231,11 +1238,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeOptimize(
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(
     JNIEnv *env, jobject, jlong nativeTablePtr)
 {
-    Table* table = TBL(nativeTablePtr);
-    if (!TABLE_VALID(env, table))
-        return NULL;
-    const string str = table->get_name();
-    return to_jstring(env, str);
+    try {
+        Table* table = TBL(nativeTablePtr);
+        if (!TABLE_VALID(env, table))
+            return NULL;
+        const string str = table->get_name();
+        return to_jstring(env, str);
+    } CATCH_STD()
+    return NULL;
 }
 
 

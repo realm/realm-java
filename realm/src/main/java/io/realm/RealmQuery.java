@@ -25,6 +25,7 @@ import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
+import io.realm.internal.TableView;
 
 /**
  *
@@ -62,6 +63,17 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
+        this.realm = realm;
+        this.clazz = clazz;
+        this.realmList = null;
+        this.query = query;
+        TableOrView dataStore = getTable();
+        for (int i = 0; i < dataStore.getColumnCount(); i++) {
+            this.columns.put(dataStore.getColumnName(i), i);
+        }
+    }
+
     /**
      * Create a RealmQuery instance from a @{link io.realm.RealmResults}.
      * @param realmList   The @{link io.realm.RealmResults} to query
@@ -91,17 +103,7 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     private boolean containsDot(String s) {
-        int i;
-        int n;
-
-        i = 0;
-        n = s.length();
-        while (i < n) {
-            if (s.charAt(i) == '.')
-                return true;
-            i++;
-        }
-        return false;
+        return s.indexOf('.') != -1;
     }
 
     private String[] splitString(String s) {
@@ -129,15 +131,18 @@ public class RealmQuery<E extends RealmObject> {
         return arr;
     }
 
-    // TODO: consider another caching strategy to linked classes are
-    //       included in the cache.
+    // TODO: consider another caching strategy so linked classes are included in the cache.
     private long[] getColumnIndices(String fieldName, ColumnType fieldType) {
-        Table table = (Table)getTable();
+        Table table = getTable().getTable();
+
         if (containsDot(fieldName)) {
             String[] names = splitString(fieldName); //fieldName.split("\\.");
             long[] columnIndices = new long[names.length];
             for (int i = 0; i < names.length-1; i++) {
                 long index = table.getColumnIndex(names[i]);
+                if (index < 0) {
+                    throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
+                }
                 ColumnType type = table.getColumnType(index);
                 if (type == ColumnType.LINK || type == ColumnType.LINK_LIST) {
                     table = table.getLinkTarget(index);
@@ -152,6 +157,9 @@ public class RealmQuery<E extends RealmObject> {
             }
             return columnIndices;
         } else {
+            if (columns.get(fieldName) == null) {
+                throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
+            }
             if (fieldType != table.getColumnType(columns.get(fieldName))) {
                 throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", fieldName));
             }
@@ -279,7 +287,6 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, Date value) {
-        
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
         this.query.equalTo(columnIndices, value);
         return this;
@@ -808,12 +815,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length == 1) {
-            this.query.contains(columnIndices[0], value);
-            return this;
-        }
-        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "contains"));
+        return contains(fieldName, value, CASE_SENSITIVE);
     }
 
     /**
@@ -845,12 +847,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length == 1) {
-            this.query.beginsWith(columnIndices[0], value);
-            return this;
-        }
-        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "beginsWith"));
+        return beginsWith(fieldName, value, CASE_SENSITIVE);
     }
 
     /**
@@ -882,12 +879,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length == 1) {
-            this.query.endsWith(columnIndices[0], value);
-            return this;
-        }
-        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "endsWith"));
+        return endsWith(fieldName, value, CASE_SENSITIVE);
     }
 
     /**
@@ -1126,6 +1118,25 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmResults<E> findAll() {
         return new RealmResults<E>(realm, query.findAll(), clazz);
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field name.
+     *
+     * @param fieldName the field name to sort by.
+     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     */
+    public RealmResults<E> findAll(String fieldName, boolean sortAscending) {
+        TableView tableView = query.findAll();
+        TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
+        Integer columnIndex = columns.get(fieldName);
+        if (columnIndex == null || columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+        tableView.sort(columnIndex, order);
+        return new RealmResults<E>(realm, tableView, clazz);
     }
 
     /**

@@ -107,10 +107,10 @@ publishing {
 }
 
 bintray {
-    user = project.hasProperty('bintrayUser')?bintrayUser:'noUser' // this comes from the gradle.properties file in ~/.gradle
-    key = project.hasProperty('bintrayKey')?bintrayKey:'noKey' //this comes from the gradle.properties file in ~/.gradle
+    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser' // this comes from the gradle.properties file in ~/.gradle
+    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey' //this comes from the gradle.properties file in ~/.gradle
     publications = ['mavenAndroid']
-    publish = false
+    publish = true
     pkg {
         repo = 'maven'
         name = 'realm-android'
@@ -120,7 +120,7 @@ bintray {
 
 task buildApt(type: GradleBuild) {
     dir = file('../realm-annotations-processor')
-    tasks = ['build']
+    tasks = ['assemble']
 }
 
 task compileJni(type: GradleBuild) {

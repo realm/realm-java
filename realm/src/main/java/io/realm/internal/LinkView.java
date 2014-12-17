@@ -82,4 +82,18 @@ public class LinkView {
         return nativeIsEmpty(nativeLinkViewPtr);
     }
     private native boolean nativeIsEmpty(long nativeLinkViewPtr);
+
+    public TableQuery where() {
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        this.context.executeDelayedDisposal();
+        long nativeQueryPtr = nativeWhere(nativeLinkViewPtr);
+        try {
+            return new TableQuery(this.context, this.parent, nativeQueryPtr);
+        } catch (RuntimeException e) {
+            TableQuery.nativeClose(nativeQueryPtr);
+            throw e;
+        }
+    }
+
+    protected native long nativeWhere(long nativeLinkViewPtr);
 }

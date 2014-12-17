@@ -1,4 +1,4 @@
-ext.coreVersion = '0.85.1'
+ext.coreVersion = '0.86.0'
 
 buildscript {
     repositories {

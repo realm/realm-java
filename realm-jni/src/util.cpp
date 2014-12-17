@@ -134,10 +134,12 @@ void jprint(JNIEnv *env, char *txt)
     static_cast<void>(env);
     fprintf(stderr, " -- JNI: %s", txt);  fflush(stderr);
 #else
-    static jclass myClass = GetClass(env, "io/realm/internal/util");
+    static jclass myClass = GetClass(env, "io/realm/internal/Util");
     static jmethodID myMethod = env->GetStaticMethodID(myClass, "javaPrint", "(Ljava/lang/String;)V");
     if (myMethod)
-        env->CallStaticVoidMethod(myClass, myMethod, env->NewStringUTF(txt));
+        env->CallStaticVoidMethod(myClass, myMethod, to_jstring(env, txt));
+    else
+        ThrowException(env, NoSuchMethod, "Util", "javaPrint");
 #endif
 }
 
@@ -210,6 +212,24 @@ private:
 
 } // anonymous namespace
 
+string string_to_hex(const string& message, StringData& str) {
+    ostringstream ret;
+
+    const char *s = str.data();
+    ret << message;
+    for (string::size_type i = 0; i < str.size(); ++i)
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)s[i];
+    return ret.str();
+}
+
+string string_to_hex(const string& message, const jchar *str, size_t size) {
+    ostringstream ret;
+
+    ret << message;
+    for (size_t i = 0; i < size; ++i)
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)str[i];
+    return ret.str();
+}
 
 jstring to_jstring(JNIEnv* env, StringData str)
 {
@@ -233,7 +253,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
 
     if (str.size() <= stack_buf_size) {
         if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
-            goto bad_utf8;
+            throw runtime_error(string_to_hex("Failure when converting short string to UTF-16",  str));
         if (in_begin == in_end)
             goto transcode_complete;
     }
@@ -242,7 +262,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         const char* in_begin2 = in_begin;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end);
         if (in_begin2 != in_end) 
-            goto bad_utf8;
+            throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str));
         if (int_add_with_overflow_detect(size, stack_buf_size))
             throw runtime_error("String size overflow");
         dyn_buf.reset(new jchar[size]);
@@ -250,7 +270,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         out_begin = dyn_buf.get();
         out_end   = dyn_buf.get() + size;
         if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
-            goto bad_utf8;
+            throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str));
         TIGHTDB_ASSERT(in_begin == in_end);
     }
 
@@ -262,9 +282,6 @@ jstring to_jstring(JNIEnv* env, StringData str)
 
         return env->NewString(out_begin, out_size);
     }
-
-  bad_utf8:
-    throw runtime_error("Bad UTF-8 encoding");
 }
 
 
@@ -297,8 +314,9 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         const jchar* in_end   = in_begin + chars.size();
         char* out_begin = m_data.get();
         char* out_end   = m_data.get() + buf_size;
-        if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end))
-            throw runtime_error("Bad UTF-16 encoding");
+        if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end)) {
+            throw runtime_error(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size()));
+        }
         TIGHTDB_ASSERT(in_begin == in_end);
         m_size = out_begin - m_data.get();
     }

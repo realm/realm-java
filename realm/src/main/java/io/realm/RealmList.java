@@ -19,6 +19,7 @@ package io.realm;
 import java.util.AbstractList;
 
 import io.realm.internal.LinkView;
+import io.realm.internal.TableQuery;
 
 /**
  * RealmList is used in one-to-many relationships.
@@ -131,11 +132,28 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Currently not implemented!
-     * @return A query object (currently always null)
+     * Returns a RealmQuery, which can be used to query for specific objects of this class
+     *
+     * @return A RealmQuery object
      * @see io.realm.RealmQuery
      */
     public RealmQuery<E> where() {
-        return null;
+        TableQuery query = this.view.where();
+        return new RealmQuery<E>(this.realm, query, clazz);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(clazz.getSimpleName());
+        sb.append("@[");
+        for (int i = 0; i < size(); i++) {
+            sb.append(get(i).row.getIndex());
+            if (i < size() - 1) {
+                sb.append(',');
+            }
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }

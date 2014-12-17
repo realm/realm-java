@@ -44,6 +44,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 }
 #endif
 
+#define STRINGIZE_DETAIL(x) #x
+#define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
 // Exception handling
 
@@ -52,10 +54,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
         ThrowException(env, IllegalArgument, "Invalid Group file format."); \
     } \
     catch (util::File::PermissionDenied& e) { \
-        ThrowException(env, IOFailed, fileName, string("Permission denied. ") + e.what()); \
+        ThrowException(env, IOFailed, string(fileName), string("Permission denied. ") + e.what()); \
     } \
     catch (util::File::NotFound&) { \
-        ThrowException(env, FileNotFound, fileName); \
+        ThrowException(env, FileNotFound, string(fileName));    \
     } \
     catch (util::File::AccessError& e) { \
         ThrowException(env, FileAccessError, string(fileName), e.what()); \
@@ -63,14 +65,18 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 
 #define CATCH_STD() \
     catch (std::bad_alloc& e) { \
-        ThrowException(env, OutOfMemory, e.what()); \
+        ThrowException(env, OutOfMemory, e.what() + std::string(" in ") + std::string(__FILE__) + \
+                                         std::string(" line ") + std::string(STRINGIZE(__LINE__))); \
     } \
     catch (std::exception& e) { \
-        ThrowException(env, Unspecified, e.what()); \
+        ThrowException(env, Unspecified, e.what() + std::string(" in ") + std::string(__FILE__) + \
+                                         std::string(" line ") + std::string(STRINGIZE(__LINE__))); \
     } \
     catch (...) { \
         TIGHTDB_ASSERT(false); \
-        ThrowException(env, RuntimeError, "Unknown Exception"); \
+        ThrowException(env, RuntimeError, std::string("Exception in ") + \
+                                          std::string(__FILE__) + std::string(" line ") \
+                                          + std::string(STRINGIZE(__LINE__))); \
     }
     /* above (...) is not needed if we only throw exceptions derived from std::exception */
 
@@ -267,7 +273,7 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
 template <class T>
 inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
 {
-    if(rowIndex < 0) {
+    if (rowIndex < 0) {
         ThrowException(env, IndexOutOfBounds, "rowIndex is less than 0.");
         return false;
     }

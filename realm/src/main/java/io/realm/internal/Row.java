@@ -171,38 +171,48 @@ public class Row {
     // Setters
 
     public void setLong(long columnIndex, long value) {
+        parent.checkImmutable();
         nativeSetLong(nativePtr, columnIndex, value);
     }
 
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
 
     public void setBoolean(long columnIndex, boolean value) {
+        parent.checkImmutable();
         nativeSetBoolean(nativePtr, columnIndex, value);
     }
 
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
 
     public void setFloat(long columnIndex, float value) {
+        parent.checkImmutable();
         nativeSetFloat(nativePtr, columnIndex, value);
     }
 
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
 
     public void setDouble(long columnIndex, double value) {
+        parent.checkImmutable();
         nativeSetDouble(nativePtr, columnIndex, value);
     }
 
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
 
     public void setDate(long columnIndex, Date date) {
+        parent.checkImmutable();
         if (date == null)
             throw new IllegalArgumentException("Null Date is not allowed.");
-        nativeSetDate(nativePtr, columnIndex, date.getTime() / 1000);
+        long timestamp = date.getTime() / 1000;
+        if (timestamp >= Integer.MAX_VALUE || timestamp <= Integer.MIN_VALUE) {
+            throw new IllegalArgumentException("Date/timestamp is outside valid range");
+        }
+        nativeSetDate(nativePtr, columnIndex, timestamp);
     }
 
     protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
 
     public void setString(long columnIndex, String value) {
+        parent.checkImmutable();
         if (value == null)
             throw new IllegalArgumentException("Null String is not allowed.");
         nativeSetString(nativePtr, columnIndex, value);
@@ -211,6 +221,7 @@ public class Row {
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
 
     public void setBinaryByteArray(long columnIndex, byte[] data) {
+        parent.checkImmutable();
         if (data == null)
             throw new IllegalArgumentException("Null Array");
         nativeSetByteArray(nativePtr, columnIndex, data);
@@ -220,6 +231,7 @@ public class Row {
 
 
     public void setMixed(long columnIndex, Mixed data) {
+        parent.checkImmutable();
         if (data == null)
             throw new IllegalArgumentException();
         nativeSetMixed(nativePtr, columnIndex, data);
@@ -228,20 +240,18 @@ public class Row {
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
 
     public void setLink(long columnIndex, long value) {
+        parent.checkImmutable();
         nativeSetLink(nativePtr, columnIndex, value);
     }
 
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
 
     public void nullifyLink(long columnIndex) {
+        parent.checkImmutable();
         nativeNullifyLink(nativePtr, columnIndex);
     }
 
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
-
-    private void throwImmutable() {
-        throw new IllegalStateException("Mutable method call during read transaction.");
-    }
 
     protected static native void nativeClose(long nativeRowPtr);
 

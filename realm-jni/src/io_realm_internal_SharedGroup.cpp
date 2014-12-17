@@ -31,14 +31,15 @@ using namespace tightdb;
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
-    JNIEnv* env, jobject, jstring file_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
+    JNIEnv* env, jobject, jstring jfile_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
-    const char* file_name_ptr = env->GetStringUTFChars(file_name, 0);
-    if (!file_name_ptr)
-        return 0; // Exception is thrown by GetStringUTFChars()
+    StringData file_name;
 
     SharedGroup* db = 0;
     try {
+        JStringAccessor file_name_tmp(env, jfile_name); // throws
+        file_name = StringData(file_name_tmp);
+
         if (enable_replication) {
 #ifdef TIGHTDB_ENABLE_REPLICATION
             ThrowException(env, UnsupportedOperation,
@@ -68,9 +69,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
 
             KeyBuffer key(env, keyArray);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-            db = new SharedGroup(file_name_ptr, no_create!=0, level, key.data());
+            db = new SharedGroup(file_name, no_create!=0, level, key.data());
 #else
-            db = new SharedGroup(file_name_ptr, no_create!=0, level);
+            db = new SharedGroup(file_name, no_create!=0, level);
 #endif
         }
         return reinterpret_cast<jlong>(db);
@@ -81,7 +82,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
     catch (SharedGroup::LockFileButNoData& e) {
         ThrowException(env, FileAccessError, e.what(), "The database file is missing, but a .lock file is present.");
     }
-    CATCH_FILE(file_name_ptr)
+    CATCH_FILE(file_name)
     CATCH_STD()
     return 0;
 }
@@ -110,14 +111,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplication
-  (JNIEnv* env, jobject, jstring file_name)
+  (JNIEnv* env, jobject, jstring jfile_name)
 {
-    const char* file_name_ptr = env->GetStringUTFChars(file_name, 0);
-    if (!file_name_ptr)
-        return 0; // Exception is thrown by GetStringUTFChars()
-
-    try {
-        Replication* repl = makeWriteLogCollector(file_name_ptr);
+    StringData file_name;
+    try {     
+        JStringAccessor file_name_tmp(env, jfile_name); // throws
+        file_name = StringData(file_name_tmp);
+        Replication* repl = makeWriteLogCollector(file_name);
         return reinterpret_cast<jlong>(repl);
     }
     CATCH_STD()
@@ -125,14 +125,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateTransactLogRegistry
-  (JNIEnv* env, jobject, jstring file_name)
+  (JNIEnv* env, jobject, jstring jfile_name)
 {
-    const char* file_name_ptr = env->GetStringUTFChars(file_name, 0);
-    if (!file_name_ptr)
-        return 0; // Exception is thrown by GetStringUTFChars()
-
+    StringData file_name;
     try {
-        LangBindHelper::TransactLogRegistry* wlr = getWriteLogs(file_name_ptr);
+        JStringAccessor file_name_tmp(env, jfile_name); // throws
+        file_name = StringData(file_name_tmp);
+
+        LangBindHelper::TransactLogRegistry* wlr = getWriteLogs(file_name);
         return reinterpret_cast<jlong>(wlr);
     }
     CATCH_STD()
@@ -269,7 +269,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultRep
     ThrowException(env, UnsupportedOperation,
                    "Replication is not currently supported by the Java language binding.");
     return 0;
-//    return env->NewStringUTF(Replication::get_path_to_database_file());
+//    return to_jstring(env, Replication::get_path_to_database_file());
 #else
     ThrowException(env, UnsupportedOperation,
                    "Replication was disable in the native library at compile time");

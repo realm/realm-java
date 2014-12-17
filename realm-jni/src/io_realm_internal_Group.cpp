@@ -34,12 +34,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
     JNIEnv* env, jobject, jstring jFileName, jint mode, jbyteArray keyArray)
 {
     TR((env, "Group::createNative(file): "));
-    const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
-    if (fileNameCharPtr == NULL)
-        return 0;        // Exception is thrown by GetStringUTFChars()
 
     Group* pGroup = 0;
+    StringData file_name;
     try {
+        JStringAccessor file_name_tmp(env, jFileName); // throws
+        file_name = StringData(file_name_tmp);
         Group::OpenMode openmode;
         switch (mode) {
         case 0: openmode = Group::mode_ReadOnly; break;
@@ -53,15 +53,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
 
         KeyBuffer key(env, keyArray);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        pGroup = new Group(fileNameCharPtr, key.data(), openmode);
+        pGroup = new Group(file_name, key.data(), openmode);
 #else
-        pGroup = new Group(fileNameCharPtr, openmode);
+        pGroup = new Group(file_name, openmode);
 #endif
 
         TR((env, "%x\n", pGroup));
         return reinterpret_cast<jlong>(pGroup);
     }
-    CATCH_FILE(fileNameCharPtr)
+    CATCH_FILE(file_name)
     CATCH_STD()
 
     // Failed - cleanup
@@ -168,22 +168,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr(
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
     JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jFileName, jbyteArray keyArray)
 {
-    const char* fileNameCharPtr = env->GetStringUTFChars(jFileName, NULL);
-    if (fileNameCharPtr) {
-        KeyBuffer key(env, keyArray);
-        try {
+    StringData file_name;
+    KeyBuffer key(env, keyArray);
+    try {
+        JStringAccessor file_name_tmp(env, jFileName); // throws
+        file_name = StringData(file_name_tmp);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-            G(nativeGroupPtr)->write(fileNameCharPtr, key.data());
+        G(nativeGroupPtr)->write(file_name_tmp), key.data());
 #else
-            G(nativeGroupPtr)->write(fileNameCharPtr);
+        G(nativeGroupPtr)->write(file_name);
 #endif
-        }
-        CATCH_FILE(fileNameCharPtr)
-        CATCH_STD()
-
-        env->ReleaseStringUTFChars(jFileName, fileNameCharPtr);
     }
-    // (exception is thrown by GetStringUTFChars if it fails.)
+    CATCH_FILE(file_name)
+    CATCH_STD()
 }
 
 JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Group_nativeWriteToMem(
@@ -255,7 +252,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeToJson(
         ss.sync_with_stdio(false); // for performance
         grp->to_json(ss);
         const std::string str = ss.str();
-        return env->NewStringUTF(str.c_str());
+        return to_jstring(env, str);
     } CATCH_STD()
     return 0;
 }
@@ -270,7 +267,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeToString(
         ss.sync_with_stdio(false); // for performance
         grp->to_string(ss);
         const std::string str = ss.str();
-        return env->NewStringUTF(str.c_str());
+        return to_jstring(env, str);
     } CATCH_STD()
     return 0;
 }

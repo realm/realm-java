@@ -17,7 +17,6 @@
 package io.realm.internal;
 
 import java.io.Closeable;
-import java.lang.*;
 import java.util.Date;
 
 
@@ -106,6 +105,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
+    @Override
+    public Table getTable() {
+        return this;
+    }
+
     // If close() is called, no penalty is paid for delayed disposal
     // via the context
     @Override
@@ -113,7 +117,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         synchronized (context) {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
-                
                 if (DEBUG) {
                     TableCount--;
                     System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
@@ -365,9 +368,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeRemoveLast(long nativeTablePtr);
 
-    /**
-     *  EXPERIMENTAL function
-     */
     public void moveLastOver(long rowIndex) {
         checkImmutable();
         nativeMoveLastOver(nativePtr, rowIndex);
@@ -1057,8 +1057,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    private void checkImmutable() {
-        if (isImmutable()) throwImmutable();
+    void checkImmutable() {
+        if (isImmutable()) {
+            throwImmutable();
+        }
     }
 
     //
@@ -1394,8 +1396,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
 
-    // get the table name as it is in the associated group.
-    protected String getName() {
+    /**
+     * Return the table name as it is in the associated group.
+     *
+     * @return Name of the the table or null if it not part of a group.
+     */
+    public String getName() {
         return nativeGetName(nativePtr);
     }
 
@@ -1434,6 +1440,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
+
+    @Override
+    public long sync() {
+        throw new RuntimeException("Not supported for tables");
+    }
 
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
