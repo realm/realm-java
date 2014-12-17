@@ -30,9 +30,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -103,7 +105,7 @@ public final class Realm implements Closeable {
     };
 
     static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
-    static final Map<String, Boolean> schemaValidated = new HashMap<String, Boolean>(); // Only validate each Realm file once.
+    static final Set<String> validatedRealms = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     @SuppressWarnings("UnusedDeclaration")
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
@@ -114,7 +116,7 @@ public final class Realm implements Closeable {
     private final String path;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
-    private static RealmProxyMediator proxyMediator;
+    private static RealmProxyMediator proxyMediator = setProxyMediator();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
     private static final long UNVERSIONED = -1;
@@ -444,7 +446,6 @@ public final class Realm implements Closeable {
      */
     @Deprecated
     public static Realm create(File writableFolder, String filename, byte[] key, boolean autoRefresh) {
-        setProxyMediator();
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
         return createAndValidate(absolutePath, key, true, autoRefresh);
     }
@@ -472,7 +473,7 @@ public final class Realm implements Closeable {
         realms.put(absolutePath.hashCode(), realm);
         realmsCache.set(realms);
 
-        if (validateSchema && !schemaValidated.get(absolutePath)) {
+        if (validateSchema && !validatedRealms.contains(absolutePath)) {
             long version = realm.getVersion();
             boolean commitNeeded = false;
             try {
@@ -514,7 +515,7 @@ public final class Realm implements Closeable {
                         columnIndices.put(modelClassName, innerMap);
                     }
                 }
-                schemaValidated.put(absolutePath, true);
+                validatedRealms.add(absolutePath);
             } finally {
                 if (commitNeeded) {
                     realm.commitTransaction();
@@ -529,13 +530,12 @@ public final class Realm implements Closeable {
         return realm;
     }
 
-    private static void setProxyMediator() {
-        if (proxyMediator != null) return;
+    private static RealmProxyMediator setProxyMediator() {
         try {
             Class<?> clazz = Class.forName("io.realm.RealmProxyMediatorImpl");
             Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
             constructor.setAccessible(true);
-            proxyMediator = (RealmProxyMediator) constructor.newInstance();
+            return (RealmProxyMediator) constructor.newInstance();
         } catch (IndexOutOfBoundsException e) {
             throw new RealmException("Could not a constructor in RealmProxyMediatorImpl class. " + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE);
         } catch (ClassNotFoundException e) {
@@ -864,7 +864,9 @@ public final class Realm implements Closeable {
         File writableFolder = context.getFilesDir();
         List<File> filesToDelete = Arrays.asList(
                 new File(writableFolder, fileName),
-                new File(writableFolder, fileName + ".lock"));
+                new File(writableFolder, fileName + ".lock")
+        );
+        validatedRealms.remove(filesToDelete.get(0).getAbsolutePath());
         for (File fileToDelete : filesToDelete) {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
