@@ -81,6 +81,10 @@ public final class Realm implements Closeable {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
+    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
+    private static final String CLOSED_REALM = "This Realm instance has already been closed, making it unusable.";
+    private static final int REALM_CHANGED = 14930352; // Nice big Fibonacci number. High enough to prevent clash with other message ID's.
+
     protected static final ThreadLocal<Map<Integer, Realm>> realmsCache = new ThreadLocal<Map<Integer, Realm>>() {
         @SuppressLint("UseSparseArrays")
         @Override
@@ -89,18 +93,17 @@ public final class Realm implements Closeable {
                                                   // but incompatible with Java
         }
     };
-    private static final ThreadLocal<Map<Integer, Integer>> referenceCount
-            = new ThreadLocal<Map<Integer,Integer>>() {
+
+    private static final ThreadLocal<Map<Integer, Integer>> referenceCount = new ThreadLocal<Map<Integer,Integer>>() {
         @SuppressLint("UseSparseArrays")
         @Override
         protected Map<Integer, Integer> initialValue() {
             return new HashMap<Integer, Integer>();
         }
     };
-    private static final int REALM_CHANGED = 14930352; // Nice big Fibonacci number. High enough to prevent clash with other message ID's.
+
     static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
-    private static final String CLOSED_REALM = "This Realm instance has already been closed, making it unusable.";
+    static final Map<String, Boolean> schemaValidated = new HashMap<String, Boolean>(); // Only validate each Realm file once.
 
     @SuppressWarnings("UnusedDeclaration")
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
@@ -447,7 +450,8 @@ public final class Realm implements Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
+    private static synchronized Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
+
         int id = absolutePath.hashCode();
         Map<Integer, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
@@ -468,7 +472,7 @@ public final class Realm implements Closeable {
         realms.put(absolutePath.hashCode(), realm);
         realmsCache.set(realms);
 
-        if (validateSchema) {
+        if (validateSchema && !schemaValidated.get(absolutePath)) {
             long version = realm.getVersion();
             boolean commitNeeded = false;
             try {
@@ -510,6 +514,7 @@ public final class Realm implements Closeable {
                         columnIndices.put(modelClassName, innerMap);
                     }
                 }
+                schemaValidated.put(absolutePath, true);
             } finally {
                 if (commitNeeded) {
                     realm.commitTransaction();
