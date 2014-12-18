@@ -8,7 +8,7 @@ include ':introExample',
         ':migrationExample',
         ':adapterExample',
         ':threadExample',
-		':jsonImportExample'
+		':jsonExample'
 
 
 project(':introExample').projectDir = new File('examples/introExample')
@@ -17,7 +17,7 @@ project(':encryptionExample').projectDir = new File('examples/encryptionExample'
 project(':migrationExample').projectDir = new File('examples/migrationExample')
 project(':adapterExample').projectDir = new File('examples/adapterExample')
 project(':threadExample').projectDir = new File('examples/threadExample')
-project(':jsonImportExample').projectDir = new File('examples/jsonImportExample')
+project(':jsonExample').projectDir = new File('examples/jsonExample')
 
 // Experimental projects
 include ':pathExperiment'

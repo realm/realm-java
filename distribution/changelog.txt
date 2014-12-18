@@ -1,0 +1,85 @@
+0.75.2
+ * RealmObjects can now be imported using JSON.
+ * Gradle wrapper updated to support Android Studio 1.0.
+ * Bug fixed in RealmObject.equals() so it now correctly compares two objects from the same Realm.
+ * Realm class is now marked as final.
+ * Replaced concurrency example with a better thread example.
+ * Allow to add/remove RealmChangeListeners in RealmChangeListeners.
+ * Bug fixed in Realm crashing for receiving notifications after close().
+ * Close the Realm instance after migrations.
+ * Added a check to deny the writing of objects outside of a transaction.
+
+0.75.1 (03 December 2014)
+  * Changing sort to be an in-place method.
+  * Renaming SORT_ORDER_DECENDING to SORT_ORDER_DESCENDING.
+  * Adding sorting functionality to allObjects() and findAll().
+  * Bug fixed: when querying a date column with equalTo(), it would act as lessThan()
+
+0.75.0 (28 Nov 2014)
+  * Realm now implements Closeable, allowing better cleanup of native resources
+  * Adding writeCopyTo() and compactRealmFile() to write and compact a Realm to a new file.
+  * RealmObject.toString(), equals() and hashCode() now support models with cyclic references.
+  * RealmResults.iterator() and listIterator() now correctly iterates the results when using remove().
+  * Bug fixed in Exception text when field names was not matching the database
+  * Bug fixed so Realm no longer throws an Exception when removing the last object
+  * Bug fixed in RealmResults which prevented sub-querying
+  * The Date type does not support millisecond resolution, and dates before 1900-12-13
+    and dates after 2038-01-19 are not supported on 32 bit systems
+  * Fixed bug so Realm no longer throws an Exception when removing the last object
+  * Bug fixed in RealmResults which prevented subquerying
+
+
+
+0.74.0 (19 Nov 2014)
+  * Added support for more field/accessors naming conventions
+  * Allow static methods in model classes
+  * An exception will now be thrown if you try to move Realm, RealmResults or RealmObject between threads.
+  * Fixed a bug in the calculation of the maximum of date field in a RealmResults
+  * Adding case sensitive versions of string comparison operators equalTo and notEqualTo
+  * Adding where() to RealmList to initiate queries
+  * Updated core to 0.86.0, fixing a bug in cancelling an empty transaction, and major query speedups with floats/doubles
+  * Consistent handling of UTF-8 strings
+  * removeFromRealm() now calls moveLastOver() which is faster and more reliable when deleting multiple objects
+  * Added verification of fields names in queries with links.
+  * Added exception for queries with invalid field name
+
+0.73.1 (05 Nov 2014)
+  * Fixed a bug that would send infinite notifications in some instances
+
+0.73.0 (04 Nov 2014)
+  * Fixed a bug not allowing queries with more than 1024 conditions
+  * Rewritten the notification system. The API did not change but it's now much more reliable
+  * Added support for switching auto-refresh on and off (Realm.setAutoRefresh)
+  * Added RealmBaseAdapter and an example using it
+  * Added deleteFromRealm() method to RealmObject
+
+0.72.0 (27 Oct 2014)
+  * Extended sorting support to more types: boolean, byte, short, int, long, float, double, Date, and String
+    fields are now supported
+  * Better support for Java 7 and 8 in the annotations processor
+  * Better support for the Eclipse annotations processor
+  * Added Eclipse support to the distribution folder
+  * Added Realm.cancelTransaction() to cancel/abort/rollback a write transaction
+  * Faster implementation of RealmQuery.findFirst()
+  * Upgraded core to 0.85.1 (deep copying of strings in queries; preparation for link queries)
+  * Added support for link queries in the form realm.where(Owner.class).equalTo("cat.age", 12).findAll()
+
+0.71.0 (07 Oct 2014)
+  * Simplified the release artifact to a single Jar file
+  * Added support for Eclipse
+  * Added support for deploying to Maven
+  * Throw exception if nested write transactions are used (it's not allowed)
+  * Javadoc updated
+  * Fixed bug in RealmResults: https://github.com/realm/realm-java/issues/453
+  * New annotation @Index to add search index to a field (currently only supporting String fields)
+  * Made the annotations processor more verbose and strict
+  * Adding RealmQuery.count() method
+  * Added a new example about concurrency
+  * Upgrading to core 0.84.0
+
+0.70.1 (30 Sep 2014)
+  * Enable unit testing for the realm project
+  * Fixed handling of camel-cased field names
+
+0.70.0 (29 Sep 2014)
+  * This is the first public beta release

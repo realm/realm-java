@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Thread example</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_section1">Threads</string>
+    <string name="title_section2">AsyncTask</string>
+    <string name="add_dot">Add blue dot</string>
+    <string name="clear_dots">Clear dots</string>
+
+</resources>
