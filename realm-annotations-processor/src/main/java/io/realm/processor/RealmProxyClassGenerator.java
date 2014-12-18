@@ -156,18 +156,19 @@ public class RealmProxyClassGenerator {
         writer.emitPackage(REALM_PACKAGE_NAME)
                 .emitEmptyLine();
         writer.emitImports(
+                "android.util.JsonReader",
+                "android.util.JsonToken",
+                "io.realm.RealmObject",
                 "io.realm.internal.ColumnType",
                 "io.realm.internal.Table",
                 "io.realm.internal.ImplicitTransaction",
                 "io.realm.internal.LinkView",
                 "io.realm.internal.json.JsonUtils",
+                "java.io.IOException",
+                "java.util.*",
                 "org.json.JSONObject",
                 "org.json.JSONException",
                 "org.json.JSONArray",
-                "android.util.JsonReader",
-                "android.util.JsonToken",
-                "java.io.IOException",
-                "java.util.*",
                 packageName + ".*")
                 .emitEmptyLine();
 
