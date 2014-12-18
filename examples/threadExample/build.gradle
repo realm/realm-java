@@ -1,0 +1,29 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.1"
+
+    defaultConfig {
+        applicationId "io.realm.examples.threads"
+        minSdkVersion 15
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+tasks.preBuild {
+    dependsOn ":realm:androidJar"
+}
+
+dependencies {
+    compile 'com.android.support:appcompat-v7:21.0.+'
+    compile files("../../realm/build/libs/realm-${version}.jar")
+}

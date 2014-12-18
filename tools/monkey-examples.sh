@@ -31,7 +31,7 @@ for example in examples/*/ ; do
     ./gradlew ${project}:clean ${project}:installDebug
 
     echo "Letting monkey loose in $example"
-    adb shell "monkey -p ${applicationId} -v ${TEST_EVENTS} ; echo \"\$?\\c\" > /data/local/tmp/${applicationId}.exitcode"
+    adb shell "monkey -p ${applicationId} -v ${TEST_EVENTS} ; echo -n \"\$?\" > /data/local/tmp/${applicationId}.exitcode"
     rc=$(adb shell cat /data/local/tmp/${applicationId}.exitcode)
     if [ "${rc}" != "0" ] ; then
         echo ""

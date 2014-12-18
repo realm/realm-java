@@ -117,6 +117,8 @@ public class SimpleRealmProxy extends Simple {
         String otherTableName = aSimple.row.getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
 
+        if (row.getIndex() != aSimple.row.getIndex()) return false;
+
         return true;
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.concurrency;
+package io.realm.examples.service;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -26,13 +26,11 @@ import android.view.View;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import java.io.IOException;
-
 import io.realm.Realm;
 import io.realm.RealmList;
-import io.realm.examples.concurrency.model.Cat;
-import io.realm.examples.concurrency.model.Dog;
-import io.realm.examples.concurrency.model.Person;
+import io.realm.examples.service.model.Cat;
+import io.realm.examples.service.model.Dog;
+import io.realm.examples.service.model.Person;
 
 public class RealmExampleActivity extends Activity implements View.OnClickListener {
 
