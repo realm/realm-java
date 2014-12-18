@@ -61,11 +61,11 @@ public abstract class RealmObject {
         row.getTable().moveLastOver(row.getIndex());
     }
 
-    protected void populateUsingJsonObject(JSONObject json) throws JSONException {
-        throw new IllegalStateException("Only use this method on objects created or fetched in a Realm. Realm.createObject() or Realm.where()");
+    void populateUsingJsonObject(JSONObject json) throws JSONException {
+        throw new IllegalStateException("Only use this method on objects created or fetched in a Realm, Realm.createObject() or Realm.where()");
     }
 
-    protected void populateUsingJsonStream(JsonReader json) throws IOException {
-        throw new IllegalStateException("Only use this method on objects created or fetched in a Realm. Realm.createObject() or Realm.where()");
+    void populateUsingJsonStream(JsonReader json) throws IOException {
+        throw new IllegalStateException("Only use this method on objects created or fetched in a Realm, Realm.createObject() or Realm.where()");
     }
 }

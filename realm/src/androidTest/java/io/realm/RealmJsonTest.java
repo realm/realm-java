@@ -40,12 +40,18 @@ public class RealmJsonTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
+        Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
         testRealm.clear(Dog.class);
         testRealm.clear(AnnotationTypes.class);
         testRealm.commitTransaction();
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        testRealm.close();
     }
 
     private InputStream loadJsonFromAssets(String file) {
@@ -182,7 +188,6 @@ public class RealmJsonTest extends AndroidTestCase {
         try {
             Dog dog = testRealm.createObjectFromJson(Dog.class, "{ name \"Foo\" }");
         } catch (RealmException e) {
-            assertTrue(true);
             return;
         } finally {
             testRealm.commitTransaction();
@@ -304,7 +309,6 @@ public class RealmJsonTest extends AndroidTestCase {
         try {
             testRealm.createAllFromJson(Dog.class, "[{ name : \"Foo\" ]");
         } catch (RealmException e) {
-            assertTrue(true);
             return;
         } finally {
             testRealm.commitTransaction();
