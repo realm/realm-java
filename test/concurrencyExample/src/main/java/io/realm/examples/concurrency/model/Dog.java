@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.concurrency.model;
+package io.realm.examples.service.model;
 
 import io.realm.RealmObject;
 

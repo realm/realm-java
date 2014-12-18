@@ -111,6 +111,33 @@ public class RealmTest extends AndroidTestCase {
         newRealm.close();
     }
 
+    public void testInternalRealmChangedHandlersRemoved() {
+        final String REALM_NAME = "test-internalhandlers";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Realm.handlers.clear(); // Make sure that handlers from other unit tests doesn't interfere.
+
+        // Open and close first instance of a Realm
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(getContext(), REALM_NAME);
+            assertEquals(1, Realm.handlers.size());
+            realm.close();
+
+            // All Realms closed. No handlers should be alive.
+            assertEquals(0, Realm.handlers.size());
+
+            // Open instance the 2nd time. Old handler should now be gone
+            realm = Realm.getInstance(getContext(), REALM_NAME);
+            assertEquals(1, Realm.handlers.size());
+            realm.close();
+
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
+    }
+
     public void testShouldCreateRealm() {
         assertNotNull("Realm.getInstance unexpectedly returns null", testRealm);
         assertTrue("Realm.getInstance does not contain expected table", testRealm.contains(AllTypes.class));
@@ -839,7 +866,7 @@ public class RealmTest extends AndroidTestCase {
         // Copy is compacted i.e. smaller than original
         File file1 = new File(getContext().getFilesDir(), "file1.realm");
         File file2 = new File(getContext().getFilesDir(), "file2.realm");
-        assertTrue(file1.length() >= file2.length());
+        assertTrue(file1.length() > file2.length());
 
         Realm realm2 = null;
         try {

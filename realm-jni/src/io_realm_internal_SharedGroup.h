@@ -25,19 +25,27 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 
 /*
  * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeCreateTransactLogRegistry
+ * Signature: (Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateTransactLogRegistry
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
  * Method:    nativeAdvanceRead
- * Signature: (J)V
+ * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    nativePromoteToWrite
- * Signature: (J)V
+ * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_SharedGroup
@@ -142,6 +150,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeClose
   (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeCloseTransactRegistryLog
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseTransactRegistryLog
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     io_realm_internal_SharedGroup
