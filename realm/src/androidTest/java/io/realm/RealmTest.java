@@ -34,9 +34,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.Characters;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 
 
@@ -796,7 +796,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    private List<String> getRandomArray() {
+    private List<String> getCharacterArray() {
         List<String> chars_array = new ArrayList<String>();
         String file = "assets/unicode_codepoints.csv";
         Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(file));
@@ -815,10 +815,11 @@ public class RealmTest extends AndroidTestCase {
         }
         return chars_array;
     }
-
-    public void randomCharacters() {
-        List<String> chars_array = getRandomArray();
-        // Change seed value for new set.
+    // This test is disabled.
+    // The test writes and reads random Strings.
+    public void disabledTestUnicodeString() {
+        List<String> chars_array = getCharacterArray();
+        // Change seed value for new random values.
         long seed = 20;
         Random random = new Random(seed);
 
@@ -836,14 +837,14 @@ public class RealmTest extends AndroidTestCase {
                 test_char_old = test_char;
             }
             testRealm.beginTransaction();
-            Characters characters = testRealm.createObject(Characters.class);
-            characters.setChars(test_char);
+            StringOnly stringOnly = testRealm.createObject(StringOnly.class);
+            stringOnly.setChars(test_char);
             testRealm.commitTransaction();
 
-            get_data = testRealm.allObjects(Characters.class).get(0).getChars();
+            get_data = testRealm.allObjects(StringOnly.class).get(0).getChars();
 
             testRealm.beginTransaction();
-            testRealm.clear(Characters.class);
+            testRealm.clear(StringOnly.class);
             testRealm.commitTransaction();
         }
     }
