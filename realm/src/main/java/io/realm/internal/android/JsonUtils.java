@@ -14,31 +14,34 @@
  * limitations under the License.
  */
 
-package io.realm.internal.json;
+package io.realm.internal.android;
 
 import android.util.Base64;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JsonUtils {
+
+    private static Pattern jsonDate = Pattern.compile("/Date\\((\\d*)\\)/");
 
     /**
      * Converts a Json string to a Java Date object. Currently supports 2 types:
      * - "<long>"
      * - "/Date(<long>)/"
-     * - TODO ISO 8601 String,
      *
-     * @param str   String input of date of the the supported types.
+     * @param date   String input of date of the the supported types.
      * @return Date object or null if invalid input.
      *
-     * @throws NumberFormatException If timestamp is not a proper long
-     * @throws IndexOutOfBoundsException if dates of type /Date(x)/ does not have the proper format.
+     * @throws NumberFormatException If date is not a proper long or has an illegal format.
      */
-    public static Date stringToDate(String str) {
-        if (str == null || str.length() == 0) return null;
-        if (str.startsWith("/Date")) {
-            return new Date(Long.parseLong(str.substring(6, str.length() - 2)));
+    public static Date stringToDate(String date) {
+        if (date == null || date.length() == 0) return null;
+        Matcher matcher = jsonDate.matcher(date);
+        if (matcher.matches()) {
+            return new Date(Long.parseLong(matcher.group(1)));
         } else {
-            return new Date(Long.parseLong(str));
+            return new Date(Long.parseLong(date));
         }
     }
 

@@ -33,7 +33,7 @@ import java.util.List;
 
 public class CityAdapter extends BaseAdapter {
 
-    public static final String TAG = RealmJsonExampleActivity.class.getName();
+    public static final String TAG = JsonExampleActivity.class.getName();
 
     private LayoutInflater inflater;
 

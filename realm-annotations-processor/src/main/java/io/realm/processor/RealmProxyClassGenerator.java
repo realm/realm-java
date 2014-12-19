@@ -163,7 +163,7 @@ public class RealmProxyClassGenerator {
                 "io.realm.internal.Table",
                 "io.realm.internal.ImplicitTransaction",
                 "io.realm.internal.LinkView",
-                "io.realm.internal.json.JsonUtils",
+                "io.realm.internal.android.JsonUtils",
                 "java.io.IOException",
                 "java.util.*",
                 "org.json.JSONObject",

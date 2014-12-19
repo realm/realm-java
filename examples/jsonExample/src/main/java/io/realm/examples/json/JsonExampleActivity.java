@@ -30,9 +30,9 @@ import java.util.Map;
 
 import io.realm.Realm;
 
-public class RealmJsonExampleActivity extends Activity {
+public class JsonExampleActivity extends Activity {
 
-    public static final String TAG = RealmJsonExampleActivity.class.getName();
+    public static final String TAG = JsonExampleActivity.class.getName();
 
     private GridView mGridView;
     private CityAdapter mAdapter;
@@ -92,19 +92,19 @@ public class RealmJsonExampleActivity extends Activity {
             e.printStackTrace();
         }
 
-        // Store the retrieved items to the Realm
-        Realm realm = Realm.getInstance(this);
-
         // Open a transaction to store items into the realm
         realm.beginTransaction();
         try {
             realm.createAllFromJson(City.class, stream);
             realm.commitTransaction();
         } catch (IOException e) {
+            // Remember to cancel the transaction if anything goes wrong.
             realm.cancelTransaction();
         } finally {
             try {
-                stream.close();
+                if (stream != null) {
+                    stream.close();
+                }
             } catch (IOException ignore) {
                 // Ignore
             }
@@ -123,7 +123,7 @@ public class RealmJsonExampleActivity extends Activity {
     }
 
     private void loadJsonFromString() {
-        String json = "{ name: \"Aarhus\", votes: 99 }";
+        String json = "{ city: \"Aarhus\", votes: 99 }";
 
         realm.beginTransaction();
         realm.createObjectFromJson(City.class, json);

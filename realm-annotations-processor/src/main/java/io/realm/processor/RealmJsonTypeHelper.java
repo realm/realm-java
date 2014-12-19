@@ -4,13 +4,14 @@ import com.squareup.javawriter.JavaWriter;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Helper class for converting between Json types and data types in Java that are supported by Realm.
  */
 public class RealmJsonTypeHelper {
 
-    private static final HashMap<String, JsonToRealmTypeConverter> JAVA_TO_JSON_TYPES;
+    private static final Map<String, JsonToRealmTypeConverter> JAVA_TO_JSON_TYPES;
 
     static {
         JAVA_TO_JSON_TYPES = new HashMap<String, JsonToRealmTypeConverter>();
@@ -130,7 +131,7 @@ public class RealmJsonTypeHelper {
         private final String jsonType;
 
         /**
-         * Create a conversion between simple types that can be expressed of the form
+         * Create a conversion between simple types which can be expressed as
          * RealmObject.setFieldName((<castType>) json.get<jsonType>) or
          * RealmObject.setFieldName((<castType>) reader.next<jsonType>
          *

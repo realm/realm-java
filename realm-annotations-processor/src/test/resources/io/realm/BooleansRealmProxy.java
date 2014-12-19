@@ -7,7 +7,7 @@ import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.Table;
-import io.realm.internal.json.JsonUtils;
+import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
 import java.util.*;
 import org.json.JSONArray;
