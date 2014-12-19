@@ -30,6 +30,10 @@ import java.util.Map;
 
 import io.realm.Realm;
 
+/**
+ * This example demonstrates how to import RealmObjects as JSON. Realm supports JSON represented
+ * as Strings, JSONObject, JSONArray or InputStreams (from API 11+)
+ */
 public class JsonExampleActivity extends Activity {
 
     public static final String TAG = JsonExampleActivity.class.getName();
@@ -53,7 +57,12 @@ public class JsonExampleActivity extends Activity {
 
         // Load from file "cities.json" first time
         if(mAdapter == null) {
-            List<City> cities = loadCities();
+            List<City> cities = null;
+            try {
+                cities = loadCities();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             //This is the GridView adapter
             mAdapter = new CityAdapter(this);
@@ -73,7 +82,7 @@ public class JsonExampleActivity extends Activity {
         realm.close();
     }
 
-    public List<City> loadCities() {
+    public List<City> loadCities() throws IOException {
 
         loadJsonFromStream();
         loadJsonFromJsonObject();
@@ -82,15 +91,11 @@ public class JsonExampleActivity extends Activity {
         return realm.allObjects(City.class);
     }
 
-    private void loadJsonFromStream() {
+    private void loadJsonFromStream() throws IOException {
         // Use streams if you are worried about the size of the JSON whether it was persisted on disk
         // or received from the network.
         InputStream stream = null;
-        try {
-            stream = getAssets().open("cities.json");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        stream = getAssets().open("cities.json");
 
         // Open a transaction to store items into the realm
         realm.beginTransaction();
@@ -101,12 +106,8 @@ public class JsonExampleActivity extends Activity {
             // Remember to cancel the transaction if anything goes wrong.
             realm.cancelTransaction();
         } finally {
-            try {
-                if (stream != null) {
-                    stream.close();
-                }
-            } catch (IOException ignore) {
-                // Ignore
+            if (stream != null) {
+                stream.close();
             }
         }
     }
