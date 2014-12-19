@@ -61,7 +61,7 @@ public class Util {
         Exception_IndexOutOfBounds(7),
         Exception_TableInvalid(8),
         Exception_UnsupportedOperation(9),
-        //Exception_OutOfMemory(10), // will terminate with System.exit()
+        //Exception_OutOfMemory(10), // will terminate with runtime.halt()
         Exception_Unspecified(11),
         Exception_RuntimeError(12),
         Exception_RowInvalid(13);
@@ -82,12 +82,13 @@ public class Util {
 
     static native String nativeTestcase(int testcase, boolean dotest, long parm1);
 
-    public static void Terminate(String logTag, String cause) {
+    public static void Terminate(String logTag, String cause) throws InterruptedException {
         Log.e(logTag, "*******************************************************************");
-        Log.e(logTag, "!!!App is terminated!!!");
+        Log.e(logTag, "!!!App has been halted!!!");
         Log.e(logTag, "Cause: " + cause);
         Log.e(logTag, "*******************************************************************");
-        System.exit(1);
+        //Thread.sleep(2000);
+        Runtime.getRuntime().halt(1);
     }
 
 }

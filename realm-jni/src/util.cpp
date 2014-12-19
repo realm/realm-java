@@ -90,9 +90,9 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
         case OutOfMemory:
             jExceptionClass = env->FindClass("io/realm/internal/Util");
             message = "Out of memory: " + classStr + " " + itemStr;
-            myMethod = env->GetStaticMethodID(jExceptionClass, "Termimate", "(Ljava/lang/String;Ljava/lang/String;)V");
+            myMethod = env->GetStaticMethodID(jExceptionClass, "Terminate", "(Ljava/lang/String;Ljava/lang/String;)V");
             if (myMethod)
-                env->CallStaticVoidMethod(jExceptionClass, myMethod, to_jstring(env, message));
+                env->CallStaticVoidMethod(jExceptionClass, myMethod, to_jstring(env, "REALM"), to_jstring(env, message));
             else
                 ThrowException(env, NoSuchMethod, "Util", "Terminate");
             break;
