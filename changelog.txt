@@ -1,4 +1,4 @@
-0.75.2
+0.76.0
  * Gradle wrapper updated to support Android Studio 1.0.
  * Bug fixed in RealmObject.equals() so it now correctly compares two objects from the same Realm.
  * Realm class is now marked as final.
