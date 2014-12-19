@@ -1,4 +1,4 @@
-0.75.2
+0.76.0
  * Gradle wrapper updated to support Android Studio 1.0.
  * Bug fixed in RealmObject.equals() so it now correctly compares two objects from the same Realm.
  * Realm class is now marked as final.
@@ -6,6 +6,7 @@
  * Allow to add/remove RealmChangeListeners in RealmChangeListeners.
  * Bug fixed in Realm crashing for receiving notifications after close().
  * Close the Realm instance after migrations.
+ * Added a check to deny the writing of objects outside of a transaction.
 
 0.75.1 (03 December 2014)
   * Changing sort to be an in-place method.
