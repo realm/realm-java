@@ -30,7 +30,6 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
-import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.Dog;
 import io.realm.internal.Row;
 
@@ -434,4 +433,19 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
+    public void testWriteMustThrowOutOfTransaction() {
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        testRealm.commitTransaction();
+
+        try {
+            dog.setName("Rex");
+            fail();
+        } catch (IllegalStateException ignored) {
+            // Don't fail
+        } catch (Exception ignored) {
+            fail();
+        }
+
+    }
 }
