@@ -87,7 +87,6 @@ public class Util {
         Log.e(logTag, "!!!App has been halted!!!");
         Log.e(logTag, "Cause: " + cause);
         Log.e(logTag, "*******************************************************************");
-        //Thread.sleep(2000);
         Runtime.getRuntime().halt(1);
     }
 
