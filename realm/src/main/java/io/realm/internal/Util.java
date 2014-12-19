@@ -82,7 +82,7 @@ public class Util {
 
     static native String nativeTestcase(int testcase, boolean dotest, long parm1);
 
-    public static void Terminate(String logTag, String cause) throws InterruptedException {
+    public static void terminate(String logTag, String cause) throws InterruptedException {
         Log.e(logTag, "*******************************************************************");
         Log.e(logTag, "!!!App has been halted!!!");
         Log.e(logTag, "Cause: " + cause);

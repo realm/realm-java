@@ -21,7 +21,7 @@ public class JNI_nativeTests extends TestCase {
 
     // Test has been disabled as it will stop the execution of the remaining tests
     public void DISABLEDtestTerminate() throws InterruptedException {
-        io.realm.internal.Util.Terminate("REALM", "FooBar Test");
+        io.realm.internal.Util.terminate("REALM", "FooBar Test");
     }
 
     // Test has been disabled as it will stop the execution of the remaining tests
