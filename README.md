@@ -53,7 +53,7 @@ Generating the Javadoc using the command above will report a failure (1 error, 3
 
 Whether you find a bug, typo or an API call that could be clarified, please [file an issue](https://github.com/realm/realm-java/issues) on our GitHub repository.
 
-When filing an issue, please provide as much of the following information as possible in order to help others fix it:
+When filing an issue, please provide as much of the following information as possible in order to help us fix it:
 
 1. **Goals**
 2. **Expected results**
