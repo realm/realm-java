@@ -75,7 +75,7 @@ The underlying core is available under the [Realm Core Binary License](LICENSE#L
 
 ## Feedback
 
-**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm), announce your app on [our mailing-list](https://groups.google.com/forum/#!forum/realm-java), or email [info@realm.io](mailto:info@realm.io) to let us know about it!_**
+**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm), announce your app on [our mailing-list](https://groups.google.com/forum/#!forum/realm-java), or email [help@realm.io](mailto:help@realm.io) to let us know about it!_**
 
 **_And if you don't like it, please let us know what you would like improved, so we can fix it!_**
 
