@@ -23,8 +23,8 @@ android {
 //        }
 //    }
 
-
 }
+
 dependencies {
     compile 'com.intellij:annotations:+@jar'
     compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
@@ -55,6 +55,19 @@ android.libraryVariants.all { variant ->
 task androidJar(type: Jar, dependsOn: 'assemble') {
     group 'Build'
     description 'Generates a jar file continaining Realm and its annotation processor'
+    from zipTree('build/intermediates/bundles/release/classes.jar')
+    from zipTree("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
+    from zipTree("../realm-annotations/build/libs/realm-annotations-${version}.jar")
+    from(file('src/main/jniLibs')) {
+        into 'lib'
+    }
+}
+
+task androidJarWithEncryption(type: Jar) {
+    group 'Build'
+    description 'Generates a jar file continaining Realm and its annotation processor with encryption support'
+    dependsOn assemble
+    dependsOn compileJniWithEncryption
     from zipTree('build/intermediates/bundles/release/classes.jar')
     from zipTree("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
     from zipTree("../realm-annotations/build/libs/realm-annotations-${version}.jar")
@@ -126,6 +139,11 @@ task buildApt(type: GradleBuild) {
 task compileJni(type: GradleBuild) {
     dir = file('../realm-jni')
     tasks = ['buildAndroidJni']
+}
+
+task compileJniWithEncryption(type: GradleBuild) {
+    dir = file('../realm-jni')
+    tasks = ['buildAndroidJniWithEncryption']
 }
 
 task compileAnnotations(type: GradleBuild) {
