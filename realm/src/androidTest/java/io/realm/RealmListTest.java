@@ -23,6 +23,7 @@ import io.realm.entities.Owner;
 
 public class RealmListTest extends AndroidTestCase {
 
+    public static final int TEST_OBJECTS = 10;
     private Realm testRealm;
 
     @Override
@@ -32,7 +33,8 @@ public class RealmListTest extends AndroidTestCase {
 
         testRealm.beginTransaction();
         Owner owner = testRealm.createObject(Owner.class);
-        for (int i = 0; i < 10; i++) {
+        owner.setName("Owner");
+        for (int i = 0; i < TEST_OBJECTS; i++) {
             Dog dog = testRealm.createObject(Dog.class);
             dog.setName("Dog " + i);
             owner.getDogs().add(dog);
@@ -84,5 +86,90 @@ public class RealmListTest extends AndroidTestCase {
         }
 
         fail("Indexes >= size() should throw an exception");
+    }
+
+    public void testAddObject() {
+        testRealm.beginTransaction();
+        testRealm.clear(Owner.class);
+        Owner owner = testRealm.createObject(Owner.class);
+        Dog dog = testRealm.createObject(Dog.class);
+        owner.getDogs().add(dog);
+        testRealm.commitTransaction();
+
+        assertEquals(1, testRealm.where(Owner.class).findFirst().getDogs().size());
+    }
+
+    public void testAddObject_NullThrows() {
+        testRealm.beginTransaction();
+        Owner owner = testRealm.createObject(Owner.class);
+        try {
+            owner.getDogs().add(null);
+        } catch (NullPointerException e) {
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        fail("Adding null values is not supported");
+    }
+
+    public void testSize() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        assertEquals(10, owner.getDogs().size());
+    }
+
+    public void testGetObjects() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+
+        assertNotNull(dogs);
+        assertEquals("Dog 1", dogs.get(1).getName());
+    }
+
+    public void testGetFirstObject() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        Dog dog = owner.getDogs().first();
+
+        assertEquals("Dog 0", dog.getName());
+    }
+
+    public void testGetLastObject() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        Dog dog = owner.getDogs().last();
+
+        assertEquals("Dog 9", dog.getName());
+    }
+
+    public void testRemoveByIndex() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+
+        testRealm.beginTransaction();
+        Dog removedDog = dogs.remove(5);
+        testRealm.commitTransaction();
+
+        assertNull(removedDog);
+        assertEquals(9, dogs.size());
+    }
+
+    public void testRemoveByObject() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+        Dog dog = dogs.get(0);
+
+        testRealm.beginTransaction();
+        boolean result = dogs.remove(dog);
+        testRealm.commitTransaction();
+
+        assertTrue(result);
+        assertEquals(9, dogs.size());
+    }
+
+    public void testQuery() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+        Dog firstDog = dogs.where().equalTo("name", "Dog 0").findFirst();
+
+        assertNotNull(firstDog);
     }
 }
