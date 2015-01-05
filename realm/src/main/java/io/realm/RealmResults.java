@@ -186,14 +186,16 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         TableOrView table = getTable();
 
         if (table instanceof TableView) {
+            if (fieldName != null && fieldName.contains(".")) {
+                throw new IllegalArgumentException("Sorting using child object properties is not supported: " + fieldName);
+            }
             long columnIndex = table.getColumnIndex(fieldName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
             }
             TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
             ((TableView) table).sort(columnIndex, TVOrder);
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Only RealmResults can be sorted - please use allObject() to create a RealmResults.");
         }
     }
