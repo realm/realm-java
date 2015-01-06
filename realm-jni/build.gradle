@@ -1,4 +1,4 @@
-ext.coreVersion = '0.86.0'
+ext.coreVersion = '0.87.4'
 
 buildscript {
     repositories {
@@ -158,7 +158,7 @@ task buildAndroidJniMips {
                 "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=',
                 'BASE_DENOM=mips',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-mips.so'
             ]
@@ -188,7 +188,7 @@ task buildAndroidJniIntel {
                 "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=',
                 'BASE_DENOM=x86',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-x86.so'
             ]

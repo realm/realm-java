@@ -47,9 +47,10 @@ public class AdapterExampleActivity extends Activity {
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    realm.beginTransaction();
+                    // TODO: Reenable when RealmResults supports remove()
+                    /*realm.beginTransaction();
                     adapter.getRealmResults().remove(i);
-                    realm.commitTransaction();
+                    realm.commitTransaction();*/
                     return true;
             }
         });

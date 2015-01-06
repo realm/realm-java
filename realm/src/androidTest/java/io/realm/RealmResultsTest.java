@@ -242,8 +242,8 @@ public class RealmResultsTest extends AndroidTestCase {
         // average = sum/N = b + (N-1)/2
         assertEquals(1.234567 + 0.5 * (N - 1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
-
-    public void testRemove() {
+    // TODO: Should we reenable this test?
+    public void DISABLEDtestRemove() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         testRealm.beginTransaction();
         resultList.remove(0);
@@ -255,7 +255,8 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(1, allTypes.getColumnLong());
     }
 
-    public void testRemoveLast() {
+    // TODO: Should we reenable this test?
+    public void DISABLEDtestRemoveLast() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         testRealm.beginTransaction();

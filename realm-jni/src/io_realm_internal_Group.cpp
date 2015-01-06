@@ -57,7 +57,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
         pGroup = new Group(file_name, key.data(), openmode);
 #else
-        pGroup = new Group(file_name, openmode);
+        pGroup = new Group(file_name, NULL, openmode);
 #endif
 
         TR((LOG_DEBUG, log_tag, "group: %p", VOID_PTR(pGroup)))
@@ -181,7 +181,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
         JStringAccessor file_name_tmp(env, jFileName); // throws
         file_name = StringData(file_name_tmp);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        G(nativeGroupPtr)->write(file_name_tmp), key.data());
+        G(nativeGroupPtr)->write(file_name, key.data());
 #else
         G(nativeGroupPtr)->write(file_name);
 #endif

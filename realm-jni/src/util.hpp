@@ -484,8 +484,8 @@ public:
 #endif
     }
 
-    const uint8_t *data() const {
-        return reinterpret_cast<const uint8_t *>(m_ptr);
+    const char *data() const {
+        return reinterpret_cast<const char *>(m_ptr);
     }
 
     ~KeyBuffer() {

@@ -79,12 +79,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
         }
         return reinterpret_cast<jlong>(db);
     }
-    catch (SharedGroup::PresumablyStaleLockFile& e) {
-        ThrowException(env, FileAccessError, e.what(), " Presumably a stall .lock file is present.");
-    }
-    catch (SharedGroup::LockFileButNoData& e) {
-        ThrowException(env, FileAccessError, e.what(), "The database file is missing, but a .lock file is present.");
-    }
     CATCH_FILE(file_name)
     CATCH_STD()
     return 0;
@@ -97,18 +91,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
     try {
         KeyBuffer key(env, keyArray);
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr), key.data());
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr), SharedGroup::durability_Full, key.data());
 #else
         SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr));
 #endif
 
         return reinterpret_cast<jlong>(db);
-    }
-    catch (SharedGroup::PresumablyStaleLockFile& e) {
-        ThrowException(env, FileAccessError, e.what(), " Presumably a stall .lock file is present.");
-    }
-    catch (SharedGroup::LockFileButNoData& e) {
-        ThrowException(env, FileAccessError, e.what(), "The database file is missing, but a .lock file is present.");
     }
     CATCH_STD()
     return 0;
@@ -129,22 +117,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateTransactLogRegistry
-  (JNIEnv* env, jobject, jstring jfile_name)
-{
-    TR_ENTER()
-    StringData file_name;
-    try {
-        JStringAccessor file_name_tmp(env, jfile_name); // throws
-        file_name = StringData(file_name_tmp);
-
-        LangBindHelper::TransactLogRegistry* wlr = getWriteLogs(file_name);
-        return reinterpret_cast<jlong>(wlr);
-    }
-    CATCH_STD()
-    return 0;
-}
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
   (JNIEnv* env, jobject, jlong native_ptr)
 {
@@ -158,21 +130,21 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
-  (JNIEnv *env, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
+(JNIEnv *env, jobject, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
-        LangBindHelper::advance_read( *SG(native_ptr), *reinterpret_cast<LangBindHelper::TransactLogRegistry*>(native_tansact_log_registry_ptr) );
+        LangBindHelper::advance_read( *SG(native_ptr) );
     }
     CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
-  (JNIEnv *env, jobject, jlong native_ptr, jlong native_tansact_log_registry_ptr)
+  (JNIEnv *env, jobject, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr) 
     try {
-        LangBindHelper::promote_to_write( *SG(native_ptr), *reinterpret_cast<LangBindHelper::TransactLogRegistry*>(native_tansact_log_registry_ptr) );
+        LangBindHelper::promote_to_write( *SG(native_ptr) );
     }
     CATCH_STD()
 }
@@ -185,13 +157,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinu
         LangBindHelper::commit_and_continue_as_read( *SG(native_ptr) );
     }
     CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseTransactRegistryLog
-  (JNIEnv *, jobject, jlong native_transact_log_registry_ptr)
-{
-    TR_ENTER_PTR(native_transact_log_registry_ptr)
-    delete reinterpret_cast<LangBindHelper::TransactLogRegistry*>(native_transact_log_registry_ptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
