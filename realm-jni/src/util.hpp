@@ -472,8 +472,8 @@ public:
     {
 #ifdef TIGHTDB_ENABLE_ENCRYPTION
         if (arr) {
-            if (env->GetArrayLength(m_array) != 32)
-                ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 32 bytes.");
+            if (env->GetArrayLength(m_array) != 64)
+                ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 64 bytes.");
             m_ptr = env->GetByteArrayElements(m_array, NULL);
         }
 #else
