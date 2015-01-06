@@ -1,3 +1,6 @@
+0.77
+ * RealmResults.sort() now has better error reporting.
+
 0.76.0
  * RealmObjects can now be imported using JSON.
  * Gradle wrapper updated to support Android Studio 1.0.

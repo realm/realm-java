@@ -26,7 +26,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Cat;
+import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.Owner;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
@@ -548,6 +551,35 @@ public class RealmResultsTest extends AndroidTestCase {
             result.sort(FIELD_STRING);
         } catch (IllegalArgumentException e) {
             fail("Failed to sort with two kinds of alphabets");
+        }
+    }
+
+    public void testSortByChildObject() {
+        testRealm.beginTransaction();
+        Owner owner = testRealm.createObject(Owner.class);
+        owner.setName("owner");
+        Cat cat = testRealm.createObject(Cat.class);
+        cat.setName("cat");
+        owner.setCat(cat);
+        testRealm.commitTransaction();
+
+        RealmQuery<Owner> query = testRealm.where(Owner.class);
+        RealmResults<Owner> owners = query.findAll();
+
+        try {
+            owners.sort("cat.name");
+            fail("Sorting by child object properties should result in a IllegalArgumentException");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+    }
+
+    public void testSortWithNullThrows() {
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        try {
+            result.sort(null);
+            fail("Sorting with a null field name should throw an IllegalArgumentException");
+        } catch(IllegalArgumentException ignored) {
         }
     }
 
