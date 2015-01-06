@@ -567,11 +567,10 @@ public class RealmResultsTest extends AndroidTestCase {
 
         try {
             owners.sort("cat.name");
-        } catch (IllegalArgumentException e) {
-            return; // Not supported yet
+            fail("Sorting by child object properties should result in a IllegalArgumentException");
+        } catch (IllegalArgumentException ignore) {
         }
 
-        fail("Sorting by child object properties should result in a IllegalArgumentException");
     }
 
     public void testWithEmptyRealmObjects() {
