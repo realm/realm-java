@@ -59,9 +59,9 @@ public class RealmListTest extends AndroidTestCase {
     // Test move where oldPosition < newPosition
     public void testMoveUp() {
         Owner owner = testRealm.where(Owner.class).findFirst();
-        Dog dog = owner.getDogs().get(0);
         int oldIndex = TEST_OBJECTS / 2;
         int newIndex = oldIndex + 1;
+        Dog dog = owner.getDogs().get(oldIndex);
         owner.getDogs().move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets shifted to the left.
 
         assertEquals(TEST_OBJECTS, owner.getDogs().size());
@@ -85,6 +85,7 @@ public class RealmListTest extends AndroidTestCase {
             owner.getDogs().move(lastIndex, outOfBoundsIndex);
             fail("Indexes >= size() should throw an exception");
         } catch (IndexOutOfBoundsException ignored) {
+            ignored.printStackTrace();
         }
     }
 

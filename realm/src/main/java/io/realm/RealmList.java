@@ -75,17 +75,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      *               to the right. If oldPos < newPos, indexes > oldPos will be shifted once to the
      *               left.
      *
-     * @throws java.lang.IndexOutOfBoundsException if positions are outside [0, size()[.
+     * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()[.
      */
     public void move(int oldPos, int newPos) {
-        if (oldPos < 0 || newPos < 0) {
-            throw new IndexOutOfBoundsException(String.format("Index cannot be less than 0. OldPos: %s, NewPos: %s", oldPos, newPos));
-        }
-        int size = size();
-        if (oldPos >= size || newPos >= size) {
-            throw new IndexOutOfBoundsException(String.format("Index must be less than size(). Size: %s, OldPos: %s, NewPos: %s", size, oldPos, newPos));
-        }
-
         view.move(oldPos, newPos);
     }
 
