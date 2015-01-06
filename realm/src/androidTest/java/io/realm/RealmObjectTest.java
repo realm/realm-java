@@ -63,7 +63,7 @@ public class RealmObjectTest extends AndroidTestCase {
 
         testRealm.commitTransaction();
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(8, row.getColumnCount());
+        assertEquals(9, row.getColumnCount());
     }
 
     public void testStringEncoding() {
@@ -447,5 +447,25 @@ public class RealmObjectTest extends AndroidTestCase {
             fail();
         }
 
+    }
+
+    public void testSetNullLink() {
+        testRealm.beginTransaction();
+        CyclicType objA = testRealm.createObject(CyclicType.class);
+        objA.setName("Foo");
+        CyclicType objB = testRealm.createObject(CyclicType.class);
+        objB.setName("Bar");
+
+        objA.setObject(objB);
+
+        assertNotNull(objA.getObject());
+
+        try {
+            objA.setObject(null);
+        } catch (NullPointerException nullPointer) {
+            fail();
+        }
+        testRealm.commitTransaction();
+        assertNull(objA.getObject());
     }
 }

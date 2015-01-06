@@ -16,16 +16,24 @@
 
 package io.realm;
 
+import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.JsonReader;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -113,8 +121,8 @@ public final class Realm implements Closeable {
     private final String path;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
-    private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>();
-    private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>();
+    private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>(); // Map between original class and their class name
+    private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>(); // Map between generated class names and their implementation
     private final Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
     private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
@@ -513,7 +521,7 @@ public final class Realm implements Closeable {
                 for (String className : proxyClasses) {
                     String[] splitted = className.split("\\.");
                     String modelClassName = splitted[splitted.length - 1];
-                    String generatedClassName = "io.realm." + modelClassName + "RealmProxy";
+                    String generatedClassName = getProxyClassName(modelClassName);
                     Class<?> generatedClass;
                     try {
                         generatedClass = Class.forName(generatedClassName);
@@ -599,6 +607,155 @@ public final class Realm implements Closeable {
     }
 
     /**
+     * Create a Realm object for each object in a JSON array. This must be done inside a transaction.
+     * JSON properties with a null value will map to the default value for the data type in Realm
+     * and unknown properties will be ignored.
+     *
+     * @param clazz Type of Realm objects to create.
+     * @param json  Array where each JSONObject must map to the specified class.
+     *
+     * @throws RealmException if mapping from JSON fails.
+     */
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, JSONArray json) {
+        if (clazz == null || json == null) return;
+
+        for (int i = 0; i < json.length(); i++) {
+            E obj = createObject(clazz);
+            try {
+                obj.populateUsingJsonObject(json.getJSONObject(i));
+            } catch (Exception e) {
+                throw new RealmException("Could not map Json", e);
+            }
+        }
+    }
+
+    /**
+     * Create a Realm object for each object in a JSON array. This must be done inside a transaction.
+     * JSON properties with a null value will map to the default value for the data type in Realm
+     * and unknown properties will be ignored.
+     *
+     * @param clazz Type of Realm objects to create.
+     * @param json  JSON array as a String where each object can map to the specified class.
+     *
+     * @throws RealmException if mapping from JSON fails.
+     */
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, String json) {
+        if (clazz == null || json == null || json.length() == 0) return;
+
+        JSONArray arr;
+        try {
+            arr = new JSONArray(json);
+        } catch (Exception e) {
+            throw new RealmException("Could not create JSON array from string", e);
+        }
+
+        createAllFromJson(clazz, arr);
+    }
+
+    /**
+     * Create a Realm object for each object in a JSON array. This must be done inside a transaction.
+     * JSON properties with a null value will map to the default value for the data type in Realm
+     * and unknown properties will be ignored.
+     *
+     * @param clazz         Type of Realm objects created.
+     * @param inputStream   JSON array as a InputStream. All objects in the array must be of the
+     *                      specified class.
+     *
+     * @throws RealmException if mapping from JSON fails.
+     * @throws IOException if something was wrong with the input stream.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        if (clazz == null || inputStream == null) return;
+
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+        try {
+            reader.beginArray();
+            while (reader.hasNext()) {
+                E obj = createObject(clazz);
+                obj.populateUsingJsonStream(reader);
+            }
+            reader.endArray();
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
+     * Create a Realm object prefilled with data from a JSON object. This must be done inside a
+     * transaction. JSON properties with a null value will map to the default value for the data
+     * type in Realm and unknown properties will be ignored.
+     *
+     * @param clazz Type of Realm object to create.
+     * @param json  JSONObject with object data.
+     * @return Created object or null if no json data was provided.
+     *
+     * @throws RealmException if the mapping from JSON fails.
+     */
+    public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, JSONObject json) {
+        if (clazz == null || json == null) return null;
+
+        E obj = createObject(clazz);
+        try {
+            obj.populateUsingJsonObject(json);
+        } catch (Exception e) {
+            throw new RealmException("Could not map Json", e);
+        }
+
+        return obj;
+    }
+
+    /**
+     * Create a Realm object prefilled with data from a JSON object. This must be done inside a
+     * transaction. JSON properties with a null value will map to the default value for the data
+     * type in Realm and unknown properties will be ignored.
+     *
+     * @param clazz Type of Realm object to create.
+     * @param json  JSON string with object data.
+     * @return Created object or null if json string was empty or null.
+     *
+     * @throws RealmException if mapping to json failed.
+     */
+    public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, String json) {
+        if (clazz == null || json == null || json.length() == 0) return null;
+
+        JSONObject obj;
+        try {
+            obj = new JSONObject(json);
+        } catch (Exception e) {
+            throw new RealmException("Could not create Json object from string", e);
+        }
+
+        return createObjectFromJson(clazz, obj);
+    }
+
+    /**
+     * Create a Realm object prefilled with data from a JSON object. This must be done inside a
+     * transaction. JSON properties with a null value will map to the default value for the data
+     * type in Realm and unknown properties will be ignored.
+     *
+     * @param clazz         Type of Realm object to create.
+     * @param inputStream   JSON object data as a InputStream.
+     * @return Created object or null if json string was empty or null.
+     *
+     * @throws RealmException if the mapping from JSON failed.
+     * @throws IOException if something was wrong with the input stream.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        if (inputStream == null || clazz == null) return null;
+
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+        try {
+            E obj = createObject(clazz);
+            obj.populateUsingJsonStream(reader);
+            return obj;
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
      * Write a compacted copy of the Realm to the given destination File.
      *
      * The destination file cannot already exist.
@@ -631,7 +788,7 @@ public final class Realm implements Closeable {
                 simpleClassName = clazz.getSimpleName();
                 simpleClassNames.put(clazz, simpleClassName);
             }
-            String generatedClassName = "io.realm." + simpleClassName + "RealmProxy";
+            String generatedClassName = getProxyClassName(simpleClassName);
 
             Class<?> generatedClass = generatedClasses.get(generatedClassName);
             if (generatedClass == null) {
@@ -697,7 +854,7 @@ public final class Realm implements Closeable {
                 simpleClassName = clazz.getSimpleName();
                 simpleClassNames.put(clazz, simpleClassName);
             }
-            String generatedClassName = "io.realm." + simpleClassName + "RealmProxy";
+            String generatedClassName = getProxyClassName(simpleClassName);
 
 
             Class<?> generatedClass = generatedClasses.get(generatedClassName);
@@ -736,6 +893,10 @@ public final class Realm implements Closeable {
         result.row = row;
         result.realm = this;
         return result;
+    }
+
+    private static String getProxyClassName(String simpleClassName) {
+        return "io.realm." + simpleClassName + "RealmProxy";
     }
 
     boolean contains(Class<?> clazz) {
