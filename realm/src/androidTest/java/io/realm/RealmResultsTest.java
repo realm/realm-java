@@ -573,6 +573,15 @@ public class RealmResultsTest extends AndroidTestCase {
 
     }
 
+    public void testSortWithNullThrows() {
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        try {
+            result.sort(null);
+            fail("Sorting with a null field name should throw an IllegalArgumentException");
+        } catch(IllegalArgumentException ignored) {
+        }
+    }
+
     public void testWithEmptyRealmObjects() {
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);

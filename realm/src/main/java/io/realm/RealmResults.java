@@ -182,11 +182,14 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public void sort(String fieldName, boolean sortAscending) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided");
+        }
         realm.checkIfValid();
         TableOrView table = getTable();
 
         if (table instanceof TableView) {
-            if (fieldName != null && fieldName.contains(".")) {
+            if (fieldName.contains(".")) {
                 throw new IllegalArgumentException("Sorting using child object properties is not supported: " + fieldName);
             }
             long columnIndex = table.getColumnIndex(fieldName);
