@@ -149,14 +149,14 @@ extern const char *log_tag;
     #define TR_LEAVE() if (trace_level >= 3) { __android_log_print(ANDROID_LOG_DEBUG, log_tag, " <-- %s", __FUNCTION__); } else {}
   #else // ANDROID
     #define TR_ENTER()
-    #define TR_ENTER_PTR()
+    #define TR_ENTER_PTR(ptr)
     #define TR(...)
     #define TR_ERR(...)
     #define TR_LEAVE()
   #endif
 #else // TRACE - these macros must be empty
   #define TR_ENTER()
-  #define TR_ENTER_PTR()
+  #define TR_ENTER_PTR(ptr)
   #define TR(...)
   #define TR_ERR(...)
   #define TR_LEAVE()
