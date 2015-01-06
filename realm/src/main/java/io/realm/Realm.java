@@ -347,7 +347,7 @@ public final class Realm implements Closeable {
      * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param context an Android context
-     * @param key     a 32-byte encryption key
+     * @param key     a 64-byte encryption key
      * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
      *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
      * @return an instance of the Realm class
@@ -371,7 +371,7 @@ public final class Realm implements Closeable {
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
-     * @param key     a 32-byte encryption key
+     * @param key     a 64-byte encryption key
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
@@ -399,7 +399,7 @@ public final class Realm implements Closeable {
      *
      * @param context  an Android {@link android.content.Context}
      * @param fileName the name of the file to save the Realm to
-     * @param key      a 32-byte encryption key
+     * @param key      a 64-byte encryption key
      * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
      *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
      * @return an instance of the Realm class
@@ -422,7 +422,7 @@ public final class Realm implements Closeable {
      * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
      *
      * @param writableFolder absolute path to a writable directory
-     * @param key            a 32-byte encryption key
+     * @param key            a 64-byte encryption key
      * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
      *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
      * @return an instance of the Realm class
@@ -447,7 +447,7 @@ public final class Realm implements Closeable {
      *
      * @param writableFolder absolute path to a writable directory
      * @param filename       the name of the file to save the Realm to
-     * @param key            a 32-byte encryption key
+     * @param key            a 64-byte encryption key
      * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
      *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
      * @return an instance of the Realm class

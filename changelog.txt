@@ -2,6 +2,7 @@
  * RealmResults.sort() now has better error reporting.
  * Lenient UTF-8 to UTF-16 transcoding by inserting replacement characters.
  * Adding more logging capabilities at the JNI level.
+ * Added proper encryption support
 
 0.76.0
  * RealmObjects can now be imported using JSON.

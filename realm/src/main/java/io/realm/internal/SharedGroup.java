@@ -51,7 +51,7 @@ public class SharedGroup implements Closeable {
 
     public SharedGroup(String databaseFile, boolean enableImplicitTransactions, byte[] key) {
         if (enableImplicitTransactions) {
-            nativeReplicationPtr = nativeCreateReplication(databaseFile);
+            nativeReplicationPtr = nativeCreateReplication(databaseFile, key);
             nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, key);
             implicitTransactionsEnabled = true;
         } else {
@@ -63,7 +63,7 @@ public class SharedGroup implements Closeable {
 
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, byte[] key);
 
-    private native long nativeCreateReplication(String databaseFile);
+    private native long nativeCreateReplication(String databaseFile, byte[] key);
 
     public SharedGroup(String databaseFile, Durability durability, byte[] key) {
         context = new Context();

@@ -103,14 +103,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplication
-  (JNIEnv* env, jobject, jstring jfile_name)
+  (JNIEnv* env, jobject, jstring jfile_name, jbyteArray keyArray)
 {
     TR_ENTER()
     StringData file_name;
     try {     
         JStringAccessor file_name_tmp(env, jfile_name); // throws
         file_name = StringData(file_name_tmp);
+        KeyBuffer key(env, keyArray);
+#ifdef TIGHTDB_ENABLE_ENCRYPTION
+        Replication* repl = makeWriteLogCollector(file_name, false, key.data());
+#else
         Replication* repl = makeWriteLogCollector(file_name);
+#endif
         return reinterpret_cast<jlong>(repl);
     }
     CATCH_STD()
