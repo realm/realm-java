@@ -53,7 +53,7 @@ Generating the Javadoc using the command above will report a failure (1 error, 3
 
 Whether you find a bug, typo or an API call that could be clarified, please [file an issue](https://github.com/realm/realm-java/issues) on our GitHub repository.
 
-When filing an issue, please provide as much of the following information as possible in order to help others fix it:
+When filing an issue, please provide as much of the following information as possible in order to help us fix it:
 
 1. **Goals**
 2. **Expected results**
@@ -75,7 +75,7 @@ The underlying core is available under the [Realm Core Binary License](LICENSE#L
 
 ## Feedback
 
-**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm), announce your app on [our mailing-list](https://groups.google.com/forum/#!forum/realm-java), or email [info@realm.io](mailto:info@realm.io) to let us know about it!_**
+**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm), announce your app on [our mailing-list](https://groups.google.com/forum/#!forum/realm-java), or email [help@realm.io](mailto:help@realm.io) to let us know about it!_**
 
 **_And if you don't like it, please let us know what you would like improved, so we can fix it!_**
 

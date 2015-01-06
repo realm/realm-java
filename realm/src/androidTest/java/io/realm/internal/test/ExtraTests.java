@@ -7,8 +7,12 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 public class ExtraTests {
-    public static void assertArrayEquals(Object[] expecteds, Object[] actuals)
-    {
+
+    public static void assertArrayEquals(Object[] expecteds, Object[] actuals) {
+        new ExactComparisonCriteria().arrayEquals(null, expecteds, actuals);
+    }
+
+    public static void assertArrayEquals(byte[] expecteds, byte[] actuals) {
         new ExactComparisonCriteria().arrayEquals(null, expecteds, actuals);
     }
 

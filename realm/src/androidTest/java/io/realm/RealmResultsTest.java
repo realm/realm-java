@@ -26,7 +26,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Cat;
+import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.Owner;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
@@ -242,8 +245,8 @@ public class RealmResultsTest extends AndroidTestCase {
         // average = sum/N = b + (N-1)/2
         assertEquals(1.234567 + 0.5 * (N - 1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
-
-    public void testRemove() {
+    // TODO: Should we reenable this test?
+    public void DISABLEDtestRemove() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         testRealm.beginTransaction();
         resultList.remove(0);
@@ -255,7 +258,8 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(1, allTypes.getColumnLong());
     }
 
-    public void testRemoveLast() {
+    // TODO: Should we reenable this test?
+    public void DISABLEDtestRemoveLast() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         testRealm.beginTransaction();
@@ -539,13 +543,43 @@ public class RealmResultsTest extends AndroidTestCase {
         AllTypes allTypes2 = testRealm.createObject(AllTypes.class);
         allTypes2.setColumnString("αύριο");
         AllTypes allTypes3 = testRealm.createObject(AllTypes.class);
-        testRealm.commitTransaction();
         allTypes3.setColumnString("work");
+        testRealm.commitTransaction();
+
         try {
             RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
             result.sort(FIELD_STRING);
         } catch (IllegalArgumentException e) {
             fail("Failed to sort with two kinds of alphabets");
+        }
+    }
+
+    public void testSortByChildObject() {
+        testRealm.beginTransaction();
+        Owner owner = testRealm.createObject(Owner.class);
+        owner.setName("owner");
+        Cat cat = testRealm.createObject(Cat.class);
+        cat.setName("cat");
+        owner.setCat(cat);
+        testRealm.commitTransaction();
+
+        RealmQuery<Owner> query = testRealm.where(Owner.class);
+        RealmResults<Owner> owners = query.findAll();
+
+        try {
+            owners.sort("cat.name");
+            fail("Sorting by child object properties should result in a IllegalArgumentException");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+    }
+
+    public void testSortWithNullThrows() {
+        RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
+        try {
+            result.sort(null);
+            fail("Sorting with a null field name should throw an IllegalArgumentException");
+        } catch(IllegalArgumentException ignored) {
         }
     }
 

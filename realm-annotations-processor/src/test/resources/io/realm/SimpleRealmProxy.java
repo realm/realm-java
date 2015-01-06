@@ -1,14 +1,18 @@
 package io.realm;
 
-import io.realm.Realm;
-import io.realm.RealmList;
+import android.util.JsonReader;
+import android.util.JsonToken;
 import io.realm.RealmObject;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
+import io.realm.internal.android.JsonUtils;
+import java.io.IOException;
 import java.util.*;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import some.test.*;
 
 public class SimpleRealmProxy extends Simple {
@@ -76,6 +80,32 @@ public class SimpleRealmProxy extends Simple {
         return Arrays.asList("name", "age");
     }
 
+    void populateUsingJsonObject(JSONObject json)
+            throws JSONException {
+        if (json.has("name")) {
+            setName((String) json.getString("name"));
+        }
+        if (json.has("age")) {
+            setAge((int) json.getInt("age"));
+        }
+    }
+
+    void populateUsingJsonStream(JsonReader reader)
+            throws IOException {
+        reader.beginObject();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            if (name.equals("name") && reader.peek() != JsonToken.NULL) {
+                setName((String) reader.nextString());
+            } else if (name.equals("age")  && reader.peek() != JsonToken.NULL) {
+                setAge((int) reader.nextInt());
+            } else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("Simple = [");
@@ -116,6 +146,8 @@ public class SimpleRealmProxy extends Simple {
         String tableName = row.getTable().getName();
         String otherTableName = aSimple.row.getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
+
+        if (row.getIndex() != aSimple.row.getIndex()) return false;
 
         return true;
     }
