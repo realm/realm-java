@@ -143,7 +143,7 @@ void tbl_nativeDoMixed(M doMixed, T* pTable, JNIEnv* env, jlong columnIndex, jlo
     case type_LinkList:
         break;
     }
-    TR_ERR((env, "\nERROR: nativeSetMixed() failed.\n"));
+    TR_ERR("ERROR: nativeSetMixed() failed.")
     ThrowException(env, IllegalArgument, "nativeSetMixed()");
 }
 
@@ -228,7 +228,7 @@ void row_nativeSetMixed(R* pRow, JNIEnv* env, jlong columnIndex, jobject jMixedV
     case type_LinkList:
         break;
     }
-    TR_ERR((env, "\nERROR: nativeSetMixed() failed.\n"));
+    TR_ERR("ERROR: nativeSetMixed() failed.")
     ThrowException(env, IllegalArgument, "nativeSetMixed()");
 }
 
