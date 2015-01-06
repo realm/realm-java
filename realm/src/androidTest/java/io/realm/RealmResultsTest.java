@@ -18,7 +18,9 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -26,7 +28,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.Owner;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
@@ -629,6 +633,33 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> all = query.findAll();
         assertEquals(1, query.count());
         assertEquals(1, all.size());
+    }
+
+    public void testSortedLinks() throws Exception {
+        populateLinkData();
+
+        Owner firstOwner = testRealm.where(Owner.class).equalTo("name", "Jim").findFirst();
+        assertNotNull(firstOwner);
+
+        // It works fine without the sort
+        RealmResults<Dog> dogs = firstOwner.getDogs().where().findAll("name", RealmResults.SORT_ORDER_ASCENDING);
+        assertEquals(3, dogs.size());
+
+        RealmResults<Dog> allRexes = dogs.where().equalTo("name", "Rex").findAll();
+        assertEquals(1, allRexes.size());
+    }
+
+    private void populateLinkData() {
+        testRealm.beginTransaction();
+        Owner owner = testRealm.createObject(Owner.class);
+        owner.setName("Jim");
+        List<String> dogNames = Arrays.asList("Rex", "Tex", "Mex");
+        for (String dogName : dogNames) {
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setName(dogName);
+            owner.getDogs().add(dog);
+        }
+        testRealm.commitTransaction();
     }
 
     // TODO: More extended tests of querying all types must be done.
