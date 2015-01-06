@@ -70,7 +70,7 @@ public class RealmTest extends AndroidTestCase {
     protected void setUp() throws Exception {
         Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
-   }
+    }
 
     @Override
     protected void tearDown() throws Exception {
@@ -332,7 +332,8 @@ public class RealmTest extends AndroidTestCase {
         try {
             RealmResults<AllTypes> none = testRealm.allObjects(AllTypes.class, "invalid", RealmResults.SORT_ORDER_ASCENDING);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     // void beginTransaction()
@@ -790,7 +791,26 @@ public class RealmTest extends AndroidTestCase {
             }
             testRealm.commitTransaction();
         } catch (Exception e) {
-            fail("Failure, Codepoint: " + i + " / " + currentUnicode  + " " +  e.getMessage());
+            fail("Failure, Codepoint: " + i + " / " + currentUnicode + " " + e.getMessage());
+        }
+    }
+
+    //tests for closing open realms
+    public void testOutOfFile() {
+        for (int i = 0; i < 500; i++) {
+            Thread thread = new Thread() {
+
+                public void run() {
+                    Realm testThreadRealm = Realm.getInstance(getContext());
+                    testThreadRealm.close();
+                }
+            };
+            thread.start();
+            try {
+                thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
