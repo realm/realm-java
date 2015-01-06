@@ -59,33 +59,33 @@ public class RealmListTest extends AndroidTestCase {
     // Test move where oldPosition < newPosition
     public void testMoveUp() {
         Owner owner = testRealm.where(Owner.class).findFirst();
-        Dog dog5 = owner.getDogs().get(5);
-        owner.getDogs().move(5, 6); // This doesn't do anything as index 5 is now empty so the index's above gets shifted to the left.
+        Dog dog = owner.getDogs().get(0);
+        int oldIndex = TEST_OBJECTS / 2;
+        int newIndex = oldIndex + 1;
+        owner.getDogs().move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets shifted to the left.
 
-        assertEquals(10, owner.getDogs().size());
-        assertEquals(5, owner.getDogs().indexOf(dog5));
+        assertEquals(TEST_OBJECTS, owner.getDogs().size());
+        assertEquals(oldIndex, owner.getDogs().indexOf(dog));
     }
 
     public void testMoveOutOfBoundsLowerThrows() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         try {
-            owner.getDogs().move(1, -1);
-        } catch (IndexOutOfBoundsException e) {
-            return;
+            owner.getDogs().move(0, -1);
+            fail("Indexes < 0 should throw an exception");
+        } catch (IndexOutOfBoundsException ignored) {
         }
-
-        fail("Indexes < 0 should throw an exception");
     }
 
     public void testMoveOutOfBoundsHigherThrows() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         try {
-            owner.getDogs().move(9, 10);
-        } catch (IndexOutOfBoundsException e) {
-            return;
+            int lastIndex = TEST_OBJECTS - 1;
+            int outOfBoundsIndex = TEST_OBJECTS;
+            owner.getDogs().move(lastIndex, outOfBoundsIndex);
+            fail("Indexes >= size() should throw an exception");
+        } catch (IndexOutOfBoundsException ignored) {
         }
-
-        fail("Indexes >= size() should throw an exception");
     }
 
     public void testAddObject() {
@@ -99,23 +99,21 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(1, testRealm.where(Owner.class).findFirst().getDogs().size());
     }
 
-    public void testAddObject_NullThrows() {
+    public void testAddObjectNullThrows() {
         testRealm.beginTransaction();
         Owner owner = testRealm.createObject(Owner.class);
         try {
             owner.getDogs().add(null);
-        } catch (NullPointerException e) {
-            return;
+            fail("Adding null values is not supported");
+        } catch (NullPointerException ignored) {
         } finally {
             testRealm.cancelTransaction();
         }
-
-        fail("Adding null values is not supported");
     }
 
     public void testSize() {
         Owner owner = testRealm.where(Owner.class).findFirst();
-        assertEquals(10, owner.getDogs().size());
+        assertEquals(TEST_OBJECTS, owner.getDogs().size());
     }
 
     public void testGetObjects() {
@@ -137,7 +135,7 @@ public class RealmListTest extends AndroidTestCase {
         Owner owner = testRealm.where(Owner.class).findFirst();
         Dog dog = owner.getDogs().last();
 
-        assertEquals("Dog 9", dog.getName());
+        assertEquals("Dog " + (TEST_OBJECTS - 1), dog.getName());
     }
 
     public void testRemoveByIndex() {
@@ -149,7 +147,7 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         assertNull(removedDog);
-        assertEquals(9, dogs.size());
+        assertEquals(TEST_OBJECTS - 1, dogs.size());
     }
 
     public void testRemoveByObject() {
@@ -162,7 +160,7 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         assertTrue(result);
-        assertEquals(9, dogs.size());
+        assertEquals(TEST_OBJECTS - 1, dogs.size());
     }
 
     public void testQuery() {
