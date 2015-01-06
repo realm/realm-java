@@ -23,10 +23,9 @@ using namespace tightdb;
 using std::string;
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
-    JNIEnv* env, jobject)
+    JNIEnv*,  jobject)
 {
     TR_ENTER()
-    static_cast<void>(env);
     Group *ptr = new Group();
     TR("Group::createNative(): %p.", VOID_PTR(ptr))
     return reinterpret_cast<jlong>(ptr);

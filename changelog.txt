@@ -9,6 +9,7 @@
  * Bug fixed in Realm crashing for receiving notifications after close().
  * Close the Realm instance after migrations.
  * Added a check to deny the writing of objects outside of a transaction.
+ * Adding more logging capabilities at the JNI level.
 
 0.75.1 (03 December 2014)
   * Changing sort to be an in-place method.
