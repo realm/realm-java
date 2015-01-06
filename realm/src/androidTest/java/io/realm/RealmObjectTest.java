@@ -448,4 +448,24 @@ public class RealmObjectTest extends AndroidTestCase {
         }
 
     }
+
+    public void testSetNullLink() {
+        testRealm.beginTransaction();
+        CyclicType objA = testRealm.createObject(CyclicType.class);
+        objA.setName("Foo");
+        CyclicType objB = testRealm.createObject(CyclicType.class);
+        objB.setName("Bar");
+
+        objA.setObject(objB);
+
+        assertNotNull(objA.getObject());
+
+        try {
+            objA.setObject(null);
+        } catch (NullPointerException nullPointer) {
+            fail();
+        }
+        testRealm.commitTransaction();
+        assertNull(objA.getObject());
+    }
 }
