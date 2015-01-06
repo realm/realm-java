@@ -44,11 +44,11 @@ DataType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType)
 
 jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType)
 {
-    TR((LOG_DEBUG, log_tag, "enter GetJColumnTypeFromColumnType(%d)", columnType));
+    TR("enter GetJColumnTypeFromColumnType(%d)", columnType)
     static jclass jColumnTypeClass = GetClass(env, "io/realm/internal/ColumnType");
 
     if (jColumnTypeClass == NULL) {
-        TR((LOG_DEBUG, log_tag, "--class is NULL"));
+        TR("--class is NULL");
         return NULL;
     }
 

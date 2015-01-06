@@ -58,7 +58,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
     if (jMixedClass == NULL)
         return NULL;
 
-    TR((LOG_DEBUG, log_tag, "CreateJMixedFromMixed(type %d)", mixed.get_type()));
+    TR("CreateJMixedFromMixed(type %d)", mixed.get_type())
     switch (mixed.get_type()) {
     case type_Int:
     {
@@ -120,7 +120,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
     case type_Table:
         {
             // param input: Table* t.
-            TR((LOG_DEBUG, log_tag, "   --Mixed(type_Table)"));
+            TR("   --Mixed(type_Table)")
             jmethodID consId = GetMixedMethodID(env, "<init>", "(Lio/realm/internal/ColumnType;)V");
 
             jobject jColumnType = NULL; // GetJColumnTypeFromColumnType(env, type_Table);

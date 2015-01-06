@@ -28,7 +28,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
     TR_ENTER()
     static_cast<void>(env);
     Group *ptr = new Group();
-    TR((LOG_DEBUG, log_tag, "Group::createNative(): %p.", VOID_PTR(ptr)));
+    TR("Group::createNative(): %p.", VOID_PTR(ptr))
     return reinterpret_cast<jlong>(ptr);
 }
 
@@ -48,7 +48,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
         case 1: openmode = Group::mode_ReadWrite; break;
         case 2: openmode = Group::mode_ReadWriteNoCreate; break;
         default:
-            TR((LOG_DEBUG, log_tag, "Invalid mode: %d", mode));
+            TR("Invalid mode: %d", mode)
             ThrowException(env, IllegalArgument, "Group(): Invalid mode parameter.");
             return 0;
         }
@@ -60,7 +60,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
         pGroup = new Group(file_name, NULL, openmode);
 #endif
 
-        TR((LOG_DEBUG, log_tag, "group: %p", VOID_PTR(pGroup)))
+        TR("group: %p", VOID_PTR(pGroup))
         return reinterpret_cast<jlong>(pGroup);
     }
     CATCH_FILE(file_name)
@@ -87,11 +87,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative___3B(
     }
     env->GetByteArrayRegion(jData, 0, byteArrayLength, buf);
 
-    TR((LOG_DEBUG, log_tag, " %d bytes.", byteArrayLength))
+    TR("%d bytes.", byteArrayLength)
     Group* pGroup = 0;
     try {
         pGroup = new Group(BinaryData(reinterpret_cast<char*>(buf), S(byteArrayLength)), true);
-        TR((LOG_DEBUG, log_tag, " groupPtr: %p", VOID_PTR(pGroup)));
+        TR("groupPtr: %p", VOID_PTR(pGroup))
         return reinterpret_cast<jlong>(pGroup);
     }
     CATCH_FILE("memory-buffer")
@@ -111,7 +111,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_nio_Byt
     BinaryData bin;
     if (!GetBinaryData(env, jByteBuffer, bin))
         return 0;
-    TR((LOG_DEBUG, log_tag, " %d bytes.", bin.size()))
+    TR("%d bytes.", bin.size())
 
     Group* pGroup = 0;
     try {
@@ -120,7 +120,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_nio_Byt
     CATCH_FILE("memory-buffer")
     CATCH_STD()
 
-    TR((LOG_DEBUG, log_tag, "%p", VOID_PTR(pGroup)))
+    TR("%p", VOID_PTR(pGroup))
     return reinterpret_cast<jlong>(pGroup);
 }
 
