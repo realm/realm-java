@@ -22,15 +22,14 @@ import android.widget.TextView;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.RealmAdapter;
+import io.realm.exceptions.RealmException;
 
 public class RealmAdapterTest extends AndroidTestCase {
 
     private final static String FIELD_STRING = "columnString";
-
     private final static int TEST_DATA_SIZE = 47;
 
     private boolean automaticUpdate = true;
-
     private Realm testRealm;
 
     public RealmAdapterTest() {
@@ -43,7 +42,6 @@ public class RealmAdapterTest extends AndroidTestCase {
         testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnString("test data " + i);
@@ -51,19 +49,24 @@ public class RealmAdapterTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
-    public void testAdapterThrowsExceptions() {
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        testRealm.close();
+    }
+
+    public void testAdapterParameterExceptions() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         try {
             RealmAdapter realmAdapter = new RealmAdapter(null, resultList, automaticUpdate);
             fail("Should throw exception if context is null");
-        } catch (IllegalArgumentException e) {
-
+        } catch (IllegalArgumentException ignore) {
         }
+
         try {
             RealmAdapter realmAdapter = new RealmAdapter(getContext(), null, automaticUpdate);
             fail("Should throw exception if RealmResult is null");
-        } catch (IllegalArgumentException e) {
-
+        } catch (IllegalArgumentException ignore) {
         }
     }
 
@@ -81,11 +84,23 @@ public class RealmAdapterTest extends AndroidTestCase {
         assertEquals(resultList.last().getColumnString(), realmAdapter.getRealmResults().last().getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
-        RealmResults<AllTypes> emptyResultList = testRealm.where(AllTypes.class)
-                .equalTo(FIELD_STRING, "Not there").findAll();
+        RealmResults<AllTypes> emptyResultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
         realmAdapter.updateRealmResults(emptyResultList);
         assertEquals(emptyResultList.size(), realmAdapter.getRealmResults().size());
     }
+
+    public void testClearFromAdapter() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
+
+        testRealm.beginTransaction();
+        realmAdapter.getRealmResults().clear();
+        testRealm.commitTransaction();
+
+        assertEquals(0, realmAdapter.getCount());
+    }
+
+/* Disabled until remove is reenabled
 
     public void testRemoveFromAdapter() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
@@ -94,17 +109,12 @@ public class RealmAdapterTest extends AndroidTestCase {
         testRealm.beginTransaction();
         realmAdapter.getRealmResults().remove(0);
         testRealm.commitTransaction();
-        assertEquals(46, realmAdapter.getCount());
+        assertEquals(TEST_DATA_SIZE, realmAdapter.getCount());
 
         resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0").findAll();
         assertEquals(0, resultList.size());
-
-        testRealm.beginTransaction();
-        realmAdapter.getRealmResults().clear();
-        testRealm.commitTransaction();
-
-        assertEquals(0, realmAdapter.getCount());
     }
+*/
 
     public void testSortWithAdapter() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
@@ -116,13 +126,12 @@ public class RealmAdapterTest extends AndroidTestCase {
         resultList.sort(FIELD_STRING);
 
         assertEquals(resultList.last().getColumnString(), realmAdapter.getRealmResults().last().getColumnString());
-        assertEquals(resultList.get(22).getColumnString(), realmAdapter.getRealmResults().get(22).getColumnString());
+        assertEquals(resultList.get(TEST_DATA_SIZE/2).getColumnString(), realmAdapter.getRealmResults().get(TEST_DATA_SIZE/2).getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
     }
 
     public void testEmptyRealmResult() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .equalTo(FIELD_STRING, "Not there").findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
         assertEquals(0, realmAdapter.getRealmResults().size());
         assertEquals(0, realmAdapter.getCount());
@@ -148,7 +157,7 @@ public class RealmAdapterTest extends AndroidTestCase {
     public void testGetCount() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
-        assertEquals(47, realmAdapter.getCount());
+        assertEquals(TEST_DATA_SIZE, realmAdapter.getCount());
     }
 
     public void testGetView() {
