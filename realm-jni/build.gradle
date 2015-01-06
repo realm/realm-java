@@ -306,7 +306,7 @@ task buildAndroidJniIntel {
                 'make',
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}${project.variant}/include",
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=',
                 'BASE_DENOM=x86',
                 "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog",
