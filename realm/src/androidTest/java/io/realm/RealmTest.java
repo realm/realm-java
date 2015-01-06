@@ -25,6 +25,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -35,6 +36,7 @@ import java.util.concurrent.Future;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 
 
@@ -147,7 +149,7 @@ public class RealmTest extends AndroidTestCase {
         Realm realm = null;
         try {
             realm = Realm.getInstance(null); // throws when c.getDirectory() is called;
-                                             // has nothing to do with Realm
+            // has nothing to do with Realm
             fail("Should throw an exception");
         } catch (NullPointerException ignore) {
         } finally {
@@ -790,7 +792,60 @@ public class RealmTest extends AndroidTestCase {
             }
             testRealm.commitTransaction();
         } catch (Exception e) {
-            fail("Failure, Codepoint: " + i + " / " + currentUnicode  + " " +  e.getMessage());
+            fail("Failure, Codepoint: " + i + " / " + currentUnicode + " " + e.getMessage());
+        }
+    }
+
+    private List<String> getCharacterArray() {
+        List<String> chars_array = new ArrayList<String>();
+        String file = "assets/unicode_codepoints.csv";
+        Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(file));
+        int i = 0;
+        String currentUnicode = null;
+        try {
+            while (scanner.hasNextLine()) {
+                currentUnicode = scanner.nextLine();
+                char[] chars = Character.toChars(Integer.parseInt(currentUnicode, 16));
+                String codePoint = new String(chars);
+                chars_array.add(codePoint);
+                i++;
+            }
+        } catch (Exception e) {
+            fail("Failure, Codepoint: " + i + " / " + currentUnicode + " " + e.getMessage());
+        }
+        return chars_array;
+    }
+    // This test is disabled.
+    // The test writes and reads random Strings.
+    public void disabledTestUnicodeString() {
+        List<String> chars_array = getCharacterArray();
+        // Change seed value for new random values.
+        long seed = 20;
+        Random random = new Random(seed);
+
+        int random_value = 0;
+
+        String test_char = "";
+        String test_char_old = "";
+        String get_data = "";
+
+        for (int i = 0; i < 1000; i++) {
+            random_value = random.nextInt(25);
+
+            for (int j = 0; j < random_value; j++) {
+                test_char = test_char_old + chars_array.get(random.nextInt(27261));
+                test_char_old = test_char;
+            }
+            testRealm.beginTransaction();
+            StringOnly stringOnly = testRealm.createObject(StringOnly.class);
+            stringOnly.setChars(test_char);
+            testRealm.commitTransaction();
+
+            get_data = testRealm.allObjects(StringOnly.class).get(0).getChars();
+
+            testRealm.beginTransaction();
+            testRealm.clear(StringOnly.class);
+            testRealm.commitTransaction();
         }
     }
 
@@ -803,6 +858,7 @@ public class RealmTest extends AndroidTestCase {
         }
 
         // Make sure the reference counter is per realm file
+        Realm.deleteRealmFile(getContext(), "anotherRealm.realm");
         Realm otherRealm = Realm.getInstance(getContext(), "anotherRealm.realm");
 
         // Raise the reference
