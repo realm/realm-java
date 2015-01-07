@@ -30,7 +30,6 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
-import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.Dog;
 import io.realm.internal.Row;
 
@@ -64,7 +63,7 @@ public class RealmObjectTest extends AndroidTestCase {
 
         testRealm.commitTransaction();
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(8, row.getColumnCount());
+        assertEquals(9, row.getColumnCount());
     }
 
     public void testStringEncoding() {
@@ -434,4 +433,39 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
+    public void testWriteMustThrowOutOfTransaction() {
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        testRealm.commitTransaction();
+
+        try {
+            dog.setName("Rex");
+            fail();
+        } catch (IllegalStateException ignored) {
+            // Don't fail
+        } catch (Exception ignored) {
+            fail();
+        }
+
+    }
+
+    public void testSetNullLink() {
+        testRealm.beginTransaction();
+        CyclicType objA = testRealm.createObject(CyclicType.class);
+        objA.setName("Foo");
+        CyclicType objB = testRealm.createObject(CyclicType.class);
+        objB.setName("Bar");
+
+        objA.setObject(objB);
+
+        assertNotNull(objA.getObject());
+
+        try {
+            objA.setObject(null);
+        } catch (NullPointerException nullPointer) {
+            fail();
+        }
+        testRealm.commitTransaction();
+        assertNull(objA.getObject());
+    }
 }

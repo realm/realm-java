@@ -25,7 +25,9 @@ using std::string;
     #include "C:\\Program Files (x86)\\Visual Leak Detector\\include\\vld.h"
 #endif
 
+// used by logging
 int trace_level = 0;
+const char *log_tag = "REALM";
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM*, void*)
 {
