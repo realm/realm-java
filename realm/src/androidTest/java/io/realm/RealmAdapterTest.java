@@ -32,10 +32,6 @@ public class RealmAdapterTest extends AndroidTestCase {
     private boolean automaticUpdate = true;
     private Realm testRealm;
 
-    public RealmAdapterTest() {
-        super();
-    }
-
     protected void setUp() throws Exception {
         super.setUp();
         Realm.deleteRealmFile(getContext());
@@ -100,21 +96,19 @@ public class RealmAdapterTest extends AndroidTestCase {
         assertEquals(0, realmAdapter.getCount());
     }
 
-/* Disabled until remove is reenabled
-
     public void testRemoveFromAdapter() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
 
         testRealm.beginTransaction();
-        realmAdapter.getRealmResults().remove(0);
-        testRealm.commitTransaction();
-        assertEquals(TEST_DATA_SIZE, realmAdapter.getCount());
-
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0").findAll();
-        assertEquals(0, resultList.size());
+        try {
+            realmAdapter.getRealmResults().remove(0);
+            fail("Remove should be disabled for now");
+        } catch (RealmException ignore) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
     }
-*/
 
     public void testSortWithAdapter() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
