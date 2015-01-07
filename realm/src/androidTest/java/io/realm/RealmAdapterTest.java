@@ -75,7 +75,7 @@ public class RealmAdapterTest extends AndroidTestCase {
 
         testRealm.beginTransaction();
         AllTypes allTypes = testRealm.createObject(AllTypes.class);
-        allTypes.setColumnString("test data 47");
+        allTypes.setColumnString("test data " + TEST_DATA_SIZE);
         testRealm.commitTransaction();
         assertEquals(resultList.last().getColumnString(), realmAdapter.getRealmResults().last().getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
@@ -94,6 +94,7 @@ public class RealmAdapterTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         assertEquals(0, realmAdapter.getCount());
+        assertEquals(0, resultList.size());
     }
 
     public void testRemoveFromAdapter() {
