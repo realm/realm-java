@@ -105,6 +105,14 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int indexOf(Object o) {
+        throw new NoSuchMethodError("indexOf is not supported on RealmResults");
+    }
+
+    /**
      * Get the first object from the list.
      * @return The first object.
      */
