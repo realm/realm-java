@@ -33,7 +33,6 @@ import io.realm.internal.TableView;
  */
 public class RealmQuery<E extends RealmObject> {
 
-    private RealmResults realmList;
     private Realm realm;
     private TableQuery query;
     private Map<String, Integer> columns = new HashMap<String, Integer>();
@@ -63,26 +62,14 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
-    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
-        this.realm = realm;
-        this.clazz = clazz;
-        this.realmList = null;
-        this.query = query;
-        TableOrView dataStore = getTable();
-        for (int i = 0; i < dataStore.getColumnCount(); i++) {
-            this.columns.put(dataStore.getColumnName(i), i);
-        }
-    }
-
     /**
      * Create a RealmQuery instance from a @{link io.realm.RealmResults}.
+     *
      * @param realmList   The @{link io.realm.RealmResults} to query
      * @param clazz       The class to query
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery(RealmResults realmList, Class<E> clazz) {
-        this.realmList = realmList;
-
         this.realm = realmList.getRealm();
         this.clazz = clazz;
 
@@ -94,12 +81,18 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
-    TableOrView getTable() {
-        if(realmList != null) {
-            return realmList.getTable();
-        } else {
-            return realm.getTable(clazz);
+    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
+        this.realm = realm;
+        this.clazz = clazz;
+        this.query = query;
+        TableOrView dataStore = getTable();
+        for (int i = 0; i < dataStore.getColumnCount(); i++) {
+            this.columns.put(dataStore.getColumnName(i), i);
         }
+    }
+
+    TableOrView getTable() {
+        return realm.getTable(clazz);
     }
 
     private boolean containsDot(String s) {
@@ -160,8 +153,15 @@ public class RealmQuery<E extends RealmObject> {
             if (columns.get(fieldName) == null) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
             }
-            if (fieldType != table.getColumnType(columns.get(fieldName))) {
-                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", fieldName));
+
+            ColumnType tableColumnType = table.getColumnType(columns.get(fieldName));
+            if (fieldType != tableColumnType) {
+                throw new IllegalArgumentException(String.format(
+                        "Field '%s': type mismatch. Was %s, expected %s.",
+                        fieldName,
+                        fieldType,
+                        tableColumnType
+                ));
             }
             return new long[] {columns.get(fieldName)};
         }

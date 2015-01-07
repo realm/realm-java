@@ -36,6 +36,7 @@ import java.util.concurrent.Future;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 
@@ -723,6 +724,27 @@ public class RealmTest extends AndroidTestCase {
         // Without case sensitive there is 1, Δ = δ
         // assertEquals(1,resultList.size());
         assertEquals(0, resultList.size());
+    }
+
+
+    public void testRealmQueryLink() {
+        testRealm.beginTransaction();
+        Owner owner = testRealm.createObject(Owner.class);
+        Dog dog1 = testRealm.createObject(Dog.class);
+        dog1.setName("Dog 1");
+        dog1.setWeight(1);
+        Dog dog2 = testRealm.createObject(Dog.class);
+        dog2.setName("Dog 2");
+        dog2.setWeight(2);
+        owner.getDogs().add(dog1);
+        owner.getDogs().add(dog2);
+        testRealm.commitTransaction();
+
+        // Dog.weight has index 4 which is more than the total number of columns in Owner
+        // This tests exposes a subtle error where the Owner tablespec is used instead of Dog tablespec.
+        RealmResults<Dog> dogs = testRealm.where(Owner.class).findFirst().getDogs().where().findAll("name", RealmResults.SORT_ORDER_ASCENDING);
+        Dog dog = dogs.where().equalTo("weight", 1d).findFirst();
+        assertEquals(dog1, dog);
     }
 
     public void testQueryWithNonExistingField() {
