@@ -109,7 +109,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public int indexOf(Object o) {
-        throw new NoSuchMethodError();
+        throw new NoSuchMethodError("indexOf is not supported on RealmResults");
     }
 
     /**
