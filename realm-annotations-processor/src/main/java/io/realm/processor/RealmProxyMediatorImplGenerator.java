@@ -194,7 +194,7 @@ public class RealmProxyMediatorImplGenerator {
         if (simpleModelClasses.size() == 0) {
             writer.emitStatement("throw new RealmException(%s)", EXCEPTION_MSG);
         } else {
-            writer.beginControlFlow("if(classQualifiedName.equals(%s.class.getName()))", simpleModelClasses.get(0));
+            writer.beginControlFlow("if (classQualifiedName.equals(%s.class.getName()))", simpleModelClasses.get(0));
             writer.emitStatement(proxyStatement, proxyClasses.get(0));
             for (int i = 1; i < simpleModelClasses.size(); i++) {
                 writer.nextControlFlow("else if (classQualifiedName.equals(%s.class.getName()))", simpleModelClasses.get(i));
