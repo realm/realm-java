@@ -79,7 +79,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeMove
   (JNIEnv* env, jobject, jlong nativeLinkViewPtr, jlong old_pos, jlong new_pos)
 {
     try {
-        jlong size = LV(nativeLinkViewPtr)->size();
+        size_t size = LV(nativeLinkViewPtr)->size();
         if (old_pos < 0 || new_pos < 0 || old_pos >= size || new_pos >= size) {
             ThrowException(env, IndexOutOfBounds,
                 "Indices must be within range [0, " + num_to_string(size) + "[. " +
