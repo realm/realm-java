@@ -25,8 +25,6 @@ import io.realm.exceptions.RealmException;
 
 public class RealmListTest extends AndroidTestCase{
 
-    protected Realm testRealm;
-
     public static final int TEST_OBJECTS = 10;
     private Realm testRealm;
 
