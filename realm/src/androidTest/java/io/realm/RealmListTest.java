@@ -23,7 +23,7 @@ import io.realm.entities.Owner;
 import io.realm.entities.AllTypes;
 import io.realm.exceptions.RealmException;
 
-public class RealmListTest extends AndroidTestCase{
+public class RealmListTest extends AndroidTestCase {
 
     public static final int TEST_OBJECTS = 10;
     private Realm testRealm;
