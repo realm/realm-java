@@ -21,6 +21,7 @@ import com.squareup.javawriter.JavaWriter;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.Override;
+import java.lang.String;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -176,11 +177,13 @@ public class RealmProxyClassGenerator {
 
         for (VariableElement field : fields) {
             String fieldTypeName = "";
-            if (typeUtils.isAssignable(field.asType(), realmObject) || (typeUtils.isAssignable(field.asType(), realmList))) { // Links and LinkLists
-                fieldTypeName = getGenericType(field);
-                if (!imports.contains(fieldTypeName)) {
-                    imports.add(fieldTypeName);
-                }
+            if (typeUtils.isAssignable(field.asType(), realmObject)) { // Links
+                fieldTypeName = field.asType().toString();
+            } else if (typeUtils.isAssignable(field.asType(), realmList)) { // LinkLists
+                fieldTypeName = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
+            }
+            if (fieldTypeName != "" && !imports.contains(fieldTypeName)) {
+                imports.add(fieldTypeName);
             }
         }
         imports.sort(new Comparator<String>() {
