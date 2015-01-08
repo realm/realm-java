@@ -186,6 +186,7 @@ public class RealmProxyClassGenerator {
         emitGetFieldNamesMethod(writer);
         emitPopulateUsingJsonObjectMethod(writer);
         emitPopulateUsingJsonStreamMethod(writer);
+        emitCopyToRealmMethod(writer);
         emitToStringMethod(writer);
         emitHashcodeMethod(writer);
         emitEqualsMethod(writer);
@@ -431,6 +432,41 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
+    private void emitCopyToRealmMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod(
+                className, // Return type
+                "copyToRealm", // Method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
+                "Realm", "realm", className, "object"); // Argument type & argument name
+
+        writer.emitStatement("%s realmObject = realm.createObject(object.getClass())", className);
+        for (VariableElement field : fields) {
+            String fieldName = field.getSimpleName().toString();
+            if (typeUtils.isAssignable(field.asType(), realmObject)) {
+                writer.emitStatement("realmObject.%s(%s.copyToRealm(realm, object.%s()))",
+                        setters.get(fieldName),
+                        getProxyClassSimpleName(field),
+                        getters.get(fieldName));
+            } else if (typeUtils.isAssignable(field.asType(), realmList)) {
+                writer
+                    .beginControlFlow("if (object.%s() != null)", getters.get(fieldName))
+                        .beginControlFlow("for (%s listObj : object.%s())", getGenericType(field), getters.get(fieldName))
+                            .emitStatement("realmObject.%s().add(%s.copyToRealm(realm, listObj))",
+                                    getters.get(fieldName),
+                                    getProxyClassSimpleName(field)
+                            )
+                        .endControlFlow()
+                    .endControlFlow();
+            } else {
+                writer.emitStatement("realmObject.%s(object.%s())", setters.get(fieldName), getters.get(fieldName));
+            }
+        }
+
+        writer.emitStatement("return realmObject");
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
     private void emitToStringMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
@@ -539,7 +575,6 @@ public class RealmProxyClassGenerator {
                         qualifiedFieldType,
                         writer);
             }
-
         }
 
         writer.endMethod();
@@ -635,5 +670,13 @@ public class RealmProxyClassGenerator {
             genericType = genericCanonicalType;
         }
         return genericType;
+    }
+
+    private String getProxyClassSimpleName(VariableElement field) {
+        if (typeUtils.isAssignable(field.asType(), realmList)) {
+            return getGenericType(field) + PROXY_SUFFIX;
+        } else {
+            return getFieldTypeSimpleName(field) + PROXY_SUFFIX;
+        }
     }
 }

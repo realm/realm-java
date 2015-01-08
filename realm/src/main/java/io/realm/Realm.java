@@ -895,6 +895,45 @@ public final class Realm implements Closeable {
         return result;
     }
 
+    /**
+     * Converts a RealmObject that has been created using it's standard constructors instead of
+     * {@link #createObject(Class)} to a RealmObject that is managed by the Realm.
+     *
+     * To persist any further changes, the returned object must be be used.
+     *
+     * @param object RealmObject to copy to the Realm.
+     * @return The converted RealmObject that has all its properties managed by the Realm.
+     *
+     * @throws io.realm.exceptions.RealmException if object has already been added to the Realm.
+     */
+    public <E extends RealmObject> E copyToRealm(E object) {
+
+
+        return null;
+    }
+
+    /**
+     * Converts a list of RealmObjects that has been created using their standard constructors
+     * instead of {@link #createObject(Class)} to proper RealmObjects that are persisted inside
+     * Realm.
+     *
+     * @param objects RealmObjects to copy to the Realm.
+     * @return A list of the he converted RealmObject that all has their properties managed by the Realm.
+     *
+     * @throws io.realm.exceptions.RealmException if any of the objects has already been added to Realm.
+     */
+    public <E extends RealmObject> List<E> copyToRealm(List<E> objects) {
+        if (objects == null) new ArrayList<E>();
+
+        ArrayList<E> realmObjects = new ArrayList<E>(objects.size());
+        for (E object : objects) {
+            realmObjects.add(copyToRealm(object));
+        }
+
+        return realmObjects;
+    }
+
+
     private static String getProxyClassName(String simpleClassName) {
         return "io.realm." + simpleClassName + "RealmProxy";
     }
