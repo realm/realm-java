@@ -92,7 +92,7 @@ public final class Realm implements Closeable {
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
-    private static final String CLOSED_REALM = "This Realm instance has already been closed, making it unusable.";
+    private static final String CLOSED_REALM = "This Realm instance has already been closed, making it inaccessible.";
     private static final int REALM_CHANGED = 14930352; // Nice big Fibonacci number. High enough to prevent clash with other message ID's.
 
     protected static final ThreadLocal<Map<Integer, Realm>> realmsCache = new ThreadLocal<Map<Integer, Realm>>() {
