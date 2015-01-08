@@ -53,4 +53,122 @@ public class RealmListTest extends AndroidTestCase{
         } catch (RealmException ignore) {
         }
     }
+
+    public void testAddNonManagedMode() {
+        RealmList list = new RealmList();
+        AllTypes object = new AllTypes();
+        object.setColumnString("String");
+        list.add(object);
+        assertEquals(1, list.size());
+        assertEquals(object, list.get(0));
+    }
+
+    public void testAddNullNonManagedMode() {
+        RealmList list = new RealmList();
+        try {
+            list.add(null);
+            fail("Adding null should not be be allowed");
+        } catch (NullPointerException ignore) {
+        }
+    }
+
+    public void testAddManagedObject_nonManagedMode() {
+        RealmList list = new RealmList();
+        testRealm.beginTransaction();
+        AllTypes managedAllTypes =  testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        try {
+            list.add(managedAllTypes);
+            fail("Adding managed objects to non-managed lists should fail");
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    public void testAddAtIndex_nonManagedMode() {
+        RealmList list = new RealmList();
+        AllTypes object = new AllTypes();
+        object.setColumnString("String");
+        list.add(0, object);
+        assertEquals(1, list.size());
+        assertEquals(object, list.get(0));
+    }
+
+    public void testAddManagedObjectAtIndex_nonManagedMode() {
+        RealmList list = new RealmList();
+        testRealm.beginTransaction();
+        AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        try {
+            list.add(5, managedAllTypes);
+            fail("Adding managed objects to non-managed lists should fail");
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    public void testAddNullAtIndex_nonManagedMode() {
+        RealmList list = new RealmList();
+        try {
+            list.add(null);
+            fail("Adding null should not be be allowed");
+        } catch (NullPointerException ignore) {
+        }
+    }
+
+    public void testSet_nonManagedMode() {
+        RealmList list = new RealmList();
+        list.add(new AllTypes());
+        list.set(0, new AllTypes());
+        assertEquals(1, list.size());
+    }
+
+    public void testSetNull_nonManagedMode() {
+        RealmList list = new RealmList();
+        try {
+            list.set(5, null);
+            fail("Setting a null value should result in a exception");
+        } catch (NullPointerException ignore) {
+        }
+    }
+
+    public void testSetManagedObject_nonManagedMode() {
+        RealmList list = new RealmList();
+        testRealm.beginTransaction();
+        AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        try {
+            list.set(5, managedAllTypes);
+            fail("Setting managed objects to non-managed lists should fail");
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    public void testClear_nonManagedMode() {
+        RealmList list = new RealmList();
+        list.add(new AllTypes());
+        assertEquals(1, list.size());
+        list.clear();
+        assertTrue(list.isEmpty());
+    }
+
+    public void testRemove_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        AllTypes object1 = new AllTypes();
+        list.add(object1);
+        AllTypes object2 = list.remove(0);
+        assertEquals(object1, object2);
+    }
+
+    public void testGet_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        AllTypes object1 = new AllTypes();
+        list.add(object1);
+        AllTypes object2 = list.get(0);
+        assertEquals(object1, object2);
+    }
+
+    public void testSize_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        list.add(new AllTypes());
+        assertEquals(1, list.size());
+    }
 }

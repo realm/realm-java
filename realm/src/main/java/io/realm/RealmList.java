@@ -35,6 +35,8 @@ import io.realm.internal.TableQuery;
 public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
+    private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
+    public static final String MANAGED_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmObjects already managed by Realm cannot be added to RealmList in non-managed mode.";
 
     private final boolean managedMode;
     private Class<E> clazz;
@@ -77,6 +79,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         if (managedMode) {
             view.insert(location, object.row.getIndex());
         } else {
+            assertValidObjectInNonManagedMode(object);
             nonManagedList.add(location, object);
         }
     }
@@ -89,6 +92,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         if (managedMode) {
             view.add(object.row.getIndex());
         } else {
+            assertValidObjectInNonManagedMode(object);
             nonManagedList.add(object);
         }
         return true;
@@ -102,6 +106,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         if (managedMode) {
             view.set(location, object.row.getIndex());
         } else {
+            assertValidObjectInNonManagedMode(object);
             nonManagedList.set(location, object);
         }
         return object;
@@ -116,6 +121,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         if (managedMode) {
             view.move(oldPos, newPos);
         } else {
+            // TODO Should we support this?
             throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
@@ -212,10 +218,19 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
+    private void assertValidObjectInNonManagedMode(E object) {
+        if (object == null) {
+            throw new NullPointerException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
+        }
+        if (object.realm != null) {
+            throw new IllegalStateException(MANAGED_OBJECTS_NOT_ALLOWED_MESSAGE);
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(clazz.getSimpleName());
+        sb.append(managedMode ? clazz.getSimpleName() : getClass().getSimpleName());
         sb.append("@[");
         for (int i = 0; i < size(); i++) {
             if (managedMode) {
