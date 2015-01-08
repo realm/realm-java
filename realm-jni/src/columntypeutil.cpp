@@ -44,21 +44,20 @@ DataType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType)
 
 jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType)
 {
-    TR((env, "jni: Enter GetJColumnTypeFromColumnType(%d)\n", columnType));
+    TR("enter GetJColumnTypeFromColumnType(%d)", columnType)
     static jclass jColumnTypeClass = GetClass(env, "io/realm/internal/ColumnType");
 
     if (jColumnTypeClass == NULL) {
-        TR((env, "--class is NULL\n"));
+        TR("--class is NULL");
         return NULL;
     }
-    TR((env, "---2\n"));
 
     // Couldn't figure out how to create a new enum on Java side and return as object...
     // A workaround in java to not check for the correct ColumnTypeTable works.
     /*
     jmethodID jColumnTypeConsId2 = env->GetMethodID(jColumnTypeClass, "<init>", "()V");
     if (jColumnTypeConsId2) {
-        TR((env, "-GOT INIT\n"));
+        TR((env, "-GOT INIT"));
         return NULL;
     }
     */
@@ -66,7 +65,7 @@ jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType)
    /*
     jfieldID subtable_id = env->GetStaticFieldID(jColumnTypeClass, "ColumnTypeTable", "LColumnType;");
     if (!subtable_id) {
-        TR((env, "--subtable_id is NULL\n"));
+        TR((env, "--subtable_id is NULL"));
         return NULL;
     }
 
@@ -78,13 +77,12 @@ jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType)
     }
     return jColumnTypeConsId;
     */
-    TR((env, "---3\n"));
+
     return NULL;
     //jobject jColumnType = env->NewObject(jColumnTypeClass, jColumnTypeConsId,
                                        //  static_cast<jint>(columnType));
     //jobject jColumnType = env->NewObject(jColumnTypeClass, jColumnTypeConsId);
 
-    //TR((env, "jni: New ColumnType %d.\n", columnType));
+    //TR((env, "jni: New ColumnType %d.", columnType));
     //return jColumnType;
-
 }

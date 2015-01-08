@@ -105,6 +105,14 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int indexOf(Object o) {
+        throw new NoSuchMethodError("indexOf is not supported on RealmResults");
+    }
+
+    /**
      * Get the first object from the list.
      * @return The first object.
      */
@@ -182,18 +190,23 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public void sort(String fieldName, boolean sortAscending) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided");
+        }
         realm.checkIfValid();
         TableOrView table = getTable();
 
         if (table instanceof TableView) {
+            if (fieldName.contains(".")) {
+                throw new IllegalArgumentException("Sorting using child object properties is not supported: " + fieldName);
+            }
             long columnIndex = table.getColumnIndex(fieldName);
             if (columnIndex < 0) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
             }
             TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
             ((TableView) table).sort(columnIndex, TVOrder);
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Only RealmResults can be sorted - please use allObject() to create a RealmResults.");
         }
     }
@@ -352,9 +365,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public E remove(int index) {
-        TableOrView table = getTable();
+        throw new RealmException("Removing object is not supported.");
+/*        TableOrView table = getTable();
         table.remove(index);
-        return null;
+        return null;*/
     }
 
     /**
@@ -362,8 +376,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      */
     public void removeLast() {
+        throw new RealmException("Removing object is not supported.");
+        /*
         TableOrView table = getTable();
-        table.removeLast();
+        table.removeLast();*/
     }
 
     /**
@@ -434,7 +450,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
 
         public void remove() {
-            assertRealmIsStable();
+            throw new RealmException("Removing is not supported.");
+    /*        assertRealmIsStable();
             if (pos == -1) {
                 throw new IllegalStateException("Must call next() before calling remove()");
             }
@@ -446,7 +463,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             pos--;
             removeUsed = true;
             currentTableViewVersion = getTable().sync();
-        }
+     */   }
     }
 
     // Custom RealmResults list iterator. It ensures that we only iterate on a Realm that hasn't changed.
@@ -497,5 +514,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         public void set(E object) {
             throw new RealmException("Replacing elements not supported.");
         }
+
+        @Override
+        public void remove() { throw new RealmException("Removing elements not supported."); }
     }
 }

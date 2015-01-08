@@ -1,14 +1,17 @@
 package io.realm;
 
-import io.realm.Realm;
-import io.realm.RealmList;
-import io.realm.RealmObject;
+import android.util.JsonReader;
+import android.util.JsonToken;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
+import io.realm.internal.android.JsonUtils;
+import java.io.IOException;
 import java.util.*;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import some.test.*;
 
 public class SimpleRealmProxy extends Simple {
@@ -78,6 +81,32 @@ public class SimpleRealmProxy extends Simple {
 
     public static String getClassModelName() {
         return "Simple";
+	}
+
+    void populateUsingJsonObject(JSONObject json)
+            throws JSONException {
+        if (json.has("name")) {
+            setName((String) json.getString("name"));
+        }
+        if (json.has("age")) {
+            setAge((int) json.getInt("age"));
+        }
+    }
+
+    void populateUsingJsonStream(JsonReader reader)
+            throws IOException {
+        reader.beginObject();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            if (name.equals("name") && reader.peek() != JsonToken.NULL) {
+                setName((String) reader.nextString());
+            } else if (name.equals("age")  && reader.peek() != JsonToken.NULL) {
+                setAge((int) reader.nextInt());
+            } else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
     }
 
     @Override

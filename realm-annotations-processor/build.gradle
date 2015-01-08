@@ -16,6 +16,12 @@ repositories {
     jcenter()
 }
 
+Properties localProperties = new Properties()
+localProperties.load(new FileInputStream("${projectDir}/../local.properties"))
+localProperties.entrySet().each() { entry ->
+    project.ext[entry.getKey()] = localProperties.setProperty(entry.getKey(), entry.getValue())
+}
+
 dependencies {
     compile group:'com.squareup', name:'javawriter', version:'2.5.0'
     compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
@@ -23,6 +29,7 @@ dependencies {
     testCompile files("${System.properties['java.home']}/../lib/tools.jar") // This is needed otherwise compile-testing won't be able to find it
     testCompile group:'junit', name:'junit', version:'4.11'
     testCompile group:'com.google.testing.compile', name:'compile-testing', version:'0.6'
+    testCompile files(new File(project.ext["sdk.dir"], '/platforms/android-21/android.jar'))
 }
 
 jar {

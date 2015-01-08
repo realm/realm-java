@@ -49,13 +49,13 @@ inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colInd
 
 //-------------------------------------------------------
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv * env, jclass, jlong nativeQueryPtr) {
-    TR((env, "Query nativeClose(ptr %x)\n", nativeQueryPtr));
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv *, jclass, jlong nativeQueryPtr) {
+    TR_ENTER_PTR(nativeQueryPtr)
     delete Q(nativeQueryPtr);
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery
-(JNIEnv * env, jobject, jlong nativeQueryPtr)
+(JNIEnv *env, jobject, jlong nativeQueryPtr)
 {
     try {
         return to_jstring(env, Q(nativeQueryPtr)->validate());

@@ -1,14 +1,17 @@
 package io.realm;
 
-import io.realm.Realm;
-import io.realm.RealmList;
-import io.realm.RealmObject;
+import android.util.JsonReader;
+import android.util.JsonToken;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
+import io.realm.internal.android.JsonUtils;
+import java.io.IOException;
 import java.util.*;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import some.test.*;
 
 public class AllTypesRealmProxy extends AllTypes {
@@ -173,6 +176,70 @@ public class AllTypesRealmProxy extends AllTypes {
 
     public static String getClassModelName() {
         return "AllTypes";
+	}
+
+    void populateUsingJsonObject(JSONObject json)
+            throws JSONException {
+        if (json.has("columnString")) {
+            setColumnString((String) json.getString("columnString"));
+        }
+        if (json.has("columnLong")) {
+            setColumnLong((long) json.getLong("columnLong"));
+        }
+        if (json.has("columnFloat")) {
+            setColumnFloat((float) json.getDouble("columnFloat"));
+        }
+        if (json.has("columnDouble")) {
+            setColumnDouble((double) json.getDouble("columnDouble"));
+        }
+        if (json.has("columnBoolean")) {
+            setColumnBoolean((boolean) json.getBoolean("columnBoolean"));
+        }
+        if (json.has("columnDate")) {
+            long timestamp = json.optLong("columnDate", -1);
+            if (timestamp > -1) {
+                setColumnDate(new Date(timestamp));
+            } else {
+                String jsonDate = json.getString("columnDate");
+                setColumnDate(JsonUtils.stringToDate(jsonDate));
+            }
+        }
+        if (json.has("columnBinary")) {
+            setColumnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
+        }
+    }
+
+    void populateUsingJsonStream(JsonReader reader)
+            throws IOException {
+        reader.beginObject();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            if (name.equals("columnString") && reader.peek() != JsonToken.NULL) {
+                setColumnString((String) reader.nextString());
+            } else if (name.equals("columnLong")  && reader.peek() != JsonToken.NULL) {
+                setColumnLong((long) reader.nextLong());
+            } else if (name.equals("columnFloat")  && reader.peek() != JsonToken.NULL) {
+                setColumnFloat((float) reader.nextDouble());
+            } else if (name.equals("columnDouble")  && reader.peek() != JsonToken.NULL) {
+                setColumnDouble((double) reader.nextDouble());
+            } else if (name.equals("columnBoolean")  && reader.peek() != JsonToken.NULL) {
+                setColumnBoolean((boolean) reader.nextBoolean());
+            } else if (name.equals("columnDate")  && reader.peek() != JsonToken.NULL) {
+                if (reader.peek() == JsonToken.NUMBER) {
+                    long timestamp = reader.nextLong();
+                    if (timestamp > -1) {
+                        setColumnDate(new Date(timestamp));
+                    }
+                } else {
+                    setColumnDate(JsonUtils.stringToDate(reader.nextString()));
+                }
+            } else if (name.equals("columnBinary")  && reader.peek() != JsonToken.NULL) {
+                setColumnBinary(JsonUtils.stringToBytes(reader.nextString()));
+            } else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
     }
 
     @Override
