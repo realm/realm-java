@@ -20,10 +20,11 @@ import com.squareup.javawriter.JavaWriter;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.lang.String;
+import java.lang.Override;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -175,21 +176,19 @@ public class RealmProxyClassGenerator {
 
         for (VariableElement field : fields) {
             String fieldTypeName = "";
-            if (typeUtils.isAssignable(field.asType(), realmObject))  { // Links
-                fieldTypeName = field.asType().toString();
-                if (!imports.contains(fieldTypeName)) {
-                    imports.add(fieldTypeName);
-                }
-            } else if (typeUtils.isAssignable(field.asType(), realmList)) { // LinkLists
-                String fullType = field.asType().toString();
-                int index = fullType.indexOf('<');
-                int jndex = fullType.indexOf('>');
-                fieldTypeName = fullType.substring(index + 1, jndex);
+            if (typeUtils.isAssignable(field.asType(), realmObject) || (typeUtils.isAssignable(field.asType(), realmList))) { // Links and LinkLists
+                fieldTypeName = getGenericType(field);
                 if (!imports.contains(fieldTypeName)) {
                     imports.add(fieldTypeName);
                 }
             }
         }
+        imports.sort(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareTo(o2);
+            }
+        });
         writer.emitImports(imports);
         writer.emitEmptyLine();
 
