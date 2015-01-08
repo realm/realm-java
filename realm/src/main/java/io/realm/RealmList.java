@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.exceptions.RealmException;
+import io.realm.annotations.Index;
 import io.realm.internal.LinkView;
 import io.realm.internal.TableQuery;
 
@@ -113,9 +114,15 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Moves an object from one position to another
-     * @param oldPos
-     * @param newPos
+     * Moves an object from one position to another, while maintaining a fixed sized list.
+     * RealmObjects will be shifted so no null values are introduced.
+     *
+     * @param oldPos Index of RealmObject to move.
+     * @param newPos Target position. If newPos < oldPos the object at the location will be shifted
+     *               to the right. If oldPos < newPos, indexes > oldPos will be shifted once to the
+     *               left.
+     *
+     * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()[.
      */
     public void move(int oldPos, int newPos) {
         if (managedMode) {
