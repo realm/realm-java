@@ -19,7 +19,14 @@ package io.realm.annotations;
 
 import java.lang.annotation.Inherited;
 
+/**
+ * Annotation that marks a class as RealmObject. Proxy classes will be generated for these classes.
+ * All subclasses that extend RealmObject will automatically have this annotation.
+ */
+@Retention(RetentionPolicy.SOURCE)
+@Target(ElementType.CLASS)
 @Inherited
 public @interface RealmClass {
-
+    String name() default null; // Default is the simple name of the class. Use this to set a manual name.
+    boolean export() default false; // Set to true to make the model available to other jars/aars.
 }
