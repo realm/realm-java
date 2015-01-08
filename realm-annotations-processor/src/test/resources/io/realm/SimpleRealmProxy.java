@@ -13,7 +13,7 @@ import java.util.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import some.test.*;
+import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple {
 
