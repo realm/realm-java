@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.Thread;
 import io.realm.internal.Row;
 
 
@@ -467,5 +468,13 @@ public class RealmObjectTest extends AndroidTestCase {
         }
         testRealm.commitTransaction();
         assertNull(objA.getObject());
+    }
+
+    public void testThreadModelClass() {
+        // The model class' name (Thread) clashed with a common Java class.
+        // The annotation process must be able to handle that.
+        testRealm.beginTransaction();
+        Thread thread = testRealm.createObject(Thread.class);
+        testRealm.commitTransaction();
     }
 }
