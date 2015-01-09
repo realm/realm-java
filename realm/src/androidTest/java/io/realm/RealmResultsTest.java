@@ -27,7 +27,6 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
-import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 
@@ -663,5 +662,12 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(1, all.size());
     }
 
+    public void testIndexOf() {
+        try {
+            RealmResults<AllTypes> all = testRealm.allObjects(AllTypes.class);
+            int index = all.indexOf(all.first());
+            fail();
+        } catch (NoSuchMethodError e) {}
+    }
     // TODO: More extended tests of querying all types must be done.
 }
