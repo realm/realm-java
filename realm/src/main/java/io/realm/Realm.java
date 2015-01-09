@@ -39,6 +39,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -961,14 +962,14 @@ public final class Realm implements Closeable {
      * Realm.
      *
      * @param objects RealmObjects to copy to the Realm.
-     * @return A list of the he converted RealmObject that all has their properties managed by the Realm.
+     * @return A collection of the the converted RealmObjects that all has their properties managed by the Realm.
      *
      * @throws io.realm.exceptions.RealmException if any of the objects has already been added to Realm.
      */
-    public <E extends RealmObject> List<E> copyToRealm(List<E> objects) {
+    public <E extends RealmObject> Collection<E> copyToRealm(Iterable<E> objects) {
         if (objects == null) new ArrayList<E>();
 
-        ArrayList<E> realmObjects = new ArrayList<E>(objects.size());
+        ArrayList<E> realmObjects = new ArrayList<E>();
         for (E object : objects) {
             realmObjects.add(copyToRealm(object));
         }
