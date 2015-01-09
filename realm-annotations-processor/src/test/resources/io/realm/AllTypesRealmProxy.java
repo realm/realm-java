@@ -2,7 +2,6 @@ package io.realm;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmObject;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
@@ -174,6 +173,10 @@ public class AllTypesRealmProxy extends AllTypes {
     public static List<String> getFieldNames() {
         return Arrays.asList("columnString", "columnLong", "columnFloat", "columnDouble", "columnBoolean", "columnDate", "columnBinary");
     }
+
+    public static String getClassModelName() {
+        return "AllTypes";
+	}
 
     void populateUsingJsonObject(JSONObject json)
             throws JSONException {

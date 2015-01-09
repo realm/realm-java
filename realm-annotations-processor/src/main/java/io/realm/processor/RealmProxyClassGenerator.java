@@ -39,6 +39,9 @@ import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
 public class RealmProxyClassGenerator {
+
+    public static final String PROXY_SUFFIX = "RealmProxy";
+
     private ProcessingEnvironment processingEnvironment;
     private String className;
     private String packageName;
@@ -48,7 +51,6 @@ public class RealmProxyClassGenerator {
     private List<VariableElement> fieldsToIndex;
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String TABLE_PREFIX = "class_";
-    private static final String PROXY_SUFFIX = "RealmProxy";
 
     private Elements elementUtils;
     private Types typeUtils;
@@ -153,24 +155,23 @@ public class RealmProxyClassGenerator {
         // Set source code indent to 4 spaces
         writer.setIndent("    ");
 
-        writer.emitPackage(REALM_PACKAGE_NAME)
-                .emitEmptyLine();
+        writer.emitPackage(REALM_PACKAGE_NAME);
+        writer.emitEmptyLine();
         writer.emitImports(
                 "android.util.JsonReader",
                 "android.util.JsonToken",
-                "io.realm.RealmObject",
                 "io.realm.internal.ColumnType",
-                "io.realm.internal.Table",
                 "io.realm.internal.ImplicitTransaction",
                 "io.realm.internal.LinkView",
+                "io.realm.internal.Table",
                 "io.realm.internal.android.JsonUtils",
                 "java.io.IOException",
                 "java.util.*",
-                "org.json.JSONObject",
-                "org.json.JSONException",
                 "org.json.JSONArray",
-                packageName + ".*")
-                .emitEmptyLine();
+                "org.json.JSONException",
+                "org.json.JSONObject",
+                packageName + ".*");
+        writer.emitEmptyLine();
 
         // Begin the class definition
         writer.beginType(
@@ -184,6 +185,7 @@ public class RealmProxyClassGenerator {
         emitInitTableMethod(writer);
         emitValidateTableMethod(writer);
         emitGetFieldNamesMethod(writer);
+        emitGetClassModelName(writer);
         emitPopulateUsingJsonObjectMethod(writer);
         emitPopulateUsingJsonStreamMethod(writer);
         emitToStringMethod(writer);
@@ -427,6 +429,13 @@ public class RealmProxyClassGenerator {
         }
         String statementSection = joinStringList(entries, ", ");
         writer.emitStatement("return Arrays.asList(%s)", statementSection);
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    private void emitGetClassModelName(JavaWriter writer) throws IOException {
+        writer.beginMethod("String", "getClassModelName", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
+        writer.emitStatement("return \"%s\"", className);
         writer.endMethod();
         writer.emitEmptyLine();
     }

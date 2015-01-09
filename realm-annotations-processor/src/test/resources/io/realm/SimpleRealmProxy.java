@@ -2,7 +2,6 @@ package io.realm;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmObject;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
@@ -79,6 +78,10 @@ public class SimpleRealmProxy extends Simple {
     public static List<String> getFieldNames() {
         return Arrays.asList("name", "age");
     }
+
+    public static String getClassModelName() {
+        return "Simple";
+	}
 
     void populateUsingJsonObject(JSONObject json)
             throws JSONException {

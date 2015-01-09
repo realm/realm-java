@@ -1,4 +1,12 @@
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.0'
+    }
+}
+
 apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 version = new File("${projectDir}/../version.txt").text
 sourceCompatibility = '1.6'
@@ -28,6 +36,10 @@ jar {
     from configurations.compile.findAll {it.name.contains('javawriter')}.collect { zipTree(it) }
 }
 
+shadowJar {
+    relocate 'com.squareup.javawriter', 'io.realm.processor.javawriter'
+}
+
 task compileAnnotations(type: GradleBuild) {
     dir = file('../realm-annotations')
     tasks = ['assemble']
@@ -38,7 +50,7 @@ task assembleRealm(type: GradleBuild) {
     tasks = ['assemble']
 }
 
-tasks.assemble {
+tasks.compileJava {
     dependsOn compileAnnotations
 }
 

@@ -2,7 +2,6 @@ package io.realm;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmObject;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
@@ -98,6 +97,10 @@ public class BooleansRealmProxy extends Booleans {
     public static List<String> getFieldNames() {
         return Arrays.asList("done", "isReady", "mCompleted");
     }
+
+    public static String getClassModelName() {
+        return "Booleans";
+	}
 
     void populateUsingJsonObject(JSONObject json)
             throws JSONException {

@@ -36,12 +36,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -90,6 +91,10 @@ public final class Realm implements Closeable {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
+    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
+    private static final String CLOSED_REALM = "This Realm instance has already been closed, making it inaccessible.";
+    private static final int REALM_CHANGED = 14930352; // Nice big Fibonacci number. High enough to prevent clash with other message ID's.
+
     protected static final ThreadLocal<Map<Integer, Realm>> realmsCache = new ThreadLocal<Map<Integer, Realm>>() {
         @SuppressLint("UseSparseArrays")
         @Override
@@ -98,19 +103,17 @@ public final class Realm implements Closeable {
                                                   // but incompatible with Java
         }
     };
-    private static final ThreadLocal<Map<Integer, Integer>> referenceCount
-            = new ThreadLocal<Map<Integer,Integer>>() {
+
+    private static final ThreadLocal<Map<Integer, Integer>> referenceCount = new ThreadLocal<Map<Integer,Integer>>() {
         @SuppressLint("UseSparseArrays")
         @Override
         protected Map<Integer, Integer> initialValue() {
             return new HashMap<Integer, Integer>();
         }
     };
-    private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
-    protected static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
-    private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
-    private static final String CLOSED_REALM = "This Realm instance has already been closed, making it unusable.";
+
+    static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
+    static final Set<String> validatedRealms = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     @SuppressWarnings("UnusedDeclaration")
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
@@ -121,11 +124,7 @@ public final class Realm implements Closeable {
     private final String path;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
-    private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>(); // Map between original class and their class name
-    private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>(); // Map between generated class names and their implementation
-    private final Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
-    private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
-    private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
+    private static RealmProxyMediator proxyMediator = setProxyMediator();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
     private static final long UNVERSIONED = -1;
@@ -236,13 +235,8 @@ public final class Realm implements Closeable {
 //    }
 
     // Public because of migrations
-    public Table getTable(Class<?> clazz) {
-        String simpleClassName = simpleClassNames.get(clazz);
-        if (simpleClassName == null) {
-            simpleClassName = clazz.getSimpleName();
-            simpleClassNames.put(clazz, simpleClassName);
-        }
-        return transaction.getTable(TABLE_PREFIX + simpleClassName);
+    public Table getTable(Class<? extends RealmObject> clazz) {
+        return transaction.getTable(TABLE_PREFIX + proxyMediator.getClassModelName(clazz));
     }
 
     /**
@@ -465,7 +459,8 @@ public final class Realm implements Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
+    private static synchronized Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
+
         int id = absolutePath.hashCode();
         Map<Integer, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
@@ -486,29 +481,7 @@ public final class Realm implements Closeable {
         realms.put(absolutePath.hashCode(), realm);
         realmsCache.set(realms);
 
-        if (validateSchema) {
-            Class<?> validationClass;
-            try {
-                validationClass = Class.forName("io.realm.ValidationList");
-            } catch (ClassNotFoundException e) {
-                throw new RealmException("Could not find the generated ValidationList class: " + APT_NOT_EXECUTED_MESSAGE);
-            }
-            Method getProxyClassesMethod;
-            try {
-                getProxyClassesMethod = validationClass.getMethod("getProxyClasses");
-            } catch (NoSuchMethodException e) {
-                throw new RealmException("Could not find the getProxyClasses method in the ValidationList class: " + APT_NOT_EXECUTED_MESSAGE);
-            }
-            List<String> proxyClasses;
-            try {
-                //noinspection unchecked
-                proxyClasses = (List<String>) getProxyClassesMethod.invoke(null);
-            } catch (IllegalAccessException e) {
-                throw new RealmException("Could not execute the getProxyClasses method in the ValidationList class: " + APT_NOT_EXECUTED_MESSAGE);
-            } catch (InvocationTargetException e) {
-                throw new RealmException("An exception was thrown in the getProxyClasses method in the ValidationList class: " + APT_NOT_EXECUTED_MESSAGE);
-            }
-
+        if (validateSchema && !validatedRealms.contains(absolutePath)) {
             long version = realm.getVersion();
             boolean commitNeeded = false;
             try {
@@ -518,66 +491,24 @@ public final class Realm implements Closeable {
                     commitNeeded = true;
                 }
 
-                for (String className : proxyClasses) {
-                    String[] splitted = className.split("\\.");
-                    String modelClassName = splitted[splitted.length - 1];
-                    String generatedClassName = getProxyClassName(modelClassName);
-                    Class<?> generatedClass;
-                    try {
-                        generatedClass = Class.forName(generatedClassName);
-                    } catch (ClassNotFoundException e) {
-                        throw new RealmException("Could not find the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
-                    }
-
+                List<Class<? extends RealmObject>> modelClasses = proxyMediator.getModelClasses();
+                for (Class<? extends RealmObject> modelClass : modelClasses) {
                     // if not versioned, create table
                     if (version == UNVERSIONED) {
-                        Method initTableMethod;
-                        try {
-                            initTableMethod = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
-                        } catch (NoSuchMethodException e) {
-                            throw new RealmException("Could not find the initTable method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
-                        }
-                        try {
-                            initTableMethod.invoke(null, realm.transaction);
-                            commitNeeded = true;
-                        } catch (IllegalAccessException e) {
-                            throw new RealmException("Could not execute the initTable method in the " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
-                        } catch (InvocationTargetException e) {
-                            throw new RealmException("An exception was thrown in the initTable method in the " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
-                        }
+                        proxyMediator.createTable(modelClass, realm.transaction);
+                        commitNeeded = true;
                     }
 
                     // validate created table
-                    Method validateMethod;
                     try {
-                        validateMethod = generatedClass.getMethod("validateTable", new Class[]{ImplicitTransaction.class});
-                    } catch (NoSuchMethodException e) {
-                        throw new RealmException("Could not find the validateTable method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
-                    }
-                    try {
-                        validateMethod.invoke(null, realm.transaction);
-                    } catch (IllegalAccessException e) {
-                        throw new RealmException("Could not execute the validateTable method in the " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
-                    } catch (InvocationTargetException e) {
+                        proxyMediator.validateTable(modelClass, realm.transaction);
+                    } catch (RuntimeException e) {
                         throw new RealmMigrationNeededException(e.getMessage(), e);
                     }
 
                     // Populate the columnIndices table
-                    Method fieldNamesMethod;
-                    try {
-                        fieldNamesMethod = generatedClass.getMethod("getFieldNames");
-                    } catch (NoSuchMethodException e) {
-                        throw new RealmException("Could not find the getFieldNames method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
-                    }
-                    List<String> fieldNames;
-                    try {
-                        //noinspection unchecked
-                        fieldNames = (List<String>) fieldNamesMethod.invoke(null);
-                    } catch (IllegalAccessException e) {
-                        throw new RealmException("Could not execute the getFieldNames method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
-                    } catch (InvocationTargetException e) {
-                        throw new RealmException("An exception was thrown in the getFieldNames method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
-                    }
+                    List<String> fieldNames = proxyMediator.getFieldNames(modelClass);
+                    String modelClassName = proxyMediator.getClassModelName(modelClass);
                     Table table = realm.transaction.getTable(TABLE_PREFIX + modelClassName);
                     for (String fieldName : fieldNames) {
                         long columnIndex = table.getColumnIndex(fieldName);
@@ -592,6 +523,7 @@ public final class Realm implements Closeable {
                         columnIndices.put(modelClassName, innerMap);
                     }
                 }
+                validatedRealms.add(absolutePath);
             } finally {
                 if (commitNeeded) {
                     realm.commitTransaction();
@@ -604,6 +536,25 @@ public final class Realm implements Closeable {
         localRefCount.put(id, references + 1);
         referenceCount.set(localRefCount);
         return realm;
+    }
+
+    private static RealmProxyMediator setProxyMediator() {
+        try {
+            Class<?> clazz = Class.forName("io.realm.RealmProxyMediatorImpl");
+            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            return (RealmProxyMediator) constructor.newInstance();
+        } catch (IndexOutOfBoundsException e) {
+            throw new RealmException("Could not a constructor in RealmProxyMediatorImpl class. " + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE);
+        } catch (ClassNotFoundException e) {
+            throw new RealmException("Could not find the generated RealmProxyMediatorImpl class. " + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("Could not initialize RealmProxyMediatorImpl", e);
+        } catch (InstantiationException e) {
+            throw new RealmException("Could not initialize RealmProxyMediatorImpl", e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not initialize RealmProxyMediatorImpl", e);
+        }
     }
 
     /**
@@ -783,49 +734,15 @@ public final class Realm implements Closeable {
         Table table;
         table = tables.get(clazz);
         if (table == null) {
-            String simpleClassName = simpleClassNames.get(clazz);
-            if (simpleClassName == null) {
-                simpleClassName = clazz.getSimpleName();
-                simpleClassNames.put(clazz, simpleClassName);
-            }
-            String generatedClassName = getProxyClassName(simpleClassName);
-
-            Class<?> generatedClass = generatedClasses.get(generatedClassName);
-            if (generatedClass == null) {
-                try {
-                    generatedClass = Class.forName(generatedClassName);
-                } catch (ClassNotFoundException e) {
-                    throw new RealmException("Could not find the generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
-                }
-                generatedClasses.put(generatedClassName, generatedClass);
-            }
-
-            Method method = initTableMethods.get(generatedClass);
-            if (method == null) {
-                try {
-                    method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
-                } catch (NoSuchMethodException e) {
-                    throw new RealmException("Could not find the initTable() method in generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
-                }
-                initTableMethods.put(generatedClass, method);
-            }
-
-            try {
-                table = (Table) method.invoke(null, transaction);
-                tables.put(clazz, table);
-            } catch (IllegalAccessException e) {
-                throw new RealmException("Could not launch the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-                throw new RealmException("An exception occurred while running the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
-            }
+            table = proxyMediator.createTable(clazz, transaction);
+            tables.put(clazz, table);
         }
 
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
     }
 
-    <E> void remove(Class<E> clazz, long objectIndex) {
+    void remove(Class<? extends RealmObject> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
@@ -835,77 +752,25 @@ public final class Realm implements Closeable {
 
         Table table = tables.get(clazz);
         if (table == null) {
-            String simpleClassName = simpleClassNames.get(clazz);
-            if (simpleClassName == null) {
-                simpleClassName = clazz.getSimpleName();
-                simpleClassNames.put(clazz, simpleClassName);
-            }
-
-            table = transaction.getTable(TABLE_PREFIX + simpleClassName);
+            table = transaction.getTable(TABLE_PREFIX + proxyMediator.getClassModelName(clazz));
             tables.put(clazz, table);
         }
 
         Row row = table.getRow(rowIndex);
 
-        Constructor constructor = generatedConstructors.get(clazz);
-        if (constructor == null) {
-            String simpleClassName = simpleClassNames.get(clazz);
-            if (simpleClassName == null) {
-                simpleClassName = clazz.getSimpleName();
-                simpleClassNames.put(clazz, simpleClassName);
-            }
-            String generatedClassName = getProxyClassName(simpleClassName);
-
-
-            Class<?> generatedClass = generatedClasses.get(generatedClassName);
-            if (generatedClass == null) {
-                try {
-                    generatedClass = Class.forName(generatedClassName);
-                } catch (ClassNotFoundException e) {
-                    throw new RealmException("Could not find the generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
-                }
-                generatedClasses.put(generatedClassName, generatedClass);
-            }
-
-            constructor = constructors.get(generatedClass);
-            if (constructor == null) {
-                try {
-                    constructor = generatedClass.getConstructor();
-                } catch (NoSuchMethodException e) {
-                    throw new RealmException("Could not find the constructor in generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
-                }
-                constructors.put(generatedClass, constructor);
-                generatedConstructors.put(clazz, constructor);
-            }
-        }
-
-        try {
-            // We are know the casted type since we generated the class
-            result = (E) constructor.newInstance();
-        } catch (InstantiationException e) {
-            throw new RealmException("Could not instantiate the proxy class");
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not run the constructor of the proxy class");
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-            throw new RealmException("An exception occurred while instantiating the proxy class");
-        }
+        // We know the return type since we generated the RealmFactory returning the instance
+        result = proxyMediator.newInstance(clazz);
         result.row = row;
         result.realm = this;
         return result;
     }
 
-    private static String getProxyClassName(String simpleClassName) {
-        return "io.realm." + simpleClassName + "RealmProxy";
-    }
-
-    boolean contains(Class<?> clazz) {
-        String simpleClassName = simpleClassNames.get(clazz);
-        if (simpleClassName == null) {
-            simpleClassName = clazz.getSimpleName();
-            simpleClassNames.put(clazz, simpleClassName);
+    boolean contains(Class<? extends RealmObject> clazz) {
+        try {
+            return transaction.hasTable(TABLE_PREFIX + proxyMediator.getClassModelName(clazz));
+        } catch (NullPointerException e) {
+            return false;
         }
-        return transaction.hasTable(TABLE_PREFIX + simpleClassName);
     }
 
     /**
@@ -946,7 +811,7 @@ public final class Realm implements Closeable {
         checkIfValid();
         Table table = getTable(clazz);
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-        Long columnIndex = columnIndices.get(simpleClassNames.get(clazz)).get(fieldName);
+        Long columnIndex = columnIndices.get(proxyMediator.getClassModelName(clazz)).get(fieldName);
         if (columnIndex == null || columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
@@ -1083,7 +948,7 @@ public final class Realm implements Closeable {
      * @param classSpec The class which objects should be removed
      * @throws java.lang.RuntimeException Any other error
      */
-    public void clear(Class<?> classSpec) {
+    public void clear(Class<? extends RealmObject> classSpec) {
         getTable(classSpec).clear();
     }
 
@@ -1156,7 +1021,9 @@ public final class Realm implements Closeable {
         File writableFolder = context.getFilesDir();
         List<File> filesToDelete = Arrays.asList(
                 new File(writableFolder, fileName),
-                new File(writableFolder, fileName + ".lock"));
+                new File(writableFolder, fileName + ".lock")
+        );
+        validatedRealms.remove(filesToDelete.get(0).getAbsolutePath());
         for (File fileToDelete : filesToDelete) {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
@@ -1233,4 +1100,3 @@ public final class Realm implements Closeable {
         return path;
     }
 }
-

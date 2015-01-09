@@ -25,7 +25,7 @@ public class RealmException extends RuntimeException {
         super(detailMessage);
     }
 
-    public RealmException(String detailMessage, Throwable exception) {
-        super(detailMessage, exception);
+    public RealmException(String detailMessage, Throwable throwable) {
+        super(detailMessage, throwable);
     }
 }

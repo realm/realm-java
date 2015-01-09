@@ -15,3 +15,7 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# Minimal setup when enabling Proguard using Realm
+-keepnames class io.realm.RealmProxyMediatorImpl
+-dontwarn io.realm.processor.**
