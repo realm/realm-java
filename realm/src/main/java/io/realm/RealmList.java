@@ -227,7 +227,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     private void assertValidObjectInNonManagedMode(E object) {
         if (object == null) {
-            throw new NullPointerException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
+            throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
         }
         if (object.realm != null) {
             throw new IllegalStateException(MANAGED_OBJECTS_NOT_ALLOWED_MESSAGE);

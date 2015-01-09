@@ -23,7 +23,7 @@ import io.realm.entities.Owner;
 import io.realm.entities.AllTypes;
 import io.realm.exceptions.RealmException;
 
-public class RealmListTest extends AndroidTestCase{
+public class RealmListTest extends AndroidTestCase {
 
     public static final int TEST_OBJECTS = 10;
     private Realm testRealm;
@@ -49,12 +49,16 @@ public class RealmListTest extends AndroidTestCase{
         testRealm.close();
     }
 
+    /*********************************************************
+     * Non-Managed mode tests                                *
+     *********************************************************/
+
     public void testPublicNoArgConstructor() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         assertNotNull(list);
     }
 
-    public void testUnavailableMethodsInNonManagedMode() {
+    public void testUnavailableMethods_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         try {
             list.move(0, 1);
@@ -68,7 +72,7 @@ public class RealmListTest extends AndroidTestCase{
         }
     }
 
-    public void testAddNonManagedMode() {
+    public void testAdd_nonManagedMode() {
         RealmList list = new RealmList();
         AllTypes object = new AllTypes();
         object.setColumnString("String");
@@ -77,12 +81,12 @@ public class RealmListTest extends AndroidTestCase{
         assertEquals(object, list.get(0));
     }
 
-    public void testAddNullNonManagedMode() {
+    public void testAddNull_nonManagedMode() {
         RealmList list = new RealmList();
         try {
             list.add(null);
             fail("Adding null should not be be allowed");
-        } catch (NullPointerException ignore) {
+        } catch (IllegalArgumentException ignore) {
         }
     }
 
@@ -124,7 +128,7 @@ public class RealmListTest extends AndroidTestCase{
         try {
             list.add(null);
             fail("Adding null should not be be allowed");
-        } catch (NullPointerException ignore) {
+        } catch (IllegalArgumentException ignore) {
         }
     }
 
@@ -137,20 +141,22 @@ public class RealmListTest extends AndroidTestCase{
 
     public void testSetNull_nonManagedMode() {
         RealmList list = new RealmList();
+        list.add(new AllTypes());
         try {
-            list.set(5, null);
+            list.set(0, null);
             fail("Setting a null value should result in a exception");
-        } catch (NullPointerException ignore) {
+        } catch (IllegalArgumentException ignore) {
         }
     }
 
     public void testSetManagedObject_nonManagedMode() {
         RealmList list = new RealmList();
+        list.add(new AllTypes());
         testRealm.beginTransaction();
         AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
         try {
-            list.set(5, managedAllTypes);
+            list.set(0, managedAllTypes);
             fail("Setting managed objects to non-managed lists should fail");
         } catch (IllegalStateException ignore) {
         }
@@ -185,6 +191,10 @@ public class RealmListTest extends AndroidTestCase{
         list.add(new AllTypes());
         assertEquals(1, list.size());
     }
+
+    /*********************************************************
+     * Managed mode tests                                    *
+     *********************************************************/
 
     // Test move where oldPosition > newPosition
     public void testMoveDown() {
