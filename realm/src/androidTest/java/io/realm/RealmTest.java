@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -1037,7 +1038,7 @@ public class RealmTest extends AndroidTestCase {
         list.addAll(Arrays.asList(dog1, dog2));
 
         testRealm.beginTransaction();
-        List<Dog> copiedList = testRealm.copyToRealm(list);
+        List<Dog> copiedList = new ArrayList<Dog>(testRealm.copyToRealm(list));
         testRealm.commitTransaction();
 
         assertEquals(2, copiedList.size());

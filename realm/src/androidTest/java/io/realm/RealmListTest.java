@@ -95,11 +95,9 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.beginTransaction();
         AllTypes managedAllTypes =  testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
-        try {
-            list.add(managedAllTypes);
-            fail("Adding managed objects to non-managed lists should fail");
-        } catch (IllegalStateException ignore) {
-        }
+        list.add(managedAllTypes);
+
+        assertEquals(managedAllTypes, list.get(0));
     }
 
     public void testAddAtIndex_nonManagedMode() {
@@ -113,14 +111,13 @@ public class RealmListTest extends AndroidTestCase {
 
     public void testAddManagedObjectAtIndex_nonManagedMode() {
         RealmList list = new RealmList();
+        list.add(new AllTypes());
         testRealm.beginTransaction();
         AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
-        try {
-            list.add(5, managedAllTypes);
-            fail("Adding managed objects to non-managed lists should fail");
-        } catch (IllegalStateException ignore) {
-        }
+        list.add(0, managedAllTypes);
+
+        assertEquals(managedAllTypes, list.get(0));
     }
 
     public void testAddNullAtIndex_nonManagedMode() {
@@ -155,11 +152,9 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.beginTransaction();
         AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
-        try {
-            list.set(0, managedAllTypes);
-            fail("Setting managed objects to non-managed lists should fail");
-        } catch (IllegalStateException ignore) {
-        }
+        list.set(0, managedAllTypes);
+
+        assertEquals(managedAllTypes, list.get(0));
     }
 
     public void testClear_nonManagedMode() {
