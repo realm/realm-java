@@ -618,9 +618,11 @@ public class RealmProxyClassGenerator {
             }
         }
 
-        writer.nextControlFlow("else");
-        writer.emitStatement("reader.skipValue()");
-        writer.endControlFlow();
+        if (fields.size() > 0) {
+            writer.nextControlFlow("else");
+            writer.emitStatement("reader.skipValue()");
+            writer.endControlFlow();
+        }
         writer.endControlFlow();
         writer.emitStatement("reader.endObject()");
         writer.endMethod();
