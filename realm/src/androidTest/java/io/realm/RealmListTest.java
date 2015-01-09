@@ -44,6 +44,14 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    private RealmList<Dog> createNonManagedDogList() {
+        RealmList<Dog> list = new RealmList<Dog>();
+        for (int i = 0; i < TEST_OBJECTS; i++) {
+            list.add(new Dog("Dog " + i));
+        }
+        return list;
+    }
+
     @Override
     protected void tearDown() throws Exception {
         testRealm.close();
@@ -60,11 +68,6 @@ public class RealmListTest extends AndroidTestCase {
 
     public void testUnavailableMethods_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
-        try {
-            list.move(0, 1);
-            fail("move() should fail in non-managed mode.");
-        } catch (RealmException ignore) {
-        }
         try {
             list.where();
             fail("where() should fail in non-managed mode.");
@@ -187,12 +190,8 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(1, list.size());
     }
 
-    /*********************************************************
-     * Managed mode tests                                    *
-     *********************************************************/
-
     // Test move where oldPosition > newPosition
-    public void testMoveDown() {
+    public void testMoveDown_nonManagedMode() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         Dog dog1 = owner.getDogs().get(1);
         owner.getDogs().move(1, 0);
@@ -201,7 +200,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Test move where oldPosition < newPosition
-    public void testMoveUp() {
+    public void testMoveUp_nonManagedMode() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         int oldIndex = TEST_OBJECTS / 2;
         int newIndex = oldIndex + 1;
@@ -210,6 +209,32 @@ public class RealmListTest extends AndroidTestCase {
 
         assertEquals(TEST_OBJECTS, owner.getDogs().size());
         assertEquals(oldIndex, owner.getDogs().indexOf(dog));
+    }
+
+
+    /*********************************************************
+     * Managed mode tests                                    *
+     *********************************************************/
+
+    // Test move where oldPosition > newPosition
+    public void testMoveDown() {
+        RealmList<Dog> dogs = createNonManagedDogList();
+        Dog dog1 = dogs.get(1);
+        dogs.move(1, 0);
+
+        assertEquals(0, dogs.indexOf(dog1));
+    }
+
+    // Test move where oldPosition < newPosition
+    public void testMoveUp() {
+        RealmList<Dog> dogs = createNonManagedDogList();
+        int oldIndex = TEST_OBJECTS / 2;
+        int newIndex = oldIndex + 1;
+        Dog dog = dogs.get(oldIndex);
+        dogs.move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets shifted to the left.
+
+        assertEquals(TEST_OBJECTS, dogs.size());
+        assertEquals(oldIndex, dogs.indexOf(dog));
     }
 
     public void testMoveOutOfBoundsLowerThrows() {

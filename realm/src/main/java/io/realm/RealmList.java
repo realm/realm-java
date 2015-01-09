@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import io.realm.exceptions.RealmException;
@@ -50,7 +51,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * This effectively makes it function like a {@link java.util.ArrayList} and it is not possible
      * to query the objects in this state.
      *
-     * Use {@link io.realm.Realm#copyToRealm(java.util.List)} to properly persist it's elements in
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)}  to properly persist it's elements in
      * Realm.
      */
     public RealmList() {
@@ -128,8 +129,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         if (managedMode) {
             view.move(oldPos, newPos);
         } else {
-            // TODO Should we support this?
-            throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
+            E object = nonManagedList.remove(oldPos);
+            if (newPos > oldPos) {
+                nonManagedList.add(newPos - 1, object);
+            } else {
+                nonManagedList.add(newPos, object);
+            }
         }
     }
 
