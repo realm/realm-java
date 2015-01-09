@@ -229,9 +229,6 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         if (object == null) {
             throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
         }
-        if (object.realm != null) {
-            throw new IllegalStateException(MANAGED_OBJECTS_NOT_ALLOWED_MESSAGE);
-        }
     }
 
     @Override
