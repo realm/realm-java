@@ -169,7 +169,11 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.internal.LinkView");
         imports.add("io.realm.internal.android.JsonUtils");
         imports.add("java.io.IOException");
-        imports.add("java.util.*");
+        imports.add("java.util.List");
+        imports.add("java.util.Arrays");
+        imports.add("java.util.Date");
+        imports.add("java.util.Map");
+        imports.add("java.util.HashMap");
         imports.add("org.json.JSONObject");
         imports.add("org.json.JSONException");
         imports.add("org.json.JSONArray");

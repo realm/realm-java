@@ -9,7 +9,11 @@ import io.realm.internal.LinkView;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -78,13 +82,13 @@ public class AllTypesRealmProxy extends AllTypes {
     }
 
     @Override
-    public java.util.Date getColumnDate() {
+    public Date getColumnDate() {
         realm.checkIfValid();
         return (java.util.Date) row.getDate(Realm.columnIndices.get("AllTypes").get("columnDate"));
     }
 
     @Override
-    public void setColumnDate(java.util.Date value) {
+    public void setColumnDate(Date value) {
         realm.checkIfValid();
         row.setDate(Realm.columnIndices.get("AllTypes").get("columnDate"), (Date) value);
     }
