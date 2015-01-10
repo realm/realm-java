@@ -18,6 +18,7 @@ package io.realm;
 
 
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
@@ -168,8 +169,20 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     // Sorting
 
+    // aux. method used by sort methods
+    private long getColumnIndex(String fieldName) {
+        if (fieldName.contains(".")) {
+            throw new IllegalArgumentException("Sorting using child object properties is not supported: " + fieldName);
+        }
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
+        }
+        return columnIndex;
+    }
+
     /**
-     * Sort (ascending) an existing @{link io.realm.RealmList}.
+     * Sort (ascending) an existing @{link io.realm.RealmResults}.
      * 
      * @param fieldName  The field name to sort by. Only fields of type boolean, short, int, long,
      *                   float, double, Date, and String are supported.
@@ -180,7 +193,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Sort existing @{link io.realm.RealmList}.
+     * Sort existing @{link io.realm.RealmResults}.
      *
      * @param fieldName      The field name to sort by. Only fields of type boolean, short, int,
      *                       long, float, double, Date, and String are supported.
@@ -197,13 +210,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         TableOrView table = getTable();
 
         if (table instanceof TableView) {
-            if (fieldName.contains(".")) {
-                throw new IllegalArgumentException("Sorting using child object properties is not supported: " + fieldName);
-            }
-            long columnIndex = table.getColumnIndex(fieldName);
-            if (columnIndex < 0) {
-                throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
-            }
+            long columnIndex = getColumnIndex(fieldName);
             TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
             ((TableView) table).sort(columnIndex, TVOrder);
         } else {
@@ -211,6 +218,48 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
+    /**
+     * Sort existing @{link io.realm.RealmResults}.
+     *
+     * @param fieldNames an array of field names to sort by. Only fields of type boolean, short, int,
+     *                       long, float, double, Date, and String are supported.
+     * @param sortAscending The direction to sort by; if true ascending, otherwise descending
+     *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DESCENDING
+     *                       for readability.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public void sort(String fieldNames[], boolean sortAscending) {
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames must be provided.");
+        } else if (fieldNames.length == 0) {
+            throw new IllegalArgumentException("You must provide at least one field name.");
+        } else if (fieldNames.length == 1) {
+            sort(fieldNames[0], sortAscending);
+        } else {
+            realm.checkIfValid();
+            TableOrView table = getTable();
+            if (table instanceof TableView) {
+                TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
+                ArrayList<Long> columnIndices = new ArrayList<Long>();
+                for (String fieldName : fieldNames) {
+                    long columnIndex = getColumnIndex(fieldName);
+                    columnIndices.add(columnIndex);
+                }
+                ((TableView) table).sort(columnIndices, TVOrder);
+            }
+        }
+    }
+
+    /**
+     * Sort existing @{link io.realm.RealmResults} in ascending order.
+     *
+     * @param fieldNames an array of field names to sort by. Only fields of type boolean, short, int,
+     *                       long, float, double, Date, and String are supported.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public void sort(String fieldNames[]) {
+        sort(fieldNames, SORT_ORDER_ASCENDING);
+    }
 
     // Aggregates
 

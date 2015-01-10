@@ -576,10 +576,14 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testSortWithNullThrows() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
         try {
-            result.sort(null);
+            result.sort((String)null);
             fail("Sorting with a null field name should throw an IllegalArgumentException");
-        } catch(IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
         }
+        try {
+            result.sort((String[])null);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
     }
 
     public void testWithEmptyRealmObjects() {
@@ -591,6 +595,67 @@ public class RealmResultsTest extends AndroidTestCase {
         } catch (IllegalArgumentException e) {
             fail("Failed to sort an empty RealmResults");
         }
+    }
+
+    public void testSortTwoFields() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes object1 = testRealm.createObject(AllTypes.class);
+        object1.setColumnLong(5);
+        object1.setColumnString("Adam");
+
+        AllTypes object2 = testRealm.createObject(AllTypes.class);
+        object2.setColumnLong(4);
+        object2.setColumnString("Brian");
+
+        AllTypes object3 = testRealm.createObject(AllTypes.class);
+        object3.setColumnLong(4);
+        object3.setColumnString("Adam");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class);
+        results1.sort(new String[]{FIELD_STRING, FIELD_LONG});
+
+        assertEquals(3, results1.size());
+
+        assertEquals("Adam", results1.get(0).getColumnString());
+        assertEquals(4, results1.get(0).getColumnLong());
+
+        assertEquals("Adam", results1.get(1).getColumnString());
+        assertEquals(5, results1.get(1).getColumnLong());
+
+        assertEquals("Brian", results1.get(2).getColumnString());
+        assertEquals(4, results1.get(2).getColumnLong());
+
+        RealmResults<AllTypes> results2 = testRealm.allObjects(AllTypes.class);
+        results2.sort(new String[]{FIELD_LONG, FIELD_STRING});
+
+        assertEquals(3, results2.size());
+
+        assertEquals("Adam", results2.get(0).getColumnString());
+        assertEquals(4, results2.get(0).getColumnLong());
+
+        assertEquals("Brian", results2.get(1).getColumnString());
+        assertEquals(4, results2.get(1).getColumnLong());
+
+        assertEquals("Adam", results2.get(2).getColumnString());
+        assertEquals(5, results2.get(2).getColumnLong());
+    }
+
+    public void testSortZeroFields() {
+        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+        try {
+            allTypes.sort(new String[]{});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+    }
+
+    public void testSortSingleField() {
+        RealmResults<AllTypes> sortedList = testRealm.allObjects(AllTypes.class);
+        sortedList.sort(new String[]{FIELD_LONG}, RealmResults.SORT_ORDER_DESCENDING);
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
+        assertEquals(0, sortedList.last().getColumnLong());
     }
 
     public void testCount() {

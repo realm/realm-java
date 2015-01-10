@@ -17,6 +17,7 @@
 package io.realm.internal;
 
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.Date;
 
 
@@ -861,6 +862,16 @@ public class TableView implements TableOrView, Closeable {
     }
 
     protected native void nativeSort(long nativeTableViewPtr, long columnIndex, boolean ascending);
+
+    public void sort(ArrayList<Long> columnIndices, Order order) {
+        long indices[] = new long[columnIndices.size()];
+        for (int i = 0; i < columnIndices.size(); i++) {
+            indices[i] = columnIndices.get(i);
+        }
+        nativeSortMulti(nativePtr, indices, order == Order.ascending);
+    }
+
+    protected native void nativeSortMulti(long nativeTableViewPtr, long columnIndices[], boolean ascending);
 
     protected native long createNativeTableView(Table table, long nativeTablePtr);
 

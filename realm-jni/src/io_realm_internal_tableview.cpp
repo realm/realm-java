@@ -860,6 +860,40 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort(
     } CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
+  JNIEnv* env, jobject, jlong nativeViewPtr, jlongArray columnIndices, jboolean ascending)
+{
+    try {
+        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
+            return;
+        std::vector<size_t> indices;
+        std::vector<bool> ascendings;
+        jsize arr_len = env->GetArrayLength(columnIndices);
+        jlong *arr = env->GetLongArrayElements(columnIndices, NULL);
+        for (int i=0; i<arr_len; ++i) {
+            if (!COL_INDEX_VALID(env, TV(nativeViewPtr), arr[i]))
+                return;
+            int colType = TV(nativeViewPtr)->get_column_type( S(arr[i]) );
+            switch (colType) {
+                case type_Bool:
+                case type_Int:
+                case type_DateTime:
+                case type_Float:
+                case type_Double:
+                case type_String:
+                    indices.push_back( S(arr[i]) );
+                    ascendings.push_back(ascending);
+                    break;
+                default:
+                    ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Float, Double, Boolean, Date, and String columns.");
+                    return;
+            }
+        }
+        TV(nativeViewPtr)->sort(indices, ascendings);
+        env->ReleaseLongArrayElements(columnIndices, arr, 0);
+    } CATCH_STD()
+}
+
 JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeToJson(
     JNIEnv *env, jobject, jlong nativeViewPtr)
 {

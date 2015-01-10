@@ -955,6 +955,35 @@ public final class Realm implements Closeable {
         return new RealmResults<E>(this, tableView, clazz);
     }
 
+    /**
+     * Get all objects of a specific Class sorted by specific field names.
+     *
+     * @param clazz the Class to get objects of.
+     * @param fieldNames an array of field names to sort by.
+     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @return  A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz, String fieldNames[], boolean sortAscending) {
+        // FIXME: This is not an optimal implementation. When core's Table::get_sorted_view() supports
+        // FIXME: multi-column sorting, we can rewrite this method to a far better implementation.
+        RealmResults<E> results = this.allObjects(clazz);
+        results.sort(fieldNames, sortAscending);
+        return results;
+    }
+
+    /**
+     * Get all objects of a specific Class sorted by specific field names in ascending order.
+     *
+     * @param clazz the Class to get objects of.
+     * @param fieldNames an array of field names to sort by.
+     * @return  A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz, String fieldNames[]) {
+        return  allObjects(clazz, fieldNames, true);
+    }
+
     // Notifications
 
     /**
