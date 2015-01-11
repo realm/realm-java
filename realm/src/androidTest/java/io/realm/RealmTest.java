@@ -38,6 +38,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 
 
@@ -73,8 +74,9 @@ public class RealmTest extends AndroidTestCase {
 
     @Override
     protected void tearDown() throws Exception {
-        if (testRealm != null)
+        if (testRealm != null) {
             testRealm.close();
+        }
     }
 
     private void populateTestRealm(int objects) {
@@ -441,6 +443,42 @@ public class RealmTest extends AndroidTestCase {
         } catch (IllegalStateException ignored) {
         }
     }
+
+
+    public void testExecuteTransactionNull() {
+        testRealm.executeTransaction(null); // Nothing happens
+        assertFalse(testRealm.hasChanged());
+    }
+
+    public void testExecuteTransactionCommit() {
+        assertEquals(0, testRealm.allObjects(Owner.class).size());
+        testRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Owner owner = realm.createObject(Owner.class);
+                owner.setName("Owner");
+            }
+        });
+        assertEquals(1, testRealm.allObjects(Owner.class).size());
+    }
+
+    public void testExecuteTransactionCancel() {
+        assertEquals(0, testRealm.allObjects(Owner.class).size());
+        try {
+            testRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    Owner owner = realm.createObject(Owner.class);
+                    owner.setName("Owner");
+                    throw new RuntimeException("Boom");
+                }
+            });
+        } catch (RealmException ignore) {
+        }
+        assertEquals(0, testRealm.allObjects(Owner.class).size());
+    }
+
+
 
     // void clear(Class<?> classSpec)
     public void testClear() {
