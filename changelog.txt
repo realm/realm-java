@@ -6,6 +6,7 @@
  * Fixed bug when doing queries on the elements of a RealmList, ie. like Realm.where(Foo.class).getBars().where().equalTo("name").
  * Throw NoSuchMethodError when RealmResults.indexOf() is called, since it's not implemented yet.
  * Adding more precise imports in proxy classes to avoid ambiguous references.
+ * Added support for executing a transaction a closure using Realm.executeTransaction().
 
 0.76.0
  * RealmObjects can now be imported using JSON.
