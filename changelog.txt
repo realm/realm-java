@@ -7,6 +7,7 @@
  * Throw NoSuchMethodError when RealmResults.indexOf() is called, since it's not implemented yet.
  * Adding more precise imports in proxy classes to avoid ambiguous references.
  * Added support for executing a transaction with a closure using Realm.executeTransaction().
+ * Added RealmObject.isValid() to test if an object is still accessible.
 
 0.76.0
  * RealmObjects can now be imported using JSON.
