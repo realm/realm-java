@@ -33,10 +33,9 @@ import io.realm.internal.TableView;
  */
 public class RealmQuery<E extends RealmObject> {
 
-    private RealmResults realmList;
     private Realm realm;
     private TableQuery query;
-    private Map<String, Integer> columns = new HashMap<String, Integer>();
+    private Map<String, Long> columns = new HashMap<String, Long>();
     private Class<E> clazz;
 
     private static final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
@@ -57,49 +56,35 @@ public class RealmQuery<E extends RealmObject> {
 
         TableOrView dataStore = getTable();
         this.query = dataStore.where();
-
-        for(int i = 0; i < dataStore.getColumnCount(); i++) {
-            this.columns.put(dataStore.getColumnName(i), i);
-        }
-    }
-
-    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
-        this.realm = realm;
-        this.clazz = clazz;
-        this.realmList = null;
-        this.query = query;
-        TableOrView dataStore = getTable();
-        for (int i = 0; i < dataStore.getColumnCount(); i++) {
-            this.columns.put(dataStore.getColumnName(i), i);
-        }
+        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
 
     /**
      * Create a RealmQuery instance from a @{link io.realm.RealmResults}.
+     *
      * @param realmList   The @{link io.realm.RealmResults} to query
      * @param clazz       The class to query
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery(RealmResults realmList, Class<E> clazz) {
-        this.realmList = realmList;
-
         this.realm = realmList.getRealm();
         this.clazz = clazz;
 
         TableOrView dataStore = getTable();
         this.query = dataStore.where();
+        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
+    }
 
-        for(int i = 0; i < dataStore.getColumnCount(); i++) {
-            this.columns.put(dataStore.getColumnName(i), i);
-        }
+    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
+        this.realm = realm;
+        this.clazz = clazz;
+        this.query = query;
+        TableOrView dataStore = getTable();
+        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
 
     TableOrView getTable() {
-        if(realmList != null) {
-            return realmList.getTable();
-        } else {
-            return realm.getTable(clazz);
-        }
+        return realm.getTable(clazz);
     }
 
     private boolean containsDot(String s) {
@@ -160,8 +145,12 @@ public class RealmQuery<E extends RealmObject> {
             if (columns.get(fieldName) == null) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
             }
-            if (fieldType != table.getColumnType(columns.get(fieldName))) {
-                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", fieldName));
+
+            ColumnType tableColumnType = table.getColumnType(columns.get(fieldName));
+            if (fieldType != tableColumnType) {
+                throw new IllegalArgumentException(String.format("Field '%s': type mismatch. Was %s, expected %s.",
+                        fieldName, fieldType, tableColumnType
+                ));
             }
             return new long[] {columns.get(fieldName)};
         }
@@ -945,7 +934,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long sumInt(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.sumInt(columnIndex);
     }
 
@@ -956,7 +945,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double sumDouble(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.sumDouble(columnIndex);
     }
 
@@ -967,7 +956,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double sumFloat(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.sumFloat(columnIndex);
     }
 
@@ -980,7 +969,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double averageInt(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.averageInt(columnIndex);
     }
 
@@ -991,7 +980,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double averageDouble(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.averageDouble(columnIndex);
     }
 
@@ -1002,7 +991,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double averageFloat(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.averageFloat(columnIndex);
     }
 
@@ -1015,7 +1004,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long minimumInt(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.minimumInt(columnIndex);
     }
 
@@ -1026,7 +1015,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double minimumDouble(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.minimumDouble(columnIndex);
     }
 
@@ -1037,7 +1026,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public float minimumFloat(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.minimumFloat(columnIndex);
     }
 
@@ -1048,7 +1037,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public Date minimumDate(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.minimumDate(columnIndex);
     }
 
@@ -1061,7 +1050,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long maximumInt(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.maximumInt(columnIndex);
     }
 
@@ -1072,7 +1061,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double maximumDouble(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.maximumDouble(columnIndex);
     }
 
@@ -1083,7 +1072,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public float maximumFloat(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.maximumFloat(columnIndex);
     }
 
@@ -1094,7 +1083,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public Date maximumDate(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.maximumDate(columnIndex);
     }
 
@@ -1131,7 +1120,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmResults<E> findAll(String fieldName, boolean sortAscending) {
         TableView tableView = query.findAll();
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-        Integer columnIndex = columns.get(fieldName);
+        Long columnIndex = columns.get(fieldName);
         if (columnIndex == null || columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
