@@ -1078,6 +1078,29 @@ public final class Realm implements Closeable {
      }
 
     /**
+     * Executes a given transaction on the Realm. {@link #beginTransaction()} and
+     * {@link #commitTransaction()} will be called automatically. If any exception is thrown
+     * during the transaction {@link #cancelTransaction()} will be called instead of {@link #commitTransaction()}.
+     *
+     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @throws RealmException if any error happened during the transaction.
+     */
+    public void executeTransaction(Transaction transaction) {
+        if (transaction == null) return;
+        beginTransaction();
+        try {
+            transaction.execute(this);
+            commitTransaction();
+        } catch (RuntimeException e) {
+            cancelTransaction();
+            throw new RealmException("Error during transaction.", e);
+        } catch (Error e) {
+            cancelTransaction();
+            throw e;
+        }
+    }
+
+    /**
      * Remove all objects of the specified class.
      *
      * @param classSpec The class which objects should be removed
@@ -1231,6 +1254,17 @@ public final class Realm implements Closeable {
      */
     public String getPath() {
         return path;
+    }
+
+    /**
+     * Encapsulates a Realm transaction.
+     *
+     * Using this class will automatically handle {@link #beginTransaction()} and {@link #commitTransaction()}
+     * If any exception is thrown during the transaction {@link #cancelTransaction()} will be called
+     * instead of {@link #commitTransaction()}.
+     */
+    public interface Transaction {
+        public void execute(Realm realm);
     }
 }
 
