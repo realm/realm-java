@@ -261,34 +261,7 @@ public final class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     public static Realm getInstance(Context context) {
-        if (Looper.myLooper() != null) {
-            return Realm.getInstance(context, DEFAULT_REALM_NAME, null, true);
-        } else {
-            return Realm.getInstance(context, DEFAULT_REALM_NAME, null, false);
-        }
-    }
-
-    /**
-     * Realm static constructor for the default realm "default.realm".
-     * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
-     *
-     * @param context an Android context
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated with auto-refresh
-     *                                         in a Thread without a {@link android.os.Looper}
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public static Realm getInstance(Context context, boolean autoRefresh) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME, null, autoRefresh);
+        return Realm.getInstance(context, DEFAULT_REALM_NAME);
     }
 
     /**
@@ -309,59 +282,7 @@ public final class Realm implements Closeable {
      */
     @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, String fileName) {
-        if (Looper.myLooper() != null) {
-            return Realm.create(context.getFilesDir(), fileName, null, true);
-        } else {
-            return Realm.create(context.getFilesDir(), fileName, null, false);
-        }
-    }
-
-    /**
-     * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
-     *
-     * @param context  an Android context
-     * @param fileName the name of the file to save the Realm to
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated with auto-refresh
-     *                                         in a Thread without a {@link android.os.Looper}
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public static Realm getInstance(Context context, String fileName, boolean autoRefresh) {
-        return Realm.create(context.getFilesDir(), fileName, null, autoRefresh);
-    }
-
-    /**
-     * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
-     *
-     * @param context an Android context
-     * @param key     a 64-byte encryption key
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated with auto-refresh
-     *                                         in a Thread without a {@link android.os.Looper}
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public static Realm getInstance(Context context, byte[] key, boolean autoRefresh) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME, key, autoRefresh);
+        return Realm.getInstance(context, fileName, null);
     }
 
     /**
@@ -382,49 +303,17 @@ public final class Realm implements Closeable {
      */
     @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, byte[] key) {
-        if (Looper.myLooper() != null) {
-            return Realm.getInstance(context, DEFAULT_REALM_NAME, key, true);
-        } else {
-            return Realm.getInstance(context, DEFAULT_REALM_NAME, key, false);
-        }
-    }
-
-
-
-    /**
-     * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
-     *
-     * @param context  an Android {@link android.content.Context}
-     * @param fileName the name of the file to save the Realm to
-     * @param key      a 64-byte encryption key
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
-     * @throws RealmException                Other errors
-     */
-    @Deprecated
-    public static Realm getInstance(Context context, String fileName, byte[] key, boolean autoRefresh) {
-        return Realm.create(context.getFilesDir(), fileName, key, autoRefresh);
+        return Realm.getInstance(context, DEFAULT_REALM_NAME, key);
     }
 
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
-     * @param writableFolder absolute path to a writable directory
-     * @param key            a 64-byte encryption key
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
+     * @param context an Android {@link android.content.Context}
+     * @param key     a 64-byte encryption key
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
@@ -434,22 +323,17 @@ public final class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public static Realm getInstance(File writableFolder, byte[] key, boolean autoRefresh) {
-        return Realm.create(writableFolder, DEFAULT_REALM_NAME, key, autoRefresh);
+    public static Realm getInstance(Context context, String fileName, byte[] key) {
+        return Realm.create(context.getFilesDir(), fileName, key);
     }
 
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
-     * @param writableFolder absolute path to a writable directory
-     * @param filename       the name of the file to save the Realm to
-     * @param key            a 64-byte encryption key
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
+     * @param writeableFolder a File object representing a writeable folder
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
@@ -458,13 +342,84 @@ public final class Realm implements Closeable {
      *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
-    @Deprecated
-    public static Realm create(File writableFolder, String filename, byte[] key, boolean autoRefresh) {
-        String absolutePath = new File(writableFolder, filename).getAbsolutePath();
-        return createAndValidate(absolutePath, key, true, autoRefresh);
+    @SuppressWarnings("UnusedDeclaration")
+    public static Realm getInstance(File writeableFolder) {
+        return Realm.create(writeableFolder, DEFAULT_REALM_NAME, null);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
+     *
+     * @param writeableFolder a File object representing a writeable folder
+     * @param fileName the name of the Realm file
+     * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
+     *                                         a {@link android.os.Looper}
+     * @throws RealmException                Other errors
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static Realm getInstance(File writeableFolder, String fileName) {
+        return Realm.create(writeableFolder, fileName, null);
+    }
+
+    /**
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
+     *
+     * @param writeableFolder a File object representing a writeable folder
+     * @param key     a 64-byte encryption key
+     * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
+     *                                         a {@link android.os.Looper}
+     * @throws RealmException                Other errors
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static Realm getInstance(File writeableFolder, byte[] key) {
+        return Realm.create(writeableFolder, DEFAULT_REALM_NAME, key);
+    }
+
+    /**
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
+     *
+     * @param writeableFolder a File object representing a writeable folder
+     * @param fileName the name of the Realm file
+     * @param key     a 64-byte encryption key
+     * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
+     *                                         a {@link android.os.Looper}
+     * @throws RealmException                Other errors
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static Realm getInstance(File writeableFolder, String fileName, byte[] key) {
+        return Realm.create(writeableFolder, fileName, key);
+    }
+
+    private static Realm create(File writableFolder, String filename, byte[] key) {
+        String absolutePath = new File(writableFolder, filename).getAbsolutePath();
+        if (Looper.myLooper() != null) {
+            return createAndValidate(absolutePath, key, true, true);
+        } else {
+            return createAndValidate(absolutePath, key, true, false);
+        }
+    }
+
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
         int id = absolutePath.hashCode();
         Map<Integer, Integer> localRefCount = referenceCount.get();
