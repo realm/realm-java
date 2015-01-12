@@ -905,15 +905,14 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Converts a RealmObject that has been created using it's standard constructors instead of
-     * {@link #createObject(Class)} to a RealmObject that is managed by the Realm.
+     * Copies a RealmObject to the Realm instance and returns the copy. It is important to notice
+     * that any further changes to the original RealmObject will not be reflected in the Realm copy.
      *
-     * To persist any further changes, the returned object must be be used.
+     * @param object {@link io.realm.RealmObject} to copy to the Realm.
+     * @return A managed RealmObject with its properties backed by the Realm.
      *
-     * @param object RealmObject to copy to the Realm.
-     * @return The converted RealmObject that has all its properties managed by the Realm.
-     *
-     * @throws io.realm.exceptions.RealmException if object has already been added to the Realm.
+     * @throws io.realm.exceptions.RealmException if the RealmObject has already been added to the Realm.
+     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null}.
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         if (object == null) {
@@ -941,7 +940,7 @@ public final class Realm implements Closeable {
             try {
                 method = generatedClass.getMethod("copyToRealm", new Class[] {Realm.class, objectClass});
             } catch (NoSuchMethodException e) {
-                throw new RealmException("Could not find the copyToRealm() method in generated proxy class: " + APT_NOT_EXECUTED_MESSAGE, e);
+                throw new RealmException("Could not find the copyToRealm() method in generated proxy class " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
             }
             copyObjectMethods.put(generatedClass, method);
         }
@@ -952,19 +951,20 @@ public final class Realm implements Closeable {
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not execute the copyToRealm method : " + APT_NOT_EXECUTED_MESSAGE, e);
         } catch (InvocationTargetException e) {
-            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class class " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class  " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
         }
     }
 
     /**
-     * Converts a list of RealmObjects that has been created using their standard constructors
-     * instead of {@link #createObject(Class)} to proper RealmObjects that are persisted inside
-     * Realm.
+     * Copies a collection of RealmObjects to the Realm instance and returns their copy. It is
+     * important to notice that any further changes to the original RealmObjects will not be
+     * reflected in the Realm copies.
      *
      * @param objects RealmObjects to copy to the Realm.
      * @return A collection of the the converted RealmObjects that all has their properties managed by the Realm.
      *
      * @throws io.realm.exceptions.RealmException if any of the objects has already been added to Realm.
+     * @throws java.lang.IllegalArgumentException if any of the elements in the input collection is {@code null}.
      */
     public <E extends RealmObject> Collection<E> copyToRealm(Iterable<E> objects) {
         if (objects == null) new ArrayList<E>();

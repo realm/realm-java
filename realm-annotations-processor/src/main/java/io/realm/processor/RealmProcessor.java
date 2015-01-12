@@ -243,7 +243,7 @@ public class RealmProcessor extends AbstractProcessor {
             }
 
             if (!hasDefaultConstructor) {
-                error("A no arg default public constructor must also be available if a custom constructor is present");
+                error("A default public constructor with no argument must be declared if a custom constructor is declared.");
             }
 
             for (String expectedGetter : expectedGetters) {
