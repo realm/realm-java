@@ -190,12 +190,7 @@ public class RealmProxyClassGenerator {
                 imports.add(fieldTypeName);
             }
         }
-        imports.sort(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareTo(o2);
-            }
-        });
+        Collections.sort(imports);
         writer.emitImports(imports);
         writer.emitEmptyLine();
 
