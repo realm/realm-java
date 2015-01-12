@@ -256,8 +256,6 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     public static Realm getInstance(Context context) {
@@ -276,8 +274,6 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -297,8 +293,6 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -318,8 +312,6 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -338,8 +330,6 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -359,8 +349,6 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -380,8 +368,6 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -402,8 +388,6 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
