@@ -5,6 +5,7 @@
  * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).
  * Throw NoSuchMethodError when RealmResults.indexOf() is called, since it's not implemented yet.
  * Adding more precise imports in proxy classes to avoid ambiguous references.
+ * Improved handling of empty model classes in the annotation processor
 
 0.76.0
  * RealmObjects can now be imported using JSON.
