@@ -477,4 +477,35 @@ public class RealmObjectTest extends AndroidTestCase {
         Thread thread = testRealm.createObject(Thread.class);
         testRealm.commitTransaction();
     }
+
+    public void testIsValidUnManagedObject() {
+        AllTypes allTypes = new AllTypes();
+        assertFalse(allTypes.isValid());
+    }
+
+    public void testIsValidClosedRealm() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        assertTrue(allTypes.isValid());
+        testRealm.commitTransaction();
+        testRealm.close();
+        assertFalse(allTypes.isValid());
+    }
+
+    public void testIsValidDeletedObject() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        assertTrue(allTypes.isValid());
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+        assertFalse(allTypes.isValid());
+    }
+
+    public void testIsValidManagedObject() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        assertTrue(allTypes.isValid());
+        testRealm.commitTransaction();
+        assertTrue(allTypes.isValid());
+    }
 }

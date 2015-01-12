@@ -68,4 +68,15 @@ public abstract class RealmObject {
     void populateUsingJsonStream(JsonReader json) throws IOException {
         throw new IllegalStateException("Only use this method on objects created or fetched in a Realm, Realm.createObject() or Realm.where()");
     }
+
+
+    /**
+     * Check if the RealmObject is still valid to use ie. the RealmObject hasn't been deleted nor
+     * has the {@link io.realm.Realm} been closed.
+     *
+     * @return {@code true} if the object is still accessible, {@code false} otherwise.
+     */
+    public boolean isValid() {
+        return row != null && row.isAttached();
+    }
 }

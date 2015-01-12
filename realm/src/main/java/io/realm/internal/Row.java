@@ -255,6 +255,17 @@ public class Row {
 
     protected static native void nativeClose(long nativeRowPtr);
 
+    /**
+     * Checks if the row is still valid.
+     * @return Returns true {@code true} if the row is still valid and attached to the underlying
+     * data. {@code false} otherwise.
+     */
+    public boolean isAttached() {
+        return nativePtr != 0 && nativeIsAttached(nativePtr);
+    }
+
+    protected static native boolean nativeIsAttached(long nativeRowPtr);
+
     @Override
     protected void finalize() {
         synchronized (context) {
@@ -266,5 +277,4 @@ public class Row {
         nativeClose(nativePtr);
         nativePtr = 0;
     }
-
 }

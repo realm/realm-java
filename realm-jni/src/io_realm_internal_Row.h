@@ -231,6 +231,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeNullifyLink
 JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeClose
   (JNIEnv *, jclass, jlong);
 
+/*
+ * Class:     io_realm_internal_Row
+ * Method:    nativeIsAttached
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Row_nativeIsAttached
+  (JNIEnv *, jobject, jlong);
+
 #ifdef __cplusplus
 }
 #endif
