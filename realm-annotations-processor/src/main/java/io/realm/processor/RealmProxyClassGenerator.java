@@ -190,12 +190,7 @@ public class RealmProxyClassGenerator {
                 imports.add(fieldTypeName);
             }
         }
-        imports.sort(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareTo(o2);
-            }
-        });
+        Collections.sort(imports);
         writer.emitImports(imports);
         writer.emitEmptyLine();
 
@@ -618,9 +613,11 @@ public class RealmProxyClassGenerator {
             }
         }
 
-        writer.nextControlFlow("else");
-        writer.emitStatement("reader.skipValue()");
-        writer.endControlFlow();
+        if (fields.size() > 0) {
+            writer.nextControlFlow("else");
+            writer.emitStatement("reader.skipValue()");
+            writer.endControlFlow();
+        }
         writer.endControlFlow();
         writer.emitStatement("reader.endObject()");
         writer.endMethod();
