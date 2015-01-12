@@ -1,5 +1,5 @@
 0.77
- * Realm.allObjects(), RealmResults.sort() and RealmQuery.findAll() extended with multi-field sorting.
+ * Realm.allObjects(), RealmResults.sort() and RealmQuery.findAll() now supports multi-field sorting.
  * RealmResults.sort() now has better error reporting.
  * Lenient UTF-8 to UTF-16 transcoding by inserting replacement characters.
  * Adding more logging capabilities at the JNI level.

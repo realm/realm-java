@@ -581,7 +581,7 @@ public class RealmResultsTest extends AndroidTestCase {
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            result.sort((String[])null);
+            result.sort((String[])null, (boolean[])null);
             fail();
         } catch (IllegalArgumentException ignored) {}
     }
@@ -614,7 +614,7 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class);
-        results1.sort(new String[]{FIELD_STRING, FIELD_LONG});
+        results1.sort(new String[]{FIELD_STRING, FIELD_LONG}, new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
         assertEquals(3, results1.size());
 
@@ -628,7 +628,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(4, results1.get(2).getColumnLong());
 
         RealmResults<AllTypes> results2 = testRealm.allObjects(AllTypes.class);
-        results2.sort(new String[]{FIELD_LONG, FIELD_STRING});
+        results2.sort(new String[]{FIELD_LONG, FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
         assertEquals(3, results2.size());
 
@@ -645,14 +645,14 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testSortZeroFields() {
         RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
         try {
-            allTypes.sort(new String[]{});
+            allTypes.sort(new String[]{}, new boolean[]{});
             fail();
         } catch (IllegalArgumentException ignored) {}
     }
 
     public void testSortSingleField() {
         RealmResults<AllTypes> sortedList = testRealm.allObjects(AllTypes.class);
-        sortedList.sort(new String[]{FIELD_LONG}, RealmResults.SORT_ORDER_DESCENDING);
+        sortedList.sort(new String[]{FIELD_LONG}, new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());

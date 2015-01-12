@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 
 import io.realm.exceptions.RealmException;
@@ -223,27 +224,33 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldNames an array of field names to sort by. Only fields of type boolean, short, int,
      *                       long, float, double, Date, and String are supported.
-     * @param sortAscending The direction to sort by; if true ascending, otherwise descending
+     * @param sortAscending The directions to sort by; if true ascending, otherwise descending
      *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DESCENDING
      *                       for readability.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    public void sort(String fieldNames[], boolean sortAscending) {
+    public void sort(String fieldNames[], boolean sortAscending[]) {
         if (fieldNames == null) {
             throw new IllegalArgumentException("fieldNames must be provided.");
         } else if (fieldNames.length == 0) {
             throw new IllegalArgumentException("You must provide at least one field name.");
-        } else if (fieldNames.length == 1) {
-            sort(fieldNames[0], sortAscending);
+        } else if (fieldNames.length != sortAscending.length) {
+            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) do not match.", fieldNames.length, sortAscending.length));
+        }
+
+        if (fieldNames.length == 1) {
+            sort(fieldNames[0], sortAscending[0]);
         } else {
             realm.checkIfValid();
             TableOrView table = getTable();
             if (table instanceof TableView) {
-                TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-                ArrayList<Long> columnIndices = new ArrayList<Long>();
-                for (String fieldName : fieldNames) {
+                List<TableView.Order> TVOrder = new ArrayList<TableView.Order>();
+                List<Long> columnIndices = new ArrayList<Long>();
+                for (int i = 0; i < fieldNames.length; i++) {
+                    String fieldName = fieldNames[i];
                     long columnIndex = getColumnIndex(fieldName);
                     columnIndices.add(columnIndex);
+                    TVOrder.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
                 }
                 ((TableView) table).sort(columnIndices, TVOrder);
             }
@@ -251,14 +258,31 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Sort existing @{link io.realm.RealmResults} in ascending order.
+     * Sort existing {link io.realm.RealmResults} using two fields.
      *
-     * @param fieldNames an array of field names to sort by. Only fields of type boolean, short, int,
-     *                       long, float, double, Date, and String are supported.
+     * @param fieldName1 first field name.
+     * @param sortAscending1 sort order for first field.
+     * @param fieldName2 second field name.
+     * @param sortAscending2 sort order for second field.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    public void sort(String fieldNames[]) {
-        sort(fieldNames, SORT_ORDER_ASCENDING);
+    public void sort(String fieldName1, boolean sortAscending1, String fieldName2, boolean sortAscending2) {
+        sort(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
+    }
+
+    /**
+     * Sort existing {link io.realm.RealmResults} using three fields.
+     *
+     * @param fieldName1 first field name.
+     * @param sortAscending1 sort order for first field.
+     * @param fieldName2 second field name.
+     * @param sortAscending2 sort order for second field.
+     * @param fieldName3 third field name.
+     * @param sortAscending3 sort order for third field.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public void sort(String fieldName1, boolean sortAscending1, String fieldName2, boolean sortAscending2, String fieldName3, boolean sortAscending3) {
+        sort(new String[] {fieldName1, fieldName2, fieldName3}, new boolean[] {sortAscending1, sortAscending2, sortAscending3});
     }
 
     // Aggregates

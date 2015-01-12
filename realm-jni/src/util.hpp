@@ -101,6 +101,7 @@ std::string num_to_string(T pNumber)
 // Helper macros for better readability
 // Use S64() when logging
 #define S(x)    static_cast<size_t>(x)
+#define B(x)    static_cast<bool>(x)
 #define S64(x)  static_cast<int64_t>(x)
 #define TBL(x)  reinterpret_cast<tightdb::Table*>(x)
 #define TV(x)   reinterpret_cast<tightdb::TableView*>(x)
