@@ -264,7 +264,7 @@ public class Row {
         return nativePtr != 0 && nativeIsAttached(nativePtr);
     }
 
-    protected static native boolean nativeIsAttached(long nativeRowPtr);
+    protected native boolean nativeIsAttached(long nativeRowPtr);
 
     @Override
     protected void finalize() {
