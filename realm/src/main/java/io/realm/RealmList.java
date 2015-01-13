@@ -28,8 +28,8 @@ import io.realm.internal.TableQuery;
 
 /**
  * RealmList is used in one-to-many relationships in {@link io.realm.RealmObject}.
- * It has two modes: A managed and non-managed mode. In managed mode all objects are persisted
- * inside a Realm, in non-managed mode if works like an ArrayList.
+ * RealmList has two modes: A managed and non-managed mode. In managed mode all objects are persisted
+ * inside a Realm, in non-managed mode it functions as an ArrayList.
  *
  * @param <E> The class of objects in this list
  */
@@ -60,7 +60,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Creates a RealmList from a LinkView, so it's elements are managed by Realm.
+     * Creates a RealmList from a LinkView, so its elements are managed by Realm.
      *
      * @param clazz Type of elements in the Array
      * @param view  Backing LinkView
