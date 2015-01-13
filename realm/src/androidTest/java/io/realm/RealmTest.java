@@ -710,6 +710,23 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testReferenceCountingDoubleClose() {
+        testRealm.close();
+        testRealm.close(); // Count down once too many. Counter is now potentially negative
+        testRealm = Realm.getInstance(getContext());
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        RealmResults<AllTypes> queryResult = testRealm.allObjects(AllTypes.class);
+        assertEquals(allTypes, queryResult.get(0));
+        testRealm.commitTransaction();
+        testRealm.close(); // This might not close the Realm if the reference count is wrong
+        try {
+            allTypes.getColumnString();
+            fail("Realm should be closed");
+        } catch (IllegalStateException expected) {
+        }
+    }
+
     public void testWriteCopyTo() throws IOException {
         Realm.deleteRealmFile(getContext(), "file1.realm");
         Realm.deleteRealmFile(getContext(), "file2.realm");

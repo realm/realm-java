@@ -179,11 +179,11 @@ public final class Realm implements Closeable {
             sharedGroup.close();
             sharedGroup = null;
         }
-        localRefCount.put(id, references - 1);
-        referenceCount.set(localRefCount);
+        localRefCount.put(id, Math.max(0, references - 1));
 
         if (handler != null) {
             handlers.remove(handler);
+            handler = null;
         }
     }
 
@@ -227,6 +227,7 @@ public final class Realm implements Closeable {
         } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
             handler.removeCallbacksAndMessages(null);
             handlers.remove(handler);
+            handler = null;
         }
         this.autoRefresh = autoRefresh;
     }
@@ -477,7 +478,6 @@ public final class Realm implements Closeable {
 
         if (realm != null) {
             localRefCount.put(id, references + 1);
-            referenceCount.set(localRefCount);
             return realm;
         }
 
@@ -602,7 +602,6 @@ public final class Realm implements Closeable {
         }
 
         localRefCount.put(id, references + 1);
-        referenceCount.set(localRefCount);
         return realm;
     }
 
