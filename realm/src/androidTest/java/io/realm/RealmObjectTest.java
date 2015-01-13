@@ -484,6 +484,8 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public void testIsValidClosedRealm() {
+        Realm.deleteRealmFile(getContext(), "other-realm");
+        Realm testRealm = Realm.getInstance(getContext(), "other-realm");
         testRealm.beginTransaction();
         AllTypes allTypes = testRealm.createObject(AllTypes.class);
         assertTrue(allTypes.isValid());
