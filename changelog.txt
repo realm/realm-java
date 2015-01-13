@@ -8,6 +8,7 @@
  * Adding more precise imports in proxy classes to avoid ambiguous references.
  * Improved handling of empty model classes in the annotation processor
  * Added support for executing a transaction with a closure using Realm.executeTransaction().
+ * Fixed bug causing refresh() to be called on background threads with closed Realms.
 
 0.76.0
  * RealmObjects can now be imported using JSON.
