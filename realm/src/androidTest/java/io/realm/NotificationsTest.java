@@ -15,12 +15,14 @@
  */
 package io.realm;
 
+import android.os.Handler;
 import android.os.Looper;
 import android.test.AndroidTestCase;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -192,5 +194,77 @@ public class NotificationsTest extends AndroidTestCase {
 
         assertEquals(1, counter.get());
         assertTrue(Realm.realmsCache.get().isEmpty());
+    }
+
+    public void testCloseClearingHandlerMessages() throws InterruptedException, TimeoutException, ExecutionException {
+        final int TEST_SIZE = 10;
+        final CountDownLatch backgroundLooperStarted = new CountDownLatch(1);
+        final CountDownLatch addHandlerMessages = new CountDownLatch(1);
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Looper.prepare(); // Fake background thread with a looper, eg. a IntentService
+                Realm realm = Realm.getInstance(getContext());
+                backgroundLooperStarted.countDown();
+
+                // Random operation in the client code
+                final RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+                if (dogs.size() != 0) {
+                    return false;
+                }
+                addHandlerMessages.await(1, TimeUnit.SECONDS); // Wait for main thread to add update messages
+
+                // Find the current Handler for the thread now. All message and references will be
+                // cleared once we call close().
+                Handler threadHandler = null;
+                for (final Handler handler : Realm.handlers.keySet()) {
+                    if (Realm.handlers.get(handler).equals(realm.getPath().hashCode())) {
+                        threadHandler = handler;
+                        break;
+                    }
+                }
+                realm.close(); // Close native resources + associated handlers.
+
+                // Looper now reads the update message from the main thread if the Handler was not
+                // cleared. This will cause an IllegalStateException and should not happen.
+                // If it works correctly. The looper will just block on an empty message queue.
+                // This is normal behavior but is bad for testing, so we add a custom quit message
+                // at the end so we can evaluate results faster.
+                threadHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Looper.myLooper().quit();
+                    }
+                });
+
+                try {
+                    Looper.loop();
+                } catch (IllegalStateException e) {
+                    return false;
+                }
+                return true;
+            }
+        });
+
+        // Wait until the looper is started on a background thread
+        backgroundLooperStarted.await(1, TimeUnit.SECONDS);
+
+        // Execute a transaction that will trigger a Realm update
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            Dog dog = realm.createObject(Dog.class);
+            dog.setName("Rex " + i);
+        }
+        realm.commitTransaction();
+        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
+        realm.close();
+        addHandlerMessages.countDown();
+
+        // Check that messages was properly cleared
+        Boolean result = future.get(2, TimeUnit.SECONDS);
+        assertTrue(result);
     }
 }

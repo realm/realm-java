@@ -183,8 +183,13 @@ public final class Realm implements Closeable {
         referenceCount.set(localRefCount);
 
         if (handler != null) {
-            handlers.remove(handler);
+            removeHandler(handler);
         }
+    }
+
+    private void removeHandler(Handler handler) {
+        handler.removeCallbacksAndMessages(null);
+        handlers.remove(handler);
     }
 
     private class RealmCallback implements Handler.Callback {
@@ -225,15 +230,10 @@ public final class Realm implements Closeable {
             handler = new Handler(new RealmCallback());
             handlers.put(handler, id);
         } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
-            handler.removeCallbacksAndMessages(null);
-            handlers.remove(handler);
+            removeHandler(handler);
         }
         this.autoRefresh = autoRefresh;
     }
-
-//    public static void setDefaultDurability(SharedGroup.Durability durability) {
-//        defaultDurability = durability;
-//    }
 
     // Public because of migrations
     public Table getTable(Class<?> clazz) {
