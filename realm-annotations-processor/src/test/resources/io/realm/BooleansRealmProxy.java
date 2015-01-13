@@ -136,6 +136,9 @@ public class BooleansRealmProxy extends Booleans {
 
     @Override
     public String toString() {
+        if (!isValid()) {
+            return "Invalid object";
+        }
         StringBuilder stringBuilder = new StringBuilder("Booleans = [");
         stringBuilder.append("{done:");
         stringBuilder.append(isDone());
