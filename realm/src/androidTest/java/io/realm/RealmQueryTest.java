@@ -305,4 +305,11 @@ public class RealmQueryTest extends AndroidTestCase{
         Dog dog = dogs.where().equalTo("weight", 1d).findFirst();
         assertEquals(dog1, dog);
     }
+
+    public void testSubqueryScope() {
+        populateTestRealm();
+        RealmResults<AllTypes> result = testRealm.where(AllTypes.class).lessThan("columnLong", 5).findAll();
+        RealmResults<AllTypes> subQueryResult = result.where().greaterThan("columnLong", 3).findAll();
+        assertEquals(1, subQueryResult.size());
+    }
 }
