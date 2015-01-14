@@ -138,7 +138,7 @@ public class IntroExampleActivity extends Activity {
 
         // Open the default realm. All threads must use it's own reference to the realm.
         // Those can not be transferred across threads.
-        Realm realm = Realm.getInstance(this, false);
+        Realm realm = Realm.getInstance(this);
 
         // Add ten persons in one write transaction
         realm.beginTransaction();
@@ -196,7 +196,7 @@ public class IntroExampleActivity extends Activity {
     private String complexQuery() {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = Realm.getInstance(this, false);
+        Realm realm = Realm.getInstance(this);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
 
         // Find all persons where age between 7 and 9 and name begins with "Person".

@@ -8,6 +8,9 @@
  * Adding more precise imports in proxy classes to avoid ambiguous references.
  * Improved handling of empty model classes in the annotation processor
  * Added support for executing a transaction with a closure using Realm.executeTransaction().
+ * Remove deprecated static constructors.
+ * Introduce new static constructors based on File instead of Context, allowing to save Realm files in custom locations.
+
 
 0.76.0
  * RealmObjects can now be imported using JSON.

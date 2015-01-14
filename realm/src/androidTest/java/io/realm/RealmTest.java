@@ -15,6 +15,7 @@
  */
 package io.realm;
 
+import android.content.Context;
 import android.test.AndroidTestCase;
 
 import java.io.File;
@@ -147,7 +148,7 @@ public class RealmTest extends AndroidTestCase {
     public void testShouldNotFailCreateRealmWithNullContext() {
         Realm realm = null;
         try {
-            realm = Realm.getInstance(null); // throws when c.getDirectory() is called;
+            realm = Realm.getInstance((Context) null); // throws when c.getDirectory() is called;
             // has nothing to do with Realm
             fail("Should throw an exception");
         } catch (NullPointerException ignore) {
