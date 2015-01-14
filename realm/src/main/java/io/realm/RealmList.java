@@ -48,7 +48,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Create a RealmList in non-managed mode, where the elements are not controlled by a Realm.
-     * This effectively makes it function like a {@link java.util.ArrayList} and it is not possible
+     * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible
      * to query the objects in this state.
      *
      * Use {@link io.realm.Realm#copyToRealm(Iterable)}  to properly persist it's elements in
