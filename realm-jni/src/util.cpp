@@ -18,7 +18,7 @@
 #include <stdexcept>
 
 #include <tightdb/util/assert.hpp>
-#include <tightdb/util/utf8.hpp>
+#include "utf8.hpp"
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
@@ -211,13 +211,22 @@ private:
 
 } // anonymous namespace
 
-string string_to_hex(const string& message, StringData& str) {
+string string_to_hex(const string& message, StringData& str, const char* in_begin, const char* in_end,
+                     jchar* out_curr, jchar* out_end, size_t retcode) {
     ostringstream ret;
 
     const char *s = str.data();
-    ret << message;
+    ret << message << " ";
+    ret << "StringData.size = " << str.size() << "; ";
+    ret << "StringData.data = " << str.data() << "; ";
+    ret << "StringData as hex = ";
     for (string::size_type i = 0; i < str.size(); ++i)
         ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)s[i];
+    ret << "; ";
+    ret << "in_begin = " << in_begin << "; ";
+    ret << "in_end = " << in_end << "; ";
+    ret << "out_curr = " << out_curr << "; ";
+    ret << "out_end = " << out_end << ";";
     return ret.str();
 }
 
@@ -226,7 +235,7 @@ string string_to_hex(const string& message, const jchar *str, size_t size) {
 
     ret << message;
     for (size_t i = 0; i < size; ++i)
-        ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)str[i];
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int)str[i];
     return ret.str();
 }
 
@@ -251,8 +260,9 @@ jstring to_jstring(JNIEnv* env, StringData str)
     typedef Utf8x16<jchar, JcharTraits> Xcode;
 
     if (str.size() <= stack_buf_size) {
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
-            throw runtime_error(string_to_hex("Failure when converting short string to UTF-16",  str));
+        size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
+        if (retcode != 0)
+            throw runtime_error(string_to_hex("Failure when converting short string to UTF-16",  str, in_begin, in_end, out_curr, out_end, retcode));
         if (in_begin == in_end)
             goto transcode_complete;
     }
@@ -261,15 +271,16 @@ jstring to_jstring(JNIEnv* env, StringData str)
         const char* in_begin2 = in_begin;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end);
         if (in_begin2 != in_end) 
-            throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str));
+            throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr, out_end, size));
         if (int_add_with_overflow_detect(size, stack_buf_size))
             throw runtime_error("String size overflow");
         dyn_buf.reset(new jchar[size]);
         out_curr = copy(out_begin, out_curr, dyn_buf.get());
         out_begin = dyn_buf.get();
         out_end   = dyn_buf.get() + size;
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
-            throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str));
+        size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
+        if (retcode != 0) 
+            throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end, out_curr, out_end, retcode));
         TIGHTDB_ASSERT(in_begin == in_end);
     }
 
