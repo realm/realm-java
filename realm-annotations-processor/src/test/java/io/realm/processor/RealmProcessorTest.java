@@ -32,6 +32,7 @@ public class RealmProcessorTest {
     private JavaFileObject allTypesProxy = JavaFileObjects.forResource("io/realm/AllTypesRealmProxy.java");
     private JavaFileObject booleansModel = JavaFileObjects.forResource("some/test/Booleans.java");
     private JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/BooleansRealmProxy.java");
+    private JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
 
     @Test
     public void compileSimpleFile() {
@@ -44,6 +45,21 @@ public class RealmProcessorTest {
     public void compileProcessedSimpleFile() throws Exception {
         ASSERT.about(javaSource())
                 .that(simpleModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileEmptyFile() {
+        ASSERT.about(javaSource())
+                .that(emptyModel)
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileProcessedEmptyFile() throws Exception {
+        ASSERT.about(javaSource())
+                .that(emptyModel)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }

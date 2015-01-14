@@ -1,12 +1,15 @@
 0.77
  * Realm.allObjects(), RealmResults.sort() and RealmQuery.findAll() now supports multi-field sorting.
  * RealmResults.sort() now has better error reporting.
- * Lenient UTF-8 to UTF-16 transcoding by inserting replacement characters.
  * Adding more logging capabilities at the JNI level.
  * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).
  * Fixed bug when doing queries on the elements of a RealmList, ie. like Realm.where(Foo.class).getBars().where().equalTo("name").
  * Throw NoSuchMethodError when RealmResults.indexOf() is called, since it's not implemented yet.
  * Adding more precise imports in proxy classes to avoid ambiguous references.
+ * Improved handling of empty model classes in the annotation processor
+ * Added support for executing a transaction with a closure using Realm.executeTransaction().
+ * Remove deprecated static constructors.
+ * Introduce new static constructors based on File instead of Context, allowing to save Realm files in custom locations.
 
 0.76.0
  * RealmObjects can now be imported using JSON.
