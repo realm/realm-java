@@ -642,10 +642,34 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(5, results2.get(2).getColumnLong());
     }
 
-    public void testSortZeroFields() {
+    public void testSortMultiFailures() {
         RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+
+        // zero fields specified
         try {
             allTypes.sort(new String[]{}, new boolean[]{});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // number of fields and sorting orders don't match
+        try {
+            allTypes.sort(new String[]{FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // null is not allowed
+        try {
+            allTypes.sort(null, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+        try {
+            allTypes.sort(new String[]{FIELD_STRING}, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // non-existing field name
+        try {
+            allTypes.sort(new String[]{FIELD_STRING, "dont-exist"}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {}
     }

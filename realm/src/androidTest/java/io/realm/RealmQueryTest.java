@@ -305,4 +305,91 @@ public class RealmQueryTest extends AndroidTestCase{
         Dog dog = dogs.where().equalTo("weight", 1d).findFirst();
         assertEquals(dog1, dog);
     }
+
+    public void testSortTwoFields() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        AllTypes object1 = testRealm.createObject(AllTypes.class);
+        object1.setColumnLong(5);
+        object1.setColumnString("Adam");
+
+        AllTypes object2 = testRealm.createObject(AllTypes.class);
+        object2.setColumnLong(4);
+        object2.setColumnString("Brian");
+
+        AllTypes object3 = testRealm.createObject(AllTypes.class);
+        object3.setColumnLong(4);
+        object3.setColumnString("Adam");
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> results1 = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_STRING, FIELD_LONG}, new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+
+        assertEquals(3, results1.size());
+
+        assertEquals("Adam", results1.get(0).getColumnString());
+        assertEquals(4, results1.get(0).getColumnLong());
+
+        assertEquals("Adam", results1.get(1).getColumnString());
+        assertEquals(5, results1.get(1).getColumnLong());
+
+        assertEquals("Brian", results1.get(2).getColumnString());
+        assertEquals(4, results1.get(2).getColumnLong());
+
+        RealmResults<AllTypes> results2 = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_LONG, FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+
+        assertEquals(3, results2.size());
+
+        assertEquals("Adam", results2.get(0).getColumnString());
+        assertEquals(4, results2.get(0).getColumnLong());
+
+        assertEquals("Brian", results2.get(1).getColumnString());
+        assertEquals(4, results2.get(1).getColumnLong());
+
+        assertEquals("Adam", results2.get(2).getColumnString());
+        assertEquals(5, results2.get(2).getColumnLong());
+    }
+
+    public void testSortMultiFailures() {
+        // zero fields specified
+        try {
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(new String[]{}, new boolean[]{});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // number of fields and sorting orders don't match
+        try {
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // null is not allowed
+        try {
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(null, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+        try {
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_STRING}, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // non-existing field name
+        try {
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll (new String[]{FIELD_STRING, "dont-exist"}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+    }
+
+    public void testSortSingleField() {
+        testRealm.beginTransaction();
+        for (int i = 0; i < TEST_DATA_SIZE; i++) {
+            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            allTypes.setColumnLong(i);
+        }
+        testRealm.commitTransaction();
+        
+        RealmResults<AllTypes> sortedList = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_LONG}, new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
+        assertEquals(0, sortedList.last().getColumnLong());
+    }
 }
