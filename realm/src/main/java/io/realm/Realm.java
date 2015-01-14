@@ -920,7 +920,7 @@ public final class Realm implements Closeable {
         }
 
         // Object is already in this Realm
-        if (object.realm.id == this.id) {
+        if (object.realm != null && object.realm.id == this.id) {
             return object;
         }
 
