@@ -598,20 +598,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSortTwoFields() {
-        testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
-        AllTypes object1 = testRealm.createObject(AllTypes.class);
-        object1.setColumnLong(5);
-        object1.setColumnString("Adam");
-
-        AllTypes object2 = testRealm.createObject(AllTypes.class);
-        object2.setColumnLong(4);
-        object2.setColumnString("Brian");
-
-        AllTypes object3 = testRealm.createObject(AllTypes.class);
-        object3.setColumnLong(4);
-        object3.setColumnString("Adam");
-        testRealm.commitTransaction();
+        io.realm.TestHelper.populateForMultiSort(testRealm);
 
         RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class);
         results1.sort(new String[]{FIELD_STRING, FIELD_LONG}, new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
