@@ -44,7 +44,7 @@ public class NotificationsTest extends AndroidTestCase {
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                Realm realm = Realm.getInstance(getContext(), false);
+                Realm realm = Realm.getInstance(getContext());
                 boolean autoRefresh = realm.isAutoRefresh();
                 assertFalse(autoRefresh);
                 try {
@@ -116,7 +116,7 @@ public class NotificationsTest extends AndroidTestCase {
         }
         Thread.sleep(100); 
 
-        Realm realm = Realm.getInstance(getContext(), false);
+        Realm realm = Realm.getInstance(getContext());
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
