@@ -673,13 +673,14 @@ public class RealmResultsTest extends AndroidTestCase {
 
     private RealmResults<TwoStrings> executeMultipleConditions(String term) {
         RealmResults<TwoStrings> allResults = testRealm.allObjects(TwoStrings.class);
+        allResults.sort("string1");
         RealmQuery<TwoStrings> query = allResults.where();
         // beginGroup() and endGroup() are not required.
-        // query.beginGroup();
+        query.beginGroup();
         query.beginsWith("string1", term, RealmQuery.CASE_INSENSITIVE);
         query.or();
         query.beginsWith("string2", term, RealmQuery.CASE_INSENSITIVE);
-        // query.endGroup();
+        query.endGroup();
         RealmResults<TwoStrings> result = query.findAll();
         return result;
     }
