@@ -52,6 +52,26 @@ public class RealmListTest extends AndroidTestCase {
         return list;
     }
 
+    // Check that all methods work correctly on a empty RealmList
+    private void testMethodsOnEmptyList(RealmList<Dog> list) {
+        for (int i = 0; i < 4; i++) {
+            try {
+                switch(i) {
+                    case 0: list.get(0); break;
+                    case 1: list.remove(0); break;
+                    case 2: list.set(0, new Dog()); break;
+                    case 3: list.move(0,0); break;
+                }
+                fail();
+            } catch (IndexOutOfBoundsException expected) {
+            }
+        }
+
+        assertEquals(0, list.size());
+        assertNull(list.first());
+        assertNull(list.last());
+    }
+
     @Override
     protected void tearDown() throws Exception {
         testRealm.close();
@@ -211,7 +231,7 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(oldIndex, owner.getDogs().indexOf(dog));
     }
 
-    public void testFirst_nonManagedMode() {
+    public void testFirstAndLast_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object1 = new AllTypes();
         AllTypes object2 = new AllTypes();
@@ -219,26 +239,12 @@ public class RealmListTest extends AndroidTestCase {
         list.add(object2);
 
         assertEquals(object1, list.first());
-    }
-
-    public void testFirstEmptyList_nonManagedMode() {
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
-        assertNull(list.first());
-    }
-
-    public void testLast_nonManagedMode() {
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
-        AllTypes object1 = new AllTypes();
-        AllTypes object2 = new AllTypes();
-        list.add(object1);
-        list.add(object2);
-
         assertEquals(object2, list.last());
     }
 
-    public void testLastEmptyList_nonManagedMode() {
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
-        assertNull(list.last());
+    public void testEmptyList_nonManagedMode() {
+        RealmList<Dog> list = new RealmList<Dog>();
+        testMethodsOnEmptyList(list);
     }
 
     /*********************************************************
@@ -304,7 +310,7 @@ public class RealmListTest extends AndroidTestCase {
         try {
             owner.getDogs().add(null);
             fail("Adding null values is not supported");
-        } catch (NullPointerException ignored) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -323,36 +329,12 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals("Dog 1", dogs.get(1).getName());
     }
 
-    public void testFirst() {
+    public void testFirstLast() {
         Owner owner = testRealm.where(Owner.class).findFirst();
-        Dog dog = owner.getDogs().first();
+        RealmList<Dog> dogs = owner.getDogs();
 
-        assertEquals("Dog 0", dog.getName());
-    }
-
-    public void testFirstEmptyList() {
-        Owner owner = testRealm.where(Owner.class).findFirst();
-        testRealm.beginTransaction();
-        owner.getDogs().clear();
-        testRealm.commitTransaction();
-
-        assertNull(owner.getDogs().first());
-    }
-
-    public void testLast() {
-        Owner owner = testRealm.where(Owner.class).findFirst();
-        Dog dog = owner.getDogs().last();
-
-        assertEquals("Dog " + (TEST_OBJECTS - 1), dog.getName());
-    }
-
-    public void testLastEmptyList() {
-        Owner owner = testRealm.where(Owner.class).findFirst();
-        testRealm.beginTransaction();
-        owner.getDogs().clear();
-        testRealm.commitTransaction();
-
-        assertNull(owner.getDogs().last());
+        assertEquals("Dog 0", dogs.first().getName());
+        assertEquals("Dog " + (TEST_OBJECTS - 1), dogs.last().getName());
     }
 
     public void testRemoveByIndex() {
@@ -387,5 +369,14 @@ public class RealmListTest extends AndroidTestCase {
         Dog firstDog = dogs.where().equalTo("name", "Dog 0").findFirst();
 
         assertNotNull(firstDog);
+    }
+
+    public void testEmptyListMethods() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        testRealm.beginTransaction();
+        owner.getDogs().clear();
+        testRealm.commitTransaction();
+
+        testMethodsOnEmptyList(owner.getDogs());
     }
 }
