@@ -301,7 +301,8 @@ public class RealmQueryTest extends AndroidTestCase{
 
         // Dog.weight has index 4 which is more than the total number of columns in Owner
         // This tests exposes a subtle error where the Owner tablespec is used instead of Dog tablespec.
-        RealmResults<Dog> dogs = testRealm.where(Owner.class).findFirst().getDogs().where().findAll("name", RealmResults.SORT_ORDER_ASCENDING);
+        RealmResults<Dog> dogs = testRealm.where(Owner.class).findFirst().getDogs().where()
+                .findAllSorted("name", RealmResults.SORT_ORDER_ASCENDING);
         Dog dog = dogs.where().equalTo("weight", 1d).findFirst();
         assertEquals(dog1, dog);
     }
@@ -322,7 +323,9 @@ public class RealmQueryTest extends AndroidTestCase{
         object3.setColumnString("Adam");
         testRealm.commitTransaction();
 
-        RealmResults<AllTypes> results1 = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_STRING, FIELD_LONG}, new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+        RealmResults<AllTypes> results1 = testRealm.where(AllTypes.class)
+                .findAllSorted(new String[]{FIELD_STRING, FIELD_LONG},
+                        new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
         assertEquals(3, results1.size());
 
@@ -335,7 +338,9 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals("Brian", results1.get(2).getColumnString());
         assertEquals(4, results1.get(2).getColumnLong());
 
-        RealmResults<AllTypes> results2 = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_LONG, FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+        RealmResults<AllTypes> results2 = testRealm.where(AllTypes.class)
+                .findAllSorted(new String[]{FIELD_LONG, FIELD_STRING},
+                        new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
         assertEquals(3, results2.size());
 
@@ -352,13 +357,16 @@ public class RealmQueryTest extends AndroidTestCase{
     public void testSortMultiFailures() {
         // zero fields specified
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(new String[]{}, new boolean[]{});
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class)
+                    .findAllSorted(new String[]{}, new boolean[]{});
             fail();
         } catch (IllegalArgumentException ignored) {}
 
         // number of fields and sorting orders don't match
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class)
+                    .findAllSorted(new String[]{FIELD_STRING},
+                            new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {}
 
@@ -374,7 +382,9 @@ public class RealmQueryTest extends AndroidTestCase{
 
         // non-existing field name
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll (new String[]{FIELD_STRING, "dont-exist"}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class)
+                    .findAllSorted(new String[]{FIELD_STRING, "dont-exist"},
+                            new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {}
     }
@@ -386,10 +396,18 @@ public class RealmQueryTest extends AndroidTestCase{
             allTypes.setColumnLong(i);
         }
         testRealm.commitTransaction();
-        
-        RealmResults<AllTypes> sortedList = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_LONG}, new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
+
+        RealmResults<AllTypes> sortedList = testRealm.where(AllTypes.class)
+                .findAllSorted(new String[]{FIELD_LONG}, new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());
+    }
+
+    public void testSubqueryScope() {
+        populateTestRealm();
+        RealmResults<AllTypes> result = testRealm.where(AllTypes.class).lessThan("columnLong", 5).findAll();
+        RealmResults<AllTypes> subQueryResult = result.where().greaterThan("columnLong", 3).findAll();
+        assertEquals(1, subQueryResult.size());
     }
 }

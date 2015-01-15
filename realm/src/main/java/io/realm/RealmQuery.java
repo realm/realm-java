@@ -25,7 +25,6 @@ import java.util.Map;
 
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 
@@ -36,6 +35,7 @@ import io.realm.internal.TableView;
 public class RealmQuery<E extends RealmObject> {
 
     private Realm realm;
+    private Table table;
     private TableQuery query;
     private Map<String, Long> columns = new HashMap<String, Long>();
     private Class<E> clazz;
@@ -55,9 +55,8 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-
-        TableOrView dataStore = getTable();
-        this.query = dataStore.where();
+        this.table = realm.getTable(clazz);
+        this.query = table.where();
         this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
 
@@ -71,9 +70,8 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery(RealmResults realmList, Class<E> clazz) {
         this.realm = realmList.getRealm();
         this.clazz = clazz;
-
-        TableOrView dataStore = getTable();
-        this.query = dataStore.where();
+        this.table = realm.getTable(clazz);
+        this.query = realmList.getTable().where();
         this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
 
@@ -81,12 +79,8 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = realm;
         this.clazz = clazz;
         this.query = query;
-        TableOrView dataStore = getTable();
+        this.table = realm.getTable(clazz);
         this.columns = Realm.columnIndices.get(clazz.getSimpleName());
-    }
-
-    TableOrView getTable() {
-        return realm.getTable(clazz);
     }
 
     private boolean containsDot(String s) {
@@ -120,8 +114,7 @@ public class RealmQuery<E extends RealmObject> {
 
     // TODO: consider another caching strategy so linked classes are included in the cache.
     private long[] getColumnIndices(String fieldName, ColumnType fieldType) {
-        Table table = getTable().getTable();
-
+        Table table = this.table;
         if (containsDot(fieldName)) {
             String[] names = splitString(fieldName); //fieldName.split("\\.");
             long[] columnIndices = new long[names.length];

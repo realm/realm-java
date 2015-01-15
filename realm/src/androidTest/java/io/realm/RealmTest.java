@@ -18,12 +18,16 @@ package io.realm;
 import android.content.Context;
 import android.test.AndroidTestCase;
 
+import junit.framework.Assert;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -42,6 +46,7 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 
+import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
 public class RealmTest extends AndroidTestCase {
 
@@ -795,6 +800,23 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testReferenceCountingDoubleClose() {
+        testRealm.close();
+        testRealm.close(); // Count down once too many. Counter is now potentially negative
+        testRealm = Realm.getInstance(getContext());
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        RealmResults<AllTypes> queryResult = testRealm.allObjects(AllTypes.class);
+        assertEquals(allTypes, queryResult.get(0));
+        testRealm.commitTransaction();
+        testRealm.close(); // This might not close the Realm if the reference count is wrong
+        try {
+            allTypes.getColumnString();
+            fail("Realm should be closed");
+        } catch (IllegalStateException expected) {
+        }
+    }
+
     public void testWriteCopyTo() throws IOException {
         Realm.deleteRealmFile(getContext(), "file1.realm");
         Realm.deleteRealmFile(getContext(), "file2.realm");
@@ -842,6 +864,98 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(Realm.compactRealmFile(getContext()));
         long after = new File(getContext().getFilesDir(), copyRealm).length();
         assertTrue(before >= after);
+    }
+
+    public void testCopyToRealmNullObjectThrows() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.copyToRealm((AllTypes) null);
+            fail("Copying null objects into Realm should not be allowed");
+        } catch (IllegalArgumentException ignore) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testCopyManagedObjectIsNoop() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnString("Test");
+        testRealm.commitTransaction();
+
+        testRealm.commitTransaction();
+        AllTypes copiedAllTypes = testRealm.copyToRealm(allTypes);
+        testRealm.commitTransaction();
+
+        assertTrue(allTypes == copiedAllTypes);
+    }
+
+    public void testCopManagedObjectToOtherRealm() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnString("Test");
+        testRealm.commitTransaction();
+
+        Realm.deleteRealmFile(getContext(), "other-realm");
+        Realm otherRealm = Realm.getInstance(getContext(), "other-realm");
+        otherRealm.beginTransaction();
+        AllTypes copiedAllTypes = otherRealm.copyToRealm(allTypes);
+        otherRealm.commitTransaction();
+
+        assertNotSame(allTypes, copiedAllTypes); // Same object in different Realms is not the same
+        assertEquals(allTypes.getColumnString(), copiedAllTypes.getColumnString()); // But data is still the same
+        otherRealm.close();
+    }
+
+    public void testCopyToRealmObject() {
+        Date date = new Date();
+        date.setTime(1000); // Remove ms. precission as Realm doesn't support it yet.
+        Dog dog = new Dog();
+        dog.setName("Fido");
+        RealmList<Dog> list = new RealmList();
+        list.add(dog);
+
+        AllTypes allTypes = new AllTypes();
+        allTypes.setColumnString("String");
+        allTypes.setColumnLong(1l);
+        allTypes.setColumnFloat(1f);
+        allTypes.setColumnDouble(1d);
+        allTypes.setColumnBoolean(true);
+        allTypes.setColumnDate(date);
+        allTypes.setColumnBinary(new byte[] { 1, 2, 3});
+        allTypes.setColumnRealmObject(dog);
+        allTypes.setColumnRealmList(list);
+
+        testRealm.beginTransaction();
+        AllTypes realmTypes = testRealm.copyToRealm(allTypes);
+        testRealm.commitTransaction();
+
+        assertNotSame(allTypes, realmTypes); // Objects should not be considered equal
+        assertEquals(allTypes.getColumnString(), realmTypes.getColumnString()); // But they contain the same data
+        assertEquals(allTypes.getColumnLong(), realmTypes.getColumnLong());
+        assertEquals(allTypes.getColumnFloat(), realmTypes.getColumnFloat());
+        assertEquals(allTypes.getColumnDouble(), realmTypes.getColumnDouble());
+        assertEquals(allTypes.isColumnBoolean(), realmTypes.isColumnBoolean());
+        assertEquals(allTypes.getColumnDate(), realmTypes.getColumnDate());
+        assertArrayEquals(allTypes.getColumnBinary(), realmTypes.getColumnBinary());
+        assertEquals(allTypes.getColumnRealmObject().getName(), dog.getName());
+        assertEquals(list.size(), realmTypes.getColumnRealmList().size());
+        assertEquals(list.get(0).getName(), realmTypes.getColumnRealmList().get(0).getName());
+    }
+
+    public void testCopyToRealmList() {
+        Dog dog1 = new Dog(); dog1.setName("Dog 1");
+        Dog dog2 = new Dog(); dog2.setName("Dog 2");
+        RealmList<Dog> list = new RealmList<Dog>();
+        list.addAll(Arrays.asList(dog1, dog2));
+
+        testRealm.beginTransaction();
+        List<Dog> copiedList = new ArrayList<Dog>(testRealm.copyToRealm(list));
+        testRealm.commitTransaction();
+
+        assertEquals(2, copiedList.size());
+        assertEquals(dog1.getName(), copiedList.get(0).getName());
+        assertEquals(dog2.getName(), copiedList.get(1).getName());
     }
 
     private void fileCopy(File src, File dst) throws IOException {
