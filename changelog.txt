@@ -1,4 +1,5 @@
 0.77
+ * Adding Realm.allObjectsSorted() and RealmQuery.findAllSorted() and exteding RealmResults.sort() for multi-field sorting.
  * RealmResults.sort() now has better error reporting.
  * Adding more logging capabilities at the JNI level.
  * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).
