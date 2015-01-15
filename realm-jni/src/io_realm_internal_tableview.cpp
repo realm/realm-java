@@ -879,7 +879,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
         std::vector<size_t> indices;
         std::vector<bool> ascendings;
 
-        for (int i=0; i<arr_len; ++i) {
+        for (int i = 0; i < arr_len; ++i) {
             if (!COL_INDEX_VALID(env, TV(nativeViewPtr), long_arr[i]))
                 return;
             int colType = TV(nativeViewPtr)->get_column_type( S(long_arr[i]) );
