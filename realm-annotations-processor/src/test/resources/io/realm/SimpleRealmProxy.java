@@ -110,6 +110,13 @@ public class SimpleRealmProxy extends Simple {
         reader.endObject();
     }
 
+    public static Simple copyToRealm(Realm realm, Simple object) {
+        Simple realmObject = realm.createObject(Simple.class);
+        realmObject.setName(object.getName());
+        realmObject.setAge(object.getAge());
+        return realmObject;
+    }
+
     @Override
     public String toString() {
         if (!isValid()) {

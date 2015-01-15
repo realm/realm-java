@@ -134,6 +134,14 @@ public class BooleansRealmProxy extends Booleans {
         reader.endObject();
     }
 
+    public static Booleans copyToRealm(Realm realm, Booleans object) {
+        Booleans realmObject = realm.createObject(Booleans.class);
+        realmObject.setDone(object.isDone());
+        realmObject.setReady(object.isReady());
+        realmObject.setmCompleted(object.ismCompleted());
+        return realmObject;
+    }
+
     @Override
     public String toString() {
         if (!isValid()) {
