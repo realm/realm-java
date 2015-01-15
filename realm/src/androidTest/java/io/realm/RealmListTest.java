@@ -211,6 +211,35 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(oldIndex, owner.getDogs().indexOf(dog));
     }
 
+    public void testFirst_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        AllTypes object1 = new AllTypes();
+        AllTypes object2 = new AllTypes();
+        list.add(object1);
+        list.add(object2);
+
+        assertEquals(object1, list.first());
+    }
+
+    public void testFirstEmptyList_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        assertNull(list.first());
+    }
+
+    public void testLast_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        AllTypes object1 = new AllTypes();
+        AllTypes object2 = new AllTypes();
+        list.add(object1);
+        list.add(object2);
+
+        assertEquals(object2, list.last());
+    }
+
+    public void testLastEmptyList_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        assertNull(list.last());
+    }
 
     /*********************************************************
      * Managed mode tests                                    *
@@ -294,18 +323,36 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals("Dog 1", dogs.get(1).getName());
     }
 
-    public void testGetFirstObject() {
+    public void testFirst() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         Dog dog = owner.getDogs().first();
 
         assertEquals("Dog 0", dog.getName());
     }
 
-    public void testGetLastObject() {
+    public void testFirstEmptyList() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        testRealm.beginTransaction();
+        owner.getDogs().clear();
+        testRealm.commitTransaction();
+
+        assertNull(owner.getDogs().first());
+    }
+
+    public void testLast() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         Dog dog = owner.getDogs().last();
 
         assertEquals("Dog " + (TEST_OBJECTS - 1), dog.getName());
+    }
+
+    public void testLastEmptyList() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        testRealm.beginTransaction();
+        owner.getDogs().clear();
+        testRealm.commitTransaction();
+
+        assertNull(owner.getDogs().last());
     }
 
     public void testRemoveByIndex() {
