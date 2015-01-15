@@ -8,6 +8,7 @@
  * Adding more precise imports in proxy classes to avoid ambiguous references.
  * Improved handling of empty model classes in the annotation processor
  * Added support for executing a transaction with a closure using Realm.executeTransaction().
+ * Fixed bug causing refresh() to be called on background threads with closed Realms.
  * Fixed bug where calling Realm.close() too many times could result in Realm not getting closed at all. This now triggers a log warning.
  * Added RealmObject.isValid() to test if an object is still accessible.
  * Remove deprecated static constructors.
