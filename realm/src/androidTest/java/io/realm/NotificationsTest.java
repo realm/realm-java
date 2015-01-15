@@ -264,7 +264,9 @@ public class NotificationsTest extends AndroidTestCase {
         addHandlerMessages.countDown();
 
         // Check that messages was properly cleared
-        Boolean result = future.get(5, TimeUnit.SECONDS);
+        // It looks like getting this future sometimes takes a while for some reason. Setting to
+        // 10s. now.
+        Boolean result = future.get(10, TimeUnit.SECONDS);
         assertTrue(result);
     }
 }
