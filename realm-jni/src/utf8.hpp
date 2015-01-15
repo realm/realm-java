@@ -55,8 +55,8 @@ template<class Char16, class Traits16 = std::char_traits<Char16> > struct Utf8x1
     /// Same as to_utf16(), but in reverse.
     ///
     /// Throws only if Traits16::to_int_type() throws.
-    static bool to_utf8(const Char16*& in_begin, const Char16* in_end,
-                        char*& out_begin, char* out_end);
+    static size_t to_utf8(const Char16*& in_begin, const Char16* in_end,
+                        char*& out_begin, char* out_end, size_t& error_code);
 
     /// Summarize the number of UTF-16 elements needed to hold the result of
     /// transcoding the specified UTF-8 string. Upon return, if \a in_begin !=
@@ -65,7 +65,7 @@ template<class Char16, class Traits16 = std::char_traits<Char16> > struct Utf8x1
     /// the result of transcoding the part of the input that was examined. This
     /// function will only detect a few UTF-8 validity issues, and can therefore
     /// not be used for general UTF-8 validation.
-    static std::size_t find_utf16_buf_size(const char*& in_begin, const char* in_end);
+    static std::size_t find_utf16_buf_size(const char*& in_begin, const char* in_end, size_t& error_code);
 
     /// Summarize the number of UTF-8 bytes needed to hold the result of
     /// transcoding the specified UTF-16 string. Upon return, if \a in_begin !=
@@ -75,7 +75,7 @@ template<class Char16, class Traits16 = std::char_traits<Char16> > struct Utf8x1
     /// transcoding the part of the input that was examined. This function will
     /// only detect a few UTF-16 validity issues, and can therefore not be used
     /// for general UTF-16 validation.
-    static std::size_t find_utf8_buf_size(const Char16*& in_begin, const Char16* in_end);
+    static std::size_t find_utf8_buf_size(const Char16*& in_begin, const Char16* in_end, size_t& error_code);
 };
 
 
@@ -209,11 +209,13 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
 
 template<class Char16, class Traits16>
 inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& in_begin,
-                                                                  const char*  in_end)
+                                                                  const char*  in_end,
+                                                                  size_t& error_code)
 {
     using namespace std;
     typedef char_traits<char> traits8;
     size_t num_out = 0;
+    error_code = 0;
     const char* in = in_begin;
     while (in != in_end) {
         uint_fast16_t v1 = uint_fast16_t(traits8::to_int_type(in[0]));
@@ -223,10 +225,12 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& i
             continue;
         }
         if (TIGHTDB_UNLIKELY(v1 < 0xC0)) {
+            error_code = 1;
             break; // Invalid first byte of UTF-8 sequence
         }
         if (TIGHTDB_LIKELY(v1 < 0xE0)) { // Two bytes
             if (TIGHTDB_UNLIKELY(in_end - in < 2)) {
+                error_code = 2;
                 break; // Incomplete UTF-8 sequence
             }
             num_out += 1;
@@ -235,6 +239,7 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& i
         }
         if (TIGHTDB_LIKELY(v1 < 0xF0)) { // Three bytes
             if (TIGHTDB_UNLIKELY(in_end - in < 3)) {
+                error_code = 3;
                 break; // Incomplete UTF-8 sequence
             }
             num_out += 1;
@@ -243,6 +248,7 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& i
         }
         if (TIGHTDB_LIKELY(v1 < 0xF8)) { // Four bytes
             if (TIGHTDB_UNLIKELY(in_end - in < 4)) {
+                error_code = 4;
                 break; // Incomplete UTF-8 sequence
             }
             num_out += 2; // Surrogate pair
@@ -250,6 +256,7 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& i
             continue;
         }
         // Invalid first byte of UTF-8 sequence, or code point too big for UTF-16
+        error_code = 5;
         break;
     }
 
@@ -263,19 +270,21 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& i
 // http://www.unicode.org/resources/utf8.html
 // http://www.bsdua.org/files/unicode.tar.gz
 template<class Char16, class Traits16>
-inline bool Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const Char16* in_end,
-                                               char*& out_begin, char* out_end)
+inline size_t Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const Char16* in_end,
+                                               char*& out_begin, char* out_end, size_t& error_code)
 {
     using namespace std;
     typedef char_traits<char> traits8;
     typedef typename traits8::int_type traits8_int_type;
     bool invalid = false;
+    error_code = 0;
     const Char16* in = in_begin;
     char* out = out_begin;
     while (in != in_end) {
         uint_fast16_t v1 = uint_fast16_t(Traits16::to_int_type(in[0]));
         if (TIGHTDB_LIKELY(v1 < 0x80)) {
             if (TIGHTDB_UNLIKELY(out == out_end)) {
+                error_code = 1;
                 break; // Not enough output buffer space
             }
             // UTF-8 layout: 0xxxxxxx
@@ -285,6 +294,7 @@ inline bool Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const Ch
         }
         if (TIGHTDB_LIKELY(v1 < 0x800)) {
             if (TIGHTDB_UNLIKELY(out_end - out < 2)) {
+                error_code = 2;
                 break; // Not enough output buffer space
             }
             // UTF-8 layout: 110xxxxx 10xxxxxx
@@ -295,6 +305,7 @@ inline bool Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const Ch
         }
         if (TIGHTDB_LIKELY(v1 < 0xD800 || 0xE000 <= v1)) {
             if (TIGHTDB_UNLIKELY(out_end - out < 3)) {
+                error_code = 3;
                 break; // Not enough output buffer space
             }
             // UTF-8 layout: 1110xxxx 10xxxxxx 10xxxxxx
@@ -307,18 +318,22 @@ inline bool Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const Ch
 
         // Surrogate pair
         if (TIGHTDB_UNLIKELY(out_end - out < 4)) {
+            error_code = 4;
             break; // Not enough output buffer space
         }
         if (TIGHTDB_UNLIKELY(0xDC00 <= v1)) {
+            error_code = 5;
             invalid = true;
             break; // Invalid first half of surrogate pair
         }
         if (TIGHTDB_UNLIKELY(in + 1 == in_end)) {
+            error_code = 6;
             invalid = true;
             break; // Incomplete surrogate pair
         }
         uint_fast16_t v2 = uint_fast16_t(Traits16::to_int_type(in[1]));
         if (TIGHTDB_UNLIKELY(v2 < 0xDC00 || 0xE000 <= v2)) {
+            error_code = 7;
             invalid = true;
             break; // Invalid second half of surrogate pair
         }
@@ -339,34 +354,45 @@ inline bool Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const Ch
 
 template<class Char16, class Traits16>
 inline std::size_t Utf8x16<Char16, Traits16>::find_utf8_buf_size(const Char16*& in_begin,
-                                                                 const Char16*  in_end)
+                                                                 const Char16*  in_end,
+                                                                 size_t& error_code)
 {
     using namespace std;
     size_t num_out = 0;
+    error_code = 0;
     const Char16* in = in_begin;
     while (in != in_end) {
         uint_fast16_t v = uint_fast16_t(Traits16::to_int_type(in[0]));
         if (TIGHTDB_LIKELY(v < 0x80)) {
-            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 1)))
+            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 1))) {
+                error_code = 1;
                 break; // Avoid overflow
+            }
             in += 1;
         }
         else if (TIGHTDB_LIKELY(v < 0x800)) {
-            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 2)))
+            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 2))) {
+                error_code = 2;
                 break; // Avoid overflow
+            }
             in += 1;
         }
         else if (TIGHTDB_LIKELY(v < 0xD800 || 0xE000 <= v)) {
-            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 3)))
+            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 3))) {
+                error_code = 3;
                 break; // Avoid overflow
+            }
             in += 1;
         }
         else {
             if (TIGHTDB_UNLIKELY(in + 1 == in_end)) {
+                error_code = 4;
                 break; // Incomplete surrogate pair
             }
-            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 4)))
+            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 4))) {
+                error_code = 5;
                 break; // Avoid overflow
+            }
             in += 2;
         }
     }
