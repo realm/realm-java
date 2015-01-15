@@ -20,6 +20,8 @@ import android.test.AndroidTestCase;
 
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
+import io.realm.entities.AllTypes;
+import io.realm.exceptions.RealmException;
 
 public class RealmListTest extends AndroidTestCase {
 
@@ -42,13 +44,154 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    private RealmList<Dog> createNonManagedDogList() {
+        RealmList<Dog> list = new RealmList<Dog>();
+        for (int i = 0; i < TEST_OBJECTS; i++) {
+            list.add(new Dog("Dog " + i));
+        }
+        return list;
+    }
+
     @Override
     protected void tearDown() throws Exception {
         testRealm.close();
     }
 
+    /*********************************************************
+     * Non-Managed mode tests                                *
+     *********************************************************/
+
+    public void testPublicNoArgConstructor() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        assertNotNull(list);
+    }
+
+    public void testUnavailableMethods_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        try {
+            list.where();
+            fail("where() should fail in non-managed mode.");
+        } catch (RealmException ignore) {
+        }
+    }
+
+    public void testAdd_nonManagedMode() {
+        RealmList list = new RealmList();
+        AllTypes object = new AllTypes();
+        object.setColumnString("String");
+        list.add(object);
+        assertEquals(1, list.size());
+        assertEquals(object, list.get(0));
+    }
+
+    public void testAddNull_nonManagedMode() {
+        RealmList list = new RealmList();
+        try {
+            list.add(null);
+            fail("Adding null should not be be allowed");
+        } catch (IllegalArgumentException ignore) {
+        }
+    }
+
+    public void testAddManagedObject_nonManagedMode() {
+        RealmList list = new RealmList();
+        testRealm.beginTransaction();
+        AllTypes managedAllTypes =  testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        list.add(managedAllTypes);
+
+        assertEquals(managedAllTypes, list.get(0));
+    }
+
+    public void testAddAtIndex_nonManagedMode() {
+        RealmList list = new RealmList();
+        AllTypes object = new AllTypes();
+        object.setColumnString("String");
+        list.add(0, object);
+        assertEquals(1, list.size());
+        assertEquals(object, list.get(0));
+    }
+
+    public void testAddManagedObjectAtIndex_nonManagedMode() {
+        RealmList list = new RealmList();
+        list.add(new AllTypes());
+        testRealm.beginTransaction();
+        AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        list.add(0, managedAllTypes);
+
+        assertEquals(managedAllTypes, list.get(0));
+    }
+
+    public void testAddNullAtIndex_nonManagedMode() {
+        RealmList list = new RealmList();
+        try {
+            list.add(null);
+            fail("Adding null should not be be allowed");
+        } catch (IllegalArgumentException ignore) {
+        }
+    }
+
+    public void testSet_nonManagedMode() {
+        RealmList list = new RealmList();
+        list.add(new AllTypes());
+        list.set(0, new AllTypes());
+        assertEquals(1, list.size());
+    }
+
+    public void testSetNull_nonManagedMode() {
+        RealmList list = new RealmList();
+        list.add(new AllTypes());
+        try {
+            list.set(0, null);
+            fail("Setting a null value should result in a exception");
+        } catch (IllegalArgumentException ignore) {
+        }
+    }
+
+    public void testSetManagedObject_nonManagedMode() {
+        RealmList list = new RealmList();
+        list.add(new AllTypes());
+        testRealm.beginTransaction();
+        AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        list.set(0, managedAllTypes);
+
+        assertEquals(managedAllTypes, list.get(0));
+    }
+
+    public void testClear_nonManagedMode() {
+        RealmList list = new RealmList();
+        list.add(new AllTypes());
+        assertEquals(1, list.size());
+        list.clear();
+        assertTrue(list.isEmpty());
+    }
+
+    public void testRemove_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        AllTypes object1 = new AllTypes();
+        list.add(object1);
+        AllTypes object2 = list.remove(0);
+        assertEquals(object1, object2);
+    }
+
+    public void testGet_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        AllTypes object1 = new AllTypes();
+        list.add(object1);
+        AllTypes object2 = list.get(0);
+        assertEquals(object1, object2);
+    }
+
+    public void testSize_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        list.add(new AllTypes());
+        assertEquals(1, list.size());
+    }
+
     // Test move where oldPosition > newPosition
-    public void testMoveDown() {
+    public void testMoveDown_nonManagedMode() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         Dog dog1 = owner.getDogs().get(1);
         owner.getDogs().move(1, 0);
@@ -57,7 +200,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Test move where oldPosition < newPosition
-    public void testMoveUp() {
+    public void testMoveUp_nonManagedMode() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         int oldIndex = TEST_OBJECTS / 2;
         int newIndex = oldIndex + 1;
@@ -66,6 +209,32 @@ public class RealmListTest extends AndroidTestCase {
 
         assertEquals(TEST_OBJECTS, owner.getDogs().size());
         assertEquals(oldIndex, owner.getDogs().indexOf(dog));
+    }
+
+
+    /*********************************************************
+     * Managed mode tests                                    *
+     *********************************************************/
+
+    // Test move where oldPosition > newPosition
+    public void testMoveDown() {
+        RealmList<Dog> dogs = createNonManagedDogList();
+        Dog dog1 = dogs.get(1);
+        dogs.move(1, 0);
+
+        assertEquals(0, dogs.indexOf(dog1));
+    }
+
+    // Test move where oldPosition < newPosition
+    public void testMoveUp() {
+        RealmList<Dog> dogs = createNonManagedDogList();
+        int oldIndex = TEST_OBJECTS / 2;
+        int newIndex = oldIndex + 1;
+        Dog dog = dogs.get(oldIndex);
+        dogs.move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets shifted to the left.
+
+        assertEquals(TEST_OBJECTS, dogs.size());
+        assertEquals(oldIndex, dogs.indexOf(dog));
     }
 
     public void testMoveOutOfBoundsLowerThrows() {
