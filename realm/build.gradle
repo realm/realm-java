@@ -23,8 +23,8 @@ android {
 //        }
 //    }
 
-
 }
+
 dependencies {
     compile 'com.intellij:annotations:+@jar'
     compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
@@ -61,6 +61,25 @@ task androidJar(type: Jar, dependsOn: 'assemble') {
     from(file('src/main/jniLibs')) {
         into 'lib'
     }
+}
+
+task compileJniWithEncryption(type: GradleBuild) {
+    dir = file('../realm-jni')
+    tasks = ['buildAndroidJniWithEncryption']
+}
+
+task androidJarWithEncryption(type: Jar) {
+    group 'Build'
+    description 'Generates a jar file continaining Realm and its annotation processor with encryption support'
+    dependsOn assemble
+    dependsOn compileJniWithEncryption
+    from zipTree('build/intermediates/bundles/release/classes.jar')
+    from zipTree("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
+    from zipTree("../realm-annotations/build/libs/realm-annotations-${version}.jar")
+    from(file('src/main/jniLibs')) {
+        into 'lib'
+    }
+    archiveName "${baseName}-encryption-${version}.${extension}"
 }
 
 task androidSourcesJar(type: Jar) {
@@ -103,13 +122,42 @@ publishing {
                 license.appendNode('distribution', 'repo')
             }
         }
+        mavenAndroidWithEncryption(MavenPublication) {
+            groupId 'io.realm'
+            artifactId 'realm-android-crypto'
+            version version
+            artifact androidJarWithEncryption
+            artifact androidSourcesJar {
+                classifier "sources"
+            }
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-android-crypto')
+                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+
+                def issues = root.appendNode('issueManagement')
+                issues.appendNode('system', 'github')
+                issues.appendNode('url', 'https://github.com/realm/realm-java/issues')
+
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', 'scm:https://github.com/realm/realm-java')
+                scm.appendNode('connection', 'scm:git@github.com:realm/realm-java.git')
+                scm.appendNode('developerConnection', 'scm:git@github.com:realm/realm-java.git')
+
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+            }
+        }
     }
 }
 
 bintray {
     user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser' // this comes from the gradle.properties file in ~/.gradle
     key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey' //this comes from the gradle.properties file in ~/.gradle
-    publications = ['mavenAndroid']
+    publications = ['mavenAndroid', 'mavenAndroidWithEncryption']
     publish = true
     pkg {
         repo = 'maven'

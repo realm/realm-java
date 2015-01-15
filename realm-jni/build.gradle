@@ -1,4 +1,5 @@
 ext.coreVersion = '0.87.4'
+ext.encryption = '-encryption'
 
 buildscript {
     repositories {
@@ -27,9 +28,6 @@ task checkProperties(group: 'check', description: 'Check the user provided gradl
     } else if (!file(new File(project.ext['ndk.dir'], 'RELEASE.TXT')).file) {
         throw new GradleException('The path provided in the ndkDir property in the gradle.properties does not seem to be an Android NDK.')
     }
-    if (project.ext.has('encryption') && project.ext['encryption'] == 'true') {
-        project.coreVersion += '-encryption'
-    }
 }
 
 task downloadCore(group: 'build setup', description: 'Download the latest version of realm core', dependsOn: checkProperties) {
@@ -43,6 +41,39 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
         copy {
             from tarTree(new File(buildDir, "core-android-${project.coreVersion}.tar.gz"))
             into "../core-${project.coreVersion}"
+        }
+        for (target in ['arm', 'arm-v7a', 'mips', 'x86']) {
+            exec {
+                commandLine = [
+                        'make',
+                        '-C', "${projectDir}/src",
+                        "BASE_DENOM=${target}",
+                        'LIB_SUFFIX_SHARED=.so',
+                        'clean'
+                ]
+            }
+        }
+        exec {
+            commandLine = [
+                    'rm',
+                    '-rf',
+                    "${projectDir}/build/*"
+            ]
+        }
+    }
+}
+
+task downloadCoreWithEncryption(group: 'build setup', description: 'Download the latest version of Realm core with encryption support', dependsOn: checkProperties) {
+    outputs.dir "../core-${project.coreVersion}${project.encryption}"
+    doLast {
+        download {
+            src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}${project.encryption}.tar.gz"
+            dest new File(buildDir, "core-android-${project.coreVersion}${project.encryption}.tar.gz")
+            onlyIfNewer true
+        }
+        copy {
+            from tarTree(new File(buildDir, "core-android-${project.coreVersion}${project.encryption}.tar.gz"))
+            into "../core-${project.coreVersion}${project.encryption}"
         }
         for (target in ['arm', 'arm-v7a', 'mips', 'x86']) {
             exec {
@@ -111,6 +142,36 @@ task buildAndroidJniArm {
     }
 }
 
+task buildAndroidJniArmWithEncryption {
+    group 'build'
+    description 'Build the Android JNI shared library for the Arm platform with encryption support'
+    dependsOn generateNdkToolchainArm
+    dependsOn downloadCoreWithEncryption
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}${project.encryption}/include",
+                'CFLAGS_ARCH=-mthumb',
+                'BASE_DENOM=arm',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}${project.encryption} -llog",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-arm.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-arm.so"
+            into "${projectDir}/../realm/src/main/jniLibs/armeabi"
+            rename 'libtightdb-jni-arm.so', 'libtightdb-jni.so'
+        }
+    }
+}
+
 task buildAndroidJniArmv7a {
     group 'build'
     description 'Build the Android JNI shared library for the Arm-v7a platform'
@@ -129,6 +190,36 @@ task buildAndroidJniArmv7a {
                 'CFLAGS_ARCH=-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16',
                 'BASE_DENOM=arm-v7a',
                 "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion}",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-arm-v7a.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-arm-v7a.so"
+            into "${projectDir}/../realm/src/main/jniLibs/armeabi-v7a"
+            rename 'libtightdb-jni-arm-v7a.so', 'libtightdb-jni.so'
+        }
+    }
+}
+
+task buildAndroidJniArmv7aWithEncryption {
+    group 'build'
+    description 'Build the Android JNI shared library for the Arm-v7a platform with encryption support'
+    dependsOn generateNdkToolchainArm
+    dependsOn downloadCoreWithEncryption
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}${project.encryption}/include",
+                'CFLAGS_ARCH=-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16',
+                'BASE_DENOM=arm-v7a',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}${project.encryption} -llog",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-arm-v7a.so'
             ]
@@ -171,6 +262,36 @@ task buildAndroidJniMips {
     }
 }
 
+task buildAndroidJniMipsWithEncryption {
+    group 'build'
+    description 'Build the Android JNI shared library for the Mips platform'
+    dependsOn generateNdkToolchainMips
+    dependsOn downloadCoreWithEncryption
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/mips/mipsel-linux-android/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}${project.encryption}/include",
+                'CFLAGS_ARCH=',
+                'BASE_DENOM=mips',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}${project.encryption} -llog",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-mips.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-mips.so"
+            into "${projectDir}/../realm/src/main/jniLibs/mips"
+            rename 'libtightdb-jni-mips.so', 'libtightdb-jni.so'
+        }
+    }
+}
+
 task buildAndroidJniIntel {
     group 'build'
     description 'Build the Android JNI shared library for the Intel platform'
@@ -201,11 +322,48 @@ task buildAndroidJniIntel {
     }
 }
 
+task buildAndroidJniIntelWithEncryption {
+    group 'build'
+    description 'Build the Android JNI shared library for the Intel platform with encryption support'
+    dependsOn generateNdkToolchainX86
+    dependsOn downloadCoreWithEncryption
+    doLast {
+        exec {
+            environment PATH: "${buildDir}/standalone-toolchains/x86/i686-linux-android/bin:${System.env.PATH}"
+            environment CC: 'gcc'
+            environment TIGHTDB_ANDROID: '1'
+            commandLine = [
+                'make',
+                '-C', "${projectDir}/src",
+                'CC_IS=gcc',
+                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}${project.encryption}/include",
+                'CFLAGS_ARCH=',
+                'BASE_DENOM=x86',
+                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}${project.encryption} -llog",
+                'LIB_SUFFIX_SHARED=.so',
+                'libtightdb-jni-x86.so'
+            ]
+        }
+        copy {
+            from "${projectDir}/src/libtightdb-jni-x86.so"
+            into "${projectDir}/../realm/src/main/jniLibs/x86"
+            rename 'libtightdb-jni-x86.so', 'libtightdb-jni.so'
+        }
+    }
+}
+
 task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared library for all the supported platforms') {
     dependsOn buildAndroidJniArm
     dependsOn buildAndroidJniArmv7a
     dependsOn buildAndroidJniMips
     dependsOn buildAndroidJniIntel
+}
+
+task buildAndroidJniWithEncryption(group: 'build', description: 'Build the Android JNI shared library for all the supported platforms with encryption support') {
+    dependsOn buildAndroidJniArmWithEncryption
+    dependsOn buildAndroidJniArmv7aWithEncryption
+    dependsOn buildAndroidJniMipsWithEncryption
+    dependsOn buildAndroidJniIntelWithEncryption
 }
 
 task clean(group: 'build', description: 'Clean the make artifacts') << {
