@@ -4,6 +4,7 @@
  * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).
  * Fixed bug when doing queries on the elements of a RealmList, ie. like Realm.where(Foo.class).getBars().where().equalTo("name").
  * Throw NoSuchMethodError when RealmResults.indexOf() is called, since it's not implemented yet.
+ * Added support for standalone objects and custom constructors.
  * Adding more precise imports in proxy classes to avoid ambiguous references.
  * Improved handling of empty model classes in the annotation processor
  * Added support for executing a transaction with a closure using Realm.executeTransaction().

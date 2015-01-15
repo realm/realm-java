@@ -243,6 +243,22 @@ public class AllTypesRealmProxy extends AllTypes {
         reader.endObject();
     }
 
+
+
+    public static AllTypes copyToRealm(Realm realm, AllTypes object) {
+        AllTypes realmObject = realm.createObject(AllTypes.class);
+        realmObject.setColumnString(object.getColumnString());
+        realmObject.setColumnLong(object.getColumnLong());
+        realmObject.setColumnFloat(object.getColumnFloat());
+        realmObject.setColumnDouble(object.getColumnDouble());
+        realmObject.setColumnBoolean(object.isColumnBoolean());
+        if (object.getColumnDate() != null) {
+            realmObject.setColumnDate(object.getColumnDate());
+        }
+        realmObject.setColumnBinary(object.getColumnBinary());
+        return realmObject;
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("AllTypes = [");

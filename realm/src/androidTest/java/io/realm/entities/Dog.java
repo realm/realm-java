@@ -33,6 +33,13 @@ public class Dog extends RealmObject {
     private Date birthday;
     private Owner owner;
 
+    public Dog() {
+    }
+
+    public Dog(String name) {
+        this.name = name;
+    }
+
     public Owner getOwner() {
         return owner;
     }

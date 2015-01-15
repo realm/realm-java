@@ -18,22 +18,32 @@ package io.realm.examples.realmgridview;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmObject;
 import io.realm.RealmResults;
+import io.realm.internal.Row;
 
 public class GridViewExampleActivity extends Activity implements AdapterView.OnItemClickListener {
 
@@ -84,8 +94,6 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
     }
 
     private List<City> loadCities() {
-        List<City> items = new ArrayList<City>();
-
         // In this case we're loading from local assets.
         // NOTE: could alternatively easily load from network
         InputStream stream = null;
@@ -95,23 +103,34 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
             return null;
         }
 
-        JsonParser parser = new JsonParser();
-        JsonArray jsonArray = parser.parse(new InputStreamReader(stream)).getAsJsonArray();
+        // GSON can parse the data.
+        // Note there is a bug in GSON 2.3.1 that can cause it to StackOverflow when working with RealmObjects.
+        // To work around this, use the ExclusionStrategy below or downgrade to 1.7.1
+        // See more here: https://code.google.com/p/google-gson/issues/detail?id=440
+        Gson gson = new GsonBuilder()
+                .setExclusionStrategies(new ExclusionStrategy() {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f) {
+                        return f.getDeclaringClass().equals(RealmObject.class);
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz) {
+                        return false;
+                    }
+                })
+                .create();
+
+        JsonElement json = new JsonParser().parse(new InputStreamReader(stream));
+        List<City> cities = gson.fromJson(json, new TypeToken<List<City>>() {}.getType());
 
         // Open a transaction to store items into the realm
+        // Use copyToRealm() to convert the objects into proper RealmObjects managed by Realm.
         realm.beginTransaction();
-        for (JsonElement e : jsonArray) {
-            // Create a realm capable object
-            City realmCity = realm.createObject(City.class);
-            realmCity.setName(e.getAsJsonObject().get("name").getAsString());
-            realmCity.setVotes(e.getAsJsonObject().get("votes").getAsInt());
-            // Minor optimization to keep the new cities in a list
-            // so it doesn't have to be reloaded the first time
-            items.add(realmCity);
-        }
+        Collection<City> realmCities = realm.copyToRealm(cities);
         realm.commitTransaction();
 
-        return items;
+        return new ArrayList<City>(realmCities);
     }
 
     public void updateCities() {

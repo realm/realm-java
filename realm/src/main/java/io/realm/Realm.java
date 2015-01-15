@@ -39,6 +39,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +126,7 @@ public final class Realm implements Closeable {
     private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>(); // Map between generated class names and their implementation
     private final Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
     private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
+    private final Map<Class<?>, Method> copyObjectMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
@@ -722,22 +724,7 @@ public final class Realm implements Closeable {
         Table table;
         table = tables.get(clazz);
         if (table == null) {
-            String simpleClassName = simpleClassNames.get(clazz);
-            if (simpleClassName == null) {
-                simpleClassName = clazz.getSimpleName();
-                simpleClassNames.put(clazz, simpleClassName);
-            }
-            String generatedClassName = getProxyClassName(simpleClassName);
-
-            Class<?> generatedClass = generatedClasses.get(generatedClassName);
-            if (generatedClass == null) {
-                try {
-                    generatedClass = Class.forName(generatedClassName);
-                } catch (ClassNotFoundException e) {
-                    throw new RealmException("Could not find the generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
-                }
-                generatedClasses.put(generatedClassName, generatedClass);
-            }
+            Class<?> generatedClass = getProxyClass(clazz);
 
             Method method = initTableMethods.get(generatedClass);
             if (method == null) {
@@ -762,6 +749,28 @@ public final class Realm implements Closeable {
 
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
+    }
+
+    private Class<?> getProxyClass(Class<?> clazz) {
+
+        String simpleClassName = simpleClassNames.get(clazz);
+        if (simpleClassName == null) {
+            simpleClassName = clazz.getSimpleName();
+            simpleClassNames.put(clazz, simpleClassName);
+        }
+        String generatedClassName = getProxyClassName(simpleClassName);
+
+        Class<?> generatedClass = generatedClasses.get(generatedClassName);
+        if (generatedClass == null) {
+            try {
+                generatedClass = Class.forName(generatedClassName);
+            } catch (ClassNotFoundException e) {
+                throw new RealmException("Could not find the generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
+            }
+            generatedClasses.put(generatedClassName, generatedClass);
+        }
+
+        return generatedClass;
     }
 
     <E> void remove(Class<E> clazz, long objectIndex) {
@@ -833,6 +842,80 @@ public final class Realm implements Closeable {
         result.realm = this;
         return result;
     }
+
+    /**
+     * Copies a RealmObject to the Realm instance and returns the copy. It is important to notice
+     * that any further changes to the original RealmObject will not be reflected in the Realm copy.
+     *
+     * @param object {@link io.realm.RealmObject} to copy to the Realm.
+     * @return A managed RealmObject with its properties backed by the Realm.
+     *
+     * @throws io.realm.exceptions.RealmException if the RealmObject has already been added to the Realm.
+     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null}.
+     */
+    public <E extends RealmObject> E copyToRealm(E object) {
+        if (object == null) {
+            throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
+        }
+
+        // Object is already in this Realm
+        if (object.realm != null && object.realm.id == this.id) {
+            return object;
+        }
+
+        Class<?> generatedClass;
+        Class<?> objectClass;
+        if (object.realm != null) {
+            // This is already a proxy object from another Realm, get superclass instead (invariant as we don't support subclasses)
+            generatedClass = object.getClass();
+            objectClass = object.getClass().getSuperclass();
+        } else {
+            generatedClass = getProxyClass(object.getClass());
+            objectClass = object.getClass();
+        }
+
+        Method method = copyObjectMethods.get(generatedClass);
+        if (method == null) {
+            try {
+                method = generatedClass.getMethod("copyToRealm", new Class[] {Realm.class, objectClass});
+            } catch (NoSuchMethodException e) {
+                throw new RealmException("Could not find the copyToRealm() method in generated proxy class " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+            }
+            copyObjectMethods.put(generatedClass, method);
+        }
+
+        try {
+            Object result = method.invoke(null, this, object);
+            return (E) result;
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not execute the copyToRealm method : " + APT_NOT_EXECUTED_MESSAGE, e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class  " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+        }
+    }
+
+    /**
+     * Copies a collection of RealmObjects to the Realm instance and returns their copy. It is
+     * important to notice that any further changes to the original RealmObjects will not be
+     * reflected in the Realm copies.
+     *
+     * @param objects RealmObjects to copy to the Realm.
+     * @return A list of the the converted RealmObjects that all has their properties managed by the Realm.
+     *
+     * @throws io.realm.exceptions.RealmException if any of the objects has already been added to Realm.
+     * @throws java.lang.IllegalArgumentException if any of the elements in the input collection is {@code null}.
+     */
+    public <E extends RealmObject> List<E> copyToRealm(Iterable<E> objects) {
+        if (objects == null) new ArrayList<E>();
+
+        ArrayList<E> realmObjects = new ArrayList<E>();
+        for (E object : objects) {
+            realmObjects.add(copyToRealm(object));
+        }
+
+        return realmObjects;
+    }
+
 
     private static String getProxyClassName(String simpleClassName) {
         return "io.realm." + simpleClassName + "RealmProxy";
