@@ -570,7 +570,6 @@ public class RealmResultsTest extends AndroidTestCase {
             fail("Sorting by child object properties should result in a IllegalArgumentException");
         } catch (IllegalArgumentException ignore) {
         }
-
     }
 
     public void testSortWithNullThrows() {
@@ -583,7 +582,8 @@ public class RealmResultsTest extends AndroidTestCase {
         try {
             result.sort((String[])null, (boolean[])null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testWithEmptyRealmObjects() {
