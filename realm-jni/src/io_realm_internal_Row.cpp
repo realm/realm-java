@@ -320,4 +320,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeClose
     delete ROW(nativeRowPtr);
 }
 
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Row_nativeIsAttached
+  (JNIEnv *, jobject, jlong nativeRowPtr)
+{
+    return ROW(nativeRowPtr)->is_attached();
+}
 

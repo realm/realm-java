@@ -508,6 +508,9 @@ public class RealmProxyClassGenerator {
     private void emitToStringMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
+        writer.beginControlFlow("if (!isValid())");
+        writer.emitStatement("return \"Invalid object\"");
+        writer.endControlFlow();
         writer.emitStatement("StringBuilder stringBuilder = new StringBuilder(\"%s = [\")", className);
         for (int i = 0; i < fields.size(); i++) {
             VariableElement field = fields.get(i);

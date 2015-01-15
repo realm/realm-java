@@ -119,6 +119,9 @@ public class SimpleRealmProxy extends Simple {
 
     @Override
     public String toString() {
+        if (!isValid()) {
+            return "Invalid object";
+        }
         StringBuilder stringBuilder = new StringBuilder("Simple = [");
         stringBuilder.append("{name:");
         stringBuilder.append(getName());

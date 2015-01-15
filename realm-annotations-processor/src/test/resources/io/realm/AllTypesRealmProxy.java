@@ -261,6 +261,9 @@ public class AllTypesRealmProxy extends AllTypes {
 
     @Override
     public String toString() {
+        if (!isValid()) {
+            return "Invalid object";
+        }
         StringBuilder stringBuilder = new StringBuilder("AllTypes = [");
         stringBuilder.append("{columnString:");
         stringBuilder.append(getColumnString());
