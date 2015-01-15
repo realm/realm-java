@@ -358,12 +358,13 @@ public class RealmListTest extends AndroidTestCase {
     public void testRemoveByIndex() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
+        Dog dog5 = dogs.get(5);
 
         testRealm.beginTransaction();
         Dog removedDog = dogs.remove(5);
         testRealm.commitTransaction();
 
-        assertNull(removedDog);
+        assertEquals(dog5, removedDog);
         assertEquals(TEST_OBJECTS - 1, dogs.size());
     }
 

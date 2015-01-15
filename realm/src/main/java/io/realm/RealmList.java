@@ -156,8 +156,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E remove(int location) {
         if (managedMode) {
+            E removedItem = get(location);
             view.remove(location);
-            return null; // TODO Return the proper element not null
+            return removedItem;
         } else {
             return nonManagedList.remove(location);
         }
