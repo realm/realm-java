@@ -49,6 +49,11 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     /* above (...) is not needed if we only throw exceptions derived from std::exception */
 }
 
+void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr)
+{
+    ThrowException(env, exception, classStr, "");
+}
+
 void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr)
 {
     std::string message;

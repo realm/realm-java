@@ -60,7 +60,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
         ThrowException(env, IOFailed, string(fileName), string("Permission denied. ") + e.what()); \
     } \
     catch (util::File::NotFound&) { \
-        ThrowException(env, FileNotFound, string(fileName));    \
+        ThrowException(env, FileNotFound, string(fileName).data());    \
     } \
     catch (util::File::AccessError& e) { \
         ThrowException(env, FileAccessError, string(fileName), e.what()); \
@@ -117,7 +117,8 @@ enum ExceptionKind {
 };
 
 void ConvertException(JNIEnv* env, const char *file, int line);
-void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
+void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr="");
+void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr);
 
 jclass GetClass(JNIEnv* env, const char* classStr);
 
