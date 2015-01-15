@@ -20,9 +20,12 @@ import com.squareup.javawriter.JavaWriter;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.lang.Override;
+import java.lang.String;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -155,22 +158,41 @@ public class RealmProxyClassGenerator {
 
         writer.emitPackage(REALM_PACKAGE_NAME)
                 .emitEmptyLine();
-        writer.emitImports(
-                "android.util.JsonReader",
-                "android.util.JsonToken",
-                "io.realm.RealmObject",
-                "io.realm.internal.ColumnType",
-                "io.realm.internal.Table",
-                "io.realm.internal.ImplicitTransaction",
-                "io.realm.internal.LinkView",
-                "io.realm.internal.android.JsonUtils",
-                "java.io.IOException",
-                "java.util.*",
-                "org.json.JSONObject",
-                "org.json.JSONException",
-                "org.json.JSONArray",
-                packageName + ".*")
-                .emitEmptyLine();
+
+        ArrayList<String> imports = new ArrayList<String>();
+        imports.add("android.util.JsonReader");
+        imports.add("android.util.JsonToken");
+        imports.add("io.realm.RealmObject");
+        imports.add("io.realm.internal.ColumnType");
+        imports.add("io.realm.internal.Table");
+        imports.add("io.realm.internal.ImplicitTransaction");
+        imports.add("io.realm.internal.LinkView");
+        imports.add("io.realm.internal.android.JsonUtils");
+        imports.add("java.io.IOException");
+        imports.add("java.util.List");
+        imports.add("java.util.Arrays");
+        imports.add("java.util.Date");
+        imports.add("java.util.Map");
+        imports.add("java.util.HashMap");
+        imports.add("org.json.JSONObject");
+        imports.add("org.json.JSONException");
+        imports.add("org.json.JSONArray");
+        imports.add(String.format("%s.%s", packageName, className));
+
+        for (VariableElement field : fields) {
+            String fieldTypeName = "";
+            if (typeUtils.isAssignable(field.asType(), realmObject)) { // Links
+                fieldTypeName = field.asType().toString();
+            } else if (typeUtils.isAssignable(field.asType(), realmList)) { // LinkLists
+                fieldTypeName = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
+            }
+            if (fieldTypeName != "" && !imports.contains(fieldTypeName)) {
+                imports.add(fieldTypeName);
+            }
+        }
+        Collections.sort(imports);
+        writer.emitImports(imports);
+        writer.emitEmptyLine();
 
         // Begin the class definition
         writer.beginType(
@@ -591,9 +613,11 @@ public class RealmProxyClassGenerator {
             }
         }
 
-        writer.nextControlFlow("else");
-        writer.emitStatement("reader.skipValue()");
-        writer.endControlFlow();
+        if (fields.size() > 0) {
+            writer.nextControlFlow("else");
+            writer.emitStatement("reader.skipValue()");
+            writer.endControlFlow();
+        }
         writer.endControlFlow();
         writer.emitStatement("reader.endObject()");
         writer.endMethod();

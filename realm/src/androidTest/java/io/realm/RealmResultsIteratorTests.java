@@ -269,7 +269,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         Callable<Boolean> backgroundWorker = new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                Realm backgroundRealm = Realm.getInstance(getContext(), "test", false);
+                Realm backgroundRealm = Realm.getInstance(getContext(), "test");
                 backgroundRealm.beginTransaction();
                 RealmResults<AllTypes> backgroundResult = backgroundRealm.allObjects(AllTypes.class);
                 if (backgroundResult.size() != 2) {
