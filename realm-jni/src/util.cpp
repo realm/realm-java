@@ -27,7 +27,29 @@ using namespace std;
 using namespace tightdb;
 using namespace tightdb::util;
 
-void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr)
+void ConvertException(JNIEnv* env, const char *file, int line)
+{
+    std::ostringstream ss;
+    try {
+        throw;
+    }
+    catch (std::bad_alloc& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, OutOfMemory, ss.str());
+    }
+    catch (std::exception& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, Unspecified, ss.str());
+    }
+    catch (...) { \
+        TIGHTDB_ASSERT(false);
+        ss << "Exception in " << file << " line " << line;
+        ThrowException(env, RuntimeError, ss.str());
+    }
+    /* above (...) is not needed if we only throw exceptions derived from std::exception */
+}
+
+void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr)
 {
     std::string message;
     jclass jExceptionClass = NULL;

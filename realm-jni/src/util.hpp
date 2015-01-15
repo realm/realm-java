@@ -67,22 +67,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
     }
 
 #define CATCH_STD() \
-    catch (std::bad_alloc& e) { \
-        ThrowException(env, OutOfMemory, e.what() + std::string(" in ") + std::string(__FILE__) + \
-                                         std::string(" line ") + std::string(STRINGIZE(__LINE__))); \
-    } \
-    catch (std::exception& e) { \
-        ThrowException(env, Unspecified, e.what() + std::string(" in ") + std::string(__FILE__) + \
-                                         std::string(" line ") + std::string(STRINGIZE(__LINE__))); \
-    } \
     catch (...) { \
-        TIGHTDB_ASSERT(false); \
-        ThrowException(env, RuntimeError, std::string("Exception in ") + \
-                                          std::string(__FILE__) + std::string(" line ") \
-                                          + std::string(STRINGIZE(__LINE__))); \
+        ConvertException(env, __FILE__, __LINE__); \
     }
-    /* above (...) is not needed if we only throw exceptions derived from std::exception */
-
 
 template <typename T>
 std::string num_to_string(T pNumber)
@@ -129,9 +116,10 @@ enum ExceptionKind {
     RowInvalid = 13
 };
 
-extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
+void ConvertException(JNIEnv* env, const char *file, int line);
+void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
 
-extern jclass GetClass(JNIEnv* env, const char* classStr);
+jclass GetClass(JNIEnv* env, const char* classStr);
 
 
 // Debug trace
