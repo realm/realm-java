@@ -55,6 +55,9 @@ import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.android.DebugAndroidLogger;
+import io.realm.internal.android.ReleaseAndroidLogger;
+import io.realm.internal.log.RealmLog;
 
 
 /**
@@ -135,6 +138,10 @@ public final class Realm implements Closeable {
     // Package protected to be reachable by proxy classes
     static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
 
+    static {
+        RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
+    }
+
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
         if (sharedGroup == null) {
@@ -181,11 +188,16 @@ public final class Realm implements Closeable {
             sharedGroup.close();
             sharedGroup = null;
         }
-        localRefCount.put(id, references - 1);
-        referenceCount.set(localRefCount);
+
+        int refCount = references - 1;
+        if (refCount < 0) {
+            RealmLog.w("Calling close() on a Realm that is already closed: " + getPath());
+        }
+        localRefCount.put(id, Math.max(0, refCount));
 
         if (handler != null) {
             handlers.remove(handler);
+            handler = null;
         }
     }
 
@@ -229,6 +241,7 @@ public final class Realm implements Closeable {
         } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
             handler.removeCallbacksAndMessages(null);
             handlers.remove(handler);
+            handler = null;
         }
         this.autoRefresh = autoRefresh;
     }
@@ -418,7 +431,6 @@ public final class Realm implements Closeable {
 
         if (realm != null) {
             localRefCount.put(id, references + 1);
-            referenceCount.set(localRefCount);
             return realm;
         }
 
@@ -543,7 +555,6 @@ public final class Realm implements Closeable {
         }
 
         localRefCount.put(id, references + 1);
-        referenceCount.set(localRefCount);
         return realm;
     }
 
