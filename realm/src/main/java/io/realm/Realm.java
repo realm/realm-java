@@ -39,6 +39,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,9 @@ import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.android.DebugAndroidLogger;
+import io.realm.internal.android.ReleaseAndroidLogger;
+import io.realm.internal.log.RealmLog;
 
 
 /**
@@ -125,6 +129,7 @@ public final class Realm implements Closeable {
     private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>(); // Map between generated class names and their implementation
     private final Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
     private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
+    private final Map<Class<?>, Method> copyObjectMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
@@ -132,6 +137,10 @@ public final class Realm implements Closeable {
 
     // Package protected to be reachable by proxy classes
     static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
+
+    static {
+        RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
+    }
 
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
@@ -179,11 +188,16 @@ public final class Realm implements Closeable {
             sharedGroup.close();
             sharedGroup = null;
         }
-        localRefCount.put(id, references - 1);
-        referenceCount.set(localRefCount);
+
+        int refCount = references - 1;
+        if (refCount < 0) {
+            RealmLog.w("Calling close() on a Realm that is already closed: " + getPath());
+        }
+        localRefCount.put(id, Math.max(0, refCount));
 
         if (handler != null) {
             handlers.remove(handler);
+            handler = null;
         }
     }
 
@@ -227,6 +241,7 @@ public final class Realm implements Closeable {
         } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
             handler.removeCallbacksAndMessages(null);
             handlers.remove(handler);
+            handler = null;
         }
         this.autoRefresh = autoRefresh;
     }
@@ -256,39 +271,10 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     public static Realm getInstance(Context context) {
-        if (Looper.myLooper() != null) {
-            return Realm.getInstance(context, DEFAULT_REALM_NAME, null, true);
-        } else {
-            return Realm.getInstance(context, DEFAULT_REALM_NAME, null, false);
-        }
-    }
-
-    /**
-     * Realm static constructor for the default realm "default.realm".
-     * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
-     *
-     * @param context an Android context
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated with auto-refresh
-     *                                         in a Thread without a {@link android.os.Looper}
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public static Realm getInstance(Context context, boolean autoRefresh) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME, null, autoRefresh);
+        return Realm.getInstance(context, DEFAULT_REALM_NAME);
     }
 
     /**
@@ -303,65 +289,11 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, String fileName) {
-        if (Looper.myLooper() != null) {
-            return Realm.create(context.getFilesDir(), fileName, null, true);
-        } else {
-            return Realm.create(context.getFilesDir(), fileName, null, false);
-        }
-    }
-
-    /**
-     * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
-     *
-     * @param context  an Android context
-     * @param fileName the name of the file to save the Realm to
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated with auto-refresh
-     *                                         in a Thread without a {@link android.os.Looper}
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public static Realm getInstance(Context context, String fileName, boolean autoRefresh) {
-        return Realm.create(context.getFilesDir(), fileName, null, autoRefresh);
-    }
-
-    /**
-     * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
-     *
-     * @param context an Android context
-     * @param key     a 64-byte encryption key
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated with auto-refresh
-     *                                         in a Thread without a {@link android.os.Looper}
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public static Realm getInstance(Context context, byte[] key, boolean autoRefresh) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME, key, autoRefresh);
+        return Realm.getInstance(context, fileName, null);
     }
 
     /**
@@ -376,95 +308,117 @@ public final class Realm implements Closeable {
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, byte[] key) {
-        if (Looper.myLooper() != null) {
-            return Realm.getInstance(context, DEFAULT_REALM_NAME, key, true);
-        } else {
-            return Realm.getInstance(context, DEFAULT_REALM_NAME, key, false);
-        }
-    }
-
-
-
-    /**
-     * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
-     *
-     * @param context  an Android {@link android.content.Context}
-     * @param fileName the name of the file to save the Realm to
-     * @param key      a 64-byte encryption key
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
-     * @throws RealmException                Other errors
-     */
-    @Deprecated
-    public static Realm getInstance(Context context, String fileName, byte[] key, boolean autoRefresh) {
-        return Realm.create(context.getFilesDir(), fileName, key, autoRefresh);
+        return Realm.getInstance(context, DEFAULT_REALM_NAME, key);
     }
 
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
-     * @param writableFolder absolute path to a writable directory
-     * @param key            a 64-byte encryption key
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
+     * @param context an Android {@link android.content.Context}
+     * @param key     a 64-byte encryption key
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
     @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    public static Realm getInstance(File writableFolder, byte[] key, boolean autoRefresh) {
-        return Realm.create(writableFolder, DEFAULT_REALM_NAME, key, autoRefresh);
+    public static Realm getInstance(Context context, String fileName, byte[] key) {
+        return Realm.create(context.getFilesDir(), fileName, key);
     }
 
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
      *
-     * <strong>This constructor is now deprecated and will be removed in version 0.76.0.</strong>
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
-     * @param writableFolder absolute path to a writable directory
-     * @param filename       the name of the file to save the Realm to
-     * @param key            a 64-byte encryption key
-     * @param autoRefresh whether the Realm object and its derived objects (RealmResults and RealmObjects)
-     *                    should be automatically refreshed with the event loop (requires to be in a thread with a Looper)
+     * @param writeableFolder a File object representing a writeable folder
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
      *                                       must be migrated
      * @throws RealmIOException              Error when accessing underlying file
-     * @throws java.lang.IllegalStateException The Realm is being instantiated in a Thread without
-     *                                         a {@link android.os.Looper}
      * @throws RealmException                Other errors
      */
-    @Deprecated
-    public static Realm create(File writableFolder, String filename, byte[] key, boolean autoRefresh) {
-        String absolutePath = new File(writableFolder, filename).getAbsolutePath();
-        return createAndValidate(absolutePath, key, true, autoRefresh);
+    @SuppressWarnings("UnusedDeclaration")
+    public static Realm getInstance(File writeableFolder) {
+        return Realm.create(writeableFolder, DEFAULT_REALM_NAME, null);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
+     *
+     * @param writeableFolder a File object representing a writeable folder
+     * @param fileName the name of the Realm file
+     * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws RealmException                Other errors
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static Realm getInstance(File writeableFolder, String fileName) {
+        return Realm.create(writeableFolder, fileName, null);
+    }
+
+    /**
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
+     *
+     * @param writeableFolder a File object representing a writeable folder
+     * @param key     a 64-byte encryption key
+     * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws RealmException                Other errors
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static Realm getInstance(File writeableFolder, byte[] key) {
+        return Realm.create(writeableFolder, DEFAULT_REALM_NAME, key);
+    }
+
+    /**
+     * Realm static constructor.
+     * {link io.realm.close} must be called when you are done using the Realm instance.
+     *
+     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
+     *
+     * @param writeableFolder a File object representing a writeable folder
+     * @param fileName the name of the Realm file
+     * @param key     a 64-byte encryption key
+     * @return an instance of the Realm class
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
+     *                                       must be migrated
+     * @throws RealmIOException              Error when accessing underlying file
+     * @throws RealmException                Other errors
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public static Realm getInstance(File writeableFolder, String fileName, byte[] key) {
+        return Realm.create(writeableFolder, fileName, key);
+    }
+
+    private static Realm create(File writableFolder, String filename, byte[] key) {
+        String absolutePath = new File(writableFolder, filename).getAbsolutePath();
+        if (Looper.myLooper() != null) {
+            return createAndValidate(absolutePath, key, true, true);
+        } else {
+            return createAndValidate(absolutePath, key, true, false);
+        }
+    }
+
     private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
         int id = absolutePath.hashCode();
         Map<Integer, Integer> localRefCount = referenceCount.get();
@@ -477,7 +431,6 @@ public final class Realm implements Closeable {
 
         if (realm != null) {
             localRefCount.put(id, references + 1);
-            referenceCount.set(localRefCount);
             return realm;
         }
 
@@ -602,7 +555,6 @@ public final class Realm implements Closeable {
         }
 
         localRefCount.put(id, references + 1);
-        referenceCount.set(localRefCount);
         return realm;
     }
 
@@ -783,22 +735,7 @@ public final class Realm implements Closeable {
         Table table;
         table = tables.get(clazz);
         if (table == null) {
-            String simpleClassName = simpleClassNames.get(clazz);
-            if (simpleClassName == null) {
-                simpleClassName = clazz.getSimpleName();
-                simpleClassNames.put(clazz, simpleClassName);
-            }
-            String generatedClassName = getProxyClassName(simpleClassName);
-
-            Class<?> generatedClass = generatedClasses.get(generatedClassName);
-            if (generatedClass == null) {
-                try {
-                    generatedClass = Class.forName(generatedClassName);
-                } catch (ClassNotFoundException e) {
-                    throw new RealmException("Could not find the generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
-                }
-                generatedClasses.put(generatedClassName, generatedClass);
-            }
+            Class<?> generatedClass = getProxyClass(clazz);
 
             Method method = initTableMethods.get(generatedClass);
             if (method == null) {
@@ -823,6 +760,28 @@ public final class Realm implements Closeable {
 
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
+    }
+
+    private Class<?> getProxyClass(Class<?> clazz) {
+
+        String simpleClassName = simpleClassNames.get(clazz);
+        if (simpleClassName == null) {
+            simpleClassName = clazz.getSimpleName();
+            simpleClassNames.put(clazz, simpleClassName);
+        }
+        String generatedClassName = getProxyClassName(simpleClassName);
+
+        Class<?> generatedClass = generatedClasses.get(generatedClassName);
+        if (generatedClass == null) {
+            try {
+                generatedClass = Class.forName(generatedClassName);
+            } catch (ClassNotFoundException e) {
+                throw new RealmException("Could not find the generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
+            }
+            generatedClasses.put(generatedClassName, generatedClass);
+        }
+
+        return generatedClass;
     }
 
     <E> void remove(Class<E> clazz, long objectIndex) {
@@ -894,6 +853,80 @@ public final class Realm implements Closeable {
         result.realm = this;
         return result;
     }
+
+    /**
+     * Copies a RealmObject to the Realm instance and returns the copy. It is important to notice
+     * that any further changes to the original RealmObject will not be reflected in the Realm copy.
+     *
+     * @param object {@link io.realm.RealmObject} to copy to the Realm.
+     * @return A managed RealmObject with its properties backed by the Realm.
+     *
+     * @throws io.realm.exceptions.RealmException if the RealmObject has already been added to the Realm.
+     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null}.
+     */
+    public <E extends RealmObject> E copyToRealm(E object) {
+        if (object == null) {
+            throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
+        }
+
+        // Object is already in this Realm
+        if (object.realm != null && object.realm.id == this.id) {
+            return object;
+        }
+
+        Class<?> generatedClass;
+        Class<?> objectClass;
+        if (object.realm != null) {
+            // This is already a proxy object from another Realm, get superclass instead (invariant as we don't support subclasses)
+            generatedClass = object.getClass();
+            objectClass = object.getClass().getSuperclass();
+        } else {
+            generatedClass = getProxyClass(object.getClass());
+            objectClass = object.getClass();
+        }
+
+        Method method = copyObjectMethods.get(generatedClass);
+        if (method == null) {
+            try {
+                method = generatedClass.getMethod("copyToRealm", new Class[] {Realm.class, objectClass});
+            } catch (NoSuchMethodException e) {
+                throw new RealmException("Could not find the copyToRealm() method in generated proxy class " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+            }
+            copyObjectMethods.put(generatedClass, method);
+        }
+
+        try {
+            Object result = method.invoke(null, this, object);
+            return (E) result;
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not execute the copyToRealm method : " + APT_NOT_EXECUTED_MESSAGE, e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class  " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+        }
+    }
+
+    /**
+     * Copies a collection of RealmObjects to the Realm instance and returns their copy. It is
+     * important to notice that any further changes to the original RealmObjects will not be
+     * reflected in the Realm copies.
+     *
+     * @param objects RealmObjects to copy to the Realm.
+     * @return A list of the the converted RealmObjects that all has their properties managed by the Realm.
+     *
+     * @throws io.realm.exceptions.RealmException if any of the objects has already been added to Realm.
+     * @throws java.lang.IllegalArgumentException if any of the elements in the input collection is {@code null}.
+     */
+    public <E extends RealmObject> List<E> copyToRealm(Iterable<E> objects) {
+        if (objects == null) new ArrayList<E>();
+
+        ArrayList<E> realmObjects = new ArrayList<E>();
+        for (E object : objects) {
+            realmObjects.add(copyToRealm(object));
+        }
+
+        return realmObjects;
+    }
+
 
     private static String getProxyClassName(String simpleClassName) {
         return "io.realm." + simpleClassName + "RealmProxy";
