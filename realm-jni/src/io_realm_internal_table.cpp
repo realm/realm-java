@@ -143,7 +143,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeUpdateFromSpec(
     JNIEnv* env, jobject, jlong nativeTablePtr, jobject jTableSpec)
 {
     Table* pTable = TBL(nativeTablePtr);
-    TR((env, "nativeUpdateFromSpec(tblPtr %x, spec %x)\n", pTable, jTableSpec));
+    TR("nativeUpdateFromSpec(tblPtr %p, spec %p)", VOID_PTR(pTable), VOID_PTR(jTableSpec))
     if (!TABLE_VALID(env, pTable))
         return;
     if (pTable->has_shared_type()) {
@@ -163,7 +163,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_Table_nativeGetTableSpec(
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
 
-    TR((env, "nativeGetTableSpec(table %x)\n", nativeTablePtr));
+    TR_ENTER_PTR(nativeTablePtr)
     static jmethodID jTableSpecConsId = GetTableSpecMethodID(env, "<init>", "()V");
     if (jTableSpecConsId) {
         try {
@@ -295,7 +295,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveLast(
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlong rowIndex)
 {
-    if (!TBL_AND_ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, true))
+    if (!TBL_AND_ROW_INDEX_VALID_OFFSET(env, TBL(nativeTablePtr), rowIndex, false))
         return;
     try {
         TBL(nativeTablePtr)->move_last_over(S(rowIndex));
@@ -392,8 +392,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertSubtable(
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
         return;
 
-    TR((env, "nativeInsertSubtable(jTable:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld)\n",
-       jTable, nativeTablePtr,  columnIndex, rowIndex));
+    TR("nativeInsertSubtable(jTable:%p, nativeTablePtr: %p, colIdx: %lld, rowIdx: %lld)",
+        VOID_PTR(jTable), VOID_PTR(nativeTablePtr),  S64(columnIndex), S64(rowIndex))
     try {
         TBL(nativeTablePtr)->insert_subtable( S(columnIndex), S(rowIndex));
     } CATCH_STD()
@@ -538,8 +538,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtable(
     try {
         Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr),
             S(columnIndex), S(rowIndex)));
-        TR((env, "nativeGetSubtable(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
-            jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubtable));
+        TR("nativeGetSubtable(jTableBase:%p, nativeTablePtr: %p, colIdx: %lld, rowIdx: %lld) : %p",
+            VOID_PTR(jTableBase), VOID_PTR(nativeTablePtr), S64(columnIndex), S64(rowIndex), VOID_PTR(pSubtable))
         return (jlong)pSubtable;
     } CATCH_STD()
     return 0;
@@ -553,8 +553,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableDuringInse
     try {
         Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr_during_insert(
             TBL(nativeTablePtr), S(columnIndex), S(rowIndex)));
-        TR((env, "nativeGetSubtableDuringInsert(jTableBase:%x, nativeTablePtr: %x, colIdx: %lld, rowIdx: %lld) : %x\n",
-            jTableBase, nativeTablePtr, columnIndex, rowIndex, pSubtable));
+        TR("nativeGetSubtableDuringInsert(jTableBase:%p, nativeTablePtr: %p, colIdx: %lld, rowIdx: %lld) : %p",
+           VOID_PTR(jTableBase), VOID_PTR(nativeTablePtr), S64(columnIndex), S64(rowIndex), VOID_PTR(pSubtable))
         return (jlong)pSubtable;
     } CATCH_STD()
     return 0;
@@ -1207,14 +1207,21 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return 0;
     int colType = pTable->get_column_type( S(columnIndex) );
-    if (colType != type_Int && colType != type_Bool && colType != type_DateTime) {
-        ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
-        return 0;
+    switch (colType) {
+        case type_Int:
+        case type_Bool:
+        case type_DateTime:
+        case type_String:
+        case type_Double:
+        case type_Float:
+            try {
+                TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
+                return reinterpret_cast<jlong>(pTableView);
+            } CATCH_STD()
+        default:
+            ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
+            return 0;
     }
-    try {
-        TableView* pTableView = new TableView( pTable->get_sorted_view(S(columnIndex), ascending != 0 ? true : false) );
-        return reinterpret_cast<jlong>(pTableView);
-    } CATCH_STD()
     return 0;
 }
 
@@ -1231,11 +1238,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeOptimize(
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeGetName(
     JNIEnv *env, jobject, jlong nativeTablePtr)
 {
-    Table* table = TBL(nativeTablePtr);
-    if (!TABLE_VALID(env, table))
-        return NULL;
-    const string str = table->get_name();
-    return to_jstring(env, str);
+    try {
+        Table* table = TBL(nativeTablePtr);
+        if (!TABLE_VALID(env, table))
+            return NULL;
+        const string str = table->get_name();
+        return to_jstring(env, str);
+    } CATCH_STD()
+    return NULL;
 }
 
 
@@ -1305,15 +1315,15 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClose(
-    JNIEnv* env, jclass, jlong nativeTablePtr)
+    JNIEnv*, jclass, jlong nativeTablePtr)
 {
-    TR((env, "nativeClose(nativeTablePtr: %x)\n", nativeTablePtr));
+    TR_ENTER_PTR(nativeTablePtr)
     LangBindHelper::unbind_table_ptr(TBL(nativeTablePtr));
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv* env, jobject jTable)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv *env, jobject)
 {
-    TR((env, "CreateNative(jTable: %x)\n", jTable));
+    TR_ENTER()
     try {
         return reinterpret_cast<jlong>(LangBindHelper::new_table());
     } CATCH_STD()

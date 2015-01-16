@@ -1,4 +1,4 @@
-ext.coreVersion = '0.86.0'
+ext.coreVersion = '0.87.5'
 
 buildscript {
     repositories {
@@ -95,10 +95,10 @@ task buildAndroidJniArm {
                 'make',
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+                "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=-mthumb',
                 'BASE_DENOM=arm',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion}",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-arm.so'
             ]
@@ -125,10 +125,10 @@ task buildAndroidJniArmv7a {
                 'make',
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+                "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=-mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16',
                 'BASE_DENOM=arm-v7a',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion}",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-arm-v7a.so'
             ]
@@ -155,10 +155,10 @@ task buildAndroidJniMips {
                 'make',
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+                "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=',
                 'BASE_DENOM=mips',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-mips.so'
             ]
@@ -185,10 +185,10 @@ task buildAndroidJniIntel {
                 'make',
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+                "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
                 'CFLAGS_ARCH=',
                 'BASE_DENOM=x86',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-x86.so'
             ]

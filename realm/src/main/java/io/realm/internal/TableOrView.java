@@ -27,6 +27,13 @@ public interface TableOrView {
 
     void clear();
 
+    /**
+     * Returns the table
+     *
+     * @return
+     */
+    Table getTable();
+
     void close();
 
     /**
@@ -369,4 +376,11 @@ public interface TableOrView {
 
     public Table pivot(long stringCol, long intCol, PivotType pivotType);
 
+    /**
+     * Syncs the tableview with the underlying table data. It is not required to call this
+     * explicitly, all other API methods will automatically sync the view as well.
+     *
+     * @return Version number for the updated tableview.
+     */
+    public long sync();
 }

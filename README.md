@@ -26,7 +26,7 @@ Prerequisites:
 * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
 * Download & install the Android SDK, **Android 4.4W (API 20)** (for example through Android Studio’s **Android SDK Manager**)
 * _Also_ download & install the Android SDK, **Android 4.4.2 (API 19)** (for example through Android Studio’s **Android SDK Manager**)
-* Download the **Android NDK (>= r9d)**. For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
+* Download the **Android NDK (= r9d)** (currently only **GCC 4.6** can be used due to a linker error on later versions). For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
 * Add a `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
 
     ```
@@ -53,7 +53,7 @@ Generating the Javadoc using the command above will report a failure (1 error, 3
 
 Whether you find a bug, typo or an API call that could be clarified, please [file an issue](https://github.com/realm/realm-java/issues) on our GitHub repository.
 
-When filing an issue, please provide as much of the following information as possible in order to help others fix it:
+When filing an issue, please provide as much of the following information as possible in order to help us fix it:
 
 1. **Goals**
 2. **Expected results**
@@ -75,7 +75,7 @@ The underlying core is available under the [Realm Core Binary License](LICENSE#L
 
 ## Feedback
 
-**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm), announce your app on [our mailing-list](https://groups.google.com/forum/#!forum/realm-java), or email [info@realm.io](mailto:info@realm.io) to let us know about it!_**
+**_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm), announce your app on [our mailing-list](https://groups.google.com/forum/#!forum/realm-java), or email [help@realm.io](mailto:help@realm.io) to let us know about it!_**
 
 **_And if you don't like it, please let us know what you would like improved, so we can fix it!_**
 

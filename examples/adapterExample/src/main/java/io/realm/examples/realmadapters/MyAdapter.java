@@ -28,8 +28,8 @@ import io.realm.examples.realmadapters.models.TimeStamp;
 
 public class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapter {
 
-    private class MyViewHolder {
-        TextView tvTimeStamp;
+    private static class ViewHolder {
+        TextView timestamp;
     }
 
     public MyAdapter(Context context, int resId, RealmResults<TimeStamp> realmResults, boolean automaticUpdate) {
@@ -38,23 +38,19 @@ public class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapte
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        MyViewHolder mViewHolder;
+        ViewHolder viewHolder;
         if (convertView == null) {
-            convertView = inflater.inflate(android.R.layout.simple_list_item_1, null);
-            mViewHolder = new MyViewHolder();
-            convertView.setTag(mViewHolder);
+            convertView = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+            viewHolder = new ViewHolder();
+            viewHolder.timestamp = (TextView) convertView.findViewById(android.R.id.text1);
+            convertView.setTag(viewHolder);
         } else {
-            mViewHolder = (MyViewHolder) convertView.getTag();
+            viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        mViewHolder.tvTimeStamp = detail(convertView, android.R.id.text1, realmResults.get(position).getTimeStamp());
+        TimeStamp item = realmResults.get(position);
+        viewHolder.timestamp.setText(item.getTimeStamp());
         return convertView;
-    }
-
-    private TextView detail(View v, int resId, String text) {
-        TextView tv = (TextView) v.findViewById(resId);
-        tv.setText(text);
-        return tv;
     }
 
     public RealmResults<TimeStamp> getRealmResults() {

@@ -1,67 +1,59 @@
-/*
- * Copyright 2014 Realm Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package io.realm;
 
-import io.realm.Realm;
-import io.realm.RealmList;
+import android.util.JsonReader;
+import android.util.JsonToken;
 import io.realm.RealmObject;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
-import io.realm.internal.Row;
 import io.realm.internal.Table;
-import java.util.*;
-import some.test.*;
+import io.realm.internal.android.JsonUtils;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import some.test.Booleans;
 
 public class BooleansRealmProxy extends Booleans {
 
     @Override
     public boolean isDone() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (boolean) row.getBoolean(Realm.columnIndices.get("Booleans").get("done"));
     }
 
     @Override
     public void setDone(boolean value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setBoolean(Realm.columnIndices.get("Booleans").get("done"), (boolean) value);
     }
 
     @Override
     public boolean isReady() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (boolean) row.getBoolean(Realm.columnIndices.get("Booleans").get("isReady"));
     }
 
     @Override
     public void setReady(boolean value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setBoolean(Realm.columnIndices.get("Booleans").get("isReady"), (boolean) value);
     }
 
     @Override
     public boolean ismCompleted() {
-        realm.assertThread();
+        realm.checkIfValid();
         return (boolean) row.getBoolean(Realm.columnIndices.get("Booleans").get("mCompleted"));
     }
 
     @Override
     public void setmCompleted(boolean value) {
-        realm.assertThread();
+        realm.checkIfValid();
         row.setBoolean(Realm.columnIndices.get("Booleans").get("mCompleted"), (boolean) value);
     }
 
@@ -112,28 +104,76 @@ public class BooleansRealmProxy extends Booleans {
         return Arrays.asList("done", "isReady", "mCompleted");
     }
 
+    void populateUsingJsonObject(JSONObject json)
+            throws JSONException {
+        if (json.has("done")) {
+            setDone((boolean) json.getBoolean("done"));
+        }
+        if (json.has("isReady")) {
+            setReady((boolean) json.getBoolean("isReady"));
+        }
+        if (json.has("mCompleted")) {
+            setmCompleted((boolean) json.getBoolean("mCompleted"));
+        }
+    }
+
+    void populateUsingJsonStream(JsonReader reader)
+            throws IOException {
+        reader.beginObject();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            if (name.equals("done") && reader.peek() != JsonToken.NULL) {
+                setDone((boolean) reader.nextBoolean());
+            } else if (name.equals("isReady")  && reader.peek() != JsonToken.NULL) {
+                setReady((boolean) reader.nextBoolean());
+            } else if (name.equals("mCompleted")  && reader.peek() != JsonToken.NULL) {
+                setmCompleted((boolean) reader.nextBoolean());
+            } else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
+    }
+
+    public static Booleans copyToRealm(Realm realm, Booleans object) {
+        Booleans realmObject = realm.createObject(Booleans.class);
+        realmObject.setDone(object.isDone());
+        realmObject.setReady(object.isReady());
+        realmObject.setmCompleted(object.ismCompleted());
+        return realmObject;
+    }
+
     @Override
     public String toString() {
+        if (!isValid()) {
+            return "Invalid object";
+        }
         StringBuilder stringBuilder = new StringBuilder("Booleans = [");
         stringBuilder.append("{done:");
         stringBuilder.append(isDone());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
         stringBuilder.append("{isReady:");
         stringBuilder.append(isReady());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
         stringBuilder.append("{mCompleted:");
         stringBuilder.append(ismCompleted());
-        stringBuilder.append("} ");
+        stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();
     }
 
     @Override
     public int hashCode() {
+        String realmName = realm.getPath();
+        String tableName = row.getTable().getName();
+        long rowIndex = row.getIndex();
+
         int result = 17;
-        result = 31 * result + (isDone() ? 1 : 0);
-        result = 31 * result + (isReady() ? 1 : 0);
-        result = 31 * result + (ismCompleted() ? 1 : 0);
+        result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
+        result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0);
+        result = 31 * result + (int) (rowIndex ^ (rowIndex >>> 32));
         return result;
     }
 
@@ -142,9 +182,17 @@ public class BooleansRealmProxy extends Booleans {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BooleansRealmProxy aBooleans = (BooleansRealmProxy)o;
-        if (isDone() != aBooleans.isDone()) return false;
-        if (isReady() != aBooleans.isReady()) return false;
-        if (ismCompleted() != aBooleans.ismCompleted()) return false;
+
+        String path = realm.getPath();
+        String otherPath = aBooleans.realm.getPath();
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
+
+        String tableName = row.getTable().getName();
+        String otherTableName = aBooleans.row.getTable().getName();
+        if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
+
+        if (row.getIndex() != aBooleans.row.getIndex()) return false;
+
         return true;
     }
 

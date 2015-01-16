@@ -28,7 +28,7 @@ class TableQuery : public tightdb::Query {
     std::vector<size_t> subtables;  // holds subtable column indeces 
 
 public:
-    TableQuery(const Query& copy) : tightdb::Query(copy) {};
+    TableQuery(const Query& copy) : tightdb::Query(copy, tightdb::Query::TCopyExpressionTag{}) {};
  
     void push_subtable(size_t index) {
         subtables.push_back(index);

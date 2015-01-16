@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.14.0'
+        classpath 'com.android.tools.build:gradle:1.0.0'
         classpath 'de.undercouch:gradle-download-task:1.0'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5' // Version 0.6 seems to require gradle 2.0+

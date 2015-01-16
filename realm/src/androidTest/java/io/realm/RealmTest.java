@@ -18,10 +18,17 @@ package io.realm;
 import android.content.Context;
 import android.test.AndroidTestCase;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -30,34 +37,56 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.Owner;
+import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 
+import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
 public class RealmTest extends AndroidTestCase {
 
-    protected final static int TEST_DATA_SIZE = 159;
+    protected final static int TEST_DATA_SIZE = 10;
 
     protected Realm testRealm;
 
     protected List<String> columnData = new ArrayList<String>();
 
+    private final static String FIELD_STRING = "columnString";
+    private final static String FIELD_LONG = "columnLong";
+    private final static String FIELD_FLOAT = "columnFloat";
+    private final static String FIELD_DOUBLE = "columnDouble";
+    private final static String FIELD_BOOLEAN = "columnBoolean";
+    private final static String FIELD_DATE = "columnDate";
+
     protected void setColumnData() {
-        columnData.add(0, "columnBoolean");
-        columnData.add(1, "columnDate");
-        columnData.add(2, "columnDouble");
-        columnData.add(3, "columnFloat");
-        columnData.add(4, "columnString");
-        columnData.add(5, "columnLong");
+        columnData.add(0, FIELD_BOOLEAN);
+        columnData.add(1, FIELD_DATE);
+        columnData.add(2, FIELD_DOUBLE);
+        columnData.add(3, FIELD_FLOAT);
+        columnData.add(4, FIELD_STRING);
+        columnData.add(5, FIELD_LONG);
     }
 
     @Override
     protected void setUp() throws Exception {
         Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
+   }
 
+    @Override
+    protected void tearDown() throws Exception {
+        if (testRealm != null) {
+            testRealm.close();
+        }
+    }
+
+    private void populateTestRealm(int objects) {
         testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
-        for (int i = 0; i < TEST_DATA_SIZE; ++i) {
+        testRealm.allObjects(AllTypes.class).clear();
+        testRealm.allObjects(NonLatinFieldNames.class).clear();
+        for (int i = 0; i < objects; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
@@ -66,251 +95,347 @@ public class RealmTest extends AndroidTestCase {
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
+            NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
+            nonLatinFieldNames.set델타(i);
+            nonLatinFieldNames.setΔέλτα(i);
+            nonLatinFieldNames.set베타(1.234567f + i);
+            nonLatinFieldNames.setΒήτα(1.234567f + i);
         }
         testRealm.commitTransaction();
     }
 
-
-    private final static int BACKGROUND_COMMIT_TEST_DATA_SET_SIZE = 5;
+    private void populateTestRealm() {
+        populateTestRealm(TEST_DATA_SIZE);
+    }
 
 
     public void testRealmCache() {
-        assertEquals(testRealm, Realm.getInstance(getContext()));
+        Realm newRealm = Realm.getInstance(getContext());
+        assertEquals(testRealm, newRealm);
+        newRealm.close();
+    }
+
+    public void testInternalRealmChangedHandlersRemoved() {
+        final String REALM_NAME = "test-internalhandlers";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Realm.handlers.clear(); // Make sure that handlers from other unit tests doesn't interfere.
+
+        // Open and close first instance of a Realm
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(getContext(), REALM_NAME);
+            assertEquals(1, Realm.handlers.size());
+            realm.close();
+
+            // All Realms closed. No handlers should be alive.
+            assertEquals(0, Realm.handlers.size());
+
+            // Open instance the 2nd time. Old handler should now be gone
+            realm = Realm.getInstance(getContext(), REALM_NAME);
+            assertEquals(1, Realm.handlers.size());
+            realm.close();
+
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
+        }
     }
 
     public void testShouldCreateRealm() {
-        Realm realm = Realm.getInstance(getContext());
-        assertNotNull("Realm.getInstance unexpectedly returns null", realm);
-        assertTrue("Realm.getInstance does not contain expected table", realm.contains(AllTypes.class));
+        assertNotNull("Realm.getInstance unexpectedly returns null", testRealm);
+        assertTrue("Realm.getInstance does not contain expected table", testRealm.contains(AllTypes.class));
     }
 
     public void testShouldNotFailCreateRealmWithNullContext() {
-        Context c = null;  // throws when c.getDirectory() is called; has nothing to do with Realm
-
+        Realm realm = null;
         try {
-            Realm realm = Realm.getInstance(c);
+            realm = Realm.getInstance((Context) null); // throws when c.getDirectory() is called;
+            // has nothing to do with Realm
             fail("Should throw an exception");
-        } catch (NullPointerException e) {
+        } catch (NullPointerException ignore) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
         }
-
     }
 
     // Table getTable(Class<?> clazz)
     public void testShouldGetTable() {
         Table table = testRealm.getTable(AllTypes.class);
-        assertNotNull("getTable is returning a null Table object", table);
-        assertEquals("Unexpected query result after getTable", TEST_DATA_SIZE, table.count(table.getColumnIndex("columnDouble"), 3.1415));
+        assertNotNull(table);
     }
 
     // <E> void remove(Class<E> clazz, long objectIndex)
     public void testShouldRemoveRow() {
-
+        populateTestRealm();
         testRealm.beginTransaction();
         testRealm.remove(AllTypes.class, 0);
         testRealm.commitTransaction();
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        assertEquals("Realm.delete has not deleted record correctly", TEST_DATA_SIZE - 1, resultList.size());
-
+        assertEquals(TEST_DATA_SIZE - 1, resultList.size());
     }
 
     // <E extends RealmObject> E get(Class<E> clazz, long rowIndex)
     public void testShouldGetObject() {
-
+        populateTestRealm();
         AllTypes allTypes = testRealm.get(AllTypes.class, 0);
-        assertNotNull("get has returned null object", allTypes);
-        assertEquals("get has returned wrong object", "test data 0", allTypes.getColumnString());
+        assertNotNull(allTypes);
+        assertEquals("test data 0", allTypes.getColumnString());
     }
 
     // boolean contains(Class<?> clazz)
     public void testShouldContainTable() {
         testRealm.beginTransaction();
-        Dog dog = testRealm.createObject(Dog.class);
+        testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         assertTrue("contains returns false for newly created table", testRealm.contains(Dog.class));
-    }
-
-    // boolean contains(Class<?> clazz)
-    public void testShouldNotContainTable() {
-
         assertFalse("contains returns true for non-existing table", testRealm.contains(RealmTest.class));
     }
 
     // <E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
     public void testShouldReturnResultSet() {
-
+        populateTestRealm();
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-
-        assertEquals("Realm.get is returning wrong number of objects", TEST_DATA_SIZE, resultList.size());
+        assertEquals(TEST_DATA_SIZE, resultList.size());
     }
 
     // Note that this test is relying on the values set while initializing the test dataset
     public void testQueriesResults() throws IOException {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("columnLong", 33).findAll();
-        assertEquals("ResultList.where not returning expected result", 1, resultList.size());
-
-        resultList = testRealm.where(AllTypes.class).equalTo("columnLong", 3333).findAll();
-        assertEquals("ResultList.where not returning expected result", 0, resultList.size());
-
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0").findAll();
+        populateTestRealm(159);
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_LONG, 33).findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "test data 0", RealmQuery.CASE_INSENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_LONG, 3333).findAll();
+        assertEquals(0, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "Test data 0", RealmQuery.CASE_SENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0", RealmQuery.CASE_INSENSITIVE).findAll();
+        assertEquals(1, resultList.size());
+
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Test data 0", RealmQuery.CASE_SENSITIVE).findAll();
         assertEquals(0, resultList.size());
     }
 
     public void testQueriesWithDataTypes() throws IOException {
-        RealmResults<AllTypes> resultList = null;
+        populateTestRealm();
         setColumnData();
 
         for (int i = 0; i < columnData.size(); i++) {
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), true).findAll();
-                    if (i != 0) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                testRealm.where(AllTypes.class).equalTo(columnData.get(i), true).findAll();
+                if (i != 0) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException ignored) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), new Date()).findAll();
-                    if (i != 1) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                testRealm.where(AllTypes.class).equalTo(columnData.get(i), new Date()).findAll();
+                if (i != 1) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException ignored) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.37d).findAll();
-                    if (i != 2) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.37d).findAll();
+                if (i != 2) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException ignored) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.3711f).findAll();
-                    if (i != 3) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                testRealm.where(AllTypes.class).equalTo(columnData.get(i), 13.3711f).findAll();
+                if (i != 3) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException ignored) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), "test").findAll();
-                    if (i != 4) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                testRealm.where(AllTypes.class).equalTo(columnData.get(i), "test").findAll();
+                if (i != 4) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException ignored) {
+            }
 
-                try {
-                    resultList = testRealm.where(AllTypes.class).equalTo(columnData.get(i), 1337).findAll();
-                    if (i != 5) {
-                        fail("Realm.where should fail with illegal argument");
-                    }
-                } catch (IllegalArgumentException e) {
+            try {
+                testRealm.where(AllTypes.class).equalTo(columnData.get(i), 1337).findAll();
+                if (i != 5) {
+                    fail("Realm.where should fail with illegal argument");
                 }
+            } catch (IllegalArgumentException ignored) {
             }
         }
+    }
 
     public void testQueriesFailWithInvalidDataTypes() throws IOException {
-        RealmResults<AllTypes> resultList = null;
-
         try {
-            resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", 33).findAll();
+            testRealm.where(AllTypes.class).equalTo("invalidcolumnname", 33).findAll();
             fail("Invalid field name");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         try {
-            resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", "test").findAll();
+            testRealm.where(AllTypes.class).equalTo("invalidcolumnname", "test").findAll();
             fail("Invalid field name");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         try {
-            resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", true).findAll();
+            testRealm.where(AllTypes.class).equalTo("invalidcolumnname", true).findAll();
             fail("Invalid field name");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         try {
-            resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415d).findAll();
+            testRealm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415d).findAll();
             fail("Invalid field name");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         try {
-            resultList = testRealm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415f).findAll();
+            testRealm.where(AllTypes.class).equalTo("invalidcolumnname", 3.1415f).findAll();
             fail("Invalid field name");
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
 
     public void testQueriesFailWithNullQueryValue() throws IOException {
-        RealmResults<AllTypes> resultList = null;
-
-        String nullString = null;
-        Float nullFloat = null;
-        Long nullLong = null;
-        Boolean nullBoolean = null;
-
         try {
-            resultList = testRealm.where(AllTypes.class).equalTo("columnString", nullString).findAll();
+            testRealm.where(AllTypes.class).equalTo(FIELD_STRING, (String) null).findAll();
             fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException e) {
-        }
-
-        try {
-            resultList = testRealm.where(AllTypes.class).equalTo("columnLong", nullLong).findAll();
-            fail("Realm.where should fail with illegal argument");
-
-        } catch (IllegalArgumentException e) {
-        } catch (NullPointerException e) {
-        }
-
-        try {
-            resultList = testRealm.where(AllTypes.class).equalTo("columnBoolean", nullBoolean).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException e) {
-        } catch (NullPointerException e) {
-        }
-
-        try {
-            resultList = testRealm.where(AllTypes.class).equalTo("columnFloat", nullFloat).findAll();
-            fail("Realm.where should fail with illegal argument");
-        } catch (IllegalArgumentException e) {
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
     // <E extends RealmObject> RealmTableOrViewList<E> allObjects(Class<E> clazz)
     public void testShouldReturnTableOrViewList() {
+        populateTestRealm();
         RealmResults<AllTypes> resultList = testRealm.allObjects(AllTypes.class);
         assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
     }
 
+    public void testAllObjectsSorted() {
+        populateTestRealm();
+        RealmResults<AllTypes> sortedList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, RealmResults.SORT_ORDER_ASCENDING);
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals("test data 0", sortedList.first().getColumnString());
+
+        RealmResults<AllTypes> reverseList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        assertEquals(TEST_DATA_SIZE, reverseList.size());
+        assertEquals("test data 0", reverseList.last().getColumnString());
+
+        try {
+            RealmResults<AllTypes> none = testRealm.allObjectsSorted(AllTypes.class, "invalid", RealmResults.SORT_ORDER_ASCENDING);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+    }
+
+    public void testSortTwoFields() {
+        io.realm.TestHelper.populateForMultiSort(testRealm);
+
+        RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
+                new String[]{FIELD_STRING, FIELD_LONG},
+                new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+
+        assertEquals(3, results1.size());
+
+        assertEquals("Adam", results1.get(0).getColumnString());
+        assertEquals(4, results1.get(0).getColumnLong());
+
+        assertEquals("Adam", results1.get(1).getColumnString());
+        assertEquals(5, results1.get(1).getColumnLong());
+
+        assertEquals("Brian", results1.get(2).getColumnString());
+        assertEquals(4, results1.get(2).getColumnLong());
+
+        RealmResults<AllTypes> results2 = testRealm.allObjectsSorted(AllTypes.class,
+                new String[]{FIELD_LONG, FIELD_STRING},
+                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+
+        assertEquals(3, results2.size());
+
+        assertEquals("Adam", results2.get(0).getColumnString());
+        assertEquals(4, results2.get(0).getColumnLong());
+
+        assertEquals("Brian", results2.get(1).getColumnString());
+        assertEquals(4, results2.get(1).getColumnLong());
+
+        assertEquals("Adam", results2.get(2).getColumnString());
+        assertEquals(5, results2.get(2).getColumnLong());
+    }
+
+    public void testSortMultiFailures() {
+        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+
+        // zero fields specified
+        try {
+            testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new boolean[]{});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // number of fields and sorting orders don't match
+        try {
+            testRealm.allObjectsSorted(AllTypes.class,
+                    new String[]{FIELD_STRING},
+                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // null is not allowed
+        try {
+            testRealm.allObjectsSorted(AllTypes.class, null, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+        try {
+            testRealm.allObjectsSorted(AllTypes.class, new String[]{FIELD_STRING}, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // non-existing field name
+        try {
+            testRealm.allObjectsSorted(AllTypes.class,
+                    new String[]{FIELD_STRING, "dont-exist"},
+                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+    }
+
+    public void testSortSingleField() {
+        populateTestRealm();
+        RealmResults<AllTypes> sortedList = testRealm.allObjectsSorted(AllTypes.class,
+                new String[]{FIELD_LONG},
+                new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
+        assertEquals(0, sortedList.last().getColumnLong());
+    }
+
     // void beginTransaction()
     public void testBeginTransaction() throws IOException {
+        populateTestRealm();
 
         testRealm.beginTransaction();
-
         AllTypes allTypes = testRealm.createObject(AllTypes.class);
         allTypes.setColumnFloat(3.1415f);
         allTypes.setColumnString("a unique string");
         testRealm.commitTransaction();
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
+        assertEquals(TEST_DATA_SIZE + 1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo("columnString", "a unique string").findAll();
-        assertEquals("Change has not been committed correctly", 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).equalTo("columnFloat", 3.1415f).findAll();
-        assertEquals("Change has not been committed", 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "a unique string").findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 3.1415f).findAll();
+        assertEquals(1, resultList.size());
     }
 
     public void testNestedTransaction() {
@@ -331,12 +456,11 @@ public class RealmTest extends AndroidTestCase {
     }
 
     // Starting a transaction on the wrong thread will fail
-    public boolean transactionMethodWrongThread(final TransactionMethod method) throws InterruptedException, ExecutionException {
-        final Realm realm = Realm.getInstance(getContext());
-
+    private boolean transactionMethodWrongThread(final TransactionMethod method) throws InterruptedException,
+            ExecutionException {
         if (method != TransactionMethod.METHOD_BEGIN) {
-            realm.beginTransaction();
-            Dog dog = realm.createObject(Dog.class); // FIXME: Empty transactions cannot be cancelled
+            testRealm.beginTransaction();
+            testRealm.createObject(Dog.class); // FIXME: Empty transactions cannot be cancelled
         }
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -345,13 +469,13 @@ public class RealmTest extends AndroidTestCase {
                 try {
                     switch (method) {
                         case METHOD_BEGIN:
-                            realm.beginTransaction();
+                            testRealm.beginTransaction();
                             break;
                         case METHOD_COMMIT:
-                            realm.commitTransaction();
+                            testRealm.commitTransaction();
                             break;
                         case METHOD_CANCEL:
-                            realm.cancelTransaction();
+                            testRealm.cancelTransaction();
                             break;
                     }
                     return false;
@@ -363,7 +487,7 @@ public class RealmTest extends AndroidTestCase {
 
         boolean result = future.get();
         if (result && method != TransactionMethod.METHOD_BEGIN) {
-            realm.cancelTransaction();
+            testRealm.cancelTransaction();
         }
         return result;
     }
@@ -376,201 +500,464 @@ public class RealmTest extends AndroidTestCase {
 
     // void commitTransaction()
     public void testCommitTransaction() {
+        populateTestRealm();
+
         testRealm.beginTransaction();
         AllTypes allTypes = testRealm.createObject(AllTypes.class);
         allTypes.setColumnBoolean(true);
         testRealm.commitTransaction();
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        assertEquals("Change has not been committed", TEST_DATA_SIZE + 1, resultList.size());
+        assertEquals(TEST_DATA_SIZE + 1, resultList.size());
     }
 
 
     public void testCancelTransaction() {
+        populateTestRealm();
+
         testRealm.beginTransaction();
-        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        testRealm.createObject(AllTypes.class);
         testRealm.cancelTransaction();
         assertEquals(TEST_DATA_SIZE, testRealm.allObjects(AllTypes.class).size());
 
         try {
             testRealm.cancelTransaction();
             fail();
-        } catch (IllegalStateException ignored) {}
+        } catch (IllegalStateException ignored) {
+        }
     }
 
-    // void clear(Class<?> classSpec)
-    public void testClassClear() {
 
-        // Currently clear will not work outside a transaction:
+    public void testExecuteTransactionNull() {
+        testRealm.executeTransaction(null); // Nothing happens
+        assertFalse(testRealm.hasChanged());
+    }
+
+    public void testExecuteTransactionCommit() {
+        assertEquals(0, testRealm.allObjects(Owner.class).size());
+        testRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Owner owner = realm.createObject(Owner.class);
+                owner.setName("Owner");
+            }
+        });
+        assertEquals(1, testRealm.allObjects(Owner.class).size());
+    }
+
+    public void testExecuteTransactionCancel() {
+        assertEquals(0, testRealm.allObjects(Owner.class).size());
+        try {
+            testRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    Owner owner = realm.createObject(Owner.class);
+                    owner.setName("Owner");
+                    throw new RuntimeException("Boom");
+                }
+            });
+        } catch (RealmException ignore) {
+        }
+        assertEquals(0, testRealm.allObjects(Owner.class).size());
+    }
+
+
+
+    // void clear(Class<?> classSpec)
+    public void testClear() {
+        // ** clear non existing table should succeed
 
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
         testRealm.commitTransaction();
 
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        assertEquals("Realm.clear does not empty table", 0, resultList.size());
-    }
+        // ** clear existing class, but leave other classes classes
 
-    // void clear(Class<?> classSpec)
-    public void testClassClearWithTwoTables() {
+        // Add two classes
+        populateTestRealm();
         testRealm.beginTransaction();
-
         Dog dog = testRealm.createObject(Dog.class);
         dog.setName("Castro");
-
         testRealm.commitTransaction();
-
-        // NOTE:
-        // Currently clear will not work outside a transaction
-        // if you want this test not to fail, add begin- and commitTransaction
-
+        // Clear
         testRealm.beginTransaction();
         testRealm.clear(Dog.class);
         testRealm.commitTransaction();
-
+        // Check one class is cleared but other class is still there
         RealmResults<AllTypes> resultListTypes = testRealm.where(AllTypes.class).findAll();
+        assertEquals(TEST_DATA_SIZE, resultListTypes.size());
         RealmResults<Dog> resultListDogs = testRealm.where(Dog.class).findAll();
+        assertEquals(0, resultListDogs.size());
 
-        assertEquals("Realm.clear does not clear table", 0, resultListDogs.size());
-        assertEquals("Realm.clear cleared wrong table", TEST_DATA_SIZE, resultListTypes.size());
-
-
-        testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
-        testRealm.commitTransaction();
-
-        resultListTypes = testRealm.where(AllTypes.class).findAll();
-        assertEquals("Realm.clear does not remove table", 0, resultListTypes.size());
+        // ** clear() must throw outside a transaction
+        try {
+            testRealm.clear(AllTypes.class);
+            fail("Expected exception");
+        } catch (IllegalStateException ignored) {
+        }
     }
 
-    // int getVersion()
-    public void testGetVersion() throws IOException {
-
+    // int getVersion() AND void setVersion(int version)
+    public void testGetVersionAndSetVersion() throws IOException {
+        // ** Initial version must be 0
+        populateTestRealm();
         long version = testRealm.getVersion();
+        assertEquals(0, version);
 
-        assertTrue("Realm.version returns invalid version number", version >= 0);
-    }
-
-    // void setVersion(int version)setVersion(int version)
-    public void testSetVersion() {
-        long version = 42;
-
+        // ** Version should be updateable
+        version = 42;
         testRealm.beginTransaction();
         testRealm.setVersion(version);
         testRealm.commitTransaction();
-
-        assertEquals("Realm.version has not been set by setVersion", version, testRealm.getVersion());
+        assertEquals(version, testRealm.getVersion());
     }
 
     public void testShouldFailOutsideTransaction() {
-
-        // These API calls should fail outside a Transaction:
+        // These calls should fail outside a Transaction:
         try {
-            AllTypes aT = testRealm.createObject(AllTypes.class);
+            testRealm.createObject(AllTypes.class);
             fail("Realm.createObject should fail outside write transaction");
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException ignored) {
         }
         try {
             testRealm.remove(AllTypes.class, 0);
             fail("Realm.remove should fail outside write transaction");
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException ignored) {
         }
     }
 
-    public void testRealmQueryBetween() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).between("columnLong", 0, 9).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+    public void createAndTestFilename(String language, String fileName) {
+        Realm.deleteRealmFile(getContext(), fileName);
+        Realm realm1 = Realm.getInstance(getContext(), fileName);
+        realm1.beginTransaction();
+        Dog dog1 = realm1.createObject(Dog.class);
+        dog1.setName("Rex");
+        realm1.commitTransaction();
+        realm1.close();
 
-        resultList = testRealm.where(AllTypes.class).beginsWith("columnString", "test data ").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE, resultList.size());
+        File file = new File(getContext().getFilesDir(), fileName);
+        assertTrue(language, file.exists());
 
-        resultList = testRealm.where(AllTypes.class).beginsWith("columnString", "test data 1").between("columnLong", 2, 20).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
-
-        resultList = testRealm.where(AllTypes.class).between("columnLong", 2, 20).beginsWith("columnString", "test data 1").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+        Realm realm2 = Realm.getInstance(getContext(), fileName);
+        Dog dog2 = realm2.allObjects(Dog.class).first();
+        assertEquals(language, "Rex", dog2.getName());
+        realm2.close();
     }
 
-
-    public void testRealmQueryGreaterThan() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThan("columnFloat", 10.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 10, resultList.size());
-
-        resultList = testRealm.where(AllTypes.class).beginsWith("columnString", "test data 1").greaterThan("columnFloat", 50.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 100, resultList.size());
-
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan("columnFloat", 11.234567f);
-        resultList = query.between("columnLong", 1, 20).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+    public void testCreateFile() {
+        createAndTestFilename("American", "Washington");
+        createAndTestFilename("Danish", "København");
+        createAndTestFilename("Russian", "Москва");
+        createAndTestFilename("Greek", "Αθήνα");
+        createAndTestFilename("Chinese", "北京市");
+        createAndTestFilename("Korean", "서울시");
+        createAndTestFilename("Arabic", "الرياض");
+        createAndTestFilename("India", "नई दिल्ली");
+        createAndTestFilename("Japanese", "東京都");
     }
 
+    // This test is slow. Move it to another testsuite that runs once a day on Jenkins.
+    public void rarely_run_testUTF8() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
 
-    public void testRealmQueryGreaterThanOrEqualTo() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo("columnFloat", 10.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 9, resultList.size());
+        String file = "assets/unicode_codepoints.csv";
+        Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(file));
+        int i = 0;
+        String currentUnicode = null;
+        try {
+            testRealm.beginTransaction();
+            while (scanner.hasNextLine()) {
+                currentUnicode = scanner.nextLine();
+                char[] chars = Character.toChars(Integer.parseInt(currentUnicode, 16));
+                String codePoint = new String(chars);
+                AllTypes o = testRealm.createObject(AllTypes.class);
+                o.setColumnLong(i);
+                o.setColumnString(codePoint);
 
-        resultList = testRealm.where(AllTypes.class).beginsWith("columnString", "test data 1").greaterThanOrEqualTo("columnFloat", 50.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 100, resultList.size());
-
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThanOrEqualTo("columnFloat", 11.234567f);
-        query = query.between("columnLong", 1, 20);
-
-        resultList = query.beginsWith("columnString", "test data 15").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+                AllTypes realmType = testRealm.where(AllTypes.class).equalTo("columnLong", i).findFirst();
+                if (i > 1) {
+                    assertEquals("Codepoint: " + i + " / " + currentUnicode, codePoint,
+                            realmType.getColumnString()); // codepoint 0 is NULL, ignore for now.
+                }
+                i++;
+            }
+            testRealm.commitTransaction();
+        } catch (Exception e) {
+            fail("Failure, Codepoint: " + i + " / " + currentUnicode + " " + e.getMessage());
+        }
     }
 
-    public void testRealmQueryOr() {
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo("columnFloat", 31.234567f);
-        RealmResults<AllTypes> resultList = query.or().between("columnLong", 1, 20).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 21, resultList.size());
+    private List<String> getCharacterArray() {
+        List<String> chars_array = new ArrayList<String>();
+        String file = "assets/unicode_codepoints.csv";
+        Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(file));
+        int i = 0;
+        String currentUnicode = null;
+        try {
+            while (scanner.hasNextLine()) {
+                currentUnicode = scanner.nextLine();
+                char[] chars = Character.toChars(Integer.parseInt(currentUnicode, 16));
+                String codePoint = new String(chars);
+                chars_array.add(codePoint);
+                i++;
+            }
+        } catch (Exception e) {
+            fail("Failure, Codepoint: " + i + " / " + currentUnicode + " " + e.getMessage());
+        }
+        return chars_array;
+    }
+    // This test is disabled.
+    // The test writes and reads random Strings.
+    public void disabledTestUnicodeString() {
+        List<String> chars_array = getCharacterArray();
+        // Change seed value for new random values.
+        long seed = 20;
+        Random random = new Random(seed);
 
-        resultList = query.or().equalTo("columnString", "test data 15").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 21, resultList.size());
+        int random_value = 0;
 
-        resultList = query.or().equalTo("columnString", "test data 117").findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 22, resultList.size());
+        String test_char = "";
+        String test_char_old = "";
+        String get_data = "";
+
+        for (int i = 0; i < 1000; i++) {
+            random_value = random.nextInt(25);
+
+            for (int j = 0; j < random_value; j++) {
+                test_char = test_char_old + chars_array.get(random.nextInt(27261));
+                test_char_old = test_char;
+            }
+            testRealm.beginTransaction();
+            StringOnly stringOnly = testRealm.createObject(StringOnly.class);
+            stringOnly.setChars(test_char);
+            testRealm.commitTransaction();
+
+            get_data = testRealm.allObjects(StringOnly.class).get(0).getChars();
+
+            testRealm.beginTransaction();
+            testRealm.clear(StringOnly.class);
+            testRealm.commitTransaction();
+        }
     }
 
-    public void testRealmQueryImplicitAnd() {
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo("columnFloat", 31.234567f);
-        RealmResults<AllTypes> resultList = query.between("columnLong", 1, 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+    public void testReferenceCounting() {
+        // At this point reference count should be one because of the setUp method
+        try {
+            testRealm.where(AllTypes.class).count();
+        } catch (IllegalStateException e) {
+            fail();
+        }
 
-        query = testRealm.where(AllTypes.class).equalTo("columnFloat", 81.234567f);
-        resultList = query.between("columnLong", 1, 100).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+        // Make sure the reference counter is per realm file
+        Realm.deleteRealmFile(getContext(), "anotherRealm.realm");
+        Realm otherRealm = Realm.getInstance(getContext(), "anotherRealm.realm");
+
+        // Raise the reference
+        Realm realm = null;
+        try {
+            realm = Realm.getInstance(getContext());
+        } finally {
+            if (realm != null) realm.close();
+        }
+
+        try {
+            // This should not fail because the reference is now 1
+            if (realm != null) {
+                realm.where(AllTypes.class).count();
+            }
+        } catch (IllegalStateException e) {
+            fail();
+        }
+
+        testRealm.close();
+        try {
+            testRealm.where(AllTypes.class).count();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            otherRealm.where(AllTypes.class).count();
+        } catch (IllegalStateException e) {
+            fail();
+        } finally {
+            otherRealm.close();
+        }
+
+        try {
+            otherRealm.where(AllTypes.class).count();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
     }
 
-    public void testRealmQueryLessThan() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThan("columnFloat", 31.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 30, resultList.size());
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).lessThan("columnFloat", 31.234567f);
-        resultList = query.between("columnLong", 1, 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+    public void testReferenceCountingDoubleClose() {
+        testRealm.close();
+        testRealm.close(); // Count down once too many. Counter is now potentially negative
+        testRealm = Realm.getInstance(getContext());
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        RealmResults<AllTypes> queryResult = testRealm.allObjects(AllTypes.class);
+        assertEquals(allTypes, queryResult.get(0));
+        testRealm.commitTransaction();
+        testRealm.close(); // This might not close the Realm if the reference count is wrong
+        try {
+            allTypes.getColumnString();
+            fail("Realm should be closed");
+        } catch (IllegalStateException expected) {
+        }
     }
 
-    public void testRealmQueryLessThanOrEqual() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo("columnFloat", 31.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 31, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo("columnFloat", 31.234567f).between("columnLong", 11, 20).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 10, resultList.size());
+    public void testWriteCopyTo() throws IOException {
+        Realm.deleteRealmFile(getContext(), "file1.realm");
+        Realm.deleteRealmFile(getContext(), "file2.realm");
+
+        Realm realm1 = null;
+        try {
+            realm1 = Realm.getInstance(getContext(), "file1.realm");
+            realm1.beginTransaction();
+            AllTypes allTypes = realm1.createObject(AllTypes.class);
+            allTypes.setColumnString("Hello World");
+            realm1.commitTransaction();
+
+            realm1.writeCopyTo(new File(getContext().getFilesDir(), "file2.realm"));
+        } finally {
+            if (realm1 != null) {
+                realm1.close();
+            }
+        }
+
+        // Copy is compacted i.e. smaller than original
+        File file1 = new File(getContext().getFilesDir(), "file1.realm");
+        File file2 = new File(getContext().getFilesDir(), "file2.realm");
+        assertTrue(file1.length() >= file2.length());
+
+        Realm realm2 = null;
+        try {
+            // Contents is copied too
+            realm2 = Realm.getInstance(getContext(), "file2.realm");
+            RealmResults<AllTypes> results = realm2.allObjects(AllTypes.class);
+            assertEquals(1, results.size());
+            assertEquals("Hello World", results.first().getColumnString());
+        } finally {
+            if (realm2 != null) {
+                realm2.close();
+            }
+        }
     }
 
-    public void testRealmQueryEqualTo() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo("columnFloat", 31.234567f).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan("columnFloat", 11.0f).equalTo("columnLong", 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan("columnFloat", 11.0f).equalTo("columnLong", 1).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
+    public void testCompactRealmFile() throws IOException {
+        final String copyRealm = "copy.realm";
+        fileCopy(
+                new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME),
+                new File(getContext().getFilesDir(), copyRealm));
+        long before = new File(getContext().getFilesDir(), copyRealm).length();
+        assertTrue(Realm.compactRealmFile(getContext()));
+        long after = new File(getContext().getFilesDir(), copyRealm).length();
+        assertTrue(before >= after);
     }
 
-    public void testRealmQueryNotEqualTo() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).notEqualTo("columnLong", 31).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), TEST_DATA_SIZE - 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).notEqualTo("columnFloat", 11.234567f).equalTo("columnLong", 10).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 0, resultList.size());
-        resultList = testRealm.where(AllTypes.class).notEqualTo("columnFloat", 11.234567f).equalTo("columnLong", 1).findAll();
-        assertEquals("Not the expected number records " + resultList.size(), 1, resultList.size());
+    public void testCopyToRealmNullObjectThrows() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.copyToRealm((AllTypes) null);
+            fail("Copying null objects into Realm should not be allowed");
+        } catch (IllegalArgumentException ignore) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testCopyManagedObjectIsNoop() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnString("Test");
+        testRealm.commitTransaction();
+
+        testRealm.commitTransaction();
+        AllTypes copiedAllTypes = testRealm.copyToRealm(allTypes);
+        testRealm.commitTransaction();
+
+        assertTrue(allTypes == copiedAllTypes);
+    }
+
+    public void testCopManagedObjectToOtherRealm() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnString("Test");
+        testRealm.commitTransaction();
+
+        Realm.deleteRealmFile(getContext(), "other-realm");
+        Realm otherRealm = Realm.getInstance(getContext(), "other-realm");
+        otherRealm.beginTransaction();
+        AllTypes copiedAllTypes = otherRealm.copyToRealm(allTypes);
+        otherRealm.commitTransaction();
+
+        assertNotSame(allTypes, copiedAllTypes); // Same object in different Realms is not the same
+        assertEquals(allTypes.getColumnString(), copiedAllTypes.getColumnString()); // But data is still the same
+        otherRealm.close();
+    }
+
+    public void testCopyToRealmObject() {
+        Date date = new Date();
+        date.setTime(1000); // Remove ms. precission as Realm doesn't support it yet.
+        Dog dog = new Dog();
+        dog.setName("Fido");
+        RealmList<Dog> list = new RealmList();
+        list.add(dog);
+
+        AllTypes allTypes = new AllTypes();
+        allTypes.setColumnString("String");
+        allTypes.setColumnLong(1l);
+        allTypes.setColumnFloat(1f);
+        allTypes.setColumnDouble(1d);
+        allTypes.setColumnBoolean(true);
+        allTypes.setColumnDate(date);
+        allTypes.setColumnBinary(new byte[] { 1, 2, 3});
+        allTypes.setColumnRealmObject(dog);
+        allTypes.setColumnRealmList(list);
+
+        testRealm.beginTransaction();
+        AllTypes realmTypes = testRealm.copyToRealm(allTypes);
+        testRealm.commitTransaction();
+
+        assertNotSame(allTypes, realmTypes); // Objects should not be considered equal
+        assertEquals(allTypes.getColumnString(), realmTypes.getColumnString()); // But they contain the same data
+        assertEquals(allTypes.getColumnLong(), realmTypes.getColumnLong());
+        assertEquals(allTypes.getColumnFloat(), realmTypes.getColumnFloat());
+        assertEquals(allTypes.getColumnDouble(), realmTypes.getColumnDouble());
+        assertEquals(allTypes.isColumnBoolean(), realmTypes.isColumnBoolean());
+        assertEquals(allTypes.getColumnDate(), realmTypes.getColumnDate());
+        assertArrayEquals(allTypes.getColumnBinary(), realmTypes.getColumnBinary());
+        assertEquals(allTypes.getColumnRealmObject().getName(), dog.getName());
+        assertEquals(list.size(), realmTypes.getColumnRealmList().size());
+        assertEquals(list.get(0).getName(), realmTypes.getColumnRealmList().get(0).getName());
+    }
+
+    public void testCopyToRealmList() {
+        Dog dog1 = new Dog(); dog1.setName("Dog 1");
+        Dog dog2 = new Dog(); dog2.setName("Dog 2");
+        RealmList<Dog> list = new RealmList<Dog>();
+        list.addAll(Arrays.asList(dog1, dog2));
+
+        testRealm.beginTransaction();
+        List<Dog> copiedList = new ArrayList<Dog>(testRealm.copyToRealm(list));
+        testRealm.commitTransaction();
+
+        assertEquals(2, copiedList.size());
+        assertEquals(dog1.getName(), copiedList.get(0).getName());
+        assertEquals(dog2.getName(), copiedList.get(1).getName());
+    }
+
+    private void fileCopy(File src, File dst) throws IOException {
+        FileInputStream inStream = new FileInputStream(src);
+        FileOutputStream outStream = new FileOutputStream(dst);
+        FileChannel inChannel = inStream.getChannel();
+        FileChannel outChannel = outStream.getChannel();
+        inChannel.transferTo(0, inChannel.size(), outChannel);
+        inStream.close();
+        outStream.close();
     }
 }

@@ -13,13 +13,13 @@ android {
     }
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }
 
 dependencies {
-    compile 'io.realm:realm-android:0.73.1'
+    compile 'io.realm:realm-android:0.77.0'
     compile 'com.google.code.gson:gson:2.3'
 }

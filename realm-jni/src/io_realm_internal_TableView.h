@@ -497,6 +497,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort
 
 /*
  * Class:     io_realm_internal_TableView
+ * Method:    nativeSortMulti
+ * Signature: (J[J[Z)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti
+  (JNIEnv *, jobject, jlong, jlongArray, jbooleanArray);
+
+/*
+ * Class:     io_realm_internal_TableView
  * Method:    createNativeTableView
  * Signature: (Lio/realm/internal/Table;J)J
  */
@@ -542,6 +550,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot
   (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
+
+/*
+ * Class:     io_realm_internal_TableView
+ * Method:    nativeSync
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

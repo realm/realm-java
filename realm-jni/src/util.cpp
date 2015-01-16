@@ -18,7 +18,7 @@
 #include <stdexcept>
 
 #include <tightdb/util/assert.hpp>
-#include <tightdb/util/utf8.hpp>
+#include "utf8.hpp"
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
@@ -27,13 +27,39 @@ using namespace std;
 using namespace tightdb;
 using namespace tightdb::util;
 
+void ConvertException(JNIEnv* env, const char *file, int line)
+{
+    std::ostringstream ss;
+    try {
+        throw;
+    }
+    catch (std::bad_alloc& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, OutOfMemory, ss.str());
+    }
+    catch (std::exception& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, Unspecified, ss.str());
+    }
+    catch (...) { \
+        TIGHTDB_ASSERT(false);
+        ss << "Exception in " << file << " line " << line;
+        ThrowException(env, RuntimeError, ss.str());
+    }
+    /* above (...) is not needed if we only throw exceptions derived from std::exception */
+}
 
-void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr)
+void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr)
+{
+    ThrowException(env, exception, classStr, "");
+}
+
+void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr)
 {
     std::string message;
     jclass jExceptionClass = NULL;
 
-    TR_ERR((env, "\njni: ThrowingException %d, %s, %s.\n", exception, classStr.c_str(), itemStr.c_str()));
+    TR_ERR("jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str())
 
     switch (exception) {
         case ClassNotFound:
@@ -109,7 +135,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, 
     if (jExceptionClass != NULL)
         env->ThrowNew(jExceptionClass, message.c_str());
     else {
-        TR_ERR((env, "\nERROR: Couldn't throw exception.\n"));
+        TR_ERR("ERROR: Couldn't throw exception.")
     }
 
     env->DeleteLocalRef(jExceptionClass);
@@ -134,10 +160,12 @@ void jprint(JNIEnv *env, char *txt)
     static_cast<void>(env);
     fprintf(stderr, " -- JNI: %s", txt);  fflush(stderr);
 #else
-    static jclass myClass = GetClass(env, "io/realm/internal/util");
+    static jclass myClass = GetClass(env, "io/realm/internal/Util");
     static jmethodID myMethod = env->GetStaticMethodID(myClass, "javaPrint", "(Ljava/lang/String;)V");
     if (myMethod)
-        env->CallStaticVoidMethod(myClass, myMethod, to_jstring(env, txt);
+        env->CallStaticVoidMethod(myClass, myMethod, to_jstring(env, txt));
+    else
+        ThrowException(env, NoSuchMethod, "Util", "javaPrint");
 #endif
 }
 
@@ -210,6 +238,35 @@ private:
 
 } // anonymous namespace
 
+string string_to_hex(const string& message, StringData& str, const char* in_begin, const char* in_end,
+                     jchar* out_curr, jchar* out_end, size_t retcode, size_t error_code) {
+    ostringstream ret;
+
+    const char *s = str.data();
+    ret << message << " ";
+    ret << "error_code = " << error_code << "; ";
+    ret << "StringData.size = " << str.size() << "; ";
+    ret << "StringData.data = " << str.data() << "; ";
+    ret << "StringData as hex = ";
+    for (string::size_type i = 0; i < str.size(); ++i)
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)s[i];
+    ret << "; ";
+    ret << "in_begin = " << in_begin << "; ";
+    ret << "in_end = " << in_end << "; ";
+    ret << "out_curr = " << out_curr << "; ";
+    ret << "out_end = " << out_end << ";";
+    return ret.str();
+}
+
+string string_to_hex(const string& message, const jchar *str, size_t size, size_t error_code) {
+    ostringstream ret;
+
+    ret << message << "; ";
+    ret << "error_code = " << error_code << "; ";
+    for (size_t i = 0; i < size; ++i)
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int)str[i];
+    return ret.str();
+}
 
 jstring to_jstring(JNIEnv* env, StringData str)
 {
@@ -232,25 +289,28 @@ jstring to_jstring(JNIEnv* env, StringData str)
     typedef Utf8x16<jchar, JcharTraits> Xcode;
 
     if (str.size() <= stack_buf_size) {
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
-            goto bad_utf8;
+        size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
+        if (retcode != 0)
+            throw runtime_error(string_to_hex("Failure when converting short string to UTF-16",  str, in_begin, in_end, out_curr, out_end, size_t(0), retcode));
         if (in_begin == in_end)
             goto transcode_complete;
     }
 
     {
         const char* in_begin2 = in_begin;
-        size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end);
+        size_t error_code;
+        size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end, error_code);
         if (in_begin2 != in_end) 
-            goto bad_utf8;
+            throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr, out_end, size, error_code));
         if (int_add_with_overflow_detect(size, stack_buf_size))
             throw runtime_error("String size overflow");
         dyn_buf.reset(new jchar[size]);
         out_curr = copy(out_begin, out_curr, dyn_buf.get());
         out_begin = dyn_buf.get();
         out_end   = dyn_buf.get() + size;
-        if (!Xcode::to_utf16(in_begin, in_end, out_curr, out_end))
-            goto bad_utf8;
+        size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
+        if (retcode != 0) 
+            throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end, out_curr, out_end, size_t(0), retcode));
         TIGHTDB_ASSERT(in_begin == in_end);
     }
 
@@ -262,9 +322,6 @@ jstring to_jstring(JNIEnv* env, StringData str)
 
         return env->NewString(out_begin, out_size);
     }
-
-  bad_utf8:
-    throw runtime_error("Bad UTF-8 encoding");
 }
 
 
@@ -289,7 +346,8 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
     else {
         const jchar* begin = chars.data();
         const jchar* end   = begin + chars.size();
-        buf_size = Xcode::find_utf8_buf_size(begin, end);
+        size_t error_code;
+        buf_size = Xcode::find_utf8_buf_size(begin, end, error_code);
     }
     m_data.reset(new char[buf_size]);  // throws
     {
@@ -297,9 +355,13 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         const jchar* in_end   = in_begin + chars.size();
         char* out_begin = m_data.get();
         char* out_end   = m_data.get() + buf_size;
-        if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end))
-            throw runtime_error("Bad UTF-16 encoding");
-        TIGHTDB_ASSERT(in_begin == in_end);
+        size_t error_code;
+        if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end, error_code)) {
+            throw runtime_error(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
+        }
+        if (in_begin != in_end) {
+            throw runtime_error(string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
+        }
         m_size = out_begin - m_data.get();
     }
 }

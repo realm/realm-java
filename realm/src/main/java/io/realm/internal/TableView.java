@@ -18,7 +18,7 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.util.Date;
-
+import java.util.List;
 
 
 /**
@@ -77,6 +77,11 @@ public class TableView implements TableOrView, Closeable {
         this.context = context;
         this.parent = parent;
         this.nativePtr = nativePtr;
+    }
+
+    @Override
+    public Table getTable() {
+        return parent;
     }
 
     @Override
@@ -857,6 +862,18 @@ public class TableView implements TableOrView, Closeable {
 
     protected native void nativeSort(long nativeTableViewPtr, long columnIndex, boolean ascending);
 
+    public void sort(List<Long> columnIndices, List<Order> order) {
+        long indices[] = new long[columnIndices.size()];
+        boolean sortOrder[] = new boolean[order.size()];
+        for (int i = 0; i < columnIndices.size(); i++) {
+            indices[i] = columnIndices.get(i);
+            sortOrder[i] = order.get(i) == Order.ascending;
+        }
+        nativeSortMulti(nativePtr, indices, sortOrder);
+    }
+
+    protected native void nativeSortMulti(long nativeTableViewPtr, long columnIndices[], boolean ascending[]);
+
     protected native long createNativeTableView(Table table, long nativeTablePtr);
 
     @Override
@@ -913,8 +930,7 @@ public class TableView implements TableOrView, Closeable {
         // TODO: implement
         throw new RuntimeException("Not implemented yet.");
     }
-    
-    
+
     @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType){
         if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
@@ -925,6 +941,14 @@ public class TableView implements TableOrView, Closeable {
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
         return result;
    }
-   
-   protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
+
+    protected native void nativePivot(long nativeTablePtr, long sringCol, long intCol, int pivotType, long result);
+
+
+    @Override
+    public long sync() {
+        return nativeSync(nativePtr);
+    }
+
+    protected native long nativeSync(long nativeTablePtr);
 }

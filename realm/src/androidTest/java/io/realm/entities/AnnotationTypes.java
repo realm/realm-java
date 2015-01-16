@@ -64,4 +64,6 @@ public class AnnotationTypes extends RealmObject {
     public void setIgnoreString(String ignoreString) {
         this.ignoreString = ignoreString;
     }
+
+
 }

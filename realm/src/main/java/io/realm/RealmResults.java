@@ -18,12 +18,15 @@ package io.realm;
 
 
 import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
-import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
@@ -47,9 +50,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private TableOrView table = null;
 
     public static final boolean SORT_ORDER_ASCENDING = true;
-    public static final boolean SORT_ORDER_DECENDING = false;
+    public static final boolean SORT_ORDER_DESCENDING = false;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
+    private long currentTableViewVersion = -1;
 
     RealmResults(Realm realm, Class<E> classSpec) {
         this.realm = realm;
@@ -73,8 +77,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
-    Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
-
     /**
      * Returns a typed @{link io.realm.RealmQuery}, which can be used to query for specific
      * objects of this type.
@@ -83,7 +85,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @see io.realm.RealmQuery
      */
     public RealmQuery<E> where() {
-        realm.assertThread();
+        realm.checkIfValid();
         return new RealmQuery<E>(this, classSpec);
     }
 
@@ -93,7 +95,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E get(int rowIndex) {
         E obj;
-        realm.assertThread();
+        realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
             obj = realm.get(classSpec, ((TableView)table).getSourceRowIndex(rowIndex));
@@ -102,6 +104,14 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
 
         return obj;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int indexOf(Object o) {
+        throw new NoSuchMethodError("indexOf is not supported on RealmResults");
     }
 
     /**
@@ -120,50 +130,164 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return get(size()-1);
     }
 
+    /**
+     * Returns an iterator for the results of a query. Any change to Realm while iterating will
+     * cause this iterator to throw a {@link java.util.ConcurrentModificationException} if accessed.
+     *
+     * @return  an iterator on the elements of this list.
+     * @see     Iterator
+     */
+    @Override
+    public Iterator<E> iterator() {
+        return new RealmResultsIterator();
+    }
+
+    /**
+     * Returns a list iterator for the results of a query. Any change to Realm while iterating will
+     * cause the iterator to throw a {@link java.util.ConcurrentModificationException} if accessed.
+     *
+     * @return  a ListIterator on the elements of this list.
+     * @see     ListIterator
+     */
+    @Override
+    public ListIterator<E> listIterator() {
+        return new RealmResultsListIterator(0);
+    }
+
+    /**
+     * Returns a list iterator on the results of a query. Any change to Realm while iterating will
+     * cause the iterator to throw a {@link java.util.ConcurrentModificationException} if accessed.
+     *
+     * @param location  the index at which to start the iteration.
+     * @return          a ListIterator on the elements of this list.
+     * @throws          IndexOutOfBoundsException if {@code location < 0 || location > size()}
+     * @see             ListIterator
+     */
+    @Override
+    public ListIterator<E> listIterator(int location) {
+        return new RealmResultsListIterator(location);
+    }
+
     // Sorting
 
-    /**
-     * Get a sorted (ascending) RealmList from an existing @{link io.realm.RealmList}.
-     * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
-     * 
-     * @param fieldName  The field name to sort by.
-     * @return           A sorted RealmResults list
-     */
-    public RealmResults<E> sort(String fieldName) {
-        return sort(fieldName, SORT_ORDER_ASCENDING);
+    // aux. method used by sort methods
+    private long getColumnIndex(String fieldName) {
+        if (fieldName.contains(".")) {
+            throw new IllegalArgumentException("Sorting using child object properties is not supported: " + fieldName);
+        }
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
+        }
+        return columnIndex;
     }
 
     /**
-     * Get a sorted RealmList from an existing @{link io.realm.RealmList}.
-     * Only fields of type boolean, short, int, long, float, double, Date, and String are supported.
-     *
-     * @param fieldName      The field name to sort by.
-     * @param sortAscending  The direction to sort by; if true ascending, otherwise descending
-     *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DECENDING
-     *                       for readability.
-     * @return               A sorted RealmResults list.
+     * Sort (ascending) an existing @{link io.realm.RealmResults}.
+     * 
+     * @param fieldName  The field name to sort by. Only fields of type boolean, short, int, long,
+     *                   float, double, Date, and String are supported.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
-    public RealmResults<E> sort(String fieldName, boolean sortAscending) {
-        TableView sorted;
+    public void sort(String fieldName) {
+        this.sort(fieldName, SORT_ORDER_ASCENDING);
+    }
 
-        realm.assertThread();
+    /**
+     * Sort existing @{link io.realm.RealmResults}.
+     *
+     * @param fieldName      The field name to sort by. Only fields of type boolean, short, int,
+     *                       long, float, double, Date, and String are supported.
+     * @param sortAscending  The direction to sort by; if true ascending, otherwise descending
+     *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DESCENDING
+     *                       for readability.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     */
+    public void sort(String fieldName, boolean sortAscending) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided");
+        }
+        realm.checkIfValid();
         TableOrView table = getTable();
-        long columnIndex = table.getColumnIndex(fieldName);
-        TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
 
         if (table instanceof TableView) {
-            TableView v = (TableView)table;
-            sorted = v.where().findAll();
-            sorted.sort(columnIndex, TVOrder);
+            long columnIndex = getColumnIndex(fieldName);
+            TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
+            ((TableView) table).sort(columnIndex, TVOrder);
+        } else {
+            throw new IllegalArgumentException("Only RealmResults can be sorted - please use allObject() to create a RealmResults.");
         }
-        else {
-            Table t = (Table)table;
-            sorted = t.getSortedView(columnIndex, TVOrder);
-        }
-
-        return new RealmResults<E>(realm, sorted, classSpec);
     }
 
+    /**
+     * Sort existing @{link io.realm.RealmResults}.
+     *
+     * @param fieldNames an array of field names to sort by. Only fields of type boolean, short, int,
+     *                       long, float, double, Date, and String are supported.
+     * @param sortAscending The directions to sort by; if true ascending, otherwise descending
+     *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DESCENDING
+     *                       for readability.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public void sort(String fieldNames[], boolean sortAscending[]) {
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames must be provided.");
+        } else if (sortAscending == null) {
+            throw new IllegalArgumentException("sortAscending must be provided.");
+        } else if (fieldNames.length == 0) {
+            throw new IllegalArgumentException("You must provide at least one field name.");
+        } else if (sortAscending.length == 0) {
+            throw new IllegalArgumentException("You must provide at least one sort order.");
+        } else if (fieldNames.length != sortAscending.length) {
+            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) do not match.", fieldNames.length, sortAscending.length));
+        }
+
+        if (fieldNames.length == 1) {
+            sort(fieldNames[0], sortAscending[0]);
+        } else {
+            realm.checkIfValid();
+            TableOrView table = getTable();
+            if (table instanceof TableView) {
+                List<TableView.Order> TVOrder = new ArrayList<TableView.Order>();
+                List<Long> columnIndices = new ArrayList<Long>();
+                for (int i = 0; i < fieldNames.length; i++) {
+                    String fieldName = fieldNames[i];
+                    long columnIndex = getColumnIndex(fieldName);
+                    columnIndices.add(columnIndex);
+                    TVOrder.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
+                }
+                ((TableView) table).sort(columnIndices, TVOrder);
+            }
+        }
+    }
+
+    /**
+     * Sort existing {link io.realm.RealmResults} using two fields.
+     *
+     * @param fieldName1 first field name.
+     * @param sortAscending1 sort order for first field.
+     * @param fieldName2 second field name.
+     * @param sortAscending2 sort order for second field.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public void sort(String fieldName1, boolean sortAscending1, String fieldName2, boolean sortAscending2) {
+        sort(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
+    }
+
+    /**
+     * Sort existing {link io.realm.RealmResults} using three fields.
+     *
+     * @param fieldName1 first field name.
+     * @param sortAscending1 sort order for first field.
+     * @param fieldName2 second field name.
+     * @param sortAscending2 sort order for second field.
+     * @param fieldName3 third field name.
+     * @param sortAscending3 sort order for third field.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public void sort(String fieldName1, boolean sortAscending1, String fieldName2, boolean sortAscending2, String fieldName3, boolean sortAscending3) {
+        sort(new String[] {fieldName1, fieldName2, fieldName3}, new boolean[] {sortAscending1, sortAscending2, sortAscending3});
+    }
 
     // Aggregates
 
@@ -184,7 +308,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number min(String fieldName) {
-        realm.assertThread();
+        realm.checkIfValid();
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -207,7 +331,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date minDate(String fieldName) {
-        realm.assertThread();
+        realm.checkIfValid();
         long columnIndex = table.getColumnIndex(fieldName);
         if (table.getColumnType(columnIndex) == ColumnType.DATE) {
             return table.minimumDate(columnIndex);
@@ -225,7 +349,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number max(String fieldName) {
-        realm.assertThread();
+        realm.checkIfValid();
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -248,7 +372,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date maxDate(String fieldName) {
-        realm.assertThread();
+        realm.checkIfValid();
         long columnIndex = table.getColumnIndex(fieldName);
         if (table.getColumnType(columnIndex) == ColumnType.DATE) {
             return table.maximumDate(columnIndex);
@@ -268,7 +392,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
 
     public Number sum(String fieldName) {
-        realm.assertThread();
+        realm.checkIfValid();
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -293,7 +417,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws           java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public double average(String fieldName) {
-        realm.assertThread();
+        realm.checkIfValid();
         long columnIndex = table.getColumnIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
@@ -318,9 +442,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public E remove(int index) {
-        TableOrView table = getTable();
+        throw new RealmException("Removing object is not supported.");
+/*        TableOrView table = getTable();
         table.remove(index);
-        return null;
+        return null;*/
     }
 
     /**
@@ -328,8 +453,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      */
     public void removeLast() {
+        throw new RealmException("Removing object is not supported.");
+        /*
         TableOrView table = getTable();
-        table.removeLast();
+        table.removeLast();*/
     }
 
     /**
@@ -364,4 +491,108 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 //    public void replace(int index, E element) {
 //        throw new NoSuchMethodError();
 //    }
+
+    private void assertRealmIsStable() {
+        long version = table.sync();
+        if (currentTableViewVersion > -1 && version != currentTableViewVersion) {
+            throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Use iterators methods instead.");
+        }
+
+        currentTableViewVersion = version;
+    }
+
+    // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
+    private class RealmResultsIterator implements Iterator<E> {
+
+        int pos = -1;
+        boolean removeUsed = false;
+
+        RealmResultsIterator() {
+            currentTableViewVersion = table.sync();
+        }
+
+        public boolean hasNext() {
+            assertRealmIsStable();
+            return pos + 1 < size();
+        }
+
+        public E next() {
+            assertRealmIsStable();
+            pos++;
+            removeUsed = false;
+            if (pos >= size()) {
+                throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
+            }
+            return get(pos);
+        }
+
+        public void remove() {
+            throw new RealmException("Removing is not supported.");
+    /*        assertRealmIsStable();
+            if (pos == -1) {
+                throw new IllegalStateException("Must call next() before calling remove()");
+            }
+            if (removeUsed) {
+                throw new IllegalStateException("Cannot call remove() twice. Must call next() in between");
+            }
+
+            RealmResults.this.remove(pos);
+            pos--;
+            removeUsed = true;
+            currentTableViewVersion = getTable().sync();
+     */   }
+    }
+
+    // Custom RealmResults list iterator. It ensures that we only iterate on a Realm that hasn't changed.
+    private class RealmResultsListIterator extends RealmResultsIterator implements ListIterator<E> {
+
+        RealmResultsListIterator(int start) {
+            if (start >= 0 && start <= size()) {
+                pos = start - 1;
+            } else {
+                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + start);
+            }
+        }
+
+        @Override
+        public void add(E object) {
+            throw new RealmException("Adding elements not supported. Use Realm.createObject() instead.");
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            assertRealmIsStable();
+            return pos > 0;
+        }
+
+        @Override
+        public int nextIndex() {
+            assertRealmIsStable();
+            return pos + 1;
+        }
+
+        @Override
+        public E previous() {
+            assertRealmIsStable();
+            pos--;
+            if (pos < 0) {
+                throw new IndexOutOfBoundsException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
+            }
+            return get(pos);
+        }
+
+        @Override
+        public int previousIndex() {
+            assertRealmIsStable();
+            return pos;
+        }
+
+        @Override
+        public void set(E object) {
+            throw new RealmException("Replacing elements not supported.");
+        }
+
+        @Override
+        public void remove() { throw new RealmException("Removing elements not supported."); }
+    }
 }

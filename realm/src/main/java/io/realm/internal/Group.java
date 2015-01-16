@@ -133,7 +133,16 @@ public class Group implements Closeable {
     }
 
     protected static native void nativeClose(long nativeGroupPtr);
-    
+
+    /**
+     * Checks if a group has been closed and can no longer be used.
+     *
+     * @return True if closed, false otherwise.
+     */
+    boolean isClosed() {
+        return nativePtr == 0;
+    }
+
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
@@ -239,7 +248,7 @@ public class Group implements Closeable {
         writeToFile(file);
     }
 
-    protected native void nativeWriteToFile(long nativeGroupPtr, String fileName)
+    protected native void nativeWriteToFile(long nativeGroupPtr, String fileName, byte[] keyArray)
             throws IOException;
 
     /**
@@ -251,7 +260,7 @@ public class Group implements Closeable {
      */
     public void writeToFile(File file) throws IOException {
         verifyGroupIsValid();
-        nativeWriteToFile(nativePtr, file.getAbsolutePath());
+        nativeWriteToFile(nativePtr, file.getAbsolutePath(), null);
     }
 
     protected static native long nativeLoadFromMem(byte[] buffer);

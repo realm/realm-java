@@ -82,10 +82,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr
 /*
  * Class:     io_realm_internal_Group
  * Method:    nativeWriteToFile
- * Signature: (JLjava/lang/String;)V
+ * Signature: (JLjava/lang/String;[B)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile
-  (JNIEnv *, jobject, jlong, jstring);
+  (JNIEnv *, jobject, jlong, jstring, jbyteArray);
 
 /*
  * Class:     io_realm_internal_Group
