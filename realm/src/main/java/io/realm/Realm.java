@@ -58,6 +58,8 @@ import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
 
+import static io.realm.internal.android.Util.*;
+
 
 /**
  * <p>The Realm class is the storage and transactional manager of your object persistent store. It is in charge of
@@ -1110,21 +1112,19 @@ public final class Realm implements Closeable {
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                boolean sortAscending[]) {
-        io.realm.internal.android.Util.validateMultiSortParameters(fieldNames, sortAscending);
+        validateMultiSortParameters(fieldNames, sortAscending);
 
         Table table = this.getTable(clazz);
-        List<TableView.Order> TVOrder = new ArrayList<TableView.Order>();
-        List<Long> columnIndices = new ArrayList<Long>();
+        long columnIndices[] = new long[fieldNames.length];
         for (int i = 0; i < fieldNames.length; i++) {
             String fieldName = fieldNames[i];
             long columnIndex = table.getColumnIndex(fieldName);
             if (columnIndex == -1) {
                 throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
             }
-            columnIndices.add(columnIndex);
-            TVOrder.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
+            columnIndices[i] = columnIndex;
         }
-        TableView tableView = table.getSortedView(columnIndices, TVOrder);
+        TableView tableView = table.getSortedView(columnIndices, sortAscending);
         return new RealmResults(this, tableView, clazz);
     }
 

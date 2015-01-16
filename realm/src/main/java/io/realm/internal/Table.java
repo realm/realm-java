@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.util.Date;
-import java.util.List;
 
 
 /**
@@ -547,15 +546,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
 
 
-    public TableView getSortedView(List<Long> columnIndices, List<TableView.Order> orders) {
+    public TableView getSortedView(long columnIndices[], boolean orders[]) {
         context.executeDelayedDisposal();
-        long indices[] = new long[columnIndices.size()];
-        boolean sortOrders[] = new boolean[orders.size()];
-        for (int i = 0; i < columnIndices.size(); i++) {
-            indices[i] = columnIndices.get(i);
-            sortOrders[i] = orders.get(i) == TableView.Order.ascending;
-        }
-        long nativeViewPtr = nativeGetSortedViewMulti(nativePtr, indices, sortOrders);
+        long indices[] = new long[columnIndices.length];
+        boolean sortOrders[] = new boolean[orders.length];
+        long nativeViewPtr = nativeGetSortedViewMulti(nativePtr, columnIndices, orders);
         try {
             return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {

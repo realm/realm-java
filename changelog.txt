@@ -1,5 +1,5 @@
 0.78
- * Optimizing Realm.allObjectSorted().
+ * Reimplementing Realm.allObjectSorted() to make fewer JNI calls to give better performance.
 
 
 0.77

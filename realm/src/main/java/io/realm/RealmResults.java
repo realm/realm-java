@@ -30,6 +30,8 @@ import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
+import static io.realm.internal.android.Util.validateMultiSortParameters;
+
 /**
  * A RealmResults list contains a list of objects of a given type that matches the query.
  * The objects are not copied from the Realm to the RealmResults list, but just references the original objects.
@@ -230,7 +232,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public void sort(String fieldNames[], boolean sortAscending[]) {
-        io.realm.internal.android.Util.validateMultiSortParameters(fieldNames, sortAscending);
+        validateMultiSortParameters(fieldNames, sortAscending);
 
         if (fieldNames.length == 1) {
             sort(fieldNames[0], sortAscending[0]);

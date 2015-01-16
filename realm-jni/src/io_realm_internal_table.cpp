@@ -1239,8 +1239,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
     jlong *long_arr = env->GetLongArrayElements(columnIndices, NULL);
     jboolean *bool_arr = env->GetBooleanArrayElements(ascending, NULL);
 
-    std::vector<size_t> indices;
-    std::vector<bool> ascendings;
+    std::vector<size_t> indices(S(arr_len));
+    std::vector<bool> ascendings(S(arr_len));
 
     for (int i = 0; i < arr_len; ++i) {
         if (!TBL_AND_COL_INDEX_VALID(env, pTable, S(long_arr[i]) ))
@@ -1253,8 +1253,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
             case type_String:
             case type_Double:
             case type_Float:
-                indices.push_back( S(long_arr[i]) );
-                ascendings.push_back( bool_arr[i] != 0 ? true : false );
+                indices[i] = S(long_arr[i]);
+                ascendings[i] = S(bool_arr[i]);
                 break;
             default:
                 ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, boolean, double, float, String, and Date columns.");
