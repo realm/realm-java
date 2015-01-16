@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -546,6 +547,24 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
 
 
+    public TableView getSortedView(List<Long> columnIndices, List<TableView.Order> orders) {
+        context.executeDelayedDisposal();
+        long indices[] = new long[columnIndices.size()];
+        boolean sortOrders[] = new boolean[orders.size()];
+        for (int i = 0; i < columnIndices.size(); i++) {
+            indices[i] = columnIndices.get(i);
+            sortOrders[i] = orders.get(i) == TableView.Order.ascending;
+        }
+        long nativeViewPtr = nativeGetSortedViewMulti(nativePtr, indices, sortOrders);
+        try {
+            return new TableView(this.context, this, nativeViewPtr);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
+    }
+
+    protected native long nativeGetSortedViewMulti(long nativeTableViewPtr, long[] columnIndices, boolean[] ascending);
 
     /**
      * Replaces the row at the specified position with the specified row.

@@ -16,8 +16,8 @@
 
 package io.realm;
 
-import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
@@ -39,7 +39,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1096,11 +1095,7 @@ public final class Realm implements Closeable {
      */
     @Deprecated
     public <E extends RealmObject> RealmResults<E> allObjects(Class<E> clazz, String fieldNames[], boolean sortAscending[]) {
-        // FIXME: This is not an optimal implementation. When core's Table::get_sorted_view() supports
-        // FIXME: multi-column sorting, we can rewrite this method to a far better implementation.
-        RealmResults<E> results = this.allObjects(clazz);
-        results.sort(fieldNames, sortAscending);
-        return results;
+        return allObjectsSorted(clazz, fieldNames, sortAscending);
     }
 
     /**
@@ -1115,11 +1110,22 @@ public final class Realm implements Closeable {
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                boolean sortAscending[]) {
-        // FIXME: This is not an optimal implementation. When core's Table::get_sorted_view() supports
-        // FIXME: multi-column sorting, we can rewrite this method to a far better implementation.
-        RealmResults<E> results = this.allObjects(clazz);
-        results.sort(fieldNames, sortAscending);
-        return results;
+        io.realm.internal.android.Util.validateMultiSortParameters(fieldNames, sortAscending);
+
+        Table table = this.getTable(clazz);
+        List<TableView.Order> TVOrder = new ArrayList<TableView.Order>();
+        List<Long> columnIndices = new ArrayList<Long>();
+        for (int i = 0; i < fieldNames.length; i++) {
+            String fieldName = fieldNames[i];
+            long columnIndex = table.getColumnIndex(fieldName);
+            if (columnIndex == -1) {
+                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+            }
+            columnIndices.add(columnIndex);
+            TVOrder.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
+        }
+        TableView tableView = table.getSortedView(columnIndices, TVOrder);
+        return new RealmResults(this, tableView, clazz);
     }
 
     // Notifications
