@@ -195,7 +195,7 @@ public final class Realm implements Closeable {
         }
         localRefCount.put(id, Math.max(0, refCount));
 
-        if (handler != null) {
+        if (handler != null && refCount <= 0) {
             removeHandler(handler);
         }
     }
@@ -1275,6 +1275,20 @@ public final class Realm implements Closeable {
      */
     public void clear(Class<?> classSpec) {
         getTable(classSpec).clear();
+    }
+
+    int getId() {
+        return id;
+    }
+
+    // Returns the Handler for this Realm on the calling thread
+    Handler getHandler() {
+        for (Map.Entry<Handler, Integer> entry : handlers.entrySet()) {
+            if (entry.getValue() == id) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     // package protected so unit tests can access it

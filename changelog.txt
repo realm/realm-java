@@ -15,6 +15,7 @@
  * Remove deprecated static constructors.
  * Introduce new static constructors based on File instead of Context, allowing to save Realm files in custom locations.
  * RealmList.remove() now properly returns the removed object.
+ * Calling realm.close() no longer prevent updates to other open realm instances on the same thread.
 
 0.76.0
  * RealmObjects can now be imported using JSON.

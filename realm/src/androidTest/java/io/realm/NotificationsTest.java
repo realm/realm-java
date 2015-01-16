@@ -219,13 +219,7 @@ public class NotificationsTest extends AndroidTestCase {
 
                 // Find the current Handler for the thread now. All message and references will be
                 // cleared once we call close().
-                Handler threadHandler = null;
-                for (final Handler handler : Realm.handlers.keySet()) {
-                    if (Realm.handlers.get(handler).equals(realm.getPath().hashCode())) {
-                        threadHandler = handler;
-                        break;
-                    }
-                }
+                Handler threadHandler = realm.getHandler();
                 realm.close(); // Close native resources + associated handlers.
 
                 // Looper now reads the update message from the main thread if the Handler was not
@@ -269,5 +263,20 @@ public class NotificationsTest extends AndroidTestCase {
         // 10s. now.
         Boolean result = future.get(10, TimeUnit.SECONDS);
         assertTrue(result);
+    }
+
+    public void testHandlerNotRemovedToSoon() {
+        Realm.deleteRealmFile(getContext(), "private-realm");
+        Realm instance1 = Realm.getInstance(getContext(), "private-realm");
+        Realm instance2 = Realm.getInstance(getContext(), "private-realm");
+        assertEquals(instance1.getId(), instance2.getId());
+        assertNotNull(instance1.getHandler());
+
+        // If multiple instances are open on the same thread, don't remove handler on that thread
+        // until last instance is closed.
+        instance2.close();
+        assertNotNull(instance1.getHandler());
+        instance1.close();
+        assertNull(instance1.getHandler());
     }
 }
