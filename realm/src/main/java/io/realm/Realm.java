@@ -1283,12 +1283,11 @@ public final class Realm implements Closeable {
 
     // Returns the Handler for this Realm on the calling thread
     Handler getHandler() {
-        for (Handler handler : handlers.keySet()) {
-            if (handlers.get(handler) == id) {
-                return handler;
+        for (Map.Entry<Handler, Integer> entry : handlers.entrySet()) {
+            if (entry.getValue() == id) {
+                return entry.getKey();
             }
         }
-
         return null;
     }
 
