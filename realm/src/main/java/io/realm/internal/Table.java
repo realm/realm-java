@@ -648,7 +648,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     void assertStringValueIsLegal(long columnIndex, String value) {
-        if (value == null) throw new IllegalArgumentException("Null String is not allowed.");
+        if (value == null) {
+            throw new IllegalArgumentException("Null String is not allowed.");
+        }
         if (isPrimaryKey(columnIndex)) {
             if (value.equals(STRING_DEFAULT_VALUE)) throwIllegalPrimaryKeyException(STRING_DEFAULT_VALUE);
             if (findFirstString(columnIndex, value) != TableOrView.NO_MATCH) throwDuplicatePrimaryKeyException(value);
@@ -1570,7 +1572,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
-s
+
     /**
      * Return the table name as it is in the associated group.
      *

@@ -30,7 +30,6 @@ public class Row {
         this.nativePtr = nativePtr;
     }
 
-
     public long getColumnCount() {
         return nativeGetColumnCount(nativePtr);
     }
@@ -57,7 +56,9 @@ public class Row {
      * @return the index, -1 if not found
      */
     public long getColumnIndex(String columnName) {
-        if (columnName == null) throw new IllegalArgumentException("Column name can not be null.");
+        if (columnName == null) {
+            throw new IllegalArgumentException("Column name can not be null.");
+        }
         return nativeGetColumnIndex(nativePtr, columnName);
     }
 
@@ -75,8 +76,6 @@ public class Row {
     }
 
     protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
-
-
 
     // Getters
 
@@ -200,8 +199,9 @@ public class Row {
 
     public void setDate(long columnIndex, Date date) {
         parent.checkImmutable();
-        if (date == null)
+        if (date == null) {
             throw new IllegalArgumentException("Null Date is not allowed.");
+        }
         long timestamp = date.getTime() / 1000;
         if (timestamp >= Integer.MAX_VALUE || timestamp <= Integer.MIN_VALUE) {
             throw new IllegalArgumentException("Date/timestamp is outside valid range");
@@ -213,8 +213,7 @@ public class Row {
 
     public void setString(long columnIndex, String value) {
         parent.checkImmutable();
-        if (value == null)
-            throw new IllegalArgumentException("Null String is not allowed.");
+        getTable().assertStringValueIsLegal(columnIndex, value);
         nativeSetString(nativePtr, columnIndex, value);
     }
 
@@ -222,8 +221,9 @@ public class Row {
 
     public void setBinaryByteArray(long columnIndex, byte[] data) {
         parent.checkImmutable();
-        if (data == null)
-            throw new IllegalArgumentException("Null Array");
+        if (data == null) {
+            throw new IllegalArgumentException("Null array is not allowed");
+        }
         nativeSetByteArray(nativePtr, columnIndex, data);
     }
 
@@ -232,8 +232,9 @@ public class Row {
 
     public void setMixed(long columnIndex, Mixed data) {
         parent.checkImmutable();
-        if (data == null)
-            throw new IllegalArgumentException();
+        if (data == null) {
+            throw new IllegalArgumentException("Null data is not allowed");
+        }
         nativeSetMixed(nativePtr, columnIndex, data);
     }
 

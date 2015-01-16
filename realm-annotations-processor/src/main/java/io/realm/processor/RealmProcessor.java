@@ -39,14 +39,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
@@ -330,11 +325,12 @@ public class RealmProcessor extends AbstractProcessor {
             if (typeUtils.isAssignable(type, validType)) {
                 return true;
             }
+        }
 
         return false;
     }
 
-    private boolean isDefaultConstructor(Elements constructor) {
+    private boolean isDefaultConstructor(Element constructor) {
         if (constructor.getModifiers().contains(Modifier.PUBLIC)) {
             return ((ExecutableElement) constructor).getParameters().isEmpty();
         }
