@@ -1253,7 +1253,8 @@ public final class Realm implements Closeable {
      * @throws RealmException if any error happened during the transaction.
      */
     public void executeTransaction(Transaction transaction) {
-        if (transaction == null) return;
+        if (transaction == null)
+            return;
         beginTransaction();
         try {
             transaction.execute(this);
