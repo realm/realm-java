@@ -38,6 +38,8 @@ import io.realm.internal.TableView;
  * Realm that was queried.
  * Updates to objects must be done within a transaction and the modified object is persisted to the backing
  * Realm file during the commit of the transaction.
+ * Notice that a RealmResults is never null not even in the case where it contains no objects. You
+ * should always use the size() method to check if a RealmResults is empty or not.
  *
  * @param <E> The class of objects in this list
  * @see RealmQuery#findAll()

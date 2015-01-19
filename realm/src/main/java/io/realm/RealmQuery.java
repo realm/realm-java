@@ -1095,7 +1095,9 @@ public class RealmQuery<E extends RealmObject> {
     // Execute
 
     /**
-     * Find all objects that fulfill the query conditions.
+     * Find all objects that fulfill the query conditions. The returned RealmResults will never be
+     * null, and you must use RealmResults.size() to check if no objects fulfill the condition.
+     *
      * @return A list of objects
      * @see io.realm.RealmResults
      * @throws java.lang.RuntimeException Any other error
@@ -1105,7 +1107,9 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find all objects that fulfill the query conditions and sorted by specific field name.
+     * Find all objects that fulfill the query conditions and sorted by specific field name. The
+     * returned RealmResults will never be null, and you must use RealmResults.size() to check if
+     * no objects fulfill the condition.
      *
      * @param fieldName the field name to sort by.
      * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
@@ -1125,7 +1129,9 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find all objects that fulfill the query conditions and sorted by specific field name.
+     * Find all objects that fulfill the query conditions and sorted by specific field name. The
+     * returned RealmResults will never be null, and you must use RealmResults.size() to check if
+     * no objects fulfill the condition.
      *
      * @param fieldName the field name to sort by.
      * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
@@ -1145,7 +1151,8 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field name in
-     * ascending order.
+     * ascending order. The returned RealmResults will never be null, and you must use
+     * RealmResults.size() to check if no objects fulfill the condition.
      *
      * @param fieldName the field name to sort by.
      * @return A sorted RealmResults containing the objects.
@@ -1169,7 +1176,9 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find all objects that fulfill the query conditions and sorted by specific field names.
+     * Find all objects that fulfill the query conditions and sorted by specific field names. The
+     * returned RealmResults will never be null, and you must use RealmResults.size() to check
+     * if no objects fulfill the condition.
      *
      * @param fieldNames an array of field names to sort by.
      * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
@@ -1209,7 +1218,9 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find all objects that fulfill the query conditions and sorted by specific field names.
+     * Find all objects that fulfill the query conditions and sorted by specific field names. The
+     * returned RealmResults will never be null, and you must use RealmResults.size() to check if
+     * no objects fulfill the condition.
      *
      * @param fieldNames an array of field names to sort by.
      * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
@@ -1249,7 +1260,8 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field names in
-     * ascending order.
+     * ascending order. The returned RealmResults will never be null, and you must use
+     * RealmResults.size() to check if no objects fulfill the condition.
      *
      * @param fieldName1 first field name
      * @param sortAscending1 sort order for first field
@@ -1266,7 +1278,8 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field names in
-     * ascending order.
+     * ascending order. The returned RealmResults will never be null, and you must use
+     * RealmResults.size() to check if no objects fulfill the condition.
      *
      * @param fieldName1 first field name
      * @param sortAscending1 sort order for first field
@@ -1282,7 +1295,8 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field names in
-     * ascending order.
+     * ascending order. The returned RealmResults will never be null, and you must use
+     * RealmResults.size() to check if no objects fulfill the condition.
      *
      * @param fieldName1 first field name
      * @param sortAscending1 sort order for first field
@@ -1303,7 +1317,8 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field names in
-     * ascending order.
+     * ascending order. The returned RealmResults will never be null, and you must use
+     * RealmResults.size() to check if no objects fulfill the condition.
      *
      * @param fieldName1 first field name
      * @param sortAscending1 sort order for first field
@@ -1323,6 +1338,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find the first object that fulfills the query conditions.
+     *
      * @return The object found or null if no object matches the query conditions.
      * @see io.realm.RealmObject
      * @throws java.lang.RuntimeException Any other error.
