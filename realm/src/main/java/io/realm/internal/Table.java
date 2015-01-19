@@ -652,24 +652,18 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw new IllegalArgumentException("Null String is not allowed.");
         }
         if (isPrimaryKey(columnIndex)) {
-            if (value.equals(STRING_DEFAULT_VALUE)) throwIllegalPrimaryKeyException(STRING_DEFAULT_VALUE);
             if (findFirstString(columnIndex, value) != TableOrView.NO_MATCH) throwDuplicatePrimaryKeyException(value);
         }
     }
 
     void assertIntValueIsLegal(long columnIndex, long value) {
         if (isPrimaryKeyColumn(columnIndex)) {
-            if (value == INTEGER_DEFAULT_VALUE) throwIllegalPrimaryKeyException(INTEGER_DEFAULT_VALUE);
             if (findFirstLong(columnIndex, value) != TableOrView.NO_MATCH) throwDuplicatePrimaryKeyException(value);
         }
     }
 
     private void throwDuplicatePrimaryKeyException(Object value) {
         throw new RealmException("Primary key constraint broken. Value already exists: " + value);
-    }
-
-    private void throwIllegalPrimaryKeyException(Object value) {
-        throw new RealmException("\"" + value +"\" not allowed as value in a field that is a primary key.");
     }
 
     private void throwInvalidPrimaryKeyColumn(long columnIndex, Object value) {

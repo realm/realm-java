@@ -142,29 +142,20 @@ public class RealmAnnotationTest extends AndroidTestCase {
         }
     }
 
+    // It should be allowed to override the primary key value with the same value
     public void testPrimaryKey_defaultStringValue() {
         testRealm.beginTransaction();
-        try {
-            PrimaryKeyAsString str = testRealm.createObject(PrimaryKeyAsString.class);
-            str.setName("");
-            fail("It should not be allowed to set a primary key to the default value for the field type");
-        } catch (RealmException expected) {
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        PrimaryKeyAsString str = testRealm.createObject(PrimaryKeyAsString.class);
+        str.setName("");
+        testRealm.commitTransaction();
     }
 
+    // It should be allowed to override the primary key value with the same value
     public void testPrimaryKey_defaultLongValue() {
         testRealm.beginTransaction();
-        try {
-            PrimaryKeyAsLong str = testRealm.createObject(PrimaryKeyAsLong.class);
-            str.setId(0);
-            fail("It should not be allowed to set a primary key to the default value for the field type");
-        } catch (RealmException expected) {
-            assertTrue(expected.getMessage().endsWith("not allowed as value in a field that is a primary key."));
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        PrimaryKeyAsLong str = testRealm.createObject(PrimaryKeyAsLong.class);
+        str.setId(0);
+        testRealm.commitTransaction();
     }
 
     public void testPrimaryKey_errorOnInsertingSameObject() {
