@@ -215,12 +215,15 @@ public class Group implements Closeable {
      */
     public Table getTable(String name) {
         verifyGroupIsValid();
-        if (name == null || name.equals(""))
+        if (name == null || name.equals("")) {
             throw new IllegalArgumentException("Invalid name. Name must be a non-empty String.");
-        if (immutable)
-            if (!hasTable(name))
+        }
+        if (immutable) {
+            if (!hasTable(name)) {
                 throwImmutable();
-        
+            }
+        }
+
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeTablePointer = nativeGetTableNativePtr(nativePtr, name);
