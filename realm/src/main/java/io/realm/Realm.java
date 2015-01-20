@@ -434,9 +434,6 @@ public final class Realm implements Closeable {
 
         realm = new Realm(absolutePath, key, autoRefresh);
 
-        realms.put(absolutePath.hashCode(), realm);
-        realmsCache.set(realms);
-
         if (validateSchema) {
             Class<?> validationClass;
             try {
@@ -551,6 +548,9 @@ public final class Realm implements Closeable {
                 }
             }
         }
+
+        realms.put(absolutePath.hashCode(), realm);
+        realmsCache.set(realms);
 
         localRefCount.put(id, references + 1);
         return realm;
