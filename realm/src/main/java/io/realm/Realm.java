@@ -61,33 +61,50 @@ import io.realm.internal.log.RealmLog;
 
 
 /**
- * <p>The Realm class is the storage and transactional manager of your object persistent store. It is in charge of
- * creating instances of your RealmObjects.
- * Objects within a Realm can be queried and read at any time. Creating,
- * modifying, and deleting objects must be done through transactions.</p>
+ * <p>The Realm class is the storage and transactional manager of your object persistent store. It
+ * is in charge of creating instances of your RealmObjects. Objects within a Realm can be queried
+ * and read at any time. Creating, modifying, and deleting objects must be done while inside a
+ * transaction. See {@link #beginTransaction()}</p>
  *
- * <p>The transactions ensure that multiple instances (on multiple threads) can access the objects
- * in a consistent state with full ACID guaranties.</p>
+ * <p>The transactions ensure that multiple instances (on multiple threads) can access the same
+ * objects in a consistent state with full ACID guaranties.</p>
  *
- * <p>If auto-refresh is set the instance of the Realm will be automatically updated when another instance commits a
- * change (create, modify or delete an object). This feature requires the Realm instance to be residing in a
- * thread attached to a Looper (the main thread has a Looper by default)</p>
+ * It is important to remember to call the {@link #close()} method when done with a Realm
+ * instance. Failing to do so can lead to {@link java.lang.OutOfMemoryError} as the native
+ * resources cannot be freed.
  *
- *<p>For normal threads Android provides a utility class that can be used like this:</p>
+ * Realm instances cannot be used across different threads, which means you have to open an instance
+ * pr. thread. Realm instances are cached, so calling {@link #getInstance(android.content.Context)}
+ * should not be considered a heavy operation.
+ *
+ * Realm instances coordinate their state across threads using the {@link android.os.Handler}
+ * mechanism. This also mean that Realm instances on threads without a {@link android.os.Looper}
+ * doesn't get updated unless {@link #refresh()} is manually called.
+ *
+ * A standard pattern for working with Realm in Android activities:
  *
  * <pre>
- * HandlerThread thread = new HandlerThread("MyThread") {
- *    \@Override
- *    protected void onLooperPrepared() {
- *       Realm realm = Realm.getInstance(getContext());
- *       // This realm will be updated by the event loop
- *       // on every commit performed by other realm instances
- *    }
- * };
- * thread.start();
+ * public class RealmActivity extends Activity {
+ *
+ *   private Realm realm;
+ *
+ *   \@Override
+ *   protected void onCreate(Bundle savedInstanceState) {
+ *     super.onCreate(savedInstanceState);
+ *     setContentView(R.layout.layout_main);
+ *     realm = Realm.getInstance(this);
+ *   }
+ *
+ *   \@Override
+ *   protected void onDestroy() {
+ *     super.onDestroy();
+ *     realm.close();
+ *   }
+ * }
  * </pre>
  *
- * It is important to remember to call the close() method when done with the Realm instance.
+ * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
+ * @see <a href="https://github.com/realm/realm-java/tree/master/examples">More Realm examples</a>
  */
 public final class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";
