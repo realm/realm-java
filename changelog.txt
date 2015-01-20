@@ -1,3 +1,7 @@
+0.78
+ * Fixed bug causing Realms to be cached during a RealmMigration, resulting in invalid realms being returned.
+
+
 0.77
  * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and exteding RealmResults.sort() for multi-field sorting.
  * RealmResults.sort() now has better error reporting.
