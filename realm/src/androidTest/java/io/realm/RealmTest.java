@@ -16,16 +16,25 @@
 package io.realm;
 
 import android.content.Context;
+import android.security.KeyPairGeneratorSpec;
 import android.test.AndroidTestCase;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.channels.FileChannel;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -34,6 +43,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import javax.security.auth.x500.X500Principal;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -60,6 +73,9 @@ public class RealmTest extends AndroidTestCase {
     private final static String FIELD_BOOLEAN = "columnBoolean";
     private final static String FIELD_DATE = "columnDate";
 
+    private static final String KEY_ALIAS = "testKeyAlias";
+    private static final String ENCRYPTED_REALM_FILE_NAME = "encryptedTestRealm.realm";
+
     protected void setColumnData() {
         columnData.add(0, FIELD_BOOLEAN);
         columnData.add(1, FIELD_DATE);
@@ -73,12 +89,19 @@ public class RealmTest extends AndroidTestCase {
     protected void setUp() throws Exception {
         Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
-   }
+    }
 
     @Override
     protected void tearDown() throws Exception {
         if (testRealm != null) {
             testRealm.close();
+        }
+
+        // Delete the encrypted Realm if present
+        File encryptedRealm = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
+        if (encryptedRealm.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            encryptedRealm.delete();
         }
     }
 
@@ -336,7 +359,8 @@ public class RealmTest extends AndroidTestCase {
         try {
             RealmResults<AllTypes> none = testRealm.allObjectsSorted(AllTypes.class, "invalid", RealmResults.SORT_ORDER_ASCENDING);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testSortTwoFields() {
@@ -344,7 +368,7 @@ public class RealmTest extends AndroidTestCase {
 
         RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
                 new String[]{FIELD_STRING, FIELD_LONG},
-                new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
         assertEquals(3, results1.size());
 
@@ -380,7 +404,8 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new boolean[]{});
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // number of fields and sorting orders don't match
         try {
@@ -388,17 +413,20 @@ public class RealmTest extends AndroidTestCase {
                     new String[]{FIELD_STRING},
                     new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // null is not allowed
         try {
             testRealm.allObjectsSorted(AllTypes.class, null, null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
         try {
             testRealm.allObjectsSorted(AllTypes.class, new String[]{FIELD_STRING}, null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // non-existing field name
         try {
@@ -406,7 +434,8 @@ public class RealmTest extends AndroidTestCase {
                     new String[]{FIELD_STRING, "dont-exist"},
                     new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testSortSingleField() {
@@ -562,7 +591,6 @@ public class RealmTest extends AndroidTestCase {
     }
 
 
-
     // void clear(Class<?> classSpec)
     public void testClear() {
         // ** clear non existing table should succeed
@@ -708,6 +736,7 @@ public class RealmTest extends AndroidTestCase {
         }
         return chars_array;
     }
+
     // This test is disabled.
     // The test writes and reads random Strings.
     public void disabledTestUnicodeString() {
@@ -915,7 +944,7 @@ public class RealmTest extends AndroidTestCase {
         allTypes.setColumnDouble(1d);
         allTypes.setColumnBoolean(true);
         allTypes.setColumnDate(date);
-        allTypes.setColumnBinary(new byte[] { 1, 2, 3});
+        allTypes.setColumnBinary(new byte[]{1, 2, 3});
         allTypes.setColumnRealmObject(dog);
         allTypes.setColumnRealmList(list);
 
@@ -937,8 +966,10 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testCopyToRealmList() {
-        Dog dog1 = new Dog(); dog1.setName("Dog 1");
-        Dog dog2 = new Dog(); dog2.setName("Dog 2");
+        Dog dog1 = new Dog();
+        dog1.setName("Dog 1");
+        Dog dog2 = new Dog();
+        dog2.setName("Dog 2");
         RealmList<Dog> list = new RealmList<Dog>();
         list.addAll(Arrays.asList(dog1, dog2));
 
@@ -959,5 +990,96 @@ public class RealmTest extends AndroidTestCase {
         inChannel.transferTo(0, inChannel.size(), outChannel);
         inStream.close();
         outStream.close();
+    }
+
+    public void testWriteEncryptedCopy() throws Exception {
+        populateTestRealm();
+        long before = testRealm.where(AllTypes.class).count();
+        assertEquals(TEST_DATA_SIZE, before);
+
+        File destination = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
+        byte[] key = getKey();
+        try {
+            testRealm.writeEncryptedCopyTo(destination, key);
+        } catch(Exception e) {
+            fail();
+        }
+
+        Realm encryptedRealm = Realm.getInstance(getContext(), ENCRYPTED_REALM_FILE_NAME, key);
+        long after = encryptedRealm.where(AllTypes.class).count();
+        assertEquals(TEST_DATA_SIZE, after);
+        encryptedRealm.close();
+    }
+
+    // Get the application's 256-bit AES key
+    private byte[] getKey() throws GeneralSecurityException, IOException, java.io.IOException {
+        // As of 4.3, Android has a secure per-application key store, but it can't store symmetric keys
+        // As a result, we use it to store a public/private key-pair which is used to encrypt the
+        // symmetric key which is stored in a file in the application context
+        byte[] keyData;
+        try {
+            File file = new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME + ".key");
+            keyData = new byte[256];
+            FileInputStream stream = new FileInputStream(file);
+            try {
+                int read = stream.read(keyData);
+                if (read != keyData.length) {
+                    keyData = null;
+                }
+            } finally {
+                stream.close();
+            }
+        } catch (java.io.IOException e) {
+            // Generate a new key if reading the existing one failed for any reason
+            keyData = null;
+        }
+        KeyPair keyPair = getKeyPair();
+        final Cipher cipher = Cipher.getInstance("RSA/NONE/PKCS1Padding");
+        // We have an existing secret key, so decrypt and return it
+        if (keyData != null) {
+            cipher.init(Cipher.UNWRAP_MODE, keyPair.getPrivate());
+            return cipher.unwrap(keyData, "AES", Cipher.SECRET_KEY).getEncoded();
+        }
+        // We need to generate a new secret key
+        keyData = new byte[64];
+        new SecureRandom().nextBytes(keyData);
+        cipher.init(Cipher.WRAP_MODE, keyPair.getPublic());
+        // Save the secret key to the file
+        File file = new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME + ".key");
+        FileOutputStream stream = new FileOutputStream(file);
+        try {
+            stream.write(cipher.wrap(new SecretKeySpec(keyData, "AES")));
+        } finally {
+            stream.close();
+        }
+        // Delete any existing default Realm since we won't be able to open it with the new key
+        Realm.deleteRealmFile(getContext());
+        return keyData;
+    }
+
+    private KeyPair getKeyPair() throws GeneralSecurityException, IOException, java.io.IOException {
+        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+        if (!keyStore.containsAlias(KEY_ALIAS)) {
+            generateKeyPair(KEY_ALIAS);
+        }
+        final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(KEY_ALIAS, null);
+        return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
+    }
+
+    private void generateKeyPair(String alias) throws GeneralSecurityException {
+        final Calendar start = new GregorianCalendar();
+        final Calendar end = new GregorianCalendar();
+        end.add(Calendar.YEAR, 100);
+        final KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(getContext())
+                .setAlias(alias)
+                .setSubject(new X500Principal("CN=" + alias))
+                .setSerialNumber(BigInteger.ONE)
+                .setStartDate(start.getTime())
+                .setEndDate(end.getTime())
+                .build();
+        final KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore");
+        gen.initialize(spec);
+        gen.generateKeyPair();
     }
 }
