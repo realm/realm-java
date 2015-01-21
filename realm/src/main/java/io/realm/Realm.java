@@ -166,7 +166,9 @@ public final class Realm implements Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        this.close();
+        if (sharedGroup != null) {
+            RealmLog.w("Realm " + path + " is being finalized without being closed. This can lead to running out of memory.");
+        }
         super.finalize();
     }
 
