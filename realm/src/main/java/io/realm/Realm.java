@@ -731,6 +731,9 @@ public final class Realm implements Closeable {
      * @throws java.io.IOException if any write operation fails
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
+        if (destination == null) {
+            throw new IllegalArgumentException("The destination argument cannot be null");
+        }
         checkIfValid();
         transaction.writeToFile(destination, key);
     }
