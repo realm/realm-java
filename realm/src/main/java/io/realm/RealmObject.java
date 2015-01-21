@@ -31,12 +31,37 @@ import io.realm.internal.Row;
  * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
  * persisted. You then create your objects within a Realm, and use your custom subclasses instead
  * of using the RealmObject class directly.
- * <br>
+ *
  * An annotation processor will create a proxy class for your RealmObject subclass. The getters and
  * setters should not contain any custom code of logic as they are overridden as part of the annotation
  * process.
- * <br>
+ *
+ * A RealmObject is currently limited to the following:
+ *
+ * - Private fields.
+ * - Getter and setters for these fields.
+ * - Static methods.
+ *
+ * The following field data types are supported:
+ * - boolean
+ * - short
+ * - int
+ * - long
+ * - float
+ * - long
+ * - byte[]
+ * - String
+ * - Date
+ * - Any RealmObject subclass
+ * - RealmList
+ *
+ * All fields that are not annotated with {@link io.realm.annotations.Ignore} require both a
+ * getter and setter. Getter and setter names must have the name {@code getXXX} or {@code setXXX} if
+ * the field name is {@code XXX}. Getters for fields of type boolean can be called {@code isXXX} as
+ * well.
+ *
  * @see Realm#createObject(Class)
+ * @see Realm#copyToRealm(RealmObject)
  */
 
 @RealmClass
