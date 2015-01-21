@@ -31,17 +31,19 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
 /**
- * A RealmResults list contains a list of objects of a given type that matches the query.
- * The objects are not copied from the Realm to the RealmResults list, but just references the original objects.
- * This preserves memory and increase speed.
- * It also implies that any modification to any object in a RealmResults is reflected in the objects in the 
- * Realm that was queried.
- * Updates to objects must be done within a transaction and the modified object is persisted to the backing
- * Realm file during the commit of the transaction.
+ * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects
+ * are not copied from the Realm to the RealmResults list, but are just referenced from the
+ * RealmResult instead. This saves memory and increase speed.
+ *
+ * Updates to RealmObjects from a RealmResults list must be done within a transaction and the
+ * modified objects are persisted to the backing Realm file during the commit of the transaction.
+ *
+ * A RealmResults object cannot be parsed between different threads.
  *
  * @param <E> The class of objects in this list
  * @see RealmQuery#findAll()
  * @see Realm#allObjects(Class)
+ * @see io.realm.Realm#beginTransaction()
  */
 public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
