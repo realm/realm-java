@@ -17,7 +17,35 @@
 package io.realm;
 
 /**
- * RealmMigration is used to allow user defined migration of one model to a another.
+ * The RealmMigration class is used to describe the migration of one Realm schema to another.
+ * The schema for a Realm is defined by all classes in a project that extend
+ * {@link io.realm.RealmObject}, so any changes to these classes will require a migration.
+ *
+ * To support migrations from any previous version to the newest, the following pattern is
+ * recommended when writing a migration:
+ *
+ * <pre>
+ * public class CustomMigration implements RealmMigration {
+ *   @Override
+ *   public long execute(Realm realm, long version) {
+ *     if (version == 0) {
+ *       // Migrate from v0 to v1
+ *       version++;
+ *     }
+ *
+ *     if (version == 0) {
+ *       // Migrate from v0 to v1
+ *       version++;
+ *     }
+ *
+ *     return version;
+ *   }
+ * }
+ * </pre>
+ *
+ * During development when model classes can change frequently, it is possible to use
+ * {@link io.realm.Realm#deleteRealmFile(android.content.Context)}. This will delete the database
+ * file and eliminate the need for any migrations.
  *
  * @see Realm#migrateRealmAtPath(String, byte[], RealmMigration)
  * @see Realm#migrateRealmAtPath(String, RealmMigration)
@@ -25,10 +53,12 @@ package io.realm;
 public interface RealmMigration {
 
     /**
-     * Implement this method in your subclass to perform migration
-     * @param realm The Realm on which to perform the migration
-     * @param version The version of the Realm at the start of the migration
-     * @return The version of the Realm after executing the migration
+     * Implement this method in your subclass to perform migration.
+     *
+     * @param realm The Realm on which to perform the migration.
+     * @param version The version of the Realm at the start of the migration.
+     * @return The version of the Realm after executing the migration.
      */
     public long execute(Realm realm, long version);
 }
+
