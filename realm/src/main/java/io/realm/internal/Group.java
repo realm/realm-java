@@ -215,7 +215,7 @@ public class Group implements Closeable {
      */
     public Table getTable(String name) {
         verifyGroupIsValid();
-        if (name == null || name.equals("")) {
+        if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Invalid name. Name must be a non-empty String.");
         }
         if (immutable) {
