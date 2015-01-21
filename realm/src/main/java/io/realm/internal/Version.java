@@ -18,6 +18,11 @@ package io.realm.internal;
 
 public class Version {
 
+    // Set by tools/set-version.sh
+    static final int REALM_JAVA_MAJOR = 0;
+    static final int REALM_JAVA_MINOR = 77;
+    static final int REALM_JAVA_PATCH = 0;
+
     static final int CORE_MIN_MAJOR = 0;
     static final int CORE_MIN_MINOR = 1;
     static final int CORE_MIN_PATCH = 6;
@@ -41,8 +46,7 @@ public class Version {
     }
 
     public static String getVersion() {
-        // Currently Core version and Java version is the same
-        return getCoreVersion();
+        return String.format("%d.%d.%d", REALM_JAVA_MAJOR, REALM_JAVA_MINOR, REALM_JAVA_PATCH);
     }
 
     public static boolean hasFeature(Feature feature) {

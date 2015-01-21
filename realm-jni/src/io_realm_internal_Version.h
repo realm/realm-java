@@ -7,6 +7,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef io_realm_internal_Version_REALM_JAVA_MAJOR
+#define io_realm_internal_Version_REALM_JAVA_MAJOR 0L
+#undef io_realm_internal_Version_REALM_JAVA_MINOR
+#define io_realm_internal_Version_REALM_JAVA_MINOR 78L
+#undef io_realm_internal_Version_REALM_JAVA_PATCH
+#define io_realm_internal_Version_REALM_JAVA_PATCH 0L
 #undef io_realm_internal_Version_CORE_MIN_MAJOR
 #define io_realm_internal_Version_CORE_MIN_MAJOR 0L
 #undef io_realm_internal_Version_CORE_MIN_MINOR

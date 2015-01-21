@@ -17,6 +17,7 @@
 #include "util.hpp"
 #include "mem_usage.hpp"
 #include "io_realm_internal_Util.h"
+#include "io_realm_internal_Version.h"
 
 using std::string;
 
@@ -50,7 +51,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
     JNIEnv *env, jclass, jint testcase, jboolean dotest, jlong)
 {
     string expect;
-
     switch (ExceptionKind(testcase)) {
         case ClassNotFound:
             expect = "java.lang.ClassNotFoundException: Class 'parm1' could not be located.";
@@ -127,6 +127,9 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
     if (dotest) {
         return NULL;
     }
-    return to_jstring(env, expect);
+    string version = "Realm version " + num_to_string<int>(io_realm_internal_Version_REALM_JAVA_MAJOR) + "."
+        + num_to_string<int>(io_realm_internal_Version_REALM_JAVA_MINOR) + "."
+        + num_to_string<int>(io_realm_internal_Version_REALM_JAVA_PATCH);
+    return to_jstring(env, expect + " (" + version + ")");
 }
 
