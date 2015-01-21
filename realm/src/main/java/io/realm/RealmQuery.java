@@ -30,6 +30,9 @@ import io.realm.internal.TableView;
 
 /**
  *
+ *
+ * A RealmQuery cannot be parsed between different threads.
+ *
  * @param <E> The class of objects to be queried
  */
 public class RealmQuery<E extends RealmObject> {

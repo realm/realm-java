@@ -60,6 +60,8 @@ import io.realm.internal.Row;
  * the field name is {@code XXX}. Getters for fields of type boolean can be called {@code isXXX} as
  * well.
  *
+ * A RealmObject cannot be parsed between different threads.
+ *
  * @see Realm#createObject(Class)
  * @see Realm#copyToRealm(RealmObject)
  */
