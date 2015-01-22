@@ -307,39 +307,6 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(dog1, dog);
     }
 
-    public void testSortTwoFields() {
-        io.realm.TestHelper.populateForMultiSort(testRealm);
-
-        RealmResults<AllTypes> results1 = testRealm.where(AllTypes.class)
-                .findAllSorted(new String[]{FIELD_STRING, FIELD_LONG},
-                        new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-
-        assertEquals(3, results1.size());
-
-        assertEquals("Adam", results1.get(0).getColumnString());
-        assertEquals(4, results1.get(0).getColumnLong());
-
-        assertEquals("Adam", results1.get(1).getColumnString());
-        assertEquals(5, results1.get(1).getColumnLong());
-
-        assertEquals("Brian", results1.get(2).getColumnString());
-        assertEquals(4, results1.get(2).getColumnLong());
-
-        RealmResults<AllTypes> results2 = testRealm.where(AllTypes.class)
-                .findAllSorted(new String[]{FIELD_LONG, FIELD_STRING},
-                        new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-
-        assertEquals(3, results2.size());
-
-        assertEquals("Adam", results2.get(0).getColumnString());
-        assertEquals(4, results2.get(0).getColumnLong());
-
-        assertEquals("Brian", results2.get(1).getColumnString());
-        assertEquals(4, results2.get(1).getColumnLong());
-
-        assertEquals("Adam", results2.get(2).getColumnString());
-        assertEquals(5, results2.get(2).getColumnLong());
-    }
 
     public void testSortMultiFailures() {
         // zero fields specified
