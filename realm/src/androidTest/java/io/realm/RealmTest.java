@@ -60,9 +60,6 @@ public class RealmTest extends AndroidTestCase {
     private final static String FIELD_BOOLEAN = "columnBoolean";
     private final static String FIELD_DATE = "columnDate";
 
-    private static final String KEY_ALIAS = "testKeyAlias";
-    private static final String ENCRYPTED_REALM_FILE_NAME = "encryptedTestRealm.realm";
-
     protected void setColumnData() {
         columnData.add(0, FIELD_BOOLEAN);
         columnData.add(1, FIELD_DATE);
@@ -82,13 +79,6 @@ public class RealmTest extends AndroidTestCase {
     protected void tearDown() throws Exception {
         if (testRealm != null) {
             testRealm.close();
-        }
-
-        // Delete the encrypted Realm if present
-        File encryptedRealm = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
-        if (encryptedRealm.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            encryptedRealm.delete();
         }
     }
 
@@ -984,19 +974,86 @@ public class RealmTest extends AndroidTestCase {
         long before = testRealm.where(AllTypes.class).count();
         assertEquals(TEST_DATA_SIZE, before);
 
+        final String ENCRYPTED_REALM_FILE_NAME = "encryptedTestRealm.realm";
+        final String RE_ENCRYPTED_REALM_FILE_NAME = "reEncryptedTestRealm.realm";
+        final String DECRYPTED_REALM_FILE_NAME = "decryptedTestRealm.realm";
+
+        // Delete files if present
+        for (String fileName : Arrays.asList(ENCRYPTED_REALM_FILE_NAME, RE_ENCRYPTED_REALM_FILE_NAME, DECRYPTED_REALM_FILE_NAME)) {
+            File fileToDelete = new File(getContext().getFilesDir(), fileName);
+            if (fileToDelete.exists() && !fileToDelete.delete()) {
+                fail();
+            }
+        }
+
         File destination = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
         byte[] key = new byte[64];
         new Random(42).nextBytes(key);
         try {
+            // Unencrypted to encrypted
             testRealm.writeEncryptedCopyTo(destination, key);
         } catch(Exception e) {
+            e.printStackTrace();
             fail();
         }
 
-        Realm encryptedRealm = Realm.getInstance(getContext(), ENCRYPTED_REALM_FILE_NAME, key);
-        long after = encryptedRealm.where(AllTypes.class).count();
-        assertEquals(TEST_DATA_SIZE, after);
-        encryptedRealm.close();
+        Realm encryptedRealm = null;
+        try {
+            encryptedRealm = Realm.getInstance(getContext(), ENCRYPTED_REALM_FILE_NAME, key);
+            assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
+
+            destination = new File(getContext().getFilesDir(), RE_ENCRYPTED_REALM_FILE_NAME);
+            new Random(1234321).nextBytes(key);
+            try {
+                // Encrypted to encrypted
+                encryptedRealm.writeEncryptedCopyTo(destination, key);
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail();
+            }
+            Realm reEncryptedRealm = null;
+            try {
+                reEncryptedRealm = Realm.getInstance(getContext(), RE_ENCRYPTED_REALM_FILE_NAME, key);
+                assertEquals(TEST_DATA_SIZE, reEncryptedRealm.where(AllTypes.class).count());
+            } finally {
+                if (reEncryptedRealm != null) {
+                    reEncryptedRealm.close();
+                    boolean isDeleted = new File(reEncryptedRealm.getPath()).delete();
+                    if (!isDeleted) {
+                        fail();
+                    }
+                }
+            }
+
+            destination = new File(getContext().getFilesDir(), DECRYPTED_REALM_FILE_NAME);
+            try {
+                // Encrypted to decrypted
+                encryptedRealm.writeEncryptedCopyTo(destination, null);
+            } catch (Exception e) {
+                fail();
+            }
+            Realm decryptedRealm = null;
+            try {
+                decryptedRealm = Realm.getInstance(getContext(), DECRYPTED_REALM_FILE_NAME);
+                assertEquals(TEST_DATA_SIZE, decryptedRealm.where(AllTypes.class).count());
+            } finally {
+                if (decryptedRealm != null) {
+                    decryptedRealm.close();
+                    boolean isDeleted = new File(decryptedRealm.getPath()).delete();
+                    if (!isDeleted) {
+                        fail();
+                    }
+                }
+            }
+        } finally {
+            if (encryptedRealm != null) {
+                encryptedRealm.close();
+                boolean isDeleted = new File(encryptedRealm.getPath()).delete();
+                if (!isDeleted) {
+                    fail();
+                }
+            }
+        }
     }
 
 }
