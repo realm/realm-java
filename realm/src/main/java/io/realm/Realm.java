@@ -16,8 +16,8 @@
 
 package io.realm;
 
-import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
@@ -39,7 +39,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -732,8 +731,26 @@ public final class Realm implements Closeable {
      * @throws java.io.IOException if any write operation fails
      */
     public void writeCopyTo(File destination) throws IOException {
+        writeEncryptedCopyTo(destination, null);
+    }
+
+    /**
+     * Write a compacted and encrypted copy of the Realm to the given destination File.
+     *
+     * The destination file cannot already exist.
+     *
+     * Note that if this is called from within a write transaction it writes the
+     * current data, and not the data as it was when the last write transaction was committed.
+     *
+     * @param destination File to save the Realm to
+     * @throws java.io.IOException if any write operation fails
+     */
+    public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
+        if (destination == null) {
+            throw new IllegalArgumentException("The destination argument cannot be null");
+        }
         checkIfValid();
-        transaction.writeToFile(destination.getAbsolutePath());
+        transaction.writeToFile(destination, key);
     }
 
 
