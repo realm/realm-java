@@ -35,13 +35,12 @@ import io.realm.internal.TableView;
  *
  * The input to many of the query functions take a field name as as String. Note that this is not
  * type safe, so if a model class is refactored care has to be taken to not break any queries.
- * This is not optimal, but it is our current best compromise between ease of use and type safety.
  *
  * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a
  * Realm will return the objects in the order they where inserted. Use
  * {@link #findAllSorted(String)} and similar methods if a specific order is required.
  *
- * A RealmQuery cannot be parsed between different threads.
+ * A RealmQuery cannot be passed between different threads.
  *
  * @param <E> The class of the objects to be queried.
  * @see <a href="http://en.wikipedia.org/wiki/Builder_pattern">Builder pattern</a>

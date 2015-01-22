@@ -48,7 +48,7 @@ import io.realm.internal.Row;
  * - int
  * - long
  * - float
- * - long
+ * - double
  * - byte[]
  * - String
  * - Date
@@ -59,10 +59,10 @@ import io.realm.internal.Row;
  * the field name is {@code XXX}. Getters for fields of type boolean can be called {@code isXXX} as
  * well.
  *
- * Fields annotated with {@link io.realm.annotations.Ignore} doesn't have these restrictions and
+ * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and
  * don't require either a getter or setter.
  *
- * A RealmObject cannot be parsed between different threads.
+ * A RealmObject cannot be passed between different threads.
  *
  * @see Realm#createObject(Class)
  * @see Realm#copyToRealm(RealmObject)

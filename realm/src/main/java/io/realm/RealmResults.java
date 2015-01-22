@@ -38,7 +38,7 @@ import io.realm.internal.TableView;
  * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the
  * modified objects are persisted to the Realm file during the commit of the transaction.
  *
- * A RealmResults object cannot be parsed between different threads.
+ * A RealmResults object cannot be passed between different threads.
  *
  * @param <E> The class of objects in this list
  * @see RealmQuery#findAll()

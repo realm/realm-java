@@ -66,7 +66,7 @@ import io.realm.internal.log.RealmLog;
  * transaction. See {@link #beginTransaction()}
  *
  * The transactions ensure that multiple instances (on multiple threads) can access the same
- * objects in a consistent state with full ACID guaranties.
+ * objects in a consistent state with full ACID guarantees.
  *
  * It is important to remember to call the {@link #close()} method when done with a Realm
  * instance. Failing to do so can lead to {@link java.lang.OutOfMemoryError} as the native
@@ -84,7 +84,7 @@ import io.realm.internal.log.RealmLog;
  * making the Realm more expensive to reopen.
  *
  * Realm instances coordinate their state across threads using the {@link android.os.Handler}
- * mechanism. This also mean that Realm instances on threads without a {@link android.os.Looper}
+ * mechanism. This also means that Realm instances on threads without a {@link android.os.Looper}
  * doesn't get updated unless {@link #refresh()} is manually called.
  *
  * A standard pattern for working with Realm in Android activities can be seen below:

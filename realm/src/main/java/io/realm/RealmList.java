@@ -27,9 +27,9 @@ import io.realm.internal.TableQuery;
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
  * RealmList has two modes: A managed and non-managed mode. In managed mode all objects are persisted
- * inside a Realm, in non-managed mode it works as an normal ArrayList.
+ * inside a Realm, in non-managed mode it works as a normal ArrayList.
  *
- * Only Realm can create managed RealmLists. Managed RealmLists will automatically update its
+ * Only Realm can create managed RealmLists. Managed RealmLists will automatically update their
  * content whenever the underlying Realm is updated, and can only be accessed using the getter
  * from a {@link io.realm.RealmObject}.
  *
