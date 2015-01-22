@@ -33,6 +33,10 @@ public class TestHelper {
         AllTypes object3 = testRealm.createObject(AllTypes.class);
         object3.setColumnLong(4);
         object3.setColumnString("Adam");
+
+        AllTypes object4 = testRealm.createObject(AllTypes.class);
+        object4.setColumnLong(5);
+        object4.setColumnString("Adam");
         testRealm.commitTransaction();
     }
 }

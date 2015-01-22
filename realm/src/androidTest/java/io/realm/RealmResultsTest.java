@@ -29,6 +29,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.internal.TableView;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
@@ -603,30 +604,44 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class);
         results1.sort(new String[]{FIELD_STRING, FIELD_LONG}, new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
-        assertEquals(3, results1.size());
+        assertEquals(4, results1.size());
 
         assertEquals("Adam", results1.get(0).getColumnString());
         assertEquals(4, results1.get(0).getColumnLong());
+        assertEquals(2, ((TableView)results1.getTable()).getSourceRowIndex(0));
 
         assertEquals("Adam", results1.get(1).getColumnString());
         assertEquals(5, results1.get(1).getColumnLong());
+        assertEquals(0, ((TableView)results1.getTable()).getSourceRowIndex(1));
 
-        assertEquals("Brian", results1.get(2).getColumnString());
-        assertEquals(4, results1.get(2).getColumnLong());
+        assertEquals("Adam", results1.get(2).getColumnString());
+        assertEquals(5, results1.get(2).getColumnLong());
+        assertEquals(3, ((TableView)results1.getTable()).getSourceRowIndex(2));
+
+        assertEquals("Brian", results1.get(3).getColumnString());
+        assertEquals(4, results1.get(3).getColumnLong());
+        assertEquals(1, ((TableView)results1.getTable()).getSourceRowIndex(3));
 
         RealmResults<AllTypes> results2 = testRealm.allObjects(AllTypes.class);
         results2.sort(new String[]{FIELD_LONG, FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
-        assertEquals(3, results2.size());
+        assertEquals(4, results2.size());
 
         assertEquals("Adam", results2.get(0).getColumnString());
         assertEquals(4, results2.get(0).getColumnLong());
+        assertEquals(2, ((TableView)results2.getTable()).getSourceRowIndex(0));
 
         assertEquals("Brian", results2.get(1).getColumnString());
         assertEquals(4, results2.get(1).getColumnLong());
+        assertEquals(1, ((TableView)results2.getTable()).getSourceRowIndex(1));
 
         assertEquals("Adam", results2.get(2).getColumnString());
         assertEquals(5, results2.get(2).getColumnLong());
+        assertEquals(0, ((TableView)results2.getTable()).getSourceRowIndex(2));
+
+        assertEquals("Adam", results2.get(2).getColumnString());
+        assertEquals(5, results2.get(2).getColumnLong());
+        assertEquals(3, ((TableView)results2.getTable()).getSourceRowIndex(3));
     }
 
     public void testSortMultiFailures() {
