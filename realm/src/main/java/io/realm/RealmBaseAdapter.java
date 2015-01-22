@@ -27,8 +27,9 @@ import android.widget.BaseAdapter;
  * This adapter will automatically handle any updates to its data and call
  * {@link #notifyDataSetChanged()} as appropriate.
  *
- * The RealmAdapter will no longer get any updates and will throw an error if it is accessed after
- * the Realm instance from where the RealmResults came is closed.
+ * The RealmAdapter will stop receiving updates if the Realm instance providing the
+ * {@link io.realm.RealmResults} is closed. Trying to access read objects, will at this point also
+ * result in a {@link io.realm.exceptions.RealmException}.
  */
 public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapter {
 

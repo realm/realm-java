@@ -73,11 +73,11 @@ import io.realm.internal.log.RealmLog;
  * instance. Failing to do so can lead to {@link java.lang.OutOfMemoryError} as the native
  * resources cannot be freed.
  *
- * Realm instances cannot be used across different threads, which means you have to open an instance
- * pr. thread. Realm instances are cached automatically per thread using reference counting, so as
- * long as the reference count doesn't reach zero, calling
- * {@link #getInstance(android.content.Context)} will just return the cached Realm which and should
- * be considered a lightweight operation.
+ * Realm instances cannot be used across different threads. This means that you have to open an
+ * instance on each thread you want to use Realm. Realm instances are cached automatically per
+ * thread using reference counting, so as long as the reference count doesn't reach zero, calling
+ * {@link #getInstance(android.content.Context)} will just return the cached Realm and should be
+ * considered a lightweight operation.
  *
  * For the UI thread this means that opening and closing Realms should occur in either
  * onCreate/onDestroy or onStart/onStop. onResume/onPause do not overlap between new activities,
@@ -88,7 +88,7 @@ import io.realm.internal.log.RealmLog;
  * mechanism. This also mean that Realm instances on threads without a {@link android.os.Looper}
  * doesn't get updated unless {@link #refresh()} is manually called.
  *
- * A standard pattern for working with Realm in Android activities is below:
+ * A standard pattern for working with Realm in Android activities can be seen below:
  *
  * <pre>
  * public class RealmActivity extends Activity {
@@ -113,7 +113,7 @@ import io.realm.internal.log.RealmLog;
  * Realm support String and byte fields containing up to 16 MB.
  *
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
- * @see <a href="https://github.com/realm/realm-java/tree/master/examples">More Realm examples</a>
+ * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
 public final class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";

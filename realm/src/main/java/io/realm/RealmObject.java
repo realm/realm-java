@@ -42,7 +42,7 @@ import io.realm.internal.Row;
  * - Getter and setters for these fields.
  * - Static methods.
  *
- * The following field data types are supported:
+ * The following field data types are supported (No boxed types):
  * - boolean
  * - short
  * - int
@@ -55,10 +55,12 @@ import io.realm.internal.Row;
  * - Any RealmObject subclass
  * - RealmList
  *
- * All fields that are not annotated with {@link io.realm.annotations.Ignore} require both a
- * getter and setter. Getter and setter names must have the name {@code getXXX} or {@code setXXX} if
+ * Getter and setter names must have the name {@code getXXX} or {@code setXXX} if
  * the field name is {@code XXX}. Getters for fields of type boolean can be called {@code isXXX} as
  * well.
+ *
+ * Fields annotated with {@link io.realm.annotations.Ignore} doesn't have these restrictions and
+ * don't require either a getter or setter.
  *
  * A RealmObject cannot be parsed between different threads.
  *

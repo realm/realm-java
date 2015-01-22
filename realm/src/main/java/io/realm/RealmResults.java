@@ -33,10 +33,10 @@ import io.realm.internal.TableView;
 /**
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects
  * are not copied from the Realm to the RealmResults list, but are just referenced from the
- * RealmResult instead. This saves memory and increase speed.
+ * RealmResult instead. This saves memory and increases speed.
  *
- * Updates to RealmObjects from a RealmResults list must be done within a transaction and the
- * modified objects are persisted to the backing Realm file during the commit of the transaction.
+ * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the
+ * modified objects are persisted to the Realm file during the commit of the transaction.
  *
  * A RealmResults object cannot be parsed between different threads.
  *
