@@ -1,8 +1,11 @@
 0.78
+ * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
+ * Added support to write an encrypted copy of a Realm.
  * Realm no longer incorrectly warns that an instance has been closed too many times.
  * Realm now shows a log warning if an instance is being finalized without being closed.
  * Fixed bug causing Realms to be cached during a RealmMigration resulting in invalid realms being returned from Realm.getInstance().
-
+ * Updated core to 0.88. 
+ 
 0.77
  * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and exteding RealmResults.sort() for multi-field sorting.
  * RealmResults.sort() now has better error reporting.

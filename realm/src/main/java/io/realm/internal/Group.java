@@ -239,34 +239,28 @@ public class Group implements Closeable {
 
     protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
 
-    /**
-     * Writes the group to the specific file on the disk.
-     *
-     * @param fileName
-     *            The file of the file.
-     * @throws IOException
-     */
-    public void writeToFile(String fileName) throws IOException {
-        verifyGroupIsValid();
-        if (fileName == null)
-            throw new IllegalArgumentException("fileName is null");
-        File file = new File(fileName);
-        writeToFile(file);
-    }
-
     protected native void nativeWriteToFile(long nativeGroupPtr, String fileName, byte[] keyArray)
             throws IOException;
 
     /**
-     * Serialize the group to the specific file on the disk.
+     * Serialize the group to the specific file on the disk using encryption.
      *
      * @param file
      *            A File object representing the file.
+     * @param key A 64 bytes long byte array containing the key to the encrypted Realm file. Can be null if
+     *            encryption is not required.
      * @throws IOException
      */
-    public void writeToFile(File file) throws IOException {
+    public void writeToFile(File file, byte[] key) throws IOException {
         verifyGroupIsValid();
-        nativeWriteToFile(nativePtr, file.getAbsolutePath(), null);
+        if (file.isFile() && file.exists()) {
+            throw new IllegalArgumentException("The destination file must not exist");
+        }
+        if (key != null && key.length != 64) {
+            throw new IllegalArgumentException("Realm AES keys must be 64 bytes long");
+        }
+
+        nativeWriteToFile(nativePtr, file.getAbsolutePath(), key);
     }
 
     protected static native long nativeLoadFromMem(byte[] buffer);
