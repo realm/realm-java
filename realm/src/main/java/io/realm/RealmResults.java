@@ -532,7 +532,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
 
         /**
-         * Removes the RealmObject at the position from both the list and the underlying Realm.
+         * Removes the RealmObject at the current position from both the list and the underlying Realm.
          *
          * WARNING: This method is currently disabled and will always throw an
          * {@link io.realm.exceptions.RealmException}
@@ -605,7 +605,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
 
         /**
-         * Removes the RealmObject at the position from both the list and the underlying Realm.
+         * Removes the RealmObject at the current position from both the list and the underlying Realm.
          *
          * WARNING: This method is currently disabled and will always throw an
          * {@link io.realm.exceptions.RealmException}
