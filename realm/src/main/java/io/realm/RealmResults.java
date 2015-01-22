@@ -437,31 +437,29 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Removes an object at a given index. This also deletes the object from the underlying Realm.
      *
-     * WARNING: This method is currently disabled and will always throw an
-     * {@link io.realm.exceptions.RealmException}
+     * Using this method while iterating the list, can result in a undefined behavior. Use
+     * {@link io.realm.RealmResults.RealmResultsIterator#remove()} instead.
      *
      * @param index      The array index identifying the object to be removed.
-     * @return           Always return null.
+     * @return           Object that was removed.
      */
     @Override
     public E remove(int index) {
-        throw new RealmException("Removing object is not supported.");
-/*        TableOrView table = getTable();
+        E obj = get(index);
+        TableOrView table = getTable();
         table.remove(index);
-        return null;*/
+        return obj;
     }
 
     /**
      * Removes the last object in the list. This also deletes the object from the underlying Realm.
      *
-     * WARNING: This method is currently disabled and will always throw an
-     * {@link io.realm.exceptions.RealmException}
+     * Using this method while iterating the list, can result in a undefined behavior. Use
+     * {@link io.realm.RealmResults.RealmResultsListIterator#removeLast()} instead.
      */
     public void removeLast() {
-        throw new RealmException("Removing object is not supported.");
-        /*
         TableOrView table = getTable();
-        table.removeLast();*/
+        table.removeLast();
     }
 
     /**
