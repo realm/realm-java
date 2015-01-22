@@ -17,8 +17,17 @@
 package io.realm;
 
 /**
- * Using RealmChangeListener, it is possible to be notified when another instance of a Realm is
- * changed.
+ * Using RealmChangeListener, it is possible to be notified when a Realm instance has been updated.
+ *
+ * Realm instances on a thread without a Looper (almost all background threads) doesn't get
+ * updated automatically, but have to call {@link Realm#refresh()} manually. This will in turn trigger
+ * the RealmChangeListener for that background thread.
+ *
+ * All {@link io.realm.RealmObject}s and {@link io.realm.RealmResults} will automatically contain
+ * their new values when the {@link #onChange()} method is called. Normally this means that it
+ * isn't necessary to query again for those objects, but just invalidate any UI elements that are
+ * using them. If there is a chance that a object has been been deleted, it can be verified
+ * by using {@link RealmObject#isValid()}.
  *
  * @see Realm#addChangeListener(RealmChangeListener)
  * @see Realm#removeAllChangeListeners()
@@ -27,7 +36,7 @@ package io.realm;
 public interface RealmChangeListener {
 
     /**
-     * Called when a write transaction is committed
+     * Called when a transaction is committed
      */
     public void onChange();
 
