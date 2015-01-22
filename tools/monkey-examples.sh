@@ -20,11 +20,6 @@ for example in examples/*/ ; do
     applicationId=$(grep applicationId "${example}build.gradle" | cut -d \" -f 2 | cut -d \' -f 2)
     project=$(basename ${example})
 
-    if [ ${project} == "encryptionExample" ] ; then
-        echo "Skipping ${example}"
-        continue
-    fi
-
     echo ""
     echo "Building $example"
     adb uninstall ${applicationId} > /dev/null
