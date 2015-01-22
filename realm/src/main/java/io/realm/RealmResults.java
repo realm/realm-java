@@ -435,7 +435,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Deleting
 
     /**
-     * Removes an object at a given index.
+     * Removes an object at a given index. This also deletes the object from the underlying Realm.
+     *
+     * WARNING: This method is currently disabled and will always throw an
+     * {@link io.realm.exceptions.RealmException}
      *
      * @param index      The array index identifying the object to be removed.
      * @return           Always return null.
@@ -449,8 +452,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Removes the last object in the list.
+     * Removes the last object in the list. This also deletes the object from the underlying Realm.
      *
+     * WARNING: This method is currently disabled and will always throw an
+     * {@link io.realm.exceptions.RealmException}
      */
     public void removeLast() {
         throw new RealmException("Removing object is not supported.");
@@ -460,8 +465,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Removes all objects from the list.
-     *
+     * Removes all objects from the list. This also deletes the objects from the
+     * underlying Realm.
      */
     public void clear() {
         TableOrView table = getTable();
@@ -526,6 +531,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return get(pos);
         }
 
+        /**
+         * Removes the RealmObject at the position from both the list and the underlying Realm.
+         *
+         * WARNING: This method is currently disabled and will always throw an
+         * {@link io.realm.exceptions.RealmException}
+         */
         public void remove() {
             throw new RealmException("Removing is not supported.");
     /*        assertRealmIsStable();
@@ -592,6 +603,13 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             throw new RealmException("Replacing elements not supported.");
         }
 
+
+        /**
+         * Removes the RealmObject at the position from both the list and the underlying Realm.
+         *
+         * WARNING: This method is currently disabled and will always throw an
+         * {@link io.realm.exceptions.RealmException}
+         */
         @Override
         public void remove() { throw new RealmException("Removing elements not supported."); }
     }
