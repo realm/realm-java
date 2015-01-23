@@ -98,6 +98,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 
         return reinterpret_cast<jlong>(db);
     }
+    CATCH_FILE()
     CATCH_STD()
     return 0;
 }
@@ -118,6 +119,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 #endif
         return reinterpret_cast<jlong>(repl);
     }
+    CATCH_FILE(file_name)
     CATCH_STD()
     return 0;
 }

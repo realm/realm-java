@@ -140,7 +140,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             Realm realm = Realm.getInstance(folder);
             fail("Pointing to a read-only folder should throw an error");
-        } catch (IllegalArgumentException expected) {
+        } catch (RealmIOException expected) {
         }
     }
 
@@ -158,7 +158,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             Realm.getInstance(folder, REALM_FILE);
             fail("Trying to open a read-only file should fail");
-        } catch (IllegalArgumentException expected) {
+        } catch (RealmIOException expected) {
         }
     }
 

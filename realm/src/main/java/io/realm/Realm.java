@@ -463,13 +463,6 @@ public final class Realm implements Closeable {
         if (writableFolder == null || !writableFolder.isDirectory()) {
             throw new IllegalArgumentException(("A existing folder must be provided. Yours was " + (writableFolder != null ? writableFolder.getAbsolutePath() : "null")));
         }
-        if (!writableFolder.canWrite()) {
-            throw new IllegalArgumentException("You do not have write permissions to create a Realm in " + writableFolder.getAbsolutePath());
-        }
-        File realmFile = new File(writableFolder, filename);
-        if (realmFile.exists() && !realmFile.canWrite()) {
-            throw new IllegalArgumentException("Realm is not writable: " + realmFile.getAbsolutePath());
-        }
     }
 
     private static void initializeRealm(Realm realm) {
