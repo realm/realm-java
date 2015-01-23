@@ -45,7 +45,7 @@ public class SharedGroup implements Closeable {
 
     public SharedGroup(String databaseFile) {
         context = new Context();
-        this.nativePtr = createNative(databaseFile, Durability.FULL.value, false, false, null);
+        this.nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, null);
         checkNativePtrNotZero();
     }
 
@@ -55,7 +55,7 @@ public class SharedGroup implements Closeable {
             nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, key);
             implicitTransactionsEnabled = true;
         } else {
-            nativePtr = createNative(databaseFile, Durability.FULL.value, false, false, key);
+            nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, key);
         }
         context = new Context();
         checkNativePtrNotZero();
@@ -67,20 +67,20 @@ public class SharedGroup implements Closeable {
 
     public SharedGroup(String databaseFile, Durability durability, byte[] key) {
         context = new Context();
-        this.nativePtr = createNative(databaseFile, durability.value, false, false, key);
+        this.nativePtr = nativeCreate(databaseFile, durability.value, false, false, key);
         checkNativePtrNotZero();
     }
 
     public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
         context = new Context();
-        this.nativePtr = createNative(databaseFile, durability.value, fileMustExist, false, null);
+        this.nativePtr = nativeCreate(databaseFile, durability.value, fileMustExist, false, null);
         checkNativePtrNotZero();
     }
 
     /*
         SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
             context = new Context();
-            this.nativePtr = createNative(databaseFile, durability.value, no_create, enableReplication);
+            this.nativePtr = nativeCreate(databaseFile, durability.value, no_create, enableReplication);
             checkNativePtr();
         }
     */
@@ -234,15 +234,16 @@ public class SharedGroup implements Closeable {
 
     private native void nativeRollback(long nativePtr);
 
-    private native long createNative(String databaseFile,
+    private native long nativeCreate(String databaseFile,
                                      int durabilityValue,
                                      boolean no_create,
                                      boolean enableReplication,
                                      byte[] key);
 
     private void checkNativePtrNotZero() {
-        if (this.nativePtr == 0)
-            throw new java.lang.OutOfMemoryError("Out of native memory.");
+        if (this.nativePtr == 0) {
+            throw new java.lang.OutOfMemoryError("Out of native memory. Realm could not be opened");
+        }
     }
 
     protected static native void nativeClose(long nativePtr);

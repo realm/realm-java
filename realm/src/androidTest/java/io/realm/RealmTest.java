@@ -109,6 +109,40 @@ public class RealmTest extends AndroidTestCase {
     }
 
 
+    public void testGetInstanceNullFolder() {
+        try {
+            Realm.getInstance((File) null);
+            fail("Parsing null as folder should throw an error");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceNullName() {
+        try {
+            Realm.getInstance(getContext(), (String) null);
+            fail("Parsing null as realm name should throw an error");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceCreateSubFolders() {
+        File folder = new File(getContext().getFilesDir().getAbsolutePath() + "/subfolder1/subfolder2/");
+        try {
+            Realm.getInstance(getContext(), (String) null);
+            fail("Assuming that subfolders are created automatically should fail");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceNoWritePermission() {
+        File folder = new File("/");
+        try {
+            Realm realm = Realm.getInstance(folder);
+            fail("Pointing to a read-only folder should throw an error");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
     public void testRealmCache() {
         Realm newRealm = Realm.getInstance(getContext());
         assertEquals(testRealm, newRealm);
@@ -1055,5 +1089,4 @@ public class RealmTest extends AndroidTestCase {
             }
         }
     }
-
 }

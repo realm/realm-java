@@ -1,6 +1,8 @@
 package io.realm.exceptions;
 
-@SuppressWarnings("serial")
+/**
+ * Realm exception for reporting problems opening or creating Realm files.
+ */
 public class RealmIOException extends RuntimeException {
 
     public RealmIOException(Throwable cause) {
