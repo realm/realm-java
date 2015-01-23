@@ -17,7 +17,10 @@
 package io.realm.internal;
 
 import java.io.Closeable;
+import java.io.IOError;
 import java.lang.*;
+
+import io.realm.exceptions.RealmIOException;
 
 public class SharedGroup implements Closeable {
 
@@ -242,7 +245,7 @@ public class SharedGroup implements Closeable {
 
     private void checkNativePtrNotZero() {
         if (this.nativePtr == 0) {
-            throw new java.lang.OutOfMemoryError("Out of native memory. Realm could not be opened");
+            throw new IOError(new RealmIOException("Realm could not be opened"));
         }
     }
 

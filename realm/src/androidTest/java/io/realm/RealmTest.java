@@ -110,7 +110,7 @@ public class RealmTest extends AndroidTestCase {
     }
 
 
-    public void testGetInstanceNullFolder() {
+    public void testGetInstanceNullFolderThrows() {
         try {
             Realm.getInstance((File) null);
             fail("Parsing null as folder should throw an error");
@@ -118,7 +118,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testGetInstanceNullName() {
+    public void testGetInstanceNullNameThrows() {
         try {
             Realm.getInstance(getContext(), (String) null);
             fail("Parsing null as realm name should throw an error");
@@ -126,7 +126,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testGetInstanceCreateSubFolders() {
+    public void testGetInstanceCreateSubFoldersThrows() {
         File folder = new File(getContext().getFilesDir().getAbsolutePath() + "/subfolder1/subfolder2/");
         try {
             Realm.getInstance(getContext(), (String) null);
@@ -135,7 +135,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testGetInstanceFolderNoWritePermission() {
+    public void testGetInstanceFolderNoWritePermissionThrows() {
         File folder = new File("/");
         try {
             Realm realm = Realm.getInstance(folder);
@@ -144,7 +144,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testGetInstanceFileNoWritePermission() throws IOException {
+    public void testGetInstanceFileNoWritePermissionThrows() throws IOException {
         String REALM_FILE = "readonly.realm";
         File folder = getContext().getFilesDir();
         File realmFile = new File(folder, REALM_FILE);
