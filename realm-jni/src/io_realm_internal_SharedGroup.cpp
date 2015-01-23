@@ -32,7 +32,7 @@ using namespace tightdb;
 
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
     JNIEnv* env, jobject, jstring jfile_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
     TR_ENTER()
