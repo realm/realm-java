@@ -1,3 +1,6 @@
+0.79
+ * Better error reporting when trying to create or open a Realm file fails.
+
 0.78
  * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
  * Added support to write an encrypted copy of a Realm.
