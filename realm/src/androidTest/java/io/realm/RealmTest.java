@@ -1056,4 +1056,29 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testRealmFileDeletion() {
+        final String otherRealmName = "yetAnotherRealm.realm";
+
+        try {
+            Realm.deleteRealmFile(getContext());
+            fail();
+        } catch (Exception ignored) {
+        }
+
+        Realm yetAnotherRealm = Realm.getInstance(getContext(), otherRealmName);
+
+        try {
+            Realm.deleteRealmFile(getContext(), otherRealmName);
+            fail();
+        } catch (Exception ignored) {
+        }
+
+        yetAnotherRealm.close();
+        try {
+            Realm.deleteRealmFile(getContext(), otherRealmName);
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
 }
