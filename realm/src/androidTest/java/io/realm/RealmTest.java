@@ -41,6 +41,7 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmIOException;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -134,7 +135,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testGetInstanceNoWritePermission() {
+    public void testGetInstanceFolderNoWritePermission() {
         File folder = new File("/");
         try {
             Realm realm = Realm.getInstance(folder);
@@ -142,6 +143,26 @@ public class RealmTest extends AndroidTestCase {
         } catch (IllegalArgumentException expected) {
         }
     }
+
+    public void testGetInstanceFileNoWritePermission() throws IOException {
+        String REALM_FILE = "readonly.realm";
+        File folder = getContext().getFilesDir();
+        File realmFile = new File(folder, REALM_FILE);
+        if (realmFile.exists()) {
+            realmFile.delete(); // Reset old test data
+        }
+
+        assertTrue(realmFile.createNewFile());
+        assertTrue(realmFile.setWritable(false));
+
+        try {
+            Realm.getInstance(folder, REALM_FILE);
+            fail("Trying to open a read-only file should fail");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+
 
     public void testRealmCache() {
         Realm newRealm = Realm.getInstance(getContext());

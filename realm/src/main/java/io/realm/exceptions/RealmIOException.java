@@ -1,7 +1,7 @@
 package io.realm.exceptions;
 
 /**
- * Realm exception for reporting problems opening or creating Realm files.
+ * Class for reporting problems with Realm files.
  */
 public class RealmIOException extends RuntimeException {
 
