@@ -437,7 +437,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Removes an object at a given index. This also deletes the object from the underlying Realm.
      *
-     * Using this method while iterating the list, can result in a undefined behavior. Use
+     * Using this method while iterating the list can result in a undefined behavior. Use
      * {@link io.realm.RealmResults.RealmResultsIterator#remove()} instead.
      *
      * @param index      The array index identifying the object to be removed.
@@ -454,7 +454,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Removes the last object in the list. This also deletes the object from the underlying Realm.
      *
-     * Using this method while iterating the list, can result in a undefined behavior. Use
+     * Using this method while iterating the list can result in a undefined behavior. Use
      * {@link io.realm.RealmResults.RealmResultsListIterator#removeLast()} instead.
      */
     public void removeLast() {
