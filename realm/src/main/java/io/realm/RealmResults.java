@@ -441,18 +441,18 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * {@link io.realm.RealmResults.RealmResultsIterator#remove()} instead.
      *
      * @param index      The array index identifying the object to be removed.
-     * @return           Object that was removed.
+     * @return           Always return null.
      */
     @Override
     public E remove(int index) {
-        E obj = get(index);
         TableOrView table = getTable();
         table.remove(index);
-        return obj;
+        return null; // Returning the object doesn't make sense, since it could no longer access any data.
     }
 
     /**
-     * Removes the last object in the list. This also deletes the object from the underlying Realm.
+     * Removes and returns the last object in the list. This also deletes the object from the
+     * underlying Realm.
      *
      * Using this method while iterating the list can result in a undefined behavior. Use
      * {@link io.realm.RealmResults.RealmResultsListIterator#removeLast()} instead.
