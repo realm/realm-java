@@ -1,4 +1,4 @@
-![Realm](logo.png)
+#Realm
 
 Realm is a mobile database that runs directly inside phones, tablets or wearables.
 This repository holds the source code for the Java version of Realm, which currently runs only on Android.
