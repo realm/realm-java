@@ -38,6 +38,9 @@ public class NotificationsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
+        for (Integer key : Realm.openRealms.keySet()) {
+            Realm.openRealms.put(key, new AtomicInteger(0));
+        }
         Realm.deleteRealmFile(getContext());
     }
 
