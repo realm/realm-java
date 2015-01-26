@@ -461,7 +461,7 @@ public final class Realm implements Closeable {
             throw new IllegalArgumentException("Non-empty filename must be provided");
         }
         if (writableFolder == null || !writableFolder.isDirectory()) {
-            throw new IllegalArgumentException(("A existing folder must be provided. Yours was " + (writableFolder != null ? writableFolder.getAbsolutePath() : "null")));
+            throw new IllegalArgumentException(("An existing folder must be provided. Yours was " + (writableFolder != null ? writableFolder.getAbsolutePath() : "null")));
         }
     }
 
