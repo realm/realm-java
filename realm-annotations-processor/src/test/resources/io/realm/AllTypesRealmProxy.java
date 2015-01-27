@@ -8,11 +8,15 @@ import io.realm.internal.LinkView;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import some.test.*;
+import some.test.AllTypes;
 
 public class AllTypesRealmProxy extends AllTypes {
 
@@ -77,13 +81,13 @@ public class AllTypesRealmProxy extends AllTypes {
     }
 
     @Override
-    public java.util.Date getColumnDate() {
+    public Date getColumnDate() {
         realm.checkIfValid();
         return (java.util.Date) row.getDate(Realm.columnIndices.get("AllTypes").get("columnDate"));
     }
 
     @Override
-    public void setColumnDate(java.util.Date value) {
+    public void setColumnDate(Date value) {
         realm.checkIfValid();
         row.setDate(Realm.columnIndices.get("AllTypes").get("columnDate"), (Date) value);
     }
@@ -242,8 +246,27 @@ public class AllTypesRealmProxy extends AllTypes {
         reader.endObject();
     }
 
+
+
+    public static AllTypes copyToRealm(Realm realm, AllTypes object) {
+        AllTypes realmObject = realm.createObject(AllTypes.class);
+        realmObject.setColumnString(object.getColumnString());
+        realmObject.setColumnLong(object.getColumnLong());
+        realmObject.setColumnFloat(object.getColumnFloat());
+        realmObject.setColumnDouble(object.getColumnDouble());
+        realmObject.setColumnBoolean(object.isColumnBoolean());
+        if (object.getColumnDate() != null) {
+            realmObject.setColumnDate(object.getColumnDate());
+        }
+        realmObject.setColumnBinary(object.getColumnBinary());
+        return realmObject;
+    }
+
     @Override
     public String toString() {
+        if (!isValid()) {
+            return "Invalid object";
+        }
         StringBuilder stringBuilder = new StringBuilder("AllTypes = [");
         stringBuilder.append("{columnString:");
         stringBuilder.append(getColumnString());

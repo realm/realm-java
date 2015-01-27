@@ -36,6 +36,9 @@ cp -R examples/threadExample/src distribution/RealmThreadExample/app
 echo "Copying files to the distribution/RealmJsonExample folder"
 cp -R examples/jsonExample/src distribution/RealmJsonExample/app
 
+echo "Copying files to the distribution/RealmEncryptionExample folder"
+cp -R examples/encryptionExample/src distribution/RealmEncryptionExample/app
+
 echo "Creating the Eclipse distribution"
 mkdir -p distribution/eclipse
 cp realm/build/libs/realm-${version}.jar distribution/eclipse

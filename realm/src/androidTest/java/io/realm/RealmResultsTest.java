@@ -570,15 +570,19 @@ public class RealmResultsTest extends AndroidTestCase {
             fail("Sorting by child object properties should result in a IllegalArgumentException");
         } catch (IllegalArgumentException ignore) {
         }
-
     }
 
     public void testSortWithNullThrows() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
         try {
-            result.sort(null);
+            result.sort((String)null);
             fail("Sorting with a null field name should throw an IllegalArgumentException");
-        } catch(IllegalArgumentException ignored) {
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            result.sort((String[])null, (boolean[])null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -591,6 +595,78 @@ public class RealmResultsTest extends AndroidTestCase {
         } catch (IllegalArgumentException e) {
             fail("Failed to sort an empty RealmResults");
         }
+    }
+
+    public void testSortTwoFields() {
+        io.realm.TestHelper.populateForMultiSort(testRealm);
+
+        RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class);
+        results1.sort(new String[]{FIELD_STRING, FIELD_LONG}, new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+
+        assertEquals(3, results1.size());
+
+        assertEquals("Adam", results1.get(0).getColumnString());
+        assertEquals(4, results1.get(0).getColumnLong());
+
+        assertEquals("Adam", results1.get(1).getColumnString());
+        assertEquals(5, results1.get(1).getColumnLong());
+
+        assertEquals("Brian", results1.get(2).getColumnString());
+        assertEquals(4, results1.get(2).getColumnLong());
+
+        RealmResults<AllTypes> results2 = testRealm.allObjects(AllTypes.class);
+        results2.sort(new String[]{FIELD_LONG, FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+
+        assertEquals(3, results2.size());
+
+        assertEquals("Adam", results2.get(0).getColumnString());
+        assertEquals(4, results2.get(0).getColumnLong());
+
+        assertEquals("Brian", results2.get(1).getColumnString());
+        assertEquals(4, results2.get(1).getColumnLong());
+
+        assertEquals("Adam", results2.get(2).getColumnString());
+        assertEquals(5, results2.get(2).getColumnLong());
+    }
+
+    public void testSortMultiFailures() {
+        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+
+        // zero fields specified
+        try {
+            allTypes.sort(new String[]{}, new boolean[]{});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // number of fields and sorting orders don't match
+        try {
+            allTypes.sort(new String[]{FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // null is not allowed
+        try {
+            allTypes.sort(null, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+        try {
+            allTypes.sort(new String[]{FIELD_STRING}, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+
+        // non-existing field name
+        try {
+            allTypes.sort(new String[]{FIELD_STRING, "dont-exist"}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+    }
+
+    public void testSortSingleField() {
+        RealmResults<AllTypes> sortedList = testRealm.allObjects(AllTypes.class);
+        sortedList.sort(new String[]{FIELD_LONG}, new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
+        assertEquals(TEST_DATA_SIZE, sortedList.size());
+        assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
+        assertEquals(0, sortedList.last().getColumnLong());
     }
 
     public void testCount() {

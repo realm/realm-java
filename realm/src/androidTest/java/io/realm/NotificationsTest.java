@@ -15,12 +15,14 @@
  */
 package io.realm;
 
+import android.os.Handler;
 import android.os.Looper;
 import android.test.AndroidTestCase;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,7 +46,7 @@ public class NotificationsTest extends AndroidTestCase {
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                Realm realm = Realm.getInstance(getContext(), false);
+                Realm realm = Realm.getInstance(getContext());
                 boolean autoRefresh = realm.isAutoRefresh();
                 assertFalse(autoRefresh);
                 try {
@@ -116,7 +118,7 @@ public class NotificationsTest extends AndroidTestCase {
         }
         Thread.sleep(100); 
 
-        Realm realm = Realm.getInstance(getContext(), false);
+        Realm realm = Realm.getInstance(getContext());
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
@@ -192,5 +194,89 @@ public class NotificationsTest extends AndroidTestCase {
 
         assertEquals(1, counter.get());
         assertTrue(Realm.realmsCache.get().isEmpty());
+    }
+
+    // TODO Disabled until we can figure out why this times out so often on the build server
+    public void DISABLEDtestCloseClearingHandlerMessages() throws InterruptedException, TimeoutException, ExecutionException {
+        final int TEST_SIZE = 10;
+        final CountDownLatch backgroundLooperStarted = new CountDownLatch(1);
+        final CountDownLatch addHandlerMessages = new CountDownLatch(1);
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Looper.prepare(); // Fake background thread with a looper, eg. a IntentService
+                Realm realm = Realm.getInstance(getContext());
+                backgroundLooperStarted.countDown();
+
+                // Random operation in the client code
+                final RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+                if (dogs.size() != 0) {
+                    return false;
+                }
+                addHandlerMessages.await(1, TimeUnit.SECONDS); // Wait for main thread to add update messages
+
+                // Find the current Handler for the thread now. All message and references will be
+                // cleared once we call close().
+                Handler threadHandler = realm.getHandler();
+                realm.close(); // Close native resources + associated handlers.
+
+                // Looper now reads the update message from the main thread if the Handler was not
+                // cleared. This will cause an IllegalStateException and should not happen.
+                // If it works correctly. The looper will just block on an empty message queue.
+                // This is normal behavior but is bad for testing, so we add a custom quit message
+                // at the end so we can evaluate results faster.
+                threadHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Looper.myLooper().quit();
+                    }
+                });
+
+                try {
+                    Looper.loop();
+                } catch (IllegalStateException e) {
+                    return false;
+                }
+                return true;
+            }
+        });
+
+        // Wait until the looper is started on a background thread
+        backgroundLooperStarted.await(1, TimeUnit.SECONDS);
+
+        // Execute a transaction that will trigger a Realm update
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            Dog dog = realm.createObject(Dog.class);
+            dog.setName("Rex " + i);
+        }
+        realm.commitTransaction();
+        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
+        realm.close();
+        addHandlerMessages.countDown();
+
+        // Check that messages was properly cleared
+        // It looks like getting this future sometimes takes a while for some reason. Setting to
+        // 10s. now.
+        Boolean result = future.get(10, TimeUnit.SECONDS);
+        assertTrue(result);
+    }
+
+    public void testHandlerNotRemovedToSoon() {
+        Realm.deleteRealmFile(getContext(), "private-realm");
+        Realm instance1 = Realm.getInstance(getContext(), "private-realm");
+        Realm instance2 = Realm.getInstance(getContext(), "private-realm");
+        assertEquals(instance1.getId(), instance2.getId());
+        assertNotNull(instance1.getHandler());
+
+        // If multiple instances are open on the same thread, don't remove handler on that thread
+        // until last instance is closed.
+        instance2.close();
+        assertNotNull(instance1.getHandler());
+        instance1.close();
+        assertNull(instance1.getHandler());
     }
 }

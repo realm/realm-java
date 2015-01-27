@@ -40,6 +40,13 @@ import javax.tools.Diagnostic;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.RealmClass;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 @SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore", "io.realm.annotations.Index"})
@@ -59,6 +66,7 @@ public class RealmProcessor extends AbstractProcessor {
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
             String className;
             String packageName;
+            boolean hasDefaultConstructor = false;
             List<VariableElement> fields = new ArrayList<VariableElement>();
             List<VariableElement> indexedFields = new ArrayList<VariableElement>();
             Set<VariableElement> ignoredFields = new HashSet<VariableElement>();
@@ -99,6 +107,7 @@ public class RealmProcessor extends AbstractProcessor {
 
             for (Element element : typeElement.getEnclosedElements()) {
                 ElementKind elementKind = element.getKind();
+
                 if (elementKind.equals(ElementKind.FIELD)) {
                     VariableElement variableElement = (VariableElement) element;
                     String fieldName = variableElement.getSimpleName().toString();
@@ -127,6 +136,9 @@ public class RealmProcessor extends AbstractProcessor {
                     fields.add(variableElement);
                     expectedGetters.add(fieldName);
                     expectedSetters.add(fieldName);
+                } else if (elementKind.equals(ElementKind.CONSTRUCTOR)) {
+                    hasDefaultConstructor = hasDefaultConstructor || isDefaultConstructor(element);
+
                 } else if (elementKind.equals(ElementKind.METHOD)) {
                     ExecutableElement executableElement = (ExecutableElement) element;
                     methods.add(executableElement);
@@ -238,6 +250,10 @@ public class RealmProcessor extends AbstractProcessor {
                 }
             }
 
+            if (!hasDefaultConstructor) {
+                error("A default public constructor with no argument must be declared if a custom constructor is declared.");
+            }
+
             for (String expectedGetter : expectedGetters) {
                 error("No getter found for field " + expectedGetter);
             }
@@ -267,6 +283,14 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         return true;
+    }
+
+    private boolean isDefaultConstructor(Element constructor) {
+        if (constructor.getModifiers().contains(Modifier.PUBLIC)) {
+            return ((ExecutableElement) constructor).getParameters().isEmpty();
+        }
+
+        return false;
     }
 
     private static String lowerFirstChar(String input) {

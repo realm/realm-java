@@ -88,6 +88,7 @@ public class RealmProxyMediatorImplGenerator {
         emitGetClassModelName(writer);
         emitNewInstanceMethod(writer);
         emitGetClassModelList(writer);
+        emitCopyToRealmMethod(writer);
 
         writer.endType();
         writer.close();
@@ -119,7 +120,12 @@ public class RealmProxyMediatorImplGenerator {
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmObject>", "clazz", "ImplicitTransaction", "transaction"
         );
-        emitMediatorSwitch("return %s.initTable(transaction)", writer);
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("return %s.initTable(transaction)", proxyClasses.get(i));
+            }
+        }, writer);
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -132,7 +138,12 @@ public class RealmProxyMediatorImplGenerator {
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmObject>", "clazz", "ImplicitTransaction", "transaction"
         );
-        emitMediatorSwitch("%s.validateTable(transaction)", writer);
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("%s.validateTable(transaction)", proxyClasses.get(i));
+            }
+        }, writer);
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -145,7 +156,12 @@ public class RealmProxyMediatorImplGenerator {
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmObject>", "clazz"
         );
-        emitMediatorSwitch("return %s.getFieldNames()", writer);
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("return %s.getFieldNames()", proxyClasses.get(i));
+            }
+        }, writer);
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -158,7 +174,12 @@ public class RealmProxyMediatorImplGenerator {
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmObject>", "clazz"
         );
-        emitMediatorSwitch("return %s.getClassModelName()", writer);
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("return %s.getClassModelName()", proxyClasses.get(i));
+            }
+        }, writer);
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -171,7 +192,12 @@ public class RealmProxyMediatorImplGenerator {
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<E>", "clazz"
         );
-        emitMediatorSwitch("return (E) new %s()", writer);
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("return (E) new %s()", proxyClasses.get(i));
+            }
+        }, writer);
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -184,10 +210,38 @@ public class RealmProxyMediatorImplGenerator {
         writer.emitEmptyLine();
     }
 
+    private void emitCopyToRealmMethod(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("Override");
+        writer.beginMethod(
+                "<E extends RealmObject> E",
+                "copyToRealm",
+                EnumSet.of(Modifier.PUBLIC),
+                "Realm", "realm", "E", "object"
+        );
+
+        writer.emitStatement("Class<E> clazz");
+        writer.beginControlFlow("if (object.realm != null)");
+        writer.emitStatement("clazz = (Class<E>) object.getClass().getSuperclass()");
+        writer.nextControlFlow("else");
+        writer.emitStatement("clazz = (Class<E>) object.getClass()");
+        writer.endControlFlow();
+        writer.emitEmptyLine();
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("return (E) %s.copyToRealm(realm, (%s) object)", proxyClasses.get(i), simpleModelClasses.get(i));
+            }
+        }, writer);
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+
+
     // Emits the control flow for selecting the appropriate proxy class based on the model class
     // Currently it is just if..else, which is inefficient for large amounts amounts of model classes.
     // Consider switching to HashMap or similar.
-    private void emitMediatorSwitch(String proxyStatement, JavaWriter writer) throws IOException {
+    private void emitMediatorSwitch(ProxySwitchStatement statement, JavaWriter writer) throws IOException {
         writer.emitStatement("if (clazz == null) throw new NullPointerException(\"A class extending RealmObject must be provided\")");
         writer.emitEmptyLine();
         writer.emitStatement("String classQualifiedName = clazz.getName()");
@@ -195,10 +249,10 @@ public class RealmProxyMediatorImplGenerator {
             writer.emitStatement("throw new RealmException(%s)", EXCEPTION_MSG);
         } else {
             writer.beginControlFlow("if (classQualifiedName.equals(%s.class.getName()))", simpleModelClasses.get(0));
-            writer.emitStatement(proxyStatement, proxyClasses.get(0));
+            statement.emitStatement(0, writer);
             for (int i = 1; i < simpleModelClasses.size(); i++) {
                 writer.nextControlFlow("else if (classQualifiedName.equals(%s.class.getName()))", simpleModelClasses.get(i));
-                writer.emitStatement(proxyStatement, proxyClasses.get(i));
+                statement.emitStatement(i, writer);
             }
             writer.nextControlFlow("else");
             writer.emitStatement("throw new RealmException(%s)", EXCEPTION_MSG);
@@ -217,5 +271,9 @@ public class RealmProxyMediatorImplGenerator {
         } else {
             return clazz;
         }
+    }
+
+    private interface ProxySwitchStatement {
+        public void emitStatement(int i, JavaWriter writer) throws IOException;
     }
 }

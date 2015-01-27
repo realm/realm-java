@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.Thread;
 import io.realm.internal.Row;
 
 
@@ -467,5 +468,46 @@ public class RealmObjectTest extends AndroidTestCase {
         }
         testRealm.commitTransaction();
         assertNull(objA.getObject());
+    }
+
+    public void testThreadModelClass() {
+        // The model class' name (Thread) clashed with a common Java class.
+        // The annotation process must be able to handle that.
+        testRealm.beginTransaction();
+        Thread thread = testRealm.createObject(Thread.class);
+        testRealm.commitTransaction();
+    }
+
+    public void testIsValidUnManagedObject() {
+        AllTypes allTypes = new AllTypes();
+        assertFalse(allTypes.isValid());
+    }
+
+    public void testIsValidClosedRealm() {
+        Realm.deleteRealmFile(getContext(), "other-realm");
+        Realm testRealm = Realm.getInstance(getContext(), "other-realm");
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        assertTrue(allTypes.isValid());
+        testRealm.commitTransaction();
+        testRealm.close();
+        assertFalse(allTypes.isValid());
+    }
+
+    public void testIsValidDeletedObject() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        assertTrue(allTypes.isValid());
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+        assertFalse(allTypes.isValid());
+    }
+
+    public void testIsValidManagedObject() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        assertTrue(allTypes.isValid());
+        testRealm.commitTransaction();
+        assertTrue(allTypes.isValid());
     }
 }

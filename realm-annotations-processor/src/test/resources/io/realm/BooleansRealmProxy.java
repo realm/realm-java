@@ -8,11 +8,15 @@ import io.realm.internal.LinkView;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import some.test.*;
+import some.test.Booleans;
 
 public class BooleansRealmProxy extends Booleans {
 
@@ -133,8 +137,19 @@ public class BooleansRealmProxy extends Booleans {
         reader.endObject();
     }
 
+    public static Booleans copyToRealm(Realm realm, Booleans object) {
+        Booleans realmObject = realm.createObject(Booleans.class);
+        realmObject.setDone(object.isDone());
+        realmObject.setReady(object.isReady());
+        realmObject.setmCompleted(object.ismCompleted());
+        return realmObject;
+    }
+
     @Override
     public String toString() {
+        if (!isValid()) {
+            return "Invalid object";
+        }
         StringBuilder stringBuilder = new StringBuilder("Booleans = [");
         stringBuilder.append("{done:");
         stringBuilder.append(isDone());

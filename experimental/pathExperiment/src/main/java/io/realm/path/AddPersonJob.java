@@ -56,7 +56,7 @@ public class AddPersonJob extends Job {
         }
         Log.d("Job Manager", "Job Started, Main Thread:" + (Looper.myLooper() == Looper.getMainLooper()));
 
-        Realm realm = Realm.getInstance(context, false);
+        Realm realm = Realm.getInstance(context);
         realm.beginTransaction();
         Person p = realm.createObject(Person.class);
         p.setPerson(getRandomName());

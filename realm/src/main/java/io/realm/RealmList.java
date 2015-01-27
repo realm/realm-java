@@ -17,23 +17,55 @@
 package io.realm;
 
 import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.LinkView;
 import io.realm.internal.TableQuery;
 
 /**
- * RealmList is used in one-to-many relationships.
+ * RealmList is used in one-to-many relationships in {@link io.realm.RealmObject}.
+ * RealmList has two modes: A managed and non-managed mode. In managed mode all objects are persisted
+ * inside a Realm, in non-managed mode it functions as an ArrayList.
  *
  * @param <E> The class of objects in this list
  */
 
 public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
+    private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
+    private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
+    public static final String MANAGED_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmObjects already managed by Realm cannot be added to RealmList in non-managed mode.";
+
+    private final boolean managedMode;
     private Class<E> clazz;
     private LinkView view;
     private Realm realm;
+    private List<E> nonManagedList;
 
+    /**
+     * Create a RealmList in non-managed mode, where the elements are not controlled by a Realm.
+     * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible
+     * to query the objects in this state.
+     *
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)}  to properly persist it's elements in
+     * Realm.
+     */
+    public RealmList() {
+        managedMode = false;
+        nonManagedList = new ArrayList<E>();
+    }
+
+    /**
+     * Creates a RealmList from a LinkView, so its elements are managed by Realm.
+     *
+     * @param clazz Type of elements in the Array
+     * @param view  Backing LinkView
+     * @param realm Reference to Realm containing the data
+     */
     RealmList(Class<E> clazz, LinkView view, Realm realm) {
+        this.managedMode = true;
         this.clazz = clazz;
         this.view = view;
         this.realm = realm;
@@ -44,7 +76,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public void add(int location, E object) {
-        view.insert(location, object.row.getIndex());
+        assertValidObject(object);
+        if (managedMode) {
+            view.insert(location, object.row.getIndex());
+        } else {
+            nonManagedList.add(location, object);
+        }
     }
 
     /**
@@ -52,7 +89,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public boolean add(E object) {
-        view.add(object.row.getIndex());
+        assertValidObject(object);
+        if (managedMode) {
+            view.add(object.row.getIndex());
+        } else {
+            nonManagedList.add(object);
+        }
         return true;
     }
 
@@ -61,17 +103,40 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public E set(int location, E object) {
-        view.set(location, object.row.getIndex());
+        assertValidObject(object);
+        if (managedMode) {
+            assertIndex(location);
+            view.set(location, object.row.getIndex());
+        } else {
+            nonManagedList.set(location, object);
+        }
         return object;
     }
 
     /**
-     * Moves an object from one position to another
-     * @param oldPos
-     * @param newPos
+     * Moves an object from one position to another, while maintaining a fixed sized list.
+     * RealmObjects will be shifted so no null values are introduced.
+     *
+     * @param oldPos Index of RealmObject to move.
+     * @param newPos Target position. If newPos < oldPos the object at the location will be shifted
+     *               to the right. If oldPos < newPos, indexes > oldPos will be shifted once to the
+     *               left.
+     *
+     * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()[.
      */
     public void move(int oldPos, int newPos) {
-        view.move(oldPos, newPos);
+        assertIndex(oldPos);
+        assertIndex(newPos);
+        if (managedMode) {
+            view.move(oldPos, newPos);
+        } else {
+            E object = nonManagedList.remove(oldPos);
+            if (newPos > oldPos) {
+                nonManagedList.add(newPos - 1, object);
+            } else {
+                nonManagedList.add(newPos, object);
+            }
+        }
     }
 
     /**
@@ -79,7 +144,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public void clear() {
-        view.clear();
+        if (managedMode) {
+            view.clear();
+        } else {
+            nonManagedList.clear();
+        }
     }
 
     /**
@@ -87,26 +156,39 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public E remove(int location) {
-        view.remove(location);
-        return null;
+        if (managedMode) {
+            assertIndex(location);
+            E removedItem = get(location);
+            view.remove(location);
+            return removedItem;
+        } else {
+            return nonManagedList.remove(location);
+        }
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public E get(int i) {
-        return realm.get(clazz, view.getTargetRowIndex(i));
+    public E get(int location) {
+        if (managedMode) {
+            assertIndex(location);
+            return realm.get(clazz, view.getTargetRowIndex(location));
+        } else {
+            return nonManagedList.get(location);
+        }
     }
 
     /**
      * Find the first object.
      *
-     * @return The first object
+     * @return The first object or {@code null} if the list is empty.
      */
     public E first() {
-        if (!view.isEmpty()) {
+        if (managedMode && !view.isEmpty()) {
             return get(0);
+        } else if (nonManagedList != null && nonManagedList.size() > 0) {
+            return nonManagedList.get(0);
         }
         return null;
     }
@@ -114,11 +196,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     /**
      * Find the last object.
      *
-     * @return The last object
+     * @return The last object or {@code null} if the list is empty.
      */
     public E last() {
-        if (!view.isEmpty()) {
-            return get(size()-1);
+        if (managedMode && !view.isEmpty()) {
+            return get((int) view.size() - 1);
+        } else if (nonManagedList != null && nonManagedList.size() > 0) {
+            return nonManagedList.get(nonManagedList.size() - 1);
         }
         return null;
     }
@@ -128,7 +212,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public int size() {
-        return ((Long)view.size()).intValue();
+        if (managedMode) {
+            return ((Long)view.size()).intValue();
+        } else {
+            return nonManagedList.size();
+        }
     }
 
     /**
@@ -138,17 +226,38 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @see io.realm.RealmQuery
      */
     public RealmQuery<E> where() {
-        TableQuery query = this.view.where();
-        return new RealmQuery<E>(this.realm, query, clazz);
+        if (managedMode) {
+            TableQuery query = this.view.where();
+            return new RealmQuery<E>(this.realm, query, clazz);
+        } else {
+            throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    private void assertValidObject(E object) {
+        if (object == null) {
+            throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
+        }
+    }
+
+    private void assertIndex(int location) {
+        int size = size();
+        if (location < 0 || location >= size) {
+            throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size);
+        }
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(clazz.getSimpleName());
+        sb.append(managedMode ? clazz.getSimpleName() : getClass().getSimpleName());
         sb.append("@[");
         for (int i = 0; i < size(); i++) {
-            sb.append(get(i).row.getIndex());
+            if (managedMode) {
+                sb.append(get(i).row.getIndex());
+            } else {
+                sb.append(System.identityHashCode(get(i)));
+            }
             if (i < size() - 1) {
                 sb.append(',');
             }

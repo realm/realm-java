@@ -17,13 +17,14 @@
 package io.realm;
 
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 
@@ -33,10 +34,10 @@ import io.realm.internal.TableView;
  */
 public class RealmQuery<E extends RealmObject> {
 
-    private RealmResults realmList;
     private Realm realm;
+    private Table table;
     private TableQuery query;
-    private Map<String, Integer> columns = new HashMap<String, Integer>();
+    private Map<String, Long> columns = new HashMap<String, Long>();
     private Class<E> clazz;
 
     private static final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
@@ -54,52 +55,32 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-
-        TableOrView dataStore = getTable();
-        this.query = dataStore.where();
-
-        for(int i = 0; i < dataStore.getColumnCount(); i++) {
-            this.columns.put(dataStore.getColumnName(i), i);
-        }
-    }
-
-    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
-        this.realm = realm;
-        this.clazz = clazz;
-        this.realmList = null;
-        this.query = query;
-        TableOrView dataStore = getTable();
-        for (int i = 0; i < dataStore.getColumnCount(); i++) {
-            this.columns.put(dataStore.getColumnName(i), i);
-        }
+        this.table = realm.getTable(clazz);
+        this.query = table.where();
+        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
 
     /**
      * Create a RealmQuery instance from a @{link io.realm.RealmResults}.
+     *
      * @param realmList   The @{link io.realm.RealmResults} to query
      * @param clazz       The class to query
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery(RealmResults realmList, Class<E> clazz) {
-        this.realmList = realmList;
-
         this.realm = realmList.getRealm();
         this.clazz = clazz;
-
-        TableOrView dataStore = getTable();
-        this.query = dataStore.where();
-
-        for(int i = 0; i < dataStore.getColumnCount(); i++) {
-            this.columns.put(dataStore.getColumnName(i), i);
-        }
+        this.table = realm.getTable(clazz);
+        this.query = realmList.getTable().where();
+        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
 
-    TableOrView getTable() {
-        if(realmList != null) {
-            return realmList.getTable();
-        } else {
-            return realm.getTable(clazz);
-        }
+    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
+        this.realm = realm;
+        this.clazz = clazz;
+        this.query = query;
+        this.table = realm.getTable(clazz);
+        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
 
     private boolean containsDot(String s) {
@@ -133,8 +114,7 @@ public class RealmQuery<E extends RealmObject> {
 
     // TODO: consider another caching strategy so linked classes are included in the cache.
     private long[] getColumnIndices(String fieldName, ColumnType fieldType) {
-        Table table = getTable().getTable();
-
+        Table table = this.table;
         if (containsDot(fieldName)) {
             String[] names = splitString(fieldName); //fieldName.split("\\.");
             long[] columnIndices = new long[names.length];
@@ -160,8 +140,12 @@ public class RealmQuery<E extends RealmObject> {
             if (columns.get(fieldName) == null) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
             }
-            if (fieldType != table.getColumnType(columns.get(fieldName))) {
-                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", fieldName));
+
+            ColumnType tableColumnType = table.getColumnType(columns.get(fieldName));
+            if (fieldType != tableColumnType) {
+                throw new IllegalArgumentException(String.format("Field '%s': type mismatch. Was %s, expected %s.",
+                        fieldName, fieldType, tableColumnType
+                ));
             }
             return new long[] {columns.get(fieldName)};
         }
@@ -945,7 +929,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long sumInt(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.sumInt(columnIndex);
     }
 
@@ -956,7 +940,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double sumDouble(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.sumDouble(columnIndex);
     }
 
@@ -967,7 +951,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double sumFloat(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.sumFloat(columnIndex);
     }
 
@@ -980,7 +964,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double averageInt(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.averageInt(columnIndex);
     }
 
@@ -991,7 +975,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double averageDouble(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.averageDouble(columnIndex);
     }
 
@@ -1002,7 +986,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double averageFloat(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.averageFloat(columnIndex);
     }
 
@@ -1015,7 +999,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long minimumInt(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.minimumInt(columnIndex);
     }
 
@@ -1026,7 +1010,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double minimumDouble(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.minimumDouble(columnIndex);
     }
 
@@ -1037,7 +1021,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public float minimumFloat(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.minimumFloat(columnIndex);
     }
 
@@ -1048,7 +1032,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public Date minimumDate(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.minimumDate(columnIndex);
     }
 
@@ -1061,7 +1045,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long maximumInt(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.maximumInt(columnIndex);
     }
 
@@ -1072,7 +1056,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double maximumDouble(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.maximumDouble(columnIndex);
     }
 
@@ -1083,7 +1067,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public float maximumFloat(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.maximumFloat(columnIndex);
     }
 
@@ -1094,7 +1078,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public Date maximumDate(String fieldName) {
-        int columnIndex = columns.get(fieldName);
+        long columnIndex = columns.get(fieldName);
         return this.query.maximumDate(columnIndex);
     }
 
@@ -1128,15 +1112,213 @@ public class RealmQuery<E extends RealmObject> {
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
+    @Deprecated
     public RealmResults<E> findAll(String fieldName, boolean sortAscending) {
         TableView tableView = query.findAll();
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-        Integer columnIndex = columns.get(fieldName);
+        Long columnIndex = columns.get(fieldName);
         if (columnIndex == null || columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
         tableView.sort(columnIndex, order);
         return new RealmResults<E>(realm, tableView, clazz);
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field name.
+     *
+     * @param fieldName the field name to sort by.
+     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     */
+    public RealmResults<E> findAllSorted(String fieldName, boolean sortAscending) {
+        TableView tableView = query.findAll();
+        TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
+        Long columnIndex = columns.get(fieldName);
+        if (columnIndex == null || columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+        tableView.sort(columnIndex, order);
+        return new RealmResults<E>(realm, tableView, clazz);
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field name in
+     * ascending order.
+     *
+     * @param fieldName the field name to sort by.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     */
+    @Deprecated
+    public RealmResults<E> findAll(String fieldName) {
+        return findAll(fieldName, true);
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field name in
+     * ascending order.
+     *
+     * @param fieldName the field name to sort by.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     */
+    public RealmResults<E> findAllSorted(String fieldName) {
+        return findAll(fieldName, true);
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field names.
+     *
+     * @param fieldNames an array of field names to sort by.
+     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    @Deprecated
+    public RealmResults<E> findAll(String fieldNames[], boolean sortAscending[]) {
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames cannot be 'null'.");
+        } else if (sortAscending == null) {
+            throw new IllegalArgumentException("sortAscending cannot be 'null'.");
+        } else if (fieldNames.length == 0) {
+            throw new IllegalArgumentException("At least one field name must be specified.");
+        } else if (fieldNames.length != sortAscending.length) {
+            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortAscending.length));
+        }
+
+        if (fieldNames.length == 1) {
+            return findAll(fieldNames[0], sortAscending[0]);
+        } else {
+            TableView tableView = query.findAll();
+            List<Long> columnIndices = new ArrayList<Long>();
+            List<TableView.Order> orders = new ArrayList<TableView.Order>();
+            for (int i = 0; i < fieldNames.length; i++) {
+                String fieldName = fieldNames[i];
+                Long columnIndex = columns.get(fieldName);
+                if (columnIndex == null || columnIndex < 0) {
+                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+                }
+                columnIndices.add(columnIndex);
+                orders.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
+            }
+            tableView.sort(columnIndices, orders);
+            return new RealmResults<E>(realm, tableView, clazz);
+        }
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field names.
+     *
+     * @param fieldNames an array of field names to sort by.
+     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public RealmResults<E> findAllSorted(String fieldNames[], boolean sortAscending[]) {
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames cannot be 'null'.");
+        } else if (sortAscending == null) {
+            throw new IllegalArgumentException("sortAscending cannot be 'null'.");
+        } else if (fieldNames.length == 0) {
+            throw new IllegalArgumentException("At least one field name must be specified.");
+        } else if (fieldNames.length != sortAscending.length) {
+            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortAscending.length));
+        }
+
+        if (fieldNames.length == 1) {
+            return findAll(fieldNames[0], sortAscending[0]);
+        } else {
+            TableView tableView = query.findAll();
+            List<Long> columnIndices = new ArrayList<Long>();
+            List<TableView.Order> orders = new ArrayList<TableView.Order>();
+            for (int i = 0; i < fieldNames.length; i++) {
+                String fieldName = fieldNames[i];
+                Long columnIndex = columns.get(fieldName);
+                if (columnIndex == null || columnIndex < 0) {
+                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+                }
+                columnIndices.add(columnIndex);
+                orders.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
+            }
+            tableView.sort(columnIndices, orders);
+            return new RealmResults<E>(realm, tableView, clazz);
+        }
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field names in
+     * ascending order.
+     *
+     * @param fieldName1 first field name
+     * @param sortAscending1 sort order for first field
+     * @param fieldName2 second field name
+     * @param sortAscending2 sort order for second field
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    @Deprecated
+    public RealmResults<E> findAll(String fieldName1, boolean sortAscending1,
+                                   String fieldName2, boolean sortAscending2) {
+        return findAll(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field names in
+     * ascending order.
+     *
+     * @param fieldName1 first field name
+     * @param sortAscending1 sort order for first field
+     * @param fieldName2 second field name
+     * @param sortAscending2 sort order for second field
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
+                                   String fieldName2, boolean sortAscending2) {
+        return findAll(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field names in
+     * ascending order.
+     *
+     * @param fieldName1 first field name
+     * @param sortAscending1 sort order for first field
+     * @param fieldName2 second field name
+     * @param sortAscending2 sort order for second field
+     * @param fieldName3 third field name
+     * @param sortAscending3 sort order for third field
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    @Deprecated
+    public RealmResults<E> findAll(String fieldName1, boolean sortAscending1,
+                                   String fieldName2, boolean sortAscending2,
+                                   String fieldName3, boolean sortAscending3) {
+        return findAll(new String[] {fieldName1, fieldName2, fieldName3},
+                new boolean[] {sortAscending1, sortAscending2, sortAscending3});
+    }
+
+    /**
+     * Find all objects that fulfill the query conditions and sorted by specific field names in
+     * ascending order.
+     *
+     * @param fieldName1 first field name
+     * @param sortAscending1 sort order for first field
+     * @param fieldName2 second field name
+     * @param sortAscending2 sort order for second field
+     * @param fieldName3 third field name
+     * @param sortAscending3 sort order for third field
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
+                                   String fieldName2, boolean sortAscending2,
+                                   String fieldName3, boolean sortAscending3) {
+        return findAll(new String[] {fieldName1, fieldName2, fieldName3},
+                new boolean[] {sortAscending1, sortAscending2, sortAscending3});
     }
 
     /**

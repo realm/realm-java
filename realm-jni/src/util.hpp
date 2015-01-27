@@ -60,29 +60,16 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
         ThrowException(env, IOFailed, string(fileName), string("Permission denied. ") + e.what()); \
     } \
     catch (util::File::NotFound&) { \
-        ThrowException(env, FileNotFound, string(fileName));    \
+        ThrowException(env, FileNotFound, string(fileName).data());    \
     } \
     catch (util::File::AccessError& e) { \
         ThrowException(env, FileAccessError, string(fileName), e.what()); \
     }
 
 #define CATCH_STD() \
-    catch (std::bad_alloc& e) { \
-        ThrowException(env, OutOfMemory, e.what() + std::string(" in ") + std::string(__FILE__) + \
-                                         std::string(" line ") + std::string(STRINGIZE(__LINE__))); \
-    } \
-    catch (std::exception& e) { \
-        ThrowException(env, Unspecified, e.what() + std::string(" in ") + std::string(__FILE__) + \
-                                         std::string(" line ") + std::string(STRINGIZE(__LINE__))); \
-    } \
     catch (...) { \
-        TIGHTDB_ASSERT(false); \
-        ThrowException(env, RuntimeError, std::string("Exception in ") + \
-                                          std::string(__FILE__) + std::string(" line ") \
-                                          + std::string(STRINGIZE(__LINE__))); \
+        ConvertException(env, __FILE__, __LINE__); \
     }
-    /* above (...) is not needed if we only throw exceptions derived from std::exception */
-
 
 template <typename T>
 std::string num_to_string(T pNumber)
@@ -101,6 +88,7 @@ std::string num_to_string(T pNumber)
 // Helper macros for better readability
 // Use S64() when logging
 #define S(x)    static_cast<size_t>(x)
+#define B(x)    static_cast<bool>(x)
 #define S64(x)  static_cast<int64_t>(x)
 #define TBL(x)  reinterpret_cast<tightdb::Table*>(x)
 #define TV(x)   reinterpret_cast<tightdb::TableView*>(x)
@@ -129,9 +117,11 @@ enum ExceptionKind {
     RowInvalid = 13
 };
 
-extern void ThrowException(JNIEnv* env, ExceptionKind exception, std::string classStr, std::string itemStr = "");
+void ConvertException(JNIEnv* env, const char *file, int line);
+void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr="");
+void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr);
 
-extern jclass GetClass(JNIEnv* env, const char* classStr);
+jclass GetClass(JNIEnv* env, const char* classStr);
 
 
 // Debug trace

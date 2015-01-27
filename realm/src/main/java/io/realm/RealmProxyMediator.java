@@ -62,4 +62,14 @@ interface RealmProxyMediator {
      * @return List of class references to model classes. Empty list if no models are supported.
      */
     public List<Class<? extends RealmObject>> getModelClasses();
+
+
+    /**
+     * Copy a non-manged RealmObject or a RealmObject from another Realm to this Realm. After being
+     * copied any changes to the original object will not be persisted.
+     *
+     * @param object Object to copy properties from.
+     * @return Managed Realm object.
+     */
+    public <E extends RealmObject> E copyToRealm(Realm realm, E object);
 }
