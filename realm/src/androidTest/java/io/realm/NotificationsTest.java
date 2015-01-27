@@ -38,9 +38,6 @@ public class NotificationsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        for (Integer key : Realm.openRealms.keySet()) {
-            Realm.openRealms.put(key, new AtomicInteger(0));
-        }
         Realm.deleteRealmFile(getContext());
     }
 
@@ -89,6 +86,8 @@ public class NotificationsTest extends AndroidTestCase {
     public void testNotificationsNumber () throws InterruptedException, ExecutionException {
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);
+        final Looper[] looper = new Looper[1];
+        final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -97,6 +96,7 @@ public class NotificationsTest extends AndroidTestCase {
                 Realm realm = null;
                 try {
                     Looper.prepare();
+                    looper[0] = Looper.myLooper();
                     realm = Realm.getInstance(getContext());
                     realm.addChangeListener(new RealmChangeListener() {
                         @Override
@@ -108,6 +108,7 @@ public class NotificationsTest extends AndroidTestCase {
                     Looper.loop();
                 } finally {
                     if (realm != null) {
+                        isRealmOpen.set(false);
                         realm.close();
                     }
                 }
@@ -130,7 +131,15 @@ public class NotificationsTest extends AndroidTestCase {
 
         try {
             future.get(1, TimeUnit.SECONDS);
-        } catch (TimeoutException ignore) {}
+        } catch (TimeoutException ignore) {
+        } finally {
+            looper[0].quit();
+        }
+
+        // Wait until the Looper thread is actually closed
+        while (isRealmOpen.get()) {
+            Thread.sleep(5);
+        }
 
         assertEquals(1, counter.get());
         assertTrue(Realm.realmsCache.get().isEmpty());
@@ -140,13 +149,17 @@ public class NotificationsTest extends AndroidTestCase {
         final int TEST_SIZE = 10;
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);
+        final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
         final Map<Integer, Integer> results = new ConcurrentHashMap<Integer, Integer>();
+        final Looper[] looper = new Looper[1];
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+
             @Override
             public Boolean call() throws Exception {
                 Looper.prepare();
+                looper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
                     realm = Realm.getInstance(getContext());
@@ -164,6 +177,7 @@ public class NotificationsTest extends AndroidTestCase {
                 } finally {
                     if (realm != null) {
                         realm.close();
+                        isRealmOpen.set(false);
                     }
                 }
                 return true;
@@ -188,7 +202,15 @@ public class NotificationsTest extends AndroidTestCase {
 
         try {
             future.get(2, TimeUnit.SECONDS);
-        } catch (TimeoutException ignore) {}
+        } catch (TimeoutException ignore) {
+        } finally {
+            looper[0].quit();
+        }
+
+        // Wait until the Looper thread is actually closed
+        while (isRealmOpen.get()) {
+            Thread.sleep(5);
+        }
 
         assertEquals(1, results.size());
 
