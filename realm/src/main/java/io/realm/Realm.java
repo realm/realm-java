@@ -113,7 +113,7 @@ public final class Realm implements Closeable {
     private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
     protected static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
 
-    // Maps ids to a boolean set to true if the Realm is open. This is basically only needed by deleteRealmFile
+    // Maps ids to a boolean set to true if the Realm is open. This is only needed by deleteRealmFile
     private static final Map<Integer, AtomicInteger> openRealms = new ConcurrentHashMap<Integer, AtomicInteger>();
     private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
@@ -430,7 +430,8 @@ public final class Realm implements Closeable {
         }
     }
 
-    private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
+    private static synchronized Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema,
+                                            boolean autoRefresh) {
         int id = absolutePath.hashCode();
         Map<Integer, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
