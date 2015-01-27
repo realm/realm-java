@@ -108,8 +108,8 @@ public class NotificationsTest extends AndroidTestCase {
                     Looper.loop();
                 } finally {
                     if (realm != null) {
-                        isRealmOpen.set(false);
                         realm.close();
+                        isRealmOpen.set(false);
                     }
                 }
                 return true;
