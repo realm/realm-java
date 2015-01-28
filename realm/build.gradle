@@ -65,6 +65,14 @@ task androidSourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
 }
 
+//// Fix for bug: https://code.google.com/p/android/issues/detail?id=64887
+//task copyTestResources(type: Copy) {
+//    from "${projectDir}/src/test/resources"
+//    into "${buildDir}/classes/test"
+//}
+//processTestResources.dependsOn copyTestResources
+
+
 artifacts {
     archives file("build/libs/realm-${version}.jar")
     archives androidSourcesJar

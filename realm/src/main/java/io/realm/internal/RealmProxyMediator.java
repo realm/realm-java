@@ -1,7 +1,9 @@
-package io.realm;
+package io.realm.internal;
 
 import java.util.List;
 
+import io.realm.Realm;
+import io.realm.RealmObject;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
 
@@ -9,7 +11,7 @@ import io.realm.internal.Table;
  * Interface for the ProxyMediator class. Should contain all static methods introduced by the
  * RealmProxy annotation processor.
  */
-interface RealmProxyMediator {
+public interface RealmProxyMediator {
 
     public static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
 

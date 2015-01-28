@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.tools.StandardLocation;
 
 @SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore", "io.realm.annotations.Index"})
 public class RealmProcessor extends AbstractProcessor {
@@ -62,6 +63,8 @@ public class RealmProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         RealmVersionChecker updateChecker = new RealmVersionChecker(processingEnv);
         updateChecker.executeRealmVersionUpdate();
+
+        note(StandardLocation.SOURCE_OUTPUT.getName());
 
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
             String className;

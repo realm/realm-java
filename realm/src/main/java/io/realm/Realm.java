@@ -33,9 +33,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,6 +48,8 @@ import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
+import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.RealmProxyMediatorAdapter;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
@@ -126,7 +125,7 @@ public final class Realm implements Closeable {
     private final String path;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
-    private static RealmProxyMediator proxyMediator = setProxyMediator();
+    private static RealmProxyMediator proxyMediator = new RealmProxyMediatorAdapter();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
     private static final long UNVERSIONED = -1;
@@ -501,24 +500,24 @@ public final class Realm implements Closeable {
         }
     }
 
-    private static RealmProxyMediator setProxyMediator() {
-        try {
-            Class<?> clazz = Class.forName("io.realm.RealmProxyMediatorImpl");
-            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-            constructor.setAccessible(true);
-            return (RealmProxyMediator) constructor.newInstance();
-        } catch (IndexOutOfBoundsException e) {
-            throw new RealmException("Could not a constructor in RealmProxyMediatorImpl class. " + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE);
-        } catch (ClassNotFoundException e) {
-            throw new RealmException("Could not find the generated RealmProxyMediatorImpl class. " + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE);
-        } catch (InvocationTargetException e) {
-            throw new RealmException("Could not initialize RealmProxyMediatorImpl", e);
-        } catch (InstantiationException e) {
-            throw new RealmException("Could not initialize RealmProxyMediatorImpl", e);
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not initialize RealmProxyMediatorImpl", e);
-        }
-    }
+//    private static RealmProxyMediator setProxyMediator() {
+//        try {
+//            Class<?> clazz = Class.forName("io.realm.RealmProxyMediatorImpl");
+//            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+//            constructor.setAccessible(true);
+//            return (RealmProxyMediator) constructor.newInstance();
+//        } catch (IndexOutOfBoundsException e) {
+//            throw new RealmException("Could not a constructor in RealmProxyMediatorImpl class. " + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE);
+//        } catch (ClassNotFoundException e) {
+//            throw new RealmException("Could not find the generated RealmProxyMediatorImpl class. " + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE);
+//        } catch (InvocationTargetException e) {
+//            throw new RealmException("Could not initialize RealmProxyMediatorImpl", e);
+//        } catch (InstantiationException e) {
+//            throw new RealmException("Could not initialize RealmProxyMediatorImpl", e);
+//        } catch (IllegalAccessException e) {
+//            throw new RealmException("Could not initialize RealmProxyMediatorImpl", e);
+//        }
+//    }
 
     /**
      * Create a Realm object for each object in a JSON array. This must be done inside a transaction.

@@ -19,16 +19,22 @@ package io.realm.processor;
 import com.squareup.javawriter.JavaWriter;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
+import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
 
 public class RealmProxyMediatorImplGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -51,7 +57,8 @@ public class RealmProxyMediatorImplGenerator {
     }
 
     public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format("%s.%s", REALM_PACKAGE_NAME, CLASS_NAME);
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+        String qualifiedGeneratedClassName = String.format("%s.%s_%s", REALM_PACKAGE_NAME, CLASS_NAME, fileId);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         writer.setIndent("    ");
@@ -65,6 +72,7 @@ public class RealmProxyMediatorImplGenerator {
                 "java.util.List",
                 "io.realm.exceptions.RealmException",
                 "io.realm.internal.ImplicitTransaction",
+                "io.realm.internal.RealmProxyMediator",
                 "io.realm.internal.Table"
         );
         writer.emitImports(qualifiedModelClasses);
@@ -92,6 +100,21 @@ public class RealmProxyMediatorImplGenerator {
 
         writer.endType();
         writer.close();
+
+        // Generate resource file with filename, so RealmMediatorAdapter can find it.
+        FileObject propertiesFile = processingEnvironment.getFiler().createResource(StandardLocation.SOURCE_OUTPUT, "io.realm", "realm.properties");
+        Writer fileWriter = propertiesFile.openWriter();
+        Properties properties = new Properties();
+        properties.setProperty("realmmediator", qualifiedGeneratedClassName);
+        properties.store(fileWriter, "");
+        fileWriter.close();
+//
+//        propertiesFile = processingEnvironment.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "io.realm", "realm.properties");
+//        fileWriter = propertiesFile.openWriter();
+//        properties = new Properties();
+//        properties.setProperty("realmmediator", qualifiedGeneratedClassName);
+//        properties.store(fileWriter, "");
+//        fileWriter.close();
     }
 
     private void emitFields(JavaWriter writer) throws IOException {
