@@ -29,12 +29,12 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 
 /**
- * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults}
+ * A RealmQuery encapsulates a query on an {@link io.realm.Realm} or an {@link io.realm.RealmResults}
  * using the Builder pattern. The query is executed using either {@link #findAll()} or
  * {@link #findFirst()}
  *
  * The input to many of the query functions take a field name as as String. Note that this is not
- * type safe, so if a model class is refactored care has to be taken to not break any queries.
+ * type safe. If a model class is refactored care has to be taken to not break any queries.
  *
  * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a
  * Realm will return the objects in the order they where inserted. Use

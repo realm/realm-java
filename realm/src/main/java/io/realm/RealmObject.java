@@ -62,6 +62,9 @@ import io.realm.internal.Row;
  * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and
  * don't require either a getter or setter.
  *
+ * Realm will created indexes for fields annotated with {@link io.realm.annotations.Index}. This
+ * will speedup queries but will have a negative impact on inserts and updates.
+ * *
  * A RealmObject cannot be passed between different threads.
  *
  * @see Realm#createObject(Class)

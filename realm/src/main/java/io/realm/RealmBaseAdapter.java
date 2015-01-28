@@ -69,7 +69,7 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     }
 
     /**
-     * Returns the current ID for a item. Note that item ID's are not stable so you cannot rely on
+     * Returns the current ID for an item. Note that item IDs are not stable so you cannot rely on
      * the item ID being the same after {@link #notifyDataSetChanged()} or
      * {@link #updateRealmResults(RealmResults)} has been called.
      *
