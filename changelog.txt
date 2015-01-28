@@ -1,5 +1,5 @@
 0.79
- * Missing accessors no longer result in a build NullPointerException, but show a proper error message.
+ * Improved error reporting in case of missing accessors in model classes.
 
 0.78
  * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
