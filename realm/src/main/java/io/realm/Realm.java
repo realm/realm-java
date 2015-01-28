@@ -110,7 +110,7 @@ public final class Realm implements Closeable {
             return new HashMap<Integer, Integer>();
         }
     };
-    private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
+    private static final int REALM_CHANGED = 14930352; // A big Fibonacci number. Hopefully it won't clash with other message IDs.
     protected static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
 
     // Maps ids to a boolean set to true if the Realm is open. This is only needed by deleteRealmFile
