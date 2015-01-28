@@ -1,5 +1,5 @@
 0.79
- * RealmResults.remove(index) and RealmResults.removeLast() are now working again.
+ * Re-enabled RealmResults.remove(index) and RealmResults.removeLast().
 
 0.78
  * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
