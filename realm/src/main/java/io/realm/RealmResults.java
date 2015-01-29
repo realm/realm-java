@@ -35,6 +35,10 @@ import io.realm.internal.TableView;
  * are not copied from the Realm to the RealmResults list, but are just referenced from the
  * RealmResult instead. This saves memory and increases speed.
  *
+ * RealmResults are live views, which means that if it is on a {@link android.os.Looper} thread,
+ * it will automatically update its query results after a transaction has been committed. If on a
+ * non-looper thread, {@link Realm#refresh()} must be called to update the results.
+ *
  * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the
  * modified objects are persisted to the Realm file during the commit of the transaction.
  *

@@ -79,13 +79,11 @@ import io.realm.internal.log.RealmLog;
  * considered a lightweight operation.
  *
  * For the UI thread this means that opening and closing Realms should occur in either
- * onCreate/onDestroy or onStart/onStop. onResume/onPause do not overlap between new activities,
- * which mean the reference count will reach zero and the Realm instance will be fully closed,
- * making the Realm more expensive to reopen.
+ * onCreate/onDestroy or onStart/onStop.
  *
  * Realm instances coordinate their state across threads using the {@link android.os.Handler}
  * mechanism. This also means that Realm instances on threads without a {@link android.os.Looper}
- * doesn't get updated unless {@link #refresh()} is manually called.
+ * cannot receive updates unless {@link #refresh()} is manually called.
  *
  * A standard pattern for working with Realm in Android activities can be seen below:
  *
@@ -109,7 +107,7 @@ import io.realm.internal.log.RealmLog;
  * }
  * </pre>
  *
- * Realm support String and byte fields containing up to 16 MB.
+ * Realm supports String and byte fields containing up to 16 MB.
  *
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>

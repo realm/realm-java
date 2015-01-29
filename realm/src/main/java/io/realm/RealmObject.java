@@ -57,12 +57,13 @@ import io.realm.internal.Row;
  *
  * Getter and setter names must have the name {@code getXXX} or {@code setXXX} if
  * the field name is {@code XXX}. Getters for fields of type boolean can be called {@code isXXX} as
- * well.
+ * well. Fields with a m-prefix must have getters and setters named setmXXX and getmXXX which is
+ * the default behavior when Android Studio automatically generates the getters and setters.
  *
  * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and
  * don't require either a getter or setter.
  *
- * Realm will created indexes for fields annotated with {@link io.realm.annotations.Index}. This
+ * Realm will create indexes for fields annotated with {@link io.realm.annotations.Index}. This
  * will speedup queries but will have a negative impact on inserts and updates.
  * *
  * A RealmObject cannot be passed between different threads.
