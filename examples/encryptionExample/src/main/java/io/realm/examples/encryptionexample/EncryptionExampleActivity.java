@@ -18,17 +18,9 @@ package io.realm.examples.encryptionexample;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.security.KeyPairGeneratorSpec;
 import android.util.Log;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.security.*;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import javax.crypto.*;
-import javax.crypto.spec.SecretKeySpec;
-import javax.security.auth.x500.X500Principal;
+import java.util.Random;
 
 import io.realm.Realm;
 
@@ -42,15 +34,20 @@ public class EncryptionExampleActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Start with a clean slate every time
+        Realm.deleteRealmFile(this);
+
+        // Generate a key
+        // IMPORTANT! This is a silly way to generate a key. It is also never stored.
+        // For proper key handling please consult:
+        // * https://developer.android.com/training/articles/keystore.html
+        // * http://nelenkov.blogspot.dk/2012/05/storing-application-secrets-in-androids.html
+        byte[] key = new byte[64];
+        new Random(365762536).nextBytes(key);
+
         // Open the Realm with encryption enabled
-        // Throws UnsupportedOperator if not using a copy of Realm with encryption enabled
-        try {
-            realm = Realm.getInstance(this, getKey());
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        realm = Realm.getInstance(this, key);
+
 
         // Everything continues to work as normal except for that the file is encrypted on disk
         realm.beginTransaction();
@@ -67,92 +64,5 @@ public class EncryptionExampleActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         realm.close(); // Remember to close Realm when done.
-    }
-
-
-    // Get the application's 256-bit AES key
-    private byte[] getKey() throws GeneralSecurityException, IOException, java.io.IOException {
-        // As of 4.3, Android has a secure per-application key store, but it can't store symmetric keys
-        // As a result, we use it to store a public/private keypair which is used to encrypt the
-        // symmetric key which is stored in a file in the application context
-
-        byte[] keyData;
-        try {
-            File file = new File(getFilesDir(), Realm.DEFAULT_REALM_NAME + ".key");
-            keyData = new byte[256];
-            FileInputStream stream = new FileInputStream(file);
-            try {
-                int read = stream.read(keyData);
-                if (read != keyData.length) {
-                    keyData = null;
-                }
-            }
-            finally {
-                stream.close();
-            }
-        } catch (java.io.IOException e) {
-            // Generate a new key if reading the existing one failed for any reason
-            keyData = null;
-        }
-
-        KeyPair keyPair = getKeyPair();
-        final Cipher cipher = Cipher.getInstance("RSA/NONE/PKCS1Padding");
-
-        // We have an existing secret key, so decrypt and return it
-        if (keyData != null) {
-            cipher.init(Cipher.UNWRAP_MODE, keyPair.getPrivate());
-            return cipher.unwrap(keyData, "AES", Cipher.SECRET_KEY).getEncoded();
-        }
-
-        // We need to generate a new secret key
-        keyData = new byte[64];
-        new SecureRandom().nextBytes(keyData);
-
-        cipher.init(Cipher.WRAP_MODE, keyPair.getPublic());
-
-        // Save the secret key to the file
-        File file = new File(getFilesDir(), Realm.DEFAULT_REALM_NAME + ".key");
-        FileOutputStream stream = new FileOutputStream(file);
-        try {
-            stream.write(cipher.wrap(new SecretKeySpec(keyData, "AES")));
-        } finally {
-            stream.close();
-        }
-
-        // Delete any existing default Realm since we won't be able to open it with the new key
-        Realm.deleteRealmFile(this);
-
-        return keyData;
-    }
-
-    // Get the keypair from the keystore if it exists, or create a new one if not
-    private KeyPair getKeyPair() throws GeneralSecurityException, IOException, java.io.IOException {
-        final KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
-        keyStore.load(null);
-
-        if (!keyStore.containsAlias(TAG)) {
-            generateKeyPair(TAG);
-        }
-
-        final KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(TAG, null);
-        return new KeyPair(entry.getCertificate().getPublicKey(), entry.getPrivateKey());
-    }
-
-    // Generate a new long-lived keypair
-    private void generateKeyPair(String alias) throws GeneralSecurityException {
-        final Calendar start = new GregorianCalendar();
-        final Calendar end = new GregorianCalendar();
-        end.add(Calendar.YEAR, 100);
-        final KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(this)
-            .setAlias(alias)
-            .setSubject(new X500Principal("CN=" + alias))
-            .setSerialNumber(BigInteger.ONE)
-            .setStartDate(start.getTime())
-            .setEndDate(end.getTime())
-            .build();
-
-        final KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore");
-        gen.initialize(spec);
-        gen.generateKeyPair();
     }
 }

@@ -1,22 +1,31 @@
-0.78.0
+0.79
+ * Re-enabled RealmResults.remove(index) and RealmResults.removeLast().
  * Primary keys are now supported through the @PrimaryKey annotations
 
+0.78
+ * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
+ * Added support to write an encrypted copy of a Realm.
+ * Realm no longer incorrectly warns that an instance has been closed too many times.
+ * Realm now shows a log warning if an instance is being finalized without being closed.
+ * Fixed bug causing Realms to be cached during a RealmMigration resulting in invalid realms being returned from Realm.getInstance().
+ * Updated core to 0.88.
+
 0.77
- * Adding Realm.allObjectsSorted() and RealmQuery.findAllSorted() and exteding RealmResults.sort() for multi-field sorting.
+ * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and exteding RealmResults.sort() for multi-field sorting.
  * RealmResults.sort() now has better error reporting.
- * Adding more logging capabilities at the JNI level.
+ * Added more logging capabilities at the JNI level.
  * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).
  * Fixed bug when doing queries on the elements of a RealmList, ie. like Realm.where(Foo.class).getBars().where().equalTo("name").
  * Throw NoSuchMethodError when RealmResults.indexOf() is called, since it's not implemented yet.
  * Added support for standalone objects and custom constructors.
- * Adding more precise imports in proxy classes to avoid ambiguous references.
+ * Added more precise imports in proxy classes to avoid ambiguous references.
  * Improved handling of empty model classes in the annotation processor
  * Added support for executing a transaction with a closure using Realm.executeTransaction().
  * Fixed bug causing refresh() to be called on background threads with closed Realms.
  * Fixed bug where calling Realm.close() too many times could result in Realm not getting closed at all. This now triggers a log warning.
  * Added RealmObject.isValid() to test if an object is still accessible.
- * Remove deprecated static constructors.
- * Introduce new static constructors based on File instead of Context, allowing to save Realm files in custom locations.
+ * Removed deprecated static constructors.
+ * Introduced new static constructors based on File instead of Context, allowing to save Realm files in custom locations.
  * RealmList.remove() now properly returns the removed object.
  * Calling realm.close() no longer prevent updates to other open realm instances on the same thread.
 

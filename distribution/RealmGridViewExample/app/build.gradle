@@ -20,6 +20,6 @@ android {
 }
 
 dependencies {
-    compile 'io.realm:realm-android:0.77.0'
+    compile 'io.realm:realm-android:0.78.0'
     compile 'com.google.code.gson:gson:2.3'
 }
