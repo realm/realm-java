@@ -457,7 +457,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 break;
             case INTEGER:
                 long intValue = ((Number) value).longValue();
-                assertIntValueIsLegal(columnIndex, intValue);
+                assertIntValueIsLegal(columnIndex, rowIndex, intValue);
                 nativeInsertLong(nativePtr, columnIndex, rowIndex, intValue);
                 break;
             case FLOAT:
@@ -468,7 +468,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 break;
             case STRING:
                 String stringValue = (String) value;
-                assertStringValueIsLegal(columnIndex, stringValue);
+                assertStringValueIsLegal(columnIndex, rowIndex, stringValue);
                 nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
                 break;
             case DATE:
@@ -647,18 +647,24 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return getPrimaryKey() >= 0;
     }
 
-    void assertStringValueIsLegal(long columnIndex, String value) {
+    void assertStringValueIsLegal(long columnIndex, long rowToUpdate, String value) {
         if (value == null) {
             throw new IllegalArgumentException("Null String is not allowed.");
         }
         if (isPrimaryKey(columnIndex)) {
-            if (findFirstString(columnIndex, value) != TableOrView.NO_MATCH) throwDuplicatePrimaryKeyException(value);
+            long rowIndex = findFirstString(columnIndex, value);
+            if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
+                throwDuplicatePrimaryKeyException(value);
+            }
         }
     }
 
-    void assertIntValueIsLegal(long columnIndex, long value) {
+    void assertIntValueIsLegal(long columnIndex, long rowToUpdate, long value) {
         if (isPrimaryKeyColumn(columnIndex)) {
-            if (findFirstLong(columnIndex, value) != TableOrView.NO_MATCH) throwDuplicatePrimaryKeyException(value);
+            long rowIndex = findFirstLong(columnIndex, value);
+            if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
+                throwDuplicatePrimaryKeyException(value);
+            }
         }
     }
 
@@ -964,7 +970,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void setLong(long columnIndex, long rowIndex, long value) {
         checkImmutable();
-        assertIntValueIsLegal(columnIndex, value);
+        assertIntValueIsLegal(columnIndex, rowIndex, value);
         nativeSetLong(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -1007,7 +1013,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
         checkImmutable();
-        assertStringValueIsLegal(columnIndex, value);
+        assertStringValueIsLegal(columnIndex, rowIndex, value);
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -1094,8 +1100,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     public void setIndex(long columnIndex) {
         checkImmutable();
-        if (getColumnType(columnIndex) != ColumnType.STRING)
+        if (getColumnType(columnIndex) != ColumnType.STRING) {
             throw new IllegalArgumentException("Index is only supported on string columns.");
+        }
         nativeSetIndex(nativePtr, columnIndex);
     }
 
