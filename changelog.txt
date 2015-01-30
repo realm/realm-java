@@ -1,4 +1,5 @@
 0.79
+ * Improved error reporting in case of missing accessors in model classes.
  * Re-enabled RealmResults.remove(index) and RealmResults.removeLast().
 
 0.78

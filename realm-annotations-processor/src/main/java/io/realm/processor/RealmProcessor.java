@@ -248,13 +248,15 @@ public class RealmProcessor extends AbstractProcessor {
 
             for (String expectedGetter : expectedGetters) {
                 error("No getter found for field " + expectedGetter);
-            }
-            for (String expectedSetter : expectedSetters) {
-                error("No setter found for field " + expectedSetter);
+                getters.put(expectedGetter, "");
             }
 
-            RealmProxyClassGenerator sourceCodeGenerator =
-                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, getters, setters, indexedFields);
+            for (String expectedSetter : expectedSetters) {
+                error("No setter found for field " + expectedSetter);
+                setters.put(expectedSetter, "");
+            }
+
+            RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, className, packageName, fields, getters, setters, indexedFields);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {
