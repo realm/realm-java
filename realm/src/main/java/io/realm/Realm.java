@@ -413,7 +413,7 @@ public final class Realm implements Closeable {
     }
 
     private static Realm create(File writableFolder, String filename, byte[] key) {
-        assertValidRealmPath(writableFolder, filename);
+        checkValidRealmPath(writableFolder, filename);
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
         if (Looper.myLooper() != null) {
             return createAndValidate(absolutePath, key, true, true);
@@ -456,7 +456,7 @@ public final class Realm implements Closeable {
         return realm;
     }
 
-    private static void assertValidRealmPath(File writableFolder, String filename) {
+    private static void checkValidRealmPath(File writableFolder, String filename) {
         if (filename == null || filename.isEmpty()) {
             throw new IllegalArgumentException("Non-empty filename must be provided");
         }
