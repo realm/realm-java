@@ -128,7 +128,7 @@ public final class Realm implements Closeable {
     private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>(); // Map between generated class names and their implementation
     private final Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
     private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
-    private final Map<Class<?>, Method> copyObjectMethods = new HashMap<Class<?>, Method>();
+    private final Map<Class<?>, Method> insertOrUpdateMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
@@ -891,48 +891,36 @@ public final class Realm implements Closeable {
      * @param object {@link io.realm.RealmObject} to copy to the Realm.
      * @return A managed RealmObject with its properties backed by the Realm.
      *
-     * @throws io.realm.exceptions.RealmException if the RealmObject has already been added to the Realm.
      * @throws java.lang.IllegalArgumentException if RealmObject is {@code null}.
      */
     public <E extends RealmObject> E copyToRealm(E object) {
-        if (object == null) {
-            throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
-        }
-
-        // Object is already in this Realm
-        if (object.realm != null && object.realm.id == this.id) {
+        checkNotNullObject(object);
+        if (isObjectInRealm(object)) {
             return object;
         }
 
-        Class<?> generatedClass;
-        Class<?> objectClass;
-        if (object.realm != null) {
-            // This is already a proxy object from another Realm, get superclass instead (invariant as we don't support subclasses)
-            generatedClass = object.getClass();
-            objectClass = object.getClass().getSuperclass();
-        } else {
-            generatedClass = getProxyClass(object.getClass());
-            objectClass = object.getClass();
+        return copyOrUpdate(object, false);
+    }
+
+    /**
+     * Copies a RealmObject to Realm or update all the fields of an existing object if it has a
+     * matching primary key value. Any further changes to the original RealmObject will not be
+     * reflected in the Realm copy.
+     *
+     * @param object    {@link io.realm.RealmObject} to copy or update.
+     * @return The new or updated RealmObject with all its properties backed by the Realm.
+     *
+     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null}.
+     * @see {@link #copyToRealm(RealmObject)}
+     */
+    public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
+        checkNotNullObject(object);
+        checkHasPrimaryKey(object);
+        if (isObjectInRealm(object)) {
+            return object;
         }
 
-        Method method = copyObjectMethods.get(generatedClass);
-        if (method == null) {
-            try {
-                method = generatedClass.getMethod("copyToRealm", new Class[] {Realm.class, objectClass});
-            } catch (NoSuchMethodException e) {
-                throw new RealmException("Could not find the copyToRealm() method in generated proxy class " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
-            }
-            copyObjectMethods.put(generatedClass, method);
-        }
-
-        try {
-            Object result = method.invoke(null, this, object);
-            return (E) result;
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not execute the copyToRealm method : " + APT_NOT_EXECUTED_MESSAGE, e);
-        } catch (InvocationTargetException e) {
-            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class  " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
-        }
+        return copyOrUpdate(object, true);
     }
 
     /**
@@ -1341,6 +1329,54 @@ public final class Realm implements Closeable {
             metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
+    }
+
+    private <E extends RealmObject> Class<? extends RealmObject> getRealmClassFromObject(E object) {
+        if (object.realm != null) {
+            // This is already a proxy object, get superclass instead
+            // INVARIANT: We don't support subclasses yet so super class is always correct type
+            return (Class<? extends RealmObject>) object.getClass().getSuperclass();
+        } else {
+            return object.getClass();
+        }
+    }
+
+    private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {
+        Class<? extends RealmObject> realmClass = getRealmClassFromObject(object);
+        Class<?> proxyClass = getProxyClass(realmClass);
+        Method method = insertOrUpdateMethods.get(realmClass);
+        if (method == null) {
+            try {
+                method = proxyClass.getMethod("copyOrUpdate", new Class[]{Realm.class, realmClass, boolean.class});
+            } catch (NoSuchMethodException e) {
+                throw new RealmException("Could not find the copyOrUpdate() method in generated proxy class for " + proxyClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+            }
+            insertOrUpdateMethods.put(proxyClass, method);
+        }
+        try {
+            Object result = method.invoke(null, this, object, update);
+            return (E) result;
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not execute the copyToRealm method : " + APT_NOT_EXECUTED_MESSAGE, e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class  " + proxyClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+        }
+    }
+
+    private <E extends RealmObject> boolean isObjectInRealm(E object) {
+        return (object.realm != null && object.realm.id == this.id);
+    }
+
+    private <E extends RealmObject> void checkNotNullObject(E object) {
+        if (object == null) {
+            throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
+        }
+    }
+
+    private <E extends RealmObject> void checkHasPrimaryKey(E object) {
+        if (!getTable(object.getClass()).hasPrimaryKey()) {
+            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + simpleClassNames.get(object));
+        }
     }
 
     @SuppressWarnings("UnusedDeclaration")

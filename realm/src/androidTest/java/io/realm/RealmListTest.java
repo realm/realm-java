@@ -379,4 +379,22 @@ public class RealmListTest extends AndroidTestCase {
 
         testMethodsOnEmptyList(owner.getDogs());
     }
+
+    public void testClear() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        testRealm.beginTransaction();
+        assertEquals(TEST_OBJECTS, owner.getDogs().size());
+        owner.getDogs().clear();
+        assertEquals(0, owner.getDogs().size());
+        testRealm.commitTransaction();
+    }
+
+    public void testClearNotDeleting() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        testRealm.beginTransaction();
+        assertEquals(TEST_OBJECTS, testRealm.allObjects(Dog.class).size());
+        owner.getDogs().clear();
+        assertEquals(TEST_OBJECTS, testRealm.allObjects(Dog.class).size());
+        testRealm.commitTransaction();
+    }
 }
