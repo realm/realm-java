@@ -138,3 +138,84 @@ tasks.preBuild {
     dependsOn compileAnnotations
     dependsOn buildApt
 }
+
+def examples = [
+    introExample: "RealmIntroExample",
+    gridViewExample: "RealmGridViewExample",
+    migrationExample: "RealmMigrationExample",
+    adapterExample: "RealmAdapterExample",
+    threadExample: "RealmThreadExample",
+    jsonExample: "RealmJsonExample",
+    encryptionExample: "RealmEncryptionExample"
+]
+
+def abi = [ 'armeabi', 'armeabi-v7a', 'mips', 'x86' ]
+
+//for Ant filter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task generateDistributionExamplesBuildFiles << {
+    examples.each() { src, dest ->
+        copy {
+            from "${rootDir}/tools/templates/${dest}/build.gradle"
+            into "${rootDir}/distribution/${dest}/app"
+            filter(ReplaceTokens, tokens: [version: version])
+        }
+    }
+}
+
+task populateDistributionFolder << {
+    copy {
+        from '../changelog.txt'
+        from "build/libs/realm-${version}.jar"
+        from "build/libs/realm-${version}-javadoc.jar"
+        into '../distribution'
+    }
+    copy {
+        from 'build/docs/javadoc'
+        into '../distribution/javadoc'
+    }
+    examples.each() { src, dest ->
+        copy {
+            from "../examples/${src}/src"
+            into "../distribution/${dest}/app"
+        }
+    }
+}
+
+task copyLibrariesToEclipseFolder() << {
+    copy {
+        from zipTree("build/libs/realm-${version}.jar")
+        into 'build/intermediates/eclipse'
+    }
+    abi.each() { abiName ->
+        copy {
+            from "build/intermediates/eclipse/lib/${abiName}/libtightdb-jni.so"
+            into "../distribution/eclipse/lib/${abiName}"
+        }
+    }
+}
+
+task createEclipseJar(type: Zip) {
+    dependsOn 'copyLibrariesToEclipseFolder'
+    from 'build/intermediates/eclipse'
+    exclude 'lib'
+    destinationDir = new File("${rootDir}/distribution/eclipse")
+    archiveName = "realm-${version}.jar"
+}
+
+task createDistributionFolder() {
+    dependsOn 'generateDistributionExamplesBuildFiles'
+    dependsOn 'populateDistributionFolder'
+    dependsOn 'createEclipseJar'
+}
+
+task createDistributionPackage(type: Zip) {
+    group 'Release'
+    description 'Build the release distribution package'
+    dependsOn 'createDistributionFolder'
+    from "${rootDir}/distribution"
+    into "realm-java-${version}"
+    destinationDir = new File("${rootDir}")
+    archiveName = "realm-java-${version}.zip"
+}
