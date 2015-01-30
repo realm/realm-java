@@ -5,7 +5,7 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "io.realm.examples.realmmigrationexample"
+        applicationId "io.realm.examples.realmgridview"
         minSdkVersion 14
         targetSdkVersion 20
         versionCode 1
@@ -20,5 +20,6 @@ android {
 }
 
 dependencies {
-    compile 'io.realm:realm-android:0.78.0'
+    compile 'io.realm:realm-android:@version@'
+    compile 'com.google.code.gson:gson:2.3'
 }
