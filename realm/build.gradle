@@ -164,7 +164,7 @@ task generateDistributionExamplesBuildFiles << {
     }
 }
 
-task populateDistributionFolder << {
+task populateDistributionFolder(dependsOn: 'androidJar') << {
     copy {
         from '../changelog.txt'
         from "build/libs/realm-${version}.jar"
@@ -183,7 +183,7 @@ task populateDistributionFolder << {
     }
 }
 
-task copyLibrariesToEclipseFolder() << {
+task copyLibrariesToEclipseFolder(dependsOn: 'androidJar') << {
     copy {
         from zipTree("build/libs/realm-${version}.jar")
         into 'build/intermediates/eclipse'
