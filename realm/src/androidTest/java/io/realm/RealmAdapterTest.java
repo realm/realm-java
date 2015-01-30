@@ -102,13 +102,12 @@ public class RealmAdapterTest extends AndroidTestCase {
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
 
         testRealm.beginTransaction();
-        try {
-            realmAdapter.getRealmResults().remove(0);
-            fail("Remove should be disabled for now");
-        } catch (RealmException ignore) {
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        realmAdapter.getRealmResults().remove(0);
+        testRealm.commitTransaction();
+        assertEquals(TEST_DATA_SIZE - 1, realmAdapter.getCount());
+
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0").findAll();
+        assertEquals(0, resultList.size());
     }
 
     public void testSortWithAdapter() {
