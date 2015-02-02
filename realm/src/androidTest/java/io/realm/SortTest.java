@@ -35,6 +35,11 @@ public class SortTest extends AndroidTestCase {
 
     @Override
     public void setUp() {
+        // Creates a Realm with the following objects:
+        // 0: (5, "Adam")
+        // 1: (4, "Brian")
+        // 2: (4, "Adam")
+        // 3: (5, "Adam")
         Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
 
@@ -101,6 +106,12 @@ public class SortTest extends AndroidTestCase {
     }
 
     private void checkSortTwoFieldsStringAscendingIntAscending(RealmResults<AllTypes> results) {
+        // Sorted String (ascending), Long (ascending).
+        // Expected output:
+        // (4, "Adam"), row index = 2
+        // (5, "Adam"), row index = 0 - stable sort!
+        // (5, "Adam"), row index = 3
+        // (4, "Brian"), row index = 1
         assertEquals(4, results.size());
 
         assertEquals("Adam", results.get(0).getColumnString());
@@ -121,6 +132,12 @@ public class SortTest extends AndroidTestCase {
     }
 
     private void checkSortTwoFieldsIntString(RealmResults<AllTypes> results) {
+        // Sorted Long (ascending), String (descending)
+        // Expected outout:
+        // (4, "Adam"), row index = 2
+        // (4, "Brian"), row index = 1
+        // (5, "Adam"), row index = 0 - stable sort!
+        // (5, "Adam"), row index = 3
         assertEquals(4, results.size());
 
         assertEquals("Adam", results.get(0).getColumnString());
@@ -141,6 +158,12 @@ public class SortTest extends AndroidTestCase {
     }
 
     private void checkSortTwoFieldsIntAscendingStringDescending(RealmResults<AllTypes> results) {
+        // Sorted Long (ascending), String (descending)
+        // Expected output:
+        // (4, "Brian"), row index = 1
+        // (4, "Adam"), row index = 2
+        // (5, "Adam"), row index = 0 - stable sort!
+        // (5, "Adam"), row index = 3
         assertEquals(4, results.size());
 
         assertEquals("Brian", results.get(0).getColumnString());
@@ -161,6 +184,12 @@ public class SortTest extends AndroidTestCase {
     }
 
     private void checkSortTwoFieldsStringAscendingIntDescending(RealmResults<AllTypes> results) {
+        // Sorted String (ascending), Long (descending)
+        // Expected output:
+        // (5, "Adam"), row index = 0 - stable sort!
+        // (5, "Adam"), row index = 3
+        // (4, "Adam"), row index = 2
+        // (5, "Brian"), row index = 1
         assertEquals(4, results.size());
 
         assertEquals("Adam", results.get(0).getColumnString());
