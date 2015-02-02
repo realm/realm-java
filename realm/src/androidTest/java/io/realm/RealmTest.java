@@ -73,7 +73,7 @@ public class RealmTest extends AndroidTestCase {
     protected void setUp() throws Exception {
         Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
-   }
+    }
 
     @Override
     protected void tearDown() throws Exception {
@@ -336,7 +336,83 @@ public class RealmTest extends AndroidTestCase {
         try {
             RealmResults<AllTypes> none = testRealm.allObjectsSorted(AllTypes.class, "invalid", RealmResults.SORT_ORDER_ASCENDING);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public void testSortTwoFields() {
+        io.realm.internal.test.TestHelper.populateForMultiSort(testRealm);
+
+        RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
+                new String[]{FIELD_STRING, FIELD_LONG},
+                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+
+        assertEquals(3, results1.size());
+
+        assertEquals("Adam", results1.get(0).getColumnString());
+        assertEquals(4, results1.get(0).getColumnLong());
+
+        assertEquals("Adam", results1.get(1).getColumnString());
+        assertEquals(5, results1.get(1).getColumnLong());
+
+        assertEquals("Brian", results1.get(2).getColumnString());
+        assertEquals(4, results1.get(2).getColumnLong());
+
+        RealmResults<AllTypes> results2 = testRealm.allObjectsSorted(AllTypes.class,
+                new String[]{FIELD_LONG, FIELD_STRING},
+                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+
+        assertEquals(3, results2.size());
+
+        assertEquals("Adam", results2.get(0).getColumnString());
+        assertEquals(4, results2.get(0).getColumnLong());
+
+        assertEquals("Brian", results2.get(1).getColumnString());
+        assertEquals(4, results2.get(1).getColumnLong());
+
+        assertEquals("Adam", results2.get(2).getColumnString());
+        assertEquals(5, results2.get(2).getColumnLong());
+    }
+
+    public void testSortMultiFailures() {
+        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+
+        // zero fields specified
+        try {
+            testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new boolean[]{});
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // number of fields and sorting orders don't match
+        try {
+            testRealm.allObjectsSorted(AllTypes.class,
+                    new String[]{FIELD_STRING},
+                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // null is not allowed
+        try {
+            testRealm.allObjectsSorted(AllTypes.class, null, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            testRealm.allObjectsSorted(AllTypes.class, new String[]{FIELD_STRING}, null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // non-existing field name
+        try {
+            testRealm.allObjectsSorted(AllTypes.class,
+                    new String[]{FIELD_STRING, "dont-exist"},
+                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testSortSingleField() {
@@ -492,7 +568,6 @@ public class RealmTest extends AndroidTestCase {
     }
 
 
-
     // void clear(Class<?> classSpec)
     public void testClear() {
         // ** clear non existing table should succeed
@@ -638,6 +713,7 @@ public class RealmTest extends AndroidTestCase {
         }
         return chars_array;
     }
+
     // This test is disabled.
     // The test writes and reads random Strings.
     public void disabledTestUnicodeString() {
@@ -845,7 +921,7 @@ public class RealmTest extends AndroidTestCase {
         allTypes.setColumnDouble(1d);
         allTypes.setColumnBoolean(true);
         allTypes.setColumnDate(date);
-        allTypes.setColumnBinary(new byte[] { 1, 2, 3});
+        allTypes.setColumnBinary(new byte[]{1, 2, 3});
         allTypes.setColumnRealmObject(dog);
         allTypes.setColumnRealmList(list);
 
@@ -867,8 +943,10 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testCopyToRealmList() {
-        Dog dog1 = new Dog(); dog1.setName("Dog 1");
-        Dog dog2 = new Dog(); dog2.setName("Dog 2");
+        Dog dog1 = new Dog();
+        dog1.setName("Dog 1");
+        Dog dog2 = new Dog();
+        dog2.setName("Dog 2");
         RealmList<Dog> list = new RealmList<Dog>();
         list.addAll(Arrays.asList(dog1, dog2));
 
@@ -890,4 +968,92 @@ public class RealmTest extends AndroidTestCase {
         inStream.close();
         outStream.close();
     }
+
+    public void testWriteEncryptedCopy() throws Exception {
+        populateTestRealm();
+        long before = testRealm.where(AllTypes.class).count();
+        assertEquals(TEST_DATA_SIZE, before);
+
+        final String ENCRYPTED_REALM_FILE_NAME = "encryptedTestRealm.realm";
+        final String RE_ENCRYPTED_REALM_FILE_NAME = "reEncryptedTestRealm.realm";
+        final String DECRYPTED_REALM_FILE_NAME = "decryptedTestRealm.realm";
+
+        // Delete files if present
+        for (String fileName : Arrays.asList(ENCRYPTED_REALM_FILE_NAME, RE_ENCRYPTED_REALM_FILE_NAME, DECRYPTED_REALM_FILE_NAME)) {
+            File fileToDelete = new File(getContext().getFilesDir(), fileName);
+            if (fileToDelete.exists() && !fileToDelete.delete()) {
+                fail();
+            }
+        }
+
+        File destination = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
+        byte[] key = new byte[64];
+        new Random(42).nextBytes(key);
+        try {
+            // Unencrypted to encrypted
+            testRealm.writeEncryptedCopyTo(destination, key);
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail();
+        }
+
+        Realm encryptedRealm = null;
+        try {
+            encryptedRealm = Realm.getInstance(getContext(), ENCRYPTED_REALM_FILE_NAME, key);
+            assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
+
+            destination = new File(getContext().getFilesDir(), RE_ENCRYPTED_REALM_FILE_NAME);
+            new Random(1234321).nextBytes(key);
+            try {
+                // Encrypted to encrypted
+                encryptedRealm.writeEncryptedCopyTo(destination, key);
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail();
+            }
+            Realm reEncryptedRealm = null;
+            try {
+                reEncryptedRealm = Realm.getInstance(getContext(), RE_ENCRYPTED_REALM_FILE_NAME, key);
+                assertEquals(TEST_DATA_SIZE, reEncryptedRealm.where(AllTypes.class).count());
+            } finally {
+                if (reEncryptedRealm != null) {
+                    reEncryptedRealm.close();
+                    boolean isDeleted = new File(reEncryptedRealm.getPath()).delete();
+                    if (!isDeleted) {
+                        fail();
+                    }
+                }
+            }
+
+            destination = new File(getContext().getFilesDir(), DECRYPTED_REALM_FILE_NAME);
+            try {
+                // Encrypted to decrypted
+                encryptedRealm.writeEncryptedCopyTo(destination, null);
+            } catch (Exception e) {
+                fail();
+            }
+            Realm decryptedRealm = null;
+            try {
+                decryptedRealm = Realm.getInstance(getContext(), DECRYPTED_REALM_FILE_NAME);
+                assertEquals(TEST_DATA_SIZE, decryptedRealm.where(AllTypes.class).count());
+            } finally {
+                if (decryptedRealm != null) {
+                    decryptedRealm.close();
+                    boolean isDeleted = new File(decryptedRealm.getPath()).delete();
+                    if (!isDeleted) {
+                        fail();
+                    }
+                }
+            }
+        } finally {
+            if (encryptedRealm != null) {
+                encryptedRealm.close();
+                boolean isDeleted = new File(encryptedRealm.getPath()).delete();
+                if (!isDeleted) {
+                    fail();
+                }
+            }
+        }
+    }
+
 }
