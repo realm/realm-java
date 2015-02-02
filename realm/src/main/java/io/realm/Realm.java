@@ -1415,7 +1415,7 @@ public final class Realm implements Closeable {
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */
-    public static boolean deleteRealmFile(Context context, String fileName) {
+    public static synchronized boolean deleteRealmFile(Context context, String fileName) {
         boolean result = true;
         File writableFolder = context.getFilesDir();
 
@@ -1424,7 +1424,7 @@ public final class Realm implements Closeable {
 
         AtomicInteger counter = openRealms.get(realmId);
         if (counter != null && counter.get() > 0) {
-            throw new IllegalStateException("It's not allowed to delete the file associated to an open Realm. " +
+            throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
                     "Remember to close() all the instances of the Realm before deleting its file.");
         }
 
