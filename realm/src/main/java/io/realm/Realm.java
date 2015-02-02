@@ -114,12 +114,15 @@ public final class Realm implements Closeable {
     private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
     private static final String CLOSED_REALM = "This Realm instance has already been closed, making it unusable.";
+    private static final String INVALID_KEY_MESSAGE = "The provided key is illegal. It should either be null or be 64 bytes long";
+    private static final String DIFFERENT_KEY_MESSAGE = "Realm access with incorrect key";
 
     @SuppressWarnings("UnusedDeclaration")
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
     private boolean autoRefresh;
     private Handler handler;
 
+    private final byte[] key;
     private final int id;
     private final String path;
     private SharedGroup sharedGroup;
@@ -156,9 +159,13 @@ public final class Realm implements Closeable {
 
     // The constructor in private to enforce the use of the static one
     private Realm(String absolutePath, byte[] key, boolean autoRefresh) {
+        if (key != null && key.length != 64) {
+            throw new IllegalArgumentException(INVALID_KEY_MESSAGE);
+        }
         this.sharedGroup = new SharedGroup(absolutePath, true, key);
         this.transaction = sharedGroup.beginImplicitTransaction();
         this.path = absolutePath;
+        this.key = key;
         this.id = absolutePath.hashCode();
         setAutoRefresh(autoRefresh);
     }
@@ -432,6 +439,9 @@ public final class Realm implements Closeable {
         Realm realm = realms.get(absolutePath.hashCode());
 
         if (realm != null) {
+            if (realm.key != key) {
+                throw new IllegalStateException(DIFFERENT_KEY_MESSAGE);
+            }
             localRefCount.put(id, references + 1);
             return realm;
         }
