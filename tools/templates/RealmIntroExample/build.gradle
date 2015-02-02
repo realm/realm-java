@@ -5,8 +5,8 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "io.realm.examples.realmencryptionexample"
-        minSdkVersion 17
+        applicationId "io.realm.examples.realmintroexample"
+        minSdkVersion 14
         targetSdkVersion 20
         versionCode 1
         versionName "1.0"
@@ -20,5 +20,5 @@ android {
 }
 
 dependencies {
-    compile 'io.realm:realm-android:0.78.0'
+    compile 'io.realm:realm-android:@version@'
 }
