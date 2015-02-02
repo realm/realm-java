@@ -1056,7 +1056,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testWrongKeyShouldFail() {
+    public void testWrongKeyShouldThrow() {
         final String WRONG_KEY_REALM = "wrong-key-realm.realm";
 
         // Wrong key size
