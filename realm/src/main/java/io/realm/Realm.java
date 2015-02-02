@@ -204,9 +204,6 @@ public final class Realm implements Closeable {
             sharedGroup.close();
             sharedGroup = null;
             AtomicInteger counter = openRealms.get(id);
-            if (counter == null) {
-                throw new AssertionError("The counter should not be zero");
-            }
             counter.decrementAndGet();
         }
 
