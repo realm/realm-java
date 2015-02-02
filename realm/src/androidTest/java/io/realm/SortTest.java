@@ -27,6 +27,12 @@ public class SortTest extends AndroidTestCase {
     private final static String FIELD_STRING = "columnString";
     private final static String FIELD_LONG = "columnLong";
 
+    private final static String[] ORDER_STRING_INT = {FIELD_STRING, FIELD_LONG};
+    private final static String[] ORDER_INT_STRING = {FIELD_LONG, FIELD_STRING};
+
+    private final static boolean[] ORDER_ASC_ASC = {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING};
+    private final static boolean[] ORDER_ASC_DES = {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_DESCENDING};
+
     @Override
     public void setUp() {
         Realm.deleteRealmFile(getContext());
@@ -64,32 +70,37 @@ public class SortTest extends AndroidTestCase {
         try {
             allTypes.sort(new String[]{}, new boolean[]{});
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // number of fields and sorting orders don't match
         try {
-            allTypes.sort(new String[]{FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            allTypes.sort(new String[]{FIELD_STRING}, ORDER_ASC_ASC);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // null is not allowed
         try {
             allTypes.sort(null, null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
         try {
             allTypes.sort(new String[]{FIELD_STRING}, null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // non-existing field name
         try {
-            allTypes.sort(new String[]{FIELD_STRING, "dont-exist"}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+            allTypes.sort(new String[]{FIELD_STRING, "dont-exist"}, ORDER_ASC_ASC);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
-    private void checkSortTwoFieldsStringInt(RealmResults<AllTypes> results) {
+    private void checkSortTwoFieldsStringAscendingIntAscending(RealmResults<AllTypes> results) {
         assertEquals(4, results.size());
 
         assertEquals("Adam", results.get(0).getColumnString());
@@ -124,44 +135,104 @@ public class SortTest extends AndroidTestCase {
         assertEquals(5, results.get(2).getColumnLong());
         assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(2));
 
+        assertEquals("Adam", results.get(3).getColumnString());
+        assertEquals(5, results.get(3).getColumnLong());
+        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(3));
+    }
+
+    private void checkSortTwoFieldsIntAscendingStringDescending(RealmResults<AllTypes> results) {
+        assertEquals(4, results.size());
+
+        assertEquals("Brian", results.get(0).getColumnString());
+        assertEquals(4, results.get(0).getColumnLong());
+        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(0));
+
+        assertEquals("Adam", results.get(1).getColumnString());
+        assertEquals(4, results.get(1).getColumnLong());
+        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(1));
+
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
+        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(2));
+
+        assertEquals("Adam", results.get(3).getColumnString());
+        assertEquals(5, results.get(3).getColumnLong());
         assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(3));
+    }
+
+    private void checkSortTwoFieldsStringAscendingIntDescending(RealmResults<AllTypes> results) {
+        assertEquals(4, results.size());
+
+        assertEquals("Adam", results.get(0).getColumnString());
+        assertEquals(5, results.get(0).getColumnLong());
+        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(0));
+
+        assertEquals("Adam", results.get(1).getColumnString());
+        assertEquals(5, results.get(1).getColumnLong());
+        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(1));
+
+        assertEquals("Adam", results.get(2).getColumnString());
+        assertEquals(4, results.get(2).getColumnLong());
+        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(2));
+
+        assertEquals("Brian", results.get(3).getColumnString());
+        assertEquals(4, results.get(3).getColumnLong());
+        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(3));
     }
 
     public void testSortRealmResultsTwoFields() {
         RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class);
-        results1.sort(new String[]{FIELD_STRING, FIELD_LONG}, new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-        checkSortTwoFieldsStringInt(results1);
+        results1.sort(ORDER_STRING_INT, ORDER_ASC_ASC);
+        checkSortTwoFieldsStringAscendingIntAscending(results1);
 
         RealmResults<AllTypes> results2 = testRealm.allObjects(AllTypes.class);
-        results2.sort(new String[]{FIELD_LONG, FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+        results2.sort(ORDER_INT_STRING, ORDER_ASC_ASC);
         checkSortTwoFieldsIntString(results2);
+
+        RealmResults<AllTypes> results3 = testRealm.allObjects(AllTypes.class);
+        results3.sort(ORDER_STRING_INT, ORDER_ASC_DES);
+        checkSortTwoFieldsStringAscendingIntDescending(results3);
+
+        RealmResults<AllTypes> results4 = testRealm.allObjects(AllTypes.class);
+        results4.sort(ORDER_INT_STRING, ORDER_ASC_DES);
+        checkSortTwoFieldsIntAscendingStringDescending(results4);
    }
 
 
     public void testRealmQuerySortTwoFields() {
         RealmResults<AllTypes> results1 = testRealm.where(AllTypes.class)
-                .findAllSorted(new String[]{FIELD_STRING, FIELD_LONG},
-                        new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-        checkSortTwoFieldsStringInt(results1);
+                .findAllSorted(ORDER_STRING_INT, ORDER_ASC_ASC);
+        checkSortTwoFieldsStringAscendingIntAscending(results1);
 
         RealmResults<AllTypes> results2 = testRealm.where(AllTypes.class)
-                .findAllSorted(new String[]{FIELD_LONG, FIELD_STRING},
-                        new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                .findAllSorted(ORDER_INT_STRING, ORDER_ASC_ASC);
         checkSortTwoFieldsIntString(results2);
+
+        RealmResults<AllTypes> results3 = testRealm.where(AllTypes.class)
+                .findAllSorted(ORDER_STRING_INT, ORDER_ASC_DES);
+        checkSortTwoFieldsStringAscendingIntDescending(results3);
+
+        RealmResults<AllTypes> results4 = testRealm.where(AllTypes.class)
+                .findAllSorted(ORDER_INT_STRING, ORDER_ASC_DES);
+        checkSortTwoFieldsIntAscendingStringDescending(results4);
     }
 
     public void testRealmSortTwoFields() {
         RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
-                new String[]{FIELD_STRING, FIELD_LONG},
-                new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-        checkSortTwoFieldsStringInt(results1);
+                ORDER_STRING_INT, ORDER_ASC_ASC);
+        checkSortTwoFieldsStringAscendingIntAscending(results1);
 
         RealmResults<AllTypes> results2 = testRealm.allObjectsSorted(AllTypes.class,
-                new String[]{FIELD_LONG, FIELD_STRING},
-                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                ORDER_INT_STRING, ORDER_ASC_ASC);
         checkSortTwoFieldsIntString(results2);
+
+        RealmResults<AllTypes> results3 = testRealm.allObjectsSorted(AllTypes.class,
+                ORDER_STRING_INT, ORDER_ASC_DES);
+        checkSortTwoFieldsStringAscendingIntDescending(results3);
+
+        RealmResults<AllTypes> results4 = testRealm.allObjectsSorted(AllTypes.class,
+                ORDER_INT_STRING, ORDER_ASC_DES);
+        checkSortTwoFieldsIntAscendingStringDescending(results4);
     }
 
     public void testRealmSortMultiFailures() {
@@ -171,15 +242,16 @@ public class SortTest extends AndroidTestCase {
         try {
             testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new boolean[]{});
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // number of fields and sorting orders don't match
         try {
             testRealm.allObjectsSorted(AllTypes.class,
-                    new String[]{FIELD_STRING},
-                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                    new String[]{FIELD_STRING}, ORDER_ASC_ASC);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // null is not allowed
         try {
@@ -189,14 +261,16 @@ public class SortTest extends AndroidTestCase {
         try {
             testRealm.allObjectsSorted(AllTypes.class, new String[]{FIELD_STRING}, null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // non-existing field name
         try {
             testRealm.allObjectsSorted(AllTypes.class,
                     new String[]{FIELD_STRING, "dont-exist"},
-                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                    ORDER_ASC_ASC);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 }
