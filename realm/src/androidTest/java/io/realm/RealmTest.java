@@ -139,7 +139,7 @@ public class RealmTest extends AndroidTestCase {
         File folder = new File("/");
         try {
             Realm realm = Realm.getInstance(folder);
-            fail("Pointing to a read-only folder should throw an error");
+            fail("Pointing to a folder with no write permission should throw an error");
         } catch (RealmIOException expected) {
         }
     }
