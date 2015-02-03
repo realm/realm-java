@@ -755,7 +755,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object prefilled with data from a JSON object. This must be done inside a
+     * Create a Realm object pre-filled with data from a JSON object. This must be done inside a
      * transaction. JSON properties with a null value will map to the default value for the data
      * type in Realm and unknown properties will be ignored.
      *
@@ -1404,7 +1404,6 @@ public final class Realm implements Closeable {
         metadataTable.setLong(0, 0, version);
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     public static void migrateRealmAtPath(String realmPath, RealmMigration migration) {
         migrateRealmAtPath(realmPath, null, migration, true);
     }
@@ -1413,12 +1412,12 @@ public final class Realm implements Closeable {
         migrateRealmAtPath(realmPath, key, migration, true);
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     public static void migrateRealmAtPath(String realmPath, RealmMigration migration, boolean autoRefresh) {
         migrateRealmAtPath(realmPath, null, migration, autoRefresh);
     }
 
-    public static void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration, boolean autoUpdate) {
+    public static synchronized void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration,
+                                            boolean autoUpdate) {
         Realm realm = Realm.createAndValidate(realmPath, key, false, autoUpdate);
         realm.beginTransaction();
         realm.setVersion(migration.execute(realm, realm.getVersion()));
@@ -1488,7 +1487,7 @@ public final class Realm implements Closeable {
      * @param fileName the name of the file to compact
      * @return true if successful, false if any file operation failed
      */
-    public static boolean compactRealmFile(Context context, String fileName) {
+    public static synchronized boolean compactRealmFile(Context context, String fileName) {
         File realmFile = new File(context.getFilesDir(), fileName);
         File tmpFile = new File(
                 context.getFilesDir(),
@@ -1550,4 +1549,3 @@ public final class Realm implements Closeable {
         public void execute(Realm realm);
     }
 }
-

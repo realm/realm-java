@@ -3,7 +3,8 @@
  * Improved error reporting in case of missing accessors in model classes.
  * Re-enabled RealmResults.remove(index) and RealmResults.removeLast().
  * Fixed error when instantiating a Realm with the wrong key.
- * Throw an exception if deleteRealmFile() is called when there is an open instance of the Realm
+ * Throw an exception if deleteRealmFile() is called when there is an open instance of the Realm.
+ * Made migrations and compression methods synchronised.
 
 0.78
  * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
