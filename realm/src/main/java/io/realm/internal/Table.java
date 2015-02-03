@@ -1127,26 +1127,36 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @param columnName    Name of the field that will function primary key. "" or <code>null</code>
      *                      will remove any previous set magic key.
      *
-     * @throws              RealmException if it is not possible to set the primary key due to the
-     *                      column not having distinct values (ie. violating the primary key
-     *                      constaint).
-     *
+     * @throws              {@link io.realm.exceptions.RealmException} if it is not possible to set
+     *                      the primary key due to the column not having distinct values (ie.
+     *                      violating the primary key constraint).
      */
     public void setPrimaryKey(String columnName) {
         Table pkTable = getPrimaryKeyTable();
-        if (pkTable == null) throw new RealmException("Primary keys are only supported if Table is part of a Group");
+        if (pkTable == null) {
+            throw new RealmException("Primary keys are only supported if Table is part of a Group");
+        }
 
         long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
         if (columnName == null || columnName.equals("")) {
-            if (rowIndex > 0) pkTable.remove(rowIndex);
+            if (rowIndex > 0) {
+                pkTable.remove(rowIndex);
+            }
             cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
         } else {
             long primaryKeyColumnIndex = getColumnIndex(columnName);
-            assertIsValidPrimaryKeyColumn(primaryKeyColumnIndex);
             if (rowIndex == NO_MATCH) {
+                // No primary key is currently set
+                checkIsValidPrimaryKeyColumn(primaryKeyColumnIndex);
                 pkTable.add(getName(), primaryKeyColumnIndex);
             } else {
-                pkTable.setLong(PRIMARY_KEY_FIELD_COLUMN_INDEX, rowIndex, primaryKeyColumnIndex);
+                // Primary key already exists
+                // We only wish to check for duplicate values if a column isn't already a primary key
+                long currentPrimaryKey = getRow(rowIndex).getLong(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                if (primaryKeyColumnIndex != currentPrimaryKey) {
+                    checkIsValidPrimaryKeyColumn(primaryKeyColumnIndex);
+                    pkTable.setLong(PRIMARY_KEY_FIELD_COLUMN_INDEX, rowIndex, primaryKeyColumnIndex);
+                }
             }
 
             cachedPrimaryKeyColumnIndex = primaryKeyColumnIndex;
@@ -1155,7 +1165,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     // Checks if the primary key column contains any duplicate values, making it ineligible as a
     // primary key.
-    private void assertIsValidPrimaryKeyColumn(long columnIndex) {
+    private void checkIsValidPrimaryKeyColumn(long columnIndex) {
         ColumnType columnType = getColumnType(columnIndex);
         TableView result = where().findAll();
         result.sort(columnIndex);
