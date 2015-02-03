@@ -1,4 +1,5 @@
 0.79
+ * Better error reporting when trying to create or open a Realm file fails.
  * Improved error reporting in case of missing accessors in model classes.
  * Re-enabled RealmResults.remove(index) and RealmResults.removeLast().
  * Fixed error when instantiating a Realm with the wrong key.
