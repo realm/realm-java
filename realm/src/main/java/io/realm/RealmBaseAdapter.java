@@ -20,6 +20,17 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
 
+/**
+ * The RealmBaseAdapter class is an abstract utility class for binding UI elements to Realm data,
+ * much like an {@link android.widget.CursorAdapter}.
+ *
+ * This adapter will automatically handle any updates to its data and call
+ * {@link #notifyDataSetChanged()} as appropriate.
+ *
+ * The RealmAdapter will stop receiving updates if the Realm instance providing the
+ * {@link io.realm.RealmResults} is closed. Trying to access read objects, will at this point also
+ * result in a {@link io.realm.exceptions.RealmException}.
+ */
 public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapter {
 
     protected LayoutInflater inflater;
@@ -57,14 +68,24 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         return realmResults.get(i);
     }
 
+    /**
+     * Returns the current ID for an item. Note that item IDs are not stable so you cannot rely on
+     * the item ID being the same after {@link #notifyDataSetChanged()} or
+     * {@link #updateRealmResults(RealmResults)} has been called.
+     *
+     * @param i Index of item in the adapter
+     * @return Current item ID.
+     */
     @Override
     public long getItemId(int i) {
-        return i; // TODO: find better solution once we have unique IDs
+        // TODO: find better solution once we have unique IDs
+        return i;
     }
 
     /**
      * Update the RealmResults associated to the Adapter. Useful when the query has been changed.
      * If the query does not change you might consider using the automaticUpdate feature
+     *
      * @param realmResults the new RealmResults coming from the new query.
      */
     public void updateRealmResults(RealmResults<T> realmResults) {
