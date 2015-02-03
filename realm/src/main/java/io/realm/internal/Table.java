@@ -1152,7 +1152,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             } else {
                 // Primary key already exists
                 // We only wish to check for duplicate values if a column isn't already a primary key
-                long currentPrimaryKey = getRow(rowIndex).getLong(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                long currentPrimaryKey = pkTable.getRow(rowIndex).getLong(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 if (primaryKeyColumnIndex != currentPrimaryKey) {
                     checkIsValidPrimaryKeyColumn(primaryKeyColumnIndex);
                     pkTable.setLong(PRIMARY_KEY_FIELD_COLUMN_INDEX, rowIndex, primaryKeyColumnIndex);
