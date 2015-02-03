@@ -28,6 +28,25 @@ jar {
     from configurations.compile.findAll {it.name.contains('javawriter')}.collect { zipTree(it) }
 }
 
+//for Ant filter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task generateVersionClass(type: Copy) {
+    from 'src/main/templates/Version.java'
+    into 'build/generated-src/main/java/io/realm/processor'
+    filter(ReplaceTokens, tokens: [version: version])
+}
+
+compileJava.dependsOn generateVersionClass
+
+sourceSets {
+    main {
+        java {
+            srcDir 'build/generated-src/main/java'
+        }
+    }
+}
+
 task compileAnnotations(type: GradleBuild) {
     dir = file('../realm-annotations')
     tasks = ['assemble']

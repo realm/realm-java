@@ -32,7 +32,7 @@ using namespace tightdb;
 
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
     JNIEnv* env, jobject, jstring jfile_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
     TR_ENTER()
@@ -98,6 +98,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 
         return reinterpret_cast<jlong>(db);
     }
+    CATCH_FILE()
     CATCH_STD()
     return 0;
 }
@@ -118,6 +119,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 #endif
         return reinterpret_cast<jlong>(repl);
     }
+    CATCH_FILE(file_name)
     CATCH_STD()
     return 0;
 }
