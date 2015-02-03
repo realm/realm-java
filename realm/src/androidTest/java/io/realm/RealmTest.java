@@ -1110,6 +1110,36 @@ public class RealmTest extends AndroidTestCase {
             }
         }
     }
+
+    public void testOpenRealmFileDeletionShouldThrow() {
+        final String OTHER_REALM_NAME = "yetAnotherRealm.realm";
+
+        // This instance is already cached because of the setUp() method so this deletion should throw
+        try {
+            Realm.deleteRealmFile(getContext());
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        // Create a new Realm file
+        Realm yetAnotherRealm = Realm.getInstance(getContext(), OTHER_REALM_NAME);
+
+        // Deleting it should fail
+        try {
+            Realm.deleteRealmFile(getContext(), OTHER_REALM_NAME);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        // But now that we close it deletion should work
+        yetAnotherRealm.close();
+        try {
+            Realm.deleteRealmFile(getContext(), OTHER_REALM_NAME);
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
     public void testWrongKeyShouldThrow() {
         final String WRONG_KEY_REALM = "wrong-key-realm.realm";
 
@@ -1118,8 +1148,6 @@ public class RealmTest extends AndroidTestCase {
             Realm.getInstance(getContext(), WRONG_KEY_REALM, new byte[63]);
             fail();
         } catch (IllegalArgumentException ignored) {
-        } catch (Exception ignored) {
-            fail();
         }
 
         Realm.getInstance(getContext(), WRONG_KEY_REALM);
@@ -1128,8 +1156,6 @@ public class RealmTest extends AndroidTestCase {
             Realm.getInstance(getContext(), WRONG_KEY_REALM, new byte[64]);
             fail();
         } catch (IllegalStateException ignored) {
-        } catch (Exception ignored) {
-            fail();
         }
 
     }

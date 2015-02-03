@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -133,8 +134,11 @@ public final class Realm implements Closeable {
             return new HashMap<Integer, Integer>();
         }
     };
-    private static final int REALM_CHANGED = 14930352; // Just a nice big Fibonacci number. For no reason :)
+    private static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
     protected static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
+
+    // Maps ids to a boolean set to true if the Realm is open. This is only needed by deleteRealmFile
+    private static final Map<Integer, AtomicInteger> openRealms = new ConcurrentHashMap<Integer, AtomicInteger>();
     private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
@@ -223,6 +227,8 @@ public final class Realm implements Closeable {
             realmsCache.get().remove(id);
             sharedGroup.close();
             sharedGroup = null;
+            AtomicInteger counter = openRealms.get(id);
+            counter.decrementAndGet();
         }
 
         int refCount = references - 1;
@@ -454,12 +460,22 @@ public final class Realm implements Closeable {
         }
     }
 
-    private static Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema, boolean autoRefresh) {
+    private static synchronized Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema,
+                                            boolean autoRefresh) {
         int id = absolutePath.hashCode();
         Map<Integer, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
         if (references == null) {
             references = 0;
+        }
+        if (references == 0) {
+            AtomicInteger counter = openRealms.get(id);
+            if (counter == null) {
+                openRealms.put(id, new AtomicInteger(1));
+            } else {
+                counter.incrementAndGet();
+            }
+
         }
         Map<Integer, Realm> realms = realmsCache.get();
         Realm realm = realms.get(absolutePath.hashCode());
@@ -1433,12 +1449,20 @@ public final class Realm implements Closeable {
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */
-    public static boolean deleteRealmFile(Context context, String fileName) {
+    public static synchronized boolean deleteRealmFile(Context context, String fileName) {
         boolean result = true;
         File writableFolder = context.getFilesDir();
-        List<File> filesToDelete = Arrays.asList(
-                new File(writableFolder, fileName),
-                new File(writableFolder, fileName + ".lock"));
+
+        File realmFile = new File(writableFolder, fileName);
+        int realmId = realmFile.getAbsolutePath().hashCode();
+
+        AtomicInteger counter = openRealms.get(realmId);
+        if (counter != null && counter.get() > 0) {
+            throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
+                    "Remember to close() all the instances of the Realm before deleting its file.");
+        }
+
+        List<File> filesToDelete = Arrays.asList(realmFile, new File(writableFolder, fileName + ".lock"));
         for (File fileToDelete : filesToDelete) {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
