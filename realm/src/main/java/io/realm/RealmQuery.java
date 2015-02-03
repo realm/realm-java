@@ -29,8 +29,23 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 
 /**
+ * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults}
+ * using the Builder pattern. The query is executed using either {@link #findAll()} or
+ * {@link #findFirst()}
  *
- * @param <E> The class of objects to be queried
+ * The input to many of the query functions take a field name as String. Note that this is not
+ * type safe. If a model class is refactored care has to be taken to not break any queries.
+ *
+ * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a
+ * Realm will return the objects in the order they where inserted. Use
+ * {@link #findAllSorted(String)} and similar methods if a specific order is required.
+ *
+ * A RealmQuery cannot be passed between different threads.
+ *
+ * @param <E> The class of the objects to be queried.
+ * @see <a href="http://en.wikipedia.org/wiki/Builder_pattern">Builder pattern</a>
+ * @see Realm#where(Class)
+ * @see RealmResults#where()
  */
 public class RealmQuery<E extends RealmObject> {
 

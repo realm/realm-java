@@ -61,33 +61,57 @@ import io.realm.internal.log.RealmLog;
 
 
 /**
- * <p>The Realm class is the storage and transactional manager of your object persistent store. It is in charge of
- * creating instances of your RealmObjects.
- * Objects within a Realm can be queried and read at any time. Creating,
- * modifying, and deleting objects must be done through transactions.</p>
+ * The Realm class is the storage and transactional manager of your object persistent store. It
+ * is in charge of creating instances of your RealmObjects. Objects within a Realm can be queried
+ * and read at any time. Creating, modifying, and deleting objects must be done while inside a
+ * transaction. See {@link #beginTransaction()}
  *
- * <p>The transactions ensure that multiple instances (on multiple threads) can access the objects
- * in a consistent state with full ACID guaranties.</p>
+ * The transactions ensure that multiple instances (on multiple threads) can access the same
+ * objects in a consistent state with full ACID guarantees.
  *
- * <p>If auto-refresh is set the instance of the Realm will be automatically updated when another instance commits a
- * change (create, modify or delete an object). This feature requires the Realm instance to be residing in a
- * thread attached to a Looper (the main thread has a Looper by default)</p>
+ * It is important to remember to call the {@link #close()} method when done with a Realm
+ * instance. Failing to do so can lead to {@link java.lang.OutOfMemoryError} as the native
+ * resources cannot be freed.
  *
- *<p>For normal threads Android provides a utility class that can be used like this:</p>
+ * Realm instances cannot be used across different threads. This means that you have to open an
+ * instance on each thread you want to use Realm. Realm instances are cached automatically per
+ * thread using reference counting, so as long as the reference count doesn't reach zero, calling
+ * {@link #getInstance(android.content.Context)} will just return the cached Realm and should be
+ * considered a lightweight operation.
+ *
+ * For the UI thread this means that opening and closing Realms should occur in either
+ * onCreate/onDestroy or onStart/onStop.
+ *
+ * Realm instances coordinate their state across threads using the {@link android.os.Handler}
+ * mechanism. This also means that Realm instances on threads without a {@link android.os.Looper}
+ * cannot receive updates unless {@link #refresh()} is manually called.
+ *
+ * A standard pattern for working with Realm in Android activities can be seen below:
  *
  * <pre>
- * HandlerThread thread = new HandlerThread("MyThread") {
- *    \@Override
- *    protected void onLooperPrepared() {
- *       Realm realm = Realm.getInstance(getContext());
- *       // This realm will be updated by the event loop
- *       // on every commit performed by other realm instances
- *    }
- * };
- * thread.start();
+ * public class RealmActivity extends Activity {
+ *
+ *   private Realm realm;
+ *
+ *   \@Override
+ *   protected void onCreate(Bundle savedInstanceState) {
+ *     super.onCreate(savedInstanceState);
+ *     setContentView(R.layout.layout_main);
+ *     realm = Realm.getInstance(this);
+ *   }
+ *
+ *   \@Override
+ *   protected void onDestroy() {
+ *     super.onDestroy();
+ *     realm.close();
+ *   }
+ * }
  * </pre>
  *
- * It is important to remember to call the close() method when done with the Realm instance.
+ * Realm supports String and byte fields containing up to 16 MB.
+ *
+ * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
+ * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
 public final class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";
@@ -427,6 +451,7 @@ public final class Realm implements Closeable {
     }
 
     private static Realm create(File writableFolder, String filename, byte[] key) {
+        checkValidRealmPath(writableFolder, filename);
         String absolutePath = new File(writableFolder, filename).getAbsolutePath();
         if (Looper.myLooper() != null) {
             return createAndValidate(absolutePath, key, true, true);
@@ -480,6 +505,15 @@ public final class Realm implements Closeable {
         }
 
         return realm;
+    }
+
+    private static void checkValidRealmPath(File writableFolder, String filename) {
+        if (filename == null || filename.isEmpty()) {
+            throw new IllegalArgumentException("Non-empty filename must be provided");
+        }
+        if (writableFolder == null || !writableFolder.isDirectory()) {
+            throw new IllegalArgumentException(("An existing folder must be provided. Yours was " + (writableFolder != null ? writableFolder.getAbsolutePath() : "null")));
+        }
     }
 
     private static void initializeRealm(Realm realm) {

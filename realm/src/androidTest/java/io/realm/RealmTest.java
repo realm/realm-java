@@ -41,6 +41,7 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmIOException;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -107,6 +108,60 @@ public class RealmTest extends AndroidTestCase {
     private void populateTestRealm() {
         populateTestRealm(TEST_DATA_SIZE);
     }
+
+
+    public void testGetInstanceNullFolderThrows() {
+        try {
+            Realm.getInstance((File) null);
+            fail("Parsing null as folder should throw an error");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceNullNameThrows() {
+        try {
+            Realm.getInstance(getContext(), (String) null);
+            fail("Parsing null as realm name should throw an error");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceCreateSubFoldersThrows() {
+        File folder = new File(getContext().getFilesDir().getAbsolutePath() + "/subfolder1/subfolder2/");
+        try {
+            Realm.getInstance(getContext(), (String) null);
+            fail("Assuming that subfolders are created automatically should fail");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceFolderNoWritePermissionThrows() {
+        File folder = new File("/");
+        try {
+            Realm realm = Realm.getInstance(folder);
+            fail("Pointing to a folder with no write permission should throw an error");
+        } catch (RealmIOException expected) {
+        }
+    }
+
+    public void testGetInstanceFileNoWritePermissionThrows() throws IOException {
+        String REALM_FILE = "readonly.realm";
+        File folder = getContext().getFilesDir();
+        File realmFile = new File(folder, REALM_FILE);
+        if (realmFile.exists()) {
+            realmFile.delete(); // Reset old test data
+        }
+
+        assertTrue(realmFile.createNewFile());
+        assertTrue(realmFile.setWritable(false));
+
+        try {
+            Realm.getInstance(folder, REALM_FILE);
+            fail("Trying to open a read-only file should fail");
+        } catch (RealmIOException expected) {
+        }
+    }
+
 
 
     public void testRealmCache() {
