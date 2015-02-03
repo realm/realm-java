@@ -42,6 +42,8 @@ public class Person extends RealmObject {
 
     // You can define a field as primary key. This will ensure that no two objects with the same key
     // can be added to Realm.
+    // WARNING: Adding a primary key will make inserts slower and increase the size of the Realm,
+    // but searches will be faster.
     @PrimaryKey
     private long id;
 
