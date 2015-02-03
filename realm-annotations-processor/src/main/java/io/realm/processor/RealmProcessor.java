@@ -49,7 +49,12 @@ import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 
 
-@SupportedAnnotationTypes({"io.realm.annotations.RealmClass", "io.realm.annotations.Ignore", "io.realm.annotations.Index", "io.realm.annotations.PrimaryKey"})
+@SupportedAnnotationTypes({
+        "io.realm.annotations.RealmClass",
+        "io.realm.annotations.Ignore",
+        "io.realm.annotations.Index",
+        "io.realm.annotations.PrimaryKey"
+})
 public class RealmProcessor extends AbstractProcessor {
     Set<String> classesToValidate = new HashSet<String>();
     boolean done = false;

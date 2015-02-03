@@ -145,9 +145,15 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null) return false;
-        if (!(other instanceof Table)) return false; // Has to work for all the typed tables as well
+        if (this == other) {
+            return true;
+        }
+        if (other == null) {
+            return false;
+        }
+        if (!(other instanceof Table)) {
+            return false; // Has to work for all the typed tables as well
+        }
 
         Table otherTable = (Table) other;
         return nativeEquals(nativePtr, otherTable.nativePtr);
@@ -306,7 +312,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
      */
     @Override
     public long getColumnIndex(String columnName) {
-        if (columnName == null) throw new IllegalArgumentException("Column name can not be null.");
+        if (columnName == null) {
+            throw new IllegalArgumentException("Column name can not be null.");
+        }
         return nativeGetColumnIndex(nativePtr, columnName);
     }
     
@@ -371,7 +379,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 case INTEGER:
                     if (findFirstLong(primaryKeyColumnIndex, INTEGER_DEFAULT_VALUE) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(INTEGER_DEFAULT_VALUE);
-                    };
+                    }
                     break;
 
                 default:
@@ -384,9 +392,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     public long addEmptyRows(long rows) {
         checkImmutable();
-        if (rows < 1) throw new IllegalArgumentException("'rows' must be > 0.");
+        if (rows < 1) {
+            throw new IllegalArgumentException("'rows' must be > 0.");
+        }
         if (hasPrimaryKey()) {
-           if (rows > 1) throw new RealmException("Multiple empty rows cannot be created if a primary key is defined for the table.");
+           if (rows > 1) {
+               throw new RealmException("Multiple empty rows cannot be created if a primary key is defined for the table.");
+           }
            return addEmptyRow();
         }
         return nativeAddEmptyRow(nativePtr, rows);
@@ -457,7 +469,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 break;
             case INTEGER:
                 long intValue = ((Number) value).longValue();
-                assertIntValueIsLegal(columnIndex, rowIndex, intValue);
+                checkIntValueIsLegal(columnIndex, rowIndex, intValue);
                 nativeInsertLong(nativePtr, columnIndex, rowIndex, intValue);
                 break;
             case FLOAT:
@@ -468,7 +480,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 break;
             case STRING:
                 String stringValue = (String) value;
-                assertStringValueIsLegal(columnIndex, rowIndex, stringValue);
+                checkStringValueIsLegal(columnIndex, rowIndex, stringValue);
                 nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
                 break;
             case DATE:
@@ -635,7 +647,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @return              True if column is a primary key, false otherwise.
      */
     public boolean isPrimaryKey(long columnIndex) {
-        if (columnIndex < 0) return false;
+        if (columnIndex < 0) {
+            return false;
+        }
         return columnIndex == getPrimaryKey();
     }
 
@@ -647,7 +661,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return getPrimaryKey() >= 0;
     }
 
-    void assertStringValueIsLegal(long columnIndex, long rowToUpdate, String value) {
+    void checkStringValueIsLegal(long columnIndex, long rowToUpdate, String value) {
         if (value == null) {
             throw new IllegalArgumentException("Null String is not allowed.");
         }
@@ -659,7 +673,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    void assertIntValueIsLegal(long columnIndex, long rowToUpdate, long value) {
+    void checkIntValueIsLegal(long columnIndex, long rowToUpdate, long value) {
         if (isPrimaryKeyColumn(columnIndex)) {
             long rowIndex = findFirstLong(columnIndex, value);
             if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
@@ -970,7 +984,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void setLong(long columnIndex, long rowIndex, long value) {
         checkImmutable();
-        assertIntValueIsLegal(columnIndex, rowIndex, value);
+        checkIntValueIsLegal(columnIndex, rowIndex, value);
         nativeSetLong(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -1013,7 +1027,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
         checkImmutable();
-        assertStringValueIsLegal(columnIndex, rowIndex, value);
+        checkStringValueIsLegal(columnIndex, rowIndex, value);
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
 
@@ -1182,7 +1196,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     private Table getPrimaryKeyTable() {
         Group group = getTableGroup();
-        if (group == null) return null;
+        if (group == null) {
+            return null;
+        }
 
         Table pkTable = group.getTable(PRIMARY_KEY_TABLE_NAME);
         if (pkTable.getColumnCount() == 0) {
