@@ -359,11 +359,12 @@ public class RealmQueryTest extends AndroidTestCase{
 
         // null is not allowed
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(null, null);
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted(null, null);
             fail();
         } catch (IllegalArgumentException ignored) {}
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_STRING}, null);
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted(new String[]{FIELD_STRING},
+                    null);
             fail();
         } catch (IllegalArgumentException ignored) {}
 
