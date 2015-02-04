@@ -1127,26 +1127,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
-    @Deprecated
-    public RealmResults<E> findAll(String fieldName, boolean sortAscending) {
-        TableView tableView = query.findAll();
-        TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-        Long columnIndex = columns.get(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
-        tableView.sort(columnIndex, order);
-        return new RealmResults<E>(realm, tableView, clazz);
-    }
-
-    /**
-     * Find all objects that fulfill the query conditions and sorted by specific field name.
-     *
-     * @param fieldName the field name to sort by.
-     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
-     * @return A sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
-     */
     public RealmResults<E> findAllSorted(String fieldName, boolean sortAscending) {
         TableView tableView = query.findAll();
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
@@ -1166,61 +1146,8 @@ public class RealmQuery<E extends RealmObject> {
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
-    @Deprecated
-    public RealmResults<E> findAll(String fieldName) {
-        return findAll(fieldName, true);
-    }
-
-    /**
-     * Find all objects that fulfill the query conditions and sorted by specific field name in
-     * ascending order.
-     *
-     * @param fieldName the field name to sort by.
-     * @return A sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
-     */
     public RealmResults<E> findAllSorted(String fieldName) {
-        return findAll(fieldName, true);
-    }
-
-    /**
-     * Find all objects that fulfill the query conditions and sorted by specific field names.
-     *
-     * @param fieldNames an array of field names to sort by.
-     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
-     * @return A sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
-     */
-    @Deprecated
-    public RealmResults<E> findAll(String fieldNames[], boolean sortAscending[]) {
-        if (fieldNames == null) {
-            throw new IllegalArgumentException("fieldNames cannot be 'null'.");
-        } else if (sortAscending == null) {
-            throw new IllegalArgumentException("sortAscending cannot be 'null'.");
-        } else if (fieldNames.length == 0) {
-            throw new IllegalArgumentException("At least one field name must be specified.");
-        } else if (fieldNames.length != sortAscending.length) {
-            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortAscending.length));
-        }
-
-        if (fieldNames.length == 1) {
-            return findAll(fieldNames[0], sortAscending[0]);
-        } else {
-            TableView tableView = query.findAll();
-            List<Long> columnIndices = new ArrayList<Long>();
-            List<TableView.Order> orders = new ArrayList<TableView.Order>();
-            for (int i = 0; i < fieldNames.length; i++) {
-                String fieldName = fieldNames[i];
-                Long columnIndex = columns.get(fieldName);
-                if (columnIndex == null || columnIndex < 0) {
-                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-                }
-                columnIndices.add(columnIndex);
-                orders.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
-            }
-            tableView.sort(columnIndices, orders);
-            return new RealmResults<E>(realm, tableView, clazz);
-        }
+        return findAllSorted(fieldName, true);
     }
 
     /**
@@ -1243,7 +1170,7 @@ public class RealmQuery<E extends RealmObject> {
         }
 
         if (fieldNames.length == 1) {
-            return findAll(fieldNames[0], sortAscending[0]);
+            return findAllSorted(fieldNames[0], sortAscending[0]);
         } else {
             TableView tableView = query.findAll();
             List<Long> columnIndices = new ArrayList<Long>();
@@ -1273,47 +1200,9 @@ public class RealmQuery<E extends RealmObject> {
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    @Deprecated
-    public RealmResults<E> findAll(String fieldName1, boolean sortAscending1,
-                                   String fieldName2, boolean sortAscending2) {
-        return findAll(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
-    }
-
-    /**
-     * Find all objects that fulfill the query conditions and sorted by specific field names in
-     * ascending order.
-     *
-     * @param fieldName1 first field name
-     * @param sortAscending1 sort order for first field
-     * @param fieldName2 second field name
-     * @param sortAscending2 sort order for second field
-     * @return A sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
-     */
     public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
                                    String fieldName2, boolean sortAscending2) {
-        return findAll(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
-    }
-
-    /**
-     * Find all objects that fulfill the query conditions and sorted by specific field names in
-     * ascending order.
-     *
-     * @param fieldName1 first field name
-     * @param sortAscending1 sort order for first field
-     * @param fieldName2 second field name
-     * @param sortAscending2 sort order for second field
-     * @param fieldName3 third field name
-     * @param sortAscending3 sort order for third field
-     * @return A sorted RealmResults containing the objects.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
-     */
-    @Deprecated
-    public RealmResults<E> findAll(String fieldName1, boolean sortAscending1,
-                                   String fieldName2, boolean sortAscending2,
-                                   String fieldName3, boolean sortAscending3) {
-        return findAll(new String[] {fieldName1, fieldName2, fieldName3},
-                new boolean[] {sortAscending1, sortAscending2, sortAscending3});
+        return findAllSorted(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
     }
 
     /**
@@ -1332,7 +1221,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
                                    String fieldName2, boolean sortAscending2,
                                    String fieldName3, boolean sortAscending3) {
-        return findAll(new String[] {fieldName1, fieldName2, fieldName3},
+        return findAllSorted(new String[] {fieldName1, fieldName2, fieldName3},
                 new boolean[] {sortAscending1, sortAscending2, sortAscending3});
     }
 

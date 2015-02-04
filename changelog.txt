@@ -5,6 +5,7 @@
  * Fixed error when instantiating a Realm with the wrong key.
  * Throw an exception if deleteRealmFile() is called when there is an open instance of the Realm.
  * Made migrations and compression methods synchronised.
+ * Removed methods deprecated in 0.76. Now Realm.allObjectsSorted() and RealmQuery.findAllSorted() need to be used instead.
 
 0.78
  * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
