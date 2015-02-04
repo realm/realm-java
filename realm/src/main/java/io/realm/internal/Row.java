@@ -170,7 +170,7 @@ public class Row {
 
     public void setLong(long columnIndex, long value) {
         parent.checkImmutable();
-        getTable().assertIntValueIsLegal(columnIndex, getIndex(), value);
+        getTable().checkIntValueIsLegal(columnIndex, getIndex(), value);
         nativeSetLong(nativePtr, columnIndex, value);
     }
 
@@ -213,7 +213,7 @@ public class Row {
 
     public void setString(long columnIndex, String value) {
         parent.checkImmutable();
-        getTable().assertStringValueIsLegal(columnIndex, getIndex(), value);
+        getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
         nativeSetString(nativePtr, columnIndex, value);
     }
 
