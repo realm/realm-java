@@ -1,6 +1,5 @@
 0.78
- * Reimplementing Realm.allObjectSorted() to make fewer JNI calls to give better performance.
-
+ * Reimplementing Realm.allObjectSorted() for better performance.
 
 0.77
  * Adding Realm.allObjectsSorted() and RealmQuery.findAllSorted() and exteding RealmResults.sort() for multi-field sorting.
