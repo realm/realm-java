@@ -86,6 +86,8 @@ public class NotificationsTest extends AndroidTestCase {
     public void testNotificationsNumber () throws InterruptedException, ExecutionException {
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);
+        final Looper[] looper = new Looper[1];
+        final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -94,6 +96,7 @@ public class NotificationsTest extends AndroidTestCase {
                 Realm realm = null;
                 try {
                     Looper.prepare();
+                    looper[0] = Looper.myLooper();
                     realm = Realm.getInstance(getContext());
                     realm.addChangeListener(new RealmChangeListener() {
                         @Override
@@ -106,6 +109,7 @@ public class NotificationsTest extends AndroidTestCase {
                 } finally {
                     if (realm != null) {
                         realm.close();
+                        isRealmOpen.set(false);
                     }
                 }
                 return true;
@@ -127,7 +131,15 @@ public class NotificationsTest extends AndroidTestCase {
 
         try {
             future.get(1, TimeUnit.SECONDS);
-        } catch (TimeoutException ignore) {}
+        } catch (TimeoutException ignore) {
+        } finally {
+            looper[0].quit();
+        }
+
+        // Wait until the Looper thread is actually closed
+        while (isRealmOpen.get()) {
+            Thread.sleep(5);
+        }
 
         assertEquals(1, counter.get());
         assertTrue(Realm.realmsCache.get().isEmpty());
@@ -137,13 +149,17 @@ public class NotificationsTest extends AndroidTestCase {
         final int TEST_SIZE = 10;
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);
+        final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
         final Map<Integer, Integer> results = new ConcurrentHashMap<Integer, Integer>();
+        final Looper[] looper = new Looper[1];
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+
             @Override
             public Boolean call() throws Exception {
                 Looper.prepare();
+                looper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
                     realm = Realm.getInstance(getContext());
@@ -161,6 +177,7 @@ public class NotificationsTest extends AndroidTestCase {
                 } finally {
                     if (realm != null) {
                         realm.close();
+                        isRealmOpen.set(false);
                     }
                 }
                 return true;
@@ -185,7 +202,15 @@ public class NotificationsTest extends AndroidTestCase {
 
         try {
             future.get(2, TimeUnit.SECONDS);
-        } catch (TimeoutException ignore) {}
+        } catch (TimeoutException ignore) {
+        } finally {
+            looper[0].quit();
+        }
+
+        // Wait until the Looper thread is actually closed
+        while (isRealmOpen.get()) {
+            Thread.sleep(5);
+        }
 
         assertEquals(1, results.size());
 
@@ -219,13 +244,7 @@ public class NotificationsTest extends AndroidTestCase {
 
                 // Find the current Handler for the thread now. All message and references will be
                 // cleared once we call close().
-                Handler threadHandler = null;
-                for (final Handler handler : Realm.handlers.keySet()) {
-                    if (Realm.handlers.get(handler).equals(realm.getPath().hashCode())) {
-                        threadHandler = handler;
-                        break;
-                    }
-                }
+                Handler threadHandler = realm.getHandler();
                 realm.close(); // Close native resources + associated handlers.
 
                 // Looper now reads the update message from the main thread if the Handler was not
@@ -269,5 +288,20 @@ public class NotificationsTest extends AndroidTestCase {
         // 10s. now.
         Boolean result = future.get(10, TimeUnit.SECONDS);
         assertTrue(result);
+    }
+
+    public void testHandlerNotRemovedToSoon() {
+        Realm.deleteRealmFile(getContext(), "private-realm");
+        Realm instance1 = Realm.getInstance(getContext(), "private-realm");
+        Realm instance2 = Realm.getInstance(getContext(), "private-realm");
+        assertEquals(instance1.getId(), instance2.getId());
+        assertNotNull(instance1.getHandler());
+
+        // If multiple instances are open on the same thread, don't remove handler on that thread
+        // until last instance is closed.
+        instance2.close();
+        assertNotNull(instance1.getHandler());
+        instance1.close();
+        assertNull(instance1.getHandler());
     }
 }

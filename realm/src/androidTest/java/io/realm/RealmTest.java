@@ -41,6 +41,7 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmIOException;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -73,7 +74,7 @@ public class RealmTest extends AndroidTestCase {
     protected void setUp() throws Exception {
         Realm.deleteRealmFile(getContext());
         testRealm = Realm.getInstance(getContext());
-   }
+    }
 
     @Override
     protected void tearDown() throws Exception {
@@ -107,6 +108,60 @@ public class RealmTest extends AndroidTestCase {
     private void populateTestRealm() {
         populateTestRealm(TEST_DATA_SIZE);
     }
+
+
+    public void testGetInstanceNullFolderThrows() {
+        try {
+            Realm.getInstance((File) null);
+            fail("Parsing null as folder should throw an error");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceNullNameThrows() {
+        try {
+            Realm.getInstance(getContext(), (String) null);
+            fail("Parsing null as realm name should throw an error");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceCreateSubFoldersThrows() {
+        File folder = new File(getContext().getFilesDir().getAbsolutePath() + "/subfolder1/subfolder2/");
+        try {
+            Realm.getInstance(getContext(), (String) null);
+            fail("Assuming that subfolders are created automatically should fail");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceFolderNoWritePermissionThrows() {
+        File folder = new File("/");
+        try {
+            Realm realm = Realm.getInstance(folder);
+            fail("Pointing to a folder with no write permission should throw an error");
+        } catch (RealmIOException expected) {
+        }
+    }
+
+    public void testGetInstanceFileNoWritePermissionThrows() throws IOException {
+        String REALM_FILE = "readonly.realm";
+        File folder = getContext().getFilesDir();
+        File realmFile = new File(folder, REALM_FILE);
+        if (realmFile.exists()) {
+            realmFile.delete(); // Reset old test data
+        }
+
+        assertTrue(realmFile.createNewFile());
+        assertTrue(realmFile.setWritable(false));
+
+        try {
+            Realm.getInstance(folder, REALM_FILE);
+            fail("Trying to open a read-only file should fail");
+        } catch (RealmIOException expected) {
+        }
+    }
+
 
 
     public void testRealmCache() {
@@ -336,7 +391,8 @@ public class RealmTest extends AndroidTestCase {
         try {
             RealmResults<AllTypes> none = testRealm.allObjectsSorted(AllTypes.class, "invalid", RealmResults.SORT_ORDER_ASCENDING);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testSortTwoFields() {
@@ -344,7 +400,7 @@ public class RealmTest extends AndroidTestCase {
 
         RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
                 new String[]{FIELD_STRING, FIELD_LONG},
-                new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
         assertEquals(3, results1.size());
 
@@ -380,7 +436,8 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new boolean[]{});
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // number of fields and sorting orders don't match
         try {
@@ -388,17 +445,20 @@ public class RealmTest extends AndroidTestCase {
                     new String[]{FIELD_STRING},
                     new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // null is not allowed
         try {
             testRealm.allObjectsSorted(AllTypes.class, null, null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
         try {
             testRealm.allObjectsSorted(AllTypes.class, new String[]{FIELD_STRING}, null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
 
         // non-existing field name
         try {
@@ -406,7 +466,8 @@ public class RealmTest extends AndroidTestCase {
                     new String[]{FIELD_STRING, "dont-exist"},
                     new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testSortSingleField() {
@@ -562,7 +623,6 @@ public class RealmTest extends AndroidTestCase {
     }
 
 
-
     // void clear(Class<?> classSpec)
     public void testClear() {
         // ** clear non existing table should succeed
@@ -708,6 +768,7 @@ public class RealmTest extends AndroidTestCase {
         }
         return chars_array;
     }
+
     // This test is disabled.
     // The test writes and reads random Strings.
     public void disabledTestUnicodeString() {
@@ -915,7 +976,7 @@ public class RealmTest extends AndroidTestCase {
         allTypes.setColumnDouble(1d);
         allTypes.setColumnBoolean(true);
         allTypes.setColumnDate(date);
-        allTypes.setColumnBinary(new byte[] { 1, 2, 3});
+        allTypes.setColumnBinary(new byte[]{1, 2, 3});
         allTypes.setColumnRealmObject(dog);
         allTypes.setColumnRealmList(list);
 
@@ -937,8 +998,10 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testCopyToRealmList() {
-        Dog dog1 = new Dog(); dog1.setName("Dog 1");
-        Dog dog2 = new Dog(); dog2.setName("Dog 2");
+        Dog dog1 = new Dog();
+        dog1.setName("Dog 1");
+        Dog dog2 = new Dog();
+        dog2.setName("Dog 2");
         RealmList<Dog> list = new RealmList<Dog>();
         list.addAll(Arrays.asList(dog1, dog2));
 
@@ -959,5 +1022,141 @@ public class RealmTest extends AndroidTestCase {
         inChannel.transferTo(0, inChannel.size(), outChannel);
         inStream.close();
         outStream.close();
+    }
+
+    public void testWriteEncryptedCopy() throws Exception {
+        populateTestRealm();
+        long before = testRealm.where(AllTypes.class).count();
+        assertEquals(TEST_DATA_SIZE, before);
+
+        final String ENCRYPTED_REALM_FILE_NAME = "encryptedTestRealm.realm";
+        final String RE_ENCRYPTED_REALM_FILE_NAME = "reEncryptedTestRealm.realm";
+        final String DECRYPTED_REALM_FILE_NAME = "decryptedTestRealm.realm";
+
+        // Delete files if present
+        for (String fileName : Arrays.asList(ENCRYPTED_REALM_FILE_NAME, RE_ENCRYPTED_REALM_FILE_NAME, DECRYPTED_REALM_FILE_NAME)) {
+            File fileToDelete = new File(getContext().getFilesDir(), fileName);
+            if (fileToDelete.exists() && !fileToDelete.delete()) {
+                fail();
+            }
+        }
+
+        File destination = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
+        byte[] key = new byte[64];
+        new Random(42).nextBytes(key);
+        try {
+            // Unencrypted to encrypted
+            testRealm.writeEncryptedCopyTo(destination, key);
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail();
+        }
+
+        Realm encryptedRealm = null;
+        try {
+            encryptedRealm = Realm.getInstance(getContext(), ENCRYPTED_REALM_FILE_NAME, key);
+            assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
+
+            destination = new File(getContext().getFilesDir(), RE_ENCRYPTED_REALM_FILE_NAME);
+            new Random(1234321).nextBytes(key);
+            try {
+                // Encrypted to encrypted
+                encryptedRealm.writeEncryptedCopyTo(destination, key);
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail();
+            }
+            Realm reEncryptedRealm = null;
+            try {
+                reEncryptedRealm = Realm.getInstance(getContext(), RE_ENCRYPTED_REALM_FILE_NAME, key);
+                assertEquals(TEST_DATA_SIZE, reEncryptedRealm.where(AllTypes.class).count());
+            } finally {
+                if (reEncryptedRealm != null) {
+                    reEncryptedRealm.close();
+                    boolean isDeleted = new File(reEncryptedRealm.getPath()).delete();
+                    if (!isDeleted) {
+                        fail();
+                    }
+                }
+            }
+
+            destination = new File(getContext().getFilesDir(), DECRYPTED_REALM_FILE_NAME);
+            try {
+                // Encrypted to decrypted
+                encryptedRealm.writeEncryptedCopyTo(destination, null);
+            } catch (Exception e) {
+                fail();
+            }
+            Realm decryptedRealm = null;
+            try {
+                decryptedRealm = Realm.getInstance(getContext(), DECRYPTED_REALM_FILE_NAME);
+                assertEquals(TEST_DATA_SIZE, decryptedRealm.where(AllTypes.class).count());
+            } finally {
+                if (decryptedRealm != null) {
+                    decryptedRealm.close();
+                    boolean isDeleted = new File(decryptedRealm.getPath()).delete();
+                    if (!isDeleted) {
+                        fail();
+                    }
+                }
+            }
+        } finally {
+            if (encryptedRealm != null) {
+                encryptedRealm.close();
+                boolean isDeleted = new File(encryptedRealm.getPath()).delete();
+                if (!isDeleted) {
+                    fail();
+                }
+            }
+        }
+    }
+
+    public void testOpenRealmFileDeletionShouldThrow() {
+        final String OTHER_REALM_NAME = "yetAnotherRealm.realm";
+
+        // This instance is already cached because of the setUp() method so this deletion should throw
+        try {
+            Realm.deleteRealmFile(getContext());
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        // Create a new Realm file
+        Realm yetAnotherRealm = Realm.getInstance(getContext(), OTHER_REALM_NAME);
+
+        // Deleting it should fail
+        try {
+            Realm.deleteRealmFile(getContext(), OTHER_REALM_NAME);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        // But now that we close it deletion should work
+        yetAnotherRealm.close();
+        try {
+            Realm.deleteRealmFile(getContext(), OTHER_REALM_NAME);
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    public void testWrongKeyShouldThrow() {
+        final String WRONG_KEY_REALM = "wrong-key-realm.realm";
+
+        // Wrong key size
+        try {
+            Realm.getInstance(getContext(), WRONG_KEY_REALM, new byte[63]);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        Realm.getInstance(getContext(), WRONG_KEY_REALM);
+
+        try {
+            Realm.getInstance(getContext(), WRONG_KEY_REALM, new byte[64]);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
     }
 }

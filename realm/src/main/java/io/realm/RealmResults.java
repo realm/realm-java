@@ -33,17 +33,23 @@ import io.realm.internal.TableView;
 import static io.realm.internal.android.Util.validateMultiSortParameters;
 
 /**
- * A RealmResults list contains a list of objects of a given type that matches the query.
- * The objects are not copied from the Realm to the RealmResults list, but just references the original objects.
- * This preserves memory and increase speed.
- * It also implies that any modification to any object in a RealmResults is reflected in the objects in the 
- * Realm that was queried.
- * Updates to objects must be done within a transaction and the modified object is persisted to the backing
- * Realm file during the commit of the transaction.
+ * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects
+ * are not copied from the Realm to the RealmResults list, but are just referenced from the
+ * RealmResult instead. This saves memory and increases speed.
+ *
+ * RealmResults are live views, which means that if it is on a {@link android.os.Looper} thread,
+ * it will automatically update its query results after a transaction has been committed. If on a
+ * non-looper thread, {@link Realm#refresh()} must be called to update the results.
+ *
+ * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the
+ * modified objects are persisted to the Realm file during the commit of the transaction.
+ *
+ * A RealmResults object cannot be passed between different threads.
  *
  * @param <E> The class of objects in this list
  * @see RealmQuery#findAll()
  * @see Realm#allObjects(Class)
+ * @see io.realm.Realm#beginTransaction()
  */
 public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
@@ -428,33 +434,36 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Deleting
 
     /**
-     * Removes an object at a given index.
+     * Removes an object at a given index. This also deletes the object from the underlying Realm.
+     *
+     * Using this method while iterating the list can result in a undefined behavior. Use
+     * {@link io.realm.RealmResults.RealmResultsIterator#remove()} instead.
      *
      * @param index      The array index identifying the object to be removed.
      * @return           Always return null.
      */
     @Override
     public E remove(int index) {
-        throw new RealmException("Removing object is not supported.");
-/*        TableOrView table = getTable();
+        TableOrView table = getTable();
         table.remove(index);
-        return null;*/
+        return null; // Returning the object doesn't make sense, since it could no longer access any data.
     }
 
     /**
-     * Removes the last object in the list.
+     * Removes and returns the last object in the list. This also deletes the object from the
+     * underlying Realm.
      *
+     * Using this method while iterating the list can result in a undefined behavior. Use
+     * {@link io.realm.RealmResults.RealmResultsListIterator#removeLast()} instead.
      */
     public void removeLast() {
-        throw new RealmException("Removing object is not supported.");
-        /*
         TableOrView table = getTable();
-        table.removeLast();*/
+        table.removeLast();
     }
 
     /**
-     * Removes all objects from the list.
-     *
+     * Removes all objects from the list. This also deletes the objects from the
+     * underlying Realm.
      */
     public void clear() {
         TableOrView table = getTable();
@@ -519,6 +528,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return get(pos);
         }
 
+        /**
+         * Removes the RealmObject at the current position from both the list and the underlying Realm.
+         *
+         * WARNING: This method is currently disabled and will always throw an
+         * {@link io.realm.exceptions.RealmException}
+         */
         public void remove() {
             throw new RealmException("Removing is not supported.");
     /*        assertRealmIsStable();
@@ -585,6 +600,13 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             throw new RealmException("Replacing elements not supported.");
         }
 
+
+        /**
+         * Removes the RealmObject at the current position from both the list and the underlying Realm.
+         *
+         * WARNING: This method is currently disabled and will always throw an
+         * {@link io.realm.exceptions.RealmException}
+         */
         @Override
         public void remove() { throw new RealmException("Removing elements not supported."); }
     }
