@@ -1,5 +1,23 @@
+0.79
+ * Better error reporting when trying to create or open a Realm file fails.
+ * Improved error reporting in case of missing accessors in model classes.
+ * Re-enabled RealmResults.remove(index) and RealmResults.removeLast().
+ * Fixed error when instantiating a Realm with the wrong key.
+ * Throw an exception if deleteRealmFile() is called when there is an open instance of the Realm.
+ * Made migrations and compression methods synchronised.
+ * Removed methods deprecated in 0.76. Now Realm.allObjectsSorted() and RealmQuery.findAllSorted() need to be used instead.
+ * Reimplementing Realm.allObjectSorted() for better performance.
+
+0.78
+ * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
+ * Added support to write an encrypted copy of a Realm.
+ * Realm no longer incorrectly warns that an instance has been closed too many times.
+ * Realm now shows a log warning if an instance is being finalized without being closed.
+ * Fixed bug causing Realms to be cached during a RealmMigration resulting in invalid realms being returned from Realm.getInstance().
+ * Updated core to 0.88.
+
 0.77
- * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and exteding RealmResults.sort() for multi-field sorting.
+ * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and extending RealmResults.sort() for multi-field sorting.
  * RealmResults.sort() now has better error reporting.
  * Added more logging capabilities at the JNI level.
  * Added proper encryption support. NOTE: The key has been increased from 32 bytes to 64 bytes (see example).

@@ -867,6 +867,8 @@ public class TableView implements TableOrView, Closeable {
         boolean sortOrder[] = new boolean[order.size()];
         for (int i = 0; i < columnIndices.size(); i++) {
             indices[i] = columnIndices.get(i);
+        }
+        for (int i = 0; i < order.size(); i++) {
             sortOrder[i] = order.get(i) == Order.ascending;
         }
         nativeSortMulti(nativePtr, indices, sortOrder);
