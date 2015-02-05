@@ -106,6 +106,22 @@ publishing {
     }
 }
 
+if (version.endsWith('-SNAPSHOT')) { // Only publish if it's a snapshot version
+    publishing {
+        repositories {
+            maven {
+                url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+                credentials {
+                    username project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+                    // this comes from the gradle.properties file in ~/.gradle
+                    password project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+                    //this comes from the gradle.properties file in ~/.gradle
+                }
+            }
+        }
+    }
+}
+
 bintray {
     user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser' // this comes from the gradle.properties file in ~/.gradle
     key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey' //this comes from the gradle.properties file in ~/.gradle
