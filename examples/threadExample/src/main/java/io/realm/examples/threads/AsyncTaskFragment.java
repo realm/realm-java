@@ -96,7 +96,7 @@ public class AsyncTaskFragment extends Fragment {
 
                 // Slow down import so seekBar doesn't move too fast
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(25);
                 } catch (InterruptedException e) {
                     // Ignore. Task is cancelled and will be aborted.
                 }
