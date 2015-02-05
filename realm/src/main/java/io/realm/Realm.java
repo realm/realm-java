@@ -1137,6 +1137,7 @@ public final class Realm implements Closeable {
             throw new IllegalArgumentException("sortAscending must be provided.");
         }
 
+        // Convert field names to column indices
         Table table = this.getTable(clazz);
         long columnIndices[] = new long[fieldNames.length];
         for (int i = 0; i < fieldNames.length; i++) {
@@ -1147,6 +1148,8 @@ public final class Realm implements Closeable {
             }
             columnIndices[i] = columnIndex;
         }
+        
+        // Perform sort
         TableView tableView = table.getSortedView(columnIndices, sortAscending);
         return new RealmResults(this, tableView, clazz);
     }
