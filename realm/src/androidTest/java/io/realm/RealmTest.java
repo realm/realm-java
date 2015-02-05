@@ -396,7 +396,7 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testSortTwoFields() {
-        io.realm.TestHelper.populateForMultiSort(testRealm);
+        io.realm.internal.test.TestHelper.populateForMultiSort(testRealm);
 
         RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
                 new String[]{FIELD_STRING, FIELD_LONG},
