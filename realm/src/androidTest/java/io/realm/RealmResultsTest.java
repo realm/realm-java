@@ -29,6 +29,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.entities.TwoStrings;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
@@ -683,6 +684,60 @@ public class RealmResultsTest extends AndroidTestCase {
             int index = all.indexOf(all.first());
             fail();
         } catch (NoSuchMethodError e) {}
+    }
+
+    private RealmResults<TwoStrings> executeMultipleConditions(String term) {
+        RealmResults<TwoStrings> allResults = testRealm.allObjects(TwoStrings.class);
+        allResults.sort("string1");
+        RealmQuery<TwoStrings> query = allResults.where();
+        // beginGroup() and endGroup() are not required.
+        query.beginGroup();
+        query.beginsWith("string1", term, RealmQuery.CASE_INSENSITIVE);
+        query.or();
+        query.beginsWith("string2", term, RealmQuery.CASE_INSENSITIVE);
+        query.endGroup();
+        RealmResults<TwoStrings> result = query.findAll();
+        return result;
+    }
+
+    public void testQueryMultipleConditions() {
+        testRealm.beginTransaction();
+        TwoStrings object1 = testRealm.createObject(TwoStrings.class);
+        object1.setString1("A");
+        object1.setString2("Test");
+
+        TwoStrings object2 = testRealm.createObject(TwoStrings.class);
+        object2.setString1("Test");
+        object2.setString2("One");
+
+        TwoStrings object3 = testRealm.createObject(TwoStrings.class);
+        object3.setString1("Test");
+        object3.setString2("Email");
+
+        TwoStrings object4 = testRealm.createObject(TwoStrings.class);
+        object4.setString1("Test");
+        object4.setString2("Email2");
+
+        TwoStrings object5 = testRealm.createObject(TwoStrings.class);
+        object5.setString1("Z");
+        object5.setString2("Test");
+        testRealm.commitTransaction();
+
+        RealmResults<TwoStrings> result1 = executeMultipleConditions("Test");
+        assertEquals(5, result1.size());
+        assertEquals("A", result1.get(0).getString1());
+        assertEquals("One", result1.get(1).getString2());
+        assertEquals("Email", result1.get(2).getString2());
+        assertEquals("Email2", result1.get(3).getString2());
+        assertEquals("Z", result1.get(4).getString1());
+
+        RealmResults<TwoStrings> result2 = executeMultipleConditions("Z");
+        assertEquals(1, result2.size());
+        assertEquals("Test", result2.get(0).getString2());
+
+        RealmResults<TwoStrings> result3 = executeMultipleConditions("A");
+        assertEquals(1, result3.size());
+        assertEquals("Test", result3.get(0).getString2());
     }
     // TODO: More extended tests of querying all types must be done.
 }
