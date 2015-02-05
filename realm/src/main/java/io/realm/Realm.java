@@ -50,6 +50,7 @@ import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
+import io.realm.internal.RealmJson;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
@@ -124,6 +125,7 @@ public final class Realm implements Closeable {
     private final String path;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
+    private final RealmJson realmJson = getRealmJson();
     private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>(); // Map between original class and their class name
     private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>(); // Map between generated class names and their implementation
     private final Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
@@ -140,6 +142,8 @@ public final class Realm implements Closeable {
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
+
+    private RealmJson realmJsonClass;
 
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
@@ -207,6 +211,24 @@ public final class Realm implements Closeable {
     private void removeHandler(Handler handler) {
         handler.removeCallbacksAndMessages(null);
         handlers.remove(handler);
+    }
+
+    public RealmJson getRealmJson() {
+        Class<?> clazz = null;
+        try {
+            clazz = Class.forName("io.realm.RealmJsonImpl");
+            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            return (RealmJson) constructor.newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new RealmException("Could not find io.realm.RealmJsonImpl", e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("Could not create an instance of io.realm.RealmJsonImpl", e);
+        } catch (InstantiationException e) {
+            throw new RealmException("Could not create an instance of io.realm.RealmJsonImpl", e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not create an instance of io.realm.RealmJsonImpl", e);
+        }
     }
 
     private class RealmCallback implements Handler.Callback {
@@ -581,16 +603,22 @@ public final class Realm implements Closeable {
      * @throws RealmException if mapping from JSON fails.
      */
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, JSONArray json) {
-        if (clazz == null || json == null) return;
+        if (clazz == null || json == null) {
+            return;
+        }
 
         for (int i = 0; i < json.length(); i++) {
             E obj = createObject(clazz);
             try {
-                obj.populateUsingJsonObject(json.getJSONObject(i));
+                realmJson.populateUsingJsonObject(obj, json.getJSONObject(i));
             } catch (Exception e) {
                 throw new RealmException("Could not map Json", e);
             }
         }
+    }
+
+    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
+        // TODO
     }
 
     /**
@@ -604,7 +632,9 @@ public final class Realm implements Closeable {
      * @throws RealmException if mapping from JSON fails.
      */
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, String json) {
-        if (clazz == null || json == null || json.length() == 0) return;
+        if (clazz == null || json == null || json.length() == 0) {
+            return;
+        }
 
         JSONArray arr;
         try {
@@ -614,6 +644,10 @@ public final class Realm implements Closeable {
         }
 
         createAllFromJson(clazz, arr);
+    }
+
+    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
+        // TODO
     }
 
     /**
@@ -630,19 +664,26 @@ public final class Realm implements Closeable {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        if (clazz == null || inputStream == null) return;
+        if (clazz == null || inputStream == null) {
+            return;
+        }
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
             reader.beginArray();
             while (reader.hasNext()) {
                 E obj = createObject(clazz);
-                obj.populateUsingJsonStream(reader);
+                realmJson.populateUsingJsonStream(obj, reader);
             }
             reader.endArray();
         } finally {
             reader.close();
         }
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        // TODO
     }
 
     /**
@@ -655,13 +696,52 @@ public final class Realm implements Closeable {
      * @return Created object or null if no json data was provided.
      *
      * @throws RealmException if the mapping from JSON fails.
+     * @see {@link #createOrUpdateObjectFromJson(Class, org.json.JSONObject)}
      */
     public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, JSONObject json) {
-        if (clazz == null || json == null) return null;
+        if (clazz == null || json == null) {
+            return null;
+        }
 
         E obj = createObject(clazz);
         try {
-            obj.populateUsingJsonObject(json);
+            realmJson.populateUsingJsonObject(obj, json);
+        } catch (Exception e) {
+            throw new RealmException("Could not map Json", e);
+        }
+
+        return obj;
+    }
+
+    /**
+     * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
+     * found a new one will be saved in the Realm. This must happen inside a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param json  {@link org.json.JSONObject} with object data.
+     * @return Created or updated {@link io.realm.RealmObject}
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createObjectFromJson(Class, org.json.JSONObject)}
+     */
+    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
+        if (clazz == null || json == null) {
+            return null;
+        }
+        checkHasPrimaryKey(clazz);
+
+        E obj;
+        try {
+            obj = clazz.newInstance();
+        } catch (InstantiationException e) {
+            throw new RealmException("Could not create an object of class: " + clazz, e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not create an object of class: " + clazz, e);
+        }
+
+        try {
+            realmJson.populateUsingJsonObject(obj, json);
+            copyToRealmOrUpdate(obj);
         } catch (Exception e) {
             throw new RealmException("Could not map Json", e);
         }
@@ -681,7 +761,9 @@ public final class Realm implements Closeable {
      * @throws RealmException if mapping to json failed.
      */
     public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, String json) {
-        if (clazz == null || json == null || json.length() == 0) return null;
+        if (clazz == null || json == null || json.length() == 0) {
+            return null;
+        }
 
         JSONObject obj;
         try {
@@ -691,6 +773,30 @@ public final class Realm implements Closeable {
         }
 
         return createObjectFromJson(clazz, obj);
+    }
+
+    /**
+     * TODO
+     *
+     * @param clazz
+     * @param json
+     * @param <E>
+     * @return
+     */
+    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
+        if (clazz == null || json == null || json.length() == 0) {
+            return null;
+        }
+        checkHasPrimaryKey(clazz);
+
+        JSONObject obj;
+        try {
+            obj = new JSONObject(json);
+        } catch (Exception e) {
+            throw new RealmException("Could not create Json object from string", e);
+        }
+
+        return createOrUpdateObjectFromJson(clazz, obj);
     }
 
     /**
@@ -712,12 +818,20 @@ public final class Realm implements Closeable {
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
             E obj = createObject(clazz);
-            obj.populateUsingJsonStream(reader);
+            realmJson.populateUsingJsonStream(obj, reader);
             return obj;
         } finally {
             reader.close();
         }
     }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
+        // TODO
+        return null;
+    }
+
+
 
     /**
      * Write a compacted copy of the Realm to the given destination File.
@@ -1061,7 +1175,7 @@ public final class Realm implements Closeable {
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
                                                                boolean sortAscending1, String fieldName2,
                                                                boolean sortAscending2) {
-        return allObjects(clazz, new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
+        return allObjects(clazz, new String[]{fieldName1, fieldName2}, new boolean[]{sortAscending1, sortAscending2});
     }
 
     /**
@@ -1376,6 +1490,12 @@ public final class Realm implements Closeable {
     private <E extends RealmObject> void checkHasPrimaryKey(E object) {
         if (!getTable(object.getClass()).hasPrimaryKey()) {
             throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + simpleClassNames.get(object));
+        }
+    }
+
+    private <E extends RealmObject> void checkHasPrimaryKey(Class<E> clazz) {
+        if (!getTable(clazz).hasPrimaryKey()) {
+            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + clazz.toString());
         }
     }
 

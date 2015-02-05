@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.util.Date;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmException;
@@ -431,4 +432,41 @@ public class RealmJsonTest extends AndroidTestCase {
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
+
+    //##############################################################################################
+
+    public void testCreateOrUpdateJsonObject_noPrimaryKeyThrows() {
+        try {
+            testRealm.beginTransaction();
+            testRealm.createOrUpdateObjectFromJson(AllTypes.class, new JSONObject());
+        } catch (IllegalArgumentException expected) {
+            return;
+        }
+        fail();
+    }
+
+    public void testCreateOrUpdateJsonObject() throws JSONException {
+        testRealm.beginTransaction();
+        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+        obj.setColumnLong(1);
+        obj.setColumnString("Foo");
+        testRealm.copyToRealm(obj);
+
+        JSONObject json = new JSONObject();
+        json.put("columnLong", 1);
+        json.put("columnString", "bar");
+
+        AllTypesPrimaryKey newObj = testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
+        testRealm.commitTransaction();
+
+        assertEquals(1, testRealm.allObjects(AllTypesPrimaryKey.class).size());
+        assertEquals("bar", newObj.getColumnString());
+    }
+
+    // Test createOrUpdateObject_String
+    // Test createOrUpdateObject_JSONStream
+
+    // Test createOrUpdateAll_String
+    // Test createOrUpdateAll_JSONStream
+    // Test createOrUpdateAll_JSONArray
 }
