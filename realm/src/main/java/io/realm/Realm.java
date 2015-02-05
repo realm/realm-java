@@ -59,8 +59,6 @@ import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
 
-import static io.realm.internal.android.Util.*;
-
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It
@@ -1133,7 +1131,11 @@ public final class Realm implements Closeable {
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                boolean sortAscending[]) {
-        validateMultiSortParameters(fieldNames, sortAscending);
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames must be provided.");
+        } else if (sortAscending == null) {
+            throw new IllegalArgumentException("sortAscending must be provided.");
+        }
 
         Table table = this.getTable(clazz);
         long columnIndices[] = new long[fieldNames.length];

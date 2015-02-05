@@ -1231,7 +1231,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
     Table* pTable = TBL(nativeTablePtr);
 
     jsize arr_len = env->GetArrayLength(columnIndices);
-    if (arr_len != env->GetArrayLength(ascending)) {
+    jsize asc_len = env->GetArrayLength(ascending);
+    if (arr_len == 0) {
+        ThrowException(env, IllegalArgument, "You must provide at least one field name.");
+        return 0;
+    }
+    if (asc_len == 0) {
+        ThrowException(env, IllegalArgument, "You must provide at least one sort order.");
+        return 0;
+    }
+    if (arr_len != asc_len) {
         ThrowException(env, IllegalArgument, "Number of column indices and sort orders do not match.");
         return 0;
     }

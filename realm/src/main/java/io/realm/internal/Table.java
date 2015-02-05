@@ -530,17 +530,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @param columnIndex
      * @return
      */
-    public TableView getSortedView(long columnIndex){
+    public TableView getSortedView(long columnIndex) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeGetSortedView(nativePtr, columnIndex, true);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
-
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     protected native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
@@ -548,15 +542,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     public TableView getSortedView(long columnIndices[], boolean orders[]) {
         context.executeDelayedDisposal();
-        long indices[] = new long[columnIndices.length];
-        boolean sortOrders[] = new boolean[orders.length];
         long nativeViewPtr = nativeGetSortedViewMulti(nativePtr, columnIndices, orders);
-        try {
-            return new TableView(this.context, this, nativeViewPtr);
-        } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
-            throw e;
-        }
+        return new TableView(this.context, this, nativeViewPtr);
     }
 
     protected native long nativeGetSortedViewMulti(long nativeTableViewPtr, long[] columnIndices, boolean[] ascending);

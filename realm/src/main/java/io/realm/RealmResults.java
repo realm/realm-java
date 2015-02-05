@@ -30,8 +30,6 @@ import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
-import static io.realm.internal.android.Util.validateMultiSortParameters;
-
 /**
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects
  * are not copied from the Realm to the RealmResults list, but are just referenced from the
@@ -238,9 +236,13 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public void sort(String fieldNames[], boolean sortAscending[]) {
-        validateMultiSortParameters(fieldNames, sortAscending);
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames must be provided.");
+        } else if (sortAscending == null) {
+            throw new IllegalArgumentException("sortAscending must be provided.");
+        }
 
-        if (fieldNames.length == 1) {
+        if (fieldNames.length == 1 && sortAscending.length == 1) {
             sort(fieldNames[0], sortAscending[0]);
         } else {
             realm.checkIfValid();
@@ -252,6 +254,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
                     String fieldName = fieldNames[i];
                     long columnIndex = getColumnIndex(fieldName);
                     columnIndices.add(columnIndex);
+                }
+                for (int i = 0; i < sortAscending.length; i++) {
                     TVOrder.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
                 }
                 ((TableView) table).sort(columnIndices, TVOrder);
