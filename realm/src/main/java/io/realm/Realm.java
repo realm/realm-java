@@ -1131,11 +1131,27 @@ public final class Realm implements Closeable {
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                boolean sortAscending[]) {
-        // FIXME: This is not an optimal implementation. When core's Table::get_sorted_view() supports
-        // FIXME: multi-column sorting, we can rewrite this method to a far better implementation.
-        RealmResults<E> results = this.allObjects(clazz);
-        results.sort(fieldNames, sortAscending);
-        return results;
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames must be provided.");
+        } else if (sortAscending == null) {
+            throw new IllegalArgumentException("sortAscending must be provided.");
+        }
+
+        // Convert field names to column indices
+        Table table = this.getTable(clazz);
+        long columnIndices[] = new long[fieldNames.length];
+        for (int i = 0; i < fieldNames.length; i++) {
+            String fieldName = fieldNames[i];
+            long columnIndex = table.getColumnIndex(fieldName);
+            if (columnIndex == -1) {
+                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+            }
+            columnIndices[i] = columnIndex;
+        }
+        
+        // Perform sort
+        TableView tableView = table.getSortedView(columnIndices, sortAscending);
+        return new RealmResults(this, tableView, clazz);
     }
 
     // Notifications

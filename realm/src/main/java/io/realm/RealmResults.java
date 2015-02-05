@@ -240,15 +240,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             throw new IllegalArgumentException("fieldNames must be provided.");
         } else if (sortAscending == null) {
             throw new IllegalArgumentException("sortAscending must be provided.");
-        } else if (fieldNames.length == 0) {
-            throw new IllegalArgumentException("You must provide at least one field name.");
-        } else if (sortAscending.length == 0) {
-            throw new IllegalArgumentException("You must provide at least one sort order.");
-        } else if (fieldNames.length != sortAscending.length) {
-            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) do not match.", fieldNames.length, sortAscending.length));
         }
 
-        if (fieldNames.length == 1) {
+        if (fieldNames.length == 1 && sortAscending.length == 1) {
             sort(fieldNames[0], sortAscending[0]);
         } else {
             realm.checkIfValid();
@@ -260,12 +254,15 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
                     String fieldName = fieldNames[i];
                     long columnIndex = getColumnIndex(fieldName);
                     columnIndices.add(columnIndex);
+                }
+                for (int i = 0; i < sortAscending.length; i++) {
                     TVOrder.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
                 }
                 ((TableView) table).sort(columnIndices, TVOrder);
             }
         }
     }
+
 
     /**
      * Sort existing {link io.realm.RealmResults} using two fields.

@@ -195,6 +195,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView
 
 /*
  * Class:     io_realm_internal_Table
+ * Method:    nativeGetSortedViewMulti
+ * Signature: (J[J[Z)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti
+  (JNIEnv *, jobject, jlong, jlongArray, jbooleanArray);
+
+/*
+ * Class:     io_realm_internal_Table
  * Method:    nativeInsertFloat
  * Signature: (JJJF)V
  */
