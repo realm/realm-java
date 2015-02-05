@@ -112,25 +112,25 @@ if (version.endsWith('-SNAPSHOT')) { // Only publish if it's a snapshot version
             maven {
                 url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
                 credentials {
+                    // user and password come from the gradle.properties file in ~/.gradle
                     username project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-                    // this comes from the gradle.properties file in ~/.gradle
                     password project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-                    //this comes from the gradle.properties file in ~/.gradle
                 }
             }
         }
     }
-}
-
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser' // this comes from the gradle.properties file in ~/.gradle
-    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey' //this comes from the gradle.properties file in ~/.gradle
-    publications = ['mavenAndroid']
-    publish = true
-    pkg {
-        repo = 'maven'
-        name = 'realm-android'
-        licenses = ['Apache-2.0']
+} else {
+    bintray {
+        // user and key come from the gradle.properties file in ~/.gradle
+        user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+        key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+        publications = ['mavenAndroid']
+        publish = true
+        pkg {
+            repo = 'maven'
+            name = 'realm-android'
+            licenses = ['Apache-2.0']
+        }
     }
 }
 
