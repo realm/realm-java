@@ -1046,7 +1046,8 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Get all objects of a specific Class
+     * Get all objects of a specific Class. If no objects exist, the returned RealmResults will not
+     * be null. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the Class to get objects of
      * @return A RealmResult list containing the objects
@@ -1058,7 +1059,8 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Get all objects of a specific Class sorted by a field.
+     * Get all objects of a specific Class sorted by a field.  If no objects exist, the returned
+     * RealmResults will not be null. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the Class to get objects of.
      * @param fieldName the field name to sort by.
@@ -1080,8 +1082,11 @@ public final class Realm implements Closeable {
         return new RealmResults<E>(this, tableView, clazz);
     }
 
+
     /**
-     * Get all objects of a specific class sorted by two field names.
+     * Get all objects of a specific class sorted by two specific field names.  If no objects exist,
+     * the returned RealmResults will not be null. The RealmResults.size() to check the number of
+     * objects instead.
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
@@ -1099,7 +1104,9 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Get all objects of a specific class sorted by two specific field names.
+     * Get all objects of a specific class sorted by two specific field names.  If no objects exist,
+     * the returned RealmResults will not be null. The RealmResults.size() to check the number of
+     * objects instead.
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
@@ -1120,7 +1127,9 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Get all objects of a specific Class sorted by multiple fields.
+     * Get all objects of a specific Class sorted by multiple fields.  If no objects exist, the
+     * returned RealmResults will not be null. The RealmResults.size() to check the number of
+     * objects instead.
      *
      * @param clazz the Class to get objects of.
      * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
