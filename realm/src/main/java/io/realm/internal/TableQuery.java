@@ -64,7 +64,7 @@ public class TableQuery implements Closeable {
     /**
      * Checks in core if query syntax is valid. Throws exception, if not.
      */
-    private void validateQuery(){
+    private void validateQuery() {
         if (! queryValidated) { // If not yet validated, check if syntax is valid
             String invalidMessage = nativeValidateQuery(nativePtr);
             if (invalidMessage.equals(""))
@@ -77,7 +77,7 @@ public class TableQuery implements Closeable {
     protected native String nativeValidateQuery(long nativeQueryPtr);
 
     // Query TableView
-    public TableQuery tableview(TableView tv){
+    public TableQuery tableview(TableView tv) {
         nativeTableview(nativePtr, tv.nativePtr);
         return this;
     }
@@ -85,34 +85,34 @@ public class TableQuery implements Closeable {
 
     // Grouping
 
-    public TableQuery group(){
+    public TableQuery group() {
         nativeGroup(nativePtr);
         return this;
     }
     protected native void nativeGroup(long nativeQueryPtr);
 
-    public TableQuery endGroup(){
+    public TableQuery endGroup() {
         nativeEndGroup(nativePtr);
         queryValidated = false;
         return this;
     }
     protected native void nativeEndGroup(long nativeQueryPtr);
 
-    public TableQuery subtable(long columnIndex){
+    public TableQuery subtable(long columnIndex) {
         nativeSubtable(nativePtr, columnIndex);
         queryValidated = false;
         return this;
     }
     protected native void nativeSubtable(long nativeQueryPtr, long columnIndex);
 
-    public TableQuery endSubtable(){
+    public TableQuery endSubtable() {
         nativeParent(nativePtr);
         queryValidated = false;
         return this;
     }
     protected native void nativeParent(long nativeQueryPtr);
 
-    public TableQuery or(){
+    public TableQuery or() {
         nativeOr(nativePtr);
         queryValidated = false;
         return this;
