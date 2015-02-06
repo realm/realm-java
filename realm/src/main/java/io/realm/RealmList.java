@@ -25,11 +25,20 @@ import io.realm.internal.LinkView;
 import io.realm.internal.TableQuery;
 
 /**
- * RealmList is used in one-to-many relationships in {@link io.realm.RealmObject}.
+ * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
  * RealmList has two modes: A managed and non-managed mode. In managed mode all objects are persisted
- * inside a Realm, in non-managed mode it functions as an ArrayList.
+ * inside a Realm, in non-managed mode it works as a normal ArrayList.
  *
- * @param <E> The class of objects in this list
+ * Only Realm can create managed RealmLists. Managed RealmLists will automatically update their
+ * content whenever the underlying Realm is updated, and can only be accessed using the getter
+ * from a {@link io.realm.RealmObject}.
+ *
+ * Non-managed RealmLists can be created by the user and can contain both managed and non-managed
+ * RealmObjects. This is useful eg. when dealing with JSON deserializers like GSON or other
+ * frameworks that inject values into a class. Non-managed elements in this list can be added to a
+ * Realm using the {@link Realm#copyToRealm(Iterable)} method.
+ *
+ * @param <E> The class of objects in list.
  */
 
 public class RealmList<E extends RealmObject> extends AbstractList<E> {

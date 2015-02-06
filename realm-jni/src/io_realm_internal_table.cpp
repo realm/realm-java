@@ -1219,9 +1219,65 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedView(
                 return reinterpret_cast<jlong>(pTableView);
             } CATCH_STD()
         default:
-            ThrowException(env, IllegalArgument, "Sort is currently only supported on Integer, Boolean and Date columns.");
+            ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, boolean, double, float, String, and Date columns.");
             return 0;
     }
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
+   JNIEnv *env, jobject, jlong nativeTablePtr, jlongArray columnIndices, jbooleanArray ascending)
+{
+    Table* pTable = TBL(nativeTablePtr);
+
+    jsize arr_len = env->GetArrayLength(columnIndices);
+    jsize asc_len = env->GetArrayLength(ascending);
+    if (arr_len == 0) {
+        ThrowException(env, IllegalArgument, "You must provide at least one field name.");
+        return 0;
+    }
+    if (asc_len == 0) {
+        ThrowException(env, IllegalArgument, "You must provide at least one sort order.");
+        return 0;
+    }
+    if (arr_len != asc_len) {
+        ThrowException(env, IllegalArgument, "Number of column indices and sort orders do not match.");
+        return 0;
+    }
+
+    jlong *long_arr = env->GetLongArrayElements(columnIndices, NULL);
+    jboolean *bool_arr = env->GetBooleanArrayElements(ascending, NULL);
+
+    std::vector<size_t> indices(S(arr_len));
+    std::vector<bool> ascendings(S(arr_len));
+
+    for (int i = 0; i < arr_len; ++i) {
+        if (!TBL_AND_COL_INDEX_VALID(env, pTable, S(long_arr[i]) ))
+            return 0;
+        int colType = pTable->get_column_type( S(long_arr[i]) );
+        switch (colType) {
+            case type_Int:
+            case type_Bool:
+            case type_DateTime:
+            case type_String:
+            case type_Double:
+            case type_Float:
+                indices[i] = S(long_arr[i]);
+                ascendings[i] = S(bool_arr[i]);
+                break;
+            default:
+                ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, boolean, double, float, String, and Date columns.");
+                return 0;
+        }
+    }
+
+    env->ReleaseLongArrayElements(columnIndices, long_arr, 0);
+    env->ReleaseBooleanArrayElements(ascending, bool_arr, 0);
+
+    try {
+        TableView* pTableView = new TableView(pTable->get_sorted_view(indices, ascendings));
+        return reinterpret_cast<jlong>(pTableView);
+    } CATCH_STD()
     return 0;
 }
 
