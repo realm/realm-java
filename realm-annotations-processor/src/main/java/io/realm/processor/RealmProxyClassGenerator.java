@@ -774,6 +774,7 @@ public class RealmProxyClassGenerator {
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
                         getters.get(fieldName),
+                        setters.get(fieldName),
                         fieldName,
                         ((DeclaredType) field.asType()).getTypeArguments().get(0).toString(),
                         Utils.getProxyClassSimpleName(field),
@@ -826,6 +827,7 @@ public class RealmProxyClassGenerator {
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 RealmJsonTypeHelper.emitFillRealmListFromStream(
                         getters.get(fieldName),
+                        setters.get(fieldName),
                         ((DeclaredType) field.asType()).getTypeArguments().get(0).toString(),
                         Utils.getProxyClassSimpleName(field),
                         writer);

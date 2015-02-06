@@ -16,6 +16,11 @@
 
 package io.realm;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 import io.realm.entities.AllTypes;
 
 public class TestHelper {
@@ -34,5 +39,30 @@ public class TestHelper {
         object3.setColumnLong(4);
         object3.setColumnString("Adam");
         testRealm.commitTransaction();
+    }
+
+    public static String streamToString(InputStream in) throws IOException {
+        BufferedReader br = null;
+        StringBuilder sb = new StringBuilder();
+        String line;
+        try {
+            br = new BufferedReader(new InputStreamReader(in));
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+        } finally {
+            if (br != null) {
+                br.close();
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public static class StubInputStream extends InputStream {
+        @Override
+        public int read() throws IOException {
+            return 0; // Stub implementation
+        }
     }
 }

@@ -27,6 +27,7 @@ import android.util.JsonReader;
 import android.util.Log;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Closeable;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -617,8 +619,26 @@ public final class Realm implements Closeable {
         }
     }
 
+    /**
+     * TODO
+     * @param clazz
+     * @param json
+     */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
-        // TODO
+        if (clazz == null || json == null) {
+            return;
+        }
+        checkHasPrimaryKey(clazz);
+
+        for (int i = 0; i < json.length(); i++) {
+            E obj = createStandaloneRealmObjectInstance(clazz);
+            try {
+                realmJson.populateUsingJsonObject(obj, json.getJSONObject(i));
+                copyToRealmOrUpdate(obj);
+            } catch (Exception e) {
+                throw new RealmException("Could not map Json", e);
+            }
+        }
     }
 
     /**
@@ -646,8 +666,26 @@ public final class Realm implements Closeable {
         createAllFromJson(clazz, arr);
     }
 
+    /**
+     * TODO
+     *
+     * @param clazz
+     * @param json
+     */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
-        // TODO
+        if (clazz == null || json == null || json.length() == 0) {
+            return;
+        }
+        checkHasPrimaryKey(clazz);
+
+        JSONArray arr;
+        try {
+            arr = new JSONArray(json);
+        } catch (JSONException e) {
+            throw new RealmException("Could not create JSON array from string", e);
+        }
+
+        createOrUpdateAllFromJson(clazz, arr);
     }
 
     /**
@@ -681,9 +719,31 @@ public final class Realm implements Closeable {
         }
     }
 
+    /**
+     * TODO
+     * @param clazz
+     * @param inputStream
+     * @throws IOException
+     */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        // TODO
+        if (clazz == null || inputStream == null) {
+            return;
+        }
+        checkHasPrimaryKey(clazz);
+
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+        try {
+            reader.beginArray();
+            while (reader.hasNext()) {
+                E obj = createStandaloneRealmObjectInstance(clazz);
+                realmJson.populateUsingJsonStream(obj, reader);
+                copyToRealmOrUpdate(obj);
+            }
+            reader.endArray();
+        } finally {
+            reader.close();
+        }
     }
 
     /**
@@ -813,7 +873,9 @@ public final class Realm implements Closeable {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        if (inputStream == null || clazz == null) return null;
+        if (clazz == null || inputStream == null) {
+            return null;
+        }
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
@@ -825,13 +887,42 @@ public final class Realm implements Closeable {
         }
     }
 
+    /**
+     * TODO
+     * @param clazz
+     * @param inputStream
+     * @param <E>
+     * @return
+     * @throws IOException
+     */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        // TODO
-        return null;
+        if (clazz == null || inputStream == null) {
+            return null;
+        }
+        checkHasPrimaryKey(clazz);
+
+        E obj = createStandaloneRealmObjectInstance(clazz);
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+        try {
+            realmJson.populateUsingJsonStream(obj, reader);
+            copyToRealmOrUpdate(obj);
+        } catch (RuntimeException e) {
+            throw new RealmException("Could not create Json object from string", e);
+        }
+
+        return obj;
     }
 
-
+    private <E extends RealmObject> E createStandaloneRealmObjectInstance(Class<E> clazz) {
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException e) {
+            throw new RealmException("Could not create an object of class: " + clazz, e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not create an object of class: " + clazz, e);
+        }
+    }
 
     /**
      * Write a compacted copy of the Realm to the given destination File.

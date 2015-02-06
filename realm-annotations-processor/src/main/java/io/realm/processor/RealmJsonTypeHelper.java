@@ -107,9 +107,14 @@ public class RealmJsonTypeHelper {
             .endControlFlow();
     }
 
-    public static void emitFillRealmListWithJsonValue(String getter, String fieldName, String fieldTypeCanonicalName, String proxyClass, JavaWriter writer) throws IOException {
+    public static void emitFillRealmListWithJsonValue(String getter, String setter, String fieldName,
+                                                      String fieldTypeCanonicalName, String proxyClass,
+                                                      JavaWriter writer) throws IOException {
         writer
             .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                .beginControlFlow("if (standalone)")
+                    .emitStatement("obj.%s(new RealmList())", setter)
+                .endControlFlow()
                 .emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
                 .beginControlFlow("for (int i = 0; i < array.length(); i++)")
                     .emitStatement("%s item = standalone ? new %s() : obj.realm.createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName, fieldTypeCanonicalName)
@@ -133,9 +138,12 @@ public class RealmJsonTypeHelper {
             .emitStatement("obj.%s(%s)", setter, fieldName);
     }
 
-    public static void emitFillRealmListFromStream(String getter, String fieldTypeCanonicalName, String proxyClass, JavaWriter writer) throws IOException {
+    public static void emitFillRealmListFromStream(String getter, String setter, String fieldTypeCanonicalName, String proxyClass, JavaWriter writer) throws IOException {
         writer
             .emitStatement("reader.beginArray()")
+            .beginControlFlow("if (standalone)")
+                .emitStatement("obj.%s(new RealmList())", setter)
+            .endControlFlow()
             .beginControlFlow("while (reader.hasNext())")
                 .emitStatement("%s item = standalone ? new %s() : obj.realm.createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName, fieldTypeCanonicalName)
                 .emitStatement("%s.populateUsingJsonStream(item, reader)", proxyClass)
