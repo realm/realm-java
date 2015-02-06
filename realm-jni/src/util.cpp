@@ -245,6 +245,7 @@ string string_to_hex(const string& message, StringData& str, const char* in_begi
     const char *s = str.data();
     ret << message << " ";
     ret << "error_code = " << error_code << "; ";
+    ret << "retcode = " << retcode << "; ";
     ret << "StringData.size = " << str.size() << "; ";
     ret << "StringData.data = " << str.data() << "; ";
     ret << "StringData as hex = ";

@@ -129,10 +129,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollback
 
 /*
  * Class:     io_realm_internal_SharedGroup
- * Method:    createNative
+ * Method:    nativeCreate
  * Signature: (Ljava/lang/String;IZZ[B)J
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNative
+JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate
   (JNIEnv *, jobject, jstring, jint, jboolean, jboolean, jbyteArray);
 
 /*
