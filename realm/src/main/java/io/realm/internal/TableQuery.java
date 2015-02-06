@@ -119,6 +119,13 @@ public class TableQuery implements Closeable {
     }
     protected native void nativeOr(long nativeQueryPtr);
 
+    public TableQuery not() {
+        nativeNot(nativePtr);
+        queryValidated = false;
+        return this;
+    }
+    protected native void nativeNot(long nativeQueryPtr);
+
     // Query for integer values.
 
     public TableQuery equalTo(long columnIndexes[], long value) {

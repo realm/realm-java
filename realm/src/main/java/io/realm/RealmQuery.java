@@ -932,6 +932,15 @@ public class RealmQuery<E extends RealmObject> {
         return this;
     }
 
+    /**
+     * Negate condition.
+     * @return The query object
+     * @throws java.lang.RuntimeException Any error
+     */
+    public RealmQuery<E> not() {
+        this.query.not();
+        return this;
+    }
 
     // Aggregates
 
