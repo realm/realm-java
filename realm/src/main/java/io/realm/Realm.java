@@ -1166,8 +1166,8 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Copies a RealmObject to the Realm instance and returns the copy. It is important to notice
-     * that any further changes to the original RealmObject will not be reflected in the Realm copy.
+     * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
+     * will not be reflected in the Realm copy.
      *
      * @param object {@link io.realm.RealmObject} to copy to the Realm.
      * @return A managed RealmObject with its properties backed by the Realm.
@@ -1184,14 +1184,13 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Copies a RealmObject to Realm or update all the fields of an existing object if it has a
-     * matching primary key value. Any further changes to the original RealmObject will not be
-     * reflected in the Realm copy.
+     * Updates an existing RealmObject that is identified by the same {@link io.realm.annotations.PrimaryKey} or create
+     * a new copy if no existing object could be found.
      *
      * @param object    {@link io.realm.RealmObject} to copy or update.
      * @return The new or updated RealmObject with all its properties backed by the Realm.
      *
-     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null}.
+     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
      * @see {@link #copyToRealm(RealmObject)}
      */
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
@@ -1205,9 +1204,8 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Copies a collection of RealmObjects to the Realm instance and returns their copy. It is
-     * important to notice that any further changes to the original RealmObjects will not be
-     * reflected in the Realm copies.
+     * Copies a collection of RealmObjects to the Realm instance and returns their copy. Any further changes
+     * to the original RealmObjects will not be reflected in the Realm copies.
      *
      * @param objects RealmObjects to copy to the Realm.
      * @return A list of the the converted RealmObjects that all has their properties managed by the Realm.
@@ -1226,6 +1224,26 @@ public final class Realm implements Closeable {
         return realmObjects;
     }
 
+    /**
+     * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or create a
+     * new copy if no existing object could be found.
+     *
+     * @param objects   List of objects to update or copy into Realm.
+     * @return A list of all the new or updated RealmObjects.
+     *
+     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
+     * @see {@link #copyToRealm(Iterable)}
+     */
+    public <E extends RealmObject> List<E> copyToRealmOrUpdate(Iterable<E> objects) {
+        if (objects == null) new ArrayList<E>();
+
+        ArrayList<E> realmObjects = new ArrayList<E>();
+        for (E object : objects) {
+            realmObjects.add(copyToRealmOrUpdate(object));
+        }
+
+        return realmObjects;
+    }
 
     private static String getProxyClassName(String simpleClassName) {
         return "io.realm." + simpleClassName + "RealmProxy";

@@ -1172,6 +1172,31 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(4, testRealm.allObjects(Dog.class).size());
     }
 
+    public void testCopyOrUpdateIterable() {
+        testRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                PrimaryKeyAsLong obj = new PrimaryKeyAsLong();
+                obj.setId(1);
+                obj.setName("Foo");
+                realm.copyToRealm(obj);
+
+                PrimaryKeyAsLong obj2 = new PrimaryKeyAsLong();
+                obj2.setId(2);
+                obj2.setName("Bar");
+
+                PrimaryKeyAsLong obj3 = new PrimaryKeyAsLong();
+                obj2.setId(2);
+                obj2.setName("Baz");
+
+                realm.copyToRealmOrUpdate(Arrays.asList(obj2, obj3));
+            }
+        });
+
+        assertEquals(1, testRealm.allObjects(PrimaryKeyAsLong.class).size());
+        assertEquals("Baz", testRealm.allObjects(PrimaryKeyAsLong.class).first().getName());
+    }
+
     private void fileCopy(File src, File dst) throws IOException {
         FileInputStream inStream = new FileInputStream(src);
         FileOutputStream outStream = new FileOutputStream(dst);
