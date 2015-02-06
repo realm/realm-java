@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 import io.realm.internal.ColumnType;
-import io.realm.internal.TableOrView;
+import io.realm.internal.LinkView;
+import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 
@@ -50,7 +51,8 @@ import io.realm.internal.TableView;
 public class RealmQuery<E extends RealmObject> {
 
     private Realm realm;
-    private TableOrView table;
+    private Table table;
+    private LinkView view;
     private TableQuery query;
     private Map<String, Long> columns = new HashMap<String, Long>();
     private Class<E> clazz;
@@ -90,18 +92,11 @@ public class RealmQuery<E extends RealmObject> {
         this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
 
-    public RealmQuery(Realm realm, TableOrView table, Class<E> clazz) {
+    RealmQuery(Realm realm, LinkView view, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.table = table;
-        this.query = table.where();
-        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
-    }
-
-    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
-        this.realm = realm;
-        this.clazz = clazz;
-        this.query = query;
+        this.query = view.where();
+        this.view = view;
         this.table = realm.getTable(clazz);
         this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
@@ -137,7 +132,7 @@ public class RealmQuery<E extends RealmObject> {
 
     // TODO: consider another caching strategy so linked classes are included in the cache.
     private long[] getColumnIndices(String fieldName, ColumnType fieldType) {
-        TableOrView table = this.table;
+        Table table = this.table;
         if (containsDot(fieldName)) {
             String[] names = splitString(fieldName); //fieldName.split("\\.");
             long[] columnIndices = new long[names.length];
@@ -148,7 +143,7 @@ public class RealmQuery<E extends RealmObject> {
                 }
                 ColumnType type = table.getColumnType(index);
                 if (type == ColumnType.LINK || type == ColumnType.LINK_LIST) {
-                    table = table.getTable().getLinkTarget(index);
+                    table = table.getLinkTarget(index);
                     columnIndices[i] = index;
                 } else {
                     throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
@@ -1256,11 +1251,7 @@ public class RealmQuery<E extends RealmObject> {
     public E findFirst() {
         long rowIndex = this.query.find();
         if (rowIndex >= 0) {
-            if (table instanceof TableView) {
-                return realm.get(clazz, ((TableView)table).getSourceRowIndex(rowIndex));
-            } else {
-                return realm.get(clazz, rowIndex);
-            }
+            return realm.get(clazz, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
         } else {
             return null;
         }
