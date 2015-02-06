@@ -22,6 +22,7 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
+#include "io_realm_internal_Version.h"
 
 using namespace std;
 using namespace tightdb;
@@ -132,8 +133,13 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = "Illegal State: " + classStr;
             break;
     }
-    if (jExceptionClass != NULL)
-        env->ThrowNew(jExceptionClass, message.c_str());
+    if (jExceptionClass != NULL) {
+        // Get binding version
+        string version = "Realm version " + num_to_string<int>(io_realm_internal_Version_REALM_JAVA_MAJOR) + "."
+            + num_to_string<int>(io_realm_internal_Version_REALM_JAVA_MINOR) + "."
+            + num_to_string<int>(io_realm_internal_Version_REALM_JAVA_PATCH);
+        env->ThrowNew(jExceptionClass, (message + " (" + version + ")").c_str());
+    }
     else {
         TR_ERR("ERROR: Couldn't throw exception.")
     }
