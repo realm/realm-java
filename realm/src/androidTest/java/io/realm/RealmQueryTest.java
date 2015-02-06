@@ -365,4 +365,34 @@ public class RealmQueryTest extends AndroidTestCase{
         RealmResults<AllTypes> subQueryResult = result.where().greaterThan("columnLong", 3).findAll();
         assertEquals(1, subQueryResult.size());
     }
+
+    public void testFindFirst() {
+        testRealm.beginTransaction();
+        Owner owner1 = testRealm.createObject(Owner.class);
+        owner1.setName("Owner 1");
+        Dog dog1 = testRealm.createObject(Dog.class);
+        dog1.setName("Dog 1");
+        dog1.setWeight(1);
+        Dog dog2 = testRealm.createObject(Dog.class);
+        dog2.setName("Dog 2");
+        dog2.setWeight(2);
+        owner1.getDogs().add(dog1);
+        owner1.getDogs().add(dog2);
+
+        Owner owner2 = testRealm.createObject(Owner.class);
+        owner2.setName("Owner 2");
+        Dog dog3 = testRealm.createObject(Dog.class);
+        dog3.setName("Dog 3");
+        dog3.setWeight(1);
+        Dog dog4 = testRealm.createObject(Dog.class);
+        dog4.setName("Dog 4");
+        dog4.setWeight(2);
+        owner2.getDogs().add(dog3);
+        owner2.getDogs().add(dog4);
+        testRealm.commitTransaction();
+
+        RealmList<Dog> dogs = testRealm.where(Owner.class).equalTo("name", "Owner 2").findFirst().getDogs();
+        Dog dog = dogs.where().equalTo("name", "Dog 4").findFirst();
+        assertEquals(dog4, dog);
+    }
 }
