@@ -150,8 +150,13 @@ public class RealmQueryTest extends AndroidTestCase{
 
         // excepted result: 0, 1, 2, 5
         long expected[] = {0, 1, 2, 5};
-        RealmResults<AllTypes> list4 = testRealm.where(AllTypes.class).equalTo(FIELD_LONG, 5).
-                or().not().beginGroup().greaterThan(FIELD_LONG, 2).endGroup().findAll();
+        RealmResults<AllTypes> list4 = testRealm.where(AllTypes.class)
+                .equalTo(FIELD_LONG, 5)
+                .or()
+                .not().beginGroup()
+                    .greaterThan(FIELD_LONG, 2)
+                 .endGroup()
+                .findAll();
         assertEquals(4, list4.size());
         for (int i = 0; i < list4.size(); i++) {
             assertEquals(expected[i], list4.get(i).getColumnLong());
@@ -162,6 +167,7 @@ public class RealmQueryTest extends AndroidTestCase{
         // a not() alone must fail
         try {
             RealmResults<AllTypes> list = testRealm.where(AllTypes.class).not().findAll();
+            fail();
         } catch (RuntimeException ignored) {
         }
     }

@@ -905,7 +905,6 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Begin grouping of conditions ("left parenthesis")
      * @return The query object
-     * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginGroup() {
         this.query.group();
@@ -915,7 +914,6 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * End grouping of conditions ("right parenthesis")
      * @return The query object
-     * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endGroup() {
         this.query.endGroup();
@@ -925,7 +923,6 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Logical-or two conditions
      * @return The query object
-     * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> or() {
         this.query.or();
@@ -935,7 +932,6 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Negate condition.
      * @return The query object
-     * @throws java.lang.RuntimeException Any error
      */
     public RealmQuery<E> not() {
         this.query.not();
