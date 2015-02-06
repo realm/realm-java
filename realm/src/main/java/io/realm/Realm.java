@@ -620,9 +620,15 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * TODO
-     * @param clazz
-     * @param json
+     * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
+     * object could not be found in the Realm, a new object will be created. This must happen inside a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param json  Array with object data.
+     *
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createAllFromJson(Class, org.json.JSONArray)}.
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
         if (clazz == null || json == null) {
@@ -667,10 +673,15 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * TODO
+     * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
+     * object could not be found in the Realm, a new object will be created. This must happen inside a transaction.
      *
-     * @param clazz
-     * @param json
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param json  String with an array of JSON objects.
+     *
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createAllFromJson(Class, String)}
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
@@ -720,19 +731,24 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * TODO
-     * @param clazz
-     * @param inputStream
-     * @throws IOException
+     * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
+     * object could not be found in the Realm, a new object will be created. This must happen inside a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param in    InputStream with a list of object data in JSON format.
+     *
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createOrUpdateAllFromJson(Class, java.io.InputStream)}
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        if (clazz == null || inputStream == null) {
+    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) throws IOException {
+        if (clazz == null || in == null) {
             return;
         }
         checkHasPrimaryKey(clazz);
 
-        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
         try {
             reader.beginArray();
             while (reader.hasNext()) {
@@ -775,11 +791,11 @@ public final class Realm implements Closeable {
 
     /**
      * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
-     * found a new one will be saved in the Realm. This must happen inside a transaction.
+     * found a new object will be saved in the Realm. This must happen inside a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json  {@link org.json.JSONObject} with object data.
-     * @return Created or updated {@link io.realm.RealmObject}
+     * @return Created or updated {@link io.realm.RealmObject}.
      * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
      * @see {@link #createObjectFromJson(Class, org.json.JSONObject)}
@@ -790,19 +806,12 @@ public final class Realm implements Closeable {
         }
         checkHasPrimaryKey(clazz);
 
-        E obj;
-        try {
-            obj = clazz.newInstance();
-        } catch (InstantiationException e) {
-            throw new RealmException("Could not create an object of class: " + clazz, e);
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not create an object of class: " + clazz, e);
-        }
+        E obj = createStandaloneRealmObjectInstance(clazz);
 
         try {
             realmJson.populateUsingJsonObject(obj, json);
             copyToRealmOrUpdate(obj);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             throw new RealmException("Could not map Json", e);
         }
 
@@ -836,12 +845,15 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * TODO
+     * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
+     * found a new object will be saved in the Realm. This must happen inside a transaction.
      *
-     * @param clazz
-     * @param json
-     * @param <E>
-     * @return
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param json  String with object data in JSON format.
+     * @return Created or updated {@link io.realm.RealmObject}.
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createObjectFromJson(Class, String)})}
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
@@ -888,22 +900,25 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * TODO
-     * @param clazz
-     * @param inputStream
-     * @param <E>
-     * @return
-     * @throws IOException
+     * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
+     * found a new object will be saved in the Realm. This must happen inside a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param in    Inputstream with object data in JSON format.
+     * @return Created or updated {@link io.realm.RealmObject}.
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createObjectFromJson(Class, java.io.InputStream)}
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        if (clazz == null || inputStream == null) {
+    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) throws IOException {
+        if (clazz == null || in == null) {
             return null;
         }
         checkHasPrimaryKey(clazz);
 
         E obj = createStandaloneRealmObjectInstance(clazz);
-        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
         try {
             realmJson.populateUsingJsonStream(obj, reader);
             copyToRealmOrUpdate(obj);
@@ -1586,7 +1601,7 @@ public final class Realm implements Closeable {
 
     private <E extends RealmObject> void checkHasPrimaryKey(Class<E> clazz) {
         if (!getTable(clazz).hasPrimaryKey()) {
-            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + clazz.toString());
+            throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
         }
     }
 
