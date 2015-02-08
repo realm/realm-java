@@ -1,5 +1,5 @@
 ext.coreVersion = '0.88.0'
-ext.toolchainVersion = '4.9'
+ext.toolchainVersion = '4.8'
 ext.clang = false
 
 buildscript {
