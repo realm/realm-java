@@ -1,4 +1,6 @@
 ext.coreVersion = '0.88.0'
+ext.toolchainVersion = '4.9'
+ext.clang = false
 
 buildscript {
     repositories {
@@ -65,18 +67,18 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
     }
 }
 
-for (platform in ['arm', 'mips', 'x86']) {
-    task "generateNdkToolchain${platform.capitalize()}"(type: Exec) {
+for (platform in ['arm':'arm-linux-androideabi', 'mips':'mipsel-linux-android', 'x86':'x86']) {
+    task "generateNdkToolchain${platform.key.capitalize()}"(type: Exec) {
         group 'build setup'
-        description "Generate the NDK standalone toolchain for the ${platform.capitalize()} platform"
+        description "Generate the NDK standalone toolchain for the ${platform.key.capitalize()} platform"
         dependsOn { checkProperties }
-        outputs.dir new File("${buildDir}/standalone-toolchains/${platform}")
+        outputs.dir new File("${buildDir}/standalone-toolchains/${platform.key}")
         commandLine = [
             "bash",
             "${project.ext['ndk.dir']}/build/tools/make-standalone-toolchain.sh",
-            "--platform=android-${platform.contains('arm')?8:9}",
-            "--install-dir=${buildDir}/standalone-toolchains/${platform}",
-            "--arch=${platform}"
+            "--platform=android-${platform.key.contains('arm')?8:9}",
+            "--install-dir=${buildDir}/standalone-toolchains/${platform.key}",
+            "--toolchain=${platform.value}-${clang?'clang':''}${toolchainVersion}"
         ]
     }
 }
@@ -88,17 +90,18 @@ task buildAndroidJniArm {
     dependsOn downloadCore
     doLast {
         exec {
-            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
-            environment CC: 'gcc'
+            environment PATH: "${buildDir}/standalone-toolchains/arm/bin:${System.env.PATH}"
+            environment CC: "arm-linux-androideabi-${clang?'clang':'gcc'}"
+            environment STRIP: 'arm-linux-androideabi-strip'
             environment TIGHTDB_ANDROID: '1'
             commandLine = [
                 'make',
                 '-C', "${projectDir}/src",
-                'CC_IS=gcc',
+                "CC_IS=${clang?'clang':'gcc'}",
                 "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11 -mthumb -ffunction-sections -fdata-sections',
+                'CFLAGS_ARCH=-std=c++11 -mthumb -ffunction-sections -fdata-sections -flto',
                 'BASE_DENOM=arm',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-arm.so'
             ]
@@ -118,17 +121,18 @@ task buildAndroidJniArmv7a {
     dependsOn downloadCore
     doLast {
         exec {
-            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
-            environment CC: 'gcc'
+            environment PATH: "${buildDir}/standalone-toolchains/arm/bin:${System.env.PATH}"
+            environment CC: "arm-linux-androideabi-${clang?'clang':'gcc'}"
+            environment STRIP: 'arm-linux-androideabi-strip'
             environment TIGHTDB_ANDROID: '1'
             commandLine = [
                 'make',
                 '-C', "${projectDir}/src",
-                'CC_IS=gcc',
+                "CC_IS=${clang?'clang':'gcc'}",
                 "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11 -mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -ffunction-sections -fdata-sections',
+                'CFLAGS_ARCH=-std=c++11 -mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -ffunction-sections -fdata-sections -flto',
                 'BASE_DENOM=arm-v7a',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-arm-v7a.so'
             ]
@@ -148,17 +152,18 @@ task buildAndroidJniMips {
     dependsOn downloadCore
     doLast {
         exec {
-            environment PATH: "${buildDir}/standalone-toolchains/mips/mipsel-linux-android/bin:${System.env.PATH}"
-            environment CC: 'gcc'
+            environment PATH: "${buildDir}/standalone-toolchains/mips/bin:${System.env.PATH}"
+            environment CC: "mipsel-linux-android-${clang?'clang':'gcc'}"
+            environment STRIP: 'mipsel-linux-android-strip'
             environment TIGHTDB_ANDROID: '1'
             commandLine = [
                 'make',
                 '-C', "${projectDir}/src",
-                'CC_IS=gcc',
+                "CC_IS=${clang?'clang':'gcc'}",
                 "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11 -ffunction-sections -fdata-sections',
+                'CFLAGS_ARCH=-std=c++11 -ffunction-sections -fdata-sections -flto',
                 'BASE_DENOM=mips',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog -Wl,--gc-sections",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog -Wl,--gc-sections -flto",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-mips.so'
             ]
@@ -178,17 +183,18 @@ task buildAndroidJniIntel {
     dependsOn downloadCore
     doLast {
         exec {
-            environment PATH: "${buildDir}/standalone-toolchains/x86/i686-linux-android/bin:${System.env.PATH}"
-            environment CC: 'gcc'
+            environment PATH: "${buildDir}/standalone-toolchains/x86/bin:${System.env.PATH}"
+            environment CC: "i686-linux-android-${clang?'clang':'gcc'}"
+            environment STRIP: 'i686-linux-android-strip'
             environment TIGHTDB_ANDROID: '1'
             commandLine = [
                 'make',
                 '-C', "${projectDir}/src",
-                'CC_IS=gcc',
+                "CC_IS=${clang?'clang':'gcc'}",
                 "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11 -ffunction-sections -fdata-sections',
+                'CFLAGS_ARCH=-std=c++11 -ffunction-sections -fdata-sections -flto',
                 'BASE_DENOM=x86',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog -Wl,--gc-sections",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog -Wl,--gc-sections -flto",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-x86.so'
             ]
