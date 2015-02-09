@@ -903,9 +903,10 @@ public class RealmQuery<E extends RealmObject> {
     // Grouping
 
     /**
-     * Begin grouping of conditions ("left parenthesis")
+     * Begin grouping of conditions ("left parenthesis"). A group must be closed with a
+     * call to <code>endGroup()</code>.
      * @return The query object
-     * @throws java.lang.RuntimeException Any other error
+     * @see #endGroup()
      */
     public RealmQuery<E> beginGroup() {
         this.query.group();
@@ -913,9 +914,10 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * End grouping of conditions ("right parenthesis")
+     * End grouping of conditions ("right parenthesis") which was opened by a call to
+     * <code>beginGroup()</code>.
      * @return The query object
-     * @throws java.lang.RuntimeException Any other error
+     * @see #beginGroup()
      */
     public RealmQuery<E> endGroup() {
         this.query.endGroup();
@@ -925,13 +927,20 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Logical-or two conditions
      * @return The query object
-     * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> or() {
         this.query.or();
         return this;
     }
 
+    /**
+     * Negate condition.
+     * @return The query object
+     */
+    public RealmQuery<E> not() {
+        this.query.not();
+        return this;
+    }
 
     // Aggregates
 

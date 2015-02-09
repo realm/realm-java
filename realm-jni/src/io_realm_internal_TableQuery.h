@@ -73,6 +73,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeOr
 
 /*
  * Class:     io_realm_internal_TableQuery
+ * Method:    nativeNot
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNot
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
  * Method:    nativeEqual
  * Signature: (J[JJ)V
  */
