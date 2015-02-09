@@ -52,17 +52,12 @@ public class MainActivity extends ActionBarActivity {
         jobManager.addJob(new AddPersonJob(this));
     }
 
-    // Callback from EventBus on the same thread as the job which posted the event. This is not executed on the UI thread.
-    public void onEvent(Person person) {
+    // Callback from EventBus
+    public void onEventMainThread(Person person) {
         final String description = person.toString();
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, description, Toast.LENGTH_SHORT).show();
-                TextView view = new TextView(MainActivity.this);
-                view.setText(description);
-                list.addView(view);
-            }
-        });
+        Toast.makeText(this, description, Toast.LENGTH_SHORT).show();
+        TextView view = new TextView(this);
+        view.setText(description);
+        list.addView(view);
     }
 }
