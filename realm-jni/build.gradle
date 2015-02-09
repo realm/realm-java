@@ -96,9 +96,9 @@ task buildAndroidJniArm {
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
                 "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11 -mthumb',
+                'CFLAGS_ARCH=-std=c++11 -mthumb -ffunction-sections -fdata-sections',
                 'BASE_DENOM=arm',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-arm.so'
             ]
@@ -126,9 +126,9 @@ task buildAndroidJniArmv7a {
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
                 "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11 -mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16',
+                'CFLAGS_ARCH=-std=c++11 -mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -ffunction-sections -fdata-sections',
                 'BASE_DENOM=arm-v7a',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion}",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-arm-v7a.so'
             ]
@@ -156,9 +156,9 @@ task buildAndroidJniMips {
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
                 "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11',
+                'CFLAGS_ARCH=-std=c++11 -ffunction-sections -fdata-sections',
                 'BASE_DENOM=mips',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog -Wl,--gc-sections",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-mips.so'
             ]
@@ -186,9 +186,9 @@ task buildAndroidJniIntel {
                 '-C', "${projectDir}/src",
                 'CC_IS=gcc',
                 "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11',
+                'CFLAGS_ARCH=-std=c++11 -ffunction-sections -fdata-sections',
                 'BASE_DENOM=x86',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog",
+                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog -Wl,--gc-sections",
                 'LIB_SUFFIX_SHARED=.so',
                 'libtightdb-jni-x86.so'
             ]
