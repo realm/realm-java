@@ -9,6 +9,14 @@ extern "C" {
 #endif
 #undef io_realm_internal_Table_INFINITE
 #define io_realm_internal_Table_INFINITE -1LL
+#undef io_realm_internal_Table_INTEGER_DEFAULT_VALUE
+#define io_realm_internal_Table_INTEGER_DEFAULT_VALUE 0LL
+#undef io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX
+#define io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX 0LL
+#undef io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX
+#define io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX 1LL
+#undef io_realm_internal_Table_NO_PRIMARY_KEY
+#define io_realm_internal_Table_NO_PRIMARY_KEY -2LL
 /*
  * Class:     io_realm_internal_Table
  * Method:    createNative
@@ -488,6 +496,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLink
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddInt
   (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeSetPrimaryKey
+ * Signature: (JJLjava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey
+  (JNIEnv *, jobject, jlong, jlong, jstring);
 
 /*
  * Class:     io_realm_internal_Table
