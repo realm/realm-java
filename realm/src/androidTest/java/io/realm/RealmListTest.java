@@ -64,6 +64,7 @@ public class RealmListTest extends AndroidTestCase {
                 }
                 fail();
             } catch (IndexOutOfBoundsException expected) {
+            } catch (RealmException ignored) {
             }
         }
 

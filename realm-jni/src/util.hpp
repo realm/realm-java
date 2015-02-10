@@ -162,6 +162,7 @@ extern const char *log_tag;
 
 #define ROW_INDEXES_VALID(env,ptr,start,end, range)             RowIndexesValid(env, ptr, start, end, range)
 #define ROW_INDEX_VALID(env,ptr,row)                            RowIndexValid(env, ptr, row)
+#define ROW_INDEX_VALID_OFFSET(env,ptr,row)                     RowIndexValid(env, ptr, row, true)
 #define TBL_AND_ROW_INDEX_VALID(env,ptr,row)                    TblRowIndexValid(env, ptr, row)
 #define TBL_AND_ROW_INDEX_VALID_OFFSET(env,ptr,row, offset)     TblRowIndexValid(env, ptr, row, offset)
 #define COL_INDEX_VALID(env,ptr,col)                            ColIndexValid(env, ptr, col)
@@ -184,6 +185,7 @@ extern const char *log_tag;
 
 #define ROW_INDEXES_VALID(env,ptr,start,end, range)             (true)
 #define ROW_INDEX_VALID(env,ptr,row)                            (true)
+#defibe ROW_INDEX_VALID_OFFSET(env,ptr,row)                     (true)
 #define TBL_AND_ROW_INDEX_VALID(env,ptr,row)                    (true)
 #define TBL_AND_ROW_INDEX_VALID_OFFSET(env,ptr,row, offset)     (true)
 #define COL_INDEX_VALID(env,ptr,col)                            (true)
