@@ -392,7 +392,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertSubtable(
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
         return;
 
-    TR("nativeInsertSubtable(jTable:%p, nativeTablePtr: %p, colIdx: %lld, rowIdx: %lld)",
+    TR("nativeInsertSubtable(jTable:%p, nativeTablePtr: %p, colIdx: %" PRId64 ", rowIdx: %" PRId64 ")",
         VOID_PTR(jTable), VOID_PTR(nativeTablePtr),  S64(columnIndex), S64(rowIndex))
     try {
         TBL(nativeTablePtr)->insert_subtable( S(columnIndex), S(rowIndex));
@@ -538,7 +538,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtable(
     try {
         Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr),
             S(columnIndex), S(rowIndex)));
-        TR("nativeGetSubtable(jTableBase:%p, nativeTablePtr: %p, colIdx: %lld, rowIdx: %lld) : %p",
+        TR("nativeGetSubtable(jTableBase:%p, nativeTablePtr: %p, colIdx: %" PRId64 ", rowIdx: %" PRId64 ") : %p",
             VOID_PTR(jTableBase), VOID_PTR(nativeTablePtr), S64(columnIndex), S64(rowIndex), VOID_PTR(pSubtable))
         return (jlong)pSubtable;
     } CATCH_STD()
@@ -553,7 +553,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableDuringInse
     try {
         Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr_during_insert(
             TBL(nativeTablePtr), S(columnIndex), S(rowIndex)));
-        TR("nativeGetSubtableDuringInsert(jTableBase:%p, nativeTablePtr: %p, colIdx: %lld, rowIdx: %lld) : %p",
+        TR("nativeGetSubtableDuringInsert(jTableBase:%p, nativeTablePtr: %p, colIdx: %" PRId64 ", rowIdx: %" PRId64 ") : %p",
            VOID_PTR(jTableBase), VOID_PTR(nativeTablePtr), S64(columnIndex), S64(rowIndex), VOID_PTR(pSubtable))
         return (jlong)pSubtable;
     } CATCH_STD()
