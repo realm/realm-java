@@ -780,6 +780,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeOr(
     } CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNot(
+    JNIEnv* env, jobject, jlong nativeQueryPtr)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return;
+    try {
+        pQuery->Not();
+    } CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeSubtable(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex)
 {
