@@ -25,20 +25,19 @@ Prerequisites:
 * Make sure `make` is available in your `$PATH`
 * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
 * Download & install the Android SDK, **Android 4.4W (API 20)** (for example through Android Studio’s **Android SDK Manager**)
-* _Also_ download & install the Android SDK, **Android 4.4.2 (API 19)** (for example through Android Studio’s **Android SDK Manager**)
-* Download the **Android NDK (= r9d)** (currently only **GCC 4.6** can be used due to a linker error on later versions). For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
+* _Also_ download & install the Android SDK, **Android 4.4.2 (API 20)** (for example through Android Studio’s **Android SDK Manager**)
+* Download the **Android NDK (= r10d)**. For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
 * Add a `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
 
     ```
     sdk.dir=/Applications/Android Studio.app/sdk
-    ndk.dir=/usr/local/Cellar/android-ndk/r9d
+    ndk.dir=/usr/local/Cellar/android-ndk/r10d
     ```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
     ./gradlew androidJar
-    
-    
+
 That command will generate the .jar file containing the Realm runtime and the annotation processor. You will find it in realm/build/libs.
 
 ### Other Commands

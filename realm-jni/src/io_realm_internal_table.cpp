@@ -392,7 +392,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertSubtable(
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
         return;
 
-    TR("nativeInsertSubtable(jTable:%p, nativeTablePtr: %p, colIdx: %lld, rowIdx: %lld)",
+    TR("nativeInsertSubtable(jTable:%p, nativeTablePtr: %p, colIdx: %" PRId64 ", rowIdx: %" PRId64 ")",
         VOID_PTR(jTable), VOID_PTR(nativeTablePtr),  S64(columnIndex), S64(rowIndex))
     try {
         TBL(nativeTablePtr)->insert_subtable( S(columnIndex), S(rowIndex));
@@ -538,7 +538,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtable(
     try {
         Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr(TBL(nativeTablePtr),
             S(columnIndex), S(rowIndex)));
-        TR("nativeGetSubtable(jTableBase:%p, nativeTablePtr: %p, colIdx: %lld, rowIdx: %lld) : %p",
+        TR("nativeGetSubtable(jTableBase:%p, nativeTablePtr: %p, colIdx: %" PRId64 ", rowIdx: %" PRId64 ") : %p",
             VOID_PTR(jTableBase), VOID_PTR(nativeTablePtr), S64(columnIndex), S64(rowIndex), VOID_PTR(pSubtable))
         return (jlong)pSubtable;
     } CATCH_STD()
@@ -553,7 +553,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSubtableDuringInse
     try {
         Table* pSubtable = static_cast<Table*>(LangBindHelper::get_subtable_ptr_during_insert(
             TBL(nativeTablePtr), S(columnIndex), S(rowIndex)));
-        TR("nativeGetSubtableDuringInsert(jTableBase:%p, nativeTablePtr: %p, colIdx: %lld, rowIdx: %lld) : %p",
+        TR("nativeGetSubtableDuringInsert(jTableBase:%p, nativeTablePtr: %p, colIdx: %" PRId64 ", rowIdx: %" PRId64 ") : %p",
            VOID_PTR(jTableBase), VOID_PTR(nativeTablePtr), S64(columnIndex), S64(rowIndex), VOID_PTR(pSubtable))
         return (jlong)pSubtable;
     } CATCH_STD()
@@ -1382,6 +1382,105 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv *env, j
     TR_ENTER()
     try {
         return reinterpret_cast<jlong>(LangBindHelper::new_table());
+    } CATCH_STD()
+    return 0;
+}
+
+
+// Checks if the primary key column contains any duplicate values, making it ineligible as a
+// primary key.
+bool check_valid_primary_key_column(JNIEnv* env, Table* table, size_t column_index) // throws
+{
+    int column_type = table->get_column_type(column_index);
+    TableView results = table->get_sorted_view(column_index);
+
+    switch(column_type) {
+        case type_Int:
+            if (results.size() > 1) {
+                int64_t val = results.get_int(column_index, 0);
+                for (size_t i = 1; i < results.size(); i++) {
+                    int64_t next_val = results.get_int(column_index, i);
+                    if (val == next_val) {
+                        std::ostringstream error_msg;
+                        error_msg << "Field \"" << table->get_column_name(column_index).data() << "\" cannot be a primary key, ";
+                        error_msg << "it already contains duplicate values: " << val;
+                        ThrowException(env, IllegalArgument, error_msg.str());
+                        return false;
+                    }
+                    else {
+                        val = next_val;
+                    }
+                }
+            }
+            return true;
+
+        case type_String:
+            if (results.size() > 1) {
+                string str = results.get_string(column_index, 0);
+                for (size_t i = 1; i < results.size(); i++) {
+                    string next_str = results.get_string(column_index, i);
+                    if (str.compare(next_str) == 0) {
+                        std::ostringstream error_msg;
+                        error_msg << "Field \"" << table->get_column_name(column_index).data() << "\" cannot be a primary key, ";
+                        error_msg << "it already contains duplicate values: " << str;
+                        ThrowException(env, IllegalArgument, error_msg.str());
+                        return false;
+                    }
+                    else {
+                        str = next_str;
+                    }
+                }
+            }
+            return true;
+
+        default:
+            ThrowException(env, IllegalArgument, "Invalid primary key type: " + column_type);
+            return false;
+    }
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
+    JNIEnv* env, jobject, jlong nativePrivateKeyTablePtr, jlong nativeTablePtr, jstring columnName)
+{
+    try {
+        Table* table = TBL(nativeTablePtr);
+        Table* pk_table = TBL(nativePrivateKeyTablePtr);
+        const char* table_name = table->get_name().data();
+        size_t row_index = pk_table->find_first_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, table_name);
+
+        // I
+        if (columnName == NULL || env->GetStringLength(columnName) == 0) {
+            // No primary key set. Remove any previous set keys
+            if (row_index != tightdb::not_found) {
+                pk_table->remove(row_index);
+            }
+            return jlong(io_realm_internal_Table_NO_PRIMARY_KEY);
+        }
+        else {
+            JStringAccessor columnName2(env, columnName);
+            size_t primary_key_column_index = table->get_column_index(columnName2);
+            if (row_index == tightdb::not_found) {
+                // No primary key is currently set
+                if (check_valid_primary_key_column(env, table, primary_key_column_index)) {
+                    row_index = pk_table->add_empty_row();
+                    pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_index, table_name);
+                    pk_table->set_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, primary_key_column_index);
+                }
+            }
+            else {
+                // Primary key already exists
+                // We only wish to check for duplicate values if a column isn't already a primary key
+                Row* row = new Row((*pk_table)[row_index]);
+                size_t current_primary_key = row->get_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                if (primary_key_column_index != current_primary_key) {
+                    if (check_valid_primary_key_column(env, table, primary_key_column_index)) {
+                        pk_table->set_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, primary_key_column_index);
+                    }
+                }
+            }
+
+            return jlong(primary_key_column_index);
+        }
     } CATCH_STD()
     return 0;
 }

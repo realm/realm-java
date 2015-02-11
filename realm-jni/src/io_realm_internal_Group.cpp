@@ -110,7 +110,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_nio_Byt
     BinaryData bin;
     if (!GetBinaryData(env, jByteBuffer, bin))
         return 0;
-    TR("%d bytes.", bin.size())
+    TR("%" PRId64 " bytes.", S64(bin.size()))
 
     Group* pGroup = 0;
     try {

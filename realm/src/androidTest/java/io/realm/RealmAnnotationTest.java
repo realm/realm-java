@@ -20,6 +20,9 @@ import android.test.AndroidTestCase;
 
 import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.entities.PrimaryKeyAsString;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 
 public class RealmAnnotationTest extends AndroidTestCase {
@@ -53,6 +56,128 @@ public class RealmAnnotationTest extends AndroidTestCase {
         assertFalse(table.hasIndex(table.getColumnIndex("notIndexString")));
     }
 
+    public void testHasPrimaryKey() {
+        Table table = testRealm.getTable(AnnotationTypes.class);
+        assertTrue(table.hasPrimaryKey());
+    }
+
+    // Test migrating primary key from string to long with existing data
+    public void testPrimaryKeyMigration_long() {
+        testRealm.beginTransaction();
+        for (int i = 1; i <= 2; i++) {
+            PrimaryKeyAsString obj = testRealm.createObject(PrimaryKeyAsString.class);
+            obj.setId(i);
+            obj.setName("String" + i);
+        }
+
+        Table table = testRealm.getTable(PrimaryKeyAsString.class);
+        table.setPrimaryKey("id");
+        assertEquals(1, table.getPrimaryKey());
+        testRealm.cancelTransaction();
+    }
+
+    // Test migrating primary key from string to long with existing data
+    public void testPrimaryKeyMigration_longDuplicateValues() {
+        testRealm.beginTransaction();
+        for (int i = 1; i <= 2; i++) {
+            PrimaryKeyAsString obj = testRealm.createObject(PrimaryKeyAsString.class);
+            obj.setId(1); // Create duplicate values
+            obj.setName("String" + i);
+        }
+
+        Table table = testRealm.getTable(PrimaryKeyAsString.class);
+        try {
+            table.setPrimaryKey("id");
+            fail("It should not be possible to set a primary key column which already contains duplicate values.");
+        } catch (IllegalArgumentException expected) {
+            assertEquals(0, table.getPrimaryKey());
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    // Test migrating primary key from long to str with existing data
+    public void testPrimaryKeyMigration_string() {
+        testRealm.beginTransaction();
+        for (int i = 1; i <= 2; i++) {
+            PrimaryKeyAsLong obj = testRealm.createObject(PrimaryKeyAsLong.class);
+            obj.setId(i);
+            obj.setName("String" + i);
+        }
+
+        Table table = testRealm.getTable(PrimaryKeyAsLong.class);
+        table.setPrimaryKey("name");
+        assertEquals(1, table.getPrimaryKey());
+        testRealm.cancelTransaction();
+    }
+
+    // Test migrating primary key from long to str with existing data
+    public void testPrimaryKeyMigration_stringDuplicateValues() {
+        testRealm.beginTransaction();
+        for (int i = 1; i <= 2; i++) {
+            PrimaryKeyAsLong obj = testRealm.createObject(PrimaryKeyAsLong.class);
+            obj.setId(i);
+            obj.setName("String"); // Create duplicate values
+        }
+
+        Table table = testRealm.getTable(PrimaryKeyAsLong.class);
+        try {
+            table.setPrimaryKey("name");
+            fail("It should not be possible to set a primary key column which already contains duplicate values.");
+        } catch (IllegalArgumentException expected) {
+            assertEquals(0, table.getPrimaryKey());
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testPrimaryKey_checkPrimaryKeyOnCreate() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.createObject(AnnotationTypes.class);
+            fail("Two empty objects cannot be created on the same table if a primary key is defined");
+        } catch (RealmException expected) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    // It should be allowed to override the primary key value with the same value
+    public void testPrimaryKey_defaultStringValue() {
+        testRealm.beginTransaction();
+        PrimaryKeyAsString str = testRealm.createObject(PrimaryKeyAsString.class);
+        str.setName("");
+        testRealm.commitTransaction();
+    }
+
+    // It should be allowed to override the primary key value with the same value
+    public void testPrimaryKey_defaultLongValue() {
+        testRealm.beginTransaction();
+        PrimaryKeyAsLong str = testRealm.createObject(PrimaryKeyAsLong.class);
+        str.setId(0);
+        testRealm.commitTransaction();
+    }
+
+    public void testPrimaryKey_errorOnInsertingSameObject() {
+        try {
+            testRealm.beginTransaction();
+            AnnotationTypes obj1 = testRealm.createObject(AnnotationTypes.class);
+            obj1.setId(1);
+            AnnotationTypes obj2 = testRealm.createObject(AnnotationTypes.class);
+            obj2.setId(1);
+            fail("Inserting two objects with same primary key should fail");
+        } catch (RealmException expected) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testPrimaryKeyIsIndexed() {
+        Table table = testRealm.getTable(PrimaryKeyAsString.class);
+        assertTrue(table.hasPrimaryKey());
+        assertTrue(table.hasIndex(0));
+    }
+
     // Annotation processor honors common naming conventions
     // We check if setters and getters are generated and working
     public void testNamingConvention() {
@@ -75,5 +200,4 @@ public class RealmAnnotationTest extends AndroidTestCase {
         assertTrue(anc2.isObject());
         realm.close();
     }
-
 }

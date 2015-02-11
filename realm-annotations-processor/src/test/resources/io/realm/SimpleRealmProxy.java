@@ -50,6 +50,7 @@ public class SimpleRealmProxy extends Simple {
             Table table = transaction.getTable("class_Simple");
             table.addColumn(ColumnType.STRING, "name");
             table.addColumn(ColumnType.INTEGER, "age");
+            table.setPrimaryKey("");
             return table;
         }
         return transaction.getTable("class_Simple");

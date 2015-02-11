@@ -63,6 +63,7 @@ public class BooleansRealmProxy extends Booleans {
             table.addColumn(ColumnType.BOOLEAN, "done");
             table.addColumn(ColumnType.BOOLEAN, "isReady");
             table.addColumn(ColumnType.BOOLEAN, "mCompleted");
+            table.setPrimaryKey("");
             return table;
         }
         return transaction.getTable("class_Booleans");

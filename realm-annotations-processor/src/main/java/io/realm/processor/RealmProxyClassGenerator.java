@@ -20,12 +20,9 @@ import com.squareup.javawriter.JavaWriter;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.lang.Override;
-import java.lang.String;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,10 +48,12 @@ public class RealmProxyClassGenerator {
     private Map<String, String> getters = new HashMap<String, String>();
     private Map<String, String> setters = new HashMap<String, String>();
     private List<VariableElement> fieldsToIndex;
+    private VariableElement primaryKey;
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String TABLE_PREFIX = "class_";
     private static final String PROXY_SUFFIX = "RealmProxy";
 
+    // Class metadata for generating proxy classes
     private Elements elementUtils;
     private Types typeUtils;
     private TypeMirror realmObject;
@@ -64,7 +63,8 @@ public class RealmProxyClassGenerator {
                                     String className, String packageName,
                                     List<VariableElement> fields,
                                     Map<String, String> getters, Map<String, String> setters,
-                                    List<VariableElement> fieldsToIndex) {
+                                    List<VariableElement> fieldsToIndex,
+                                    VariableElement primaryKey) {
         this.processingEnvironment = processingEnvironment;
         this.className = className;
         this.packageName = packageName;
@@ -72,6 +72,7 @@ public class RealmProxyClassGenerator {
         this.getters = getters;
         this.setters = setters;
         this.fieldsToIndex = fieldsToIndex;
+        this.primaryKey = primaryKey;
     }
 
     private static final Map<String, String> JAVA_TO_REALM_TYPES;
@@ -228,7 +229,6 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitAccessors(JavaWriter writer) throws IOException {
-        // Accessors
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
@@ -361,6 +361,13 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : fieldsToIndex) {
             String fieldName = field.getSimpleName().toString();
             writer.emitStatement("table.setIndex(table.getColumnIndex(\"%s\"))", fieldName);
+        }
+
+        if (primaryKey != null) {
+            String fieldName = primaryKey.getSimpleName().toString();
+            writer.emitStatement("table.setPrimaryKey(\"%s\")", fieldName);
+        } else {
+            writer.emitStatement("table.setPrimaryKey(\"\")");
         }
 
         writer.emitStatement("return table");
@@ -644,7 +651,6 @@ public class RealmProxyClassGenerator {
             } else {
                 writer.nextControlFlow("else if (name.equals(\"%s\")  && reader.peek() != JsonToken.NULL)", fieldName);
             }
-
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 RealmJsonTypeHelper.emitFillRealmObjectFromStream(
                         setters.get(fieldName),
