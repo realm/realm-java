@@ -22,7 +22,6 @@ import java.util.List;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.LinkView;
-import io.realm.internal.TableQuery;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -236,8 +235,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     public RealmQuery<E> where() {
         if (managedMode) {
-            TableQuery query = this.view.where();
-            return new RealmQuery<E>(this.realm, query, clazz);
+            return new RealmQuery<E>(this.realm, view, clazz);
         } else {
             throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
