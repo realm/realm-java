@@ -148,7 +148,7 @@ public class RealmProcessor extends AbstractProcessor {
                         // The field has the @PrimaryKey annotation. It is only valid for
                         // String, short, int, long and must only be present one time
                         if (primaryKey != null) {
-                            error(String.format("@PrimaryKey cannot be defined twice. It was found here \"%s\" and here \"%s\"",
+                            error(String.format("@PrimaryKey cannot be defined more than once. It was found here \"%s\" and here \"%s\"",
                                     primaryKey.getSimpleName().toString(),
                                     variableElement.getSimpleName().toString()));
                             return true;

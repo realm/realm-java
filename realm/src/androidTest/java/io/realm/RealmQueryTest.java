@@ -133,6 +133,45 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(22, resultList.size());
     }
 
+    public void testRealmQueryNot() {
+        populateTestRealm(); // create TEST_DATA_SIZE objects
+
+        // only one object with value 5 -> TEST_DATA_SIZE-1 object with value "not 5"
+        RealmResults<AllTypes> list1 = testRealm.where(AllTypes.class).not().equalTo(FIELD_LONG, 5).findAll();
+        assertEquals(TEST_DATA_SIZE - 1, list1.size());
+
+        // not().greater() and lessThenOrEqual() must be the same
+        RealmResults<AllTypes> list2 = testRealm.where(AllTypes.class).not().greaterThan(FIELD_LONG, 5).findAll();
+        RealmResults<AllTypes> list3 = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_LONG, 5).findAll();
+        assertEquals(list2.size(), list3.size());
+        for (int i = 0; i < list2.size(); i++) {
+            assertEquals(list2.get(i).getColumnLong(), list3.get(i).getColumnLong());
+        }
+
+        // excepted result: 0, 1, 2, 5
+        long expected[] = {0, 1, 2, 5};
+        RealmResults<AllTypes> list4 = testRealm.where(AllTypes.class)
+                .equalTo(FIELD_LONG, 5)
+                .or()
+                .not().beginGroup()
+                    .greaterThan(FIELD_LONG, 2)
+                 .endGroup()
+                .findAll();
+        assertEquals(4, list4.size());
+        for (int i = 0; i < list4.size(); i++) {
+            assertEquals(expected[i], list4.get(i).getColumnLong());
+        }
+    }
+
+    public void testRealmQueryNotFailure() {
+        // a not() alone must fail
+        try {
+            RealmResults<AllTypes> list = testRealm.where(AllTypes.class).not().findAll();
+            fail();
+        } catch (RuntimeException ignored) {
+        }
+    }
+
     public void testRealmQueryImplicitAnd() {
         populateTestRealm(200);
 

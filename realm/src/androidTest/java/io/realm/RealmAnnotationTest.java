@@ -89,7 +89,7 @@ public class RealmAnnotationTest extends AndroidTestCase {
         try {
             table.setPrimaryKey("id");
             fail("It should not be possible to set a primary key column which already contains duplicate values.");
-        } catch (RealmException expected) {
+        } catch (IllegalArgumentException expected) {
             assertEquals(0, table.getPrimaryKey());
         } finally {
             testRealm.cancelTransaction();
@@ -124,7 +124,7 @@ public class RealmAnnotationTest extends AndroidTestCase {
         try {
             table.setPrimaryKey("name");
             fail("It should not be possible to set a primary key column which already contains duplicate values.");
-        } catch (RealmException expected) {
+        } catch (IllegalArgumentException expected) {
             assertEquals(0, table.getPrimaryKey());
         } finally {
             testRealm.cancelTransaction();

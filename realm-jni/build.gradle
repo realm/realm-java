@@ -1,4 +1,61 @@
-ext.coreVersion = '0.88.0'
+ext.coreVersion = '0.88.2'
+ext.clang = false // gcc is default for the NDK. It also produces smaller binaries
+
+def commonCflags = [ '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
+
+enum Compiler {
+    GCC, CLANG
+}
+
+// Unfortunately the NDK has no consistency when it comes to naming.
+// This Class holds all the different names used and some more informations
+class Toolchain {
+    // The standard name: arm, arm64, mips, x86
+    String name
+
+    // The name used when generating the standalone toolchain
+    String fullName
+
+    // The prefix commands use. i.e. arm-linux-androideabi-gcc
+    String commandPrefix
+
+    // Which version of each compiler to use
+    Map<Compiler, String> version
+
+    // The first Android platform to support this toolchain
+    int platform
+}
+
+// This class describes the specific target
+class Target {
+    // The name of the target. This is used for the task names
+    String name
+
+    // The name of the folder the Android Gradle plugin expects to find the shared library
+    String jniFolder
+
+    // The toolchain associated to this target
+    Toolchain toolchain
+
+    // The CFLAGS specific to this target
+    List<String> cflags
+}
+
+// We are using gcc 4.8 for 32 bits targets and 4.9 for 64 bits targets, as the NDK defaults.
+def toolchains = [
+    new Toolchain( name:'arm', fullName:'arm-linux-androideabi', commandPrefix:'arm-linux-androideabi', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:8 ),
+    new Toolchain( name:'arm64', fullName:'aarch64-linux-android', commandPrefix:'aarch64-linux-android', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:21 ),
+    new Toolchain( name:'mips', fullName:'mipsel-linux-android', commandPrefix:'mipsel-linux-android', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:9 ),
+    new Toolchain( name:'x86', fullName:'x86', commandPrefix:'i686-linux-android', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:9 )
+]
+
+def targets = [
+    new Target( name:'arm', jniFolder:'armeabi', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb' ] ),
+    new Target( name:'arm-v7a', jniFolder:'armeabi-v7a', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
+    new Target( name:'arm64', jniFolder:'arm64-v8a', toolchain:toolchains.find{it.name == 'arm64'}, cflags:[] ),
+    new Target( name:'mips', jniFolder:'mips', toolchain:toolchains.find{it.name == 'mips'}, cflags:[] ),
+    new Target( name:'x86', jniFolder:'x86', toolchain:toolchains.find{it.name == 'x86'}, cflags:[] )
+]
 
 buildscript {
     repositories {
@@ -32,6 +89,7 @@ task checkProperties(group: 'check', description: 'Check the user provided gradl
     }
 }
 
+// TODO: Split this task into smaller subtasks
 task downloadCore(group: 'build setup', description: 'Download the latest version of realm core', dependsOn: checkProperties) {
     outputs.dir "../core-${project.coreVersion}"
     doLast {
@@ -44,12 +102,12 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
             from tarTree(new File(buildDir, "core-android-${project.coreVersion}.tar.gz"))
             into "../core-${project.coreVersion}"
         }
-        for (target in ['arm', 'arm-v7a', 'mips', 'x86']) {
+        for (target in targets) {
             exec {
                 commandLine = [
                         'make',
                         '-C', "${projectDir}/src",
-                        "BASE_DENOM=${target}",
+                        "BASE_DENOM=${target.name}",
                         'LIB_SUFFIX_SHARED=.so',
                         'clean'
                 ]
@@ -65,156 +123,66 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
     }
 }
 
-for (platform in ['arm', 'mips', 'x86']) {
-    task "generateNdkToolchain${platform.capitalize()}"(type: Exec) {
+toolchains.each { toolchain ->
+    task "generateNdkToolchain${toolchain.name.capitalize()}"(type: Exec) {
         group 'build setup'
-        description "Generate the NDK standalone toolchain for the ${platform.capitalize()} platform"
+        description "Generate the NDK standalone toolchain for the ${toolchain.name.capitalize()} platform"
         dependsOn { checkProperties }
-        outputs.dir new File("${buildDir}/standalone-toolchains/${platform}")
+        outputs.dir new File("${buildDir}/standalone-toolchains/${toolchain.name}")
         commandLine = [
             "bash",
             "${project.ext['ndk.dir']}/build/tools/make-standalone-toolchain.sh",
-            "--platform=android-${platform.contains('arm')?8:9}",
-            "--install-dir=${buildDir}/standalone-toolchains/${platform}",
-            "--arch=${platform}"
+            "--platform=android-${toolchain.platform}",
+            "--install-dir=${buildDir}/standalone-toolchains/${toolchain.name}",
+            "--toolchain=${toolchain.fullName}-${clang?'clang'+toolchain.version[Compiler.CLANG]:toolchain.version[Compiler.GCC]}"
         ]
     }
 }
 
-task buildAndroidJniArm {
-    group 'build'
-    description 'Build the Android JNI shared library for the Arm platform'
-    dependsOn generateNdkToolchainArm
-    dependsOn downloadCore
-    doLast {
-        exec {
-            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
-            environment CC: 'gcc'
-            environment TIGHTDB_ANDROID: '1'
-            commandLine = [
-                'make',
-                '-C', "${projectDir}/src",
-                'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11 -mthumb',
-                'BASE_DENOM=arm',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion}",
-                'LIB_SUFFIX_SHARED=.so',
-                'libtightdb-jni-arm.so'
-            ]
-        }
-        copy {
-            from "${projectDir}/src/libtightdb-jni-arm.so"
-            into "${projectDir}/../realm/src/main/jniLibs/armeabi"
-            rename 'libtightdb-jni-arm.so', 'libtightdb-jni.so'
-        }
+targets.each { target ->
+    task "buildAndroidJni${target.name.capitalize()}"(type: Exec) {
+        group 'build'
+        description "Build the Android JNI shared library for the ${target.name.capitalize()} platform"
+        dependsOn downloadCore
+        dependsOn "generateNdkToolchain${target.toolchain.name.capitalize()}"
+        environment PATH: "${buildDir}/standalone-toolchains/${target.toolchain.name}/bin:${System.env.PATH}"
+        environment CC: "${target.toolchain.commandPrefix}-${clang?'clang':'gcc'}"
+        environment STRIP: "${target.toolchain.commandPrefix}-strip"
+        environment TIGHTDB_ANDROID: '1'
+        commandLine = [
+            'make',
+            '-C', "${projectDir}/src",
+            "CC_IS=${clang?'clang':'gcc'}",
+            "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+            "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
+            "BASE_DENOM=${target.name}",
+            "TIGHTDB_LDFLAGS=-ltightdb-android-${target.name} -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
+            'LIB_SUFFIX_SHARED=.so',
+            "libtightdb-jni-${target.name}.so"
+        ]
     }
-}
 
-task buildAndroidJniArmv7a {
-    group 'build'
-    description 'Build the Android JNI shared library for the Arm-v7a platform'
-    dependsOn generateNdkToolchainArm
-    dependsOn downloadCore
-    doLast {
-        exec {
-            environment PATH: "${buildDir}/standalone-toolchains/arm/arm-linux-androideabi/bin:${System.env.PATH}"
-            environment CC: 'gcc'
-            environment TIGHTDB_ANDROID: '1'
-            commandLine = [
-                'make',
-                '-C', "${projectDir}/src",
-                'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11 -mthumb -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16',
-                'BASE_DENOM=arm-v7a',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-arm-v7a -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion}",
-                'LIB_SUFFIX_SHARED=.so',
-                'libtightdb-jni-arm-v7a.so'
-            ]
-        }
-        copy {
-            from "${projectDir}/src/libtightdb-jni-arm-v7a.so"
-            into "${projectDir}/../realm/src/main/jniLibs/armeabi-v7a"
-            rename 'libtightdb-jni-arm-v7a.so', 'libtightdb-jni.so'
-        }
-    }
-}
-
-task buildAndroidJniMips {
-    group 'build'
-    description 'Build the Android JNI shared library for the Mips platform'
-    dependsOn generateNdkToolchainMips
-    dependsOn downloadCore
-    doLast {
-        exec {
-            environment PATH: "${buildDir}/standalone-toolchains/mips/mipsel-linux-android/bin:${System.env.PATH}"
-            environment CC: 'gcc'
-            environment TIGHTDB_ANDROID: '1'
-            commandLine = [
-                'make',
-                '-C', "${projectDir}/src",
-                'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11',
-                'BASE_DENOM=mips',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-mips -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog",
-                'LIB_SUFFIX_SHARED=.so',
-                'libtightdb-jni-mips.so'
-            ]
-        }
-        copy {
-            from "${projectDir}/src/libtightdb-jni-mips.so"
-            into "${projectDir}/../realm/src/main/jniLibs/mips"
-            rename 'libtightdb-jni-mips.so', 'libtightdb-jni.so'
-        }
-    }
-}
-
-task buildAndroidJniIntel {
-    group 'build'
-    description 'Build the Android JNI shared library for the Intel platform'
-    dependsOn generateNdkToolchainX86
-    dependsOn downloadCore
-    doLast {
-        exec {
-            environment PATH: "${buildDir}/standalone-toolchains/x86/i686-linux-android/bin:${System.env.PATH}"
-            environment CC: 'gcc'
-            environment TIGHTDB_ANDROID: '1'
-            commandLine = [
-                'make',
-                '-C', "${projectDir}/src",
-                'CC_IS=gcc',
-                "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-                'CFLAGS_ARCH=-std=c++11',
-                'BASE_DENOM=x86',
-                "TIGHTDB_LDFLAGS=-ltightdb-android-x86 -lstdc++ -lsupc++ -L${projectDir}/../core-${project.coreVersion} -llog",
-                'LIB_SUFFIX_SHARED=.so',
-                'libtightdb-jni-x86.so'
-            ]
-        }
-        copy {
-            from "${projectDir}/src/libtightdb-jni-x86.so"
-            into "${projectDir}/../realm/src/main/jniLibs/x86"
-            rename 'libtightdb-jni-x86.so', 'libtightdb-jni.so'
-        }
+    task "copyAndroidJni${target.name.capitalize()}"(type: Copy) {
+        dependsOn "buildAndroidJni${target.name.capitalize()}"
+        from "${projectDir}/src/libtightdb-jni-${target.name}.so"
+        into "${projectDir}/../realm/src/main/jniLibs/${target.jniFolder}"
+        rename "libtightdb-jni-${target.name}.so", 'libtightdb-jni.so'
     }
 }
 
 task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared library for all the supported platforms') {
-    dependsOn buildAndroidJniArm
-    dependsOn buildAndroidJniArmv7a
-    dependsOn buildAndroidJniMips
-    dependsOn buildAndroidJniIntel
+    targets.each { target ->
+        dependsOn "copyAndroidJni${target.name.capitalize()}"
+    }
 }
 
 task clean(group: 'build', description: 'Clean the make artifacts') << {
-    for (target in ['arm', 'arm-v7a', 'mips', 'x86']) {
+    targets.each { target ->
         exec {
             commandLine = [
                 'make',
                 '-C', "${projectDir}/src",
-                "BASE_DENOM=${target}",
+                "BASE_DENOM=${target.name}",
                 'LIB_SUFFIX_SHARED=.so',
                 'clean'
             ]

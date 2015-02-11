@@ -626,7 +626,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @return Column index or {@code #NO_MATCH} if no primary key is set.
      */
     public long getPrimaryKey() {
-        if (cachedPrimaryKeyColumnIndex > 0 || cachedPrimaryKeyColumnIndex == NO_PRIMARY_KEY) {
+        if (cachedPrimaryKeyColumnIndex >= 0 || cachedPrimaryKeyColumnIndex == NO_PRIMARY_KEY) {
             return cachedPrimaryKeyColumnIndex;
         } else {
             Table pkTable = getPrimaryKeyTable();
@@ -685,10 +685,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     private void throwDuplicatePrimaryKeyException(Object value) {
         throw new RealmException("Primary key constraint broken. Value already exists: " + value);
-    }
-
-    private void throwInvalidPrimaryKeyColumn(long columnIndex, Object value) {
-        throw new RealmException(String.format("Field \"%s\" cannot be a primary key, it already contains duplicate values: %s", getColumnName(columnIndex), value));
     }
 
     //Holds methods that must be publicly available for AbstractClass.
@@ -1137,73 +1133,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (pkTable == null) {
             throw new RealmException("Primary keys are only supported if Table is part of a Group");
         }
-
-        long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
-        if (columnName == null || columnName.equals("")) {
-            if (rowIndex > 0) {
-                pkTable.remove(rowIndex);
-            }
-            cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
-        } else {
-            long primaryKeyColumnIndex = getColumnIndex(columnName);
-            if (rowIndex == NO_MATCH) {
-                // No primary key is currently set
-                checkIsValidPrimaryKeyColumn(primaryKeyColumnIndex);
-                pkTable.add(getName(), primaryKeyColumnIndex);
-            } else {
-                // Primary key already exists
-                // We only wish to check for duplicate values if a column isn't already a primary key
-                long currentPrimaryKey = pkTable.getRow(rowIndex).getLong(PRIMARY_KEY_FIELD_COLUMN_INDEX);
-                if (primaryKeyColumnIndex != currentPrimaryKey) {
-                    checkIsValidPrimaryKeyColumn(primaryKeyColumnIndex);
-                    pkTable.setLong(PRIMARY_KEY_FIELD_COLUMN_INDEX, rowIndex, primaryKeyColumnIndex);
-                }
-            }
-
-            cachedPrimaryKeyColumnIndex = primaryKeyColumnIndex;
-        }
+        long index = nativeSetPrimaryKey(pkTable.nativePtr, nativePtr, columnName);
+        cachedPrimaryKeyColumnIndex = index;
     }
 
-    // Checks if the primary key column contains any duplicate values, making it ineligible as a
-    // primary key.
-    private void checkIsValidPrimaryKeyColumn(long columnIndex) {
-        ColumnType columnType = getColumnType(columnIndex);
-        TableView result = where().findAll();
-        result.sort(columnIndex);
-
-        switch (columnType) {
-            case INTEGER:
-                if (result.size() > 1) {
-                    long value = result.getLong(columnIndex, 0);
-                    for (long i = 1; i < result.size(); i++) {
-                        long nextValue = result.getLong(columnIndex, i);
-                        if (value == nextValue) {
-                            throwInvalidPrimaryKeyColumn(columnIndex, value);
-                        } else {
-                            value = nextValue;
-                        }
-                    }
-                }
-                break;
-
-            case STRING:
-                if (result.size() > 1) {
-                    String str = result.getString(columnIndex, 0);
-                    for (int i = 1; i < result.size(); i++) {
-                        String nextStr = result.getString(columnIndex, i);
-                        if (str.equals(nextStr)) {
-                            throwInvalidPrimaryKeyColumn(columnIndex, str);
-                        } else {
-                            str = nextStr;
-                        }
-                    }
-                }
-                break;
-
-            default:
-                throw new RealmException("Invalid primary key type: " + columnType);
-        }
-    }
+    private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
 
     private Table getPrimaryKeyTable() {
         Group group = getTableGroup();
