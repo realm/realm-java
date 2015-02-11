@@ -17,21 +17,22 @@
 package io.realm.entities;
 
 import io.realm.RealmObject;
-import io.realm.annotations.Ignore;
-import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
-public class AnnotationTypes extends RealmObject {
+public class PrimaryKeyAsString extends RealmObject {
 
     @PrimaryKey
+    private String name;
+
     private long id;
 
-    @Index
-    private String indexString;
-    private String notIndexString;
+    public String getName() {
+        return name;
+    }
 
-    @Ignore
-    private String ignoreString;
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public long getId() {
         return id;
@@ -40,30 +41,4 @@ public class AnnotationTypes extends RealmObject {
     public void setId(long id) {
         this.id = id;
     }
-
-    public String getIndexString() {
-        return indexString;
-    }
-
-    public void setIndexString(String indexString) {
-        this.indexString = indexString;
-    }
-
-    public String getNotIndexString() {
-        return notIndexString;
-    }
-
-    public void setNotIndexString(String notIndexString) {
-        this.notIndexString = notIndexString;
-    }
-
-    public String getIgnoreString() {
-        return ignoreString;
-    }
-
-    public void setIgnoreString(String ignoreString) {
-        this.ignoreString = ignoreString;
-    }
-
-
 }

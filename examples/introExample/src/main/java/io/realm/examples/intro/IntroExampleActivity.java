@@ -92,6 +92,7 @@ public class IntroExampleActivity extends Activity {
 
         // Add a person
         Person person = realm.createObject(Person.class);
+        person.setId(1);
         person.setName("Young Person");
         person.setAge(14);
 
@@ -146,6 +147,7 @@ public class IntroExampleActivity extends Activity {
         fido.setName("fido");
         for (int i = 0; i < 10; i++) {
             Person person = realm.createObject(Person.class);
+            person.setId(i);
             person.setName("Person no. " + i);
             person.setAge(i);
             person.setDog(fido);

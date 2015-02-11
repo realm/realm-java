@@ -115,6 +115,7 @@ public class AllTypesRealmProxy extends AllTypes {
             table.addColumn(ColumnType.BOOLEAN, "columnBoolean");
             table.addColumn(ColumnType.DATE, "columnDate");
             table.addColumn(ColumnType.BINARY, "columnBinary");
+            table.setPrimaryKey("");
             return table;
         }
         return transaction.getTable("class_AllTypes");
