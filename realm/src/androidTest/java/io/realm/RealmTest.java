@@ -1182,12 +1182,12 @@ public class RealmTest extends AndroidTestCase {
                 realm.copyToRealm(obj);
 
                 PrimaryKeyAsLong obj2 = new PrimaryKeyAsLong();
-                obj2.setId(2);
+                obj2.setId(1);
                 obj2.setName("Bar");
 
                 PrimaryKeyAsLong obj3 = new PrimaryKeyAsLong();
-                obj2.setId(2);
-                obj2.setName("Baz");
+                obj3.setId(1);
+                obj3.setName("Baz");
 
                 realm.copyToRealmOrUpdate(Arrays.asList(obj2, obj3));
             }
@@ -1325,6 +1325,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testWrongKeyShouldThrow() {
         final String WRONG_KEY_REALM = "wrong-key-realm.realm";
+        Realm.deleteRealmFile(getContext(), WRONG_KEY_REALM);
 
         // Wrong key size
         try {
