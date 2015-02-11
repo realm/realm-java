@@ -85,7 +85,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public void add(int location, E object) {
-        assertValidObject(object);
+        checkValidObject(object);
         if (managedMode) {
             view.insert(location, object.row.getIndex());
         } else {
@@ -98,7 +98,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public boolean add(E object) {
-        assertValidObject(object);
+        checkValidObject(object);
         if (managedMode) {
             view.add(object.row.getIndex());
         } else {
@@ -112,9 +112,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public E set(int location, E object) {
-        assertValidObject(object);
+        checkValidObject(object);
         if (managedMode) {
-            assertIndex(location);
+            if (object.row == null) {
+                throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
+            }
             view.set(location, object.row.getIndex());
         } else {
             nonManagedList.set(location, object);
@@ -134,11 +136,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()[.
      */
     public void move(int oldPos, int newPos) {
-        assertIndex(oldPos);
-        assertIndex(newPos);
         if (managedMode) {
             view.move(oldPos, newPos);
         } else {
+            checkIndex(oldPos);
+            checkIndex(newPos);
             E object = nonManagedList.remove(oldPos);
             if (newPos > oldPos) {
                 nonManagedList.add(newPos - 1, object);
@@ -166,7 +168,6 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E remove(int location) {
         if (managedMode) {
-            assertIndex(location);
             E removedItem = get(location);
             view.remove(location);
             return removedItem;
@@ -181,7 +182,6 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E get(int location) {
         if (managedMode) {
-            assertIndex(location);
             return realm.get(clazz, view.getTargetRowIndex(location));
         } else {
             return nonManagedList.get(location);
@@ -243,13 +243,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
-    private void assertValidObject(E object) {
+    private void checkValidObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
         }
     }
 
-    private void assertIndex(int location) {
+    private void checkIndex(int location) {
         int size = size();
         if (location < 0 || location >= size) {
             throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size);
