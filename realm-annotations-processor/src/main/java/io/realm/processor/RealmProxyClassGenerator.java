@@ -473,47 +473,6 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
-//    writer.beginMethod(
-//    className, // Return type
-//            "copyToRealm", // Method name
-//            EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-//            "Realm", "realm", className, "object"); // Argument type & argument name
-//
-//    writer.emitStatement("%s realmObject = realm.createObject(%s.class)", className, className);
-//
-//    for (VariableElement field : fields) {
-//        String fieldName = field.getSimpleName().toString();
-//        if (typeUtils.isAssignable(field.asType(), realmObject)) {
-//            writer
-//                    .beginControlFlow("if (object.%s() != null)", getters.get(fieldName))
-//                    .emitStatement("realmObject.%s(%s.copyToRealm(realm, object.%s()))",
-//                            setters.get(fieldName),
-//                            getProxyClassSimpleName(field),
-//                            getters.get(fieldName))
-//                    .endControlFlow();
-//        } else if (typeUtils.isAssignable(field.asType(), realmList)) {
-//            writer
-//                    .beginControlFlow("if (object.%s() != null)", getters.get(fieldName))
-//                    .beginControlFlow("for (%s listObj : object.%s())", getGenericType(field), getters.get(fieldName))
-//                    .emitStatement("realmObject.%s().add(%s.copyToRealm(realm, listObj))",
-//                            getters.get(fieldName),
-//                            getProxyClassSimpleName(field)
-//                    )
-//                    .endControlFlow()
-//                    .endControlFlow();
-//        } else {
-//            boolean wrapInGuard = NULLABLE_JAVA_TYPES.contains(field.asType().toString());
-//            if (wrapInGuard) writer.beginControlFlow("if (object.%s() != null)", getters.get(fieldName));
-//            writer.emitStatement("realmObject.%s(object.%s())", setters.get(fieldName), getters.get(fieldName));
-//            if (wrapInGuard) writer.endControlFlow();
-//        }
-//    }
-//
-//    writer.emitStatement("return realmObject");
-//    writer.endMethod();
-//    writer.emitEmptyLine();
-
-
     private void emitCopyOrUpdateMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 className, // Return type
@@ -524,7 +483,6 @@ public class RealmProxyClassGenerator {
 
         if (primaryKey == null) {
             writer.emitStatement("return copy(realm, object)");
-
         } else {
             writer
                 .emitStatement("%s realmObject = null", className)
@@ -579,10 +537,10 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine()
                     .emitStatement("%s %s = newObject.%s()", Utils.getFieldTypeSimpleName(field), fieldName, getters.get(fieldName))
                     .beginControlFlow("if (%s != null)", fieldName)
-                    .emitStatement("realmObject.%s(%s.copy(realm, %s))",
-                            setters.get(fieldName),
-                            Utils.getProxyClassSimpleName(field),
-                            fieldName)
+                        .emitStatement("realmObject.%s(%s.copy(realm, %s))",
+                                setters.get(fieldName),
+                                Utils.getProxyClassSimpleName(field),
+                                fieldName)
                     .endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 writer

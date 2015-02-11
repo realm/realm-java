@@ -63,11 +63,11 @@ public class RealmJSonImplGenerator {
         writer.emitImports(qualifiedModelClasses);
         writer.emitEmptyLine();
         writer.beginType(
-                qualifiedGeneratedClassName,        // full qualified name of the item to generate
-                "class",                            // the type of the item
-                Collections.<Modifier>emptySet(),   // modifiers to apply
-                null,                               // class to extend
-                "RealmJson");              // Interfaces to implement
+                qualifiedGeneratedClassName,    // full qualified name of the item to generate
+                "class",                        // the type of the item
+                Collections.<Modifier>emptySet(),      // modifiers to apply
+                null,                           // class to extend
+                "RealmJson");                   // Interfaces to implement
         writer.emitEmptyLine();
 
         emitPopulateUsingJsonObject(writer);
