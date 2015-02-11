@@ -19,11 +19,9 @@ package io.realm.examples.intro.model;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
-import io.realm.annotations.PrimaryKey;
 
 // Your model just have to extend RealmObject.
 // This will inherit an annotation which produces proxy getters and setters for all fields.
-
 public class Person extends RealmObject {
 
     // All fields are by default persisted.
@@ -40,11 +38,6 @@ public class Person extends RealmObject {
     @Ignore
     private int tempReference;
 
-    // You can define a field as primary key. This will ensure that no two objects with the same key
-    // can be added to Realm.
-    // WARNING: Adding a primary key will make inserts slower and increase the size of the Realm,
-    // but searches will be faster.
-    @PrimaryKey
     private long id;
 
     // The standard getters and setters your IDE generates are fine.
