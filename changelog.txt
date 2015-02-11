@@ -1,6 +1,7 @@
 0.79
+ * Added support for ARM64.
  * Added RealmQuery.not() to negate a query condition.
- * Make the native libraries much smaller. Arm went from 1.8MB to 800KB.
+ * Made the native libraries much smaller. Arm went from 1.8MB to 800KB.
  * Better error reporting when trying to create or open a Realm file fails.
  * Improved error reporting in case of missing accessors in model classes.
  * Re-enabled RealmResults.remove(index) and RealmResults.removeLast().
@@ -9,7 +10,7 @@
  * Throw an exception if deleteRealmFile() is called when there is an open instance of the Realm.
  * Made migrations and compression methods synchronised.
  * Removed methods deprecated in 0.76. Now Realm.allObjectsSorted() and RealmQuery.findAllSorted() need to be used instead.
- * Reimplementing Realm.allObjectSorted() for better performance.
+ * Reimplemented Realm.allObjectSorted() for better performance.
 
 0.78
  * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
