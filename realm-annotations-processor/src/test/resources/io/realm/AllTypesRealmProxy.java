@@ -1,12 +1,15 @@
 package io.realm;
 
+
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmObject;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -180,63 +183,65 @@ public class AllTypesRealmProxy extends AllTypes {
         return Arrays.asList("columnString", "columnLong", "columnFloat", "columnDouble", "columnBoolean", "columnDate", "columnBinary");
     }
 
-    void populateUsingJsonObject(JSONObject json)
+    public static void populateUsingJsonObject(AllTypes obj, JSONObject json)
             throws JSONException {
+        boolean standalone = obj.realm == null;
         if (json.has("columnString")) {
-            setColumnString((String) json.getString("columnString"));
+            obj.setColumnString((String) json.getString("columnString"));
         }
         if (json.has("columnLong")) {
-            setColumnLong((long) json.getLong("columnLong"));
+            obj.setColumnLong((long) json.getLong("columnLong"));
         }
         if (json.has("columnFloat")) {
-            setColumnFloat((float) json.getDouble("columnFloat"));
+            obj.setColumnFloat((float) json.getDouble("columnFloat"));
         }
         if (json.has("columnDouble")) {
-            setColumnDouble((double) json.getDouble("columnDouble"));
+            obj.setColumnDouble((double) json.getDouble("columnDouble"));
         }
         if (json.has("columnBoolean")) {
-            setColumnBoolean((boolean) json.getBoolean("columnBoolean"));
+            obj.setColumnBoolean((boolean) json.getBoolean("columnBoolean"));
         }
         if (json.has("columnDate")) {
             long timestamp = json.optLong("columnDate", -1);
             if (timestamp > -1) {
-                setColumnDate(new Date(timestamp));
+                obj.setColumnDate(new Date(timestamp));
             } else {
                 String jsonDate = json.getString("columnDate");
-                setColumnDate(JsonUtils.stringToDate(jsonDate));
+                obj.setColumnDate(JsonUtils.stringToDate(jsonDate));
             }
         }
         if (json.has("columnBinary")) {
-            setColumnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
+            obj.setColumnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
         }
     }
 
-    void populateUsingJsonStream(JsonReader reader)
+    public static void populateUsingJsonStream(AllTypes obj, JsonReader reader)
             throws IOException {
+        boolean standalone = obj.realm == null;
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (name.equals("columnString") && reader.peek() != JsonToken.NULL) {
-                setColumnString((String) reader.nextString());
+                obj.setColumnString((String) reader.nextString());
             } else if (name.equals("columnLong")  && reader.peek() != JsonToken.NULL) {
-                setColumnLong((long) reader.nextLong());
+                obj.setColumnLong((long) reader.nextLong());
             } else if (name.equals("columnFloat")  && reader.peek() != JsonToken.NULL) {
-                setColumnFloat((float) reader.nextDouble());
+                obj.setColumnFloat((float) reader.nextDouble());
             } else if (name.equals("columnDouble")  && reader.peek() != JsonToken.NULL) {
-                setColumnDouble((double) reader.nextDouble());
+                obj.setColumnDouble((double) reader.nextDouble());
             } else if (name.equals("columnBoolean")  && reader.peek() != JsonToken.NULL) {
-                setColumnBoolean((boolean) reader.nextBoolean());
+                obj.setColumnBoolean((boolean) reader.nextBoolean());
             } else if (name.equals("columnDate")  && reader.peek() != JsonToken.NULL) {
                 if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
-                        setColumnDate(new Date(timestamp));
+                        obj.setColumnDate(new Date(timestamp));
                     }
                 } else {
-                    setColumnDate(JsonUtils.stringToDate(reader.nextString()));
+                    obj.setColumnDate(JsonUtils.stringToDate(reader.nextString()));
                 }
             } else if (name.equals("columnBinary")  && reader.peek() != JsonToken.NULL) {
-                setColumnBinary(JsonUtils.stringToBytes(reader.nextString()));
+                obj.setColumnBinary(JsonUtils.stringToBytes(reader.nextString()));
             } else {
                 reader.skipValue();
             }
@@ -244,19 +249,30 @@ public class AllTypesRealmProxy extends AllTypes {
         reader.endObject();
     }
 
+    public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update) {
+        return copy(realm, object);
+    }
 
-
-    public static AllTypes copyToRealm(Realm realm, AllTypes object) {
+    public static AllTypes copy(Realm realm, AllTypes newObject) {
         AllTypes realmObject = realm.createObject(AllTypes.class);
-        realmObject.setColumnString(object.getColumnString());
-        realmObject.setColumnLong(object.getColumnLong());
-        realmObject.setColumnFloat(object.getColumnFloat());
-        realmObject.setColumnDouble(object.getColumnDouble());
-        realmObject.setColumnBoolean(object.isColumnBoolean());
-        if (object.getColumnDate() != null) {
-            realmObject.setColumnDate(object.getColumnDate());
-        }
-        realmObject.setColumnBinary(object.getColumnBinary());
+        realmObject.setColumnString(newObject.getColumnString() != null ? newObject.getColumnString() : "");
+        realmObject.setColumnLong(newObject.getColumnLong());
+        realmObject.setColumnFloat(newObject.getColumnFloat());
+        realmObject.setColumnDouble(newObject.getColumnDouble());
+        realmObject.setColumnBoolean(newObject.isColumnBoolean());
+        realmObject.setColumnDate(newObject.getColumnDate() != null ? newObject.getColumnDate() : new Date(0));
+        realmObject.setColumnBinary(newObject.getColumnBinary() != null ? newObject.getColumnBinary() : new byte[0]);
+        return realmObject;
+    }
+
+    static AllTypes update(Realm realm, AllTypes realmObject, AllTypes newObject) {
+        realmObject.setColumnString(newObject.getColumnString() != null ? newObject.getColumnString() : "");
+        realmObject.setColumnLong(newObject.getColumnLong());
+        realmObject.setColumnFloat(newObject.getColumnFloat());
+        realmObject.setColumnDouble(newObject.getColumnDouble());
+        realmObject.setColumnBoolean(newObject.isColumnBoolean());
+        realmObject.setColumnDate(newObject.getColumnDate() != null ? newObject.getColumnDate() : new Date(0));
+        realmObject.setColumnBinary(newObject.getColumnBinary() != null ? newObject.getColumnBinary() : new byte[0]);
         return realmObject;
     }
 
