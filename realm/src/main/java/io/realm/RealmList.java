@@ -85,7 +85,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public void add(int location, E object) {
-        assertValidObject(object);
+        checkValidObject(object);
         if (managedMode) {
             view.insert(location, object.row.getIndex());
         } else {
@@ -98,7 +98,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public boolean add(E object) {
-        assertValidObject(object);
+        checkValidObject(object);
         if (managedMode) {
             view.add(object.row.getIndex());
         } else {
@@ -112,7 +112,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public E set(int location, E object) {
-        assertValidObject(object);
+        checkValidObject(object);
         if (managedMode) {
             if (object.row == null) {
                 throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
@@ -139,8 +139,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         if (managedMode) {
             view.move(oldPos, newPos);
         } else {
-            assertIndex(oldPos);
-            assertIndex(newPos);
+            checkIndex(oldPos);
+            checkIndex(newPos);
             E object = nonManagedList.remove(oldPos);
             if (newPos > oldPos) {
                 nonManagedList.add(newPos - 1, object);
@@ -243,13 +243,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
-    private void assertValidObject(E object) {
+    private void checkValidObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
         }
     }
 
-    private void assertIndex(int location) {
+    private void checkIndex(int location) {
         int size = size();
         if (location < 0 || location >= size) {
             throw new IndexOutOfBoundsException("Invalid index " + location + ", size is " + size);
