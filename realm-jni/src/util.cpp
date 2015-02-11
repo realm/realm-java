@@ -132,8 +132,10 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = "Illegal State: " + classStr;
             break;
     }
-    if (jExceptionClass != NULL)
+    if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());
+        TR_ERR("Exception has been throw: %s", message.c_str())
+    }
     else {
         TR_ERR("ERROR: Couldn't throw exception.")
     }

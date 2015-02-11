@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.realm.internal.ColumnType;
+import io.realm.internal.LinkView;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
@@ -51,6 +52,7 @@ public class RealmQuery<E extends RealmObject> {
 
     private Realm realm;
     private Table table;
+    private LinkView view;
     private TableQuery query;
     private Map<String, Long> columns = new HashMap<String, Long>();
     private Class<E> clazz;
@@ -90,10 +92,11 @@ public class RealmQuery<E extends RealmObject> {
         this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
 
-    RealmQuery(Realm realm, TableQuery query, Class<E> clazz) {
+    RealmQuery(Realm realm, LinkView view, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.query = query;
+        this.query = view.where();
+        this.view = view;
         this.table = realm.getTable(clazz);
         this.columns = Realm.columnIndices.get(clazz.getSimpleName());
     }
@@ -1257,7 +1260,7 @@ public class RealmQuery<E extends RealmObject> {
     public E findFirst() {
         long rowIndex = this.query.find();
         if (rowIndex >= 0) {
-            return realm.get(clazz, rowIndex);
+            return realm.get(clazz, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
         } else {
             return null;
         }
