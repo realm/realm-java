@@ -1142,6 +1142,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testWrongKeyShouldThrow() {
         final String WRONG_KEY_REALM = "wrong-key-realm.realm";
+        Realm.deleteRealmFile(getContext(), WRONG_KEY_REALM);
 
         // Wrong key size
         try {
