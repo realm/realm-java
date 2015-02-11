@@ -78,21 +78,6 @@ public class Utils {
         }
     }
 
-    public static String joinStringList(List<String> strings, String separator) {
-        StringBuilder stringBuilder = new StringBuilder();
-        ListIterator<String> iterator = strings.listIterator();
-        while (iterator.hasNext()) {
-            int index = iterator.nextIndex();
-            String item = iterator.next();
-
-            if (index > 0) {
-                stringBuilder.append(separator);
-            }
-            stringBuilder.append(item);
-        }
-        return stringBuilder.toString();
-    }
-
     /**
      * Returns true if a field is of type "java.lang.String", false otherwise.
      */

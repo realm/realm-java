@@ -467,7 +467,7 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             entries.add(String.format("\"%s\"", fieldName));
         }
-        String statementSection = Utils.joinStringList(entries, ", ");
+        String statementSection = String.join(", ", entries);
         writer.emitStatement("return Arrays.asList(%s)", statementSection);
         writer.endMethod();
         writer.emitEmptyLine();

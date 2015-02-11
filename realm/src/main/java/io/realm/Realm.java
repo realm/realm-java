@@ -656,7 +656,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object for each object in a JSON array. This must be done inside a transaction.
+     * Create a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm
      * and unknown properties will be ignored.
      *
@@ -682,7 +682,7 @@ public final class Realm implements Closeable {
 
     /**
      * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
-     * object could not be found in the Realm, a new object will be created. This must happen inside a transaction.
+     * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json  Array with object data.
@@ -709,7 +709,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object for each object in a JSON array. This must be done inside a transaction.
+     * Create a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm
      * and unknown properties will be ignored.
      *
@@ -735,7 +735,7 @@ public final class Realm implements Closeable {
 
     /**
      * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
-     * object could not be found in the Realm, a new object will be created. This must happen inside a transaction.
+     * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json  String with an array of JSON objects.
@@ -761,7 +761,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object for each object in a JSON array. This must be done inside a transaction.
+     * Create a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm
      * and unknown properties will be ignored.
      *
@@ -793,7 +793,7 @@ public final class Realm implements Closeable {
 
     /**
      * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
-     * object could not be found in the Realm, a new object will be created. This must happen inside a transaction.
+     * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in    InputStream with a list of object data in JSON format.
@@ -852,7 +852,7 @@ public final class Realm implements Closeable {
 
     /**
      * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
-     * found a new object will be saved in the Realm. This must happen inside a transaction.
+     * found a new object will be saved in the Realm. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json  {@link org.json.JSONObject} with object data.
@@ -907,7 +907,7 @@ public final class Realm implements Closeable {
 
     /**
      * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
-     * found a new object will be saved in the Realm. This must happen inside a transaction.
+     * found a new object will be saved in the Realm. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json  String with object data in JSON format.
@@ -962,7 +962,7 @@ public final class Realm implements Closeable {
 
     /**
      * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
-     * found a new object will be saved in the Realm. This must happen inside a transaction.
+     * found a new object will be saved in the Realm. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in    Inputstream with object data in JSON format.
