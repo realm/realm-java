@@ -97,7 +97,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void testAdd_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object = new AllTypes();
         object.setColumnString("String");
         list.add(object);
@@ -106,7 +106,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void testAddNull_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         try {
             list.add(null);
             fail("Adding null should not be be allowed");
@@ -115,7 +115,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void testAddManagedObject_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         testRealm.beginTransaction();
         AllTypes managedAllTypes =  testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
@@ -125,7 +125,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void testAddAtIndex_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object = new AllTypes();
         object.setColumnString("String");
         list.add(0, object);
@@ -134,7 +134,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void testAddManagedObjectAtIndex_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         testRealm.beginTransaction();
         AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
@@ -145,7 +145,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void testAddNullAtIndex_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         try {
             list.add(null);
             fail("Adding null should not be be allowed");
@@ -154,14 +154,14 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void testSet_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         list.set(0, new AllTypes());
         assertEquals(1, list.size());
     }
 
     public void testSetNull_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         try {
             list.set(0, null);
@@ -171,7 +171,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void testSetManagedObject_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         testRealm.beginTransaction();
         AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
@@ -182,7 +182,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     public void testClear_nonManagedMode() {
-        RealmList list = new RealmList();
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         assertEquals(1, list.size());
         list.clear();

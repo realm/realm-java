@@ -968,7 +968,7 @@ public class RealmTest extends AndroidTestCase {
         date.setTime(1000); // Remove ms. precission as Realm doesn't support it yet.
         Dog dog = new Dog();
         dog.setName("Fido");
-        RealmList<Dog> list = new RealmList();
+        RealmList<Dog> list = new RealmList<Dog>();
         list.add(dog);
 
         AllTypes allTypes = new AllTypes();
@@ -1078,7 +1078,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnBinary(new byte[]{1, 2, 3});
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new Dog("Dog1"));
-                obj.setColumnRealmList(new RealmList(new Dog("Dog2")));
+                obj.setColumnRealmList(new RealmList<Dog>(new Dog("Dog2")));
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
@@ -1090,7 +1090,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnBinary(new byte[] {2, 3, 4});
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new Dog("Dog2"));
-                obj2.setColumnRealmList(new RealmList(new Dog("Dog3")));
+                obj2.setColumnRealmList(new RealmList<Dog>(new Dog("Dog3")));
                 realm.copyToRealmOrUpdate(obj2);
             }
         });
@@ -1125,7 +1125,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnBinary(new byte[]{1, 2, 3});
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new Dog("Dog1"));
-                obj.setColumnRealmList(new RealmList(new Dog("Dog2")));
+                obj.setColumnRealmList(new RealmList<Dog>(new Dog("Dog2")));
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();

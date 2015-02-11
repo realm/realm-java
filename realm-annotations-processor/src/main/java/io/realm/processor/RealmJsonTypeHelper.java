@@ -113,7 +113,7 @@ public class RealmJsonTypeHelper {
         writer
             .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                 .beginControlFlow("if (standalone)")
-                    .emitStatement("obj.%s(new RealmList())", setter)
+                    .emitStatement("obj.%s(new RealmList<%s>())", setter, fieldTypeCanonicalName)
                 .endControlFlow()
                 .emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
                 .beginControlFlow("for (int i = 0; i < array.length(); i++)")
@@ -142,7 +142,7 @@ public class RealmJsonTypeHelper {
         writer
             .emitStatement("reader.beginArray()")
             .beginControlFlow("if (standalone)")
-                .emitStatement("obj.%s(new RealmList())", setter)
+                .emitStatement("obj.%s(new RealmList<%s>())", setter, fieldTypeCanonicalName)
             .endControlFlow()
             .beginControlFlow("while (reader.hasNext())")
                 .emitStatement("%s item = standalone ? new %s() : obj.realm.createObject(%s.class)", fieldTypeCanonicalName, fieldTypeCanonicalName, fieldTypeCanonicalName)

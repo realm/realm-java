@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -254,7 +253,7 @@ public final class Realm implements Closeable {
     }
 
     public RealmJson getRealmJson() {
-        Class<?> clazz = null;
+        Class<?> clazz;
         try {
             clazz = Class.forName("io.realm.RealmJsonImpl");
             Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
@@ -540,6 +539,7 @@ public final class Realm implements Closeable {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static void initializeRealm(Realm realm) {
         Class<?> validationClass;
         try {
@@ -555,7 +555,6 @@ public final class Realm implements Closeable {
         }
         List<String> proxyClasses;
         try {
-            //noinspection unchecked
             proxyClasses = (List<String>) getProxyClassesMethod.invoke(null);
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not execute the getProxyClasses method in the ValidationList class: " + APT_NOT_EXECUTED_MESSAGE);
@@ -1214,7 +1213,9 @@ public final class Realm implements Closeable {
      * @throws java.lang.IllegalArgumentException if any of the elements in the input collection is {@code null}.
      */
     public <E extends RealmObject> List<E> copyToRealm(Iterable<E> objects) {
-        if (objects == null) new ArrayList<E>();
+        if (objects == null) {
+            return new ArrayList<E>();
+        }
 
         ArrayList<E> realmObjects = new ArrayList<E>();
         for (E object : objects) {
@@ -1235,7 +1236,9 @@ public final class Realm implements Closeable {
      * @see {@link #copyToRealm(Iterable)}
      */
     public <E extends RealmObject> List<E> copyToRealmOrUpdate(Iterable<E> objects) {
-        if (objects == null) new ArrayList<E>();
+        if (objects == null) {
+            return new ArrayList<E>();
+        }
 
         ArrayList<E> realmObjects = new ArrayList<E>();
         for (E object : objects) {
@@ -1364,6 +1367,7 @@ public final class Realm implements Closeable {
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
+    @SuppressWarnings("unchecked")
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                boolean sortAscending[]) {
         if (fieldNames == null) {
@@ -1578,6 +1582,7 @@ public final class Realm implements Closeable {
         metadataTable.setLong(0, 0, version);
     }
 
+    @SuppressWarnings("unchecked")
     private <E extends RealmObject> Class<? extends RealmObject> getRealmClassFromObject(E object) {
         if (object.realm != null) {
             // This is already a proxy object, get superclass instead
@@ -1588,6 +1593,7 @@ public final class Realm implements Closeable {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {
         Class<? extends RealmObject> realmClass = getRealmClassFromObject(object);
         Class<?> proxyClass = getProxyClass(realmClass);
