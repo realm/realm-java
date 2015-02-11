@@ -3,8 +3,6 @@ package io.realm.internal.test;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import io.realm.internal.Mixed;
-
 public class EmployeeData {
 
     public String firstName;
@@ -13,17 +11,15 @@ public class EmployeeData {
     public boolean driver;
     public byte[] photo;
     public Date birthdate;
-    public Object extra;
     public PhoneData[] phones;
 
-    public EmployeeData(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, Object extra, PhoneData[] phones) {
+    public EmployeeData(String firstName, String lastName, int salary, boolean driver, byte[] photo, Date birthdate, PhoneData[] phones) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.salary = salary;
         this.driver = driver;
         this.photo = photo;
         this.birthdate = birthdate;
-        this.extra = extra;
         this.phones = phones;
     }
 
@@ -42,8 +38,6 @@ public class EmployeeData {
         case 5:
             return birthdate;
         case 6:
-            return Mixed.mixedValue(extra);
-        case 7:
             return phones;
         default:
             throw new IllegalArgumentException("Incorrect index: " + index);

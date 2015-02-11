@@ -16,7 +16,6 @@
 
 #include "io_realm_internal_Row.h"
 #include "util.hpp"
-#include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
 
 using namespace tightdb;
@@ -158,30 +157,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Row_nativeGetByteArray
     }
 }
 
-JNIEXPORT jint JNICALL Java_io_realm_internal_Row_nativeGetMixedType
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Mixed))
-        return 0;
-
-    DataType mixedType = ROW(nativeRowPtr)->get_mixed_type( S(columnIndex) );  // noexcept
-    return static_cast<jint>(mixedType);
-}
-
-JNIEXPORT jobject JNICALL Java_io_realm_internal_Row_nativeGetMixed
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Mixed))
-        return NULL;
-
-    Mixed value = ROW(nativeRowPtr)->get_mixed( S(columnIndex) );  // noexcept
-    try {
-        return CreateJMixedFromMixed(env, value);
-    } CATCH_STD();
-    return NULL;
-}
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Row_nativeGetLink
   (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex)
@@ -304,17 +279,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeSetByteArray
     size_t dataLen = S(env->GetArrayLength(value));
     ROW(nativeRowPtr)->set_binary( S(columnIndex), BinaryData(reinterpret_cast<char*>(bytePtr), dataLen));
     env->ReleaseByteArrayElements(value, bytePtr, 0);
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeSetMixed
-  (JNIEnv* env, jobject, jlong nativeRowPtr, jlong columnIndex, jobject jMixedValue)
-{
-    TR_ENTER_PTR(nativeRowPtr)
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Mixed))
-        return;
-    try {
-        row_nativeSetMixed(ROW(nativeRowPtr), env, columnIndex, jMixedValue);
-    } CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeSetLink

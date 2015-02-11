@@ -133,19 +133,6 @@ public class Row {
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
 
-
-    public Mixed getMixed(long columnIndex) {
-        return nativeGetMixed(nativePtr, columnIndex);
-    }
-
-    public ColumnType getMixedType(long columnIndex) {
-        return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex));
-    }
-
-    protected native int nativeGetMixedType(long nativePtr, long columnIndex);
-
-    protected native Mixed nativeGetMixed(long nativeRowPtr, long columnIndex);
-
     public long getLink(long columnIndex) {
         return nativeGetLink(nativePtr, columnIndex);
     }
@@ -229,16 +216,6 @@ public class Row {
 
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
 
-
-    public void setMixed(long columnIndex, Mixed data) {
-        parent.checkImmutable();
-        if (data == null) {
-            throw new IllegalArgumentException("Null data is not allowed");
-        }
-        nativeSetMixed(nativePtr, columnIndex, data);
-    }
-
-    protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
 
     public void setLink(long columnIndex, long value) {
         parent.checkImmutable();

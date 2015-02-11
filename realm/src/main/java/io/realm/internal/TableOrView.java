@@ -141,7 +141,6 @@ public interface TableOrView {
 
     byte[] getBinaryByteArray(long columnIndex, long rowIndex);
 
-    Mixed getMixed(long columnIndex, long rowIndex);
 
     /**
      * Get the link index of a cell of the table/view identified by the
@@ -152,8 +151,6 @@ public interface TableOrView {
      * @return
      */
     long getLink(long columnIndex, long rowIndex);
-
-    ColumnType getMixedType(long columnIndex, long rowIndex);
 
     Table getSubtable(long columnIndex, long rowIndex);
 
@@ -224,8 +221,6 @@ public interface TableOrView {
     void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data);
 
     void setDate(long columnIndex, long rowIndex, Date date);
-
-    void setMixed(long columnIndex, long rowIndex, Mixed data);
 
     boolean isNullLink(long columnIndex, long rowIndex);
 

@@ -240,7 +240,6 @@ public class JNITransactions extends AndroidTestCase {
         try { table.setDate(0,0,new Date(0));       fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setIndex(0);                    fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setLong(0,0,0);                 fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.setMixed(0,0,null);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setString(0,0,"");              fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.updateFromSpec(null);           fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
@@ -259,7 +258,6 @@ public class JNITransactions extends AndroidTestCase {
         try { v.setDate(0, 0, new Date());          fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.setLong(0, 0, 0);                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.setString(0,0,"");                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.setMixed(0, 0, null);               fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         t.endRead();
     }

@@ -305,21 +305,6 @@ public class TableView implements TableOrView, Closeable {
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
 
-    @Override
-    public ColumnType getMixedType(long columnIndex, long rowIndex) {
-        return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
-    }
-
-    protected native int nativeGetMixedType(long nativeViewPtr, long columnIndex, long rowIndex);
-
-    @Override
-    public Mixed getMixed(long columnIndex, long rowIndex){
-        return nativeGetMixed(nativePtr, columnIndex, rowIndex);
-    }
-
-    protected native Mixed nativeGetMixed(long nativeViewPtr, long columnIndex, long rowIndex);
-
-
     public long getLink(long columnIndex, long rowIndex){
         return nativeGetLink(nativePtr, columnIndex, rowIndex);
     }
@@ -475,21 +460,6 @@ public class TableView implements TableOrView, Closeable {
     }
 
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
-
-    /**
-     * Sets the value for a particular (mixed typed) cell.
-     *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @param data
-     */
-    @Override
-    public void setMixed(long columnIndex, long rowIndex, Mixed data){
-        if (parent.isImmutable()) throwImmutable();
-        nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
-    }
-
-    protected native void nativeSetMixed(long nativeViewPtr, long columnIndex, long rowIndex, Mixed value);
 
     public void setLink(long columnIndex, long rowIndex, long value){
         if (parent.isImmutable()) throwImmutable();

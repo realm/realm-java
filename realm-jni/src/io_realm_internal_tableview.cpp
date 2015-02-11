@@ -16,7 +16,6 @@
 
 #include "util.hpp"
 #include "io_realm_internal_TableView.h"
-#include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
 #include "tablequery.hpp"
 #include <ostream>
@@ -250,30 +249,6 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_TableView_nativeGetByteArray
     return NULL;
 }
 
-JNIEXPORT jint JNICALL Java_io_realm_internal_TableView_nativeGetMixedType(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Mixed))
-            return 0;
-    } CATCH_STD()
-    DataType mixedType = TV(nativeViewPtr)->get_mixed_type( S(columnIndex), S(rowIndex));  // noexcept
-    return static_cast<jint>(mixedType);
-}
-
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeGetMixed(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Mixed))
-            return NULL;
-        Mixed value = TV(nativeViewPtr)->get_mixed( S(columnIndex), S(rowIndex));   // noexcept
-        return CreateJMixedFromMixed(env, value);
-    } CATCH_STD()
-    return NULL;
-}
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetLink
   (JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex)
@@ -411,17 +386,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetByteArray(
             !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_Binary))
             return;
         tbl_nativeDoByteArray(&TableView::set_binary, TV(nativeViewPtr), env, columnIndex, rowIndex, byteArray);
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetMixed(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !INDEX_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex))
-            return;
-        tbl_nativeDoMixed(&TableView::set_mixed, TV(nativeViewPtr), env, columnIndex, rowIndex, jMixedValue);
     } CATCH_STD()
 }
 

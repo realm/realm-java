@@ -486,9 +486,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
             case DATE:
                 nativeInsertDate(nativePtr, columnIndex, rowIndex, ((Date)value).getTime()/1000);
                 break;
-            case MIXED:
-                nativeInsertMixed(nativePtr, columnIndex, rowIndex, Mixed.mixedValue(value));
-                break;
             case BINARY:
                 nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
                 break;
@@ -721,11 +718,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
             nativeInsertString(nativePtr, columnIndex, rowIndex, value);
         }
 
-        public void insertMixed(long columnIndex, long rowIndex, Mixed data) {
-            checkImmutable();
-            nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
-        }
-
         /*
 
         public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
@@ -771,8 +763,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
 
     protected native void nativeInsertString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
-
-    protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
 
 
     /* public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
@@ -867,20 +857,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
-
-    @Override
-    public Mixed getMixed(long columnIndex, long rowIndex) {
-        return nativeGetMixed(nativePtr, columnIndex, rowIndex);
-    }
-
-    @Override
-    public ColumnType getMixedType(long columnIndex, long rowIndex) {
-        return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
-    }
-
-    protected native int nativeGetMixedType(long nativePtr, long columnIndex, long rowIndex);
-
-    protected native Mixed nativeGetMixed(long nativeTablePtr, long columnIndex, long rowIndex);
 
     public long getLink(long columnIndex, long rowIndex) {
         return nativeGetLink(nativePtr, columnIndex, rowIndex);
@@ -1066,25 +1042,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
-
-    /**
-     * Sets the value for a (mixed typed) cell.
-     *
-     * @param columnIndex
-     *            column index of the cell
-     * @param rowIndex
-     *            row index of the cell
-     * @param data
-     */
-    @Override
-    public void setMixed(long columnIndex, long rowIndex, Mixed data) {
-        checkImmutable();
-        if (data == null)
-            throw new IllegalArgumentException();
-        nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
-    }
-
-    protected native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);
 
     public void setLink(long columnIndex, long rowIndex, long value) {
         checkImmutable();
