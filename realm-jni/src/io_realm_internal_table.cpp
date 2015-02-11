@@ -1406,12 +1406,13 @@ bool check_valid_primary_key_column(JNIEnv* env, Table* table, size_t column_ind
                         error_msg << "it already contains duplicate values: " << val;
                         ThrowException(env, IllegalArgument, error_msg.str());
                         return false;
-                    } else {
+                    }
+                    else {
                         val = next_val;
                     }
                 }
             }
-            break;
+            return true;
 
         case type_String:
             if (results.size() > 1) {
@@ -1424,19 +1425,18 @@ bool check_valid_primary_key_column(JNIEnv* env, Table* table, size_t column_ind
                         error_msg << "it already contains duplicate values: " << str;
                         ThrowException(env, IllegalArgument, error_msg.str());
                         return false;
-                    } else {
+                    }
+                    else {
                         str = next_str;
                     }
                 }
             }
-        break;
+            return true;
 
         default:
             ThrowException(env, IllegalArgument, "Invalid primary key type: " + column_type);
             return false;
     }
-
-    return true;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
@@ -1445,7 +1445,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
     try {
         Table* table = TBL(nativeTablePtr);
         Table* pk_table = TBL(nativePrivateKeyTablePtr);
-        const string table_name = table->get_name();
+        const char* table_name = table->get_name().data();
         size_t row_index = pk_table->find_first_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, table_name);
 
         // I
@@ -1455,7 +1455,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
                 pk_table->remove(row_index);
             }
             return jlong(io_realm_internal_Table_NO_PRIMARY_KEY);
-        } else {
+        }
+        else {
             JStringAccessor columnName2(env, columnName);
             size_t primary_key_column_index = table->get_column_index(columnName2);
             if (row_index == tightdb::not_found) {
@@ -1465,7 +1466,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
                     pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_index, table_name);
                     pk_table->set_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, primary_key_column_index);
                 }
-            } else {
+            }
+            else {
                 // Primary key already exists
                 // We only wish to check for duplicate values if a column isn't already a primary key
                 Row* row = new Row((*pk_table)[row_index]);
