@@ -1027,12 +1027,15 @@ public final class Realm implements Closeable {
      */
     @Deprecated
     public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
-        throw new RealmException("This method has been disabled");
-//        if (destination == null) {
-//            throw new IllegalArgumentException("The destination argument cannot be null");
-//        }
-//        checkIfValid();
-//        transaction.writeToFile(destination, key);
+        if (destination == null) {
+            throw new IllegalArgumentException("The destination argument cannot be null");
+        }
+        checkIfValid();
+        if (key != null) {
+            throw new RealmException("This method has been disabled");
+        } else {
+            transaction.writeToFile(destination, key);
+        }
     }
 
 
