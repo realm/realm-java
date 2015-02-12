@@ -34,10 +34,7 @@ public class TestHelper {
             return ColumnType.DOUBLE;
         if (o instanceof Date)
             return ColumnType.DATE;
-        if (o instanceof byte[])
-            return ColumnType.BINARY;
-
-        return ColumnType.MIXED;
+        return ColumnType.BINARY;
     }
 
 
@@ -55,7 +52,6 @@ public class TestHelper {
         t.addColumn(ColumnType.DOUBLE, "double");
         t.addColumn(ColumnType.FLOAT, "float");
         t.addColumn(ColumnType.INTEGER, "long");
-        t.addColumn(ColumnType.MIXED, "mixed");
         t.addColumn(ColumnType.STRING, "string");
         t.addColumn(ColumnType.TABLE, "table");
 

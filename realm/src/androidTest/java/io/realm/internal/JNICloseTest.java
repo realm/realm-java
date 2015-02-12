@@ -121,8 +121,7 @@ public class JNICloseTest extends AndroidTestCase {
         view.getDouble(3, 0);
         view.getFloat(4, 0);
         view.getLong(5, 0);
-        view.getMixed(6, 0);
-        view.getString(7, 0);
+        view.getString(6, 0);
 
         // TODO - add all methods from view
     }

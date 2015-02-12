@@ -84,14 +84,12 @@ public class JNITableInsertTest extends TestCase {
         tableSpec.addColumn(ColumnType.STRING, "string");
         tableSpec.addColumn(ColumnType.BINARY, "Bin");
         tableSpec.addColumn(ColumnType.DATE, "date");
-        tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
         subspec.addColumn(ColumnType.INTEGER, "sub-num");
         subspec.addColumn(ColumnType.STRING, "sub-str");
         table.updateFromSpec(tableSpec);
 
         byte[] buf = new byte[23];
-        Mixed mixedSubtable = new Mixed(ColumnType.TABLE);
         Date date = new Date();
         long mixed = 123;
 
@@ -106,7 +104,7 @@ public class JNITableInsertTest extends TestCase {
 
         Object[] rowData1 = new Object[]{false, 7, "hi1", new byte[]{0, 2, 3}, date, "mix1", null};
         Object[] rowData2 = new Object[]{true, 12345567789L, "hello", new byte[]{0}, date, buf, null};
-        Object[] rowData3 = new Object[]{false, (byte) 17, "hi3", buf, date, mixedSubtable, null};
+        Object[] rowData3 = new Object[]{false, (byte) 17, "hi3", buf, date, null};
         // TODO: support insert of mixed subtable
 
         table.addAt(1, rowData1);
@@ -158,7 +156,6 @@ public class JNITableInsertTest extends TestCase {
         tableSpec.addColumn(ColumnType.STRING, "string");
         tableSpec.addColumn(ColumnType.BINARY, "Bin");
         tableSpec.addColumn(ColumnType.DATE, "date");
-        tableSpec.addColumn(ColumnType.MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("sub");
         subspec.addColumn(ColumnType.INTEGER, "sub-num");
         table.updateFromSpec(tableSpec);

@@ -55,25 +55,4 @@ public class JNIRowTest extends TestCase {
         assertEquals(new Date(10000), row.getDate(5));
         MoreAsserts.assertEquals(newData, row.getBinaryByteArray(6));
     }
-
-    public void testMixed() {
-        Table table = new Table();
-
-        table.addColumn(ColumnType.MIXED, "mixed");
-
-        table.addEmptyRows(2);
-
-        Row row = table.getRow(0);
-        row.setMixed(0, new Mixed(1.5));
-
-        assertEquals(1.5, row.getMixed(0).getDoubleValue());
-
-        Row row2 = table.getRow(1);
-        row2.setMixed(0, new Mixed("test"));
-
-        assertEquals("test", row2.getMixed(0).getStringValue());
-
-
-    }
-
 }
