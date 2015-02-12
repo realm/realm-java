@@ -6,6 +6,7 @@
  * Improved error reporting in case of missing accessors in model classes.
  * Re-enabled RealmResults.remove(index) and RealmResults.removeLast().
  * Primary keys are now supported through the @PrimaryKey annotation.
+ * Added copyToRealmOrUpdate() and createOrUpdateFromJson() methods, that works for models with primary keys.
  * Fixed error when instantiating a Realm with the wrong key.
  * Throw an exception if deleteRealmFile() is called when there is an open instance of the Realm.
  * Made migrations and compression methods synchronised.

@@ -16,14 +16,6 @@
 
 package io.realm;
 
-import android.util.JsonReader;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-
 import io.realm.annotations.RealmClass;
 import io.realm.internal.Row;
 
@@ -92,14 +84,6 @@ public abstract class RealmObject {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
         row.getTable().moveLastOver(row.getIndex());
-    }
-
-    void populateUsingJsonObject(JSONObject json) throws JSONException {
-        throw new IllegalStateException("Only use this method on objects created or fetched in a Realm, Realm.createObject() or Realm.where()");
-    }
-
-    void populateUsingJsonStream(JsonReader json) throws IOException {
-        throw new IllegalStateException("Only use this method on objects created or fetched in a Realm, Realm.createObject() or Realm.where()");
     }
 
     /**

@@ -27,6 +27,7 @@ import android.util.JsonReader;
 import android.util.Log;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Closeable;
@@ -51,6 +52,7 @@ import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
+import io.realm.internal.RealmJson;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
@@ -156,11 +158,12 @@ public final class Realm implements Closeable {
     private final String path;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
+    private final RealmJson realmJson = getRealmJson();
     private final Map<Class<?>, String> simpleClassNames = new HashMap<Class<?>, String>(); // Map between original class and their class name
     private final Map<String, Class<?>> generatedClasses = new HashMap<String, Class<?>>(); // Map between generated class names and their implementation
     private final Map<Class<?>, Constructor> constructors = new HashMap<Class<?>, Constructor>();
     private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
-    private final Map<Class<?>, Method> copyObjectMethods = new HashMap<Class<?>, Method>();
+    private final Map<Class<?>, Method> insertOrUpdateMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
@@ -172,6 +175,8 @@ public final class Realm implements Closeable {
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
+
+    private RealmJson realmJsonClass;
 
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
@@ -245,6 +250,24 @@ public final class Realm implements Closeable {
     private void removeHandler(Handler handler) {
         handler.removeCallbacksAndMessages(null);
         handlers.remove(handler);
+    }
+
+    public RealmJson getRealmJson() {
+        Class<?> clazz;
+        try {
+            clazz = Class.forName("io.realm.RealmJsonImpl");
+            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            return (RealmJson) constructor.newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new RealmException("Could not find io.realm.RealmJsonImpl", e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("Could not create an instance of io.realm.RealmJsonImpl", e);
+        } catch (InstantiationException e) {
+            throw new RealmException("Could not create an instance of io.realm.RealmJsonImpl", e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not create an instance of io.realm.RealmJsonImpl", e);
+        }
     }
 
     private class RealmCallback implements Handler.Callback {
@@ -516,6 +539,7 @@ public final class Realm implements Closeable {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static void initializeRealm(Realm realm) {
         Class<?> validationClass;
         try {
@@ -531,7 +555,6 @@ public final class Realm implements Closeable {
         }
         List<String> proxyClasses;
         try {
-            //noinspection unchecked
             proxyClasses = (List<String>) getProxyClassesMethod.invoke(null);
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not execute the getProxyClasses method in the ValidationList class: " + APT_NOT_EXECUTED_MESSAGE);
@@ -632,7 +655,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object for each object in a JSON array. This must be done inside a transaction.
+     * Create a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm
      * and unknown properties will be ignored.
      *
@@ -642,12 +665,14 @@ public final class Realm implements Closeable {
      * @throws RealmException if mapping from JSON fails.
      */
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, JSONArray json) {
-        if (clazz == null || json == null) return;
+        if (clazz == null || json == null) {
+            return;
+        }
 
         for (int i = 0; i < json.length(); i++) {
             E obj = createObject(clazz);
             try {
-                obj.populateUsingJsonObject(json.getJSONObject(i));
+                realmJson.populateUsingJsonObject(obj, json.getJSONObject(i));
             } catch (Exception e) {
                 throw new RealmException("Could not map Json", e);
             }
@@ -655,7 +680,35 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object for each object in a JSON array. This must be done inside a transaction.
+     * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
+     * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param json  Array with object data.
+     *
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createAllFromJson(Class, org.json.JSONArray)}.
+     */
+    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
+        if (clazz == null || json == null) {
+            return;
+        }
+        checkHasPrimaryKey(clazz);
+
+        for (int i = 0; i < json.length(); i++) {
+            E obj = createStandaloneRealmObjectInstance(clazz);
+            try {
+                realmJson.populateUsingJsonObject(obj, json.getJSONObject(i));
+                copyToRealmOrUpdate(obj);
+            } catch (Exception e) {
+                throw new RealmException("Could not map Json", e);
+            }
+        }
+    }
+
+    /**
+     * Create a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm
      * and unknown properties will be ignored.
      *
@@ -665,7 +718,9 @@ public final class Realm implements Closeable {
      * @throws RealmException if mapping from JSON fails.
      */
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, String json) {
-        if (clazz == null || json == null || json.length() == 0) return;
+        if (clazz == null || json == null || json.length() == 0) {
+            return;
+        }
 
         JSONArray arr;
         try {
@@ -678,7 +733,34 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object for each object in a JSON array. This must be done inside a transaction.
+     * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
+     * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param json  String with an array of JSON objects.
+     *
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createAllFromJson(Class, String)}
+     */
+    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
+        if (clazz == null || json == null || json.length() == 0) {
+            return;
+        }
+        checkHasPrimaryKey(clazz);
+
+        JSONArray arr;
+        try {
+            arr = new JSONArray(json);
+        } catch (JSONException e) {
+            throw new RealmException("Could not create JSON array from string", e);
+        }
+
+        createOrUpdateAllFromJson(clazz, arr);
+    }
+
+    /**
+     * Create a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm
      * and unknown properties will be ignored.
      *
@@ -691,14 +773,48 @@ public final class Realm implements Closeable {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        if (clazz == null || inputStream == null) return;
+        if (clazz == null || inputStream == null) {
+            return;
+        }
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
             reader.beginArray();
             while (reader.hasNext()) {
                 E obj = createObject(clazz);
-                obj.populateUsingJsonStream(reader);
+                realmJson.populateUsingJsonStream(obj, reader);
+            }
+            reader.endArray();
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
+     * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
+     * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param in    InputStream with a list of object data in JSON format.
+     *
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createOrUpdateAllFromJson(Class, java.io.InputStream)}
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) throws IOException {
+        if (clazz == null || in == null) {
+            return;
+        }
+        checkHasPrimaryKey(clazz);
+
+        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+        try {
+            reader.beginArray();
+            while (reader.hasNext()) {
+                E obj = createStandaloneRealmObjectInstance(clazz);
+                realmJson.populateUsingJsonStream(obj, reader);
+                copyToRealmOrUpdate(obj);
             }
             reader.endArray();
         } finally {
@@ -716,14 +832,46 @@ public final class Realm implements Closeable {
      * @return Created object or null if no json data was provided.
      *
      * @throws RealmException if the mapping from JSON fails.
+     * @see {@link #createOrUpdateObjectFromJson(Class, org.json.JSONObject)}
      */
     public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, JSONObject json) {
-        if (clazz == null || json == null) return null;
+        if (clazz == null || json == null) {
+            return null;
+        }
 
         E obj = createObject(clazz);
         try {
-            obj.populateUsingJsonObject(json);
+            realmJson.populateUsingJsonObject(obj, json);
         } catch (Exception e) {
+            throw new RealmException("Could not map Json", e);
+        }
+
+        return obj;
+    }
+
+    /**
+     * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
+     * found a new object will be saved in the Realm. This must happen within a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param json  {@link org.json.JSONObject} with object data.
+     * @return Created or updated {@link io.realm.RealmObject}.
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createObjectFromJson(Class, org.json.JSONObject)}
+     */
+    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
+        if (clazz == null || json == null) {
+            return null;
+        }
+        checkHasPrimaryKey(clazz);
+
+        E obj = createStandaloneRealmObjectInstance(clazz);
+
+        try {
+            realmJson.populateUsingJsonObject(obj, json);
+            copyToRealmOrUpdate(obj);
+        } catch (JSONException e) {
             throw new RealmException("Could not map Json", e);
         }
 
@@ -742,7 +890,9 @@ public final class Realm implements Closeable {
      * @throws RealmException if mapping to json failed.
      */
     public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, String json) {
-        if (clazz == null || json == null || json.length() == 0) return null;
+        if (clazz == null || json == null || json.length() == 0) {
+            return null;
+        }
 
         JSONObject obj;
         try {
@@ -752,6 +902,33 @@ public final class Realm implements Closeable {
         }
 
         return createObjectFromJson(clazz, obj);
+    }
+
+    /**
+     * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
+     * found a new object will be saved in the Realm. This must happen within a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param json  String with object data in JSON format.
+     * @return Created or updated {@link io.realm.RealmObject}.
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createObjectFromJson(Class, String)})}
+     */
+    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
+        if (clazz == null || json == null || json.length() == 0) {
+            return null;
+        }
+        checkHasPrimaryKey(clazz);
+
+        JSONObject obj;
+        try {
+            obj = new JSONObject(json);
+        } catch (Exception e) {
+            throw new RealmException("Could not create Json object from string", e);
+        }
+
+        return createOrUpdateObjectFromJson(clazz, obj);
     }
 
     /**
@@ -768,15 +945,57 @@ public final class Realm implements Closeable {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
-        if (inputStream == null || clazz == null) return null;
+        if (clazz == null || inputStream == null) {
+            return null;
+        }
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
             E obj = createObject(clazz);
-            obj.populateUsingJsonStream(reader);
+            realmJson.populateUsingJsonStream(obj, reader);
             return obj;
         } finally {
             reader.close();
+        }
+    }
+
+    /**
+     * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
+     * found a new object will be saved in the Realm. This must happen within a transaction.
+     *
+     * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
+     * @param in    Inputstream with object data in JSON format.
+     * @return Created or updated {@link io.realm.RealmObject}.
+     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * {@link io.realm.annotations.PrimaryKey}.
+     * @see {@link #createObjectFromJson(Class, java.io.InputStream)}
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) throws IOException {
+        if (clazz == null || in == null) {
+            return null;
+        }
+        checkHasPrimaryKey(clazz);
+
+        E obj = createStandaloneRealmObjectInstance(clazz);
+        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+        try {
+            realmJson.populateUsingJsonStream(obj, reader);
+            copyToRealmOrUpdate(obj);
+        } catch (RuntimeException e) {
+            throw new RealmException("Could not create Json object from string", e);
+        }
+
+        return obj;
+    }
+
+    private <E extends RealmObject> E createStandaloneRealmObjectInstance(Class<E> clazz) {
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException e) {
+            throw new RealmException("Could not create an object of class: " + clazz, e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not create an object of class: " + clazz, e);
         }
     }
 
@@ -806,12 +1025,17 @@ public final class Realm implements Closeable {
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
      */
+    @Deprecated
     public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
         if (destination == null) {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
         checkIfValid();
-        transaction.writeToFile(destination, key);
+        if (key != null) {
+            throw new RealmException("This method has been disabled");
+        } else {
+            transaction.writeToFile(destination, key);
+        }
     }
 
 
@@ -946,60 +1170,46 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Copies a RealmObject to the Realm instance and returns the copy. It is important to notice
-     * that any further changes to the original RealmObject will not be reflected in the Realm copy.
+     * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
+     * will not be reflected in the Realm copy.
      *
      * @param object {@link io.realm.RealmObject} to copy to the Realm.
      * @return A managed RealmObject with its properties backed by the Realm.
      *
-     * @throws io.realm.exceptions.RealmException if the RealmObject has already been added to the Realm.
      * @throws java.lang.IllegalArgumentException if RealmObject is {@code null}.
      */
     public <E extends RealmObject> E copyToRealm(E object) {
-        if (object == null) {
-            throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
-        }
-
-        // Object is already in this Realm
-        if (object.realm != null && object.realm.id == this.id) {
+        checkNotNullObject(object);
+        if (isObjectInRealm(object)) {
             return object;
         }
 
-        Class<?> generatedClass;
-        Class<?> objectClass;
-        if (object.realm != null) {
-            // This is already a proxy object from another Realm, get superclass instead (invariant as we don't support subclasses)
-            generatedClass = object.getClass();
-            objectClass = object.getClass().getSuperclass();
-        } else {
-            generatedClass = getProxyClass(object.getClass());
-            objectClass = object.getClass();
-        }
-
-        Method method = copyObjectMethods.get(generatedClass);
-        if (method == null) {
-            try {
-                method = generatedClass.getMethod("copyToRealm", new Class[] {Realm.class, objectClass});
-            } catch (NoSuchMethodException e) {
-                throw new RealmException("Could not find the copyToRealm() method in generated proxy class " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
-            }
-            copyObjectMethods.put(generatedClass, method);
-        }
-
-        try {
-            Object result = method.invoke(null, this, object);
-            return (E) result;
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not execute the copyToRealm method : " + APT_NOT_EXECUTED_MESSAGE, e);
-        } catch (InvocationTargetException e) {
-            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class  " + generatedClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
-        }
+        return copyOrUpdate(object, false);
     }
 
     /**
-     * Copies a collection of RealmObjects to the Realm instance and returns their copy. It is
-     * important to notice that any further changes to the original RealmObjects will not be
-     * reflected in the Realm copies.
+     * Updates an existing RealmObject that is identified by the same {@link io.realm.annotations.PrimaryKey} or create
+     * a new copy if no existing object could be found.
+     *
+     * @param object    {@link io.realm.RealmObject} to copy or update.
+     * @return The new or updated RealmObject with all its properties backed by the Realm.
+     *
+     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
+     * @see {@link #copyToRealm(RealmObject)}
+     */
+    public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
+        checkNotNullObject(object);
+        checkHasPrimaryKey(object);
+        if (isObjectInRealm(object)) {
+            return object;
+        }
+
+        return copyOrUpdate(object, true);
+    }
+
+    /**
+     * Copies a collection of RealmObjects to the Realm instance and returns their copy. Any further changes
+     * to the original RealmObjects will not be reflected in the Realm copies.
      *
      * @param objects RealmObjects to copy to the Realm.
      * @return A list of the the converted RealmObjects that all has their properties managed by the Realm.
@@ -1008,7 +1218,9 @@ public final class Realm implements Closeable {
      * @throws java.lang.IllegalArgumentException if any of the elements in the input collection is {@code null}.
      */
     public <E extends RealmObject> List<E> copyToRealm(Iterable<E> objects) {
-        if (objects == null) new ArrayList<E>();
+        if (objects == null) {
+            return new ArrayList<E>();
+        }
 
         ArrayList<E> realmObjects = new ArrayList<E>();
         for (E object : objects) {
@@ -1018,6 +1230,28 @@ public final class Realm implements Closeable {
         return realmObjects;
     }
 
+    /**
+     * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or create a
+     * new copy if no existing object could be found.
+     *
+     * @param objects   List of objects to update or copy into Realm.
+     * @return A list of all the new or updated RealmObjects.
+     *
+     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
+     * @see {@link #copyToRealm(Iterable)}
+     */
+    public <E extends RealmObject> List<E> copyToRealmOrUpdate(Iterable<E> objects) {
+        if (objects == null) {
+            return new ArrayList<E>();
+        }
+
+        ArrayList<E> realmObjects = new ArrayList<E>();
+        for (E object : objects) {
+            realmObjects.add(copyToRealmOrUpdate(object));
+        }
+
+        return realmObjects;
+    }
 
     private static String getProxyClassName(String simpleClassName) {
         return "io.realm." + simpleClassName + "RealmProxy";
@@ -1138,6 +1372,7 @@ public final class Realm implements Closeable {
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
+    @SuppressWarnings("unchecked")
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                boolean sortAscending[]) {
         if (fieldNames == null) {
@@ -1352,6 +1587,63 @@ public final class Realm implements Closeable {
         metadataTable.setLong(0, 0, version);
     }
 
+    @SuppressWarnings("unchecked")
+    private <E extends RealmObject> Class<? extends RealmObject> getRealmClassFromObject(E object) {
+        if (object.realm != null) {
+            // This is already a proxy object, get superclass instead
+            // INVARIANT: We don't support subclasses yet so super class is always correct type
+            return (Class<? extends RealmObject>) object.getClass().getSuperclass();
+        } else {
+            return object.getClass();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {
+        Class<? extends RealmObject> realmClass = getRealmClassFromObject(object);
+        Class<?> proxyClass = getProxyClass(realmClass);
+        Method method = insertOrUpdateMethods.get(realmClass);
+        if (method == null) {
+            try {
+                method = proxyClass.getMethod("copyOrUpdate", new Class[]{Realm.class, realmClass, boolean.class});
+            } catch (NoSuchMethodException e) {
+                throw new RealmException("Could not find the copyOrUpdate() method in generated proxy class for " + proxyClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+            }
+            insertOrUpdateMethods.put(proxyClass, method);
+        }
+        try {
+            Object result = method.invoke(null, this, object, update);
+            return (E) result;
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not execute the copyToRealm method : " + APT_NOT_EXECUTED_MESSAGE, e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class  " + proxyClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+        }
+    }
+
+    private <E extends RealmObject> boolean isObjectInRealm(E object) {
+        return (object.realm != null && object.realm.id == this.id);
+    }
+
+    private <E extends RealmObject> void checkNotNullObject(E object) {
+        if (object == null) {
+            throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
+        }
+    }
+
+    private <E extends RealmObject> void checkHasPrimaryKey(E object) {
+        if (!getTable(object.getClass()).hasPrimaryKey()) {
+            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + simpleClassNames.get(object));
+        }
+    }
+
+    private <E extends RealmObject> void checkHasPrimaryKey(Class<E> clazz) {
+        if (!getTable(clazz).hasPrimaryKey()) {
+            throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
     public static void migrateRealmAtPath(String realmPath, RealmMigration migration) {
         migrateRealmAtPath(realmPath, null, migration, true);
     }

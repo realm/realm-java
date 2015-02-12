@@ -57,12 +57,30 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible
      * to query the objects in this state.
      *
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)}  to properly persist it's elements in
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist it's elements in
      * Realm.
      */
     public RealmList() {
         managedMode = false;
         nonManagedList = new ArrayList<E>();
+    }
+
+    /**
+     * Create a RealmList in non-managed mode with an initial list of elements.
+     * A RealmList in non-managed mode function as a {@link java.util.ArrayList} and it is not
+     * possible to query the objects in this state.
+     *
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all non-managed elements
+     * in Realm.
+     *
+     * @param objects Initial objects in the list.
+     */
+    public RealmList(E... objects) {
+        managedMode = false;
+        nonManagedList = new ArrayList<E>(objects != null ? objects.length : 0);
+        for (int i = 0; i < objects.length; i++) {
+            nonManagedList.add(objects[i]);
+        }
     }
 
     /**

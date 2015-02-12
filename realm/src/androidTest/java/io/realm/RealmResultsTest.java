@@ -19,6 +19,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -684,5 +685,14 @@ public class RealmResultsTest extends AndroidTestCase {
             fail();
         } catch (NoSuchMethodError e) {}
     }
+
+    public void testSubList() {
+        RealmResults<AllTypes> list = testRealm.allObjects(AllTypes.class);
+        list.sort("columnLong");
+        List<AllTypes> sublist = list.subList(Math.max(list.size() - 20, 0), list.size());
+        assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
+    }
+
+
     // TODO: More extended tests of querying all types must be done.
 }
