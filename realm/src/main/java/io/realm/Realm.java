@@ -41,8 +41,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -167,6 +169,7 @@ public final class Realm implements Closeable {
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
+    private static final Set<Class<? extends RealmObject>> customSchema = new HashSet<Class<? extends RealmObject>>();
     private static final long UNVERSIONED = -1;
 
     // Package protected to be reachable by proxy classes
@@ -562,6 +565,16 @@ public final class Realm implements Closeable {
             throw new RealmException("An exception was thrown in the getProxyClasses method in the ValidationList class: " + APT_NOT_EXECUTED_MESSAGE);
         }
 
+        // Custom schema overrides any schema already defined
+        if (customSchema.size() > 0) {
+            proxyClasses = new ArrayList<String>();
+            for (Class<? extends RealmObject> clazz : customSchema) {
+                proxyClasses.add(clazz.getName());
+            }
+        }
+
+
+
         long version = realm.getVersion();
         boolean commitNeeded = false;
         try {
@@ -650,6 +663,24 @@ public final class Realm implements Closeable {
                 realm.commitTransaction();
             } else {
                 realm.cancelTransaction();
+            }
+        }
+    }
+
+    /**
+     * Override the standard behavior of all classes extended RealmObject being part of the schema.
+     * Use this method to define the schema as only the classes given here.
+     *
+     * This class must be called before calling {@link #getInstance(android.content.Context)}
+     *
+     * If {@code null} is given as parameter, the Schema is reset to use all known classes.
+     *
+     */
+    static void setSchema(Class<? extends RealmObject>... schemaClass) {
+        customSchema.clear();
+        if (schemaClass != null) {
+            for (int i = 0; i < schemaClass.length; i++) {
+                customSchema.add(schemaClass[i]);
             }
         }
     }
