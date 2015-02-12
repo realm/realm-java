@@ -12,6 +12,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.MigrationFieldInMiddle;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
 public class RealmMigrationTests extends AndroidTestCase {
@@ -62,12 +63,34 @@ public class RealmMigrationTests extends AndroidTestCase {
             }
         });
 
-        Realm realm = Realm.getInstance(getContext(), REALM);
         try {
-            RealmQuery<MigrationFieldInMiddle> results = realm.allObjects(MigrationFieldInMiddle.class).where().equalTo("thirdField", "Foo");
-        } catch (RealmException expectedButWrong) {
+            Realm.getInstance(getContext(), REALM);
+        } catch (IllegalStateException expectedButWrong) {
             return;
         }
         fail("This shouldn't happen according to https://github.com/realm/realm-java/issues/846");
     }
+
+    public void testAddingMiddleField() throws IOException {
+        String REALM = "field_added_migration.realm";
+        Realm.deleteRealmFile(getContext(), REALM);
+        copyRealmFromAssets(REALM);
+        Realm.setSchema(MigrationAddedFieldInMiddle.class);
+        Realm.migrateRealmAtPath(new File(getContext().getFilesDir(), REALM).getAbsolutePath(), new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                Table table = realm.getTable(MigrationAddedFieldInMiddle.class);
+                table.addColumn(ColumnType.STRING, "newField");
+                return 2;
+            }
+        });
+
+        try {
+            Realm.getInstance(getContext(), REALM);
+        } catch (IllegalStateException expectedButWrong) {
+            return;
+        }
+        fail("This shouldn't happen according to https://github.com/realm/realm-java/issues/846");
+    }
+
 }
