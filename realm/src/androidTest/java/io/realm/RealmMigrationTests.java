@@ -9,7 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.MigrationFieldInMiddle;
+import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.Table;
 
 public class RealmMigrationTests extends AndroidTestCase {
 
@@ -43,5 +46,28 @@ public class RealmMigrationTests extends AndroidTestCase {
         Realm realm = Realm.getInstance(getContext(), REALM_NAME);
         int result = realm.where(AllTypes.class).equalTo("columnString", "Foo").findAll().size();
         assertEquals(0, result);
+    }
+
+    public void testRemovingMiddleField() throws IOException {
+        String REALM = "field_removed_migration.realm";
+        Realm.deleteRealmFile(getContext(), REALM);
+        copyRealmFromAssets(REALM);
+        Realm.setSchema(MigrationFieldInMiddle.class);
+        Realm.migrateRealmAtPath(new File(getContext().getFilesDir(), REALM).getAbsolutePath(), new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                Table table = realm.getTable(MigrationFieldInMiddle.class);
+                table.removeColumn(table.getColumnIndex("secondField"));
+                return 1;
+            }
+        });
+
+        Realm realm = Realm.getInstance(getContext(), REALM);
+        try {
+            RealmQuery<MigrationFieldInMiddle> results = realm.allObjects(MigrationFieldInMiddle.class).where().equalTo("thirdField", "Foo");
+        } catch (RealmException expectedButWrong) {
+            return;
+        }
+        fail("This shouldn't happen according to https://github.com/realm/realm-java/issues/846");
     }
 }
