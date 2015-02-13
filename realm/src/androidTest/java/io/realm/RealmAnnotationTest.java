@@ -56,9 +56,16 @@ public class RealmAnnotationTest extends AndroidTestCase {
         assertFalse(table.hasIndex(table.getColumnIndex("notIndexString")));
     }
 
-    public void testHasPrimaryKey() {
+    public void testHasPrimaryKeyNoIntIndex() {
         Table table = testRealm.getTable(AnnotationTypes.class);
         assertTrue(table.hasPrimaryKey());
+        assertFalse(table.hasIndex(table.getColumnIndex("id")));
+    }
+
+    public void testHasPrimaryKeyStringIndex() {
+        Table table = testRealm.getTable(PrimaryKeyAsString.class);
+        assertTrue(table.hasPrimaryKey());
+        assertTrue(table.hasIndex(table.getColumnIndex("name")));
     }
 
     // Test migrating primary key from string to long with existing data

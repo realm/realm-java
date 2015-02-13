@@ -39,7 +39,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
@@ -67,6 +66,7 @@ public class RealmProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         RealmVersionChecker updateChecker = new RealmVersionChecker(processingEnv);
         updateChecker.executeRealmVersionUpdate();
+        Utils.initialize(processingEnv);
 
         Types typeUtils = processingEnv.getTypeUtils();
         TypeMirror stringType = processingEnv.getElementUtils().getTypeElement("java.lang.String").asType();
@@ -155,7 +155,7 @@ public class RealmProcessor extends AbstractProcessor {
                         }
 
                         TypeMirror fieldType = variableElement.asType();
-                        if (!isValidType(typeUtils, fieldType, validPrimaryKeyTypes)) {
+                        if (!Utils.isValidType(typeUtils, fieldType, validPrimaryKeyTypes)) {
                             error("\"" + variableElement.getSimpleName().toString() + "\" is not allowed as primary key. See @PrimaryKey for allowed types.");
                             return true;
                         }
@@ -163,8 +163,7 @@ public class RealmProcessor extends AbstractProcessor {
                         primaryKey = variableElement;
 
                         // Also add as index if the primary key is a string
-                        String elementTypeCanonicalName = variableElement.asType().toString();
-                        if (elementTypeCanonicalName.equals("java.lang.String") && !indexedFields.contains(variableElement)) {
+                        if (Utils.isString(variableElement) && !indexedFields.contains(variableElement)) {
                             indexedFields.add(variableElement);
                         }
                     }
@@ -177,7 +176,7 @@ public class RealmProcessor extends AbstractProcessor {
                     expectedGetters.add(fieldName);
                     expectedSetters.add(fieldName);
                 } else if (elementKind.equals(ElementKind.CONSTRUCTOR)) {
-                    hasDefaultConstructor = hasDefaultConstructor || isDefaultConstructor(element);
+                    hasDefaultConstructor = hasDefaultConstructor || Utils.isDefaultConstructor(element);
 
                 } else if (elementKind.equals(ElementKind.METHOD)) {
                     ExecutableElement executableElement = (ExecutableElement) element;
@@ -212,7 +211,7 @@ public class RealmProcessor extends AbstractProcessor {
 
                     if (methodName.startsWith("is")) {
                         String methodMinusIs = methodName.substring(2);
-                        String methodMinusIsCapitalised = lowerFirstChar(methodMinusIs);
+                        String methodMinusIsCapitalised = Utils.lowerFirstChar(methodMinusIs);
                         if (fieldNames.contains(methodName)) { // isDone -> isDone
                             expectedGetters.remove(methodName);
                             if (!ignoreFieldNames.contains(methodName)) {
@@ -236,7 +235,7 @@ public class RealmProcessor extends AbstractProcessor {
 
                     if (!found && methodName.startsWith("get")) {
                         String methodMinusGet = methodName.substring(3);
-                        String methodMinusGetCapitalised = lowerFirstChar(methodMinusGet);
+                        String methodMinusGetCapitalised = Utils.lowerFirstChar(methodMinusGet);
                         if (fieldNames.contains(methodMinusGet)) { // mPerson -> getmPerson
                             expectedGetters.remove(methodMinusGet);
                             if (!ignoreFieldNames.contains(methodMinusGet)) {
@@ -259,7 +258,7 @@ public class RealmProcessor extends AbstractProcessor {
                     boolean found = false;
 
                     String methodMinusSet = methodName.substring(3);
-                    String methodMinusSetCapitalised = lowerFirstChar(methodMinusSet);
+                    String methodMinusSetCapitalised = Utils.lowerFirstChar(methodMinusSet);
                     String methodMenusSetPlusIs = "is" + methodMinusSet;
 
                     if (fieldNames.contains(methodMinusSet)) { // mPerson -> setmPerson
@@ -317,8 +316,10 @@ public class RealmProcessor extends AbstractProcessor {
 
         if (!done) {
             RealmValidationListGenerator validationGenerator = new RealmValidationListGenerator(processingEnv, classesToValidate);
+            RealmJSonImplGenerator jsonGenerator = new RealmJSonImplGenerator(processingEnv, classesToValidate);
             try {
                 validationGenerator.generate();
+                jsonGenerator.generate();
                 done = true;
             } catch (IOException e) {
                 error(e.getMessage());
@@ -326,29 +327,6 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         return true;
-    }
-
-    private boolean isValidType(Types typeUtils, TypeMirror type, List<TypeMirror> validTypes) {
-        for (TypeMirror validType : validTypes) {
-            if (typeUtils.isAssignable(type, validType)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isDefaultConstructor(Element constructor) {
-        if (constructor.getModifiers().contains(Modifier.PUBLIC)) {
-            return ((ExecutableElement) constructor).getParameters().isEmpty();
-        }
-
-        return false;
-    }
-
-
-    private static String lowerFirstChar(String input) {
-        return input.substring(0, 1).toLowerCase() + input.substring(1);
     }
 
     private void error(String message, Element element) {

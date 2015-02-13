@@ -1,0 +1,42 @@
+[
+    {
+    	"columnString" : "Foo",
+        "columnLong" : 1,
+        "columnFloat" : 1.23,
+        "columnDouble" : 1.234,
+        "columnBoolean" : true,
+        "columnBinary" : "AQID",
+        "columnDate" : 1000,
+        "columnRealmObject" : {
+            "name" : "Dog1"
+        },
+        "columnRealmList" : [
+            {
+                "name" : "Dog2"
+            },
+            {
+                "name" : "Dog3"
+            }
+        ]
+    },
+    {
+        "columnString" : "Bar",
+        "columnLong" : 1,
+        "columnFloat" : 2.23,
+        "columnDouble" : 2.234,
+        "columnBoolean" : false,
+        "columnBinary" : "AQID",
+        "columnDate" : 2000,
+        "columnRealmObject" : {
+            "name" : "Dog4"
+        },
+        "columnRealmList" : [
+            {
+                "name" : "Dog5"
+            },
+            {
+                "name" : "Dog6"
+            }
+        ]
+    }
+]
