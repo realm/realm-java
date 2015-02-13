@@ -38,6 +38,7 @@ import java.util.concurrent.Future;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.Dog;
+import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsLong;
@@ -1077,8 +1078,8 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnBoolean(false);
                 obj.setColumnBinary(new byte[]{1, 2, 3});
                 obj.setColumnDate(new Date(1000));
-                obj.setColumnRealmObject(new Dog("Dog1"));
-                obj.setColumnRealmList(new RealmList<Dog>(new Dog("Dog2")));
+                obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
+                obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
@@ -1089,8 +1090,8 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnBoolean(true);
                 obj2.setColumnBinary(new byte[] {2, 3, 4});
                 obj2.setColumnDate(new Date(2000));
-                obj2.setColumnRealmObject(new Dog("Dog2"));
-                obj2.setColumnRealmList(new RealmList<Dog>(new Dog("Dog3")));
+                obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
+                obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
                 realm.copyToRealmOrUpdate(obj2);
             }
         });
@@ -1106,9 +1107,9 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(true, obj.isColumnBoolean());
         assertArrayEquals(new byte[]{2, 3, 4}, obj.getColumnBinary());
         assertEquals(new Date(2000), obj.getColumnDate());
-        assertEquals("Dog2", obj.getColumnRealmObject().getName());
+        assertEquals("Dog3", obj.getColumnRealmObject().getName());
         assertEquals(1, obj.getColumnRealmList().size());
-        assertEquals("Dog3", obj.getColumnRealmList().get(0).getName());
+        assertEquals("Dog4", obj.getColumnRealmList().get(0).getName());
     }
 
     // Checks that a standalone object with only default values can override data
@@ -1124,8 +1125,8 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnBoolean(false);
                 obj.setColumnBinary(new byte[]{1, 2, 3});
                 obj.setColumnDate(new Date(1000));
-                obj.setColumnRealmObject(new Dog("Dog1"));
-                obj.setColumnRealmList(new RealmList<Dog>(new Dog("Dog2")));
+                obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
+                obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
@@ -1156,20 +1157,20 @@ public class RealmTest extends AndroidTestCase {
             public void execute(Realm realm) {
                 AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
                 obj.setColumnLong(1);
-                obj.setColumnRealmObject(new Dog("Dog1"));
-                obj.setColumnRealmList(new RealmList<Dog>(new Dog("Dog2")));
+                obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
+                obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
-                obj.setColumnLong(1);
-                obj2.setColumnRealmObject(new Dog("Dog3"));
-                obj2.setColumnRealmList(new RealmList<Dog>(new Dog("Dog4")));
-                realm.copyToRealmOrUpdate(obj);
+                obj2.setColumnLong(1);
+                obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
+                obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
+                realm.copyToRealmOrUpdate(obj2);
             }
         });
 
         assertEquals(1, testRealm.allObjects(AllTypesPrimaryKey.class).size());
-        assertEquals(4, testRealm.allObjects(Dog.class).size());
+        assertEquals(4, testRealm.allObjects(DogPrimaryKey.class).size());
     }
 
     public void testCopyOrUpdateIterable() {
@@ -1195,6 +1196,25 @@ public class RealmTest extends AndroidTestCase {
 
         assertEquals(1, testRealm.allObjects(PrimaryKeyAsLong.class).size());
         assertEquals("Baz", testRealm.allObjects(PrimaryKeyAsLong.class).first().getName());
+    }
+
+    public void testCopyOrUpdateIterableChildObjects() {
+        DogPrimaryKey dog = new DogPrimaryKey(1, "Snoop");
+
+        AllTypesPrimaryKey allTypes1 = new AllTypesPrimaryKey();
+        allTypes1.setColumnLong(1);
+        allTypes1.setColumnRealmObject(dog);
+
+        AllTypesPrimaryKey allTypes2 = new AllTypesPrimaryKey();
+        allTypes1.setColumnLong(2);
+        allTypes2.setColumnRealmObject(dog);
+
+        testRealm.beginTransaction();
+        testRealm.copyToRealmOrUpdate(Arrays.asList(allTypes1, allTypes2));
+        testRealm.commitTransaction();
+
+        assertEquals(2, testRealm.allObjects(AllTypesPrimaryKey.class).size());
+        assertEquals(1, testRealm.allObjects(DogPrimaryKey.class).size());
     }
 
     private void fileCopy(File src, File dst) throws IOException {
