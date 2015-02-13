@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'android-command'
 
 android {
     compileSdkVersion 19
@@ -18,6 +19,10 @@ android {
         }
     }
     productFlavors {
+    }
+
+    command {
+        events 2000
     }
 }
 
