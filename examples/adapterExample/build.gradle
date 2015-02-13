@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'android-command'
 
 android {
     compileSdkVersion 19
@@ -17,7 +18,12 @@ android {
             //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    command {
+        events 2000
+    }
 }
+
 
 tasks.preBuild {
     dependsOn ":realm:androidJar"
