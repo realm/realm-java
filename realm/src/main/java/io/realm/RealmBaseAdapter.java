@@ -23,10 +23,10 @@ import android.widget.BaseAdapter;
 /**
  * The RealmBaseAdapter class is an abstract utility class for binding UI elements to Realm data,
  * much like an {@link android.widget.CursorAdapter}.
- *
+ * <p>
  * This adapter will automatically handle any updates to its data and call
  * {@link #notifyDataSetChanged()} as appropriate.
- *
+ * <p>
  * The RealmAdapter will stop receiving updates if the Realm instance providing the
  * {@link io.realm.RealmResults} is closed. Trying to access read objects, will at this point also
  * result in a {@link io.realm.exceptions.RealmException}.

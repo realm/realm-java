@@ -65,29 +65,29 @@ import io.realm.internal.log.RealmLog;
  * is in charge of creating instances of your RealmObjects. Objects within a Realm can be queried
  * and read at any time. Creating, modifying, and deleting objects must be done while inside a
  * transaction. See {@link #beginTransaction()}
- *
+ * <p>
  * The transactions ensure that multiple instances (on multiple threads) can access the same
  * objects in a consistent state with full ACID guarantees.
- *
+ * <p>
  * It is important to remember to call the {@link #close()} method when done with a Realm
  * instance. Failing to do so can lead to {@link java.lang.OutOfMemoryError} as the native
  * resources cannot be freed.
- *
+ * <p>
  * Realm instances cannot be used across different threads. This means that you have to open an
  * instance on each thread you want to use Realm. Realm instances are cached automatically per
  * thread using reference counting, so as long as the reference count doesn't reach zero, calling
  * {@link #getInstance(android.content.Context)} will just return the cached Realm and should be
  * considered a lightweight operation.
- *
+ * <p>
  * For the UI thread this means that opening and closing Realms should occur in either
  * onCreate/onDestroy or onStart/onStop.
- *
+ * <p>
  * Realm instances coordinate their state across threads using the {@link android.os.Handler}
  * mechanism. This also means that Realm instances on threads without a {@link android.os.Looper}
  * cannot receive updates unless {@link #refresh()} is manually called.
- *
+ * <p>
  * A standard pattern for working with Realm in Android activities can be seen below:
- *
+ * <p>
  * <pre>
  * public class RealmActivity extends Activity {
  *
@@ -107,9 +107,9 @@ import io.realm.internal.log.RealmLog;
  *   }
  * }
  * </pre>
- *
+ * <p>
  * Realm supports String and byte fields containing up to 16 MB.
- *
+ * <p>
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
@@ -212,7 +212,7 @@ public final class Realm implements Closeable {
 
     /**
      * Closes the Realm instance and all its resources.
-     * 
+     * <p>
      * It's important to always remember to close Realm instances when you're done with it in order 
      * not to leak memory, file descriptors or grow the size of Realm file out of measure.
      */
@@ -268,7 +268,7 @@ public final class Realm implements Closeable {
 
     /**
      * Set the auto-refresh status of the Realm instance.
-     *
+     * <p>
      * Auto-refresh is a feature that enables automatic update of the current realm instance and all its derived objects
      * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in another thread.
      * This feature is only available if the realm instance lives is a {@link android.os.Looper} enabled thread.
@@ -303,7 +303,7 @@ public final class Realm implements Closeable {
     /**
      * Realm static constructor for the default realm "default.realm".
      * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
+     * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
@@ -320,7 +320,7 @@ public final class Realm implements Closeable {
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
+     * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context  an Android {@link android.content.Context}
@@ -339,7 +339,7 @@ public final class Realm implements Closeable {
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
+     * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
@@ -358,7 +358,7 @@ public final class Realm implements Closeable {
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
+     * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
@@ -377,7 +377,7 @@ public final class Realm implements Closeable {
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
+     * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param writeableFolder a File object representing a writeable folder
@@ -395,7 +395,7 @@ public final class Realm implements Closeable {
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
+     * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param writeableFolder a File object representing a writeable folder
@@ -414,7 +414,7 @@ public final class Realm implements Closeable {
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
+     * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param writeableFolder a File object representing a writeable folder
@@ -433,7 +433,7 @@ public final class Realm implements Closeable {
     /**
      * Realm static constructor.
      * {link io.realm.close} must be called when you are done using the Realm instance.
-     *
+     * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param writeableFolder a File object representing a writeable folder
@@ -782,9 +782,9 @@ public final class Realm implements Closeable {
 
     /**
      * Write a compacted copy of the Realm to the given destination File.
-     *
+     * <p>
      * The destination file cannot already exist.
-     *
+     * <p>
      * Note that if this is called from within a write transaction it writes the
      * current data, and not the data as it was when the last write transaction was committed.
      *
@@ -797,12 +797,12 @@ public final class Realm implements Closeable {
 
     /**
      * Write a compacted and encrypted copy of the Realm to the given destination File.
-     *
+     * <p>
      * The destination file cannot already exist.
-     *
+     * <p>
      * Note that if this is called from within a write transaction it writes the
      * current data, and not the data as it was when the last write transaction was committed.
-     *
+     * <p>
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
      */
@@ -1426,10 +1426,10 @@ public final class Realm implements Closeable {
      * Compact a realm file. A realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
      * Objects within the realm files are untouched.
-     * 
-     * The file must be closed before this method is called.
-     * The file system should have free space for at least a copy of the realm file.
-     * The realm file is left untouched if any file operation fails. 
+     * <p>
+     * The file must be closed before this method is called.<br>
+     * The file system should have free space for at least a copy of the realm file.<br>
+     * The realm file is left untouched if any file operation fails.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to compact
@@ -1465,10 +1465,10 @@ public final class Realm implements Closeable {
      * Compact a realm file. A realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
      * Objects within the realm files are untouched.
-     * 
-     * The file must be closed before this method is called.
-     * The file system should have free space for at least a copy of the realm file.
-     * The realm file is left untouched if any file operation fails. 
+     * <p>
+     * The file must be closed before this method is called.<br>
+     * The file system should have free space for at least a copy of the realm file.<br>
+     * The realm file is left untouched if any file operation fails.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @return true if successful, false if any file operation failed
@@ -1488,7 +1488,7 @@ public final class Realm implements Closeable {
 
     /**
      * Encapsulates a Realm transaction.
-     *
+     * <p>
      * Using this class will automatically handle {@link #beginTransaction()} and {@link #commitTransaction()}
      * If any exception is thrown during the transaction {@link #cancelTransaction()} will be called
      * instead of {@link #commitTransaction()}.
