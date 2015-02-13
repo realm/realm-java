@@ -31,30 +31,21 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
 /**
-<<<<<<< HEAD
- * A RealmResults list contains a list of objects of a given type that matches the query.
- * The objects are not copied from the Realm to the RealmResults list, but just references the original objects.
- * This preserves memory and increase speed.
- * It also implies that any modification to any object in a RealmResults is reflected in the objects in the 
- * Realm that was queried.
- * Updates to objects must be done within a transaction and the modified object is persisted to the backing
- * Realm file during the commit of the transaction.
- * Notice that a RealmResults is never null not even in the case where it contains no objects. You
- * should always use the size() method to check if a RealmResults is empty or not.
-=======
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects
  * are not copied from the Realm to the RealmResults list, but are just referenced from the
  * RealmResult instead. This saves memory and increases speed.
- *
- * RealmResults are live views, which means that if it is on a {@link android.os.Looper} thread,
+ * <p>
+ * RealmResults are live views, which means that if it is on an {@link android.os.Looper} thread,
  * it will automatically update its query results after a transaction has been committed. If on a
  * non-looper thread, {@link Realm#refresh()} must be called to update the results.
- *
+ * <p>
  * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the
  * modified objects are persisted to the Realm file during the commit of the transaction.
- *
+ * <p>
  * A RealmResults object cannot be passed between different threads.
->>>>>>> 0eaba7e0c7bc84d9905274c062fa8f1b1c257055
+ * <p>
+ * Notice that a RealmResults is never null not even in the case where it contains no objects. You
+ * should always use the size() method to check if a RealmResults is empty or not.
  *
  * @param <E> The class of objects in this list
  * @see RealmQuery#findAll()
