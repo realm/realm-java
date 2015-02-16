@@ -41,15 +41,19 @@ android.libraryVariants.all { variant ->
 
     task("javadoc${variant.name.capitalize()}", type: Javadoc) {
         description "Generates Javadoc for $variant.name."
+        group 'Docs'
         source = variant.javaCompile.source
+        source "../realm-annotations/src/main/java"
         ext.androidJar = files(plugins.findPlugin("com.android.library").getBootClasspath())
         classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
         exclude '**/internal/**'
-        failOnError false
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
     }
 
     task("bundleJavadoc${variant.name.capitalize()}", type: Jar) {
         description "Bundles Javadoc into zip for $variant.name."
+        group 'Docs'
         classifier = "javadoc"
         from tasks["javadoc${variant.name.capitalize()}"]
     }
