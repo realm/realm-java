@@ -20,7 +20,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
-        Realm.setSchema(null);
+        Realm.setSchema();
     }
 
     // Copies a Realm file from assets to app files dir
@@ -98,7 +98,7 @@ public class RealmMigrationTests extends AndroidTestCase {
         Realm realm = null;
         try {
             realm = Realm.getInstance(getContext(), REALM);
-            RealmResults<MigrationAddedFieldInMiddle> results = realm.where(MigrationAddedFieldInMiddle.class).equalTo("newField", 1).findAll();
+            RealmResults<MigrationAddedFieldInMiddle> results = realm.where(MigrationAddedFieldInMiddle.class).equalTo("thirdField", "Foo").findAll();
             assertEquals(0, results.size());
         } finally {
             if (realm != null) {
