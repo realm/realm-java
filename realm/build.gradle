@@ -33,22 +33,25 @@ dependencies {
 }
 
 android.libraryVariants.all { variant ->
-    task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
-        group 'Docs'
-        description "Generates Javadoc for ${variant.name}."
-        source = variant.javaCompile.source
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
-        exclude "**/internal/**"
-        exclude '**/BuildConfig.java'
-        exclude '**/R.java'
+    def name = variant.buildType.name
+
+    if (name.equalsIgnoreCase("debug")) {
+        return; // Skip debug builds.
     }
 
-    task("javadoc${variant.name.capitalize()}Jar", type: Jar, dependsOn: tasks["generate${variant.name.capitalize()}Javadoc"]) {
-        group 'Docs'
-        description "Generates Javadoc for ${variant.name} in Jar format."
-        classifier = 'javadoc'
-        from tasks["generate${variant.name.capitalize()}Javadoc"].destinationDir
+    task("javadoc${variant.name.capitalize()}", type: Javadoc) {
+        description "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar = files(plugins.findPlugin("com.android.library").getBootClasspath())
+        classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
+        exclude '**/internal/**'
+        failOnError false
+    }
+
+    task("bundleJavadoc${variant.name.capitalize()}", type: Jar) {
+        description "Bundles Javadoc into zip for $variant.name."
+        classifier = "javadoc"
+        from tasks["javadoc${variant.name.capitalize()}"]
     }
 }
 
