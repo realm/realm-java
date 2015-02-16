@@ -16,7 +16,7 @@ Please see the [detailed instructions in our docs](http://realm.io/docs/java/#in
 
 ## Documentation
 
-Documentation for Realm can be found at [realm.io/docs/java](http://realm.io/docs/java).  
+Documentation for Realm can be found at [realm.io/docs/java](http://realm.io/docs/java).
 The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/java/api).
 
 ## Getting Help
@@ -53,7 +53,7 @@ That command will generate the .jar file containing the Realm runtime and the an
 
 ### Other Commands
 
- * `./gradlew generateReleaseJavadoc` will generate the Javadocs
+ * `./gradlew realm:javadocRelease` will generate the Javadocs
  * `./gradlew realm:connectedCheck` will run the tests on a connected Android device
 
 Generating the Javadoc using the command above will report a failure (1 error, 30+ warnings). The Javadoc is generated, and we will fix 
