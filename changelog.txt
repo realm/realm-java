@@ -1,3 +1,6 @@
+0.80
+* Queries on relationships can be case sensitive.
+
 0.79
  * Added support for ARM64.
  * Added RealmQuery.not() to negate a query condition.
