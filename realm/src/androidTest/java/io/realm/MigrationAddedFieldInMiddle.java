@@ -4,7 +4,7 @@ public class MigrationAddedFieldInMiddle extends RealmObject {
 
     private int firstField;
     private boolean secondField;
-    private String newField; // Should be added by a migration from field_added_migration.realm
+    private int newField; // Should be added by a migration from field_added_migration.realm
     private String thirdField;
 
     public int getFirstField() {
@@ -23,20 +23,20 @@ public class MigrationAddedFieldInMiddle extends RealmObject {
         this.secondField = secondField;
     }
 
-    public String getNewField() {
-        return newField;
-    }
-
-    public void setNewField(String newField) {
-        this.newField = newField;
-    }
-
     public String getThirdField() {
         return thirdField;
     }
 
     public void setThirdField(String thirdField) {
         this.thirdField = thirdField;
+    }
+
+    public int getNewField() {
+        return newField;
+    }
+
+    public void setNewField(int newField) {
+        this.newField = newField;
     }
 }
 

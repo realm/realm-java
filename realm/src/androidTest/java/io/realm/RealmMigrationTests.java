@@ -17,6 +17,12 @@ import io.realm.internal.Table;
 
 public class RealmMigrationTests extends AndroidTestCase {
 
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        Realm.setSchema(null);
+    }
+
     // Copies a Realm file from assets to app files dir
     private void copyRealmFromAssets(String fileName) throws IOException {
         AssetManager assetManager = getContext().getAssets();
@@ -63,12 +69,16 @@ public class RealmMigrationTests extends AndroidTestCase {
             }
         });
 
+        Realm realm = null;
         try {
-            Realm.getInstance(getContext(), REALM);
-        } catch (IllegalStateException expectedButWrong) {
-            return;
+            realm = Realm.getInstance(getContext(), REALM);
+            RealmResults<MigrationFieldInMiddle> results = realm.allObjects(MigrationFieldInMiddle.class).where().equalTo("thirdField", "Foo").findAll();
+            assertEquals(0, results.size());
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
         }
-        fail("This shouldn't happen according to https://github.com/realm/realm-java/issues/846");
     }
 
     public void testAddingMiddleField() throws IOException {
@@ -80,17 +90,20 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(MigrationAddedFieldInMiddle.class);
-                table.addColumn(ColumnType.STRING, "newField");
-                return 2;
+                table.addColumn(ColumnType.INTEGER, "newField");
+                return 1;
             }
         });
 
+        Realm realm = null;
         try {
-            Realm.getInstance(getContext(), REALM);
-        } catch (IllegalStateException expectedButWrong) {
-            return;
+            realm = Realm.getInstance(getContext(), REALM);
+            RealmResults<MigrationAddedFieldInMiddle> results = realm.where(MigrationAddedFieldInMiddle.class).equalTo("newField", 1).findAll();
+            assertEquals(0, results.size());
+        } finally {
+            if (realm != null) {
+                realm.close();
+            }
         }
-        fail("This shouldn't happen according to https://github.com/realm/realm-java/issues/846");
     }
-
 }
