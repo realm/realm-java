@@ -127,6 +127,7 @@ public class ThreadFragment extends Fragment {
             public void run() {
                 // Realm instances cannot be shared between threads, so we need to create a new
                 // instance on the background thread.
+                int redColor = getResources().getColor(R.color.realm_red);
                 Realm backgroundThreadRealm = Realm.getInstance(getActivity());
                 while (!backgroundThread.isInterrupted()) {
                     backgroundThreadRealm.beginTransaction();
@@ -135,14 +136,14 @@ public class ThreadFragment extends Fragment {
                     Dot dot = backgroundThreadRealm.createObject(Dot.class);
                     dot.setX(random.nextInt(100));
                     dot.setY(random.nextInt(100));
-                    dot.setColor(getResources().getColor(R.color.realm_red));
+                    dot.setColor(redColor);
                     backgroundThreadRealm.commitTransaction();
 
                     // Wait 0.5 sec. before adding the next dot.
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        break;
                     }
                 }
 
