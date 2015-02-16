@@ -250,10 +250,10 @@ public class AllTypesRealmProxy extends AllTypes {
     }
 
     public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update) {
-        return copy(realm, object);
+        return copy(realm, object, false);
     }
 
-    public static AllTypes copy(Realm realm, AllTypes newObject) {
+    public static AllTypes copy(Realm realm, AllTypes newObject, boolean update) {
         AllTypes realmObject = realm.createObject(AllTypes.class);
         realmObject.setColumnString(newObject.getColumnString() != null ? newObject.getColumnString() : "");
         realmObject.setColumnLong(newObject.getColumnLong());

@@ -117,10 +117,10 @@ public class SimpleRealmProxy extends Simple {
     }
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update) {
-        return copy(realm, object);
+        return copy(realm, object, false);
     }
 
-    public static Simple copy(Realm realm, Simple newObject) {
+    public static Simple copy(Realm realm, Simple newObject, boolean update) {
         Simple realmObject = realm.createObject(Simple.class);
         realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
         realmObject.setAge(newObject.getAge());
