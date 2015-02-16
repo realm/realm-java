@@ -146,8 +146,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * RealmObjects will be shifted so no null values are introduced.
      *
      * @param oldPos Index of RealmObject to move.
-     * @param newPos Target position. If newPos < oldPos the object at the location will be shifted
-     *               to the right. If oldPos < newPos, indexes > oldPos will be shifted once to the
+     * @param newPos Target position. If newPos &lt; oldPos the object at the location will be shifted
+     *               to the right. If oldPos &lt; newPos, indexes &gt; oldPos will be shifted once to the
      *               left.
      *
      * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()[.
