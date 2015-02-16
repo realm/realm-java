@@ -18,16 +18,6 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -36,6 +26,9 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.*;
 
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -462,12 +455,18 @@ public class RealmProxyClassGenerator {
 
     private void emitGetFieldNamesMethod(JavaWriter writer) throws IOException {
         writer.beginMethod("List<String>", "getFieldNames", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
-        List<String> entries = new ArrayList<String>();
-        for (VariableElement field : fields) {
-            String fieldName = field.getSimpleName().toString();
-            entries.add(String.format("\"%s\"", fieldName));
+        StringBuilder stringBuilder = new StringBuilder();
+        Iterator<VariableElement> iterator = fields.iterator();
+        while (iterator.hasNext()) {
+            String fieldName = iterator.next().getSimpleName().toString();
+            stringBuilder.append("\"");
+            stringBuilder.append(fieldName);
+            stringBuilder.append("\"");
+            if (iterator.hasNext()) {
+                stringBuilder.append(", ");
+            }
         }
-        String statementSection = String.join(", ", entries);
+        String statementSection = stringBuilder.toString();
         writer.emitStatement("return Arrays.asList(%s)", statementSection);
         writer.endMethod();
         writer.emitEmptyLine();
