@@ -686,9 +686,9 @@ public final class Realm implements Closeable {
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json  Array with object data.
      *
-     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
-     * @see {@link #createAllFromJson(Class, org.json.JSONArray)}.
+     * @see #createAllFromJson(Class, org.json.JSONArray)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
         if (clazz == null || json == null) {
@@ -739,9 +739,9 @@ public final class Realm implements Closeable {
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json  String with an array of JSON objects.
      *
-     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
-     * @see {@link #createAllFromJson(Class, String)}
+     * @see #createAllFromJson(Class, String)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
@@ -797,9 +797,9 @@ public final class Realm implements Closeable {
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in    InputStream with a list of object data in JSON format.
      *
-     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
-     * @see {@link #createOrUpdateAllFromJson(Class, java.io.InputStream)}
+     * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) throws IOException {
@@ -832,7 +832,7 @@ public final class Realm implements Closeable {
      * @return Created object or null if no json data was provided.
      *
      * @throws RealmException if the mapping from JSON fails.
-     * @see {@link #createOrUpdateObjectFromJson(Class, org.json.JSONObject)}
+     * @see #createOrUpdateObjectFromJson(Class, org.json.JSONObject)
      */
     public <E extends RealmObject> E createObjectFromJson(Class<E> clazz, JSONObject json) {
         if (clazz == null || json == null) {
@@ -856,9 +856,9 @@ public final class Realm implements Closeable {
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json  {@link org.json.JSONObject} with object data.
      * @return Created or updated {@link io.realm.RealmObject}.
-     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
-     * @see {@link #createObjectFromJson(Class, org.json.JSONObject)}
+     * @see #createObjectFromJson(Class, org.json.JSONObject)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
         if (clazz == null || json == null) {
@@ -911,9 +911,9 @@ public final class Realm implements Closeable {
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json  String with object data in JSON format.
      * @return Created or updated {@link io.realm.RealmObject}.
-     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
-     * @see {@link #createObjectFromJson(Class, String)})}
+     * @see #createObjectFromJson(Class, String)})
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
@@ -966,9 +966,9 @@ public final class Realm implements Closeable {
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in    Inputstream with object data in JSON format.
      * @return Created or updated {@link io.realm.RealmObject}.
-     * @throws {@link java.lang.IllegalArgumentException} if trying to update a class without a
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
-     * @see {@link #createObjectFromJson(Class, java.io.InputStream)}
+     * @see #createObjectFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) throws IOException {
@@ -1195,7 +1195,7 @@ public final class Realm implements Closeable {
      * @return The new or updated RealmObject with all its properties backed by the Realm.
      *
      * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
-     * @see {@link #copyToRealm(RealmObject)}
+     * @see #copyToRealm(RealmObject)
      */
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
@@ -1238,7 +1238,7 @@ public final class Realm implements Closeable {
      * @return A list of all the new or updated RealmObjects.
      *
      * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
-     * @see {@link #copyToRealm(Iterable)}
+     * @see #copyToRealm(Iterable)
      */
     public <E extends RealmObject> List<E> copyToRealmOrUpdate(Iterable<E> objects) {
         if (objects == null) {

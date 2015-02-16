@@ -26,7 +26,7 @@ package io.realm;
  *
  * <pre>
  * public class CustomMigration implements RealmMigration {
- *   @Override
+ *   \@Override
  *   public long execute(Realm realm, long version) {
  *     if (version == 0) {
  *       // Migrate from v0 to v1
