@@ -330,26 +330,26 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3JLja
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeBeginsWith
- * Signature: (JJLjava/lang/String;Z)V
+ * Signature: (J[JLjava/lang/String;Z)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith
-  (JNIEnv *, jobject, jlong, jlong, jstring, jboolean);
+  (JNIEnv *, jobject, jlong, jlongArray, jstring, jboolean);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeEndsWith
- * Signature: (JJLjava/lang/String;Z)V
+ * Signature: (J[JLjava/lang/String;Z)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith
-  (JNIEnv *, jobject, jlong, jlong, jstring, jboolean);
+  (JNIEnv *, jobject, jlong, jlongArray, jstring, jboolean);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeContains
- * Signature: (JJLjava/lang/String;Z)V
+ * Signature: (J[JLjava/lang/String;Z)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains
-  (JNIEnv *, jobject, jlong, jlong, jstring, jboolean);
+  (JNIEnv *, jobject, jlong, jlongArray, jstring, jboolean);
 
 /*
  * Class:     io_realm_internal_TableQuery

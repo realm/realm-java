@@ -315,19 +315,19 @@ public class JNIQueryTest extends TestCase {
         TableQuery query = table.where();
 
         // String
-        try { query.contains(-1, "hey").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(-1, "hey").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(-1, "hey").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey").findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey").findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey").findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case true
-        try { query.contains(-1, "hey", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(-1, "hey", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(-1, "hey", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey", true).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey", true).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case false
-        try { query.contains(-1, "hey", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(-1, "hey", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(-1, "hey", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey", false).findAll(); fail("-10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey", false).findAll(); fail("-100 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
     public void testNullInputQuery() {
@@ -351,12 +351,12 @@ public class JNIQueryTest extends TestCase {
         try { t.where().equalTo(new long[]{1}, nullString, false);      fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().notEqualTo(new long[]{1}, nullString);          fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().notEqualTo(new long[]{1}, nullString, false);   fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().contains(1, nullString);            fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().contains(1, nullString, false);     fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().beginsWith(1, nullString);          fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().beginsWith(1, nullString, false);   fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().endsWith(1, nullString);            fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().endsWith(1, nullString, false);     fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().contains(new long[]{1}, nullString);            fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().contains(new long[]{1}, nullString, false);     fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().beginsWith(new long[]{1}, nullString);          fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().beginsWith(new long[]{1}, nullString, false);   fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().endsWith(new long[]{1}, nullString);            fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().endsWith(new long[]{1}, nullString, false);     fail("String is null"); } catch (IllegalArgumentException e) { }
     }
 
 
@@ -431,9 +431,9 @@ public class JNIQueryTest extends TestCase {
             if (i != 7) {
                 try { query.equalTo(new long[]{i}, "string");                 assert(false); } catch(IllegalArgumentException e) {}
                 try { query.notEqualTo(new long[]{i}, "string");              assert(false); } catch(IllegalArgumentException e) {}
-                try { query.beginsWith(i, "string");            assert(false); } catch(IllegalArgumentException e) {}
-                try { query.endsWith(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
-                try { query.contains(i, "string");              assert(false); } catch(IllegalArgumentException e) {}
+                try { query.beginsWith(new long[]{i}, "string");            assert(false); } catch(IllegalArgumentException e) {}
+                try { query.endsWith(new long[]{i}, "string");              assert(false); } catch(IllegalArgumentException e) {}
+                try { query.contains(new long[]{i}, "string");              assert(false); } catch(IllegalArgumentException e) {}
             }
         }
 
@@ -583,9 +583,9 @@ public class JNIQueryTest extends TestCase {
         // Out of bounds for string
         try { query.equalTo(new long[]{9}, "string");                 assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
         try { query.notEqualTo(new long[]{9}, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.beginsWith(9, "string");            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.endsWith(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(9, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.beginsWith(new long[]{9}, "string");            assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.endsWith(new long[]{9}, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{9}, "string");              assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
 
 
         // Out of bounds for integer

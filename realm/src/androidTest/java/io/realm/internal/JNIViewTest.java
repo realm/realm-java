@@ -323,11 +323,11 @@ public class JNIViewTest extends TestCase {
         table.add("A3");
 
         TableQuery query = table.where();
-        TableView view = query.beginsWith(0, "A").findAll(0, table.size(), Table.INFINITE);
+        TableView view = query.beginsWith(new long[]{0}, "A").findAll(0, table.size(), Table.INFINITE);
         assertEquals(4, view.size());
 
         TableQuery query2 = table.where();
-        TableView view2 = query2.tableview(view).contains(0, "3").findAll();
+        TableView view2 = query2.tableview(view).contains(new long[]{0}, "3").findAll();
         assertEquals(2, view2.size());
     }
 

@@ -402,53 +402,53 @@ public class TableQuery implements Closeable {
     }
     protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], String value, boolean caseSensitive);
 
-    public TableQuery beginsWith(long columnIndex, String value, boolean caseSensitive){
+    public TableQuery beginsWith(long columnIndices[], String value, boolean caseSensitive){
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
-        nativeBeginsWith(nativePtr, columnIndex, value, caseSensitive);
+        nativeBeginsWith(nativePtr, columnIndices, value, caseSensitive);
         queryValidated = false;
         return this;
     }
-    public TableQuery beginsWith(long columnIndex, String value){
+    public TableQuery beginsWith(long columnIndices[], String value){
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
-        nativeBeginsWith(nativePtr, columnIndex, value, true);
+        nativeBeginsWith(nativePtr, columnIndices, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeBeginsWith(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
+    protected native void nativeBeginsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
 
-    public TableQuery endsWith(long columnIndex, String value, boolean caseSensitive){
+    public TableQuery endsWith(long columnIndices[], String value, boolean caseSensitive){
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
-        nativeEndsWith(nativePtr, columnIndex, value, caseSensitive);
+        nativeEndsWith(nativePtr, columnIndices, value, caseSensitive);
         queryValidated = false;
         return this;
     }
-    public TableQuery endsWith(long columnIndex, String value){
+    public TableQuery endsWith(long columnIndices[], String value){
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
-        nativeEndsWith(nativePtr, columnIndex, value, true);
+        nativeEndsWith(nativePtr, columnIndices, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEndsWith(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
+    protected native void nativeEndsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
 
-    public TableQuery contains(long columnIndex, String value, boolean caseSensitive){
+    public TableQuery contains(long columnIndices[], String value, boolean caseSensitive){
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
-        nativeContains(nativePtr, columnIndex, value, caseSensitive);
+        nativeContains(nativePtr, columnIndices, value, caseSensitive);
         queryValidated = false;
         return this;
     }
-    public TableQuery contains(long columnIndex, String value){
+    public TableQuery contains(long columnIndices[], String value){
         if (value == null)
             throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
-        nativeContains(nativePtr, columnIndex, value, true);
+        nativeContains(nativePtr, columnIndices, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeContains(long nativeQueryPtr, long columnIndex, String value, boolean caseSensitive);
+    protected native void nativeContains(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
 
 
     // Searching methods.
