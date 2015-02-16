@@ -18,6 +18,7 @@ package io.realm.examples.threads;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -140,11 +141,7 @@ public class ThreadFragment extends Fragment {
                     backgroundThreadRealm.commitTransaction();
 
                     // Wait 0.5 sec. before adding the next dot.
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        break;
-                    }
+                    SystemClock.sleep(500);
                 }
 
                 // Also close Realm instances used in background threads.
