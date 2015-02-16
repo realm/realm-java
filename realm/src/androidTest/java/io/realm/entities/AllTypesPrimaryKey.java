@@ -31,8 +31,8 @@ public class AllTypesPrimaryKey extends RealmObject {
     private boolean columnBoolean;
     private Date columnDate;
     private byte[] columnBinary;
-    private Dog columnRealmObject;
-    private RealmList<Dog> columnRealmList;
+    private DogPrimaryKey columnRealmObject;
+    private RealmList<DogPrimaryKey> columnRealmList;
 
     public String getColumnString() {
         return columnString;
@@ -90,19 +90,19 @@ public class AllTypesPrimaryKey extends RealmObject {
         this.columnBinary = columnBinary;
     }
 
-    public Dog getColumnRealmObject() {
+    public DogPrimaryKey getColumnRealmObject() {
         return columnRealmObject;
     }
 
-    public void setColumnRealmObject(Dog columnRealmObject) {
+    public void setColumnRealmObject(DogPrimaryKey columnRealmObject) {
         this.columnRealmObject = columnRealmObject;
     }
 
-    public RealmList<Dog> getColumnRealmList() {
+    public RealmList<DogPrimaryKey> getColumnRealmList() {
         return columnRealmList;
     }
 
-    public void setColumnRealmList(RealmList<Dog> columnRealmList) {
+    public void setColumnRealmList(RealmList<DogPrimaryKey> columnRealmList) {
         this.columnRealmList = columnRealmList;
     }
 }

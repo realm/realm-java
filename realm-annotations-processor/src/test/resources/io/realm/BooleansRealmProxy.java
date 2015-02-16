@@ -141,10 +141,10 @@ public class BooleansRealmProxy extends Booleans {
     }
 
     public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update) {
-        return copy(realm, object);
+        return copy(realm, object, false);
     }
 
-    public static Booleans copy(Realm realm, Booleans newObject) {
+    public static Booleans copy(Realm realm, Booleans newObject, boolean update) {
         Booleans realmObject = realm.createObject(Booleans.class);
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
