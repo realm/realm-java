@@ -37,6 +37,8 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.CyclicType;
+import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
@@ -1000,6 +1002,22 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(list.get(0).getName(), realmTypes.getColumnRealmList().get(0).getName());
     }
 
+    public void testCopyToRealmCyclic() {
+        CyclicType oneCyclicType = new CyclicType();
+        oneCyclicType.setName("One");
+        CyclicType anotherCyclicType = new CyclicType();
+        anotherCyclicType.setName("Two");
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        testRealm.beginTransaction();
+        CyclicType realmObject = testRealm.copyToRealm(oneCyclicType);
+        testRealm.commitTransaction();
+
+        assertEquals("One", realmObject.getName());
+        assertEquals(2, testRealm.allObjects(CyclicType.class).size());
+    }
+
     // Check that if a field has a null value it gets converted to the default value for that type
     public void testCopyToRealmDefaultValues() {
         testRealm.beginTransaction();
@@ -1111,6 +1129,29 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(1, obj.getColumnRealmList().size());
         assertEquals("Dog4", obj.getColumnRealmList().get(0).getName());
     }
+
+    public void testUpdateCyclicObject() {
+        CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1);
+        oneCyclicType.setName("One");
+        CyclicTypePrimaryKey anotherCyclicType = new CyclicTypePrimaryKey(2);
+        anotherCyclicType.setName("Two");
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        testRealm.beginTransaction();
+        testRealm.copyToRealm(oneCyclicType);
+        testRealm.commitTransaction();
+
+        oneCyclicType.setName("Three");
+        anotherCyclicType.setName("Four");
+        testRealm.beginTransaction();
+        testRealm.copyToRealmOrUpdate(oneCyclicType);
+        testRealm.commitTransaction();
+
+        assertEquals(2, testRealm.allObjects(CyclicTypePrimaryKey.class).size());
+        assertEquals("Three", testRealm.where(CyclicTypePrimaryKey.class).equalTo("id", 1).findFirst().getName());
+    }
+
 
     // Checks that a standalone object with only default values can override data
     public void testCopyOrUpdateWithStandaloneDefaultObject() {
