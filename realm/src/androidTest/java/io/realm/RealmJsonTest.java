@@ -32,6 +32,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.Dog;
+import io.realm.entities.PrimativeLists;
 import io.realm.exceptions.RealmException;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -154,6 +155,16 @@ public class RealmJsonTest extends AndroidTestCase {
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
         assertEquals(3, obj.getColumnRealmList().size());
         assertEquals("Fido-3", obj.getColumnRealmList().get(2).getName());
+    }
+
+    public void testCreateObjectFromJson_primativeWrappers() {
+        String json = "{ \"intList\" : [ { \"value\" : 1 }, { \"value\" : 2 } ] }";
+        testRealm.beginTransaction();
+        PrimativeLists realmObject = testRealm.createObjectFromJson(PrimativeLists.class, json);
+        testRealm.commitTransaction();
+
+        assertEquals(2, realmObject.getIntList().size());
+        assertEquals(1, realmObject.getIntList().get(0).getValue());
     }
 
     public void testCreateObjectFromJson_emptyChildObjectList() throws JSONException {
