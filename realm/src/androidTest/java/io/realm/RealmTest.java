@@ -1018,6 +1018,22 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(2, testRealm.allObjects(CyclicType.class).size());
     }
 
+    public void testCopyToRealmCyclicList() {
+        CyclicType oneCyclicType = new CyclicType();
+        oneCyclicType.setName("One");
+        CyclicType anotherCyclicType = new CyclicType();
+        anotherCyclicType.setName("Two");
+        oneCyclicType.setObjects(new RealmList(anotherCyclicType));
+        anotherCyclicType.setObjects(new RealmList(oneCyclicType));
+
+        testRealm.beginTransaction();
+        CyclicType realmObject = testRealm.copyToRealm(oneCyclicType);
+        testRealm.commitTransaction();
+
+        assertEquals("One", realmObject.getName());
+        assertEquals(2, testRealm.allObjects(CyclicType.class).size());
+    }
+
     // Check that if a field has a null value it gets converted to the default value for that type
     public void testCopyToRealmDefaultValues() {
         testRealm.beginTransaction();
