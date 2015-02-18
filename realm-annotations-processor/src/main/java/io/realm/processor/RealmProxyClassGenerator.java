@@ -478,7 +478,7 @@ public class RealmProxyClassGenerator {
                 className, // Return type
                 "copyOrUpdate", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "Realm", "realm", className, "object", "boolean", "update", "Map<Object, RealmObject>", "cache" // Argument type & argument name
+                "Realm", "realm", className, "object", "boolean", "update", "Map<RealmObject,RealmObject>", "cache" // Argument type & argument name
         );
 
         if (primaryKey == null) {
@@ -529,7 +529,7 @@ public class RealmProxyClassGenerator {
                 className, // Return type
                 "copy", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "Realm", "realm", className, "newObject", "boolean", "update", "Map<Object, RealmObject>", "cache"); // Argument type & argument name
+                "Realm", "realm", className, "newObject", "boolean", "update", "Map<RealmObject,RealmObject>", "cache"); // Argument type & argument name
 
         writer.emitStatement("%s realmObject = realm.createObject(%s.class)", className, className);
         writer.emitStatement("cache.put(newObject, realmObject)");
@@ -541,8 +541,9 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine()
                     .emitStatement("%s %s = newObject.%s()", fieldType, fieldName, getters.get(fieldName))
                     .beginControlFlow("if (%s != null)", fieldName)
-                        .beginControlFlow("if (cache.containsKey(%s))", fieldName)
-                            .emitStatement("realmObject.%s((%s) cache.get(%s))", setters.get(fieldName), fieldType, fieldName)
+                        .emitStatement("%s cache%s = (%s) cache.get(%s)", fieldType, fieldName, fieldType, fieldName)
+                        .beginControlFlow("if (cache%s != null)", fieldName)
+                            .emitStatement("realmObject.%s(cache%s)", setters.get(fieldName), fieldName)
                         .nextControlFlow("else")
                             .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %s, update, cache))",
                                     setters.get(fieldName),
@@ -558,8 +559,9 @@ public class RealmProxyClassGenerator {
                         .emitStatement("RealmList<%s> %sRealmList = realmObject.%s()", Utils.getGenericType(field), fieldName, getters.get(fieldName))
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
                                 .emitStatement("%s %sItem = %sList.get(i)", Utils.getGenericType(field), fieldName, fieldName)
-                                .beginControlFlow("if (cache.containsKey(%sItem))", fieldName)
-                                        .emitStatement("%sRealmList.add((%s) cache.get(%sItem))", fieldName, Utils.getGenericType(field), fieldName)
+                                .emitStatement("%s cache%s = (%s) cache.get(%sItem)", Utils.getGenericType(field), fieldName, Utils.getGenericType(field), fieldName)
+                                .beginControlFlow("if (cache%s != null)", fieldName)
+                                        .emitStatement("%sRealmList.add(cache%s)", fieldName, fieldName)
                                 .nextControlFlow("else")
                                         .emitStatement("%sRealmList.add(%s.copyOrUpdate(realm, %sList.get(i), update, cache))", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
                                 .endControlFlow()
@@ -591,7 +593,7 @@ public class RealmProxyClassGenerator {
                 className, // Return type
                 "update", // Method name
                 EnumSet.of(Modifier.STATIC), // Modifiers
-                "Realm", "realm", className, "realmObject", className, "newObject", "Map<Object, RealmObject>", "cache"); // Argument type & argument name
+                "Realm", "realm", className, "realmObject", className, "newObject", "Map<RealmObject, RealmObject>", "cache"); // Argument type & argument name
 
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
@@ -599,8 +601,9 @@ public class RealmProxyClassGenerator {
                 writer
                     .emitStatement("%s %s = newObject.%s()", Utils.getFieldTypeSimpleName(field), fieldName, getters.get(fieldName))
                     .beginControlFlow("if (%s != null)", fieldName)
-                        .beginControlFlow("if (cache.containsKey(%s))", fieldName)
-                            .emitStatement("realmObject.%s((%s) cache.get(%s))", setters.get(fieldName), Utils.getFieldTypeSimpleName(field), fieldName)
+                        .emitStatement("%s cache%s = (%s) cache.get(%s)", Utils.getFieldTypeSimpleName(field), fieldName, Utils.getFieldTypeSimpleName(field), fieldName)
+                        .beginControlFlow("if (cache%s != null)", fieldName)
+                            .emitStatement("realmObject.%s(cache%s)", setters.get(fieldName), fieldName)
                         .nextControlFlow("else")
                             .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %s, realm.getTable(%s.class).hasPrimaryKey(), cache))",
                                     setters.get(fieldName),
@@ -620,8 +623,9 @@ public class RealmProxyClassGenerator {
                     .beginControlFlow("if (%sList != null)", fieldName)
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
                             .emitStatement("%s %sItem = %sList.get(i)", Utils.getGenericType(field), fieldName, fieldName)
-                            .beginControlFlow("if (cache.containsKey(%sItem))", fieldName)
-                                .emitStatement("%sRealmList.add((%s) cache.get(%sItem))", fieldName, Utils.getGenericType(field), fieldName)
+                            .emitStatement("%s cache%s = (%s) cache.get(%sItem)", Utils.getGenericType(field), fieldName, Utils.getGenericType(field), fieldName)
+                            .beginControlFlow("if (cache%s != null)", fieldName)
+                                .emitStatement("%sRealmList.add(cache%s)", fieldName, fieldName)
                             .nextControlFlow("else")
                                 .emitStatement("%sRealmList.add(%s.copyOrUpdate(realm, %sList.get(i), true, cache))", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
                             .endControlFlow()
