@@ -1,3 +1,6 @@
+0.79.1
+ * copyToRealm() no longer crashes on cyclic data structures.
+
 0.79
  * Added support for ARM64.
  * Added RealmQuery.not() to negate a query condition.
