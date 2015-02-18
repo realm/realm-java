@@ -116,18 +116,19 @@ public class SimpleRealmProxy extends Simple {
         reader.endObject();
     }
 
-    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update) {
-        return copy(realm, object, false);
+    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<Object, RealmObject> cache) {
+        return copy(realm, object, false, cache);
     }
 
-    public static Simple copy(Realm realm, Simple newObject, boolean update) {
+    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<Object, RealmObject> cache) {
         Simple realmObject = realm.createObject(Simple.class);
+        cache.put(newObject, realmObject);
         realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
         realmObject.setAge(newObject.getAge());
         return realmObject;
     }
 
-    static Simple update(Realm realm, Simple realmObject, Simple newObject) {
+    static Simple update(Realm realm, Simple realmObject, Simple newObject, Map<Object, RealmObject> cache) {
         realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
         realmObject.setAge(newObject.getAge());
         return realmObject;

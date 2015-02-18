@@ -140,19 +140,20 @@ public class BooleansRealmProxy extends Booleans {
         reader.endObject();
     }
 
-    public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update) {
-        return copy(realm, object, false);
+    public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<Object, RealmObject> cache) {
+        return copy(realm, object, false, cache);
     }
 
-    public static Booleans copy(Realm realm, Booleans newObject, boolean update) {
+    public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<Object, RealmObject> cache) {
         Booleans realmObject = realm.createObject(Booleans.class);
+        cache.put(newObject, realmObject);
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
         realmObject.setmCompleted(newObject.ismCompleted());
         return realmObject;
     }
 
-    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject) {
+    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject, Map<Object, RealmObject> cache) {
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
         realmObject.setmCompleted(newObject.ismCompleted());
