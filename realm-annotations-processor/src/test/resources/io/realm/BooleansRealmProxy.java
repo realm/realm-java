@@ -141,7 +141,7 @@ public class BooleansRealmProxy extends Booleans {
     }
 
     public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject, RealmObject> cache) {
-        return copy(realm, object, false, cache);
+        return copy(realm, object, update, cache);
     }
 
     public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<RealmObject, RealmObject> cache) {

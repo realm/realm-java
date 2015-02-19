@@ -201,7 +201,7 @@ task populateDistributionFolder(dependsOn: 'androidJar') << {
     examples.each() { src, dest ->
         copy {
             from "../examples/${src}/src"
-            into "../distribution/${dest}/app"
+            into "../distribution/${dest}/app/src"
         }
     }
 }
