@@ -1015,6 +1015,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         assertEquals("One", realmObject.getName());
+        assertEquals("Two", realmObject.getObject().getName());
         assertEquals(2, testRealm.allObjects(CyclicType.class).size());
     }
 
