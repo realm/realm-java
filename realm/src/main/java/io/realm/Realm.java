@@ -1799,7 +1799,7 @@ public final class Realm implements Closeable {
      * If {@code null} is given as parameter, the Schema is reset to use all known classes.
      *
      */
-    public static void setSchema(Class<? extends RealmObject>... schemaClass) {
+    static void setSchema(Class<? extends RealmObject>... schemaClass) {
         customSchema.clear();
         if (schemaClass != null) {
             for (int i = 0; i < schemaClass.length; i++) {
