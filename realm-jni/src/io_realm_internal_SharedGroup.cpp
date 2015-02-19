@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <iostream>
-
 #include <jni.h>
 
 #include "util.hpp"

@@ -133,6 +133,45 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(22, resultList.size());
     }
 
+    public void testRealmQueryNot() {
+        populateTestRealm(); // create TEST_DATA_SIZE objects
+
+        // only one object with value 5 -> TEST_DATA_SIZE-1 object with value "not 5"
+        RealmResults<AllTypes> list1 = testRealm.where(AllTypes.class).not().equalTo(FIELD_LONG, 5).findAll();
+        assertEquals(TEST_DATA_SIZE - 1, list1.size());
+
+        // not().greater() and lessThenOrEqual() must be the same
+        RealmResults<AllTypes> list2 = testRealm.where(AllTypes.class).not().greaterThan(FIELD_LONG, 5).findAll();
+        RealmResults<AllTypes> list3 = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_LONG, 5).findAll();
+        assertEquals(list2.size(), list3.size());
+        for (int i = 0; i < list2.size(); i++) {
+            assertEquals(list2.get(i).getColumnLong(), list3.get(i).getColumnLong());
+        }
+
+        // excepted result: 0, 1, 2, 5
+        long expected[] = {0, 1, 2, 5};
+        RealmResults<AllTypes> list4 = testRealm.where(AllTypes.class)
+                .equalTo(FIELD_LONG, 5)
+                .or()
+                .not().beginGroup()
+                    .greaterThan(FIELD_LONG, 2)
+                 .endGroup()
+                .findAll();
+        assertEquals(4, list4.size());
+        for (int i = 0; i < list4.size(); i++) {
+            assertEquals(expected[i], list4.get(i).getColumnLong());
+        }
+    }
+
+    public void testRealmQueryNotFailure() {
+        // a not() alone must fail
+        try {
+            RealmResults<AllTypes> list = testRealm.where(AllTypes.class).not().findAll();
+            fail();
+        } catch (RuntimeException ignored) {
+        }
+    }
+
     public void testRealmQueryImplicitAnd() {
         populateTestRealm(200);
 
@@ -307,39 +346,6 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(dog1, dog);
     }
 
-    public void testSortTwoFields() {
-        io.realm.TestHelper.populateForMultiSort(testRealm);
-
-        RealmResults<AllTypes> results1 = testRealm.where(AllTypes.class)
-                .findAllSorted(new String[]{FIELD_STRING, FIELD_LONG},
-                        new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-
-        assertEquals(3, results1.size());
-
-        assertEquals("Adam", results1.get(0).getColumnString());
-        assertEquals(4, results1.get(0).getColumnLong());
-
-        assertEquals("Adam", results1.get(1).getColumnString());
-        assertEquals(5, results1.get(1).getColumnLong());
-
-        assertEquals("Brian", results1.get(2).getColumnString());
-        assertEquals(4, results1.get(2).getColumnLong());
-
-        RealmResults<AllTypes> results2 = testRealm.where(AllTypes.class)
-                .findAllSorted(new String[]{FIELD_LONG, FIELD_STRING},
-                        new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-
-        assertEquals(3, results2.size());
-
-        assertEquals("Adam", results2.get(0).getColumnString());
-        assertEquals(4, results2.get(0).getColumnLong());
-
-        assertEquals("Brian", results2.get(1).getColumnString());
-        assertEquals(4, results2.get(1).getColumnLong());
-
-        assertEquals("Adam", results2.get(2).getColumnString());
-        assertEquals(5, results2.get(2).getColumnLong());
-    }
 
     public void testSortMultiFailures() {
         // zero fields specified
@@ -359,11 +365,12 @@ public class RealmQueryTest extends AndroidTestCase{
 
         // null is not allowed
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(null, null);
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted(null, null);
             fail();
         } catch (IllegalArgumentException ignored) {}
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll(new String[]{FIELD_STRING}, null);
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted(new String[]{FIELD_STRING},
+                    null);
             fail();
         } catch (IllegalArgumentException ignored) {}
 
@@ -396,5 +403,35 @@ public class RealmQueryTest extends AndroidTestCase{
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).lessThan("columnLong", 5).findAll();
         RealmResults<AllTypes> subQueryResult = result.where().greaterThan("columnLong", 3).findAll();
         assertEquals(1, subQueryResult.size());
+    }
+
+    public void testFindFirst() {
+        testRealm.beginTransaction();
+        Owner owner1 = testRealm.createObject(Owner.class);
+        owner1.setName("Owner 1");
+        Dog dog1 = testRealm.createObject(Dog.class);
+        dog1.setName("Dog 1");
+        dog1.setWeight(1);
+        Dog dog2 = testRealm.createObject(Dog.class);
+        dog2.setName("Dog 2");
+        dog2.setWeight(2);
+        owner1.getDogs().add(dog1);
+        owner1.getDogs().add(dog2);
+
+        Owner owner2 = testRealm.createObject(Owner.class);
+        owner2.setName("Owner 2");
+        Dog dog3 = testRealm.createObject(Dog.class);
+        dog3.setName("Dog 3");
+        dog3.setWeight(1);
+        Dog dog4 = testRealm.createObject(Dog.class);
+        dog4.setName("Dog 4");
+        dog4.setWeight(2);
+        owner2.getDogs().add(dog3);
+        owner2.getDogs().add(dog4);
+        testRealm.commitTransaction();
+
+        RealmList<Dog> dogs = testRealm.where(Owner.class).equalTo("name", "Owner 2").findFirst().getDogs();
+        Dog dog = dogs.where().equalTo("name", "Dog 4").findFirst();
+        assertEquals(dog4, dog);
     }
 }

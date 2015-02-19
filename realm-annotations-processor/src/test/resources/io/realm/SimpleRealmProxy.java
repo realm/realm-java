@@ -1,12 +1,15 @@
 package io.realm;
 
+
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmObject;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -46,23 +49,24 @@ public class SimpleRealmProxy extends Simple {
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
-        if (!transaction.hasTable("class_Simple")) {
+        if(!transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
             table.addColumn(ColumnType.STRING, "name");
             table.addColumn(ColumnType.INTEGER, "age");
+            table.setPrimaryKey("");
             return table;
         }
         return transaction.getTable("class_Simple");
     }
 
     public static void validateTable(ImplicitTransaction transaction) {
-        if (transaction.hasTable("class_Simple")) {
+        if(transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-            if (table.getColumnCount() != 2) {
+            if(table.getColumnCount() != 2) {
                 throw new IllegalStateException("Column count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for (long i = 0; i < 2; i++) {
+            for(long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("name")) {
@@ -84,25 +88,27 @@ public class SimpleRealmProxy extends Simple {
         return Arrays.asList("name", "age");
     }
 
-    void populateUsingJsonObject(JSONObject json)
+    public static void populateUsingJsonObject(Simple obj, JSONObject json)
             throws JSONException {
+        boolean standalone = obj.realm == null;
         if (json.has("name")) {
-            setName((String) json.getString("name"));
+            obj.setName((String) json.getString("name"));
         }
         if (json.has("age")) {
-            setAge((int) json.getInt("age"));
+            obj.setAge((int) json.getInt("age"));
         }
     }
 
-    void populateUsingJsonStream(JsonReader reader)
+    public static void populateUsingJsonStream(Simple obj, JsonReader reader)
             throws IOException {
+        boolean standalone = obj.realm == null;
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (name.equals("name") && reader.peek() != JsonToken.NULL) {
-                setName((String) reader.nextString());
+                obj.setName((String) reader.nextString());
             } else if (name.equals("age")  && reader.peek() != JsonToken.NULL) {
-                setAge((int) reader.nextInt());
+                obj.setAge((int) reader.nextInt());
             } else {
                 reader.skipValue();
             }
@@ -110,10 +116,20 @@ public class SimpleRealmProxy extends Simple {
         reader.endObject();
     }
 
-    public static Simple copyToRealm(Realm realm, Simple object) {
+    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update) {
+        return copy(realm, object, false);
+    }
+
+    public static Simple copy(Realm realm, Simple newObject, boolean update) {
         Simple realmObject = realm.createObject(Simple.class);
-        realmObject.setName(object.getName());
-        realmObject.setAge(object.getAge());
+        realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
+        realmObject.setAge(newObject.getAge());
+        return realmObject;
+    }
+
+    static Simple update(Realm realm, Simple realmObject, Simple newObject) {
+        realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
+        realmObject.setAge(newObject.getAge());
         return realmObject;
     }
 
@@ -165,4 +181,5 @@ public class SimpleRealmProxy extends Simple {
 
         return true;
     }
+
 }

@@ -22,7 +22,6 @@ import io.realm.annotations.Ignore;
 
 // Your model just have to extend RealmObject.
 // This will inherit an annotation which produces proxy getters and setters for all fields.
-
 public class Person extends RealmObject {
 
     // All fields are by default persisted.
@@ -38,6 +37,8 @@ public class Person extends RealmObject {
     // You can instruct Realm to ignore a field and not persist it.
     @Ignore
     private int tempReference;
+
+    private long id;
 
     // The standard getters and setters your IDE generates are fine.
     // Realm will overload them and code inside them is ignored.
@@ -81,5 +82,13 @@ public class Person extends RealmObject {
 
     public void setTempReference(int tempReference) {
         this.tempReference = tempReference;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 }

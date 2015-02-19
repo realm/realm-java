@@ -1,12 +1,15 @@
 package io.realm;
 
+
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmObject;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
 import java.util.Arrays;
@@ -63,6 +66,7 @@ public class BooleansRealmProxy extends Booleans {
             table.addColumn(ColumnType.BOOLEAN, "done");
             table.addColumn(ColumnType.BOOLEAN, "isReady");
             table.addColumn(ColumnType.BOOLEAN, "mCompleted");
+            table.setPrimaryKey("");
             return table;
         }
         return transaction.getTable("class_Booleans");
@@ -103,30 +107,32 @@ public class BooleansRealmProxy extends Booleans {
         return Arrays.asList("done", "isReady", "mCompleted");
     }
 
-    void populateUsingJsonObject(JSONObject json)
+    public static void populateUsingJsonObject(Booleans obj, JSONObject json)
             throws JSONException {
+        boolean standalone = obj.realm == null;
         if (json.has("done")) {
-            setDone((boolean) json.getBoolean("done"));
+            obj.setDone((boolean) json.getBoolean("done"));
         }
         if (json.has("isReady")) {
-            setReady((boolean) json.getBoolean("isReady"));
+            obj.setReady((boolean) json.getBoolean("isReady"));
         }
         if (json.has("mCompleted")) {
-            setmCompleted((boolean) json.getBoolean("mCompleted"));
+            obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
         }
     }
 
-    void populateUsingJsonStream(JsonReader reader)
+    public static void populateUsingJsonStream(Booleans obj, JsonReader reader)
             throws IOException {
+        boolean standalone = obj.realm == null;
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (name.equals("done") && reader.peek() != JsonToken.NULL) {
-                setDone((boolean) reader.nextBoolean());
+                obj.setDone((boolean) reader.nextBoolean());
             } else if (name.equals("isReady")  && reader.peek() != JsonToken.NULL) {
-                setReady((boolean) reader.nextBoolean());
+                obj.setReady((boolean) reader.nextBoolean());
             } else if (name.equals("mCompleted")  && reader.peek() != JsonToken.NULL) {
-                setmCompleted((boolean) reader.nextBoolean());
+                obj.setmCompleted((boolean) reader.nextBoolean());
             } else {
                 reader.skipValue();
             }
@@ -134,11 +140,22 @@ public class BooleansRealmProxy extends Booleans {
         reader.endObject();
     }
 
-    public static Booleans copyToRealm(Realm realm, Booleans object) {
+    public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update) {
+        return copy(realm, object, false);
+    }
+
+    public static Booleans copy(Realm realm, Booleans newObject, boolean update) {
         Booleans realmObject = realm.createObject(Booleans.class);
-        realmObject.setDone(object.isDone());
-        realmObject.setReady(object.isReady());
-        realmObject.setmCompleted(object.ismCompleted());
+        realmObject.setDone(newObject.isDone());
+        realmObject.setReady(newObject.isReady());
+        realmObject.setmCompleted(newObject.ismCompleted());
+        return realmObject;
+    }
+
+    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject) {
+        realmObject.setDone(newObject.isDone());
+        realmObject.setReady(newObject.isReady());
+        realmObject.setmCompleted(newObject.ismCompleted());
         return realmObject;
     }
 

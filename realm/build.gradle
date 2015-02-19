@@ -33,26 +33,33 @@ dependencies {
 }
 
 android.libraryVariants.all { variant ->
-    task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
+    def name = variant.buildType.name
+
+    if (name.equalsIgnoreCase("debug")) {
+        return; // Skip debug builds.
+    }
+
+    task("javadoc${variant.name.capitalize()}", type: Javadoc) {
+        description "Generates Javadoc for $variant.name."
         group 'Docs'
-        description "Generates Javadoc for ${variant.name}."
         source = variant.javaCompile.source
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
-        exclude "**/internal/**"
+        source "../realm-annotations/src/main/java"
+        ext.androidJar = files(plugins.findPlugin("com.android.library").getBootClasspath())
+        classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
+        exclude '**/internal/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
     }
 
-    task("javadoc${variant.name.capitalize()}Jar", type: Jar, dependsOn: tasks["generate${variant.name.capitalize()}Javadoc"]) {
+    task("bundleJavadoc${variant.name.capitalize()}", type: Jar) {
+        description "Bundles Javadoc into zip for $variant.name."
         group 'Docs'
-        description "Generates Javadoc for ${variant.name} in Jar format."
-        classifier = 'javadoc'
-        from tasks["generate${variant.name.capitalize()}Javadoc"].destinationDir
+        classifier = "javadoc"
+        from tasks["javadoc${variant.name.capitalize()}"]
     }
 }
 
-task androidJar(type: Jar, dependsOn: 'assemble') {
+task androidJar(type: Jar, dependsOn: ['assemble', 'bundleJavadocRelease']) {
     group 'Build'
     description 'Generates a jar file continaining Realm and its annotation processor'
     from zipTree('build/intermediates/bundles/release/classes.jar')
@@ -106,15 +113,31 @@ publishing {
     }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser' // this comes from the gradle.properties file in ~/.gradle
-    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey' //this comes from the gradle.properties file in ~/.gradle
-    publications = ['mavenAndroid']
-    publish = true
-    pkg {
-        repo = 'maven'
-        name = 'realm-android'
-        licenses = ['Apache-2.0']
+if (version.endsWith('-SNAPSHOT')) { // Only publish if it's a snapshot version
+    publishing {
+        repositories {
+            maven {
+                url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+                credentials {
+                    // user and password come from the gradle.properties file in ~/.gradle
+                    username project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+                    password project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+                }
+            }
+        }
+    }
+} else {
+    bintray {
+        // user and key come from the gradle.properties file in ~/.gradle
+        user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+        key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+        publications = ['mavenAndroid']
+        publish = true
+        pkg {
+            repo = 'maven'
+            name = 'realm-android'
+            licenses = ['Apache-2.0']
+        }
     }
 }
 
@@ -178,7 +201,7 @@ task populateDistributionFolder(dependsOn: 'androidJar') << {
     examples.each() { src, dest ->
         copy {
             from "../examples/${src}/src"
-            into "../distribution/${dest}/app"
+            into "../distribution/${dest}/app/src"
         }
     }
 }

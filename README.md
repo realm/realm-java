@@ -10,40 +10,50 @@ This repository holds the source code for the Java version of Realm, which curre
 * **Modern:** Realm supports easy thread-safety, relationships & encryption.
 * **Fast:** Realm is faster than even raw SQLite on common operations, while maintaining an extremely rich feature set.
 
-## Setting up Realm in your app
+## Getting Started
 
-See full instructions in our [docs](http://realm.io/docs/java).
+Please see the [detailed instructions in our docs](http://realm.io/docs/java/#installation) to add Realm to your project.
 
 ## Documentation
 
-Documentation for Realm can be found at [realm.io/docs/java](http://realm.io/docs/java). The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/java/api).
+Documentation for Realm can be found at [realm.io/docs/java](http://realm.io/docs/java).
+The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/java/api).
+
+## Getting Help
+
+- Attend our monthly [**Online Office Hours**](http://j.mp/realm-office-hours) to ask questions or show us your app.
+- **Reproducible Bugs & Feature Requests** should be filed directly against our [Github Issues](https://github.com/realm/realm-java/issues).
+- **Discussions & Support**: [realm-java@googlegroups.com](https://groups.google.com/d/forum/realm-java).
+- **StackOverflow**: look for previous questions under the tag [#realm](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [open a new one](http://stackoverflow.com/questions/ask?tags=realm).
+- Sign up for our [**Community Newsletter**](http://eepurl.com/VEKCn) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
 
 ## Building Realm
+
+In case you don't want to use the precompiled version, you can build Realm yourself from source.
 
 Prerequisites:
 
 * Make sure `make` is available in your `$PATH`
 * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
 * Download & install the Android SDK, **Android 4.4W (API 20)** (for example through Android Studio’s **Android SDK Manager**)
-* _Also_ download & install the Android SDK, **Android 4.4.2 (API 19)** (for example through Android Studio’s **Android SDK Manager**)
-* Download the **Android NDK (= r9d)** (currently only **GCC 4.6** can be used due to a linker error on later versions). For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
+* _Also_ download & install the Android SDK, **Android 4.4.2 (API 20)** (for example through Android Studio’s **Android SDK Manager**)
+* Download the **Android NDK (= r10d)**. For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
 * Add a `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
 
     ```
     sdk.dir=/Applications/Android Studio.app/sdk
-    ndk.dir=/usr/local/Cellar/android-ndk/r9d
+    ndk.dir=/usr/local/Cellar/android-ndk/r10d
     ```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
     ./gradlew androidJar
-    
-    
+
 That command will generate the .jar file containing the Realm runtime and the annotation processor. You will find it in realm/build/libs.
 
 ### Other Commands
 
- * `./gradlew generateReleaseJavadoc` will generate the Javadocs
+ * `./gradlew realm:javadocRelease` will generate the Javadocs
  * `./gradlew realm:connectedCheck` will run the tests on a connected Android device
 
 Generating the Javadoc using the command above will report a failure (1 error, 30+ warnings). The Javadoc is generated, and we will fix 

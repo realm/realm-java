@@ -17,8 +17,9 @@
 package io.realm.annotations;
 
 /**
- * The @Index annotation will add a search index to the field. A search index will make the
- * Realm file larger but search operations and queries will be faster.
+ * This annotation will add a search index to the field. A search index will make the
+ * Realm file larger and inserts slower but queries will be faster. 
+ *
  * NOTICE: only String fields can be indexed.
  */
 public @interface Index {

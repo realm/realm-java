@@ -34,15 +34,18 @@ import io.realm.internal.TableView;
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects
  * are not copied from the Realm to the RealmResults list, but are just referenced from the
  * RealmResult instead. This saves memory and increases speed.
- *
- * RealmResults are live views, which means that if it is on a {@link android.os.Looper} thread,
+ * <p>
+ * RealmResults are live views, which means that if it is on an {@link android.os.Looper} thread,
  * it will automatically update its query results after a transaction has been committed. If on a
  * non-looper thread, {@link Realm#refresh()} must be called to update the results.
- *
+ * <p>
  * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the
  * modified objects are persisted to the Realm file during the commit of the transaction.
- *
+ * <p>
  * A RealmResults object cannot be passed between different threads.
+ * <p>
+ * Notice that a RealmResults is never null not even in the case where it contains no objects. You
+ * should always use the size() method to check if a RealmResults is empty or not.
  *
  * @param <E> The class of objects in this list
  * @see RealmQuery#findAll()
@@ -240,15 +243,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             throw new IllegalArgumentException("fieldNames must be provided.");
         } else if (sortAscending == null) {
             throw new IllegalArgumentException("sortAscending must be provided.");
-        } else if (fieldNames.length == 0) {
-            throw new IllegalArgumentException("You must provide at least one field name.");
-        } else if (sortAscending.length == 0) {
-            throw new IllegalArgumentException("You must provide at least one sort order.");
-        } else if (fieldNames.length != sortAscending.length) {
-            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) do not match.", fieldNames.length, sortAscending.length));
         }
 
-        if (fieldNames.length == 1) {
+        if (fieldNames.length == 1 && sortAscending.length == 1) {
             sort(fieldNames[0], sortAscending[0]);
         } else {
             realm.checkIfValid();
@@ -260,12 +257,15 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
                     String fieldName = fieldNames[i];
                     long columnIndex = getColumnIndex(fieldName);
                     columnIndices.add(columnIndex);
+                }
+                for (int i = 0; i < sortAscending.length; i++) {
                     TVOrder.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
                 }
                 ((TableView) table).sort(columnIndices, TVOrder);
             }
         }
     }
+
 
     /**
      * Sort existing {link io.realm.RealmResults} using two fields.

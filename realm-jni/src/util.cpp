@@ -132,8 +132,10 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = "Illegal State: " + classStr;
             break;
     }
-    if (jExceptionClass != NULL)
+    if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());
+        TR_ERR("Exception has been throw: %s", message.c_str())
+    }
     else {
         TR_ERR("ERROR: Couldn't throw exception.")
     }
@@ -245,6 +247,7 @@ string string_to_hex(const string& message, StringData& str, const char* in_begi
     const char *s = str.data();
     ret << message << " ";
     ret << "error_code = " << error_code << "; ";
+    ret << "retcode = " << retcode << "; ";
     ret << "StringData.size = " << str.size() << "; ";
     ret << "StringData.data = " << str.data() << "; ";
     ret << "StringData as hex = ";

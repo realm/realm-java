@@ -21,27 +21,30 @@ import android.content.res.AssetManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 
-import io.realm.entities.AllTypes;
+import java.io.InputStreamReader;
 
 public class TestHelper {
-    static void populateForMultiSort(Realm testRealm) {
-        testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
-        AllTypes object1 = testRealm.createObject(AllTypes.class);
-        object1.setColumnLong(5);
-        object1.setColumnString("Adam");
 
-        AllTypes object2 = testRealm.createObject(AllTypes.class);
-        object2.setColumnLong(4);
-        object2.setColumnString("Brian");
+    public static String streamToString(InputStream in) throws IOException {
+        BufferedReader br = null;
+        StringBuilder sb = new StringBuilder();
+        String line;
+        try {
+            br = new BufferedReader(new InputStreamReader(in));
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+        } finally {
+            if (br != null) {
+                br.close();
+            }
+        }
 
-        AllTypes object3 = testRealm.createObject(AllTypes.class);
-        object3.setColumnLong(4);
-        object3.setColumnString("Adam");
-        testRealm.commitTransaction();
+        return sb.toString();
     }
 
     // Copies a Realm file from assets to app files dir
@@ -63,5 +66,12 @@ public class TestHelper {
     public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
         Realm.deleteRealmFile(context, newName);
         TestHelper.copyRealmFromAssets(context, realmPath, newName);
+    }
+s
+    public static class StubInputStream extends InputStream {
+        @Override
+        public int read() throws IOException {
+            return 0; // Stub implementation
+        }
     }
 }

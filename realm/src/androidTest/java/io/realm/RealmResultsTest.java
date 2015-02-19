@@ -19,6 +19,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -597,70 +598,6 @@ public class RealmResultsTest extends AndroidTestCase {
         }
     }
 
-    public void testSortTwoFields() {
-        io.realm.TestHelper.populateForMultiSort(testRealm);
-
-        RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class);
-        results1.sort(new String[]{FIELD_STRING, FIELD_LONG}, new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-
-        assertEquals(3, results1.size());
-
-        assertEquals("Adam", results1.get(0).getColumnString());
-        assertEquals(4, results1.get(0).getColumnLong());
-
-        assertEquals("Adam", results1.get(1).getColumnString());
-        assertEquals(5, results1.get(1).getColumnLong());
-
-        assertEquals("Brian", results1.get(2).getColumnString());
-        assertEquals(4, results1.get(2).getColumnLong());
-
-        RealmResults<AllTypes> results2 = testRealm.allObjects(AllTypes.class);
-        results2.sort(new String[]{FIELD_LONG, FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-
-        assertEquals(3, results2.size());
-
-        assertEquals("Adam", results2.get(0).getColumnString());
-        assertEquals(4, results2.get(0).getColumnLong());
-
-        assertEquals("Brian", results2.get(1).getColumnString());
-        assertEquals(4, results2.get(1).getColumnLong());
-
-        assertEquals("Adam", results2.get(2).getColumnString());
-        assertEquals(5, results2.get(2).getColumnLong());
-    }
-
-    public void testSortMultiFailures() {
-        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
-
-        // zero fields specified
-        try {
-            allTypes.sort(new String[]{}, new boolean[]{});
-            fail();
-        } catch (IllegalArgumentException ignored) {}
-
-        // number of fields and sorting orders don't match
-        try {
-            allTypes.sort(new String[]{FIELD_STRING}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-            fail();
-        } catch (IllegalArgumentException ignored) {}
-
-        // null is not allowed
-        try {
-            allTypes.sort(null, null);
-            fail();
-        } catch (IllegalArgumentException ignored) {}
-        try {
-            allTypes.sort(new String[]{FIELD_STRING}, null);
-            fail();
-        } catch (IllegalArgumentException ignored) {}
-
-        // non-existing field name
-        try {
-            allTypes.sort(new String[]{FIELD_STRING, "dont-exist"}, new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
-            fail();
-        } catch (IllegalArgumentException ignored) {}
-    }
-
     public void testSortSingleField() {
         RealmResults<AllTypes> sortedList = testRealm.allObjects(AllTypes.class);
         sortedList.sort(new String[]{FIELD_LONG}, new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
@@ -715,18 +652,21 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testFindAllSorted() {
-        RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAll(FIELD_LONG, RealmResults.SORT_ORDER_ASCENDING);
+        RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG,
+                RealmResults.SORT_ORDER_ASCENDING);
         assertEquals(TEST_DATA_SIZE, allTypes.size());
         assertEquals(0, allTypes.first().getColumnLong());
         assertEquals(TEST_DATA_SIZE - 1, allTypes.last().getColumnLong());
 
-        RealmResults<AllTypes> reverseList = testRealm.where(AllTypes.class).findAll(FIELD_LONG, RealmResults.SORT_ORDER_DESCENDING);
+        RealmResults<AllTypes> reverseList = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG,
+                RealmResults.SORT_ORDER_DESCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals(0, reverseList.last().getColumnLong());
         assertEquals(TEST_DATA_SIZE - 1, reverseList.first().getColumnLong());
 
         try {
-            RealmResults<AllTypes> none = testRealm.where(AllTypes.class).findAll("invalid", RealmResults.SORT_ORDER_DESCENDING);
+            RealmResults<AllTypes> none = testRealm.where(AllTypes.class).findAllSorted("invalid",
+                    RealmResults.SORT_ORDER_DESCENDING);
             fail();
         } catch (IllegalArgumentException ignored) {}
     }
@@ -745,5 +685,14 @@ public class RealmResultsTest extends AndroidTestCase {
             fail();
         } catch (NoSuchMethodError e) {}
     }
+
+    public void testSubList() {
+        RealmResults<AllTypes> list = testRealm.allObjects(AllTypes.class);
+        list.sort("columnLong");
+        List<AllTypes> sublist = list.subList(Math.max(list.size() - 20, 0), list.size());
+        assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
+    }
+
+
     // TODO: More extended tests of querying all types must be done.
 }
