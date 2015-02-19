@@ -604,7 +604,7 @@ public class RealmProxyClassGenerator {
                         .beginControlFlow("if (cache%s != null)", fieldName)
                             .emitStatement("realmObject.%s(cache%s)", setters.get(fieldName), fieldName)
                         .nextControlFlow("else")
-                            .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %s, trues, cache))",
+                            .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %s, true, cache))",
                                     setters.get(fieldName),
                                     Utils.getProxyClassSimpleName(field),
                                     fieldName,
