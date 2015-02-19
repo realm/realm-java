@@ -67,7 +67,7 @@ public class TestHelper {
         Realm.deleteRealmFile(context, newName);
         TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
-s
+
     public static class StubInputStream extends InputStream {
         @Override
         public int read() throws IOException {
