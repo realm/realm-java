@@ -481,7 +481,7 @@ public class RealmProxyClassGenerator {
         );
 
         if (primaryKey == null) {
-            writer.emitStatement("return copy(realm, object, false)");
+            writer.emitStatement("return copy(realm, object, update)");
         } else {
             writer
                 .emitStatement("%s realmObject = null", className)
@@ -587,7 +587,7 @@ public class RealmProxyClassGenerator {
                 writer
                     .emitStatement("%s %s = newObject.%s()", Utils.getFieldTypeSimpleName(field), fieldName, getters.get(fieldName))
                     .beginControlFlow("if (%s != null)", fieldName)
-                        .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %s, realm.getTable(%s.class).hasPrimaryKey()))",
+                        .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %s, true))",
                                 setters.get(fieldName),
                                 Utils.getProxyClassSimpleName(field),
                                 fieldName,

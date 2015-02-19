@@ -250,7 +250,7 @@ public class AllTypesRealmProxy extends AllTypes {
     }
 
     public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update) {
-        return copy(realm, object, false);
+        return copy(realm, object, update);
     }
 
     public static AllTypes copy(Realm realm, AllTypes newObject, boolean update) {

@@ -1,3 +1,6 @@
+0.79.1
+ * Fixed potential crash when using copyToRealmOrUpdate with an object graph containing a mix of elements with and without primary keys.
+
 0.79
  * Added support for ARM64.
  * Added RealmQuery.not() to negate a query condition.

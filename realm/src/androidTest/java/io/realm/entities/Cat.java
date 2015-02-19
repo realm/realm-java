@@ -28,6 +28,7 @@ public class Cat extends RealmObject {
     private boolean hasTail;
     private Date birthday;
     private Owner owner;
+    private DogPrimaryKey scaredOfDog;
 
     public Owner getOwner() {
         return owner;
@@ -84,5 +85,13 @@ public class Cat extends RealmObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public DogPrimaryKey getScaredOfDog() {
+        return scaredOfDog;
+    }
+
+    public void setScaredOfDog(DogPrimaryKey scaredOfDog) {
+        this.scaredOfDog = scaredOfDog;
     }
 }

@@ -117,7 +117,7 @@ public class SimpleRealmProxy extends Simple {
     }
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update) {
-        return copy(realm, object, false);
+        return copy(realm, object, update);
     }
 
     public static Simple copy(Realm realm, Simple newObject, boolean update) {

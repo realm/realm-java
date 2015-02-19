@@ -37,11 +37,14 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -1173,7 +1176,35 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(4, testRealm.allObjects(DogPrimaryKey.class).size());
     }
 
-    public void testCopyOrUpdateIterable() {
+    public void testCopyOrUpdatePrimaryKeyMix() {
+        // Crate Object graph where tier 2 consists of 1 object with primary key and one doesn't.
+        // Tier 3 both have objects with primary keys.
+        //
+        //        PK
+        //     /      \
+        //    PK      nonPK
+        //    |        |
+        //    PK       PK
+        DogPrimaryKey dog = new DogPrimaryKey(1, "Dog");
+        OwnerPrimaryKey owner = new OwnerPrimaryKey(1, "Owner");
+        owner.setDog(dog);
+
+        Cat cat = new Cat();
+        cat.setScaredOfDog(dog);
+
+        PrimaryKeyMix mixObject = new PrimaryKeyMix(1);
+        mixObject.setDogOwner(owner);
+        mixObject.setCat(cat);
+
+        testRealm.beginTransaction();
+        PrimaryKeyMix realmObject = testRealm.copyToRealmOrUpdate(mixObject);
+        testRealm.commitTransaction();
+
+        assertEquals("Dog", realmObject.getCat().getScaredOfDog().getName());
+        assertEquals("Dog", realmObject.getDogOwner().getDog().getName());
+    }
+
+   public void testCopyOrUpdateIterable() {
         testRealm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
