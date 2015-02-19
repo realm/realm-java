@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import android.util.Log;
+
 import java.util.Scanner;
 
 public class Util {
@@ -59,7 +61,7 @@ public class Util {
         Exception_IndexOutOfBounds(7),
         Exception_TableInvalid(8),
         Exception_UnsupportedOperation(9),
-        Exception_OutOfMemory(10),
+        //Exception_OutOfMemory(10), // will terminate with runtime.halt()
         Exception_Unspecified(11),
         Exception_RuntimeError(12),
         Exception_RowInvalid(13);
@@ -79,5 +81,13 @@ public class Util {
     }
 
     static native String nativeTestcase(int testcase, boolean dotest, long parm1);
+
+    public static void terminate(String logTag, String cause) throws InterruptedException {
+        Log.e(logTag, "*******************************************************************");
+        Log.e(logTag, "!!!App has been halted!!!");
+        Log.e(logTag, "Cause: " + cause);
+        Log.e(logTag, "*******************************************************************");
+        Runtime.getRuntime().halt(1);
+    }
 
 }
