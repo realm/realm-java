@@ -1605,14 +1605,14 @@ public final class Realm implements Closeable {
         Method method = insertOrUpdateMethods.get(realmClass);
         if (method == null) {
             try {
-                method = proxyClass.getMethod("copyOrUpdate", new Class[]{Realm.class, realmClass, boolean.class});
+                method = proxyClass.getMethod("copyOrUpdate", new Class[]{Realm.class, realmClass, boolean.class, Map.class});
             } catch (NoSuchMethodException e) {
                 throw new RealmException("Could not find the copyOrUpdate() method in generated proxy class for " + proxyClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
             }
             insertOrUpdateMethods.put(proxyClass, method);
         }
         try {
-            Object result = method.invoke(null, this, object, update);
+            Object result = method.invoke(null, this, object, update, new HashMap<RealmObject,RealmObject>());
             return (E) result;
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not execute the copyToRealm method : " + APT_NOT_EXECUTED_MESSAGE, e);
