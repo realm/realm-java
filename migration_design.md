@@ -131,9 +131,18 @@ Perhaps magic mode has to be really explicit?
   replace Row and TableSpec classes.
 - Builder patterns to ease constructing.
 
+
+Annotations
+
+1) Add new annotation @RealmField(name = "otherName"). This allow you to refactor field name without causing migrations. Also useful when dealing with multiplatform Realms.
+
+2) Expand @RealmClass so it accepts @RealmClass(name = "otherName"). Same reason as above.
+
+
 Realm method:
 
 Realm.migrateRealm(getContext(), new MyMigration());
+
 
 Interface for migrations
 
