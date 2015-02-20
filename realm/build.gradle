@@ -250,6 +250,8 @@ examples.each() { src, dest ->
     }
 }
 
+apply plugin: 's3'
+
 import com.github.skhatri.s3aws.plugin.S3UploadTask
 
 // This is an ugly hack because we have two links to the latest version.
@@ -273,7 +275,8 @@ task uploadUpdateVersion(type: S3UploadTask) {
     }
     bucket = 'static.realm.io'
     file = "${rootDir}/version.txt"
-    key = 'downloads/update/java'
+    key = 'update/java'
+    link = 'downloads/temp/update-java'
 }
 
 task tagRepo(type: Exec) {
