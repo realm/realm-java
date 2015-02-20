@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import io.realm.internal.migration.RealmSpec;
+
 /**
  * The RealmMigration class is used to describe the migration of one Realm schema to another.
  * The schema for a Realm is defined by all classes in a project that extend
@@ -59,6 +61,16 @@ public interface RealmMigration {
      * @param version The version of the Realm at the start of the migration.
      * @return The version of the Realm after executing the migration.
      */
+    @Deprecated
     public long execute(Realm realm, long version);
+
+
+    /**
+     * Implement this method to perform a migration
+     * @return the new RealmSpec that we should migrate to
+     */
+    public long migrate(RealmSpec oldRealm, int  version);
+
+
 }
 
