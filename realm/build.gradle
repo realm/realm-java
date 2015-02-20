@@ -243,8 +243,8 @@ task createDistributionPackage(type: Zip) {
 
 examples.each() { src, dest ->
     task "distributionMonkey${dest}"(type: GradleBuild) {
-        dependsOn createDistributionFolder
-        dependsOn bintrayUpload
+        dependsOn createDistributionPackage
+        //dependsOn bintrayUpload
         dir = file("${rootDir}/distribution/${dest}")
         tasks = ['monkeyRelease']
     }
