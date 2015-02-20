@@ -37,11 +37,16 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.CyclicType;
+import io.realm.entities.CyclicTypePrimaryKey;
+import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -1000,6 +1005,39 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(list.get(0).getName(), realmTypes.getColumnRealmList().get(0).getName());
     }
 
+    public void testCopyToRealmCyclic() {
+        CyclicType oneCyclicType = new CyclicType();
+        oneCyclicType.setName("One");
+        CyclicType anotherCyclicType = new CyclicType();
+        anotherCyclicType.setName("Two");
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        testRealm.beginTransaction();
+        CyclicType realmObject = testRealm.copyToRealm(oneCyclicType);
+        testRealm.commitTransaction();
+
+        assertEquals("One", realmObject.getName());
+        assertEquals("Two", realmObject.getObject().getName());
+        assertEquals(2, testRealm.allObjects(CyclicType.class).size());
+    }
+
+    public void testCopyToRealmCyclicList() {
+        CyclicType oneCyclicType = new CyclicType();
+        oneCyclicType.setName("One");
+        CyclicType anotherCyclicType = new CyclicType();
+        anotherCyclicType.setName("Two");
+        oneCyclicType.setObjects(new RealmList(anotherCyclicType));
+        anotherCyclicType.setObjects(new RealmList(oneCyclicType));
+
+        testRealm.beginTransaction();
+        CyclicType realmObject = testRealm.copyToRealm(oneCyclicType);
+        testRealm.commitTransaction();
+
+        assertEquals("One", realmObject.getName());
+        assertEquals(2, testRealm.allObjects(CyclicType.class).size());
+    }
+
     // Check that if a field has a null value it gets converted to the default value for that type
     public void testCopyToRealmDefaultValues() {
         testRealm.beginTransaction();
@@ -1112,6 +1150,29 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Dog4", obj.getColumnRealmList().get(0).getName());
     }
 
+    public void testUpdateCyclicObject() {
+        CyclicTypePrimaryKey oneCyclicType = new CyclicTypePrimaryKey(1);
+        oneCyclicType.setName("One");
+        CyclicTypePrimaryKey anotherCyclicType = new CyclicTypePrimaryKey(2);
+        anotherCyclicType.setName("Two");
+        oneCyclicType.setObject(anotherCyclicType);
+        anotherCyclicType.setObject(oneCyclicType);
+
+        testRealm.beginTransaction();
+        testRealm.copyToRealm(oneCyclicType);
+        testRealm.commitTransaction();
+
+        oneCyclicType.setName("Three");
+        anotherCyclicType.setName("Four");
+        testRealm.beginTransaction();
+        testRealm.copyToRealmOrUpdate(oneCyclicType);
+        testRealm.commitTransaction();
+
+        assertEquals(2, testRealm.allObjects(CyclicTypePrimaryKey.class).size());
+        assertEquals("Three", testRealm.where(CyclicTypePrimaryKey.class).equalTo("id", 1).findFirst().getName());
+    }
+
+
     // Checks that a standalone object with only default values can override data
     public void testCopyOrUpdateWithStandaloneDefaultObject() {
         testRealm.executeTransaction(new Realm.Transaction() {
@@ -1173,7 +1234,35 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(4, testRealm.allObjects(DogPrimaryKey.class).size());
     }
 
-    public void testCopyOrUpdateIterable() {
+    public void testCopyOrUpdatePrimaryKeyMix() {
+        // Crate Object graph where tier 2 consists of 1 object with primary key and one doesn't.
+        // Tier 3 both have objects with primary keys.
+        //
+        //        PK
+        //     /      \
+        //    PK      nonPK
+        //    |        |
+        //    PK       PK
+        DogPrimaryKey dog = new DogPrimaryKey(1, "Dog");
+        OwnerPrimaryKey owner = new OwnerPrimaryKey(1, "Owner");
+        owner.setDog(dog);
+
+        Cat cat = new Cat();
+        cat.setScaredOfDog(dog);
+
+        PrimaryKeyMix mixObject = new PrimaryKeyMix(1);
+        mixObject.setDogOwner(owner);
+        mixObject.setCat(cat);
+
+        testRealm.beginTransaction();
+        PrimaryKeyMix realmObject = testRealm.copyToRealmOrUpdate(mixObject);
+        testRealm.commitTransaction();
+
+        assertEquals("Dog", realmObject.getCat().getScaredOfDog().getName());
+        assertEquals("Dog", realmObject.getDogOwner().getDog().getName());
+    }
+
+   public void testCopyOrUpdateIterable() {
         testRealm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {

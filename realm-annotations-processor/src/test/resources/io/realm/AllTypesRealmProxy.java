@@ -249,12 +249,13 @@ public class AllTypesRealmProxy extends AllTypes {
         reader.endObject();
     }
 
-    public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update) {
-        return copy(realm, object, false);
+    public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update, Map<RealmObject, RealmObject> cache) {
+        return copy(realm, object, update, cache);
     }
 
-    public static AllTypes copy(Realm realm, AllTypes newObject, boolean update) {
+    public static AllTypes copy(Realm realm, AllTypes newObject, boolean update, Map<RealmObject, RealmObject> cache) {
         AllTypes realmObject = realm.createObject(AllTypes.class);
+        cache.put(newObject, realmObject);
         realmObject.setColumnString(newObject.getColumnString() != null ? newObject.getColumnString() : "");
         realmObject.setColumnLong(newObject.getColumnLong());
         realmObject.setColumnFloat(newObject.getColumnFloat());
@@ -265,7 +266,7 @@ public class AllTypesRealmProxy extends AllTypes {
         return realmObject;
     }
 
-    static AllTypes update(Realm realm, AllTypes realmObject, AllTypes newObject) {
+    static AllTypes update(Realm realm, AllTypes realmObject, AllTypes newObject, Map<RealmObject, RealmObject> cache) {
         realmObject.setColumnString(newObject.getColumnString() != null ? newObject.getColumnString() : "");
         realmObject.setColumnLong(newObject.getColumnLong());
         realmObject.setColumnFloat(newObject.getColumnFloat());
