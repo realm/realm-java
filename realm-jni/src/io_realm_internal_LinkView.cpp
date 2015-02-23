@@ -113,7 +113,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemove
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
     LinkView *lv = LV(nativeLinkViewPtr);
-    if (!ROW_INDEX_VALID_OFFSET(env, lv, pos)) {
+    if (!ROW_INDEX_VALID(env, lv, pos)) {
         return;
     }
     try {
