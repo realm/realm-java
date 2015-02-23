@@ -17,35 +17,22 @@
 package io.realm.processor;
 
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-
-import io.realm.annotations.Ignore;
-import io.realm.annotations.Index;
-import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.RealmClass;
+import java.io.IOException;
+import java.util.*;
 
 
 @SupportedAnnotationTypes({
@@ -64,7 +51,7 @@ public class RealmProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        RealmVersionChecker updateChecker = new RealmVersionChecker(processingEnv);
+        RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
         updateChecker.executeRealmVersionUpdate();
         Utils.initialize(processingEnv);
 
