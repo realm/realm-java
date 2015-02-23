@@ -351,6 +351,17 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(TEST_OBJECTS - 1, dogs.size());
     }
 
+    public void testRemoveLast() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+
+        testRealm.beginTransaction();
+        dogs.remove(TEST_OBJECTS - 1);
+        testRealm.commitTransaction();
+
+        assertEquals(TEST_OBJECTS - 1, dogs.size());
+    }
+
     public void testRemoveByObject() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
