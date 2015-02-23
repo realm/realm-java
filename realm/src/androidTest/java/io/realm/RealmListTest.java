@@ -362,6 +362,22 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(TEST_OBJECTS - 1, dogs.size());
     }
 
+    public void testRemoveFromEmptyListThrows() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+
+        testRealm.beginTransaction();
+        dogs.clear();
+        try {
+            dogs.remove(0);
+        } catch (IndexOutOfBoundsException expected) {
+            return;
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        fail("Calling remove() should fail on an empty list.");
+    }
+
     public void testRemoveByObject() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();

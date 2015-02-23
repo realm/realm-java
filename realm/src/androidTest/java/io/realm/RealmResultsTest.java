@@ -245,8 +245,8 @@ public class RealmResultsTest extends AndroidTestCase {
         // average = sum/N = b + (N-1)/2
         assertEquals(1.234567 + 0.5 * (N - 1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
-    // TODO: Should we reenable this test?
-    public void DISABLEDtestRemove() {
+
+    public void testRemove() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         testRealm.beginTransaction();
         resultList.remove(0);
@@ -258,14 +258,10 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(1, allTypes.getColumnLong());
     }
 
-    // TODO: Should we reenable this test?
-    public void DISABLEDtestRemoveLast() {
+    public void testRemoveLast() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-
         testRealm.beginTransaction();
-
         resultList.removeLast();
-
         testRealm.commitTransaction();
 
         assertEquals("ResultList.removeLast did not remove record", TEST_DATA_SIZE - 1, resultList.size());
@@ -275,6 +271,17 @@ public class RealmResultsTest extends AndroidTestCase {
 
         RealmResults<AllTypes> resultListCheck = testRealm.where(AllTypes.class).findAll();
         assertEquals("ResultList.removeLast not committed", TEST_DATA_SIZE - 1, resultListCheck.size());
+    }
+
+    public void testRemoveLastEmptyList() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        testRealm.beginTransaction();
+        resultList.clear();
+        assertEquals(0, resultList.size());
+        resultList.removeLast();
+        testRealm.commitTransaction();
+
+        assertEquals(0, resultList.size());
     }
 
     public void testSortByLong() {
