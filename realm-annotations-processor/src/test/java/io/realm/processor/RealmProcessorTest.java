@@ -34,6 +34,7 @@ public class RealmProcessorTest {
     private JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/BooleansRealmProxy.java");
     private JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
     private JavaFileObject noAccessorsModel = JavaFileObjects.forResource("some/test/NoAccessors.java");
+    private JavaFileObject fieldNamesModel = JavaFileObjects.forResource("some/test/FieldNames.java");
 
     @Test
     public void compileSimpleFile() {
@@ -152,5 +153,13 @@ public class RealmProcessorTest {
                 .that(noAccessorsModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
+    }
+
+    @Test
+    public void compileFieldNamesFiles() {
+        ASSERT.about(javaSource())
+                .that(fieldNamesModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
     }
 }
