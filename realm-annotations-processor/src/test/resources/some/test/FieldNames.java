@@ -29,6 +29,7 @@ import some.test.Simple;
 public class FieldNames extends RealmObject {
 
     private Simple name;
+    private Simple cache;
 
     public Simple getName() {
         return name;
@@ -36,5 +37,13 @@ public class FieldNames extends RealmObject {
 
     public void setName(Simple name) {
         this.name = name;
+    }
+
+    public Simple getCache() {
+        return cache;
+    }
+
+    public void setCache(Simple cache) {
+        this.cache = cache;
     }
 }
