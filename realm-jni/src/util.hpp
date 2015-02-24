@@ -295,7 +295,9 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=fa
     bool rowErr = tightdb::util::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
         TR_ERR("rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(size))
-        ThrowException(env, IndexOutOfBounds, "rowIndex > available rows.");
+        ThrowException(env, IndexOutOfBounds,
+            "rowIndex > available rows: " +
+            num_to_string(rowIndex) + " > " + num_to_string(size));
     }
     return !rowErr;
 }
