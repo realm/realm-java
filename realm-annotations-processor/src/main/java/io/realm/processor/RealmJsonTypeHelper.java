@@ -133,9 +133,9 @@ public class RealmJsonTypeHelper {
 
     public static void emitFillRealmObjectFromStream(String setter, String fieldName, String fieldTypeCanonicalName, String proxyClass, JavaWriter writer) throws IOException {
         writer
-            .emitStatement("%s %s = standalone ? new %s() : obj.realm.createObject(%s.class)", fieldTypeCanonicalName, fieldName, fieldTypeCanonicalName, fieldTypeCanonicalName)
-            .emitStatement("%s.populateUsingJsonStream(%s, reader)", proxyClass, fieldName)
-            .emitStatement("obj.%s(%s)", setter, fieldName);
+            .emitStatement("%s %sObj = standalone ? new %s() : obj.realm.createObject(%s.class)", fieldTypeCanonicalName, fieldName, fieldTypeCanonicalName, fieldTypeCanonicalName)
+            .emitStatement("%s.populateUsingJsonStream(%sObj, reader)", proxyClass, fieldName)
+            .emitStatement("obj.%s(%sObj)", setter, fieldName);
     }
 
     public static void emitFillRealmListFromStream(String getter, String setter, String fieldTypeCanonicalName, String proxyClass, JavaWriter writer) throws IOException {

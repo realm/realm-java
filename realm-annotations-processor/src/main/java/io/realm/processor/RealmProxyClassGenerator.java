@@ -538,13 +538,13 @@ public class RealmProxyClassGenerator {
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 writer
                     .emitEmptyLine()
-                    .emitStatement("%s %s = newObject.%s()", fieldType, fieldName, getters.get(fieldName))
-                    .beginControlFlow("if (%s != null)", fieldName)
-                        .emitStatement("%s cache%s = (%s) cache.get(%s)", fieldType, fieldName, fieldType, fieldName)
+                    .emitStatement("%s %sObj = newObject.%s()", fieldType, fieldName, getters.get(fieldName))
+                    .beginControlFlow("if (%sObj != null)", fieldName)
+                        .emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
                         .beginControlFlow("if (cache%s != null)", fieldName)
                             .emitStatement("realmObject.%s(cache%s)", setters.get(fieldName), fieldName)
                         .nextControlFlow("else")
-                            .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %s, update, cache))",
+                            .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %sObj, update, cache))",
                                     setters.get(fieldName),
                                     Utils.getProxyClassSimpleName(field),
                                     fieldName)
@@ -598,13 +598,13 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 writer
-                    .emitStatement("%s %s = newObject.%s()", Utils.getFieldTypeSimpleName(field), fieldName, getters.get(fieldName))
-                    .beginControlFlow("if (%s != null)", fieldName)
-                        .emitStatement("%s cache%s = (%s) cache.get(%s)", Utils.getFieldTypeSimpleName(field), fieldName, Utils.getFieldTypeSimpleName(field), fieldName)
+                    .emitStatement("%s %sObj = newObject.%s()", Utils.getFieldTypeSimpleName(field), fieldName, getters.get(fieldName))
+                    .beginControlFlow("if (%sObj != null)", fieldName)
+                        .emitStatement("%s cache%s = (%s) cache.get(%sObj)", Utils.getFieldTypeSimpleName(field), fieldName, Utils.getFieldTypeSimpleName(field), fieldName)
                         .beginControlFlow("if (cache%s != null)", fieldName)
                             .emitStatement("realmObject.%s(cache%s)", setters.get(fieldName), fieldName)
                         .nextControlFlow("else")
-                            .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %s, true, cache))",
+                            .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %sObj, true, cache))",
                                     setters.get(fieldName),
                                     Utils.getProxyClassSimpleName(field),
                                     fieldName,

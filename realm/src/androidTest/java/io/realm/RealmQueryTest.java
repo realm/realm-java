@@ -8,6 +8,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.entities.StringOnly;
 
 public class RealmQueryTest extends AndroidTestCase{
 
@@ -433,5 +434,29 @@ public class RealmQueryTest extends AndroidTestCase{
         RealmList<Dog> dogs = testRealm.where(Owner.class).equalTo("name", "Owner 2").findFirst().getDogs();
         Dog dog = dogs.where().equalTo("name", "Dog 4").findFirst();
         assertEquals(dog4, dog);
+    }
+
+    public void testGeorgian() {
+        String words[] = {"მონაცემთა ბაზა", "მიწისქვეშა გადასასვლელი", "რუსთაველის გამზირი",
+                "მთავარი ქუჩა", "სადგურის მოედანი", "ველოცირაპტორების ჯოგი"};
+        String sorted[] = {"ველოცირაპტორების ჯოგი", "მთავარი ქუჩა", "მიწისქვეშა გადასასვლელი",
+                "მონაცემთა ბაზა", "რუსთაველის გამზირი", "სადგურის მოედანი"};
+
+        testRealm.beginTransaction();
+        testRealm.clear(StringOnly.class);
+        for (String word : words) {
+            StringOnly stringOnly = testRealm.createObject(StringOnly.class);
+            stringOnly.setChars(word);
+        }
+        testRealm.commitTransaction();
+
+        RealmResults<StringOnly> stringOnlies1 = testRealm.where(StringOnly.class).contains("chars", "მთავარი").findAll();
+        assertEquals(1, stringOnlies1.size());
+
+        RealmResults<StringOnly> stringOnlies2 = testRealm.allObjects(StringOnly.class);
+        stringOnlies2.sort("chars");
+        for (int i = 0; i < stringOnlies2.size(); i++) {
+            assertEquals(sorted[i], stringOnlies2.get(i).getChars());
+        }
     }
 }

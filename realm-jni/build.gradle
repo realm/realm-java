@@ -1,4 +1,4 @@
-ext.coreVersion = '0.88.2'
+ext.coreVersion = '0.88.4'
 ext.clang = false // gcc is default for the NDK. It also produces smaller binaries
 
 def commonCflags = [ '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]

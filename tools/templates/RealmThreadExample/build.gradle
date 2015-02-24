@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
+apply plugin: 'android-command'
 
 android {
     compileSdkVersion 21
@@ -32,6 +34,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    command {
+        events 2000
     }
 }
 

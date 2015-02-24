@@ -197,9 +197,6 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmQuery<E> equalTo(String fieldName, String value, boolean caseSensitive) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length > 1 && !caseSensitive) {
-            throw new IllegalArgumentException("Link queries cannot be case insensitive - coming soon.");
-        }
         this.query.equalTo(columnIndices, value, caseSensitive);
         return this;
     }
@@ -832,11 +829,8 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmQuery<E> contains(String fieldName, String value, boolean caseSensitive) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length == 1) {
-            this.query.contains(columnIndices[0], value, caseSensitive);
-            return this;
-        }
-        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "contains"));
+        this.query.contains(columnIndices, value, caseSensitive);
+        return this;
     }
 
     /**
@@ -864,11 +858,8 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, boolean caseSensitive) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length == 1) {
-            this.query.beginsWith(columnIndices[0], value, caseSensitive);
-            return this;
-        }
-        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "beginsWith"));
+        this.query.beginsWith(columnIndices, value, caseSensitive);
+        return this;
     }
 
     /**
@@ -896,11 +887,8 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmQuery<E> endsWith(String fieldName, String value, boolean caseSensitive) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
-        if (columnIndices.length == 1) {
-            this.query.endsWith(columnIndices[0], value, caseSensitive);
-            return this;
-        }
-        throw new IllegalArgumentException(String.format(LINK_NOT_SUPPORTED_METHOD, "endsWith"));
+        this.query.endsWith(columnIndices, value, caseSensitive);
+        return this;
     }
 
     // Grouping

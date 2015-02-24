@@ -21,11 +21,13 @@ import javax.tools.Diagnostic;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.Charset;
 
 public class RealmVersionChecker {
-
     public static final String REALM_ANDROID_DOWNLOAD_URL = "http://static.realm.io/downloads/java/latest";
+
+    private static RealmVersionChecker instance = null;
+    private static boolean isFirstRound = true;
+
     private static final String VERSION_URL = "http://static.realm.io/update/java?";
     private static final String REALM_VERSION = Version.VERSION;
     private static final int READ_TIMEOUT = 2000;
@@ -33,8 +35,15 @@ public class RealmVersionChecker {
 
     private ProcessingEnvironment processingEnvironment;
 
-    public RealmVersionChecker(ProcessingEnvironment processingEnvironment) {
+    private RealmVersionChecker(ProcessingEnvironment processingEnvironment) {
         this.processingEnvironment = processingEnvironment;
+    }
+
+    public static RealmVersionChecker getInstance(ProcessingEnvironment processingEnvironment) {
+        if (instance == null) {
+            instance = new RealmVersionChecker(processingEnvironment);
+        }
+        return instance;
     }
 
     private void launchRealmCheck() {
@@ -46,17 +55,20 @@ public class RealmVersionChecker {
     }
 
     public void executeRealmVersionUpdate() {
-        Thread backgroundThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                launchRealmCheck();
+        if (isFirstRound) {
+            isFirstRound = false;
+            Thread backgroundThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    launchRealmCheck();
+                }
+            });
+            backgroundThread.start();
+            try {
+                backgroundThread.join(CONNECT_TIMEOUT + READ_TIMEOUT);
+            } catch (InterruptedException e) {
+                // We ignore this exception on purpose not to break the build system if this class fails
             }
-        });
-        backgroundThread.start();
-        try {
-            backgroundThread.join(CONNECT_TIMEOUT + READ_TIMEOUT);
-        } catch(InterruptedException e) {
-            // We ignore this exception on purpose not to break the build system if this class fails
         }
     }
 

@@ -657,75 +657,93 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JZ(
 
 // String
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JLjava_lang_String_2Z(
-    JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
-{
+enum StringPredicate {
+    StringEqual,
+    StringNotEqual,
+    StringContains,
+    StringBeginsWith,
+    StringEndsWith
+};
+
+
+void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive, StringPredicate predicate) {
     GET_ARRAY()
     try {
+        bool isCaseSensitive = caseSensitive ? true : false;
         JStringAccessor value2(env, value); // throws
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_String))
                 return;
-            Q(nativeQueryPtr)->equal(S(arr[0]), value2, caseSensitive ? true : false);
+            switch (predicate) {
+            case StringEqual:
+                Q(nativeQueryPtr)->equal(S(arr[0]), value2, isCaseSensitive);
+                break;
+            case StringNotEqual:
+                Q(nativeQueryPtr)->not_equal(S(arr[0]), value2, isCaseSensitive);
+                break;
+            case StringContains:
+                Q(nativeQueryPtr)->contains(S(arr[0]), value2, isCaseSensitive);
+                break;
+            case StringBeginsWith:
+                Q(nativeQueryPtr)->begins_with(S(arr[0]), value2, isCaseSensitive);
+                break;
+            case StringEndsWith:
+                Q(nativeQueryPtr)->ends_with(S(arr[0]), value2, isCaseSensitive);
+                break;
+            }
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])) == StringData(value2));
+            switch (predicate) {
+            case StringEqual:
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).equal(StringData(value2), isCaseSensitive));
+                break;
+            case StringNotEqual:
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).not_equal(StringData(value2), isCaseSensitive));
+                break;
+            case StringContains:
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).contains(StringData(value2), isCaseSensitive));
+                break;
+            case StringBeginsWith:
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).begins_with(StringData(value2), isCaseSensitive));
+                break;
+            case StringEndsWith:
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).ends_with(StringData(value2), isCaseSensitive));
+                break;
+            }
         }
     } CATCH_STD()
     RELEASE_ARRAY()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqual__J_3JLjava_lang_String_2Z(
+    JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
+{
+    TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringEqual);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqual__J_3JLjava_lang_String_2Z(
     JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
-    GET_ARRAY()
-    try {
-        JStringAccessor value2(env, value); // throws
-        if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_String))
-                return;
-            Q(nativeQueryPtr)->not_equal(S(arr[0]), value2, caseSensitive ? true : false);
-        }
-        else {
-            Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])) != StringData(value2));
-        }
-    } CATCH_STD()
-    RELEASE_ARRAY()
+    TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringNotEqual);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBeginsWith(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_String))
-        return;
-    try {
-        JStringAccessor value2(env, value); // throws
-        Q(nativeQueryPtr)->begins_with(S(columnIndex), value2, caseSensitive ? true : false);
-    } CATCH_STD()
+    TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringBeginsWith);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEndsWith(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_String))
-        return;
-    try {
-        JStringAccessor value2(env, value); // throws
-        Q(nativeQueryPtr)->ends_with(S(columnIndex), value2, caseSensitive ? true : false);
-    } CATCH_STD()
+    TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringEndsWith);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeContains(
-    JNIEnv* env, jobject, jlong nativeQueryPtr, jlong columnIndex, jstring value, jboolean caseSensitive)
+    JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive)
 {
-    if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, columnIndex, type_String))
-        return;
-    try {
-        JStringAccessor value2(env, value); // throws
-        Q(nativeQueryPtr)->contains(S(columnIndex), value2, caseSensitive ? true : false);
-    } CATCH_STD()
+    TableQuery_StringPredicate(env, nativeQueryPtr, columnIndexes, value, caseSensitive, StringContains);
 }
 
 

@@ -23,8 +23,8 @@ android {
 //        }
 //    }
 
-
 }
+
 dependencies {
     compile 'com.intellij:annotations:+@jar'
     compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
@@ -39,7 +39,7 @@ android.libraryVariants.all { variant ->
         return; // Skip debug builds.
     }
 
-    task("javadoc${variant.name.capitalize()}", type: Javadoc) {
+    def javadocTask = task("javadoc${variant.name.capitalize()}", type: Javadoc) {
         description "Generates Javadoc for $variant.name."
         group 'Docs'
         source = variant.javaCompile.source
@@ -55,11 +55,11 @@ android.libraryVariants.all { variant ->
         description "Bundles Javadoc into zip for $variant.name."
         group 'Docs'
         classifier = "javadoc"
-        from tasks["javadoc${variant.name.capitalize()}"]
+        from javadocTask
     }
 }
 
-task androidJar(type: Jar, dependsOn: ['assemble', 'bundleJavadocRelease']) {
+task androidJar(type: Jar, dependsOn: ['assemble']) {
     group 'Build'
     description 'Generates a jar file continaining Realm and its annotation processor'
     from zipTree('build/intermediates/bundles/release/classes.jar')
@@ -156,10 +156,8 @@ task compileAnnotations(type: GradleBuild) {
     tasks = ['assemble']
 }
 
-tasks.preBuild {
-    dependsOn compileJni
-    dependsOn compileAnnotations
-    dependsOn buildApt
+project.afterEvaluate {
+    preBuild.dependsOn(['compileJni', 'compileAnnotations', 'buildApt'])
 }
 
 def examples = [
@@ -187,7 +185,7 @@ task generateDistributionExamplesBuildFiles << {
     }
 }
 
-task populateDistributionFolder(dependsOn: 'androidJar') << {
+task populateDistributionFolder(dependsOn: ['androidJar', 'bundleJavadocRelease']) << {
     copy {
         from '../changelog.txt'
         from "build/libs/realm-${version}.jar"
@@ -241,4 +239,60 @@ task createDistributionPackage(type: Zip) {
     into "realm-java-${version}"
     destinationDir = new File("${rootDir}")
     archiveName = "realm-java-${version}.zip"
+}
+
+examples.each() { src, dest ->
+    task "distributionMonkey${dest}"(type: GradleBuild) {
+        dependsOn createDistributionPackage
+        //dependsOn bintrayUpload
+        dir = file("${rootDir}/distribution/${dest}")
+        tasks = ['monkeyRelease']
+    }
+}
+
+apply plugin: 's3'
+
+import com.github.skhatri.s3aws.plugin.S3UploadTask
+
+// This is an ugly hack because we have two links to the latest version.
+// The right solution here would be to contribute a change to the S3 Gradle plugin
+// to allow link to be a list of strings.
+['java', 'android'].each() { link ->
+    task "upload${link.capitalize()}DistributionPackage"(type: S3UploadTask) {
+        examples.each { src, dest ->
+            dependsOn "distributionMonkey${dest}"
+        }
+        bucket = 'static.realm.io'
+        file = "${rootDir}/realm-java-${version}.zip"
+        key = 'downloads/java/realm-java-${version}.zip'
+        link = "downloads/${link}/latest"
+    }
+}
+
+task uploadUpdateVersion(type: S3UploadTask) {
+    ['java', 'android'].each() { link ->
+        dependsOn "upload${link.capitalize()}DistributionPackage"
+    }
+    bucket = 'static.realm.io'
+    file = "${rootDir}/version.txt"
+    key = 'update/java'
+    link = 'downloads/temp/update-java'
+}
+
+task tagRepo(type: Exec) {
+    dependsOn uploadUpdateVersion
+    workingDir rootDir
+    commandLine 'git', 'tag', '-a', "v${version}", '-m', "v${version}"
+}
+
+task pushTag(type: Exec) {
+    dependsOn tagRepo
+    workingDir rootDir
+    commandLine 'git', 'push', '--tags'
+}
+
+task release {
+    group 'Release'
+    description 'Release realm-java'
+    dependsOn pushTag
 }
