@@ -1316,7 +1316,7 @@ public class RealmTest extends AndroidTestCase {
         outStream.close();
     }
 
-    public void testOpeningOfEncryptedRealmWithDifferentKeyInstances() throws Exception {
+    public void testOpeningOfEncryptedRealmWithDifferentKeyInstances() {
         byte[] key1 = new byte[64];
         byte[] key2 = new byte[64];
         new Random(42).nextBytes(key1);
@@ -1346,7 +1346,6 @@ public class RealmTest extends AndroidTestCase {
                 realm1.close();
             }
         }
-
     }
 
     // TODO Enable once copy to encrypted Realm works again
