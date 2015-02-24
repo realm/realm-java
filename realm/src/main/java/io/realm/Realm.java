@@ -504,7 +504,7 @@ public final class Realm implements Closeable {
         Realm realm = realms.get(absolutePath.hashCode());
 
         if (realm != null) {
-            if (realm.key != key) {
+            if (!Arrays.equals(realm.key, key)) {
                 throw new IllegalStateException(DIFFERENT_KEY_MESSAGE);
             }
             localRefCount.put(id, references + 1);
