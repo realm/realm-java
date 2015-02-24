@@ -1316,6 +1316,39 @@ public class RealmTest extends AndroidTestCase {
         outStream.close();
     }
 
+    public void testOpeningOfEncryptedRealmWithDifferentKeyInstances() throws Exception {
+        byte[] key1 = new byte[64];
+        byte[] key2 = new byte[64];
+        new Random(42).nextBytes(key1);
+        new Random(42).nextBytes(key2);
+
+        // Make sure the key is the same, but in two different instances
+        assertArrayEquals(key1, key2);
+        assertTrue(key1 != key2);
+
+        final String ENCRYPTED_REALM = "differentKeys.realm";
+
+        Realm realm1 = null;
+        Realm realm2 = null;
+        try {
+            realm1 = Realm.getInstance(getContext(), ENCRYPTED_REALM, key1);
+            try {
+                realm2 = Realm.getInstance(getContext(), ENCRYPTED_REALM, key2);
+            } catch (Exception e) {
+                fail();
+            } finally {
+                if (realm2 != null) {
+                    realm2.close();
+                }
+            }
+        } finally {
+            if (realm1 != null) {
+                realm1.close();
+            }
+        }
+
+    }
+
     // TODO Enable once copy to encrypted Realm works again
     public void disableTestWriteEncryptedCopy() throws Exception {
         populateTestRealm();
