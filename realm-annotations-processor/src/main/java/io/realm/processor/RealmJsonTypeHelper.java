@@ -28,10 +28,8 @@ import java.util.Map;
 public class RealmJsonTypeHelper {
 
     private static final Map<String, JsonToRealmTypeConverter> JAVA_TO_JSON_TYPES;
-
     static {
         JAVA_TO_JSON_TYPES = new HashMap<String, JsonToRealmTypeConverter>();
-
         JAVA_TO_JSON_TYPES.put("byte", new SimpleTypeConverter("byte", "Int"));
         JAVA_TO_JSON_TYPES.put("short", new SimpleTypeConverter("short", "Int"));
         JAVA_TO_JSON_TYPES.put("int", new SimpleTypeConverter("int", "Int"));
@@ -51,12 +49,15 @@ public class RealmJsonTypeHelper {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
                 writer
-                    .emitStatement("long timestamp = json.optLong(\"%s\", -1)", fieldName)
-                    .beginControlFlow("if (timestamp > -1)")
-                        .emitStatement("obj.%s(new Date(timestamp))", setter)
+                    .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
+                        .emitStatement("Object timestamp = json.get(\"%s\")", fieldName)
+                        .beginControlFlow("if (timestamp instanceof String)")
+                           .emitStatement("obj.%s(JsonUtils.stringToDate((String) timestamp))", setter)
+                        .nextControlFlow("else")
+                            .emitStatement("obj.%s(new Date(json.getLong(\"%s\")))", setter, fieldName)
+                        .endControlFlow()
                     .nextControlFlow("else")
-                        .emitStatement("String jsonDate = json.getString(\"%s\")", fieldName)
-                        .emitStatement("obj.%s(JsonUtils.stringToDate(jsonDate))", setter)
+                        .emitStatement("obj.%s(new Date(0))", setter)
                     .endControlFlow();
             }
 
@@ -73,11 +74,10 @@ public class RealmJsonTypeHelper {
                     .endControlFlow();
             }
         });
-
         JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmTypeConverter() {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
-                writer.emitStatement("obj.%s(JsonUtils.stringToBytes(json.getString(\"%s\")))", setter, fieldName);
+                writer.emitStatement("obj.%s(JsonUtils.stringToBytes(json.isNull(\"%s\") ? null : json.getString(\"%s\")))", setter, fieldName, fieldName);
             }
 
             @Override
@@ -88,17 +88,16 @@ public class RealmJsonTypeHelper {
     }
 
     public static void emitFillJavaTypeWithJsonValue(String setter, String fieldName, String qualifiedFieldType, JavaWriter writer) throws IOException {
-        if (JAVA_TO_JSON_TYPES.containsKey(qualifiedFieldType)) {
-            writer.beginControlFlow("if (json.has(\"%s\"))", fieldName);
-                JAVA_TO_JSON_TYPES.get(qualifiedFieldType).emitTypeConversion(setter, fieldName, qualifiedFieldType, writer);
-            writer.endControlFlow();
+        JsonToRealmTypeConverter typeEmitter = JAVA_TO_JSON_TYPES.get(qualifiedFieldType);
+        if (typeEmitter != null) {
+            typeEmitter.emitTypeConversion(setter, fieldName, qualifiedFieldType, writer);
         }
     }
 
     public static void emitFillRealmObjectWithJsonValue(String setter, String fieldName, String qualifiedFieldType,
                                                         String proxyClass, JavaWriter writer) throws IOException {
         writer
-            .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+            .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
                 .emitStatement("%s %s = standalone ? new %s() : obj.realm.createObject(%s.class)",
                         qualifiedFieldType, fieldName, qualifiedFieldType, qualifiedFieldType)
                 .emitStatement("%s.populateUsingJsonObject(%s, json.getJSONObject(\"%s\"))",
@@ -111,7 +110,7 @@ public class RealmJsonTypeHelper {
                                                       String fieldTypeCanonicalName, String proxyClass,
                                                       JavaWriter writer) throws IOException {
         writer
-            .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+            .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
                 .beginControlFlow("if (standalone)")
                     .emitStatement("obj.%s(new RealmList<%s>())", setter, fieldTypeCanonicalName)
                 .endControlFlow()
@@ -172,11 +171,14 @@ public class RealmJsonTypeHelper {
 
         @Override
         public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
-            writer.emitStatement("obj.%s((%s) json.get%s(\"%s\"))",
-                    setter,
-                    castType,
-                    jsonType,
-                    fieldName);
+            writer
+                .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
+                    .emitStatement("obj.%s((%s) json.get%s(\"%s\"))",
+                        setter,
+                        castType,
+                        jsonType,
+                        fieldName)
+                .endControlFlow();
         }
 
         @Override
