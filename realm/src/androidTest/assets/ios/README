@@ -90,7 +90,6 @@ RLM_ARRAY_TYPE(AllTypes)
     }
     [realm commitWriteTransaction];
 
-
     [AppDelegate setDefaultRealm: @"0.90.4-alltypes-default.realm"];
     realm = [RLMRealm defaultRealm];
     [realm beginWriteTransaction];
@@ -132,6 +131,23 @@ RLM_ARRAY_TYPE(AllTypes)
     obj.byteCol = [NSData dataWithBytes:no_bytes length:sizeof(no_bytes)];
     obj.stringCol = @"";
     obj.dateCol = [NSDate dateWithTimeIntervalSince1970: LONG_MAX];
+    [realm addObject:obj];
+    [realm commitWriteTransaction];
+
+
+    [AppDelegate setDefaultRealm: @"0.90.5-alltypes-default-encrypted.realm"];
+    uint8_t buffer[64];
+    for (int i = 0; i < sizeof(buffer); i++) {
+        buffer[i] = 1;
+    }
+    NSData *keyData = [[NSData alloc] initWithBytes:buffer length:sizeof(buffer)]; // Zerofilled byte array
+    NSError *error;
+    realm = [RLMRealm realmWithPath:[RLMRealm defaultRealmPath] encryptionKey:keyData readOnly:NO error:&error];
+    [realm beginWriteTransaction];
+    obj = [[IOSAllTypes alloc] init];
+    obj.byteCol = [NSData dataWithBytes:no_bytes length:sizeof(no_bytes)];
+    obj.stringCol = @"";
+    obj.dateCol = [NSDate dateWithTimeIntervalSince1970: 0];
     [realm addObject:obj];
     [realm commitWriteTransaction];
 

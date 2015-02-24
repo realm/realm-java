@@ -96,4 +96,30 @@ public class IOSRealmTests extends AndroidTestCase {
         assertEquals(Float.MAX_VALUE, obj.getFloatCol());
         assertEquals(Double.MAX_VALUE, obj.getDoubleCol());
     }
+
+    public void testIOSEncryptedRealm() throws IOException {
+        TestHelper.prepareDatabaseFromAssets(getContext(),  "ios/0.90.5-alltypes-default-encrypted.realm", REALM_NAME);
+        realm = Realm.getInstance(getContext(), REALM_NAME, getIOSKey());
+
+        IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
+        assertFalse(obj.isBoolCol());
+        assertEquals(0, obj.getShortCol());
+        assertEquals(0, obj.getIntCol());
+        assertEquals(0L, obj.getLongCol());
+        assertEquals(0.0F, obj.getFloatCol());
+        assertEquals(0.0D, obj.getDoubleCol());
+        assertArrayEquals(new byte[0], obj.getByteCol());
+        assertEquals("", obj.getStringCol());
+        assertEquals(new Date(0), obj.getDateCol());
+        assertNull(obj.getChild());
+        assertEquals(0, obj.getChildren().size());
+    }
+
+    public byte[] getIOSKey() {
+        byte[] keyData = new byte[64];
+        for (int i = 0; i < keyData.length; i++) {
+            keyData[i] = 1;
+        }
+        return keyData;
+    }
 }
