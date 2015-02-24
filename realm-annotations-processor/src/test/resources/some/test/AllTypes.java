@@ -18,9 +18,12 @@ package some.test;
 
 import java.util.Date;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class AllTypes extends RealmObject {
+    @PrimaryKey
     private String columnString;
     private long columnLong;
     private float columnFloat;
@@ -28,6 +31,8 @@ public class AllTypes extends RealmObject {
     private boolean columnBoolean;
     private Date columnDate;
     private byte[] columnBinary;
+    private AllTypes columnObject;
+    private RealmList<AllTypes> columnRealmList;
 
     public String getColumnString() {
         return columnString;
@@ -83,5 +88,21 @@ public class AllTypes extends RealmObject {
 
     public void setColumnBinary(byte[] columnBinary) {
         this.columnBinary = columnBinary;
+    }
+
+    public AllTypes getColumnObject() {
+        return columnObject;
+    }
+
+    public void setColumnObject(AllTypes columnObject) {
+        this.columnObject = columnObject;
+    }
+
+    public RealmList<AllTypes> getColumnRealmList() {
+        return columnRealmList;
+    }
+
+    public void setColumnRealmList(RealmList<AllTypes> columnRealmList) {
+        this.columnRealmList = columnRealmList;
     }
 }
