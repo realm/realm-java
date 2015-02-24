@@ -231,15 +231,15 @@ public class RealmJsonTest extends AndroidTestCase {
 
     public void testCreateObjectFromJson_nullValues() throws JSONException {
         JSONObject json = new JSONObject();
-        json.put("columnString", null);
-        json.put("columnLong", null);
-        json.put("columnFloat", null);
-        json.put("columnDouble", null);
-        json.put("columnBoolean", null);
-        json.put("columnBinary", null);
-        json.put("columnDate", null);
-        json.put("columnRealmObject", null);
-        json.put("columnRealmList", null);
+        json.put("columnString", JSONObject.NULL);
+        json.put("columnLong", JSONObject.NULL);
+        json.put("columnFloat", JSONObject.NULL);
+        json.put("columnDouble", JSONObject.NULL);
+        json.put("columnBoolean", JSONObject.NULL);
+        json.put("columnBinary", JSONObject.NULL);
+        json.put("columnDate", JSONObject.NULL);
+        json.put("columnRealmObject", JSONObject.NULL);
+        json.put("columnRealmList", JSONObject.NULL);
 
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, json);
