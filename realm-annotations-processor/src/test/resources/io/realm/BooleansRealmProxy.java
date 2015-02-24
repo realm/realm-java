@@ -110,13 +110,13 @@ public class BooleansRealmProxy extends Booleans {
     public static void populateUsingJsonObject(Booleans obj, JSONObject json)
             throws JSONException {
         boolean standalone = obj.realm == null;
-        if (json.has("done")) {
+        if (!json.isNull("done")) {
             obj.setDone((boolean) json.getBoolean("done"));
         }
-        if (json.has("isReady")) {
+        if (!json.isNull("isReady")) {
             obj.setReady((boolean) json.getBoolean("isReady"));
         }
-        if (json.has("mCompleted")) {
+        if (!json.isNull("mCompleted")) {
             obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
         }
     }

@@ -186,33 +186,32 @@ public class AllTypesRealmProxy extends AllTypes {
     public static void populateUsingJsonObject(AllTypes obj, JSONObject json)
             throws JSONException {
         boolean standalone = obj.realm == null;
-        if (json.has("columnString")) {
+        if (!json.isNull("columnString")) {
             obj.setColumnString((String) json.getString("columnString"));
         }
-        if (json.has("columnLong")) {
+        if (!json.isNull("columnLong")) {
             obj.setColumnLong((long) json.getLong("columnLong"));
         }
-        if (json.has("columnFloat")) {
+        if (!json.isNull("columnFloat")) {
             obj.setColumnFloat((float) json.getDouble("columnFloat"));
         }
-        if (json.has("columnDouble")) {
+        if (!json.isNull("columnDouble")) {
             obj.setColumnDouble((double) json.getDouble("columnDouble"));
         }
-        if (json.has("columnBoolean")) {
+        if (!json.isNull("columnBoolean")) {
             obj.setColumnBoolean((boolean) json.getBoolean("columnBoolean"));
         }
-        if (json.has("columnDate")) {
-            long timestamp = json.optLong("columnDate", -1);
-            if (timestamp > -1) {
-                obj.setColumnDate(new Date(timestamp));
+        if (!json.isNull("columnDate")) {
+            Object timestamp = json.get("columnDate");
+            if (timestamp instanceof String) {
+                obj.setColumnDate(JsonUtils.stringToDate((String) timestamp));
             } else {
-                String jsonDate = json.getString("columnDate");
-                obj.setColumnDate(JsonUtils.stringToDate(jsonDate));
+                obj.setColumnDate(new Date(json.getLong("columnDate")));
             }
+        } else {
+            obj.setColumnDate(new Date(0));
         }
-        if (json.has("columnBinary")) {
-            obj.setColumnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
-        }
+        obj.setColumnBinary(JsonUtils.stringToBytes(json.isNull("columnBinary") ? null : json.getString("columnBinary")));
     }
 
     public static void populateUsingJsonStream(AllTypes obj, JsonReader reader)

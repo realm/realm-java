@@ -91,10 +91,10 @@ public class SimpleRealmProxy extends Simple {
     public static void populateUsingJsonObject(Simple obj, JSONObject json)
             throws JSONException {
         boolean standalone = obj.realm == null;
-        if (json.has("name")) {
+        if (!json.isNull("name")) {
             obj.setName((String) json.getString("name"));
         }
-        if (json.has("age")) {
+        if (!json.isNull("age")) {
             obj.setAge((int) json.getInt("age"));
         }
     }
