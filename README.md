@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/realm/realm-java.png?label=ready&title=Ready)](https://waffle.io/realm/realm-java)
 ![Realm](logo.png)
 
 Realm is a mobile database that runs directly inside phones, tablets or wearables.
