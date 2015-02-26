@@ -16,9 +16,15 @@
 
 package io.realm;
 
+import android.content.Context;
+import android.content.res.AssetManager;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+
 import java.io.InputStreamReader;
 
 public class TestHelper {
@@ -39,6 +45,27 @@ public class TestHelper {
         }
 
         return sb.toString();
+    }
+
+    // Copies a Realm file from assets to app files dir
+    public static void copyRealmFromAssets(Context context, String realmPath, String newName) throws IOException {
+        AssetManager assetManager = context.getAssets();
+        InputStream is = assetManager.open(realmPath);
+        File file = new File(context.getFilesDir(), newName);
+        FileOutputStream outputStream = new FileOutputStream(file);
+        byte[] buf = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = is.read(buf)) > -1) {
+            outputStream.write(buf, 0, bytesRead);
+        }
+        outputStream.close();
+        is.close();
+    }
+
+    // Deletes the old database and copies a new one into its place
+    public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
+        Realm.deleteRealmFile(context, newName);
+        TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
 
     public static class StubInputStream extends InputStream {
