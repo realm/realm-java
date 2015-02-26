@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples;
+package io.realm;
 
-/**
- * Wrapper class for accessing the dynamic API in a more typesafe manner.
- * Perhaps this should replace Row?
- */
-public class DynamicRealmObject {
-
-    public String getString(String x) {
-        return null;
-    }
-
-    public int getInt(String y) {
-        return 0;
-    }
-
-    public void setString(String fieldName, String s) {
-
-    }
+public @interface RealmModule {
 }

@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples;
+package io.realm.examples.junkyard;
 
-public interface MigrationIterator {
-    void handle(DynamicRealmObject obj);
+public interface RealmModule {
 }

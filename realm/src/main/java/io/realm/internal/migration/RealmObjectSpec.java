@@ -20,7 +20,7 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 import io.realm.annotations.Index;
-import io.realm.examples.MigrationAPIExamples;
+import io.realm.examples.LinearMigrationAPIExamples;
 
 /**
  * This class maps between a Java specification and the underlying implementation in the core database.
@@ -34,7 +34,7 @@ public class RealmObjectSpec {
 
     }
 
-    public static RealmObjectSpec fromClass(Class<MigrationAPIExamples.New> newClass) {
+    public static RealmObjectSpec fromClass(Class<LinearMigrationAPIExamples.New> newClass) {
         return null;
     }
 

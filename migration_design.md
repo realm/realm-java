@@ -11,13 +11,21 @@ This document is Work-in-Progress and describes the current API proposal for the
 - Fields are Sets not lists. Order inside a class should not matter.
 
 
-**Modes**
+## Other problems
 
-- Stepwise/Linear migrations: Specify what happens.
-- "Magic mode": Try to migrate as much as possible without user involvement.
+Working with migrations has showcased some other problems related to this that this spec will also
+try to address. Those aspects might not be implemented as part of this, but the general direction is worth
+discussing to avoid unnessary rewrites going forward.
+
+- Apps using Realm should be able to use RealmObjects from library projects
+- It should be possible to ProGuard model classes if possible.
+- Getting instances of Realm are getting more complicated, and managing multiple Realms is not trivial
+  when taking into account features like encrypted Realms and ReadOnly mode.
+- Android code must be seperated as much as possible for compabitility with Java
+- Any Android code using high level API's must be seperated. See this bug: https://github.com/realm/realm-java/issues/870
 
 
-## Use cases
+## Migration Use cases
 
 This is a list of use cases that should explore the breath of the problem:
 
@@ -67,8 +75,14 @@ Delete + rename to same name            | {x,y} -> {x} (x-, y->x)
 
 BOOM! Combinatorial explosion!
 
+**Realm libraries**
 
-## Types of migrations
+We also has to consider that people want to use Realm in libraries. For this there is two cases
+
+- App code should not be aware that library is using Realm
+- App code should be able to reuse model classes from the library
+
+Both of these effect how to approach migrations.
 
 ### Object migrations
 
@@ -90,40 +104,87 @@ BOOM! Combinatorial explosion!
 - **Enumerate existing objects together with new Schema**: Very powerful feature allowing almost any kind of data manipulation
 - **Able to create new objects during migration**
 
+##Modes
+
+We have to modes of operation to choose between:
+
+- Stepwise/Linear migrations: Specify what happens at each version.
+- Direct migration: We jump directly to the newest spec, adjust as needed.
+
+
+### Stepwise migration
+
+For each version you specify the changes compared to the previous version.
+
+Eg.
+
+V1: Initial  version
+V2: Add Class Foo with fields Foo.fieldBar and Foo.fieldBaz
+V3: Remove field Foo.fieldBar
+V4: Add 1 to all Foo.fieldBaz
+
+Advantages:
+- The model is very easy to understand.
+- People know this model.
+- You are only concerned with the diff between vA and vB
+- The migration code is very localized
+
+Disadvantages:
+- All changes has to be described, also adding completely new classes incl. all their fields
+- All changes between versions has to be applied, which can potentially be many
+- We need to introduce mutator methods to the tables for all possible use cases.
+
+
+### Direct migration
+
+The DB is automatically converted to newest version and use will have to specify
+changes to data for each version.
+
+Eg.
+
+V1: Initial  version
+V2: Do nothing
+V3: Do nothing
+V4: Add 1 to all Foo.fieldBaz
+
+Advantages:
+- Adding and removing classes/fields are handled automatically.
+- Less code is needed, only changes to existing data has to described
+
+Disadvantages:
+- People are less familiar with this model.
+- Writing migration code from B to C will also has to consider what happened in A.
+- Schema history cannot be infered from the migration code.
+
 
 ## Challenges
 
 - Wording: Should we use Spec or Schema, eg. Spec is closer to class defintions and eg. JavaWriter uses that, Cocoa uses Schema that hints at SQL databases, do we want that?
 - Rules for a magic "magic mode" migration needs to be simple and easy to understand. To much magic makes it hard to
   reason about behavior
-- How to expose both old and new object model, since the old one no longer exists except as core tables?
-- How much should Magic mode handle?
-- Should "magic mode" and custom migration be mixed, gut feeling says not. It will be too hard for user to reason about
-  their code.
+- How to expose both old and new object model, since the old one only exists as core tables?
 - Most migration logic should be moved to C++ in a ObjectStoreHelper.cpp or similar to avoid code duplication with Cocoa.
   Ideally this abstraction layer should have its own independent release cycle from core, ie. Bindings depend on that
   instead of directly on core.
-
-## Magic mode migration
-
-Magic mode automatically handles the following cases
-
-*Easy to detect*
-
-- New Object
-- Delete object
-- New field
-- Delete field
-
-*Harder*
-
-- Rename object: Easy for one object, else compare fields, else fail?
-- Rename field: Easy if different types/1 field, impossible if multiple fields of same type changes
-
-Any renaming will break magic mode. Can we even detect that?
-Perhaps magic mode has to be really explicit?
+- Running migrations on the main thread is most likely a bad idea. We should make it easy to migrate on a worker thread.
 
 ## API
+
+This spec proposes that we take the same approach as Cococa, both due to knowledge transfer, making it simpler to merge
+codebase in C++ later. But also because doing it like this will make simple migrations trivial for the user compared
+to the alternative. Simplicity is King!
+
+After discussion with Cocoa we have decided *not* to merge code in C++ at this stage, as they do not have the time and we
+would gain rather get experience with that on a less complicated feature.
+
+
+The spec will be split in two: 1) Changes to creating Realms 2) Migration API
+
+
+1) Can be found in CreatingRealmExamples.java
+
+2) Can be found in DirectMigrationExamples.java
+
 
 **Overall thoughts**
 - As typesafe as possible
@@ -132,37 +193,12 @@ Perhaps magic mode has to be really explicit?
 - Builder patterns to ease constructing.
 
 
-Annotations
+**Additional annotations introduced**
 
 1) Add new annotation @RealmField(name = "otherName"). This allow you to refactor field name without causing migrations. Also useful when dealing with multiplatform Realms.
-
 2) Expand @RealmClass so it accepts @RealmClass(name = "otherName"). Same reason as above.
 
 
-Realm method:
-
-Realm.migrateRealm(getContext(), new MyMigration());
-
-
-Interface for migrations
-
-```
-public class MyMigration implements RealmMigration {
-
-	// Only one method called migrate. Return value is new schema version
-	public int migrate(RealmSpec oldRealm, int oldVersion) {
-
-		// Migrate to version 1
-		if (oldVersion < 1) {
-            // Do stuff
-		}
-
-		return 1;
-	}
-}
-```
-
-API examples are in the io.realm.examples.MigrationAPIExamples
 
 ## Additional notes
 

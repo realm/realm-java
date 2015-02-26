@@ -20,14 +20,16 @@ import io.realm.Realm;
 import io.realm.RealmMigration;
 import io.realm.RealmObject;
 import io.realm.annotations.Index;
+import io.realm.examples.junkyard.DynamicRealmObject;
+import io.realm.examples.junkyard.MigrationIterator;
+import io.realm.internal.migration.Migration;
 import io.realm.internal.migration.RealmObjectSpec;
-import io.realm.internal.migration.RealmSpec;
 
 /**
  * Examples of different usages of the Migration API. Hopefully self explanatory and possible to extrapolate missing
  * methods.
  */
-public class MigrationAPIExamples {
+public class LinearMigrationAPIExamples {
 
     //
     // Realm model classes
@@ -64,7 +66,7 @@ public class MigrationAPIExamples {
         }
 
         @Override
-        public long migrate(RealmSpec realmSpec, int version) {
+        public long migrate(Migration realmSpec, int version) {
 
             // Adding a new object requires creating a new tablespec. using builder pattern
             RealmObjectSpec manual = new RealmObjectSpec.Builder("New")
@@ -105,7 +107,7 @@ public class MigrationAPIExamples {
         }
 
         @Override
-        public long migrate(RealmSpec realmSpec, int version) {
+        public long migrate(Migration realmSpec, int version) {
 
             RealmObjectSpec classSpec = realmSpec.getClass("Old");
 
@@ -137,6 +139,11 @@ public class MigrationAPIExamples {
                     obj.setString("y", obj.getString("x").substring(0, 2));
                     obj.setString("x", obj.getString("x").substring(2));
                 }
+
+                @Override
+                public void next(DynamicRealmObject currentObject, DynamicRealmObject newObject) {
+                    // ignore
+                }
             });
 
             // Use case 7: Move field to another class
@@ -161,7 +168,7 @@ public class MigrationAPIExamples {
         }
 
         @Override
-        public long migrate(RealmSpec oldRealm, int version) {
+        public long migrate(Migration oldRealm, int version) {
 
             if (version < 1) {
                 oldRealm.addClass(RealmObjectSpec.fromClass(New.class)); // Highly risky, should be reconsidered.

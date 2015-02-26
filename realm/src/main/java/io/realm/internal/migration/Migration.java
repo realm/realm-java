@@ -16,9 +16,10 @@
 
 package io.realm.internal.migration;
 
-import io.realm.examples.MigrationIterator;
+import io.realm.examples.junkyard.DirectMigrationIterator;
+import io.realm.examples.junkyard.MigrationIterator;
 
-public abstract class RealmSpec {
+public abstract class Migration {
 
     public abstract void addClass(RealmObjectSpec manual);
 
@@ -32,7 +33,9 @@ public abstract class RealmSpec {
 
     public abstract void renameClass(String old, String aNew);
 
-    public abstract RealmSpec copy();
+    public abstract Migration copy();
 
     public abstract void forEach(String aNew, MigrationIterator migrationIterator);
+    public abstract void forEach(String aNew, DirectMigrationIterator migrationIterator);
+
 }
