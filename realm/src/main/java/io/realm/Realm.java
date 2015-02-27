@@ -40,6 +40,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -178,8 +179,6 @@ public final class Realm implements Closeable {
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
-
-    private RealmJson realmJsonClass;
 
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
@@ -328,7 +327,7 @@ public final class Realm implements Closeable {
 
     /**
      * Realm static constructor for the default realm "default.realm".
-     * {link io.realm.close} must be called when you are done using the Realm instance.
+     * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
@@ -345,7 +344,7 @@ public final class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
+     * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
@@ -364,7 +363,7 @@ public final class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
+     * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
@@ -383,7 +382,7 @@ public final class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
+     * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
@@ -402,7 +401,7 @@ public final class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
+     * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
@@ -420,8 +419,7 @@ public final class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
-     * <p>
+     * {@link #close()}
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param writeableFolder a File object representing a writeable folder
@@ -439,7 +437,7 @@ public final class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
+     * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
@@ -458,7 +456,7 @@ public final class Realm implements Closeable {
 
     /**
      * Realm static constructor.
-     * {link io.realm.close} must be called when you are done using the Realm instance.
+     * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
@@ -924,7 +922,8 @@ public final class Realm implements Closeable {
      * @return Created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
-     * @see #createObjectFromJson(Class, String)})
+     *
+     * @see #createObjectFromJson(Class, String) 
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
@@ -1470,10 +1469,10 @@ public final class Realm implements Closeable {
 
     /**
      * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()}
-     * or aborted by @{link io.realm.Realm#cancelTransaction()}. Write transactions are used to
+     * or aborted by {@link io.realm.Realm#cancelTransaction()}. Write transactions are used to
      * atomically create, update and delete objects within a realm.
      * <br>
-     * Before beginning the write transaction, @{link io.realm.Realm#beginTransaction()} updates the
+     * Before beginning the write transaction, {@link io.realm.Realm#beginTransaction()} updates the
      * realm in the case of pending updates from other threads.
      * <br>
      * Notice: it is not possible to nest write transactions. If you start a write
@@ -1488,10 +1487,10 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * All changes since @{link io.realm.Realm#beginTransaction()} are persisted to disk and the
+     * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the
      * realm reverts back to being read-only. An event is sent to notify all other realm instances
      * that a change has occurred. When the event is received, the other realms will get their
-     * objects and @{link io.realm.RealmResults} updated to reflect
+     * objects and {@link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
      * 
      * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
@@ -1643,8 +1642,10 @@ public final class Realm implements Closeable {
     }
 
     private <E extends RealmObject> void checkHasPrimaryKey(E object) {
-        if (!getTable(object.getClass()).hasPrimaryKey()) {
-            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + simpleClassNames.get(object));
+
+        Class<? extends RealmObject> objectClass = object.getClass();
+        if (!getTable(objectClass).hasPrimaryKey()) {
+            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + simpleClassNames.get(objectClass));
         }
     }
 
@@ -1683,7 +1684,7 @@ public final class Realm implements Closeable {
      * The realm must be unused and closed before calling this method.
      * WARNING: Your Realm must not be open (typically when your app launch).
      *
-     * @param context an Android context.
+     * @param context an Android {@link android.content.Context}.
      * @return false if a file could not be deleted. The failing file will be logged.
      * @see io.realm.Realm#clear(Class)
      */
@@ -1695,7 +1696,7 @@ public final class Realm implements Closeable {
      * Delete the Realm file from the filesystem for a custom named Realm.
      * The realm must be unused and closed before calling this method.
      *
-     * @param context  an Android @{{@link android.content.Context}.
+     * @param context  an Android {@link android.content.Context}.
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */
@@ -1799,12 +1800,11 @@ public final class Realm implements Closeable {
      * If {@code null} is given as parameter, the Schema is reset to use all known classes.
      *
      */
+    @SafeVarargs
     static void setSchema(Class<? extends RealmObject>... schemaClass) {
         customSchema.clear();
         if (schemaClass != null) {
-            for (int i = 0; i < schemaClass.length; i++) {
-                customSchema.add(schemaClass[i]);
-            }
+            Collections.addAll(customSchema, schemaClass);
         }
     }
 
