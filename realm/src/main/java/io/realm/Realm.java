@@ -53,6 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnIndicies;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmJson;
@@ -174,7 +175,7 @@ public final class Realm implements Closeable {
     private static final long UNVERSIONED = -1;
 
     // Package protected to be reachable by proxy classes
-    static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
+    static final ColumnIndicies columnIndices = new ColumnIndicies();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -646,12 +647,8 @@ public final class Realm implements Closeable {
                     if (columnIndex == -1) {
                         throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type '" + modelClassName + "'");
                     }
-                    Map<String, Long> innerMap = columnIndices.get(modelClassName);
-                    if (innerMap == null) {
-                        innerMap = new HashMap<String, Long>();
-                    }
-                    innerMap.put(fieldName, columnIndex);
-                    columnIndices.put(modelClassName, innerMap);
+                    // Generated class is proxy class so this is safe
+                    columnIndices.add((Class<? extends RealmObject>) generatedClass.getSuperclass(), fieldName, columnIndex);
                 }
             }
         } finally {
@@ -1317,8 +1314,8 @@ public final class Realm implements Closeable {
         checkIfValid();
         Table table = getTable(clazz);
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-        Long columnIndex = columnIndices.get(simpleClassNames.get(clazz)).get(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
+        long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
+        if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
 

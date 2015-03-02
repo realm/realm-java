@@ -12,7 +12,9 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -24,28 +26,36 @@ import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple {
 
+    private static final List<String> FIELD_NAMES;
+    static {
+        List<String> fieldNames = new ArrayList<String>();
+        fieldNames.add("name");
+        fieldNames.add("age");
+        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
+    }
+
     @Override
     public String getName() {
         realm.checkIfValid();
-        return (java.lang.String) row.getString(Realm.columnIndices.get("Simple").get("name"));
+        return (java.lang.String) row.getString(Realm.columnIndices.getColumnIndex(Simple.class, "name"));
     }
 
     @Override
     public void setName(String value) {
         realm.checkIfValid();
-        row.setString(Realm.columnIndices.get("Simple").get("name"), (String) value);
+        row.setString(Realm.columnIndices.getColumnIndex(Simple.class, "name"), (String) value);
     }
 
     @Override
     public int getAge() {
         realm.checkIfValid();
-        return (int) row.getLong(Realm.columnIndices.get("Simple").get("age"));
+        return (int) row.getLong(Realm.columnIndices.getColumnIndex(Simple.class, "age"));
     }
 
     @Override
     public void setAge(int value) {
         realm.checkIfValid();
-        row.setLong(Realm.columnIndices.get("Simple").get("age"), (long) value);
+        row.setLong(Realm.columnIndices.getColumnIndex(Simple.class, "age"), (long) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -85,7 +95,7 @@ public class SimpleRealmProxy extends Simple {
     }
 
     public static List<String> getFieldNames() {
-        return Arrays.asList("name", "age");
+        return FIELD_NAMES;
     }
 
     public static void populateUsingJsonObject(Simple obj, JSONObject json)
@@ -116,11 +126,11 @@ public class SimpleRealmProxy extends Simple {
         reader.endObject();
     }
 
-    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject, RealmObject> cache) {
+    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObject> cache) {
         return copy(realm, object, update, cache);
     }
 
-    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject, RealmObject> cache) {
+    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObject> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, realmObject);
         realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
