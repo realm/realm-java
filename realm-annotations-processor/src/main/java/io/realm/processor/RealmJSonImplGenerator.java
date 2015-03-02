@@ -30,13 +30,12 @@ public class RealmJSonImplGenerator {
     private static final String CLASS_NAME = "RealmJsonImpl";
     private static final String EXCEPTION_MSG = "\"Could not find the generated proxy class for \" + classQualifiedName";
 
-    public RealmJSonImplGenerator(ProcessingEnvironment processingEnv, Set<String> classesToValidate) {
+    public RealmJSonImplGenerator(ProcessingEnvironment processingEnv, Set<ClassMetaData> classesToValidate) {
         this.processingEnvironment = processingEnv;
-        for (String clazz : classesToValidate) {
-            String simpleName = Utils.stripPackage(clazz);
-            qualifiedModelClasses.add(clazz);
-            simpleModelClasses.add(simpleName);
-            proxyClasses.add(Utils.getProxyClassName(simpleName));
+        for (ClassMetaData metadata: classesToValidate) {
+            qualifiedModelClasses.add(metadata.getFullyQualifiedClassName());
+            simpleModelClasses.add(metadata.getSimpleClassName());
+            proxyClasses.add(Utils.getProxyClassName(metadata.getSimpleClassName()));
         }
     }
 
