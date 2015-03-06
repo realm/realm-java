@@ -24,6 +24,11 @@ import io.realm.annotations.Ignore;
 // This will inherit an annotation which produces proxy getters and setters for all fields.
 public class Person extends RealmObject {
 
+    public static boolean foo() {
+        return true;
+    }
+
+
     // All fields are by default persisted.
     private String name;
     private int age;

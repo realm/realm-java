@@ -40,18 +40,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
@@ -81,7 +77,7 @@ import io.realm.internal.log.RealmLog;
  * Realm instances cannot be used across different threads. This means that you have to open an
  * instance on each thread you want to use Realm. Realm instances are cached automatically per
  * thread using reference counting, so as long as the reference count doesn't reach zero, calling
- * {@link #getInstance(android.content.Context)} will just return the cached Realm and should be
+ * {@link #getInstance(RealmConfiguration)} will just return the cached Realm and should be
  * considered a lightweight operation.
  * <p>
  * For the UI thread this means that opening and closing Realms should occur in either
@@ -123,14 +119,14 @@ public final class Realm implements Closeable {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
+    // Realms are thread singletons. This maps between a RealmId and its open instance on this thread.
     protected static final ThreadLocal<Map<Integer, Realm>> realmsCache = new ThreadLocal<Map<Integer, Realm>>() {
-        @SuppressLint("UseSparseArrays")
         @Override
         protected Map<Integer, Realm> initialValue() {
-            return new HashMap<Integer, Realm>(); // On Android we could use SparseArray<Realm> which is faster,
-                                                  // but incompatible with Java
+            return new HashMap<Integer, Realm>();
         }
     };
+    // Map between RealmId and how many open instances are on this thread.
     private static final ThreadLocal<Map<Integer, Integer>> referenceCount
             = new ThreadLocal<Map<Integer,Integer>>() {
         @SuppressLint("UseSparseArrays")
@@ -139,16 +135,16 @@ public final class Realm implements Closeable {
             return new HashMap<Integer, Integer>();
         }
     };
+    // Maps ids to a boolean set to true if the Realm is open. This is only needed by deleteRealmFile
+    private static final Map<Integer, AtomicInteger> openRealms = new ConcurrentHashMap<Integer, AtomicInteger>();
     private static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
     protected static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
 
-    // Maps ids to a boolean set to true if the Realm is open. This is only needed by deleteRealmFile
-    private static final Map<Integer, AtomicInteger> openRealms = new ConcurrentHashMap<Integer, AtomicInteger>();
+    private static RealmConfiguration defaultConfiguration;
+
     private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
-    private static final String INVALID_KEY_MESSAGE = "The provided key is invalid. It should either be null or be 64" +
-            " bytes long.";
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
 
     @SuppressWarnings("UnusedDeclaration")
@@ -170,7 +166,6 @@ public final class Realm implements Closeable {
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
-    private static final Set<Class<? extends RealmObject>> customSchema = new HashSet<Class<? extends RealmObject>>();
     private static final long UNVERSIONED = -1;
 
     // Package protected to be reachable by proxy classes
@@ -195,9 +190,6 @@ public final class Realm implements Closeable {
 
     // The constructor in private to enforce the use of the static one
     private Realm(String absolutePath, byte[] key, boolean autoRefresh) {
-        if (key != null && key.length != 64) {
-            throw new IllegalArgumentException(INVALID_KEY_MESSAGE);
-        }
         this.sharedGroup = new SharedGroup(absolutePath, true, key);
         this.transaction = sharedGroup.beginImplicitTransaction();
         this.path = absolutePath;
@@ -220,7 +212,7 @@ public final class Realm implements Closeable {
     /**
      * Closes the Realm instance and all its resources.
      * <p>
-     * It's important to always remember to close Realm instances when you're done with it in order 
+     * It's important to always remember to close Realm instances when you're done with it in order
      * not to leak memory, file descriptors or grow the size of Realm file out of measure.
      */
     @Override
@@ -254,7 +246,7 @@ public final class Realm implements Closeable {
         handlers.remove(handler);
     }
 
-    public RealmJson getRealmJson() {
+    RealmJson getRealmJson() {
         Class<?> clazz;
         try {
             clazz = Class.forName("io.realm.RealmJsonImpl");
@@ -325,167 +317,95 @@ public final class Realm implements Closeable {
         return transaction.getTable(TABLE_PREFIX + simpleClassName);
     }
 
+
     /**
-     * Realm static constructor for the default realm "default.realm".
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
+     * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
+     * by {@link #setDefaultConfiguration(RealmConfiguration)}
      *
-     * @param context an Android {@link android.content.Context}
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     *
+     * @throws java.lang.NullPointerException If no default configuration has been defined.
+     * @throws RealmMigrationNeededException If no migration has been provided by the default configuration and the
+     * model classes or version has has changed so a migration is required.
      */
+    public static Realm getDefaultInstance() {
+        if (defaultConfiguration == null) {
+            throw new NullPointerException("No default RealmConfiguration was found. Call setDefaultConfiguration() first");
+        }
+        return create(defaultConfiguration);
+    }
+
+    /**
+     * Realm static constructor that returns the Realm instance defined by provided {@link io.realm.RealmConfiguration}
+     *
+     * @return an instance of the Realm class
+     *
+     * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the
+     * model classes or version has has changed so a migration is required.
+     * @see {@link io.realm.RealmConfiguration} for details on how to configure a Realm.
+     */
+    public static Realm getInstance(RealmConfiguration configuration) {
+        if (configuration == null) {
+            throw new NullPointerException("A non-null RealmConfiguration must be provided");
+        }
+        return create(configuration);
+    }
+
+    /**
+     * Set the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}
+     *
+     * @param configuration RealmConfiguration to use as the default configuration
+     * @see {@link io.realm.RealmConfiguration} for details on how to configure a Realm
+     */
+    public static void setDefaultConfiguration(RealmConfiguration configuration) {
+        if (configuration == null) {
+            throw new NullPointerException("A non-null RealmConfiguration must be provided");
+        }
+        defaultConfiguration = configuration;
+    }
+
+    /**
+     * Use {@link #getInstance(RealmConfiguration)} or {@link #getDefaultInstance()} instead.
+     *
+     * This creates a Realm using the default RealmConfiguration settings.
+     */
+    @Deprecated
     public static Realm getInstance(Context context) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME);
+        return getInstance(new RealmConfiguration.Builder(context).create());
     }
 
     /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
+     * Use {@link #getInstance(RealmConfiguration)} or {@link #getDefaultInstance()} instead.
      *
-     * @param context  an Android {@link android.content.Context}
-     * @param fileName the name of the file to save the Realm to
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     * This creates a Realm using the default RealmConfiguration settings but with the given name instead of the
+     * default one.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(Context context, String fileName) {
-        return Realm.getInstance(context, fileName, null);
+    @Deprecated
+    public static Realm getInstance(Context context, String realmName) {
+        return getInstance(new RealmConfiguration.Builder(context)
+                .name(realmName)
+                .create()
+        );
     }
 
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param context an Android {@link android.content.Context}
-     * @param key     a 64-byte encryption key
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(Context context, byte[] key) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME, key);
-    }
 
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param context an Android {@link android.content.Context}
-     * @param key     a 64-byte encryption key
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(Context context, String fileName, byte[] key) {
-        return Realm.create(context.getFilesDir(), fileName, key);
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param writeableFolder a File object representing a writeable folder
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(File writeableFolder) {
-        return Realm.create(writeableFolder, DEFAULT_REALM_NAME, null);
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()}
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param writeableFolder a File object representing a writeable folder
-     * @param fileName the name of the Realm file
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(File writeableFolder, String fileName) {
-        return Realm.create(writeableFolder, fileName, null);
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param writeableFolder a File object representing a writeable folder
-     * @param key     a 64-byte encryption key
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(File writeableFolder, byte[] key) {
-        return Realm.create(writeableFolder, DEFAULT_REALM_NAME, key);
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param writeableFolder a File object representing a writeable folder
-     * @param fileName the name of the Realm file
-     * @param key     a 64-byte encryption key
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(File writeableFolder, String fileName, byte[] key) {
-        return Realm.create(writeableFolder, fileName, key);
-    }
-
-    private static Realm create(File writableFolder, String filename, byte[] key) {
-        checkValidRealmPath(writableFolder, filename);
-        String absolutePath = new File(writableFolder, filename).getAbsolutePath();
-        if (Looper.myLooper() != null) {
-            return createAndValidate(absolutePath, key, true, true);
-        } else {
-            return createAndValidate(absolutePath, key, true, false);
+    private static Realm create(RealmConfiguration config) {
+        boolean autoRefresh = Looper.myLooper() != null;
+        try {
+            return createAndValidate(config, true, autoRefresh);
+        } catch (RealmMigrationNeededException e) {
+            if (config.shouldDeleteRealmIfMigrationNeeded()) {
+                deleteRealmFile(config.getRealmDir(), config.getRealmName());
+            } else {
+                migrateRealm(config);
+            }
+            return createAndValidate(config, true, autoRefresh);
         }
     }
 
-    private static synchronized Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema,
-                                            boolean autoRefresh) {
+    private static synchronized Realm createAndValidate(RealmConfiguration config, boolean validateSchema, boolean autoRefresh) {
+        String absolutePath = config.getAbsolutePathToRealm();
+        byte[] key = config.getKey();
         int id = absolutePath.hashCode();
         Map<Integer, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
@@ -495,6 +415,9 @@ public final class Realm implements Closeable {
         if (references == 0) {
             AtomicInteger counter = openRealms.get(id);
             if (counter == null) {
+                if (config.isDeleteRealmBeforeOpening()) {
+                    deleteRealmFile(config.getRealmDir(), config.getRealmName());
+                }
                 openRealms.put(id, new AtomicInteger(1));
             } else {
                 counter.incrementAndGet();
@@ -502,7 +425,7 @@ public final class Realm implements Closeable {
 
         }
         Map<Integer, Realm> realms = realmsCache.get();
-        Realm realm = realms.get(absolutePath.hashCode());
+        Realm realm = realms.get(id);
 
         if (realm != null) {
             if (!Arrays.equals(realm.key, key)) {
@@ -512,16 +435,16 @@ public final class Realm implements Closeable {
             return realm;
         }
 
-        // Create new Realm and cache it. All exception code paths must close the Realm otherwise
-        // we risk serving faulty cache data.
+        // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
+        // faulty cache data.
         realm = new Realm(absolutePath, key, autoRefresh);
-        realms.put(absolutePath.hashCode(), realm);
+        realms.put(id, realm);
         realmsCache.set(realms);
         localRefCount.put(id, references + 1);
 
         if (validateSchema) {
             try {
-                initializeRealm(realm);
+                initializeRealm(realm, config);
             } catch (RuntimeException e) {
                 realm.close();
                 throw e;
@@ -531,17 +454,8 @@ public final class Realm implements Closeable {
         return realm;
     }
 
-    private static void checkValidRealmPath(File writableFolder, String filename) {
-        if (filename == null || filename.isEmpty()) {
-            throw new IllegalArgumentException("Non-empty filename must be provided");
-        }
-        if (writableFolder == null || !writableFolder.isDirectory()) {
-            throw new IllegalArgumentException(("An existing folder must be provided. Yours was " + (writableFolder != null ? writableFolder.getAbsolutePath() : "null")));
-        }
-    }
-
     @SuppressWarnings("unchecked")
-    private static void initializeRealm(Realm realm) {
+    private static void initializeRealm(Realm realm, RealmConfiguration config) {
         Class<?> validationClass;
         try {
             validationClass = Class.forName("io.realm.ValidationList");
@@ -564,9 +478,10 @@ public final class Realm implements Closeable {
         }
 
         // Custom schema overrides any schema already defined
-        if (customSchema.size() > 0) {
+        Set<Class<? extends RealmObject>> customSpec = config.getSpecification();
+        if (customSpec.size() > 0) {
             proxyClasses = new ArrayList<String>();
-            for (Class<? extends RealmObject> clazz : customSchema) {
+            for (Class<? extends RealmObject> clazz : customSpec) {
                 proxyClasses.add(clazz.getName());
             }
         }
@@ -656,6 +571,7 @@ public final class Realm implements Closeable {
             }
         } finally {
             if (commitNeeded) {
+                realm.setVersion(config.getVersion());
                 realm.commitTransaction();
             } else {
                 realm.cancelTransaction();
@@ -923,7 +839,7 @@ public final class Realm implements Closeable {
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
      *
-     * @see #createObjectFromJson(Class, String) 
+     * @see #createObjectFromJson(Class, String)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
         if (clazz == null || json == null || json.length() == 0) {
@@ -1343,7 +1259,7 @@ public final class Realm implements Closeable {
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
                                                                boolean sortAscending1, String fieldName2,
                                                                boolean sortAscending2) {
-        return allObjectsSorted(clazz, new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1,
+        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new boolean[]{sortAscending1,
                 sortAscending2});
     }
 
@@ -1366,8 +1282,8 @@ public final class Realm implements Closeable {
                                                                boolean sortAscending1,
                                                               String fieldName2, boolean sortAscending2,
                                                               String fieldName3, boolean sortAscending3) {
-        return allObjectsSorted(clazz, new String[] {fieldName1, fieldName2, fieldName3},
-                new boolean[] {sortAscending1, sortAscending2, sortAscending3});
+        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2, fieldName3},
+                new boolean[]{sortAscending1, sortAscending2, sortAscending3});
     }
 
     /**
@@ -1402,7 +1318,7 @@ public final class Realm implements Closeable {
             }
             columnIndices[i] = columnIndex;
         }
-        
+
         // Perform sort
         TableView tableView = table.getSortedView(columnIndices, sortAscending);
         return new RealmResults(this, tableView, clazz);
@@ -1492,7 +1408,7 @@ public final class Realm implements Closeable {
      * that a change has occurred. When the event is received, the other realms will get their
      * objects and {@link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
-     * 
+     *
      * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
      */
     public void commitTransaction() {
@@ -1655,24 +1571,61 @@ public final class Realm implements Closeable {
         }
     }
 
+    /**
+     * See {@link io.realm.RealmConfiguration.Builder#migration(RealmMigration)}
+     */
     @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
     public static void migrateRealmAtPath(String realmPath, RealmMigration migration) {
         migrateRealmAtPath(realmPath, null, migration, true);
     }
 
+    /**
+     * See {@link io.realm.RealmConfiguration.Builder#migration(RealmMigration)} or
+     * {@link #migrateRealm(RealmConfiguration)}
+     */
+    @Deprecated
     public static void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration) {
         migrateRealmAtPath(realmPath, key, migration, true);
     }
 
+    /**
+     * See {@link io.realm.RealmConfiguration.Builder#migration(RealmMigration)} or
+     * {@link #migrateRealm(RealmConfiguration)}
+     */
+    @Deprecated
     public static void migrateRealmAtPath(String realmPath, RealmMigration migration, boolean autoRefresh) {
         migrateRealmAtPath(realmPath, null, migration, autoRefresh);
     }
 
+    /**
+     * See {@link io.realm.RealmConfiguration.Builder#migration(RealmMigration)} or
+     * {@link #migrateRealm(RealmConfiguration)}
+     */
+    @Deprecated
     public static synchronized void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration,
                                             boolean autoUpdate) {
-        Realm realm = Realm.createAndValidate(realmPath, key, false, autoUpdate);
+        // TODO Rewrite to use a configuration
+//        Realm realm = Realm.createAndValidate(realmPath, key, false, autoUpdate);
+//        realm.beginTransaction();
+//        realm.setVersion(migration.execute(realm, realm.getVersion()));
+//        realm.commitTransaction();
+//        realm.close();
+//
+//        realmsCache.remove();
+    }
+
+    /**
+     * TODO: Hmm, perhaps a bit redundant as this is also blocking (same as Realm.getInstance()) Perhaps it would be better to just have the async variant?
+     *
+     * Manually migrate a Realm defined using the migration defined by its {@link io.realm.RealmConfiguration}.
+     *
+     * @see #migrateRealmAsync(RealmConfiguration, io.realm.Realm.MigrationListener)
+     */
+    public static synchronized void migrateRealm(RealmConfiguration configuration) {
+        Realm realm = Realm.createAndValidate(configuration, false, Looper.myLooper() != null);
         realm.beginTransaction();
-        realm.setVersion(migration.execute(realm, realm.getVersion()));
+        realm.setVersion(configuration.getMigration().execute(realm, realm.getVersion()));
         realm.commitTransaction();
         realm.close();
 
@@ -1680,6 +1633,20 @@ public final class Realm implements Closeable {
     }
 
     /**
+     *
+     * Trigger the migration for the given RealmConfiguration manually.
+     *
+     * @see #migrateRealm(RealmConfiguration)
+     */
+    public static synchronized void migrateRealmAsync(RealmConfiguration configuration, MigrationListener listener) {
+        // TODO Migrations can be relatively costly. This would make it easy to offload that work to a worker thread.
+        // Otherwise people would have to do this themselves. By having this we limits that to only wait for a listeners
+        // return value;
+    }
+
+    /**
+     * Deprecated, use {@link io.realm.RealmConfiguration.Builder#deleteRealmBeforeOpening} instead.
+     *
      * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
      * The realm must be unused and closed before calling this method.
      * WARNING: Your Realm must not be open (typically when your app launch).
@@ -1688,21 +1655,34 @@ public final class Realm implements Closeable {
      * @return false if a file could not be deleted. The failing file will be logged.
      * @see io.realm.Realm#clear(Class)
      */
+    @Deprecated
     public static boolean deleteRealmFile(Context context) {
         return deleteRealmFile(context, DEFAULT_REALM_NAME);
     }
 
     /**
-     * Delete the Realm file from the filesystem for a custom named Realm.
+     * Deprecated, use {@link io.realm.RealmConfiguration.Builder#deleteRealmBeforeOpening} or
+     * {@link #deleteRealmFile(java.io.File, String)} instead.
+     */
+    @Deprecated
+    public static boolean deleteRealmFile(Context context, String fileName) {
+        return deleteRealmFile(context.getFilesDir(), fileName);
+    }
+
+    /**
+     * TODO Should we just remove this altogether and only make it part of the Configutation. Addng a
+     * deleteRealmWhenClosing() would cover all use cases I think?
+     *
+     * Delete the given Realm file defined by its from the filesystem for a custom named Realm.
      * The realm must be unused and closed before calling this method.
      *
-     * @param context  an Android {@link android.content.Context}.
+     * @param folder The folder where the Realm is stored, usually Context.getFilesDir().
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */
-    public static synchronized boolean deleteRealmFile(Context context, String fileName) {
+    public static synchronized boolean deleteRealmFile(File folder, String fileName) {
         boolean result = true;
-        File writableFolder = context.getFilesDir();
+        File writableFolder = folder;
 
         File realmFile = new File(writableFolder, fileName);
         int realmId = realmFile.getAbsolutePath().hashCode();
@@ -1726,6 +1706,8 @@ public final class Realm implements Closeable {
         return result;
     }
 
+
+
     /**
      * Compact a realm file. A realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
@@ -1739,30 +1721,34 @@ public final class Realm implements Closeable {
      * @param fileName the name of the file to compact
      * @return true if successful, false if any file operation failed
      */
+    @Deprecated
     public static synchronized boolean compactRealmFile(Context context, String fileName) {
-        File realmFile = new File(context.getFilesDir(), fileName);
-        File tmpFile = new File(
-                context.getFilesDir(),
-                String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm");
-
-        Realm realm = null;
-        try {
-            realm = Realm.getInstance(context, fileName);
-            realm.writeCopyTo(tmpFile);
-            if (!realmFile.delete()) {
-                return false;
-            }
-            if (!tmpFile.renameTo(realmFile)) {
-                return false;
-            }
-        } catch (IOException e) {
-            return false;
-        } finally {
-            if (realm != null) {
-                realm.close();
-            }
-        }
-        return true;
+        // TODO This method should be rewritten to accept a RealmConfiguration instead
+        // TODO Encrypted Realms cannot currently be compacted AFAIK.
+        return false;
+//        File realmFile = new File(context.getFilesDir(), fileName);
+//        File tmpFile = new File(
+//                context.getFilesDir(),
+//                String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm");
+//
+//        Realm realm = null;
+//        try {
+//            realm = Realm.getInstance(context, fileName);
+//            realm.writeCopyTo(tmpFile);
+//            if (!realmFile.delete()) {
+//                return false;
+//            }
+//            if (!tmpFile.renameTo(realmFile)) {
+//                return false;
+//            }
+//        } catch (IOException e) {
+//            return false;
+//        } finally {
+//            if (realm != null) {
+//                realm.close();
+//            }
+//        }
+//        return true;
     }
 
     /**
@@ -1777,6 +1763,7 @@ public final class Realm implements Closeable {
      * @param context an Android {@link android.content.Context}
      * @return true if successful, false if any file operation failed
      */
+    @Deprecated
     public static boolean compactRealmFile(Context context) {
         return compactRealmFile(context, DEFAULT_REALM_NAME);
     }
@@ -1790,24 +1777,6 @@ public final class Realm implements Closeable {
         return path;
     }
 
-
-    /**
-     * Override the standard behavior of all classes extended RealmObject being part of the schema.
-     * Use this method to define the schema as only the classes given here.
-     *
-     * This class must be called before calling {@link #getInstance(android.content.Context)}
-     *
-     * If {@code null} is given as parameter, the Schema is reset to use all known classes.
-     *
-     */
-    @SafeVarargs
-    static void setSchema(Class<? extends RealmObject>... schemaClass) {
-        customSchema.clear();
-        if (schemaClass != null) {
-            Collections.addAll(customSchema, schemaClass);
-        }
-    }
-
     /**
      * Encapsulates a Realm transaction.
      * <p>
@@ -1817,5 +1786,13 @@ public final class Realm implements Closeable {
      */
     public interface Transaction {
         public void execute(Realm realm);
+    }
+
+    /**
+     * Listener interface for Realms being migrated in a async manner
+     */
+    public interface MigrationListener {
+        public void success();
+        public void error(Throwable error);
     }
 }
