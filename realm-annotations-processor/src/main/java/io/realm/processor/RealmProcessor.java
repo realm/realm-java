@@ -113,6 +113,12 @@ public class RealmProcessor extends AbstractProcessor {
                 if (elementKind.equals(ElementKind.FIELD)) {
                     VariableElement variableElement = (VariableElement) element;
                     String fieldName = variableElement.getSimpleName().toString();
+
+                    Set<Modifier> modifiers = variableElement.getModifiers();
+                    if (modifiers.contains(Modifier.STATIC)) {
+                        continue; // completely ignore any static fields
+                    }
+
                     if (variableElement.getAnnotation(Ignore.class) != null) {
                         // The field has the @Ignore annotation. No need to go any further.
                         ignoredFields.add(variableElement);
