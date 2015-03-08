@@ -167,6 +167,7 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.RealmObject");
         imports.add("io.realm.exceptions.RealmException");
         imports.add("io.realm.internal.ColumnType");
+        imports.add("io.realm.internal.RealmObjectProxy");
         imports.add("io.realm.internal.Table");
         imports.add("io.realm.internal.TableOrView");
         imports.add("io.realm.internal.ImplicitTransaction");
@@ -203,12 +204,14 @@ public class RealmProxyClassGenerator {
                 qualifiedGeneratedClassName, // full qualified name of the item to generate
                 "class",                     // the type of the item
                 EnumSet.of(Modifier.PUBLIC), // modifiers to apply
-                className)                   // class to extend
+                className,                   // class to extend
+                "RealmObjectProxy")          // interfaces to implement
                 .emitEmptyLine();
 
         emitAccessors(writer);
         emitInitTableMethod(writer);
         emitValidateTableMethod(writer);
+        emitGetTableNameMethod(writer);
         emitGetFieldNamesMethod(writer);
         emitPopulateUsingJsonObjectMethod(writer);
         emitPopulateUsingJsonStreamMethod(writer);
@@ -453,6 +456,13 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
+    private void emitGetTableNameMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod("String", "getTableName", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
+        writer.emitStatement("return \"%s%s\"", TABLE_PREFIX, className);
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
     private void emitGetFieldNamesMethod(JavaWriter writer) throws IOException {
         writer.beginMethod("List<String>", "getFieldNames", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
         StringBuilder stringBuilder = new StringBuilder();
@@ -477,7 +487,7 @@ public class RealmProxyClassGenerator {
                 className, // Return type
                 "copyOrUpdate", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "Realm", "realm", className, "object", "boolean", "update", "Map<RealmObject,RealmObject>", "cache" // Argument type & argument name
+                "Realm", "realm", className, "object", "boolean", "update", "Map<RealmObject,RealmObjectProxy>", "cache" // Argument type & argument name
         );
 
         if (primaryKey == null) {
@@ -503,7 +513,7 @@ public class RealmProxyClassGenerator {
                     .emitStatement("realmObject = new %s()", Utils.getProxyClassName(className))
                     .emitStatement("realmObject.realm = realm")
                     .emitStatement("realmObject.row = table.getRow(rowIndex)")
-                    .emitStatement("cache.put(object, realmObject)")
+                    .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                 .nextControlFlow("else")
                     .emitStatement("canUpdate = false")
                 .endControlFlow();
@@ -528,10 +538,10 @@ public class RealmProxyClassGenerator {
                 className, // Return type
                 "copy", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "Realm", "realm", className, "newObject", "boolean", "update", "Map<RealmObject,RealmObject>", "cache"); // Argument type & argument name
+                "Realm", "realm", className, "newObject", "boolean", "update", "Map<RealmObject,RealmObjectProxy>", "cache"); // Argument type & argument name
 
         writer.emitStatement("%s realmObject = realm.createObject(%s.class)", className, className);
-        writer.emitStatement("cache.put(newObject, realmObject)");
+        writer.emitStatement("cache.put(newObject, (RealmObjectProxy) realmObject)");
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();
             String fieldType = field.asType().toString();
@@ -592,7 +602,7 @@ public class RealmProxyClassGenerator {
                 className, // Return type
                 "update", // Method name
                 EnumSet.of(Modifier.STATIC), // Modifiers
-                "Realm", "realm", className, "realmObject", className, "newObject", "Map<RealmObject, RealmObject>", "cache"); // Argument type & argument name
+                "Realm", "realm", className, "realmObject", className, "newObject", "Map<RealmObject, RealmObjectProxy>", "cache"); // Argument type & argument name
 
         for (VariableElement field : fields) {
             String fieldName = field.getSimpleName().toString();

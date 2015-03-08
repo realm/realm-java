@@ -21,6 +21,7 @@ import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
+import io.realm.annotations.internal.RealmModule;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -35,6 +36,9 @@ import java.io.IOException;
 import java.util.*;
 
 
+/**
+ * TODO Description of what the processor do and what classes it generates and for what reason
+ */
 @SupportedAnnotationTypes({
         "io.realm.annotations.RealmClass",
         "io.realm.annotations.Ignore",
@@ -43,7 +47,7 @@ import java.util.*;
 })
 public class RealmProcessor extends AbstractProcessor {
     Set<String> classesToValidate = new HashSet<String>();
-    boolean done = false;
+    private boolean hasProcessedModules = false;
 
     @Override public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();
@@ -64,6 +68,7 @@ public class RealmProcessor extends AbstractProcessor {
                 typeUtils.getPrimitiveType(TypeKind.LONG)
         );
 
+        // Create all proxy classes
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
             String className;
             String packageName;
@@ -302,24 +307,85 @@ public class RealmProcessor extends AbstractProcessor {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {
                 error(e.getMessage(), classElement);
-            } catch (UnsupportedOperationException e) {
-                error(e.getMessage(), classElement);
+                return true;
             }
         }
 
-        if (!done) {
-            RealmValidationListGenerator validationGenerator = new RealmValidationListGenerator(processingEnv, classesToValidate);
-            RealmJSonImplGenerator jsonGenerator = new RealmJSonImplGenerator(processingEnv, classesToValidate);
-            try {
-                validationGenerator.generate();
-                jsonGenerator.generate();
-                done = true;
-            } catch (IOException e) {
-                error(e.getMessage());
-            }
+        if (!hasProcessedModules) {
+            hasProcessedModules = true;
+            return processModules(roundEnv);
         }
 
         return true;
+    }
+
+    private boolean processModules(RoundEnvironment roundEnv) {
+        // Check that modules are setup correctly
+        Set<String> modules = new HashSet<String>();
+        Set<String> libraryModules = new HashSet<String>();
+        for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmModule.class)) {
+            if (!classElement.getKind().equals(ElementKind.CLASS)) {
+                error("The RealmModule annotation can only be applied to classes", classElement);
+            }
+
+            RealmModule module = classElement.getAnnotation(RealmModule.class);
+            if (module.library()) {
+                libraryModules.add(((TypeElement) classElement).getQualifiedName().toString());
+            } else {
+                modules.add(((TypeElement) classElement).getQualifiedName().toString());
+            }
+        }
+
+        if (modules.size() > 0 && libraryModules.size() > 0) {
+            error("Normal modules and library modules cannot be mixed in the same project");
+            return true;
+        }
+
+        // Create DefaultModule if needed
+        if (libraryModules.size() == 0 ) {
+            note("Creating DefaultRealmModule");
+            DefaultModuleGenerator defaultModuleGenerator = new DefaultModuleGenerator(processingEnv, classesToValidate);
+            try {
+                defaultModuleGenerator.generate();
+                modules.add(DefaultModuleGenerator.CLASS_NAME);
+            } catch (IOException e) {
+                error(e.getMessage());
+                return true;
+            }
+        }
+
+        // Create ProxyMediator for all RealmClasses in this project.
+        String proxyMediatorName;
+        if (libraryModules.size() > 0) {
+            // Autogenerate random name for library module RealmProxyMediator classes
+            // This should prevent conflicts with other libraries
+            proxyMediatorName = UUID.randomUUID().toString().replace("-", "");
+        } else {
+            // Default RealmProxyMediator only used by "app" code
+            proxyMediatorName = "DefaultRealmProxyMediator";
+        }
+
+        RealmProxyMediatorGenerator mediatorImplGenerator = new RealmProxyMediatorGenerator(processingEnv, proxyMediatorName, classesToValidate);
+        try {
+            note("Creating RealmProxyMediator");
+            mediatorImplGenerator.generate();
+        } catch (IOException e) {
+            error(e.getMessage());
+            return true;
+        }
+
+        // Create Binder classes for all modules
+        Set<String> binders = (modules.size() > 0) ? modules : libraryModules;
+        for (String binder : binders) {
+            ModuleBinderGenerator binderGenerator = new ModuleBinderGenerator(processingEnv, Utils.stripPackage(binder), proxyMediatorName);
+            try {
+                binderGenerator.generate();
+            } catch (IOException e) {
+                error(e.getMessage());
+                return true;
+            }
+        }
+        return false;
     }
 
     private void error(String message, Element element) {
