@@ -8,6 +8,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
@@ -22,7 +23,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.Simple;
 
-public class SimpleRealmProxy extends Simple {
+public class SimpleRealmProxy extends Simple
+        implements RealmObjectProxy {
 
     @Override
     public String getName() {
@@ -84,6 +86,10 @@ public class SimpleRealmProxy extends Simple {
         }
     }
 
+    public static String getTableName() {
+        return "class_Simple";
+    }
+
     public static List<String> getFieldNames() {
         return Arrays.asList("name", "age");
     }
@@ -116,19 +122,19 @@ public class SimpleRealmProxy extends Simple {
         reader.endObject();
     }
 
-    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject, RealmObject> cache) {
+    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         return copy(realm, object, update, cache);
     }
 
-    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject, RealmObject> cache) {
+    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         Simple realmObject = realm.createObject(Simple.class);
-        cache.put(newObject, realmObject);
+        cache.put(newObject, (RealmObjectProxy) realmObject);
         realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
         realmObject.setAge(newObject.getAge());
         return realmObject;
     }
 
-    static Simple update(Realm realm, Simple realmObject, Simple newObject, Map<RealmObject, RealmObject> cache) {
+    static Simple update(Realm realm, Simple realmObject, Simple newObject, Map<RealmObject, RealmObjectProxy> cache) {
         realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
         realmObject.setAge(newObject.getAge());
         return realmObject;

@@ -8,6 +8,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
@@ -22,7 +23,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.Booleans;
 
-public class BooleansRealmProxy extends Booleans {
+public class BooleansRealmProxy extends Booleans
+        implements RealmObjectProxy {
 
     @Override
     public boolean isDone() {
@@ -103,6 +105,10 @@ public class BooleansRealmProxy extends Booleans {
         }
     }
 
+    public static String getTableName() {
+        return "class_Booleans";
+    }
+
     public static List<String> getFieldNames() {
         return Arrays.asList("done", "isReady", "mCompleted");
     }
@@ -140,20 +146,20 @@ public class BooleansRealmProxy extends Booleans {
         reader.endObject();
     }
 
-    public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject, RealmObject> cache) {
+    public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         return copy(realm, object, update, cache);
     }
 
-    public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<RealmObject, RealmObject> cache) {
+    public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         Booleans realmObject = realm.createObject(Booleans.class);
-        cache.put(newObject, realmObject);
+        cache.put(newObject, (RealmObjectProxy) realmObject);
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
         realmObject.setmCompleted(newObject.ismCompleted());
         return realmObject;
     }
 
-    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject, Map<RealmObject, RealmObject> cache) {
+    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject, Map<RealmObject, RealmObjectProxy> cache) {
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
         realmObject.setmCompleted(newObject.ismCompleted());
