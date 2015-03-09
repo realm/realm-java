@@ -1327,7 +1327,7 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(key1 != key2);
 
         final String ENCRYPTED_REALM = "differentKeys.realm";
-
+        Realm.deleteRealmFile(getContext(), ENCRYPTED_REALM);
         Realm realm1 = null;
         Realm realm2 = null;
         try {
