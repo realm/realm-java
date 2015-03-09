@@ -4,6 +4,7 @@
 * Fixed crash when trying to remove last element of a RealmList.s
 * Fixed bug crashing annotation processor when using "name" in model classes for RealmObject references
 * Fixed problem occurring when opening an encrypted Realm with two different instances of the same key.
+* Version checker no longer reports that updates are available when latest version is used.
 * Added support for static fields in RealmObjects.
 
 0.79.1
