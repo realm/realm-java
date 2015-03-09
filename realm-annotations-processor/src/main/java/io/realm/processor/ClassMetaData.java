@@ -81,8 +81,7 @@ public class ClassMetaData {
      * Build the meta data structures for this class. Any errors or messages will be
      * posted on the provided Messager.
      *
-     * @return True if processing should continue, false otherwise. Note that true might be returned for smaller errors,
-     * which will enable the annotation processor to output error messages for multiple classes before exiting.
+     * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
     public boolean generateMetaData(Messager messager) {
 
@@ -90,31 +89,29 @@ public class ClassMetaData {
         Element enclosingElement = classType.getEnclosingElement();
         if (!enclosingElement.getKind().equals(ElementKind.PACKAGE)) {
             Utils.error("The RealmClass annotation does not support nested classes", classType);
+            return false;
         }
 
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
         if (!parentElement.toString().endsWith(".RealmObject")) {
             Utils.error("A RealmClass annotated object must be derived from RealmObject", classType);
+            return false;
         }
 
         PackageElement packageElement = (PackageElement) enclosingElement;
         packageName = packageElement.getQualifiedName().toString();
 
-        boolean seriousError = categorizeClassElements();
-        if (seriousError) {
-            return false; // A serious error was encountered, abort as fast as possible
-        }
+        if (!categorizeClassElements()) return false;
+        if (!checkMethods()) return false;
+        if (!checkDefaultConstructor()) return false;
+        if (!checkRequiredGetters()) return false;
+        if (!checkRequireSetters()) return false;
 
-        checkMethods();
-        reportDefaultConstructorMissing();
-        reportRequiredGettersMissing();
-        reportRequiredSettersMissing();
-
-        return true;
+        return true; // Meta data was successfully generated
     }
 
     // Check that only allowed methods are present in the model class
-    private void checkMethods() {
+    private boolean checkMethods() {
         for (ExecutableElement executableElement : methods) {
             String methodName = executableElement.getSimpleName().toString();
 
@@ -124,22 +121,31 @@ public class ClassMetaData {
                 continue; // We're cool with static methods. Move along!
             } else if (!modifiers.contains(Modifier.PUBLIC)) {
                 Utils.error("The methods of the model must be public", executableElement);
+                return false;
             }
 
+            // Check that getters and setters are valid
             if (methodName.startsWith("get") || methodName.startsWith("is")) {
-                checkGetterMethod(methodName);
+                if (!checkGetterMethod(methodName)) {
+                    return false;
+                }
             } else if (methodName.startsWith("set")) {
-                checkSetterMethod(methodName);
+                if (!checkSetterMethod(methodName)) {
+                    return false;
+                };
             } else {
                 Utils.error("Only getters and setters should be defined in model classes", executableElement);
+                return false;
             }
         }
+
+        return true;
     }
 
     // Verify that a setter is used to set a field in the model class.
     // Note: This is done heuristically by comparing the name of setter with the name of the field.
     // Annotation processors does not allow us to inspect individual statements.
-    private void checkSetterMethod(String methodName) {
+    private boolean checkSetterMethod(String methodName) {
         boolean found = false;
 
         String methodMinusSet = methodName.substring(3);
@@ -169,12 +175,14 @@ public class ClassMetaData {
         if (!found) {
             Utils.note(String.format("Setter %s is not associated to any field", methodName));
         }
+
+        return found;
     }
 
     // Verify that a getter is used to get a field in the model class.
     // Note: This is done heuristically by comparing the name of getter with the name of the field.
     // Annotation processors does not allow us to inspect individual statements.
-    private void checkGetterMethod(String methodName) {
+    private boolean checkGetterMethod(String methodName) {
         boolean found = false;
 
         if (methodName.startsWith("is")) {
@@ -222,32 +230,38 @@ public class ClassMetaData {
         if (!found) {
             Utils.note(String.format("Getter %s is not associated to any field", methodName));
         }
+
+        return found;
     }
 
     // Report any setters that are missing
-    private void reportRequiredSettersMissing() {
+    private boolean checkRequireSetters() {
         for (String expectedSetter : expectedSetters) {
             Utils.error("No setter found for field " + expectedSetter);
-            setters.put(expectedSetter, ""); // Prevent null pointers later
         }
+        return expectedSetters.size() == 0;
     }
 
     // Report any getters that are missing
-    private void reportRequiredGettersMissing() {
+    private boolean checkRequiredGetters() {
         for (String expectedGetter : expectedGetters) {
             Utils.error("No getter found for field " + expectedGetter);
-            getters.put(expectedGetter, ""); // Prevent null pointers later
         }
+        return expectedGetters.size() == 0;
     }
 
     // Report if the default constructor is missing
-    private void reportDefaultConstructorMissing() {
+    private boolean checkDefaultConstructor() {
         if (!hasDefaultConstructor) {
             Utils.error("A default public constructor with no argument must be declared if a custom constructor is declared.");
+            return false;
+        } else {
+            return true;
         }
     }
 
-    // Loop through all class elements and add them to the appropriate internal data structures.
+    // Iterate through all class elements and add them to the appropriate internal data structures.
+    // Returns true if all elements could be false if elements could not be categorized,
     private boolean categorizeClassElements() {
         for (Element element : classType.getEnclosedElements()) {
             ElementKind elementKind = element.getKind();
@@ -271,7 +285,7 @@ public class ClassMetaData {
                         indexedFields.add(variableElement);
                     } else {
                         Utils.error("@Index is only applicable to String fields - got " + element);
-                        return true;
+                        return false;
                     }
                 }
 
@@ -282,13 +296,13 @@ public class ClassMetaData {
                         Utils.error(String.format("@PrimaryKey cannot be defined more than once. It was found here \"%s\" and here \"%s\"",
                                 primaryKey.getSimpleName().toString(),
                                 variableElement.getSimpleName().toString()));
-                        return true;
+                        return false;
                     }
 
                     TypeMirror fieldType = variableElement.asType();
                     if (!isValidPrimaryKeyType(fieldType)) {
                         Utils.error("\"" + variableElement.getSimpleName().toString() + "\" is not allowed as primary key. See @PrimaryKey for allowed types.");
-                        return true;
+                        return false;
                     }
 
                     primaryKey = variableElement;
@@ -301,6 +315,7 @@ public class ClassMetaData {
 
                 if (!variableElement.getModifiers().contains(Modifier.PRIVATE)) {
                     Utils.error("The fields of the model must be private", variableElement);
+                    return false;
                 }
 
                 fields.add(variableElement);
@@ -319,7 +334,7 @@ public class ClassMetaData {
             fieldNames.add(field.getSimpleName().toString());
         }
 
-        return false;
+        return true;
     }
 
     public String getSimpleClassName() {
