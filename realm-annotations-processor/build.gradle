@@ -35,6 +35,7 @@ task generateVersionClass(type: Copy) {
     from 'src/main/templates/Version.java'
     into 'build/generated-src/main/java/io/realm/processor'
     filter(ReplaceTokens, tokens: [version: version])
+    outputs.upToDateWhen { false }
 }
 
 compileJava.dependsOn generateVersionClass
