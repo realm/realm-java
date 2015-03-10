@@ -63,7 +63,8 @@ public class RealmProcessor extends AbstractProcessor {
             Utils.note("Processing class " + metadata.getSimpleClassName());
             boolean success = metadata.generateMetaData(processingEnv.getMessager());
             if (!success) {
-                return true;
+                done = true;
+                return true; // Abort processing by claiming all annotations
             }
             classesToValidate.add(metadata);
 
