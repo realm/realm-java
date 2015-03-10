@@ -168,6 +168,9 @@ public final class Realm implements Closeable {
     private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Method> insertOrUpdateMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
+
+    // Maps classes to the name of the proxied class. Examples: Dog.class -> Dog, DogRealmProxy -> Dog
+    private final Map<Class<?>, String> proxiedClassNames = new HashMap<Class<?>, String>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
     private static final Set<Class<? extends RealmObject>> customSchema = new HashSet<Class<? extends RealmObject>>();
@@ -317,12 +320,14 @@ public final class Realm implements Closeable {
 
     // Public because of migrations
     public Table getTable(Class<?> clazz) {
-        String simpleClassName = simpleClassNames.get(clazz);
-        if (simpleClassName == null) {
-            simpleClassName = clazz.getSimpleName();
-            simpleClassNames.put(clazz, simpleClassName);
+        final String proxySuffix = "RealmProxy";
+        String proxiedClassName = proxiedClassNames.get(clazz);
+        if (proxiedClassName == null) {
+            String classSimpleName = clazz.getSimpleName();
+            proxiedClassName = classSimpleName.replace(proxySuffix, "");
+            proxiedClassNames.put(clazz, proxiedClassName);
         }
-        return transaction.getTable(TABLE_PREFIX + simpleClassName);
+        return transaction.getTable(TABLE_PREFIX + proxiedClassName);
     }
 
     /**
@@ -1642,7 +1647,6 @@ public final class Realm implements Closeable {
     }
 
     private <E extends RealmObject> void checkHasPrimaryKey(E object) {
-
         Class<? extends RealmObject> objectClass = object.getClass();
         if (!getTable(objectClass).hasPrimaryKey()) {
             throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + simpleClassNames.get(objectClass));
