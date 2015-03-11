@@ -16,6 +16,7 @@
 
 package io.realm.entities;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
@@ -26,6 +27,7 @@ public class OwnerPrimaryKey extends RealmObject {
 
     private String name;
     private DogPrimaryKey dog;
+    private RealmList<Dog> dogs;
 
     public OwnerPrimaryKey() {
     }
@@ -57,5 +59,13 @@ public class OwnerPrimaryKey extends RealmObject {
 
     public void setDog(DogPrimaryKey dog) {
         this.dog = dog;
+    }
+
+    public RealmList<Dog> getDogs() {
+        return dogs;
+    }
+
+    public void setDogs(RealmList<Dog> dogs) {
+        this.dogs = dogs;
     }
 }
