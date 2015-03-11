@@ -5,6 +5,7 @@ import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmObject;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
@@ -26,6 +27,7 @@ import some.test.Booleans;
 
 public class BooleansRealmProxy extends Booleans {
 
+    private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -38,37 +40,37 @@ public class BooleansRealmProxy extends Booleans {
     @Override
     public boolean isDone() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(Realm.columnIndices.getColumnIndex(Booleans.class, "done"));
+        return (boolean) row.getBoolean(columnIndices.get("done"));
     }
 
     @Override
     public void setDone(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(Realm.columnIndices.getColumnIndex(Booleans.class, "done"), (boolean) value);
+        row.setBoolean(columnIndices.get("done"), (boolean) value);
     }
 
     @Override
     public boolean isReady() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(Realm.columnIndices.getColumnIndex(Booleans.class, "isReady"));
+        return (boolean) row.getBoolean(columnIndices.get("isReady"));
     }
 
     @Override
     public void setReady(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(Realm.columnIndices.getColumnIndex(Booleans.class, "isReady"), (boolean) value);
+        row.setBoolean(columnIndices.get("isReady"), (boolean) value);
     }
 
     @Override
     public boolean ismCompleted() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(Realm.columnIndices.getColumnIndex(Booleans.class, "mCompleted"));
+        return (boolean) row.getBoolean(columnIndices.get("mCompleted"));
     }
 
     @Override
     public void setmCompleted(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(Realm.columnIndices.getColumnIndex(Booleans.class, "mCompleted"), (boolean) value);
+        row.setBoolean(columnIndices.get("mCompleted"), (boolean) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -111,11 +113,26 @@ public class BooleansRealmProxy extends Booleans {
             if (columnTypes.get("mCompleted") != ColumnType.BOOLEAN) {
                 throw new IllegalStateException("Invalid type 'boolean' for column 'mCompleted'");
             }
+
+            columnIndices = new HashMap<String, Long>();
+            for (String fieldName : getFieldNames()) {
+                long index = table.getColumnIndex(fieldName);
+                if (index == -1) {
+                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type Booleans");
+                }
+                columnIndices.put(fieldName, index);
+            }
+        } else {
+            throw new RealmMigrationNeededException("The Booleans class is missing from the schema for this Realm.");
         }
     }
 
     public static List<String> getFieldNames() {
         return FIELD_NAMES;
+    }
+
+    public static Map<String,Long> getColumnIndices() {
+        return columnIndices;
     }
 
     public static void populateUsingJsonObject(Booleans obj, JSONObject json)

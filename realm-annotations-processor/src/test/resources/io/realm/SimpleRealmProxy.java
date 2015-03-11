@@ -5,6 +5,7 @@ import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmObject;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
@@ -26,6 +27,7 @@ import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple {
 
+    private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -37,25 +39,25 @@ public class SimpleRealmProxy extends Simple {
     @Override
     public String getName() {
         realm.checkIfValid();
-        return (java.lang.String) row.getString(Realm.columnIndices.getColumnIndex(Simple.class, "name"));
+        return (java.lang.String) row.getString(columnIndices.get("name"));
     }
 
     @Override
     public void setName(String value) {
         realm.checkIfValid();
-        row.setString(Realm.columnIndices.getColumnIndex(Simple.class, "name"), (String) value);
+        row.setString(columnIndices.get("name"), (String) value);
     }
 
     @Override
     public int getAge() {
         realm.checkIfValid();
-        return (int) row.getLong(Realm.columnIndices.getColumnIndex(Simple.class, "age"));
+        return (int) row.getLong(columnIndices.get("age"));
     }
 
     @Override
     public void setAge(int value) {
         realm.checkIfValid();
-        row.setLong(Realm.columnIndices.getColumnIndex(Simple.class, "age"), (long) value);
+        row.setLong(columnIndices.get("age"), (long) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -91,11 +93,26 @@ public class SimpleRealmProxy extends Simple {
             if (columnTypes.get("age") != ColumnType.INTEGER) {
                 throw new IllegalStateException("Invalid type 'int' for column 'age'");
             }
+
+            columnIndices = new HashMap<String, Long>();
+            for (String fieldName : getFieldNames()) {
+                long index = table.getColumnIndex(fieldName);
+                if (index == -1) {
+                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type Simple");
+                }
+                columnIndices.put(fieldName, index);
+            }
+        } else {
+            throw new RealmMigrationNeededException("The Simple class is missing from the schema for this Realm.");
         }
     }
 
     public static List<String> getFieldNames() {
         return FIELD_NAMES;
+    }
+
+    public static Map<String,Long> getColumnIndices() {
+        return columnIndices;
     }
 
     public static void populateUsingJsonObject(Simple obj, JSONObject json)

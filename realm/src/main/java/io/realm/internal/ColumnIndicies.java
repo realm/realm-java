@@ -30,20 +30,10 @@ public class ColumnIndicies {
     private Map<Class<? extends RealmObject>, Map<String, Long>> classes = new HashMap<Class<? extends RealmObject>, Map<String, Long>>();
 
     /**
-     * Add mapping for a given field.
-     *
-     * @param clazz         RealmObject containing the field.
-     * @param fieldName     Field name in the object.
-     * @param columnIndex   Column position in the table.
+     * Add column indices from a given model class
      */
-    public void add(Class<? extends RealmObject> clazz, String fieldName, long columnIndex) {
-        Map<String, Long> classMap = classes.get(clazz);
-        if (classMap == null) {
-            classMap = new HashMap<String, Long>();
-            classes.put(clazz, classMap);
-        }
-
-        classMap.put(fieldName, columnIndex);
+    public void addClass(Class<? extends RealmObject> clazz, Map<String, Long> indicies) {
+        classes.put(clazz, indicies);
     }
 
     /**
