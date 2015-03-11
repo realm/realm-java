@@ -1348,8 +1348,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    // TODO Enable once copy to encrypted Realm works again
-    public void disableTestWriteEncryptedCopy() throws Exception {
+    public void testWriteEncryptedCopy() throws Exception {
         populateTestRealm();
         long before = testRealm.where(AllTypes.class).count();
         assertEquals(TEST_DATA_SIZE, before);
