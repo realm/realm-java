@@ -217,7 +217,8 @@ public class Group implements Closeable {
         }
         if (immutable) {
             if (!hasTable(name)) {
-                throwImmutable();
+                throw new IllegalStateException("Requested table is not in this Realm. " +
+                        "Creating it require a transaction: " + name);
             }
         }
 
