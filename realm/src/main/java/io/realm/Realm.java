@@ -24,7 +24,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonReader;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -1699,7 +1698,7 @@ public final class Realm implements Closeable {
                 boolean deleteResult = fileToDelete.delete();
                 if (!deleteResult) {
                     result = false;
-                    Log.w(TAG, "Could not delete the file " + fileToDelete);
+                    RealmLog.w("Could not delete the file " + fileToDelete);
                 }
             }
         }
@@ -1721,9 +1720,8 @@ public final class Realm implements Closeable {
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName) {
         File realmFile = new File(context.getFilesDir(), fileName);
-        File tmpFile = new File(
-                context.getFilesDir(),
-                String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm");
+        String tmpFileName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm";
+        File tmpFile = new File(context.getFilesDir(), tmpFileName);
 
         Realm realm = null;
         try {
@@ -1740,6 +1738,12 @@ public final class Realm implements Closeable {
         } finally {
             if (realm != null) {
                 realm.close();
+            }
+            tmpFile = new File(context.getFilesDir(), tmpFileName);
+            if (tmpFile.exists()) {
+                if (!tmpFile.delete()) {
+                    RealmLog.w("Could not delete temporary file while compacting Realm:" + tmpFile.getAbsolutePath());
+                };
             }
         }
         return true;
