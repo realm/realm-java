@@ -268,3 +268,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultRep
     return 0;
 #endif
 }
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact(
+    JNIEnv* env, jobject, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        return SG(native_ptr)->compact(); // throws
+    }
+    CATCH_STD()
+    return false;
+}

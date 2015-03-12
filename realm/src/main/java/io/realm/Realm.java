@@ -1716,37 +1716,28 @@ public final class Realm implements Closeable {
      *
      * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to compact
+     * @param key Key for opening a encrypted Realm.
      * @return true if successful, false if any file operation failed
+     *
+     * @throws IllegalStateException if trying to compact a Realm that is already open
      */
-    public static synchronized boolean compactRealmFile(Context context, String fileName) {
+    public static synchronized boolean compactRealmFile(Context context, String fileName, byte[] key) {
         File realmFile = new File(context.getFilesDir(), fileName);
-        String tmpFileName = String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm";
-        File tmpFile = new File(context.getFilesDir(), tmpFileName);
-
-        Realm realm = null;
+        String path = realmFile.getAbsolutePath();
+        if (openRealms.get(path.hashCode()).get() > 0) {
+            throw new IllegalStateException("Cannot compact a open Realm");
+        }
+        SharedGroup sharedGroup = null;
+        boolean result = false;
         try {
-            realm = Realm.getInstance(context, fileName);
-            realm.writeCopyTo(tmpFile);
-            if (!realmFile.delete()) {
-                return false;
-            }
-            if (!tmpFile.renameTo(realmFile)) {
-                return false;
-            }
-        } catch (IOException e) {
-            return false;
+            sharedGroup = new SharedGroup(path, false, key);
+            result = sharedGroup.compact();
         } finally {
-            if (realm != null) {
-                realm.close();
-            }
-            tmpFile = new File(context.getFilesDir(), tmpFileName);
-            if (tmpFile.exists()) {
-                if (!tmpFile.delete()) {
-                    RealmLog.w("Could not delete temporary file while compacting Realm:" + tmpFile.getAbsolutePath());
-                };
+            if (sharedGroup != null) {
+                sharedGroup.close();
             }
         }
-        return true;
+        return result;
     }
 
     /**
@@ -1760,9 +1751,30 @@ public final class Realm implements Closeable {
      *
      * @param context an Android {@link android.content.Context}
      * @return true if successful, false if any file operation failed
+     *
+     * @throws IllegalStateException if trying to compact a Realm that is already open
      */
     public static boolean compactRealmFile(Context context) {
-        return compactRealmFile(context, DEFAULT_REALM_NAME);
+        return compactRealmFile(context, DEFAULT_REALM_NAME, null);
+    }
+
+    /**
+     * Compact a realm file. A realm file usually contain free/unused space.
+     * This method removes this free space and the file size is thereby reduced.
+     * Objects within the realm files are untouched.
+     * <p>
+     * The file must be closed before this method is called.<br>
+     * The file system should have free space for at least a copy of the realm file.<br>
+     * The realm file is left untouched if any file operation fails.<br>
+     *
+     * @param context an Android {@link android.content.Context}
+     * @param fileName the name of the file to compact
+     * @return true if successful, false if any file operation failed
+     *
+     * @throws IllegalStateException if trying to compact a Realm that is already open
+     */
+    public static synchronized boolean compactRealmFile(Context context, String fileName) {
+        return compactRealmFile(context, fileName, null);
     }
 
     /**

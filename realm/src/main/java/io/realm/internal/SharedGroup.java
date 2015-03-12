@@ -223,6 +223,16 @@ public class SharedGroup implements Closeable {
         nativeReserve(nativePtr, bytes);
     }
 
+    /**
+     * Compacts a shared group. This will block access to the shared group until done.
+     *
+     * @return True if compaction succeded, false otherwise.
+     * @throws RuntimeException if using this within either a read or or write transaction.
+     */
+    public boolean compact() {
+        return nativeCompact(nativePtr);
+    }
+
     private native void nativeReserve(long nativePtr, long bytes);
 
     private native boolean nativeHasChanged(long nativePtr);
@@ -242,6 +252,8 @@ public class SharedGroup implements Closeable {
                                      boolean no_create,
                                      boolean enableReplication,
                                      byte[] key);
+
+    private native boolean nativeCompact(long nativePtr);
 
     private void checkNativePtrNotZero() {
         if (this.nativePtr == 0) {

@@ -917,11 +917,32 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+
+    public void testCompactRealmFileThrowsIfOpen() throws IOException {
+        try {
+            Realm.compactRealmFile(getContext());
+        } catch (IllegalStateException expected) {
+            return;
+        }
+        fail();
+    }
+
+    public void testCompactEncryptedRealmFile() {
+        String REALM_NAME = "enc.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        byte[] key = new byte[64];
+        new Random(42).nextBytes(key);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        realm.close();
+        assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+    }
+
     public void testCompactRealmFile() throws IOException {
         final String copyRealm = "copy.realm";
         fileCopy(
-                new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME),
-                new File(getContext().getFilesDir(), copyRealm));
+            new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME),
+            new File(getContext().getFilesDir(), copyRealm)
+        );
         long before = new File(getContext().getFilesDir(), copyRealm).length();
         assertTrue(Realm.compactRealmFile(getContext()));
         long after = new File(getContext().getFilesDir(), copyRealm).length();
