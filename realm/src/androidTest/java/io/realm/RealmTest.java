@@ -938,6 +938,7 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testCompactRealmFile() throws IOException {
+        testRealm.close();
         final String copyRealm = "copy.realm";
         fileCopy(
             new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME),
