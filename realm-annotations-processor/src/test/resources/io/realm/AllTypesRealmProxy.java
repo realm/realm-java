@@ -27,6 +27,15 @@ import some.test.AllTypes;
 
 public class AllTypesRealmProxy extends AllTypes {
 
+    private static long INDEX_COLUMNSTRING;
+    private static long INDEX_COLUMNLONG;
+    private static long INDEX_COLUMNFLOAT;
+    private static long INDEX_COLUMNDOUBLE;
+    private static long INDEX_COLUMNBOOLEAN;
+    private static long INDEX_COLUMNDATE;
+    private static long INDEX_COLUMNBINARY;
+    private static long INDEX_COLUMNOBJECT;
+    private static long INDEX_COLUMNREALMLIST;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
@@ -46,112 +55,112 @@ public class AllTypesRealmProxy extends AllTypes {
     @Override
     public String getColumnString() {
         realm.checkIfValid();
-        return (java.lang.String) row.getString(columnIndices.get("columnString"));
+        return (java.lang.String) row.getString(INDEX_COLUMNSTRING);
     }
 
     @Override
     public void setColumnString(String value) {
         realm.checkIfValid();
-        row.setString(columnIndices.get("columnString"), (String) value);
+        row.setString(INDEX_COLUMNSTRING, (String) value);
     }
 
     @Override
     public long getColumnLong() {
         realm.checkIfValid();
-        return (long) row.getLong(columnIndices.get("columnLong"));
+        return (long) row.getLong(INDEX_COLUMNLONG);
     }
 
     @Override
     public void setColumnLong(long value) {
         realm.checkIfValid();
-        row.setLong(columnIndices.get("columnLong"), (long) value);
+        row.setLong(INDEX_COLUMNLONG, (long) value);
     }
 
     @Override
     public float getColumnFloat() {
         realm.checkIfValid();
-        return (float) row.getFloat(columnIndices.get("columnFloat"));
+        return (float) row.getFloat(INDEX_COLUMNFLOAT);
     }
 
     @Override
     public void setColumnFloat(float value) {
         realm.checkIfValid();
-        row.setFloat(columnIndices.get("columnFloat"), (float) value);
+        row.setFloat(INDEX_COLUMNFLOAT, (float) value);
     }
 
     @Override
     public double getColumnDouble() {
         realm.checkIfValid();
-        return (double) row.getDouble(columnIndices.get("columnDouble"));
+        return (double) row.getDouble(INDEX_COLUMNDOUBLE);
     }
 
     @Override
     public void setColumnDouble(double value) {
         realm.checkIfValid();
-        row.setDouble(columnIndices.get("columnDouble"), (double) value);
+        row.setDouble(INDEX_COLUMNDOUBLE, (double) value);
     }
 
     @Override
     public boolean isColumnBoolean() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(columnIndices.get("columnBoolean"));
+        return (boolean) row.getBoolean(INDEX_COLUMNBOOLEAN);
     }
 
     @Override
     public void setColumnBoolean(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(columnIndices.get("columnBoolean"), (boolean) value);
+        row.setBoolean(INDEX_COLUMNBOOLEAN, (boolean) value);
     }
 
     @Override
     public Date getColumnDate() {
         realm.checkIfValid();
-        return (java.util.Date) row.getDate(columnIndices.get("columnDate"));
+        return (java.util.Date) row.getDate(INDEX_COLUMNDATE);
     }
 
     @Override
     public void setColumnDate(Date value) {
         realm.checkIfValid();
-        row.setDate(columnIndices.get("columnDate"), (Date) value);
+        row.setDate(INDEX_COLUMNDATE, (Date) value);
     }
 
     @Override
     public byte[] getColumnBinary() {
         realm.checkIfValid();
-        return (byte[]) row.getBinaryByteArray(columnIndices.get("columnBinary"));
+        return (byte[]) row.getBinaryByteArray(INDEX_COLUMNBINARY);
     }
 
     @Override
     public void setColumnBinary(byte[] value) {
         realm.checkIfValid();
-        row.setBinaryByteArray(columnIndices.get("columnBinary"), (byte[]) value);
+        row.setBinaryByteArray(INDEX_COLUMNBINARY, (byte[]) value);
     }
 
     @Override
     public AllTypes getColumnObject() {
-        if (row.isNullLink(columnIndices.get("columnObject"))) {
+        if (row.isNullLink(INDEX_COLUMNOBJECT)) {
             return null;
         }
-        return realm.get(some.test.AllTypes.class, row.getLink(columnIndices.get("columnObject")));
+        return realm.get(some.test.AllTypes.class, row.getLink(INDEX_COLUMNOBJECT));
     }
 
     @Override
     public void setColumnObject(AllTypes value) {
         if (value == null) {
-            row.nullifyLink(columnIndices.get("columnObject"));
+            row.nullifyLink(INDEX_COLUMNOBJECT);
             return;
         }
-        row.setLink(columnIndices.get("columnObject"), value.row.getIndex());
+        row.setLink(INDEX_COLUMNOBJECT, value.row.getIndex());
     }
 
     @Override
     public RealmList<AllTypes> getColumnRealmList() {
-        return new RealmList<AllTypes>(AllTypes.class, row.getLinkList(columnIndices.get("columnRealmList")), realm);
+        return new RealmList<AllTypes>(AllTypes.class, row.getLinkList(INDEX_COLUMNREALMLIST), realm);
     }
 
     @Override
     public void setColumnRealmList(RealmList<AllTypes> value) {
-        LinkView links = row.getLinkList(columnIndices.get("columnRealmList"));
+        LinkView links = row.getLinkList(INDEX_COLUMNREALMLIST);
         if (value == null) {
             return;
         }
@@ -264,6 +273,15 @@ public class AllTypesRealmProxy extends AllTypes {
                 }
                 columnIndices.put(fieldName, index);
             }
+            INDEX_COLUMNSTRING = table.getColumnIndex("columnString");
+            INDEX_COLUMNLONG = table.getColumnIndex("columnLong");
+            INDEX_COLUMNFLOAT = table.getColumnIndex("columnFloat");
+            INDEX_COLUMNDOUBLE = table.getColumnIndex("columnDouble");
+            INDEX_COLUMNBOOLEAN = table.getColumnIndex("columnBoolean");
+            INDEX_COLUMNDATE = table.getColumnIndex("columnDate");
+            INDEX_COLUMNBINARY = table.getColumnIndex("columnBinary");
+            INDEX_COLUMNOBJECT = table.getColumnIndex("columnObject");
+            INDEX_COLUMNREALMLIST = table.getColumnIndex("columnRealmList");
         } else {
             throw new RealmMigrationNeededException("The AllTypes class is missing from the schema for this Realm.");
         }

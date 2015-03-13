@@ -27,6 +27,9 @@ import some.test.Booleans;
 
 public class BooleansRealmProxy extends Booleans {
 
+    private static long INDEX_DONE;
+    private static long INDEX_ISREADY;
+    private static long INDEX_MCOMPLETED;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
@@ -40,37 +43,37 @@ public class BooleansRealmProxy extends Booleans {
     @Override
     public boolean isDone() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(columnIndices.get("done"));
+        return (boolean) row.getBoolean(INDEX_DONE);
     }
 
     @Override
     public void setDone(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(columnIndices.get("done"), (boolean) value);
+        row.setBoolean(INDEX_DONE, (boolean) value);
     }
 
     @Override
     public boolean isReady() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(columnIndices.get("isReady"));
+        return (boolean) row.getBoolean(INDEX_ISREADY);
     }
 
     @Override
     public void setReady(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(columnIndices.get("isReady"), (boolean) value);
+        row.setBoolean(INDEX_ISREADY, (boolean) value);
     }
 
     @Override
     public boolean ismCompleted() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(columnIndices.get("mCompleted"));
+        return (boolean) row.getBoolean(INDEX_MCOMPLETED);
     }
 
     @Override
     public void setmCompleted(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(columnIndices.get("mCompleted"), (boolean) value);
+        row.setBoolean(INDEX_MCOMPLETED, (boolean) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -122,6 +125,9 @@ public class BooleansRealmProxy extends Booleans {
                 }
                 columnIndices.put(fieldName, index);
             }
+            INDEX_DONE = table.getColumnIndex("done");
+            INDEX_ISREADY = table.getColumnIndex("isReady");
+            INDEX_MCOMPLETED = table.getColumnIndex("mCompleted");
         } else {
             throw new RealmMigrationNeededException("The Booleans class is missing from the schema for this Realm.");
         }

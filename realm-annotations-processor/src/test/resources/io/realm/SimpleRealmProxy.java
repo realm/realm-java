@@ -27,6 +27,8 @@ import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple {
 
+    private static long INDEX_NAME;
+    private static long INDEX_AGE;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
@@ -39,25 +41,25 @@ public class SimpleRealmProxy extends Simple {
     @Override
     public String getName() {
         realm.checkIfValid();
-        return (java.lang.String) row.getString(columnIndices.get("name"));
+        return (java.lang.String) row.getString(INDEX_NAME);
     }
 
     @Override
     public void setName(String value) {
         realm.checkIfValid();
-        row.setString(columnIndices.get("name"), (String) value);
+        row.setString(INDEX_NAME, (String) value);
     }
 
     @Override
     public int getAge() {
         realm.checkIfValid();
-        return (int) row.getLong(columnIndices.get("age"));
+        return (int) row.getLong(INDEX_AGE);
     }
 
     @Override
     public void setAge(int value) {
         realm.checkIfValid();
-        row.setLong(columnIndices.get("age"), (long) value);
+        row.setLong(INDEX_AGE, (long) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -102,6 +104,8 @@ public class SimpleRealmProxy extends Simple {
                 }
                 columnIndices.put(fieldName, index);
             }
+            INDEX_NAME = table.getColumnIndex("name");
+            INDEX_AGE = table.getColumnIndex("age");
         } else {
             throw new RealmMigrationNeededException("The Simple class is missing from the schema for this Realm.");
         }
