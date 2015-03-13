@@ -1706,26 +1706,26 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Compact a realm file. A realm file usually contain free/unused space.
+     * Compact a Realm file. A Realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
-     * Objects within the realm files are untouched.
+     * Objects within the Realm files are untouched.
      * <p>
      * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
      * The realm file is left untouched if any file operation fails.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to compact
-     * @param key Key for opening a encrypted Realm.
+     * @param key Key for opening an encrypted Realm.
      * @return true if successful, false if any file operation failed
      *
-     * @throws IllegalStateException if trying to compact a Realm that is already open
+     * @throws IllegalStateException if trying to compact a Realm that is already open.
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName, byte[] key) {
         File realmFile = new File(context.getFilesDir(), fileName);
         String path = realmFile.getAbsolutePath();
         if (openRealms.get(path.hashCode()).get() > 0) {
-            throw new IllegalStateException("Cannot compact a open Realm");
+            throw new IllegalStateException("Cannot compact an open Realm");
         }
         SharedGroup sharedGroup = null;
         boolean result = false;
@@ -1741,37 +1741,37 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Compact a realm file. A realm file usually contain free/unused space.
+     * Compact a Realm file. A realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
      * Objects within the realm files are untouched.
      * <p>
      * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
-     * The realm file is left untouched if any file operation fails.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
+     * The Realm file is left untouched if any file operation fails.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @return true if successful, false if any file operation failed
      *
-     * @throws IllegalStateException if trying to compact a Realm that is already open
+     * @throws IllegalStateException if trying to compact a Realm that is already open.
      */
     public static boolean compactRealmFile(Context context) {
         return compactRealmFile(context, DEFAULT_REALM_NAME, null);
     }
 
     /**
-     * Compact a realm file. A realm file usually contain free/unused space.
+     * Compact a Realm file. A Realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
      * Objects within the realm files are untouched.
      * <p>
      * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
-     * The realm file is left untouched if any file operation fails.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
+     * The Realm file is left untouched if any file operation fails.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to compact
      * @return true if successful, false if any file operation failed
      *
-     * @throws IllegalStateException if trying to compact a Realm that is already open
+     * @throws IllegalStateException if trying to compact a Realm that is already open.
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName) {
         return compactRealmFile(context, fileName, null);
