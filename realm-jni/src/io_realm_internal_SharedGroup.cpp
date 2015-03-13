@@ -276,6 +276,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact(
     try {
         return SG(native_ptr)->compact(); // throws
     }
+    CATCH_FILE()
     CATCH_STD()
     return false;
 }
