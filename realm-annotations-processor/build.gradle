@@ -40,6 +40,8 @@ jar {
 
 shadowJar {
     relocate 'com.squareup.javawriter', 'io.realm.processor.javawriter'
+    exclude 'io/realm/annotations/**'
+    classifier = ''
 }
 
 //for Ant filter

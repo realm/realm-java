@@ -28,7 +28,7 @@ android {
 dependencies {
     compile 'com.intellij:annotations:+@jar'
     compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
-    androidTestApt files("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}-all.jar")
+    androidTestApt files("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
     androidTestApt files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
 }
 
@@ -63,7 +63,7 @@ task androidJar(type: Jar, dependsOn: ['assemble']) {
     group 'Build'
     description 'Generates a jar file continaining Realm and its annotation processor'
     from zipTree('build/intermediates/bundles/release/classes.jar')
-    from zipTree("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}-all.jar")
+    from zipTree("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
     from zipTree("../realm-annotations/build/libs/realm-annotations-${version}.jar")
     from(file('src/main/jniLibs')) {
         into 'lib'
