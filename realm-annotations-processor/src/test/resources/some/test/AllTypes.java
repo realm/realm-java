@@ -23,6 +23,9 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
 public class AllTypes extends RealmObject {
+
+    public static final String TAG = "AllTypes";
+
     @PrimaryKey
     private String columnString;
     private long columnLong;

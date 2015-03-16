@@ -27,25 +27,22 @@ import java.util.*;
 
 public class RealmValidationListGenerator {
     private ProcessingEnvironment processingEnvironment;
-    private Set<String> classesToValidate = new HashSet<String>();
+    private Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();
 
-    private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String CLASS_NAME = "ValidationList";
-    private static final String PROXY_CLASS_SUFFIX = "RealmProxy";
 
-
-    public RealmValidationListGenerator(ProcessingEnvironment processingEnvironment, Set<String> classesToValidate) {
+    public RealmValidationListGenerator(ProcessingEnvironment processingEnvironment, Set<ClassMetaData> classesToValidate) {
         this.processingEnvironment = processingEnvironment;
         this.classesToValidate = classesToValidate;
     }
 
     public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format("%s.%s", REALM_PACKAGE_NAME, CLASS_NAME);
+        String qualifiedGeneratedClassName = String.format("%s.%s", Constants.REALM_PACKAGE_NAME, CLASS_NAME);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         writer.setIndent("    ");
 
-        writer.emitPackage(REALM_PACKAGE_NAME);
+        writer.emitPackage(Constants.REALM_PACKAGE_NAME);
         writer.emitEmptyLine();
 
         writer.emitImports("java.util.Arrays", "java.util.List");
@@ -61,8 +58,8 @@ public class RealmValidationListGenerator {
 
         writer.beginMethod("List<String>", "getProxyClasses", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
         List<String> entries = new ArrayList<String>();
-        for (String classToValidate : classesToValidate) {
-            entries.add(String.format("\"%s\"", classToValidate));
+        for (ClassMetaData classToValidate : classesToValidate) {
+            entries.add(String.format("\"%s\"", classToValidate.getSimpleClassName()));
         }
         String statementSection = joinStringList(entries, ", ");
         writer.emitStatement("return Arrays.asList(%s)", statementSection);

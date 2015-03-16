@@ -87,7 +87,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Returns a typed @{link io.realm.RealmQuery}, which can be used to query for specific
+     * Returns a typed {@link io.realm.RealmQuery}, which can be used to query for specific
      * objects of this type.
      *
      * @return A typed RealmQuery
@@ -192,7 +192,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Sort (ascending) an existing @{link io.realm.RealmResults}.
+     * Sort (ascending) an existing {@link io.realm.RealmResults}.
      * 
      * @param fieldName  The field name to sort by. Only fields of type boolean, short, int, long,
      *                   float, double, Date, and String are supported.
@@ -203,7 +203,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Sort existing @{link io.realm.RealmResults}.
+     * Sort existing {@link io.realm.RealmResults}.
      *
      * @param fieldName      The field name to sort by. Only fields of type boolean, short, int,
      *                       long, float, double, Date, and String are supported.
@@ -229,7 +229,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Sort existing @{link io.realm.RealmResults}.
+     * Sort existing {@link io.realm.RealmResults}.
      *
      * @param fieldNames an array of field names to sort by. Only fields of type boolean, short, int,
      *                       long, float, double, Date, and String are supported.
@@ -268,7 +268,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
 
     /**
-     * Sort existing {link io.realm.RealmResults} using two fields.
+     * Sort existing {@link io.realm.RealmResults} using two fields.
      *
      * @param fieldName1 first field name.
      * @param sortAscending1 sort order for first field.
@@ -281,7 +281,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Sort existing {link io.realm.RealmResults} using three fields.
+     * Sort existing {@link io.realm.RealmResults} using three fields.
      *
      * @param fieldName1 first field name.
      * @param sortAscending1 sort order for first field.
