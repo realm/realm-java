@@ -28,9 +28,8 @@ import io.realm.internal.migration.SetVersionNumberMigration;
 /**
  * A RealmConfiguration is used to setup a specific Realm instance.
  *
- * Instances of a RealmConfiguration can only create by using the {@link io.realm.RealmConfiguration.Builder} and calling
- * its {@link io.realm.RealmConfiguration.Builder#create()} method. See this class for a detailed description of possible
- * settings.
+ * Instances of a RealmConfiguration can only created by using the {@link io.realm.RealmConfiguration.Builder} and calling
+ * its {@link io.realm.RealmConfiguration.Builder#create()} method.
  *
  * A commonly used RealmConfiguration can be easily accessed by first saving it as
  * {@link Realm#setDefaultConfiguration(RealmConfiguration)} and then using {@link io.realm.Realm#getDefaultInstance()}.
@@ -53,7 +52,7 @@ public class RealmConfiguration {
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
     private final boolean deleteRealmBeforeOpening;
-    private final Set<Class<? extends RealmObject>> specification;
+    private final Set<Class<? extends RealmObject>> schema;
 
     private RealmConfiguration(Builder builder) {
         this.realmDir = builder.folder;
@@ -63,14 +62,14 @@ public class RealmConfiguration {
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
         this.deleteRealmBeforeOpening = builder.deleteRealmBeforeOpening;
         this.migration = (builder.migration != null) ? builder.migration : new SetVersionNumberMigration(version);
-        this.specification = builder.specification;
+        this.schema = builder.schema;
     }
 
-    public File getRealmDir() {
+    public File getFileDir() {
         return realmDir;
     }
 
-    public String getRealmName() {
+    public String getFileName() {
         return realmName;
     }
 
@@ -94,8 +93,8 @@ public class RealmConfiguration {
         return deleteRealmBeforeOpening;
     }
 
-    public Set<Class<? extends RealmObject>> getSpecification() {
-        return specification;
+    public Set<Class<? extends RealmObject>> getSchema() {
+        return schema;
     }
 
     public String getAbsolutePathToRealm() {
@@ -113,7 +112,7 @@ public class RealmConfiguration {
         private RealmMigration migration = null;
         private boolean deleteRealmIfMigrationNeeded = false;
         private boolean deleteRealmBeforeOpening = false;
-        private Set<Class<? extends RealmObject>> specification = new HashSet<Class<? extends RealmObject>>();
+        private Set<Class<? extends RealmObject>> schema = new HashSet<Class<? extends RealmObject>>();
 
         /**
          * Create an instance of the Builder for the RealmConfiguration.
@@ -169,7 +168,7 @@ public class RealmConfiguration {
          * Set the version of the Realm. This must be equal to or higher than the version of any existing Realm file.
          * If the version is higher than an already existing Realm, a migration is needed.
          *
-         * If no migration code is provided, Realm will compare the on-disc specification of the Realm with the
+         * If no migration code is provided, Realm will compare the on-disc schema of the Realm with the
          * {@link io.realm.RealmObject}'s defined.
          *
          * - If they match, the version number will automatically be increased to the new version.
@@ -188,7 +187,7 @@ public class RealmConfiguration {
 
         /**
          * Sets the {@link io.realm.RealmMigration} to be run if a migration is needed. If this migration fails to
-         * upgrade the on-disc specification to the runtime specification, a
+         * upgrade the on-disc schema to the runtime schema, a
          * {@link io.realm.exceptions.RealmMigrationNeededException} will be thrown.
          */
         public Builder migration(RealmMigration migration) {
@@ -202,7 +201,7 @@ public class RealmConfiguration {
         /**
          * Setting this will change the behavior of migrations. If a
          * {@link io.realm.exceptions.RealmMigrationNeededException} should be thrown, instead the on-disc
-         * Realm will be cleared and recreated with the new Realm specification.
+         * Realm will be cleared and recreated with the new Realm schema.
          *
          * <bold>WARNING!</bold> This will result in loss of data.
          */
@@ -228,12 +227,12 @@ public class RealmConfiguration {
 
         /**
          * Package private method. Only available for testing until Migrations introduces RealmModules. This restricts
-         * the Realm specification to only consist of the provided classes.
+         * the Realm schema to only consist of the provided classes.
          */
         Builder schema(Class<? extends RealmObject>... schemaClass) {
-            specification = new HashSet<Class<? extends RealmObject>>();
+            schema = new HashSet<Class<? extends RealmObject>>();
             if (schemaClass != null) {
-                Collections.addAll(specification, schemaClass);
+                Collections.addAll(schema, schemaClass);
             }
             return this;
         }
