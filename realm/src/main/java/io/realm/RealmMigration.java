@@ -55,12 +55,12 @@ import io.realm.dynamic.RealmSpec;
 public interface RealmMigration {
 
     /**
-     * Implement this method in your subclass to perform migration.
+     * Implement this method in your subclass to perform a migration.
      *
      * @param realm The Realm on which to perform the migration.
-     * @param version The version of the Realm at the start of the migration.
-     * @return The version of the Realm after executing the migration.
+     * @param oldVersion The version of the Realm at the start of the migration.
+     * @param newVersion The version of the Realm after executing the migration.
      */
-    public long execute(RealmSpec realm, long version);
+    public void migrate(RealmSpec realm, long oldVersion, long newVersion);
 }
 

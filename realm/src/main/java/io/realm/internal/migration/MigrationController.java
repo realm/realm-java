@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package io.realm.dynamic;
+package io.realm.internal.migration;
+
+import java.util.LinkedList;
 
 /**
- * Class for interacting with the Realm specification using a dynamic API. This makes it possible
- * to add, delete and change the types of RealmObjects known to this Realm.
- *
- * @see io.realm.RealmMigration
+ * This class controls the flow of a migration, incl. error handling.
  */
-public class RealmSpec {
-    public RealmClassSpec addClass(String className);
-    public RealmClassSpec addClass(RealmClassSpec classSpec);
-    public void removeClass(String className);
-    public RealmClassSpec renameClass(String oldName, String newName);
+public class MigrationController {
+
+    LinkedList<MigrationCommand> commands;
+
+
+
+
+
+
+
 }
