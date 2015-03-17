@@ -19,10 +19,7 @@ import android.content.Context;
 import android.test.AndroidTestCase;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -37,9 +34,9 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
-import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
@@ -927,7 +924,7 @@ public class RealmTest extends AndroidTestCase {
         fail();
     }
 
-    public void testCompactEncryptedRealmFile() {
+    public void testCompactEncryptedEmptyRealmFile() {
         String REALM_NAME = "enc.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
         byte[] key = new byte[64];
@@ -937,7 +934,29 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
     }
 
-    public void testCompactRealmFile() throws IOException {
+    public void testCompactEncryptedPopulatedRealmFile() {
+        String REALM_NAME = "enc.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        byte[] key = new byte[64];
+        new Random(42).nextBytes(key);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        populateTestRealm(realm, 100);
+        realm.close();
+        assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+    }
+
+    public void testCompactEmptyRealmFile() throws IOException {
+        final String REALM_NAME = "test.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME);
+        realm.close();
+        long before = new File(getContext().getFilesDir(), REALM_NAME).length();
+        assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME));
+        long after = new File(getContext().getFilesDir(), REALM_NAME).length();
+        assertTrue(before >= after);
+    }
+
+    public void testCompactPopulateRealmFile() throws IOException {
         final String REALM_NAME = "test.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
         Realm realm = Realm.getInstance(getContext(), REALM_NAME);
@@ -992,7 +1011,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testCopyToRealmObject() {
         Date date = new Date();
-        date.setTime(1000); // Remove ms. precission as Realm doesn't support it yet.
+        date.setTime(1000); // Remove ms. precision as Realm doesn't support it yet.
         Dog dog = new Dog();
         dog.setName("Fido");
         RealmList<Dog> list = new RealmList<Dog>();
