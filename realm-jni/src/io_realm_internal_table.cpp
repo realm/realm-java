@@ -254,7 +254,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddEmptyRow(
     if (!TABLE_VALID(env, pTable))
         return 0;
     if (pTable->get_column_count() < 1){
-        ThrowException(env, IndexOutOfBounds, "Table has no columns");
+        ThrowException(env, IndexOutOfBounds, std::string("Table has no columns: ") + pTable->get_name().data());
         return 0;
     }
     try {

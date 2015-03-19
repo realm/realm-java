@@ -334,6 +334,10 @@ public class ClassMetaData {
             fieldNames.add(field.getSimpleName().toString());
         }
 
+        if (fields.size() == 0) {
+            Utils.error(className + " must contain at least 1 persistable field");
+        }
+
         return true;
     }
 
