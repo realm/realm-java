@@ -169,6 +169,9 @@ public final class Realm implements Closeable {
     private final Map<Class<?>, Method> initTableMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Method> insertOrUpdateMethods = new HashMap<Class<?>, Method>();
     private final Map<Class<?>, Constructor> generatedConstructors = new HashMap<Class<?>, Constructor>();
+
+    // Maps classes to the name of the proxied class. Examples: Dog.class -> Dog, DogRealmProxy -> Dog
+    private final Map<Class<?>, String> proxiedClassNames = new HashMap<Class<?>, String>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private final Map<Class<?>, Table> tables = new HashMap<Class<?>, Table>();
     private static final Set<Class<? extends RealmObject>> customSchema = new HashSet<Class<? extends RealmObject>>();
@@ -318,12 +321,14 @@ public final class Realm implements Closeable {
 
     // Public because of migrations
     public Table getTable(Class<?> clazz) {
-        String simpleClassName = simpleClassNames.get(clazz);
-        if (simpleClassName == null) {
-            simpleClassName = clazz.getSimpleName();
-            simpleClassNames.put(clazz, simpleClassName);
+        final String proxySuffix = "RealmProxy";
+        String proxiedClassName = proxiedClassNames.get(clazz);
+        if (proxiedClassName == null) {
+            String classSimpleName = clazz.getSimpleName();
+            proxiedClassName = classSimpleName.replace(proxySuffix, "");
+            proxiedClassNames.put(clazz, proxiedClassName);
         }
-        return transaction.getTable(TABLE_PREFIX + simpleClassName);
+        return transaction.getTable(TABLE_PREFIX + proxiedClassName);
     }
 
     /**
@@ -1024,17 +1029,12 @@ public final class Realm implements Closeable {
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
      */
-    @Deprecated
     public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
         if (destination == null) {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
         checkIfValid();
-        if (key != null) {
-            throw new RealmException("This method has been disabled");
-        } else {
-            transaction.writeToFile(destination, key);
-        }
+        transaction.writeToFile(destination, key);
     }
 
 
@@ -1078,11 +1078,7 @@ public final class Realm implements Closeable {
 
     private Class<?> getProxyClass(Class<?> clazz) {
 
-        String simpleClassName = simpleClassNames.get(clazz);
-        if (simpleClassName == null) {
-            simpleClassName = clazz.getSimpleName();
-            simpleClassNames.put(clazz, simpleClassName);
-        }
+        String simpleClassName = getClassSimpleName(clazz);
         String generatedClassName = getProxyClassName(simpleClassName);
 
         Class<?> generatedClass = generatedClasses.get(generatedClassName);
@@ -1108,12 +1104,7 @@ public final class Realm implements Closeable {
 
         Table table = tables.get(clazz);
         if (table == null) {
-            String simpleClassName = simpleClassNames.get(clazz);
-            if (simpleClassName == null) {
-                simpleClassName = clazz.getSimpleName();
-                simpleClassNames.put(clazz, simpleClassName);
-            }
-
+            String simpleClassName = getClassSimpleName(clazz);
             table = transaction.getTable(TABLE_PREFIX + simpleClassName);
             tables.put(clazz, table);
         }
@@ -1122,13 +1113,8 @@ public final class Realm implements Closeable {
 
         Constructor constructor = generatedConstructors.get(clazz);
         if (constructor == null) {
-            String simpleClassName = simpleClassNames.get(clazz);
-            if (simpleClassName == null) {
-                simpleClassName = clazz.getSimpleName();
-                simpleClassNames.put(clazz, simpleClassName);
-            }
+            String simpleClassName = getClassSimpleName(clazz);
             String generatedClassName = getProxyClassName(simpleClassName);
-
 
             Class<?> generatedClass = generatedClasses.get(generatedClassName);
             if (generatedClass == null) {
@@ -1257,12 +1243,7 @@ public final class Realm implements Closeable {
     }
 
     boolean contains(Class<?> clazz) {
-        String simpleClassName = simpleClassNames.get(clazz);
-        if (simpleClassName == null) {
-            simpleClassName = clazz.getSimpleName();
-            simpleClassNames.put(clazz, simpleClassName);
-        }
-        return transaction.hasTable(TABLE_PREFIX + simpleClassName);
+        return transaction.hasTable(TABLE_PREFIX + getClassSimpleName(clazz));
     }
 
     /**
@@ -1309,7 +1290,7 @@ public final class Realm implements Closeable {
         long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
+        }s
 
         TableView tableView = table.getSortedView(columnIndex, order);
         return new RealmResults<E>(this, tableView, clazz);
@@ -1631,10 +1612,9 @@ public final class Realm implements Closeable {
     }
 
     private <E extends RealmObject> void checkHasPrimaryKey(E object) {
-
         Class<? extends RealmObject> objectClass = object.getClass();
         if (!getTable(objectClass).hasPrimaryKey()) {
-            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + simpleClassNames.get(objectClass));
+            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + getClassSimpleName(objectClass));
         }
     }
 
@@ -1806,5 +1786,14 @@ public final class Realm implements Closeable {
      */
     public interface Transaction {
         public void execute(Realm realm);
+    }
+
+    private String getClassSimpleName(Class<?> clazz) {
+        String simpleName = simpleClassNames.get(clazz);
+        if (simpleName == null) {
+            simpleName = clazz.getSimpleName();
+            simpleClassNames.put(clazz, simpleName);
+        }
+        return simpleName;
     }
 }

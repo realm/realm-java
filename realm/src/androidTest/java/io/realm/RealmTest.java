@@ -1348,8 +1348,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    // TODO Enable once copy to encrypted Realm works again
-    public void disableTestWriteEncryptedCopy() throws Exception {
+    public void testWriteEncryptedCopy() throws Exception {
         populateTestRealm();
         long before = testRealm.where(AllTypes.class).count();
         assertEquals(TEST_DATA_SIZE, before);
@@ -1484,5 +1483,32 @@ public class RealmTest extends AndroidTestCase {
         } catch (IllegalStateException ignored) {
         }
 
+    }
+
+    public void testUpdateObjectWithLinks() throws Exception {
+        testRealm.beginTransaction();
+
+        // Create an owner with two dogs
+        OwnerPrimaryKey owner = testRealm.createObject(OwnerPrimaryKey.class);
+        owner.setId(1);
+        owner.setName("Jack");
+        Dog rex = testRealm.createObject(Dog.class);
+        rex.setName("Rex");
+        Dog fido = testRealm.createObject(Dog.class);
+        fido.setName("Fido");
+        owner.getDogs().add(rex);
+        owner.getDogs().add(fido);
+        assertEquals(2, owner.getDogs().size());
+
+        // Changing the name of the owner should not affect the number of dogs
+        owner.setName("Peter");
+        assertEquals(2, owner.getDogs().size());
+
+        // Updating the user should not affect it either. This is actually a no-op since owner is a Realm backed object
+        OwnerPrimaryKey owner2 = testRealm.copyToRealmOrUpdate(owner);
+        assertEquals(2, owner.getDogs().size());
+        assertEquals(2, owner2.getDogs().size());
+
+        testRealm.commitTransaction();
     }
 }

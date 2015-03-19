@@ -127,12 +127,14 @@ public class ClassMetaData {
             // Check that getters and setters are valid
             if (methodName.startsWith("get") || methodName.startsWith("is")) {
                 if (!checkGetterMethod(methodName)) {
+                    Utils.error(String.format("Getter %s is not associated to any field", methodName), executableElement);
                     return false;
                 }
             } else if (methodName.startsWith("set")) {
                 if (!checkSetterMethod(methodName)) {
+                    Utils.error(String.format("Setter %s is not associated to any field", methodName), executableElement);
                     return false;
-                };
+                }
             } else {
                 Utils.error("Only getters and setters should be defined in model classes", executableElement);
                 return false;
@@ -170,10 +172,6 @@ public class ClassMetaData {
                 setters.put(methodMenusSetPlusIs, methodName);
             }
             found = true;
-        }
-
-        if (!found) {
-            Utils.note(String.format("Setter %s is not associated to any field", methodName));
         }
 
         return found;
@@ -225,10 +223,6 @@ public class ClassMetaData {
                 }
                 found = true;
             }
-        }
-
-        if (!found) {
-            Utils.note(String.format("Getter %s is not associated to any field", methodName));
         }
 
         return found;
