@@ -169,6 +169,30 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    // isNull and isNotNull
+
+    /**
+     * Add condition "Is relationship null?"
+     *
+     * @param fieldName - the field name
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException if field is not a RealmObject or RealmList
+     */
+    public RealmQuery<E> isNull(String fieldName) {
+        // Currently we only support querying top-level
+        if (containsDot(fieldName)) {
+            throw new IllegalArgumentException("Following multiple relationships is not supported.");
+        }
+
+        // checking that fieldName has the correct type is done in C++
+        this.query.isNull(columns.get(fieldName));
+        return this;
+    }
+
+    public RealmQuery<E> isNotNull(String fieldName) {
+        return this.beginGroup().not().isNull(fieldName).endGroup();
+    }
+
     // Equal
 
     /**

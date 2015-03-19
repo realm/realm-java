@@ -463,4 +463,29 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Owner> subOwners = owners.where().equalTo("cat.name", "Blackie").findAll();
         assertEquals(1, subOwners.size());
     }
+
+    public void testIsNull() {
+        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNull("dogs").findAll();
+        assertEquals(0, owners1.size());
+
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("cat").findAll();
+        assertEquals(0, owners2.size());
+    }
+
+    public void testIsNotNull() {
+        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotNull("dogs").findAll();
+        assertEquals(1, owners1.size());
+
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("cat").findAll();
+        assertEquals(1, owners2.size());
+    }
+
+    public void testIsNullWrongType() {
+        try {
+            // Owner.name is a String
+            RealmResults<Owner> owners = testRealm.where(Owner.class).isNull("name").findAll();
+            fail();
+        } catch (IllegalArgumentException e) {
+        }
+    }
 }
