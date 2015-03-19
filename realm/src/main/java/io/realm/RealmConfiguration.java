@@ -89,7 +89,7 @@ public class RealmConfiguration {
         return deleteRealmIfMigrationNeeded;
     }
 
-    public boolean isDeleteRealmBeforeOpening() {
+    public boolean shouldDeleteRealmBeforeOpening() {
         return deleteRealmBeforeOpening;
     }
 
@@ -133,7 +133,7 @@ public class RealmConfiguration {
          */
         public Builder(Context context) {
             if (context == null) {
-                throw new NullPointerException("A non-null Context must be provided");
+                throw new IllegalArgumentException("A non-null Context must be provided");
             }
             this.folder = context.getFilesDir();
         }
@@ -155,7 +155,7 @@ public class RealmConfiguration {
          */
         public Builder encryptionKey(byte[] key) {
             if (key == null) {
-                throw new NullPointerException("A non-null key must be provided");
+                throw new IllegalArgumentException("A non-null key must be provided");
             }
             if (key.length != 64) {
                 throw new IllegalArgumentException("The provided key must be 64 bytes. Yours was: " + key.length);
@@ -177,7 +177,7 @@ public class RealmConfiguration {
          *
          * @see #migration(RealmMigration)
          */
-        public Builder setVersion(int version) {
+        public Builder version(int version) {
             if (version < 0) {
                 throw new IllegalArgumentException("Realm version numbers must be 0 (zero) or higher. Yours was: " + version);
             }
@@ -192,7 +192,7 @@ public class RealmConfiguration {
          */
         public Builder migration(RealmMigration migration) {
             if (migration == null) {
-                throw new NullPointerException("A non-null migration must be provided");
+                throw new IllegalArgumentException("A non-null migration must be provided");
             }
             this.migration = migration;
             return this;

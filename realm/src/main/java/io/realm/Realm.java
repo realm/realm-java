@@ -232,7 +232,9 @@ public final class Realm implements Closeable {
             sharedGroup.close();
             sharedGroup = null;
             AtomicInteger counter = openRealms.get(id);
-            counter.decrementAndGet();
+            if (counter.decrementAndGet() == 0) {
+                openRealms.remove(id);
+            };
         }
 
         int refCount = references - 1;
@@ -399,11 +401,11 @@ public final class Realm implements Closeable {
     @Deprecated
     @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, String fileName, byte[] key) {
-        return create(new RealmConfiguration.Builder(context)
-                        .name(fileName)
-                        .encryptionKey(key)
-                        .create()
-        );
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context).name(fileName);
+        if (key != null) {
+            builder.encryptionKey(key);
+        }
+        return create(builder.create());
     }
 
     /**
@@ -571,7 +573,7 @@ public final class Realm implements Closeable {
         if (references == 0) {
             AtomicInteger counter = openRealms.get(id);
             if (counter == null) {
-                if (config.isDeleteRealmBeforeOpening()) {
+                if (config.shouldDeleteRealmBeforeOpening()) {
                     deleteRealmFile(config);
                 }
                 openRealms.put(id, new AtomicInteger(1));
@@ -597,6 +599,18 @@ public final class Realm implements Closeable {
         realms.put(id, realm);
         realmsCache.set(realms);
         localRefCount.put(id, references + 1);
+
+        // Check versions of Realm
+        long currentVersion = realm.getVersion();
+        long requiredVersion = config.getVersion();
+        if (currentVersion != UNVERSIONED && currentVersion < requiredVersion) {
+            realm.close();
+            throw new RealmMigrationNeededException(String.format("Realm on disc need to migrate from v%s to v%s", currentVersion, requiredVersion));
+        }
+        if (currentVersion != UNVERSIONED && requiredVersion < currentVersion) {
+            realm.close();
+            throw new IllegalArgumentException(String.format("Realm on disc is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+        }
 
         if (validateSchema) {
             try {
@@ -647,14 +661,15 @@ public final class Realm implements Closeable {
         try {
             realm.beginTransaction();
             if (version == UNVERSIONED) {
-                realm.setVersion(0);
                 commitNeeded = true;
+                realm.setVersion(config.getVersion());
             }
-
             for (String className : proxyClasses) {
                 String[] splitted = className.split("\\.");
                 String modelClassName = splitted[splitted.length - 1];
                 String generatedClassName = getProxyClassName(modelClassName);
+
+                // Verify that there is a proxy class for each supported model class
                 Class<?> generatedClass;
                 try {
                     generatedClass = Class.forName(generatedClassName);
@@ -727,7 +742,6 @@ public final class Realm implements Closeable {
             }
         } finally {
             if (commitNeeded) {
-                realm.setVersion(config.getVersion());
                 realm.commitTransaction();
             } else {
                 realm.cancelTransaction();
@@ -1391,7 +1405,7 @@ public final class Realm implements Closeable {
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
                                                                     boolean sortAscending1, String fieldName2,
                                                                     boolean sortAscending2) {
-        return allObjectsSorted(clazz, new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1,
+        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new boolean[]{sortAscending1,
                 sortAscending2});
     }
 
