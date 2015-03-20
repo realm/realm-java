@@ -434,6 +434,10 @@ inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex
 bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data);
 
 
+// Utility function for appending StringData, which is returned
+// by a lot of core functions, and might potentially be NULL.
+std::string concat_stringdata(const char *message, StringData data);
+
 // Note: JNI offers methods to convert between modified UTF-8 and
 // UTF-16. Unfortunately these methods are not appropriate in this
 // context. The reason is that they use a modified version of
