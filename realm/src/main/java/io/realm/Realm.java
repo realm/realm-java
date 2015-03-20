@@ -1290,7 +1290,7 @@ public final class Realm implements Closeable {
         long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }s
+        }
 
         TableView tableView = table.getSortedView(columnIndex, order);
         return new RealmResults<E>(this, tableView, clazz);
