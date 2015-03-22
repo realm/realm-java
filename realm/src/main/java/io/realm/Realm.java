@@ -490,25 +490,16 @@ public final class Realm implements Closeable {
     }
 
     private static synchronized Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema,
-                                            boolean autoRefresh) {
+                                                        boolean autoRefresh) {
+        // Check thread local cache for existing Realm
         int id = absolutePath.hashCode();
         Map<Integer, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
         if (references == null) {
             references = 0;
         }
-        if (references == 0) {
-            AtomicInteger counter = openRealms.get(id);
-            if (counter == null) {
-                openRealms.put(id, new AtomicInteger(1));
-            } else {
-                counter.incrementAndGet();
-            }
-
-        }
         Map<Integer, Realm> realms = realmsCache.get();
         Realm realm = realms.get(absolutePath.hashCode());
-
         if (realm != null) {
             if (!Arrays.equals(realm.key, key)) {
                 throw new IllegalStateException(DIFFERENT_KEY_MESSAGE);
@@ -524,6 +515,18 @@ public final class Realm implements Closeable {
         realmsCache.set(realms);
         localRefCount.put(id, references + 1);
 
+        // Increment global reference counter
+        if (references == 0) {
+            AtomicInteger counter = openRealms.get(id);
+            if (counter == null) {
+                openRealms.put(id, new AtomicInteger(1));
+            } else {
+                counter.incrementAndGet();
+            }
+
+        }
+
+        // Initialize Realm schema if needed
         if (validateSchema) {
             try {
                 initializeRealm(realm);
