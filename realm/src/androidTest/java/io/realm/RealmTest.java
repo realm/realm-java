@@ -147,8 +147,8 @@ public class RealmTest extends AndroidTestCase {
         File folder = new File("/");
         try {
             Realm realm = Realm.getInstance(new RealmConfiguration.Builder(folder).create());
-            fail("Pointing to a folder with no write permission should throw an error");
-        } catch (RealmIOException expected) {
+            fail("Pointing to a folder with no write permission should throw an IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
         }
     }
 
@@ -216,7 +216,7 @@ public class RealmTest extends AndroidTestCase {
             realm = Realm.getInstance((Context) null); // throws when c.getDirectory() is called;
             // has nothing to do with Realm
             fail("Should throw an exception");
-        } catch (NullPointerException ignore) {
+        } catch (IllegalArgumentException ignore) {
         } finally {
             if (realm != null) {
                 realm.close();

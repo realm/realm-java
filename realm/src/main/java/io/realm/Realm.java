@@ -602,7 +602,7 @@ public final class Realm implements Closeable {
 
         // Check versions of Realm
         long currentVersion = realm.getVersion();
-        long requiredVersion = config.getVersion();
+        long requiredVersion = config.getSchemaVersion();
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion) {
             realm.close();
             throw new RealmMigrationNeededException(String.format("Realm on disc need to migrate from v%s to v%s", currentVersion, requiredVersion));
@@ -662,7 +662,7 @@ public final class Realm implements Closeable {
             realm.beginTransaction();
             if (version == UNVERSIONED) {
                 commitNeeded = true;
-                realm.setVersion(config.getVersion());
+                realm.setVersion(config.getSchemaVersion());
             }
             for (String className : proxyClasses) {
                 String[] splitted = className.split("\\.");

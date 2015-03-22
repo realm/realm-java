@@ -110,7 +110,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testNegativeVersionThrows() {
         try {
-            new RealmConfiguration.Builder(getContext()).version(-1).create();
+            new RealmConfiguration.Builder(getContext()).schemaVersion(-1).create();
         } catch (IllegalArgumentException expected) {
             return;
         }
@@ -119,11 +119,11 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testVersionLessThanDiscVersionThrows() {
         Realm.deleteRealmFile(new RealmConfiguration.Builder(getContext()).create());
-        Realm realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).version(42).create());
+        Realm realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).create());
         realm.close();
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(getContext()).version(1).create());
+            Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(1).create());
         } catch (IllegalArgumentException expected) {
             return;
         }
@@ -133,14 +133,14 @@ public class RealmConfigurationTest extends AndroidTestCase {
     public void testVersionEqualWhenSchemaChangesThrows() {
         Realm realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                 .deleteRealmBeforeOpening()
-                .version(42)
+                .schemaVersion(42)
                 .schema(Dog.class)
                 .create());
         realm.close();
 
         try {
             Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                    .version(42)
+                    .schemaVersion(42)
                     .schema(AllTypesPrimaryKey.class)
                     .create());
         } catch (RealmMigrationNeededException expected) {
@@ -187,7 +187,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         Realm realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                 .name("foo.realm")
                 .encryptionKey(key)
-                .version(42)
+                .schemaVersion(42)
                 .migration(new RealmMigration() {
                     @Override
                     public long execute(Realm realm, long version) {
@@ -206,7 +206,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
                 .deleteRealmBeforeOpening()
                 .schema(Dog.class)
-                .version(0)
+                .schemaVersion(0)
                 .create();
         Realm.deleteRealmFile(config);
         Realm realm = Realm.getInstance(config);
@@ -218,7 +218,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
         realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                 .schema(Owner.class, Dog.class)
-                .version(1)
+                .schemaVersion(1)
                 .deleteRealmIfMigrationNeeded()
                 .create());
         assertEquals(0, realm.where(Dog.class).count());

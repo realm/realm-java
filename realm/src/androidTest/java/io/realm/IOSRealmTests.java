@@ -107,7 +107,6 @@ public class IOSRealmTests extends AndroidTestCase {
                         .name(REALM_NAME)
                         .encryptionKey(getIOSKey())
                         .schema(IOSAllTypes.class, IOSChild.class)
-                        .deleteRealmBeforeOpening()
                         .create()
         );
 

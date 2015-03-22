@@ -41,14 +41,14 @@ import io.realm.internal.migration.SetVersionNumberMigration;
  * This will create a RealmConfiguration with the following properties
  * - Realm file is called "default.realm"
  * - It is saved in Context.getFilesDir()
- * - It has it's version set to 0.
+ * - It has it's schema version set to 0.
  */
 public class RealmConfiguration {
 
     private final File realmDir;
     private final String realmName;
     private final byte[] key;
-    private final int version;
+    private final int schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
     private final boolean deleteRealmBeforeOpening;
@@ -58,10 +58,10 @@ public class RealmConfiguration {
         this.realmDir = builder.folder;
         this.realmName = builder.fileName;
         this.key = builder.key;
-        this.version = builder.version;
+        this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
         this.deleteRealmBeforeOpening = builder.deleteRealmBeforeOpening;
-        this.migration = (builder.migration != null) ? builder.migration : new SetVersionNumberMigration(version);
+        this.migration = (builder.migration != null) ? builder.migration : new SetVersionNumberMigration(schemaVersion);
         this.schema = builder.schema;
     }
 
@@ -77,8 +77,8 @@ public class RealmConfiguration {
         return key;
     }
 
-    public int getVersion() {
-        return version;
+    public int getSchemaVersion() {
+        return schemaVersion;
     }
 
     public RealmMigration getMigration() {
@@ -108,7 +108,7 @@ public class RealmConfiguration {
         private File folder = null;
         private String fileName = "default.realm";
         private byte[] key = null;
-        private int version = 0;
+        private int schemaVersion = 0;
         private RealmMigration migration = null;
         private boolean deleteRealmIfMigrationNeeded = false;
         private boolean deleteRealmBeforeOpening = false;
@@ -119,9 +119,14 @@ public class RealmConfiguration {
          * The Realm file in the provided folder.
          */
         public Builder(File writeableFolder) {
-            if (folder == null || !folder.isDirectory()) {
-                throw new IllegalArgumentException(("An existing folder must be provided. Yours was " + (folder != null ? folder.getAbsolutePath() : "null")));
+            if (writeableFolder == null || !writeableFolder.isDirectory()) {
+                throw new IllegalArgumentException(("An existing folder must be provided. " +
+                        "Yours was " + (writeableFolder != null ? writeableFolder.getAbsolutePath() : "null")));
             }
+            if (!writeableFolder.canWrite()) {
+                throw new IllegalArgumentException("Folder is not writeable: " + writeableFolder.getAbsolutePath());
+            }
+
             this.folder = writeableFolder;
         }
 
@@ -165,23 +170,23 @@ public class RealmConfiguration {
         }
 
         /**
-         * Set the version of the Realm. This must be equal to or higher than the version of any existing Realm file.
-         * If the version is higher than an already existing Realm, a migration is needed.
+         * Set the schema version of the Realm. This must be equal to or higher than the schema version of any existing
+         * Realm file. If the schema version is higher than an already existing Realm, a migration is needed.
          *
          * If no migration code is provided, Realm will compare the on-disc schema of the Realm with the
          * {@link io.realm.RealmObject}'s defined.
          *
-         * - If they match, the version number will automatically be increased to the new version.
+         * - If they match, the schema version number will automatically be increased to the new schema version.
          * - If not, a {@link io.realm.exceptions.RealmMigrationNeededException} will be thrown. This behavior can be
          *   overridden by using {@link #deleteRealmIfMigrationNeeded()}.
          *
          * @see #migration(RealmMigration)
          */
-        public Builder version(int version) {
-            if (version < 0) {
-                throw new IllegalArgumentException("Realm version numbers must be 0 (zero) or higher. Yours was: " + version);
+        public Builder schemaVersion(int schemaVersion) {
+            if (schemaVersion < 0) {
+                throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours was: " + schemaVersion);
             }
-            this.version = version;
+            this.schemaVersion = schemaVersion;
             return this;
         }
 
