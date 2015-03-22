@@ -177,6 +177,12 @@ public class RealmTest extends AndroidTestCase {
         byte[] key = new byte[64];
         random.nextBytes(key);
         Realm realm = Realm.getInstance(getContext(), REALM_NAME, key); // Create starting Realm with key1
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class); // TODO This shouldn't be needed.
+            }
+        });
         realm.close();
         random.nextBytes(key);
         try {
