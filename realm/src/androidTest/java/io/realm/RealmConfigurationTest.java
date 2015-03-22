@@ -29,11 +29,21 @@ import io.realm.exceptions.RealmMigrationNeededException;
 public class RealmConfigurationTest extends AndroidTestCase {
 
     RealmConfiguration defaultConfig;
+    Realm realm;
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         defaultConfig = new RealmConfiguration.Builder(getContext()).create();
         Realm.deleteRealmFile(defaultConfig);
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        if (realm != null) {
+            realm.close();
+        }
     }
 
     public void testSetNullDefaultConfigurationThrows() {
@@ -118,8 +128,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testVersionLessThanDiscVersionThrows() {
-        Realm.deleteRealmFile(new RealmConfiguration.Builder(getContext()).create());
-        Realm realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).create());
+        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).create());
         realm.close();
 
         try {
@@ -130,8 +139,9 @@ public class RealmConfigurationTest extends AndroidTestCase {
         fail();
     }
 
+    // TODO Should throw IllegalState instead
     public void testVersionEqualWhenSchemaChangesThrows() {
-        Realm realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                 .deleteRealmBeforeOpening()
                 .schemaVersion(42)
                 .schema(Dog.class)
@@ -143,48 +153,43 @@ public class RealmConfigurationTest extends AndroidTestCase {
                     .schemaVersion(42)
                     .schema(AllTypesPrimaryKey.class)
                     .create());
+            fail("A migration should be required");
         } catch (RealmMigrationNeededException expected) {
-            return;
         }
-        fail();
     }
 
     public void testCustomSchemaAlsoIncludeLinkedClasses() {
-        Realm realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                 .deleteRealmBeforeOpening()
                 .schema(Dog.class)
                 .create());
         assertEquals(3, realm.getTable(Owner.class).getColumnCount());
         assertEquals(7, realm.getTable(Dog.class).getColumnCount());
-        realm.close();
     }
 
     public void testNullMigrationThrows() {
         try {
             new RealmConfiguration.Builder(getContext()).migration(null).create();
+            fail();
         } catch (IllegalArgumentException expected) {
-            return;
         }
-        fail();
     }
 
     public void testSetDefaultConfiguration() {
         Realm.setDefaultConfiguration(defaultConfig);
-        Realm realm = Realm.getDefaultInstance();
+        realm = Realm.getDefaultInstance();
         assertEquals(realm.getPath(), defaultConfig.getAbsolutePathToRealm());
-        realm.close();
     }
 
     public void testGetInstance() {
-        Realm realm = Realm.getInstance(defaultConfig);
+        realm = Realm.getInstance(defaultConfig);
         assertEquals(realm.getPath(), defaultConfig.getAbsolutePathToRealm());
-        realm.close();
     }
 
     public void testStandardSetup() {
         byte[] key = new byte[64];
         new Random().nextBytes(key);
-        Realm realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                 .name("foo.realm")
                 .encryptionKey(key)
                 .schemaVersion(42)
@@ -199,35 +204,34 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 .create());
         assertTrue(realm.getPath().endsWith("foo.realm"));
         assertEquals(42, realm.getVersion());
-        realm.close();
     }
 
     public void testDeleteRealmIfMigration() {
+        // Populate v0 of a Realm with an object
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
                 .deleteRealmBeforeOpening()
                 .schema(Dog.class)
                 .schemaVersion(0)
                 .create();
-        Realm.deleteRealmFile(config);
-        Realm realm = Realm.getInstance(config);
+        realm = Realm.getInstance(config);
         realm.beginTransaction();
         realm.copyToRealm(new Dog("Foo"));
         realm.commitTransaction();
         assertEquals(1, realm.where(Dog.class).count());
         realm.close();
 
+        // Change schema and verify that Realm has been cleared
         realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                 .schema(Owner.class, Dog.class)
                 .schemaVersion(1)
                 .deleteRealmIfMigrationNeeded()
                 .create());
         assertEquals(0, realm.where(Dog.class).count());
-        realm.close();
     }
 
     public void testDeleteRealmBeforeOpening() {
         RealmConfiguration config = new RealmConfiguration.Builder(getContext()).deleteRealmBeforeOpening().create();
-        Realm realm = Realm.getInstance(config);
+        realm = Realm.getInstance(config);
         realm.beginTransaction();
         realm.copyToRealm(new Dog("Foo"));
         realm.commitTransaction();
@@ -236,6 +240,16 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
         realm = Realm.getInstance(config);
         assertEquals(0, realm.where(Dog.class).count());
+    }
+
+    public void testUpgradeVersionWithNoMigrationThrows() {
+        realm = Realm.getInstance(defaultConfig);
+        assertEquals(0, realm.getVersion());
         realm.close();
+        try {
+            Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).create());
+            fail("Upgrading to new version without a migration block should fail");
+        } catch (RealmMigrationNeededException expected) {
+        }
     }
 }

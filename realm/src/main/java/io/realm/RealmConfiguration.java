@@ -170,15 +170,10 @@ public class RealmConfiguration {
         }
 
         /**
-         * Set the schema version of the Realm. This must be equal to or higher than the schema version of any existing
-         * Realm file. If the schema version is higher than an already existing Realm, a migration is needed.
+         * Set the schema version of the Realm. This must be equal to or higher than the schema version of the existing
+         * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
          *
-         * If no migration code is provided, Realm will compare the on-disc schema of the Realm with the
-         * {@link io.realm.RealmObject}'s defined.
-         *
-         * - If they match, the schema version number will automatically be increased to the new schema version.
-         * - If not, a {@link io.realm.exceptions.RealmMigrationNeededException} will be thrown. This behavior can be
-         *   overridden by using {@link #deleteRealmIfMigrationNeeded()}.
+         * If no migration code is provided, Realm will throw a {@link io.realm.exceptions.RealmMigrationNeededException}.
          *
          * @see #migration(RealmMigration)
          */
