@@ -35,6 +35,7 @@ public class RealmProcessorTest {
     private JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
     private JavaFileObject noAccessorsModel = JavaFileObjects.forResource("some/test/NoAccessors.java");
     private JavaFileObject fieldNamesModel = JavaFileObjects.forResource("some/test/FieldNames.java");
+    private JavaFileObject customAccessorModel = JavaFileObjects.forResource("some/test/CustomAccessor.java");
 
     @Test
     public void compileSimpleFile() {
@@ -52,18 +53,11 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileEmptyFile() {
-        ASSERT.about(javaSource())
-                .that(emptyModel)
-                .compilesWithoutError();
-    }
-
-    @Test
     public void compileProcessedEmptyFile() throws Exception {
         ASSERT.about(javaSource())
                 .that(emptyModel)
                 .processedWith(new RealmProcessor())
-                .compilesWithoutError();
+                .failsToCompile();
     }
 
     @Test
@@ -161,5 +155,13 @@ public class RealmProcessorTest {
                 .that(fieldNamesModel)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
+    }
+
+    @Test
+    public void compileCustomAccessor() {
+        ASSERT.about(javaSource())
+                .that(customAccessorModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 }

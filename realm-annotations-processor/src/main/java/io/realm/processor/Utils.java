@@ -1,16 +1,15 @@
 package io.realm.processor;
 
-import java.util.List;
-import java.util.ListIterator;
-
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 
 /**
  * Utility methods working with the Realm processor.
@@ -18,23 +17,13 @@ import javax.lang.model.util.Types;
 public class Utils {
 
     public static Types typeUtils;
+    private static Messager messager;
     private static DeclaredType realmList;
 
     public static void initialize(ProcessingEnvironment env) {
         typeUtils = env.getTypeUtils();
+        messager = env.getMessager();
         realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
-    }
-
-    /**
-     * Checks if a given type is either on a list of valid types or is a subclass of such a type
-     */
-    public static boolean isValidType(Types typeUtils, TypeMirror type, List<TypeMirror> validTypes) {
-        for (TypeMirror validType : validTypes) {
-            if (typeUtils.isAssignable(type, validType)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -63,19 +52,7 @@ public class Utils {
      * Return the proxy class name for a given clazz
      */
     public static String getProxyClassName(String clazz) {
-        return clazz + RealmProxyClassGenerator.PROXY_SUFFIX;
-    }
-
-    /**
-     * Returns the simple name of a class by stripping its package name.
-     */
-    public static String stripPackage(String clazz) {
-        String[] parts = clazz.split("\\.");
-        if (parts.length > 0) {
-            return parts[parts.length - 1];
-        } else {
-            return clazz;
-        }
+        return clazz + Constants.PROXY_SUFFIX;
     }
 
     /**
@@ -114,5 +91,36 @@ public class Utils {
             genericType = genericCanonicalType;
         }
         return genericType;
+    }
+
+    /**
+     * Strips the package name from a fully qualified class name.
+     */
+    public static String stripPackage(String clazz) {
+        String[] parts = clazz.split("\\.");
+        if (parts.length > 0) {
+            return parts[parts.length - 1];
+        } else {
+            return clazz;
+        }
+    }
+
+
+
+
+    public static void error(String message, Element element) {
+        messager.printMessage(Diagnostic.Kind.ERROR, message, element);
+    }
+
+    public static void error(String message) {
+        messager.printMessage(Diagnostic.Kind.ERROR, message);
+    }
+
+    public static void note(String message) {
+        messager.printMessage(Diagnostic.Kind.NOTE, message);
+    }
+
+    public static Element getSuperClass(TypeElement classType) {
+        return typeUtils.asElement(classType.getSuperclass());
     }
 }

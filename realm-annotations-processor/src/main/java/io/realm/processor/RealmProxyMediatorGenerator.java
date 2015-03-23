@@ -42,13 +42,13 @@ public class RealmProxyMediatorGenerator {
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String EXCEPTION_MSG = "\"Could not find the generated proxy class for \" + clazz + \". \" + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE";
 
-    public RealmProxyMediatorGenerator(ProcessingEnvironment processingEnvironment, String className, Set<String> classesToValidate) {
+    public RealmProxyMediatorGenerator(ProcessingEnvironment processingEnvironment, String className, Set<ClassMetaData> classesToValidate) {
         this.processingEnvironment = processingEnvironment;
         this.className = className;
 
-        for (String clazz : classesToValidate) {
-            String simpleName = stripPackage(clazz);
-            qualifiedModelClasses.add(clazz);
+        for (ClassMetaData metadata : classesToValidate) {
+            String simpleName = metadata.getSimpleClassName();
+            qualifiedModelClasses.add(metadata.getFullyQualifiedClassName());
             simpleModelClasses.add(simpleName);
             proxyClasses.add(getProxyClassName(simpleName));
         }
@@ -322,16 +322,7 @@ public class RealmProxyMediatorGenerator {
     }
 
     private String getProxyClassName(String clazz) {
-        return clazz + RealmProxyClassGenerator.PROXY_SUFFIX;
-    }
-
-    private String stripPackage(String clazz) {
-        String[] parts = clazz.split("\\.");
-        if (parts.length > 0) {
-            return parts[parts.length - 1];
-        } else {
-            return clazz;
-        }
+        return clazz + Constants.PROXY_SUFFIX;
     }
 
     private interface ProxySwitchStatement {

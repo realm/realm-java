@@ -16,29 +16,25 @@
 
 package io.realm.processor;
 
-
-import io.realm.annotations.Ignore;
-import io.realm.annotations.Index;
-import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.RealmClass;
-import io.realm.annotations.internal.RealmModule;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
-import java.io.IOException;
-import java.util.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
 
+import io.realm.annotations.RealmClass;
+import io.realm.annotations.internal.RealmModule;
 
 /**
  * The RealmProcessor is responsible for creating the plumbing that connects the RealmObjects to a Realm. The process
- * for doing so summarized below and then described in more detail:
+ * for doing so is summarized below and then described in more detail:
  *
  * SUMMARY:
  * 1 ) Create proxy classes for all classes marked with @RealmClass. They are named <modelClass>RealmProxy.java
@@ -106,7 +102,8 @@ import java.util.*;
         "io.realm.annotations.PrimaryKey"
 })
 public class RealmProcessor extends AbstractProcessor {
-    Set<String> classesToValidate = new HashSet<String>();
+
+    Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();
     private boolean hasProcessedModules = false;
 
     @Override public SourceVersion getSupportedSourceVersion() {
@@ -119,256 +116,32 @@ public class RealmProcessor extends AbstractProcessor {
         updateChecker.executeRealmVersionUpdate();
         Utils.initialize(processingEnv);
 
-        Types typeUtils = processingEnv.getTypeUtils();
-        TypeMirror stringType = processingEnv.getElementUtils().getTypeElement("java.lang.String").asType();
-        List<TypeMirror> validPrimaryKeyTypes = Arrays.asList(
-                stringType,
-                typeUtils.getPrimitiveType(TypeKind.SHORT),
-                typeUtils.getPrimitiveType(TypeKind.INT),
-                typeUtils.getPrimitiveType(TypeKind.LONG)
-        );
-
         // Create all proxy classes
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
-            String className;
-            String packageName;
-            boolean hasDefaultConstructor = false;
-            List<VariableElement> fields = new ArrayList<VariableElement>();
-            List<VariableElement> indexedFields = new ArrayList<VariableElement>();
-            Set<VariableElement> ignoredFields = new HashSet<VariableElement>();
-            Set<String> expectedGetters = new HashSet<String>();
-            Set<String> expectedSetters = new HashSet<String>();
-            Set<ExecutableElement> methods = new HashSet<ExecutableElement>();
-            Map<String, String> getters = new HashMap<String, String>();
-            Map<String, String> setters = new HashMap<String, String>();
 
             // Check the annotation was applied to a Class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
-                error("The RealmClass annotation can only be applied to classes", classElement);
+                Utils.error("The RealmClass annotation can only be applied to classes", classElement);
             }
-            TypeElement typeElement = (TypeElement) classElement;
-            className = typeElement.getSimpleName().toString();
-
-            if (typeElement.toString().endsWith(".RealmObject") || typeElement.toString().endsWith("RealmProxy")) {
+            ClassMetaData metadata = new ClassMetaData(processingEnv, (TypeElement) classElement);
+            if (!metadata.isModelClass()) {
                 continue;
             }
-
-            note("Processing class " + className);
-
-            classesToValidate.add(typeElement.toString());
-
-            // Get the package of the class
-            Element enclosingElement = typeElement.getEnclosingElement();
-            if (!enclosingElement.getKind().equals(ElementKind.PACKAGE)) {
-                error("The RealmClass annotation does not support nested classes", classElement);
+            Utils.note("Processing class " + metadata.getSimpleClassName());
+            boolean success = metadata.generateMetaData(processingEnv.getMessager());
+            if (!success) {
+                return true; // Abort processing by claiming all annotations
             }
+            classesToValidate.add(metadata);
 
-            TypeElement parentElement = (TypeElement) processingEnv.getTypeUtils().asElement(typeElement.getSuperclass());
-            if (!parentElement.toString().endsWith(".RealmObject")) {
-                error("A RealmClass annotated object must be derived from RealmObject", classElement);
-            }
-
-            PackageElement packageElement = (PackageElement) enclosingElement;
-            packageName = packageElement.getQualifiedName().toString();
-            VariableElement primaryKey = null;
-
-            for (Element element : typeElement.getEnclosedElements()) {
-                ElementKind elementKind = element.getKind();
-
-                if (elementKind.equals(ElementKind.FIELD)) {
-                    VariableElement variableElement = (VariableElement) element;
-                    String fieldName = variableElement.getSimpleName().toString();
-
-                    Set<Modifier> modifiers = variableElement.getModifiers();
-                    if (modifiers.contains(Modifier.STATIC)) {
-                        continue; // completely ignore any static fields
-                    }
-
-                    if (variableElement.getAnnotation(Ignore.class) != null) {
-                        // The field has the @Ignore annotation. No need to go any further.
-                        ignoredFields.add(variableElement);
-                        continue;
-                    }
-
-                    if (variableElement.getAnnotation(Index.class) != null) {
-                        // The field has the @Index annotation. It's only valid for:
-                        // * String
-                        String elementTypeCanonicalName = variableElement.asType().toString();
-                        if (elementTypeCanonicalName.equals("java.lang.String")) {
-                            indexedFields.add(variableElement);
-                        } else {
-                            error("@Index is only applicable to String fields - got " + element);
-                            return true;
-                        }
-                    }
-
-                    if (variableElement.getAnnotation(PrimaryKey.class) != null) {
-                        // The field has the @PrimaryKey annotation. It is only valid for
-                        // String, short, int, long and must only be present one time
-                        if (primaryKey != null) {
-                            error(String.format("@PrimaryKey cannot be defined more than once. It was found here \"%s\" and here \"%s\"",
-                                    primaryKey.getSimpleName().toString(),
-                                    variableElement.getSimpleName().toString()));
-                            return true;
-                        }
-
-                        TypeMirror fieldType = variableElement.asType();
-                        if (!Utils.isValidType(typeUtils, fieldType, validPrimaryKeyTypes)) {
-                            error("\"" + variableElement.getSimpleName().toString() + "\" is not allowed as primary key. See @PrimaryKey for allowed types.");
-                            return true;
-                        }
-
-                        primaryKey = variableElement;
-
-                        // Also add as index if the primary key is a string
-                        if (Utils.isString(variableElement) && !indexedFields.contains(variableElement)) {
-                            indexedFields.add(variableElement);
-                        }
-                    }
-
-                    if (!variableElement.getModifiers().contains(Modifier.PRIVATE)) {
-                        error("The fields of the model must be private", variableElement);
-                    }
-
-                    fields.add(variableElement);
-                    expectedGetters.add(fieldName);
-                    expectedSetters.add(fieldName);
-                } else if (elementKind.equals(ElementKind.CONSTRUCTOR)) {
-                    hasDefaultConstructor = hasDefaultConstructor || Utils.isDefaultConstructor(element);
-
-                } else if (elementKind.equals(ElementKind.METHOD)) {
-                    ExecutableElement executableElement = (ExecutableElement) element;
-                    methods.add(executableElement);
-                }
-            }
-
-            List<String> fieldNames = new ArrayList<String>();
-            List<String> ignoreFieldNames = new ArrayList<String>();
-            for (VariableElement field : fields) {
-                fieldNames.add(field.getSimpleName().toString());
-            }
-            for (VariableElement ignoredField : ignoredFields) {
-                fieldNames.add(ignoredField.getSimpleName().toString());
-                ignoreFieldNames.add(ignoredField.getSimpleName().toString());
-            }
-
-            for (ExecutableElement executableElement : methods) {
-
-                String methodName = executableElement.getSimpleName().toString();
-
-                // Check the modifiers of the method
-                Set<Modifier> modifiers = executableElement.getModifiers();
-                if (modifiers.contains(Modifier.STATIC)) {
-                    continue; // We're cool with static methods. Move along!
-                } else if (!modifiers.contains(Modifier.PUBLIC)) {
-                    error("The methods of the model must be public", executableElement);
-                }
-
-                if (methodName.startsWith("get") || methodName.startsWith("is")) {
-                    boolean found = false;
-
-                    if (methodName.startsWith("is")) {
-                        String methodMinusIs = methodName.substring(2);
-                        String methodMinusIsCapitalised = Utils.lowerFirstChar(methodMinusIs);
-                        if (fieldNames.contains(methodName)) { // isDone -> isDone
-                            expectedGetters.remove(methodName);
-                            if (!ignoreFieldNames.contains(methodName)) {
-                                getters.put(methodName, methodName);
-                            }
-                            found = true;
-                        } else if (fieldNames.contains(methodMinusIs)) {  // mDone -> ismDone
-                            expectedGetters.remove(methodMinusIs);
-                            if (!ignoreFieldNames.contains(methodMinusIs)) {
-                                getters.put(methodMinusIs, methodName);
-                            }
-                            found = true;
-                        } else if (fieldNames.contains(methodMinusIsCapitalised)) { // done -> isDone
-                            expectedGetters.remove(methodMinusIsCapitalised);
-                            if (!ignoreFieldNames.contains(methodMinusIsCapitalised)) {
-                                getters.put(methodMinusIsCapitalised, methodName);
-                            }
-                            found = true;
-                        }
-                    }
-
-                    if (!found && methodName.startsWith("get")) {
-                        String methodMinusGet = methodName.substring(3);
-                        String methodMinusGetCapitalised = Utils.lowerFirstChar(methodMinusGet);
-                        if (fieldNames.contains(methodMinusGet)) { // mPerson -> getmPerson
-                            expectedGetters.remove(methodMinusGet);
-                            if (!ignoreFieldNames.contains(methodMinusGet)) {
-                                getters.put(methodMinusGet, methodName);
-                            }
-                            found = true;
-                        } else if (fieldNames.contains(methodMinusGetCapitalised)) { // person -> getPerson
-                            expectedGetters.remove(methodMinusGetCapitalised);
-                            if (!ignoreFieldNames.contains(methodMinusGetCapitalised)) {
-                                getters.put(methodMinusGetCapitalised, methodName);
-                            }
-                            found = true;
-                        }
-                    }
-
-                    if (!found) {
-                        note(String.format("Getter %s is not associated to any field", methodName));
-                    }
-                } else if (methodName.startsWith("set")) {
-                    boolean found = false;
-
-                    String methodMinusSet = methodName.substring(3);
-                    String methodMinusSetCapitalised = Utils.lowerFirstChar(methodMinusSet);
-                    String methodMenusSetPlusIs = "is" + methodMinusSet;
-
-                    if (fieldNames.contains(methodMinusSet)) { // mPerson -> setmPerson
-                        expectedSetters.remove(methodMinusSet);
-                        if (!ignoreFieldNames.contains(methodMinusSet)) {
-                            setters.put(methodMinusSet, methodName);
-                        }
-                        found = true;
-                    } else if (fieldNames.contains(methodMinusSetCapitalised)) { // person -> setPerson
-                        expectedSetters.remove(methodMinusSetCapitalised);
-                        if (!ignoreFieldNames.contains(methodMinusSetCapitalised)) {
-                            setters.put(methodMinusSetCapitalised, methodName);
-                        }
-                        found = true;
-                    } else if (fieldNames.contains(methodMenusSetPlusIs)) { // isReady -> setReady
-                        expectedSetters.remove(methodMenusSetPlusIs);
-                        if (!ignoreFieldNames.contains(methodMenusSetPlusIs)) {
-                            setters.put(methodMenusSetPlusIs, methodName);
-                        }
-                        found = true;
-                    }
-
-                    if (!found) {
-                        note(String.format("Setter %s is not associated to any field", methodName));
-                    }
-                } else {
-                    error("Only getters and setters should be defined in model classes", executableElement);
-                }
-            }
-
-            if (!hasDefaultConstructor) {
-                error("A default public constructor with no argument must be declared if a custom constructor is declared.");
-            }
-
-            for (String expectedGetter : expectedGetters) {
-                error("No getter found for field " + expectedGetter);
-                getters.put(expectedGetter, "");
-            }
-
-            for (String expectedSetter : expectedSetters) {
-                error("No setter found for field " + expectedSetter);
-                setters.put(expectedSetter, "");
-            }
-
-            RealmProxyClassGenerator sourceCodeGenerator =
-                    new RealmProxyClassGenerator(processingEnv, className, packageName, fields, getters, setters, indexedFields, primaryKey);
+            RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, metadata);
             try {
                 sourceCodeGenerator.generate();
             } catch (IOException e) {
-                error(e.getMessage(), classElement);
-                return true;
-            }
+                Utils.error(e.getMessage(), classElement);
+            } catch (UnsupportedOperationException e) {
+                Utils.error(e.getMessage(), classElement);
+			}
         }
 
         if (!hasProcessedModules) {
@@ -385,14 +158,14 @@ public class RealmProcessor extends AbstractProcessor {
         Set<String> libraryModules = new HashSet<String>();
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmModule.class)) {
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
-                error("The RealmModule annotation can only be applied to classes", classElement);
+                Utils.error("The RealmModule annotation can only be applied to classes", classElement);
             }
 
             // Check that the class extends RealmClassCollection
             TypeElement typeElement = (TypeElement) classElement;
             TypeElement parentElement = (TypeElement) processingEnv.getTypeUtils().asElement(typeElement.getSuperclass());
             if (!parentElement.toString().endsWith(".RealmCollectionClass")) {
-                error("A RealmModule annotated object must be derived from RealmCollectionClass", classElement);
+                Utils.error("A RealmModule annotated object must be derived from RealmCollectionClass", classElement);
             }
 
             RealmModule module = classElement.getAnnotation(RealmModule.class);
@@ -404,20 +177,19 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         if (modules.size() > 0 && libraryModules.size() > 0) {
-            error("Normal modules and library modules cannot be mixed in the same project");
+            Utils.error("Normal modules and library modules cannot be mixed in the same project");
             return true;
         }
 
         // Create DefaultModule if needed
         if (libraryModules.size() == 0 ) {
-            note("Creating DefaultRealmModule");
+            Utils.note("Creating DefaultRealmModule");
             DefaultModuleGenerator defaultModuleGenerator = new DefaultModuleGenerator(processingEnv, classesToValidate);
             try {
                 defaultModuleGenerator.generate();
                 modules.add(DefaultModuleGenerator.CLASS_NAME);
             } catch (IOException e) {
-                error(e.getMessage());
-                return true;
+                Utils.error(e.getMessage());
             }
         }
 
@@ -434,10 +206,10 @@ public class RealmProcessor extends AbstractProcessor {
 
         RealmProxyMediatorGenerator mediatorImplGenerator = new RealmProxyMediatorGenerator(processingEnv, proxyMediatorName, classesToValidate);
         try {
-            note("Creating RealmProxyMediator");
+            Utils.note("Creating RealmProxyMediator");
             mediatorImplGenerator.generate();
         } catch (IOException e) {
-            error(e.getMessage());
+            Utils.error(e.getMessage());
             return true;
         }
 
@@ -448,22 +220,10 @@ public class RealmProcessor extends AbstractProcessor {
             try {
                 binderGenerator.generate();
             } catch (IOException e) {
-                error(e.getMessage());
+                Utils.error(e.getMessage());
                 return true;
             }
         }
         return false;
-    }
-
-    private void error(String message, Element element) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message, element);
-    }
-
-    private void error(String message) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, message);
-    }
-
-    private void note(String message) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, message);
     }
 }

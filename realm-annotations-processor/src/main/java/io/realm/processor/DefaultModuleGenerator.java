@@ -38,9 +38,9 @@ public class DefaultModuleGenerator {
     public static final String CLASS_NAME = "DefaultRealmModule";
 
     private final ProcessingEnvironment env;
-    private final Set<String> qualifiedRealmClasses;
+    private final Set<ClassMetaData> qualifiedRealmClasses;
 
-    public DefaultModuleGenerator(ProcessingEnvironment env, Set<String> qualifiedRealmClasses) {
+    public DefaultModuleGenerator(ProcessingEnvironment env, Set<ClassMetaData> qualifiedRealmClasses) {
         this.env = env;
         this.qualifiedRealmClasses = qualifiedRealmClasses;
     }
@@ -54,11 +54,14 @@ public class DefaultModuleGenerator {
         writer.emitPackage(REALM_PACKAGE_NAME);
         writer.emitEmptyLine();
         writer.emitImports(
-            "java.util.Collections",
-            "java.util.HashSet",
-            "java.util.Set",
-            "io.realm.internal.modules.RealmClassCollection"
+                "java.util.Collections",
+                "java.util.HashSet",
+                "java.util.Set",
+                "io.realm.internal.modules.RealmClassCollection"
         );
+        for (ClassMetaData metadata : qualifiedRealmClasses) {
+            writer.emitImports(metadata.getFullyQualifiedClassName());
+        }
         writer.emitEmptyLine();
 
         writer.beginType(
@@ -79,8 +82,8 @@ public class DefaultModuleGenerator {
         writer.emitField("Set<Class<? extends RealmObject>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
         writer.emitStatement("Set<Class<? extends RealmObject>> modelClasses = new HashSet<Class<? extends RealmObject>>()");
-        for (String clazz : qualifiedRealmClasses) {
-            writer.emitStatement("modelClasses.add(%s.class)", clazz);
+        for (ClassMetaData metadata: qualifiedRealmClasses) {
+            writer.emitStatement("modelClasses.add(%s.class)", metadata.getSimpleClassName());
         }
         writer.emitStatement("MODEL_CLASSES = Collections.unmodifiableSet(modelClasses)");
         writer.endInitializer();

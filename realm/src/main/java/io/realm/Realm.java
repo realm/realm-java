@@ -163,6 +163,9 @@ public final class Realm implements Closeable {
     private final String path;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
+
+    // Maps classes to the name of the proxied class. Examples: Dog.class -> Dog, DogRealmProxy -> Dog
+    private final Map<Class<?>, String> proxiedClassNames = new HashMap<Class<?>, String>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private static final Set<Class<? extends RealmObject>> customSchema = new HashSet<Class<? extends RealmObject>>();
     private static RealmClassCollection defaultModule = getDefaultModule();
@@ -207,8 +210,8 @@ public final class Realm implements Closeable {
     protected void finalize() throws Throwable {
         if (sharedGroup != null) {
             RealmLog.w("Remember to call close() on all Realm instances. " +
-                    "Realm " + path + " is being finalized without being closed, " +
-                    "this can lead to running out of native memory."
+                            "Realm " + path + " is being finalized without being closed, " +
+                            "this can lead to running out of native memory."
             );
         }
         super.finalize();
@@ -314,6 +317,9 @@ public final class Realm implements Closeable {
 
     // Public because of migrations
     public Table getTable(Class<? extends RealmObject> clazz) {
+        if (!clazz.getSuperclass().equals(RealmObject.class)) {
+            clazz = (Class<? extends RealmObject>) clazz.getSuperclass();
+        }
         return transaction.getTable(proxyMediator.getTableName(clazz));
     }
 
@@ -951,17 +957,12 @@ public final class Realm implements Closeable {
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
      */
-    @Deprecated
     public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
         if (destination == null) {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
         checkIfValid();
-        if (key != null) {
-            throw new RealmException("This method has been disabled");
-        } else {
-            transaction.writeToFile(destination, key);
-        }
+        transaction.writeToFile(destination, key);
     }
 
 
