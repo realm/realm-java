@@ -15,3 +15,7 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-keep @io.realm.annotations.internal.RealmModule public class *
+-dontwarn javax.**
+-dontwarn io.realm.**

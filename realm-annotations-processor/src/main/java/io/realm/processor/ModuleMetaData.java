@@ -16,7 +16,6 @@
 
 package io.realm.processor;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

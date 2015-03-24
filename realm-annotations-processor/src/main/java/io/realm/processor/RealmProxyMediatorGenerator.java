@@ -25,12 +25,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
+
+import io.realm.annotations.internal.RealmModule;
 
 public class RealmProxyMediatorGenerator {
     private final String className;
@@ -82,7 +86,7 @@ public class RealmProxyMediatorGenerator {
 
         writer.emitEmptyLine();
 
-        // Begin the class definition
+        writer.emitAnnotation(RealmModule.class);
         writer.beginType(
                 qualifiedGeneratedClassName,        // full qualified name of the item to generate
                 "class",                            // the type of the item
