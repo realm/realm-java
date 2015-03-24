@@ -41,6 +41,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1048,6 +1049,31 @@ public final class Realm implements Closeable {
         transaction.writeToFile(destination, key);
     }
 
+    /* Create a table to the Realm if the class/table hasn't been used before */
+    private <E extends RealmObject> Table createTable(Class<E> clazz) {
+        Class<?> generatedClass = getProxyClass(clazz);
+
+        Method method = initTableMethods.get(generatedClass);
+        if (method == null) {
+            try {
+                method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
+            } catch (NoSuchMethodException e) {
+                throw new RealmException("Could not find the initTable() method in generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
+            }
+            initTableMethods.put(generatedClass, method);
+        }
+
+        try {
+            Table table = (Table) method.invoke(null, transaction);
+            tables.put(clazz, table);
+            return table;
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not launch the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+            throw new RealmException("An exception occurred while running the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
+        }
+    }
 
     /**
      * Instantiates and adds a new object to the realm
@@ -1060,30 +1086,70 @@ public final class Realm implements Closeable {
         Table table;
         table = tables.get(clazz);
         if (table == null) {
-            Class<?> generatedClass = getProxyClass(clazz);
-
-            Method method = initTableMethods.get(generatedClass);
-            if (method == null) {
-                try {
-                    method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
-                } catch (NoSuchMethodException e) {
-                    throw new RealmException("Could not find the initTable() method in generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
-                }
-                initTableMethods.put(generatedClass, method);
-            }
-
-            try {
-                table = (Table) method.invoke(null, transaction);
-                tables.put(clazz, table);
-            } catch (IllegalAccessException e) {
-                throw new RealmException("Could not launch the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-                throw new RealmException("An exception occurred while running the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
-            }
+            table = createTable(clazz);
         }
 
         long rowIndex = table.addEmptyRow();
+        return get(clazz, rowIndex);
+    }
+
+    /**
+     * Instantiates a new object, add it to the Realm and sets field values. Only fields of types
+     * boolean, short, int, long, float, double, String, and Date are supported.
+     *
+     * @param clazz The Class of the object to create
+     * @param values Key/value pairs with field names as keys. Missing field names are silently
+     *               ignored.
+     * @return The new object
+     * @throws java.lang.IllegalArgumentException if a field name does not exist or value is of the
+     *                                            wrong type.
+     */
+    public <E extends RealmObject> E createObjectWithValues(Class<E> clazz, HashMap<String, Object> values) {
+        checkIfValid();
+        Table table = tables.get(clazz);
+        if (table == null) {
+            table = createTable(clazz);
+        }
+        long rowIndex = table.addEmptyRow();
+        for (String key : values.keySet()) {
+            long columnIndex = table.getColumnIndex(key);
+            if (columnIndex == -1) {
+                throw new IllegalArgumentException(String.format("Field '%s' does not exist in class '%s'.",
+                        key, clazz.getCanonicalName()));
+            }
+            ColumnType columnType = table.getColumnType(columnIndex);
+            Object object = values.get(key);
+            if (columnType.matchObject(object)) {
+                switch (columnType) {
+                    case BOOLEAN:
+                        table.setBoolean(columnIndex, rowIndex, ((Boolean) object).booleanValue());
+                        break;
+                    case INTEGER:
+                        table.setLong(columnIndex, rowIndex, ((Long) object).longValue());
+                        break;
+                    case FLOAT:
+                        table.setFloat(columnIndex, rowIndex, ((Float) object).floatValue());
+                        break;
+                    case DOUBLE:
+                        table.setDouble(columnIndex, rowIndex, ((Double) object).doubleValue());
+                        break;
+                    case STRING:
+                        table.setString(columnIndex, rowIndex, (String) object);
+                        break;
+                    case DATE:
+                        table.setDate(columnIndex, rowIndex, (Date) object);
+                        break;
+                    case BINARY:
+                    case TABLE:
+                    case MIXED:
+                    case LINK:
+                    case LINK_LIST:
+                        throw new IllegalArgumentException(String.format("Type '%s' is not supported", columnType));
+                }
+            } else {
+                throw new IllegalArgumentException(String.format("Field '%s' has type '%s'.", key, columnType));
+            }
+        }
         return get(clazz, rowIndex);
     }
 
