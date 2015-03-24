@@ -55,7 +55,7 @@ public class RealmProxyMediatorGenerator {
     }
 
     public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format("%s.%s", REALM_PACKAGE_NAME, className);
+        String qualifiedGeneratedClassName = String.format("%s.%sMediator", REALM_PACKAGE_NAME, className);
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         writer.setIndent("    ");
@@ -92,7 +92,6 @@ public class RealmProxyMediatorGenerator {
         writer.emitEmptyLine();
 
         emitFields(writer);
-        emitSingletonConstructor(writer);
         emitCreateTableMethod(writer);
         emitValidateTableMethod(writer);
         emitGetFieldNamesMethod(writer);
@@ -108,7 +107,6 @@ public class RealmProxyMediatorGenerator {
     }
 
     private void emitFields(JavaWriter writer) throws IOException {
-        writer.emitField("RealmProxyMediator", "instance", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
         writer.emitField("List<Class<? extends RealmObject>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
         writer.emitStatement("List<Class<? extends RealmObject>> modelClasses = new ArrayList<Class<? extends RealmObject>>()");
@@ -117,20 +115,6 @@ public class RealmProxyMediatorGenerator {
         }
         writer.emitStatement("MODEL_CLASSES = Collections.unmodifiableList(modelClasses)");
         writer.endInitializer();
-        writer.emitEmptyLine();
-    }
-
-    private void emitSingletonConstructor(JavaWriter writer) throws IOException {
-        writer.beginConstructor(EnumSet.of(Modifier.PRIVATE));
-        writer.endConstructor();
-        writer.emitEmptyLine();
-        writer
-            .beginMethod("RealmProxyMediator", "getInstance", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC, Modifier.SYNCHRONIZED))
-                .beginControlFlow("if (instance == null)")
-                    .emitStatement("instance = new %s()", className)
-                .endControlFlow()
-                .emitStatement("return instance")
-            .endMethod();
         writer.emitEmptyLine();
     }
 

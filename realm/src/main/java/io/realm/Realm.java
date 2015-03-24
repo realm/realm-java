@@ -39,7 +39,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,8 +62,7 @@ import io.realm.internal.TableView;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
-import io.realm.internal.modules.FilterableClassCollection;
-import io.realm.internal.modules.RealmClassCollection;
+import io.realm.internal.modules.FilterableMediator;
 
 
 /**
@@ -146,7 +144,6 @@ public final class Realm implements Closeable {
 
     // Maps ids to a boolean set to true if the Realm is open. This is only needed by deleteRealmFile
     private static final Map<Integer, AtomicInteger> openRealms = new ConcurrentHashMap<Integer, AtomicInteger>();
-    private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
     private static final String INVALID_KEY_MESSAGE = "The provided key is invalid. It should either be null or be 64" +
@@ -164,12 +161,9 @@ public final class Realm implements Closeable {
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
 
-    // Maps classes to the name of the proxied class. Examples: Dog.class -> Dog, DogRealmProxy -> Dog
-    private final Map<Class<?>, String> proxiedClassNames = new HashMap<Class<?>, String>();
     private final List<RealmChangeListener> changeListeners = new ArrayList<RealmChangeListener>();
     private static final Set<Class<? extends RealmObject>> customSchema = new HashSet<Class<? extends RealmObject>>();
-    private static RealmClassCollection defaultModule = getDefaultModule();
-    private static RealmProxyMediator proxyMediator;
+    private static RealmProxyMediator proxyMediator = getDefaultMediator();
 
     private static final long UNVERSIONED = -1;
 
@@ -254,21 +248,21 @@ public final class Realm implements Closeable {
         handlers.remove(handler);
     }
 
-    private static RealmClassCollection getDefaultModule() {
+    private static RealmProxyMediator getDefaultMediator() {
         Class<?> clazz;
         try {
-            clazz = Class.forName("io.realm.DefaultRealmModuleBinder");
+            clazz = Class.forName("io.realm.DefaultRealmModuleMediator");
             Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
             constructor.setAccessible(true);
-            return (RealmClassCollection) constructor.newInstance();
+            return (RealmProxyMediator) constructor.newInstance();
         } catch (ClassNotFoundException e) {
-            throw new RealmException("Could not find io.realm.DefaultRealmModuleBinder", e);
+            throw new RealmException("Could not find io.realm.DefaultRealmModuleMediator", e);
         } catch (InvocationTargetException e) {
-            throw new RealmException("Could not create an instance of io.realm.DefaultRealmModuleBinder", e);
+            throw new RealmException("Could not create an instance of io.realm.DefaultRealmModuleMediator", e);
         } catch (InstantiationException e) {
-            throw new RealmException("Could not create an instance of io.realm.DefaultRealmModuleBinder", e);
+            throw new RealmException("Could not create an instance of io.realm.DefaultRealmModuleMediator", e);
         } catch (IllegalAccessException e) {
-            throw new RealmException("Could not create an instance of io.realm.DefaultRealmModuleBinder", e);
+            throw new RealmException("Could not create an instance of io.realm.DefaultRealmModuleMediator", e);
         }
     }
 
@@ -540,8 +534,6 @@ public final class Realm implements Closeable {
 
     @SuppressWarnings("unchecked")
     private static void initializeRealm(Realm realm) {
-        proxyMediator = defaultModule.getProxyMediator();
-
         long version = realm.getVersion();
         boolean commitNeeded = false;
         try {
@@ -551,7 +543,7 @@ public final class Realm implements Closeable {
                 commitNeeded = true;
             }
 
-            for (Class<? extends RealmObject> modelClass : defaultModule.getModuleClasses()) {
+            for (Class<? extends RealmObject> modelClass : proxyMediator.getModelClasses()) {
                 String modelClassName = modelClass.getSimpleName();
 
                 // Create and validate table
@@ -1111,7 +1103,7 @@ public final class Realm implements Closeable {
     }
 
     boolean contains(Class<? extends RealmObject> clazz) {
-        return defaultModule.getModuleClasses().contains(clazz);
+        return proxyMediator.getModelClasses().contains(clazz);
     }
 
     /**
@@ -1623,10 +1615,10 @@ public final class Realm implements Closeable {
     static void setSchema(Class<? extends RealmObject>... schemaClass) {
         if (schemaClass != null) {
             // Filter default schema
-            defaultModule = new FilterableClassCollection(defaultModule, Arrays.asList(schemaClass));
-        } else if (defaultModule instanceof FilterableClassCollection) {
+            proxyMediator = new FilterableMediator(proxyMediator, Arrays.asList(schemaClass));
+        } else if (proxyMediator instanceof FilterableMediator) {
             // else reset filter if needed
-            defaultModule = ((FilterableClassCollection) defaultModule).getOriginalCollection();
+            proxyMediator = ((FilterableMediator) proxyMediator).getOriginalMediator();
         }
     }
 

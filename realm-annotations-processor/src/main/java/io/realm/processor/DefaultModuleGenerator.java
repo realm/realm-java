@@ -22,11 +22,15 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
+
+import io.realm.annotations.internal.RealmModule;
 
 /**
  * This class is responsible for creating the DefaultRealmModule that contains all known
@@ -34,72 +38,33 @@ import javax.tools.JavaFileObject;
  */
 public class DefaultModuleGenerator {
 
-    public static final String REALM_PACKAGE_NAME = "io.realm";
-    public static final String CLASS_NAME = "DefaultRealmModule";
-
     private final ProcessingEnvironment env;
-    private final Set<ClassMetaData> qualifiedRealmClasses;
 
-    public DefaultModuleGenerator(ProcessingEnvironment env, Set<ClassMetaData> qualifiedRealmClasses) {
+    public DefaultModuleGenerator(ProcessingEnvironment env) {
         this.env = env;
-        this.qualifiedRealmClasses = qualifiedRealmClasses;
     }
 
     public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format("%s.%s", REALM_PACKAGE_NAME, CLASS_NAME);
+        String qualifiedGeneratedClassName = String.format("%s.%s", Constants.REALM_PACKAGE_NAME, Constants.DEFAULT_MODULE_CLASS_NAME);
         JavaFileObject sourceFile = env.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         writer.setIndent("    ");
 
-        writer.emitPackage(REALM_PACKAGE_NAME);
-        writer.emitEmptyLine();
-        writer.emitImports(
-                "java.util.Collections",
-                "java.util.HashSet",
-                "java.util.Set",
-                "io.realm.internal.modules.RealmClassCollection"
-        );
-        for (ClassMetaData metadata : qualifiedRealmClasses) {
-            writer.emitImports(metadata.getFullyQualifiedClassName());
-        }
+        writer.emitPackage(Constants.REALM_PACKAGE_NAME);
         writer.emitEmptyLine();
 
+        Map<String, Boolean> attributes = new HashMap<String, Boolean>();
+        attributes.put("allClasses", Boolean.TRUE);
+        writer.emitAnnotation(RealmModule.class, attributes);
         writer.beginType(
                 qualifiedGeneratedClassName,        // full qualified name of the item to generate
                 "class",                            // the type of the item
                 Collections.<Modifier>emptySet(),   // modifiers to apply
-                "RealmClassCollection");            // class to extend
+                null);                              // class to extend
         writer.emitEmptyLine();
-
-        emitFields(writer);
-        emitGetModuleClasses(writer);
 
         writer.endType();
         writer.close();
-    }
-
-    private void emitFields(JavaWriter writer) throws IOException {
-        writer.emitField("Set<Class<? extends RealmObject>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
-        writer.beginInitializer(true);
-        writer.emitStatement("Set<Class<? extends RealmObject>> modelClasses = new HashSet<Class<? extends RealmObject>>()");
-        for (ClassMetaData metadata: qualifiedRealmClasses) {
-            writer.emitStatement("modelClasses.add(%s.class)", metadata.getSimpleClassName());
-        }
-        writer.emitStatement("MODEL_CLASSES = Collections.unmodifiableSet(modelClasses)");
-        writer.endInitializer();
-        writer.emitEmptyLine();
-    }
-
-    private void emitGetModuleClasses(JavaWriter writer) throws IOException {
-        writer.emitAnnotation("Override");
-        writer.beginMethod(
-                "Set<Class<? extends RealmObject>>",
-                "getModuleClasses",
-                EnumSet.of(Modifier.PUBLIC)
-        );
-        writer.emitStatement("return MODEL_CLASSES");
-        writer.endMethod();
-        writer.emitEmptyLine();
     }
 }
 

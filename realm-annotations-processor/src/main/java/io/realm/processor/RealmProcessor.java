@@ -18,8 +18,8 @@ package io.realm.processor;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -30,48 +30,41 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
 import io.realm.annotations.RealmClass;
-import io.realm.annotations.internal.RealmModule;
 
 /**
  * The RealmProcessor is responsible for creating the plumbing that connects the RealmObjects to a Realm. The process
- * for doing so is summarized below and then described in more detail:
+ * for doing so is summarized below and then described in more detail.
  *
- * SUMMARY:
+ *
+ * SUMMARY
+ *
  * 1 ) Create proxy classes for all classes marked with @RealmClass. They are named <modelClass>RealmProxy.java
- * 2 ) Create a RealmProxyMediator that can map between model classes and static helper methods in the proxy classes.
- *     It is named <UUID>.java
- * 3 ) Create a binder class for all classes marked with @RealmModule. They are named <moduleName>Binder.java
- * 4 ) Create DefaultRealmModule if no custom library module is defined.
- * 5 ) Create DefaultRealmModuleBinder if needed.
- *
+ * 2 ) Create a DefaultRealmModule if needed.
+ * 3 ) Create a RealmProxyMediator class for all classes marked with @RealmModule. They are named
+ *     <moduleName>Mediator.java
  *
  * WHY:
- * *
+ *
  * 1) A RealmObjectProxy object is created for each class annotated with {@link io.realm.annotations.RealmClass}. This
- * proxy extends the original model class and rewires all field access to point to the native Realm data instead of Java
- * objects. It also adds a lot of static helper methods to the class.
+ * proxy extends the original model class and rewires all field access to point to the native Realm memory instead of
+ * Java memory. It also adds a lot of static helper methods to the class.
  *
- * 2) A RealmProxyMediator class is generated. This class has an interface that matches the static helper methods for
- * the proxy classes. All access to to these static helper methods should be done through this RealmProxyMediator.
- *
- * This is done as Realm otherwise would have no other option than using reflection for accessing the static methods
- * as they are not known until after the annotation processor has run. It also allows ProGuard to obfuscate all model
- * classes as all access to the methods happen through the RealmProxyMediator.
- *
- * To allow Realm to be used in both library projects and app code, the RealmProxyMediator will be given a random name,
- * a UUID.
- *
- * 3) For each class annotated with @RealmModule a matching Binder class is created. The purpose of the Binder class
- * is to add a reference to the created RealmProxyMediator. This is done by extending the original module class and
- * overriding a getter method. All modules should extend the class RealmClassCollection.
- *
- * 4) The annotation processor is is either in "library" mode or in "app" mode. This is defined by having a class
+ * 2) The annotation processor is either in "library" mode or in "app" mode. This is defined by having a class
  * annotated with @RealmModule(library = true). Modules with library = true and library = false cannot be mixed, and
  * will throw an error. If no library modules are defined, we will create a DefaultRealmModule containing all known
- * RealmObjects. Realm automatically knows about this module.
+ * RealmObjects and with the @RealmModule annotation. Realm automatically knows about this module, while still allowing
+ * users to create different modules in the same app code.
  *
- * 5) Just like in step 3, a Binder class is created for the Default module if needed.
+ * 3) For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
+ * class has an interface that matches the static helper methods for the proxy classes. All access to these static
+ * helper methods should be done through this Mediator. Java 8 has support for interface static methods, but we can't
+ * use that yet :(
  *
+ * This allows ProGuard to obfuscate all model classes as all access to the methods happen through the Mediator, and
+ * the only requirement is then that the RealmModule and Mediator classes cannot be obfuscated.
+ *
+ *
+ * CREATING A REALM
  *
  * This means the workflow when instantiating a Realm on runtime is the following:
  *
@@ -79,13 +72,12 @@ import io.realm.annotations.internal.RealmModule;
  *
  * 2) It is assigned one or more modules. If no module is assigned, the default module is used.
  *
- * 3) From each module Realm retrieves the available classes and the RealmProxyMediator associated with these classes.
- *
  * 4) Each time a static helper method is needed, the Realm can now delegate these method calls to the appropriate
- *    RealmProxyMediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.
+ *    Mediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.
  *
  *
- * DESIGN GOALS:
+ * DESIGN GOALS
+ *
  * While the above process might seem overly complicated it is necessary if we want to support the following design
  * goals:
  *
@@ -99,7 +91,8 @@ import io.realm.annotations.internal.RealmModule;
         "io.realm.annotations.RealmClass",
         "io.realm.annotations.Ignore",
         "io.realm.annotations.Index",
-        "io.realm.annotations.PrimaryKey"
+        "io.realm.annotations.PrimaryKey",
+        "io.realm.annotations.internal.RealmModule"
 })
 public class RealmProcessor extends AbstractProcessor {
 
@@ -128,7 +121,7 @@ public class RealmProcessor extends AbstractProcessor {
                 continue;
             }
             Utils.note("Processing class " + metadata.getSimpleClassName());
-            boolean success = metadata.generateMetaData(processingEnv.getMessager());
+            boolean success = metadata.generate();
             if (!success) {
                 return true; // Abort processing by claiming all annotations
             }
@@ -152,78 +145,54 @@ public class RealmProcessor extends AbstractProcessor {
         return true;
     }
 
+    // Returns true if modules was processed successfully, false otherwise
     private boolean processModules(RoundEnvironment roundEnv) {
-        // Check that modules are setup correctly
-        Set<String> modules = new HashSet<String>();
-        Set<String> libraryModules = new HashSet<String>();
-        for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmModule.class)) {
-            if (!classElement.getKind().equals(ElementKind.CLASS)) {
-                Utils.error("The RealmModule annotation can only be applied to classes", classElement);
-            }
 
-            // Check that the class extends RealmClassCollection
-            TypeElement typeElement = (TypeElement) classElement;
-            TypeElement parentElement = (TypeElement) processingEnv.getTypeUtils().asElement(typeElement.getSuperclass());
-            if (!parentElement.toString().endsWith(".RealmCollectionClass")) {
-                Utils.error("A RealmModule annotated object must be derived from RealmCollectionClass", classElement);
-            }
+        ModuleMetaData moduleMetaData = new ModuleMetaData(roundEnv, classesToValidate);
+        if (!moduleMetaData.generate(processingEnv)) {
+            return false;
+        }
 
-            RealmModule module = classElement.getAnnotation(RealmModule.class);
-            if (module.library()) {
-                libraryModules.add(((TypeElement) classElement).getQualifiedName().toString());
-            } else {
-                modules.add(((TypeElement) classElement).getQualifiedName().toString());
+        // Create default module if needed
+        if (moduleMetaData.shouldCreateDefaultModule()) {
+            if (!createDefaultModule()) {
+                return false;
+            };
+        }
+
+        // Create RealmProxyMediators for all Realm modules
+        for (Map.Entry<String, Set<ClassMetaData>> entry : moduleMetaData.getAllModules().entrySet()) {
+            if (createMediator(Utils.stripPackage(entry.getKey()), entry.getValue())) {
+                return false;
             }
         }
 
-        if (modules.size() > 0 && libraryModules.size() > 0) {
-            Utils.error("Normal modules and library modules cannot be mixed in the same project");
-            return true;
-        }
+        return true;
+    }
 
-        // Create DefaultModule if needed
-        if (libraryModules.size() == 0 ) {
-            Utils.note("Creating DefaultRealmModule");
-            DefaultModuleGenerator defaultModuleGenerator = new DefaultModuleGenerator(processingEnv, classesToValidate);
-            try {
-                defaultModuleGenerator.generate();
-                modules.add(DefaultModuleGenerator.CLASS_NAME);
-            } catch (IOException e) {
-                Utils.error(e.getMessage());
-            }
-        }
-
-        // Create ProxyMediator for all RealmClasses in this project.
-        String proxyMediatorName;
-        if (libraryModules.size() > 0) {
-            // Autogenerate random name for library module RealmProxyMediator classes
-            // This should prevent conflicts with other libraries
-            proxyMediatorName = UUID.randomUUID().toString().replace("-", "");
-        } else {
-            // Default RealmProxyMediator only used by "app" code
-            proxyMediatorName = "DefaultRealmProxyMediator";
-        }
-
-        RealmProxyMediatorGenerator mediatorImplGenerator = new RealmProxyMediatorGenerator(processingEnv, proxyMediatorName, classesToValidate);
+    private boolean createDefaultModule() {
+        Utils.note("Creating DefaultRealmModule");
+        DefaultModuleGenerator defaultModuleGenerator = new DefaultModuleGenerator(processingEnv);
         try {
-            Utils.note("Creating RealmProxyMediator");
+            defaultModuleGenerator.generate();
+        } catch (IOException e) {
+            Utils.error(e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean createMediator(String simpleModuleName, Set<ClassMetaData> moduleClasses) {
+        RealmProxyMediatorGenerator mediatorImplGenerator = new RealmProxyMediatorGenerator(processingEnv,
+                simpleModuleName, moduleClasses);
+        try {
             mediatorImplGenerator.generate();
         } catch (IOException e) {
             Utils.error(e.getMessage());
-            return true;
+            return false;
         }
 
-        // Create Binder classes for all modules
-        Set<String> binders = (modules.size() > 0) ? modules : libraryModules;
-        for (String binder : binders) {
-            ModuleBinderGenerator binderGenerator = new ModuleBinderGenerator(processingEnv, Utils.stripPackage(binder), proxyMediatorName);
-            try {
-                binderGenerator.generate();
-            } catch (IOException e) {
-                Utils.error(e.getMessage());
-                return true;
-            }
-        }
-        return false;
+        return true;
     }
 }
