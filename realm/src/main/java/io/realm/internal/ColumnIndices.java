@@ -25,7 +25,7 @@ import io.realm.RealmObject;
 /**
  * Utility class used to cache the mapping between object field names and their column indices.
  */
-public class ColumnIndicies {
+public class ColumnIndices {
 
     private Map<Class<? extends RealmObject>, Map<String, Long>> classes = new HashMap<Class<? extends RealmObject>, Map<String, Long>>();
 

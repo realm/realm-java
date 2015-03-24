@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnIndicies;
+import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmJson;
@@ -178,7 +178,7 @@ public final class Realm implements Closeable {
     private static final long UNVERSIONED = -1;
 
     // Package protected to be reachable by proxy classes
-    static final ColumnIndicies columnIndices = new ColumnIndicies();
+    static final ColumnIndices columnIndices = new ColumnIndices();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
