@@ -12,20 +12,10 @@ android {
         versionName "1.0"
     }
 
-    signingConfigs {
-        release {
-            storeFile file("keystore/release.keystore")
-            storePassword "realm1234"
-            keyAlias "realm-introexample"
-            keyPassword "realm1234"
-        }
-    }
-
     buildTypes {
         release {
-            minifyEnabled true
-            signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled false
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
