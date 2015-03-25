@@ -1,3 +1,6 @@
+0.81
+ * Fixed bug causing Realms to be cached even though they failed to open correctly.
+
 0.80
 * Queries on relationships can be case sensitive.
 * Fixed bug when importing JSONObjects containing NULL values.

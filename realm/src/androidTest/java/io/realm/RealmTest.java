@@ -170,7 +170,25 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-
+    public void testGetInstanceClearsCacheWhenFailed() {
+        String REALM_NAME = "invalid_cache.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Random random = new Random();
+        byte[] key = new byte[64];
+        random.nextBytes(key);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key); // Create starting Realm with key1
+        realm.close();
+        random.nextBytes(key);
+        try {
+            Realm.getInstance(getContext(), REALM_NAME, key); // Try to open with key 2
+        } catch (IllegalArgumentException expected) {
+            // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
+            // if initialization failed.
+            assertTrue(Realm.deleteRealmFile(getContext(), REALM_NAME));
+            Realm.getInstance(getContext(), REALM_NAME, key);
+            realm.close();
+        }
+    }
 
     public void testRealmCache() {
         Realm newRealm = Realm.getInstance(getContext());
