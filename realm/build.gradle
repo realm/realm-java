@@ -61,7 +61,7 @@ android.libraryVariants.all { variant ->
 
 task androidJar(type: Jar, dependsOn: ['assemble']) {
     group 'Build'
-    description 'Generates a jar file continaining Realm and its annotation processor'
+    description 'Generates a jar file containing Realm and its annotation processor'
     from zipTree('build/intermediates/bundles/release/classes.jar')
     from zipTree("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
     from zipTree("../realm-annotations/build/libs/realm-annotations-${version}.jar")
@@ -143,7 +143,7 @@ if (version.endsWith('-SNAPSHOT')) { // Only publish if it's a snapshot version
 
 task buildApt(type: GradleBuild) {
     dir = file('../realm-annotations-processor')
-    tasks = ['assemble']
+    tasks = ['shadowJar']
 }
 
 task compileJni(type: GradleBuild) {

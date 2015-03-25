@@ -170,7 +170,25 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-
+    public void testGetInstanceClearsCacheWhenFailed() {
+        String REALM_NAME = "invalid_cache.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Random random = new Random();
+        byte[] key = new byte[64];
+        random.nextBytes(key);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key); // Create starting Realm with key1
+        realm.close();
+        random.nextBytes(key);
+        try {
+            Realm.getInstance(getContext(), REALM_NAME, key); // Try to open with key 2
+        } catch (IllegalArgumentException expected) {
+            // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
+            // if initialization failed.
+            assertTrue(Realm.deleteRealmFile(getContext(), REALM_NAME));
+            Realm.getInstance(getContext(), REALM_NAME, key);
+            realm.close();
+        }
+    }
 
     public void testRealmCache() {
         Realm newRealm = Realm.getInstance(getContext());
@@ -1327,7 +1345,7 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(key1 != key2);
 
         final String ENCRYPTED_REALM = "differentKeys.realm";
-
+        Realm.deleteRealmFile(getContext(), ENCRYPTED_REALM);
         Realm realm1 = null;
         Realm realm2 = null;
         try {
@@ -1348,8 +1366,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    // TODO Enable once copy to encrypted Realm works again
-    public void disableTestWriteEncryptedCopy() throws Exception {
+    public void testWriteEncryptedCopy() throws Exception {
         populateTestRealm();
         long before = testRealm.where(AllTypes.class).count();
         assertEquals(TEST_DATA_SIZE, before);
@@ -1484,5 +1501,32 @@ public class RealmTest extends AndroidTestCase {
         } catch (IllegalStateException ignored) {
         }
 
+    }
+
+    public void testUpdateObjectWithLinks() throws Exception {
+        testRealm.beginTransaction();
+
+        // Create an owner with two dogs
+        OwnerPrimaryKey owner = testRealm.createObject(OwnerPrimaryKey.class);
+        owner.setId(1);
+        owner.setName("Jack");
+        Dog rex = testRealm.createObject(Dog.class);
+        rex.setName("Rex");
+        Dog fido = testRealm.createObject(Dog.class);
+        fido.setName("Fido");
+        owner.getDogs().add(rex);
+        owner.getDogs().add(fido);
+        assertEquals(2, owner.getDogs().size());
+
+        // Changing the name of the owner should not affect the number of dogs
+        owner.setName("Peter");
+        assertEquals(2, owner.getDogs().size());
+
+        // Updating the user should not affect it either. This is actually a no-op since owner is a Realm backed object
+        OwnerPrimaryKey owner2 = testRealm.copyToRealmOrUpdate(owner);
+        assertEquals(2, owner.getDogs().size());
+        assertEquals(2, owner2.getDogs().size());
+
+        testRealm.commitTransaction();
     }
 }
