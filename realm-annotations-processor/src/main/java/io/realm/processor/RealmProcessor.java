@@ -36,12 +36,25 @@ import io.realm.annotations.RealmClass;
  * for doing so is summarized below and then described in more detail.
  *
  *
+ * DESIGN GOALS
+ *
+ * While the above process might seem overly complicated it is necessary if we want to support the following design
+ * goals:
+ *
+ * - Minimize reflection.
+ * - As much as possible can be obfuscated.
+ * - Library projects must be able to use Realm without interfering with app code.
+ * - App code must be able to use model classes provided by library code.
+ * - It should work for app developers out of the box (ie. put the burden on the library developer)
+ *
+ *
  * SUMMARY
  *
  * 1 ) Create proxy classes for all classes marked with @RealmClass. They are named <modelClass>RealmProxy.java
  * 2 ) Create a DefaultRealmModule if needed.
  * 3 ) Create a RealmProxyMediator class for all classes marked with @RealmModule. They are named
  *     <moduleName>Mediator.java
+ *
  *
  * WHY:
  *
@@ -51,7 +64,7 @@ import io.realm.annotations.RealmClass;
  *
  * 2) The annotation processor is either in "library" mode or in "app" mode. This is defined by having a class
  * annotated with @RealmModule(library = true). Modules with library = true and library = false cannot be mixed, and
- * will throw an error. If no library modules are defined, we will create a DefaultRealmModule containing all known
+ * will throw an exception. If no library modules are defined, we will create a DefaultRealmModule containing all known
  * RealmObjects and with the @RealmModule annotation. Realm automatically knows about this module, while still allowing
  * users to create different modules in the same app code.
  *
@@ -74,18 +87,6 @@ import io.realm.annotations.RealmClass;
  *
  * 4) Each time a static helper method is needed, the Realm can now delegate these method calls to the appropriate
  *    Mediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.
- *
- *
- * DESIGN GOALS
- *
- * While the above process might seem overly complicated it is necessary if we want to support the following design
- * goals:
- *
- * - Minimize reflection.
- * - As much as possible can be obfuscated.
- * - Library projects must be able to use Realm without interfering with app code.
- * - App code must be able to use model classes provided by library code.
- * - It should work for app developers out of the box (ie. put the burden on the library developer)
  */
 @SupportedAnnotationTypes({
         "io.realm.annotations.RealmClass",

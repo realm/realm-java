@@ -969,32 +969,6 @@ public final class Realm implements Closeable {
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
         Table table = getTable(clazz);
-//        table = tables.get(clazz);
-//        if (table == null) {
-//            Class<?> generatedClass = getProxyClass(clazz);
-//
-//
-//            Method method = initTableMethods.get(generatedClass);
-//            if (method == null) {
-//                try {
-//                    method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
-//                } catch (NoSuchMethodException e) {
-//                    throw new RealmException("Could not find the initTable() method in generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
-//                }
-//                initTableMethods.put(generatedClass, method);
-//            }
-//
-//            try {
-//                table = (Table) method.invoke(null, transaction);
-//                tables.put(clazz, table);
-//            } catch (IllegalAccessException e) {
-//                throw new RealmException("Could not launch the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
-//            } catch (InvocationTargetException e) {
-//                e.printStackTrace();
-//                throw new RealmException("An exception occurred while running the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
-//            }
-//        }
-
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
     }
