@@ -523,7 +523,6 @@ public final class Realm implements Closeable {
             } else {
                 counter.incrementAndGet();
             }
-
         }
 
         // Initialize Realm schema if needed
