@@ -1529,4 +1529,12 @@ public class RealmTest extends AndroidTestCase {
 
         testRealm.commitTransaction();
     }
+
+    public void testDeleteNonRealmFile() throws IOException {
+        File tmpFile = new File(getContext().getFilesDir(), "tmp");
+        tmpFile.delete();
+        assertTrue(tmpFile.createNewFile());
+        assertTrue(Realm.deleteRealmFile(tmpFile));
+        tmpFile.delete();
+    }
 }

@@ -1682,20 +1682,30 @@ public final class Realm implements Closeable {
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */
-    public static synchronized boolean deleteRealmFile(Context context, String fileName) {
+    public static boolean deleteRealmFile(Context context, String fileName) {
+        return deleteRealmFile(new File(context.getFilesDir(), fileName));
+    }
+
+    /**
+     * Delete the Realm file from the filesystem for a custom named Realm.
+     * The realm must be unused and closed before calling this method.
+     *
+     * @param realmFile The reference to the Realm file.
+     * @return false if a file could not be deleted. The failing file will be logged.
+     */
+    public static synchronized boolean deleteRealmFile(File realmFile) {
         boolean result = true;
-        File writableFolder = context.getFilesDir();
+        File realmFolder = realmFile.getParentFile();
+        String fileName = realmFile.getName();
 
-        File realmFile = new File(writableFolder, fileName);
         int realmId = realmFile.getAbsolutePath().hashCode();
-
         AtomicInteger counter = openRealms.get(realmId);
         if (counter != null && counter.get() > 0) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
                     "Remember to close() all the instances of the Realm before deleting its file.");
         }
 
-        List<File> filesToDelete = Arrays.asList(realmFile, new File(writableFolder, fileName + ".lock"));
+        List<File> filesToDelete = Arrays.asList(realmFile, new File(realmFolder, fileName + ".lock"));
         for (File fileToDelete : filesToDelete) {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
